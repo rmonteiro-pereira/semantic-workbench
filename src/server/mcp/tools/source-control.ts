@@ -178,17 +178,6 @@ const gitShow: ToolDefinition = {
 
 type CommitArguments = { project: string; message: string; files: { path: string; version: string }[]; expectedBranch: string; expectedHead: string | null; idempotencyKey: string };
 
-/** Refuses a commit on the published branch: what agents and people read changes only by publishing from the browser. */
-async function refuseOnPublishedBranch(args: CommitArguments, context: ToolContext): Promise<Record<string, unknown> | ToolResult> {
-  const called = await context.twin('git.status', { params: { slug: args.project } });
-  if (!called.ok) return called.failure;
-  const published = (called.answer.body as { published?: { state: string; branch?: string } }).published;
-  if (published && published.state !== 'none' && published.branch === args.expectedBranch) {
-    return fail('refused', `${args.expectedBranch} is the published branch. Commit on an authoring branch, and publish from the browser to change what agents read.`);
-  }
-  return {};
-}
-
 /** A commit is done when the log holds one with this message directly above the head it was prepared against. */
 async function commitHappened(args: CommitArguments, context: ToolContext): Promise<ToolResult | null> {
   const called = await context.twin('git.log', { params: { slug: args.project }, query: { limit: '20' } });
@@ -204,7 +193,7 @@ async function commitHappened(args: CommitArguments, context: ToolContext): Prom
 const gitCommit: ToolDefinition = {
   name: 'git_commit',
   description:
-    'Commit exactly the listed files at the listed versions, on the branch and head you read. Other staged work stays staged. There is no push and no commit-all, and the published branch is refused. Retrying with the same idempotencyKey returns the first commit and never commits twice.',
+    'Commit exactly the listed files at the listed versions, on the branch and head you read. Other staged work stays staged. There is no push and no commit-all. A commit made while the default branch is checked out lands on the authoring branch and says so in movedFrom. Retrying with the same idempotencyKey returns the first commit and never commits twice.',
   inputSchema: {
     type: 'object',
     properties: {
@@ -228,17 +217,21 @@ const gitCommit: ToolDefinition = {
       tool: 'git_commit',
       idempotencyKey: args.idempotencyKey,
       args,
-      prepare: () => refuseOnPublishedBranch(args, context),
       async effect() {
         const body = { message: args.message, files: args.files, expectedBranch: args.expectedBranch, expectedHead: args.expectedHead };
         const called = await context.twin('git.commit', { params: { slug: args.project }, body });
         if (!called.ok) return called.failure;
-        const committed = called.answer.body as { commit: string; branch?: string; altered?: string[] };
+        const committed = called.answer.body as { commit: string; branch?: string; movedFrom?: string; altered?: string[] };
         // A hook or a filter rewrote a file after it was saved, so the commit holds bytes the caller never listed.
         if (committed.altered?.length) {
           return fail('conflict', 'The commit was made, but these files changed while it was made and no longer match what you listed.', { commit: committed.commit, altered: committed.altered });
         }
-        return succeed({ commit: committed.commit, branch: committed.branch ?? args.expectedBranch, files: args.files.map(file => file.path) });
+        return succeed({
+          commit: committed.commit,
+          branch: committed.branch ?? args.expectedBranch,
+          ...(committed.movedFrom ? { movedFrom: committed.movedFrom } : {}),
+          files: args.files.map(file => file.path),
+        });
       },
       verify: () => commitHappened(args, context),
     }),

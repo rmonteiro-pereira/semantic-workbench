@@ -4,7 +4,7 @@ This page records what the scripted acceptance run (`bun run test:mcp`) proved a
 
 ## Scripted run
 
-`bun run test:mcp` starts an isolated local server on a spare port with a temporary data root, loads the Mapped commerce example and drives it with the protocol reference client (`@modelcontextprotocol/client` 2.4.0, protocol library `@modelcontextprotocol/server` 2.4.0). It checks ten steps: discovery and 21 sorted tools with hints; listing and reading by byte range; validation without writing; a patch save; a second save; one commit of both files; a retry that returns the same commit and a changed message that is refused; delete and restore; published context and plans with the snapshot id; and the refused cases (no capability, wrong capability, a browser origin, `Origin: null`, a rebinding Host, a form post, `GET`, a stale version, a moved head, the published branch and a stale cursor).
+`bun run test:mcp` starts an isolated local server on a spare port with a temporary data root, loads the Mapped commerce example and drives it with the protocol reference client (`@modelcontextprotocol/client` 2.4.0, protocol library `@modelcontextprotocol/server` 2.4.0). It checks ten steps: discovery and 21 sorted tools with hints; listing and reading by byte range; validation without writing; a patch save; a second save; one commit of both files; a retry that returns the same commit and a changed message that is refused; delete and restore; published context and plans with the snapshot id; and the refused cases (no capability, wrong capability, a browser origin, `Origin: null`, a rebinding Host, a form post, `GET`, a stale version, a moved head and a stale cursor).
 
 Result on the release candidate: all ten steps pass.
 

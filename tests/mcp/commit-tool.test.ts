@@ -73,7 +73,7 @@ test('a moved head, a changed version and a wrong branch answer precondition_fai
   expect(good.ok).toBe(true);
 });
 
-test('there is no push, no commit-all, and the published branch is refused with the browser instruction', async () => {
+test('there is no push and no commit-all, and a commit from the default branch lands on the authoring branch and never moves what is read', async () => {
   const expected = await state();
   for (const extra of [{ push: true }, { all: true }]) {
     const refused = await call('git_commit', {
@@ -91,9 +91,19 @@ test('there is no push, no commit-all, and the published branch is refused with 
   expect(published.status).toBe(200);
   const status = await json(`/api/projects/${PROJECT}/git/status`);
   const version = await edit(FIRST, 'after publish');
-  const onPublished = await commitFiles('x', [{ path: FIRST, version }], { branch: status.published.branch, head: expected.head });
-  expect(onPublished.error.code).toBe('refused');
-  expect(onPublished.error.message).toContain('published branch');
+  const onPublishedName = await commitFiles('After publish', [{ path: FIRST, version }], { branch: status.published.branch, head: expected.head });
+  expect(onPublishedName).toMatchObject({ ok: false, error: { code: 'precondition_failed' } });
+  expect((await commitFiles('On the authoring branch', [{ path: FIRST, version }], await state())).ok).toBe(true);
+  // Earlier tests left work in the tree, and a switch refuses to carry it.
+  await http(`/api/projects/${PROJECT}/git/stage`, { method: 'POST', body: JSON.stringify({ paths: (await changed()).map(entry => entry.path) }) });
+  await http(`/api/projects/${PROJECT}/git/commit`, { method: 'POST', body: JSON.stringify({ message: 'Leftover work' }) });
+  const switched = await http(`/api/projects/${PROJECT}/git/switch`, { method: 'POST', body: JSON.stringify({ branch: status.published.branch }) });
+  expect(switched.status).toBe(200);
+  const created = await call('create_file', { project: PROJECT, path: 'scratch.ontology.yaml', source: (await json(`/api/projects/${PROJECT}/files/${FIRST}`)).source });
+  expect(created.ok, JSON.stringify(created)).toBe(true);
+  const onDefault = await commitFiles('From the default branch', [{ path: 'scratch.ontology.yaml', version: created.data.version }], await state());
+  expect(onDefault, JSON.stringify(onDefault)).toMatchObject({ ok: true, data: { branch: 'work/local', movedFrom: status.published.branch } });
+  expect((await json(`/api/projects/${PROJECT}/git/status`)).published.commit).toBe(status.published.commit);
 });
 
 test('200 randomized interleavings with a person never commit a path or version that was not listed', async () => {

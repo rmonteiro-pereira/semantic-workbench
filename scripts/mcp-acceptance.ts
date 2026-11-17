@@ -128,11 +128,9 @@ try {
   assert.equal(stale.error.code, 'conflict');
   const moved = await call('git_commit', { ...commitArgs, idempotencyKey: 'acceptance-moved-0001', expectedHead: head });
   assert.equal(moved.error.code, 'precondition_failed');
-  const publishedBranch = await call('git_commit', { ...commitArgs, idempotencyKey: 'acceptance-published-1', expectedBranch: (await call('git_status', { project: PROJECT })).data.published.branch });
-  assert.equal(publishedBranch.error.code, 'refused');
   const page = await call('list_files', { project: PROJECT, limit: 1 });
   assert.equal((await call('list_trash', { cursor: page.data.nextCursor })).error.code, 'cursor_expired');
-  pass('every refused case is refused: access, stale version, moved head, published branch, stale cursor');
+  pass('every refused case is refused: access, stale version, moved head, stale cursor');
   console.log(`Acceptance run passed: ${step} steps.`);
 } catch (error) {
   console.error(error);

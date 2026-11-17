@@ -135,8 +135,9 @@ marker.
   overwrite a file that now exists.
 - **`git_commit`**: `{ project, message, files: [{ path, version }], expectedBranch, expectedHead,
   idempotencyKey }` gives `{ commit, branch, files }`. The commit takes exactly `files`; staged work
-  of any other path stays staged. There is no `push` argument and no `all`. A commit on the published
-  branch answers `refused` with the instruction to publish from the browser.
+  of any other path stays staged. There is no `push` argument and no `all`. A commit made while the default
+  branch is checked out lands on the authoring branch and reports `movedFrom`; what agents and people
+  read changes only when the project is published from the browser.
 
 An `idempotencyKey` is 16 to 128 characters of `A-Z a-z 0-9 - _`. A receipt is bound to the caller,
 the tool and the key; see [data-model.md](../data-model.md).
