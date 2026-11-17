@@ -540,6 +540,8 @@ Agent catalogs, contexts, plans and programmatic metric explanations use it in b
 including when the author calls the agent API. Catalog, context, plan and programmatic metric responses identify their pinned commit
 in `X-Workbench-Snapshot`. A readable project without Git or a published commit answers 409;
 editing remains available. Browser Mappings uses the saved working copy and labels it as a preview.
+HTTP and in-process operations share authorization, connection effects and audit. A person’s MCP
+connection consumes published definitions independently of their browser authoring session.
 
 Opening an existing data root records each repository's default-branch tip as its first durable
 snapshot. A local commit, including an import or folder-move commit, on the default branch first

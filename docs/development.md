@@ -394,7 +394,8 @@ Connection effects narrow allowed decisions; they preserve existence-hiding refu
 existing distinction between hidden-trash denials and unaudited missing entries.
 
 `bun scripts/boundary-benchmark.ts` measures 5,000 in-process HTTP requests with isolated temporary data and prints median and 95th-percentile durations.
-`bun test tests/auth/http-characterization.test.ts` compares responses and audit records against the original HTTP contract; preserve that fixture unchanged when refactoring the boundary.
+`bun test tests/auth/http-characterization.test.ts` compares the original recorded route cases and audit records; preserve its fixture unchanged.
+The comparison asserts and removes only the additive published identity on project listings. New publication and preview routes have separate parity cases.
 For new operations, regenerate `policies/matrix-cases.json` with `bun scripts/generate-access-matrix.ts` and record the new HTTP cases with
 `bun scripts/record-http-characterization.ts`. Preserve all existing caller/route records when adding the new cases.
 Review `tests/fixtures/dry-run/baseline.json` for the new inventory decisions and matrix count, preserving every existing decision and people result.
@@ -429,7 +430,10 @@ document-type conditions; body routes retain the existing project-level pass bef
 The operation inventory is validated by `schemas/semantic-workbench-operations-v1.json` through
 the same Ajv setup as access configuration. Route rows own actions, client actions and initial
 resource kinds; the inventory adds public ids, effects, limits, exposure, dispatch and handler-check
-coverage. Classifier names are keys of `operationClassifiers`; calls cannot override the selected
+coverage. Reviewed internal steps keep snapshot reads, pointer advance and abandoned intent inside
+the admitted operation’s authorization and single audit outcome. Startup reconciliation and first-pointer
+adoption are registered lifecycle work with no transport dispatch; clone and repository-registration
+connections also require its local-write and publication effects. Classifier names are keys of `operationClassifiers`; calls cannot override the selected
 classifier. Agent plan bodies have their own
 `AGENT_PLAN_REQUEST_LIMIT` (64,000 bytes), independent of the Git request limit.
 
@@ -453,6 +457,8 @@ assertions, which retain their existing limits.
 Published snapshot measurements use `scripts/published-snapshot-performance-fixture.ts` and
 `scripts/published-snapshot-performance.ts`. The serial remote browser/mutation driver is
 `scripts/published-snapshot-remote-gate.ts`; it owns its temporary frontend and stops it on completion.
+Pass one script name, for example `bun scripts/published-snapshot-remote-gate.ts test:scm`, to run
+only that suite. `test:responsive` and `test:mutation` are also accepted.
 It runs the affected browser suites and authentication, both complete native capture journeys, the full
 responsive suite and remaining groups
 after the documented inherited mall-canvas failure, then all mutation cases. Each stage retains its own

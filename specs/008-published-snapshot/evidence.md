@@ -759,8 +759,8 @@ The final architecture marker is recorded after this evidence-only commit. Publi
 passed the leak scanner with zero hits; required internal proof files passed its confidential-content check.
 The requested `scripts/commit_cadence.py` is absent (exit 2); no replacement tool was introduced.
 
-The integrator must replace the interim `surfaceFromCredential` function in
-`src/server/auth/request-surface.ts` when operation-boundary metadata arrives from feature 010. The local
+The original handoff called for replacing the interim `surfaceFromCredential` function when
+operation-boundary metadata arrived. The integration section below records that replacement as complete. The local
 migration adopts existing default-branch commits without rewriting them; the copied pre-change data-root
 test proves preservation of commits, refs, index and staged, unstaged and untracked contents across restart.
 No production source changed after the native visual comparison. The final owned frontend was stopped by
@@ -1165,3 +1165,21 @@ default-selection, abandoned-intent and single-queue mutants remain registered. 
 mutation baseline ran remotely with `bun scripts/mutation-case.ts
 $PWD/src/server/auth/operation-boundary.ts operation-boundary`: `operation boundary baseline exit 0`.
 The complete mutation gate remains required below.
+
+
+## Integrated completion gate on operation boundary
+
+All commands below run serially through the no-force worktree-local copy of `sw-midgard-run`,
+using a fresh scratch namespace and the installed wrapper’s resource/SSH behavior. Complete logs
+and browser output remain on midgard. Only small summary text is pulled back.
+
+- `bun --bun run check`: exit 0. `All matched files use the correct format.`;
+  `Found 2624 warnings and 0 errors.`; `Comments are free of specification and task IDs.`;
+  `No colour literals outside src/shared/theme/theme.css and src/app/theme/theme-palette.ts.`;
+  `No product name or logo is hard-coded outside public/brand.`
+- The readability checker and docs-sync checker both exited 0 with no findings.
+- The independent documentation review returned PASS for caller surfaces, lifecycle ownership,
+  frozen comparison and the single-suite remote driver.
+
+The driver accepts one named suite so each finished browser or mutation gate can be recorded
+and committed independently, and always stops its owned frontend.

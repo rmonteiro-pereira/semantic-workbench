@@ -322,7 +322,9 @@ their status in local mode as well as server mode.
 
 Browser authoring previews use `GET /api/preview/catalog`, `GET /api/preview/context` and
 `POST /api/preview/plan`, with the same parameters as their agent counterparts. They read the
-person’s editing view and carry no snapshot header. Applications cannot use these routes.
+person’s editing view and carry no snapshot header. Applications and MCP callers cannot use these routes,
+even when an MCP connection belongs to the signed-in author. The operation boundary attaches the
+authenticated caller’s surface; protocol input cannot select a browser surface.
 Local requests need the trusted browser fetch metadata; a script without it receives the same
 answer as an unknown route.
 
