@@ -1257,3 +1257,7 @@ and explicit per-test limit while budgeting the capped shared machine consistent
 - Remote retry `bun scripts/published-snapshot-remote-gate.ts test:edges`: exit 0;
   `6 edge attachment UI checks passed`. Includes worker routes, entity/area dragging,
   layout changes and no browser runtime errors.
+
+- Remote `bun scripts/published-snapshot-remote-gate.ts test:grouping-validation`: exit 0;
+  `8 grouping and validation UI checks passed`. Exact fixture exports and the absence of
+  uncaught browser errors were verified by the suite.
