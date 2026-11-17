@@ -65,10 +65,12 @@ export function openLocalCapability(file: string, platform: Platform = process.p
   }
   const refusal = secureFile(file, platform);
   if (refusal) return { ok: false, reason: refusal };
-  let modifiedAt = -1;
+  let modifiedAt = '';
   let current = hashOf('');
   function load() {
-    const stamp = statSync(file).mtimeMs;
+    // A replaced file has a new inode even when its modification time repeats.
+    const info = statSync(file);
+    const stamp = `${info.ino}:${info.mtimeMs}:${info.size}`;
     if (stamp === modifiedAt) return;
     modifiedAt = stamp;
     current = hashOf(readFileSync(file, 'utf8').trim());

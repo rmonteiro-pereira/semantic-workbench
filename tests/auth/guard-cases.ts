@@ -434,6 +434,8 @@ export const ADMIN_EXEMPTION = 'Admin panel: changes access rules and settings, 
 
 /** Routes beyond plain reads that are not content-guarded, and why. */
 export const GUARD_EXEMPTIONS: Record<string, string> = {
+  'POST /api/projects/:slug/files/*/validate': 'judges proposed text with the save pipeline and writes nothing; the guard outcome is reported, not applied',
+  'POST /api/mcp': 'the local agent transport only carries tool calls, each of which is decided as the twin of its own route',
   'POST /api/projects/:slug/item-addresses/resolve': 'resolves visible locators and writes no definitions or history',
   'POST /api/projects/:slug/item-addresses/reconcile/*': 'records history only; target edit authority and unchanged guarded source are checked without editing definitions',
   'POST /api/telemetry/browser': 'records an error or timing report and writes no content',

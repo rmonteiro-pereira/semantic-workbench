@@ -364,7 +364,7 @@ mutants.push(
   ],
   ['guard-pull', 'src/server/routes/git.ts', 'scm!.pull(slug, reader, credentialFor)', 'scm!.pull(slug, { ...reader, guard: undefined }, credentialFor)'],
   ['guard-revert', 'src/server/routes/git.ts', 'ws.revertFile(slug, requestBody.path, baseHash, reader)', 'ws.revertFile(slug, requestBody.path, baseHash, { ...reader, guard: undefined })'],
-  ['guard-delete', 'src/server/routes/trash.ts', 'decodePath(file[2]), reader)', 'decodePath(file[2]), { ...reader, guard: undefined })'],
+  ['guard-delete', 'src/server/routes/trash.ts', 'decodePath(file[2]), reader, body.baseHash)', 'decodePath(file[2]), { ...reader, guard: undefined }, body.baseHash)'],
   ['guard-restore', 'src/server/routes/trash.ts', 'ws.trash.undo(id, reader)', 'ws.trash.undo(id, { ...reader, guard: undefined })'],
   ['guard-restore', 'src/server/routes/trash.ts', 'ws.trash.restore(id, body, reader)', 'ws.trash.restore(id, body, { ...reader, guard: undefined })'],
   ['guard-import', 'src/server/routes/projects.ts', 'body.onConflict, reader, authorizePaths', 'body.onConflict, { ...reader, guard: undefined }, authorizePaths'],

@@ -185,7 +185,7 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
         ...record,
         decision: 'allow',
         outcome: semanticOutcome,
-        ...(input.caller.origin === 'http' ? {} : { result: callResult(status) }),
+        ...(input.caller.attribution ? { result: callResult(status) } : {}),
         ...(publication ? { publication } : {}),
         ...(reason ? { reason } : {}),
       });
@@ -227,7 +227,7 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
                 tool: entry?.id,
                 connection: caller.connection,
                 ...caller.attribution,
-                result: input.result ?? deniedResult(input),
+                ...(caller.attribution ? { result: input.result ?? deniedResult(input) } : {}),
               }),
           };
     const wrongRow = call.operationId !== undefined && call.operationId !== entry?.id;
