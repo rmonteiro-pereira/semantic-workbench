@@ -181,7 +181,7 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
     try {
       const publication = input.request[requestPublication];
       const reason = input.request[requestPublicationRefusal];
-      input.audit.append({ ...record, decision: 'allow', outcome: semanticOutcome, result: callResult(status), ...(publication ? { publication } : {}), ...(reason ? { reason } : {}) });
+      input.audit.append({ ...record, decision: 'allow', outcome: semanticOutcome, ...(input.caller.origin === 'http' ? {} : { result: callResult(status) }), ...(publication ? { publication } : {}), ...(reason ? { reason } : {}) });
     } catch (error) {
       // The operation already ran; a failure response could trigger a duplicate write on retry.
       reportAuditFailure({ requestId: input.requestId, action: verdict.row.action, error });

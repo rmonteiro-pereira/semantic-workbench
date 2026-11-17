@@ -411,7 +411,7 @@ export function queryAudit(entries: AuditEntry[], filters: Record<string, string
 /** Encodes filtered records for download without allowing spreadsheet formula execution. */
 export function exportAudit(entries: AuditEntry[], format: 'csv' | 'jsonl'): string {
   if (format === 'jsonl') return entries.map(entry => JSON.stringify(entry) + '\n').join('');
-  const keys = ['at', 'requestId', 'principal', 'action', 'resource', 'decision', 'outcome', 'rules', 'origin', 'tool', 'method', 'connection', 'result'];
+  const keys = ['at', 'requestId', 'principal', 'action', 'resource', 'decision', 'outcome', 'rules', 'origin', 'tool', 'connection'];
   const cell = (value: unknown) => {
     let text = typeof value === 'string' ? value : JSON.stringify(value ?? '');
     if (/^[=+@\-\t\r]/.test(text)) text = "'" + text;

@@ -10,6 +10,13 @@ row is not an operation and is excluded by that test. Rows added by this feature
 |-----|-------------|------|
 | `POST /api/mcp` | transport | local mode only; unaudited itself, each dispatched twin writes the one record |
 | `POST /api/projects/:slug/files/*/validate` | tool: validate_text | new twin; needs the right to edit that file |
+| `POST /api/projects/:slug/item-addresses/resolve` | later: Remaining workspace and source-control operations | item locators (009) are adopted by a later increment |
+| `POST /api/projects/:slug/item-addresses/reconcile/*` | later: Remaining workspace and source-control operations | item locators (009) are adopted by a later increment |
+| `POST /api/projects/:slug/git/adopt` | later: Remaining workspace and source-control operations | publication (008) needs the publish scope |
+| `POST /api/projects/:slug/git/acknowledge-publication` | not an agent operation | dismisses a personal notice in the browser |
+| `GET /api/preview/catalog` | not an agent operation | browser authoring previews; protocol callers read the published snapshot |
+| `GET /api/preview/context` | not an agent operation | browser authoring previews; protocol callers read the published snapshot |
+| `POST /api/preview/plan` | not an agent operation | browser authoring previews; protocol callers read the published snapshot |
 | `GET /api/me` | not an agent operation | the endpoint already knows its caller |
 | `GET /auth/style.css` | not an agent operation | sign-in, health and static pages are not agent operations |
 | `GET /api/events` | later: Resources and prompts | M15, M16 |
