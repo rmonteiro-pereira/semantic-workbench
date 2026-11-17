@@ -1021,3 +1021,11 @@ Remote `RESPONSIVE_ONLY="examples: 2560" bun scripts/responsive-ui-tests.ts` aga
 frontend exited 0: `PASS no uncaught browser errors`; `2 responsive UI checks passed`.
 The wrapper exited 0. Only `out/008-review-summary/examples-2560.txt` was pulled; full logs remain on
 midgard. The owned application server was stopped.
+
+### Responsive phone drawer after repair
+
+Remote `RESPONSIVE_ONLY="sidebar: the phone drawer" bun scripts/responsive-ui-tests.ts` against the
+built frontend exited 0: `PASS no uncaught browser errors`; `2 responsive UI checks passed`.
+The wrapper exited 0. Only `out/008-review-summary/phone-drawer.txt` was pulled; full logs remain on
+midgard. The owned application server was stopped. The six restored responsive groups total 21 passing
+checks; none of their scripts or assertions changed.
