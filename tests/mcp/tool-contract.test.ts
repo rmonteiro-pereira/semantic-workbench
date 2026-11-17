@@ -21,7 +21,10 @@ export function contractRows(): ContractRow[] {
 
 /** The contract abbreviates the project prefix, and names a new route or a null base in words. */
 function normalizedRoute(route: string): string {
-  return route.replace('/api/projects/:slug', '...').replace(/ \(new\)$/, '').replace(/ with null base$/, '');
+  return route
+    .replace('/api/projects/:slug', '...')
+    .replace(/ \(new\)$/, '')
+    .replace(/ with null base$/, '');
 }
 
 test('the registry lists the contract tools, sorted, with short names', () => {

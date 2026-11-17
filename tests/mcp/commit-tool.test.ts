@@ -21,7 +21,8 @@ afterAll(async () => {
 async function call(name: string, args: Record<string, unknown>): Promise<any> {
   return ((await client.callTool({ name, arguments: args })) as any).structuredContent;
 }
-const http = (path: string, init: RequestInit = {}) => server.handler(new Request(server.url + path, { ...init, headers: { host: `127.0.0.1:${server.port}`, 'content-type': 'application/json', 'sec-fetch-site': 'same-origin' } }));
+const http = (path: string, init: RequestInit = {}) =>
+  server.handler(new Request(server.url + path, { ...init, headers: { host: `127.0.0.1:${server.port}`, 'content-type': 'application/json', 'sec-fetch-site': 'same-origin' } }));
 const json = async (path: string, init?: RequestInit) => (await http(path, init)).json() as Promise<any>;
 const key = () => `commit-key-${String(++counter).padStart(8, '0')}`;
 
@@ -38,7 +39,8 @@ async function state() {
 }
 const commitFiles = async (message: string, files: { path: string; version: string }[], expected: { branch: string; head: string | null }) =>
   call('git_commit', { project: PROJECT, message, files, expectedBranch: expected.branch, expectedHead: expected.head, idempotencyKey: key() });
-const changed = async () => ((await json(`/api/projects/${PROJECT}/git/status`)).changes as { path: string; index: string; worktree: string }[]).map(entry => ({ path: entry.path, staged: entry.index !== '.' }));
+const changed = async () =>
+  ((await json(`/api/projects/${PROJECT}/git/status`)).changes as { path: string; index: string; worktree: string }[]).map(entry => ({ path: entry.path, staged: entry.index !== '.' }));
 
 test('exactly the listed paths are committed, other staged work stays staged, and the author is the configured identity', async () => {
   const firstVersion = await edit(FIRST, 'one');
@@ -74,7 +76,15 @@ test('a moved head, a changed version and a wrong branch answer precondition_fai
 test('there is no push, no commit-all, and the published branch is refused with the browser instruction', async () => {
   const expected = await state();
   for (const extra of [{ push: true }, { all: true }]) {
-    const refused = await call('git_commit', { project: PROJECT, message: 'x', files: [{ path: FIRST, version: 'a'.repeat(64) }], expectedBranch: expected.branch, expectedHead: expected.head, idempotencyKey: key(), ...extra });
+    const refused = await call('git_commit', {
+      project: PROJECT,
+      message: 'x',
+      files: [{ path: FIRST, version: 'a'.repeat(64) }],
+      expectedBranch: expected.branch,
+      expectedHead: expected.head,
+      idempotencyKey: key(),
+      ...extra,
+    });
     expect(refused.error.code).toBe('invalid_input');
   }
   const published = await http(`/api/projects/${PROJECT}/git/publish`, { method: 'POST', body: '{}' });

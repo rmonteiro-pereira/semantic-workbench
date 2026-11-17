@@ -42,7 +42,10 @@ test('each call writes one record with its method, tool, label and result', asyn
   expect(entries[0]).toMatchObject({ method: 'tools/call', tool: 'documents.list', result: 'ok', decision: 'allow', outcome: 'ok' });
   // The earlier protocol era names the client only in its first message, so the label comes from a current-era request.
   const mark2 = mcp().length;
-  await server.raw({ method: 'tools/call', params: { name: 'list_files', arguments: { project: PROJECT }, _meta: { 'io.modelcontextprotocol/clientInfo': { name: `audit-client\u0007${'x'.repeat(100)}`, version: '1' } } } });
+  await server.raw({
+    method: 'tools/call',
+    params: { name: 'list_files', arguments: { project: PROJECT }, _meta: { 'io.modelcontextprotocol/clientInfo': { name: `audit-client\u0007${'x'.repeat(100)}`, version: '1' } } },
+  });
   const labelled = mcp().slice(mark2);
   expect(labelled).toHaveLength(1);
   expect(labelled[0].clientLabel).toBe(`audit-client${'x'.repeat(52)}`);
@@ -57,11 +60,19 @@ test('a failure is recorded with its result, a refused tool call as a denial, an
   expect(mcp().slice(mark)).toMatchObject([{ tool: 'files.read', result: 'invalid_input', outcome: 'refused' }]);
   mark = mcp().length;
   await server.raw({ method: 'tools/call', params: { name: 'no_such_tool', arguments: {} } });
-  expect(mcp().slice(mark).some(entry => entry.decision === 'deny' && entry.reason === 'unknown-tool')).toBe(true);
+  expect(
+    mcp()
+      .slice(mark)
+      .some(entry => entry.decision === 'deny' && entry.reason === 'unknown-tool'),
+  ).toBe(true);
   mark = mcp().length;
   const refused = await fetch(server.endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
   expect(refused.status).toBe(401);
-  expect(mcp().slice(mark).some(entry => entry.decision === 'deny' && String(entry.reason).startsWith('mcp-'))).toBe(true);
+  expect(
+    mcp()
+      .slice(mark)
+      .some(entry => entry.decision === 'deny' && String(entry.reason).startsWith('mcp-')),
+  ).toBe(true);
 });
 
 test('no record holds arguments, file text or the capability, and every record keeps the chain', async () => {

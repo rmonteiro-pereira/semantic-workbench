@@ -15,9 +15,19 @@ test('header derivation follows the message', () => {
 });
 
 test('a stopped workbench and server mode each get a clear answer', async () => {
-  const stopped = await deliver(message(1, 'tools/list'), 1, () => 'capability', () => Promise.reject(new Error('refused')));
+  const stopped = await deliver(
+    message(1, 'tools/list'),
+    1,
+    () => 'capability',
+    () => Promise.reject(new Error('refused')),
+  );
   expect(JSON.parse(stopped[0]).error.message).toContain('not running');
-  const serverMode = await deliver(message(2, 'tools/list'), 4310, () => 'capability', async () => new Response('Not found', { status: 404 }));
+  const serverMode = await deliver(
+    message(2, 'tools/list'),
+    4310,
+    () => 'capability',
+    async () => new Response('Not found', { status: 404 }),
+  );
   expect(JSON.parse(serverMode[0]).error.message).toContain('server mode');
   const noFile = await deliver(message(3, 'tools/list'), 4310, () => {
     throw new Error('missing');
@@ -41,7 +51,10 @@ test('the bridge process answers messages, follows a rotation and prints no capa
     process_.stdin.end();
     const output = await new Response(process_.stdout).text();
     const errors = await new Response(process_.stderr).text();
-    const answers = output.trim().split('\n').map(line => JSON.parse(line));
+    const answers = output
+      .trim()
+      .split('\n')
+      .map(line => JSON.parse(line));
     expect(answers.map(answer => answer.id).sort()).toEqual([1, 2, 3]);
     expect(answers.find(answer => answer.id === 3).result.structuredContent.ok).toBe(true);
     for (const text of [output, errors]) {

@@ -36,12 +36,14 @@ test('the same key and arguments return the original result, other arguments are
   expect((await trashed()).filter(entry => entry.path === path)).toHaveLength(1);
   const different = await run.run('delete_file', { ...args, path: 'commerce.mapped-semantic.yaml' });
   expect(different).toMatchObject({ ok: false, error: { code: 'key_reused' } });
-  const stored = readdirSync(receiptsDirectory).map(name => readFileSync(join(receiptsDirectory, name), 'utf8')).join('');
+  const stored = readdirSync(receiptsDirectory)
+    .map(name => readFileSync(join(receiptsDirectory, name), 'utf8'))
+    .join('');
   expect(stored).toContain('delete_file');
   expect(stored).not.toContain('Mapped commerce');
-  const restored = await run.run('restore_file', { entry: (first as { data: { entry: string } }).data.entry, idempotencyKey: 'restore-once-key-001' });
+  const restored = await run.run('restore_file', { entry: (first as unknown as { data: { entry: string } }).data.entry, idempotencyKey: 'restore-once-key-001' });
   expect(restored.ok).toBe(true);
-  expect(await run.run('restore_file', { entry: (first as { data: { entry: string } }).data.entry, idempotencyKey: 'restore-once-key-001' })).toEqual(restored);
+  expect(await run.run('restore_file', { entry: (first as unknown as { data: { entry: string } }).data.entry, idempotencyKey: 'restore-once-key-001' })).toEqual(restored);
 });
 
 test('two calls with one key at once run the effect once and the second is told to wait', async () => {
@@ -79,7 +81,17 @@ test('a crash after the effect and a crash before it never cause a second effect
   const tool = TOOLS.find(candidate => candidate.name === 'delete_file')!;
   const original = tool.run;
   // The effect completes, then the process "dies" before the receipt is completed.
-  const dying = { ...crashing, run: (request: Parameters<ReceiptStore['run']>[0]) => crashing.run({ ...request, effect: async () => { await request.effect(); throw new Error('simulated crash'); } }) };
+  const dying = {
+    ...crashing,
+    run: (request: Parameters<ReceiptStore['run']>[0]) =>
+      crashing.run({
+        ...request,
+        effect: async () => {
+          await request.effect();
+          throw new Error('simulated crash');
+        },
+      }),
+  };
   await expect(runner(dying).run('delete_file', args)).rejects.toThrow('simulated crash');
   const restarted = createReceiptStore(directory);
   const recovered = await runner(restarted).run('delete_file', args);
@@ -89,7 +101,16 @@ test('a crash after the effect and a crash before it never cause a second effect
   const other = 'commerce.mapped-ontology.yaml';
   const otherArgs = { project: PROJECT, path: other, baseVersion: (await current(other)).hash, idempotencyKey: 'crash-before-key-0001' };
   const before = createReceiptStore(directory);
-  const early = { ...before, run: (request: Parameters<ReceiptStore['run']>[0]) => before.run({ ...request, effect: async () => { throw new Error('simulated crash'); } }) };
+  const early = {
+    ...before,
+    run: (request: Parameters<ReceiptStore['run']>[0]) =>
+      before.run({
+        ...request,
+        effect: async () => {
+          throw new Error('simulated crash');
+        },
+      }),
+  };
   await expect(runner(early).run('delete_file', otherArgs)).rejects.toThrow('simulated crash');
   const afterRestart = await runner(createReceiptStore(directory)).run('delete_file', otherArgs);
   expect(afterRestart).toMatchObject({ ok: false, error: { code: 'uncertain' } });
@@ -102,7 +123,14 @@ test('retention removes expired receipts and an expired key is a new call', asyn
   const directory = join(server.root, 'receipts-retention');
   const store = createReceiptStore(directory, () => now);
   let effects = 0;
-  const request = () => ({ principalId: 'local', tool: 'git_commit', idempotencyKey: 'retention-key-0000001', args: { m: 1 }, effect: async () => (effects++, succeed({ n: effects })), verify: async () => null });
+  const request = () => ({
+    principalId: 'local',
+    tool: 'git_commit',
+    idempotencyKey: 'retention-key-0000001',
+    args: { m: 1 },
+    effect: async () => (effects++, succeed({ n: effects })),
+    verify: async () => null,
+  });
   await store.run(request());
   now = new Date(now.getTime() + RECEIPT_RETENTION_MS + 1000);
   store.prune();

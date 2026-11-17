@@ -1,6 +1,7 @@
 // Introduces faults into temporary source copies and checks that the test suite detects them.
 import { tmpdir } from 'node:os';
 import { operationBoundaryMutants } from './operation-boundary-mutants';
+import { mcpMutants } from './mcp-mutants';
 import { addressMutants, modelAddressMutants, migrationAddressMutants, serverAddressMutants, addressOperationMutants } from './address-mutants';
 import { adminMutants } from './admin-mutants';
 import { sessionSecurityMutants } from './session-security-mutants';
@@ -570,13 +571,17 @@ mutants.push(...brandMutants);
 mutants.push(...observabilityMutants);
 
 mutants.push(...operationBoundaryMutants);
+// The local agent endpoint: access checks, cursors, receipts, tool twins, the commit tool and the audit fields.
+mutants.push(...mcpMutants);
 
 // Split modules import their siblings, so a mutant runs inside a copy of the whole folder: only
 // imports that leave the folder point back at the real sources.
 const SPLIT_PROJECT_MODULES = /^src\/server\/projects\/(workspace\.ts|workspace\/|scm|trash)/;
 function copiedFolderOf(category: string, file: string) {
   if (category === 'agent') return 'src/server/agent';
-  if (['auth-middleware', 'sec-request-limits', 'signin-redirect', 'bearer-cookie', 'observability-unaudited', 'operation-boundary'].includes(category)) return 'src/server/auth';
+  if (['mcp-gate', 'mcp-state', 'mcp-tools'].includes(category)) return 'src/server/mcp';
+  if (['auth-middleware', 'sec-request-limits', 'signin-redirect', 'bearer-cookie', 'observability-unaudited', 'operation-boundary', 'mcp-audit', 'mcp-rows'].includes(category))
+    return 'src/server/auth';
   return SPLIT_PROJECT_MODULES.test(file) ? 'src/server/projects' : undefined;
 }
 async function writeFolderCopy(folder: string, file: string, mutatedSource: string, index: string) {

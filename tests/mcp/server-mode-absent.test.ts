@@ -28,7 +28,8 @@ test('server mode answers the path as an unknown route and leaves other routes u
     });
   const withEndpoint = build(true);
   const without = build(false);
-  const send = (handler: ReturnType<typeof build>, path: string, init: RequestInit = {}) => handler(new Request('http://localhost:5312' + path, { headers: { 'Sec-Fetch-Site': 'same-origin', Origin: 'http://localhost:5312' }, ...init }));
+  const send = (handler: ReturnType<typeof build>, path: string, init: RequestInit = {}) =>
+    handler(new Request('http://localhost:5312' + path, { headers: { 'Sec-Fetch-Site': 'same-origin', Origin: 'http://localhost:5312' }, ...init }));
   // A read of the path is an unknown route; a post is stopped earlier by the cross-site check. Neither serves a tool.
   const probe = await send(withEndpoint, '/api/mcp');
   expect(probe.status).toBe(404);

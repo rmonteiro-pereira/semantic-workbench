@@ -76,7 +76,13 @@ test('a range against an old version answers version_changed and a stale cursor 
   expect(wrongQuery.error.code).toBe('cursor_expired');
   const beforeSave = first.data.nextCursor;
   const current = await twin(`/api/projects/${project}/files/${target.path}`);
-  await server.handler(new Request(server.url + `/api/projects/${project}/files/${target.path}`, { method: 'PUT', headers: { host: `127.0.0.1:${server.port}`, 'content-type': 'application/json' }, body: JSON.stringify({ baseHash: current.hash, source: current.source + '\n# touched\n' }) }));
+  await server.handler(
+    new Request(server.url + `/api/projects/${project}/files/${target.path}`, {
+      method: 'PUT',
+      headers: { host: `127.0.0.1:${server.port}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ baseHash: current.hash, source: current.source + '\n# touched\n' }),
+    }),
+  );
   const afterSave = await call('list_files', { project, limit: 1, cursor: beforeSave });
   expect(afterSave.error.code).toBe('cursor_expired');
 });

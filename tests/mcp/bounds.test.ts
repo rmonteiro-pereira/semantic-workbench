@@ -73,8 +73,24 @@ test('closing the response during a read stops it and during a write leaves the 
       fetch(server.endpoint, {
         method: 'POST',
         signal,
-        headers: { 'content-type': 'application/json', accept: 'application/json', authorization: `Bearer ${server.capability()}`, 'mcp-protocol-version': '2026-07-28', 'mcp-method': 'tools/call', 'mcp-name': name },
-        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name, arguments: args, _meta: { 'io.modelcontextprotocol/protocolVersion': '2026-07-28', 'io.modelcontextprotocol/clientCapabilities': {}, 'io.modelcontextprotocol/clientInfo': { name: 'x', version: '1' } } } }),
+        headers: {
+          'content-type': 'application/json',
+          accept: 'application/json',
+          authorization: `Bearer ${server.capability()}`,
+          'mcp-protocol-version': '2026-07-28',
+          'mcp-method': 'tools/call',
+          'mcp-name': name,
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'tools/call',
+          params: {
+            name,
+            arguments: args,
+            _meta: { 'io.modelcontextprotocol/protocolVersion': '2026-07-28', 'io.modelcontextprotocol/clientCapabilities': {}, 'io.modelcontextprotocol/clientInfo': { name: 'x', version: '1' } },
+          },
+        }),
       }).catch(() => null);
     const readController = new AbortController();
     const pendingRead = send('read_file', { project: 'mapped-commerce', path }, readController.signal);

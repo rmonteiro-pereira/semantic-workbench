@@ -40,7 +40,19 @@ test('invalid attribution writes neither a record nor a mirror anchor', async ()
   let now = new Date('2026-01-31T23:00:00Z');
   const audit = createAuditLog({ dir: join(fixture.root, 'invalid-origin'), now: () => now, mirror: line => mirrored.push(line) });
   audit.append(attributedInput);
-  const cases = [{ origin: 'browser' }, { origin: null }, { tool: 'unknown.tool' }, { tool: '/api/projects' }, { connection: '' }, { connection: 'a/b' }, { connection: 'a'.repeat(65) }, { method: 'resources/read' }, { clientLabel: 'x'.repeat(65) }, { clientLabel: 'line\nbreak' }, { result: 'maybe' }];
+  const cases = [
+    { origin: 'browser' },
+    { origin: null },
+    { tool: 'unknown.tool' },
+    { tool: '/api/projects' },
+    { connection: '' },
+    { connection: 'a/b' },
+    { connection: 'a'.repeat(65) },
+    { method: 'resources/read' },
+    { clientLabel: 'x'.repeat(65) },
+    { clientLabel: 'line\nbreak' },
+    { result: 'maybe' },
+  ];
   now = new Date('2026-02-01T00:00:00Z');
   for (const invalid of cases) expect(() => audit.append({ ...attributedInput, ...invalid } as AuditInput)).toThrow('Invalid audit');
   expect(audit.entries('2026-02')).toEqual([]);

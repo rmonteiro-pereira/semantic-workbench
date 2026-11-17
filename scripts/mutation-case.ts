@@ -26,6 +26,12 @@ const category = process.argv[3];
 async function worktreeFactory(): Promise<typeof import('../src/server/projects/worktrees').createWorktrees> {
   return loadedModule.createWorktrees ?? (await import('../src/server/projects/worktrees')).createWorktrees;
 }
+if (category.startsWith('mcp-')) {
+  const cases = await import('./mcp-mutation-cases');
+  const run = { 'mcp-gate': cases.mcpGateCase, 'mcp-state': cases.mcpStateCase, 'mcp-tools': cases.mcpToolsCase, 'mcp-audit': cases.mcpAuditCase, 'mcp-rows': cases.mcpRowsCase }[category];
+  if (!run) throw new Error(`Unknown agent endpoint case ${category}.`);
+  await run(process.argv[2]);
+}
 if (category === 'operation-boundary') {
   const { operationBoundaryCases } = await import('./operation-boundary-mutation-cases');
   await operationBoundaryCases(process.argv[2]);

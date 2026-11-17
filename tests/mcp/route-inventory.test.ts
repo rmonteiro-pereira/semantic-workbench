@@ -16,8 +16,14 @@ function inventoryRows(): Map<string, string> {
 test('the contract and the route table list the same rows', () => {
   const rows = inventoryRows();
   const routes = ROUTE_ACTIONS.filter(row => row.path !== 'GET/HEAD pages').map(row => row.path);
-  expect(routes.filter(route => !rows.has(route)), 'rows missing from the contract').toEqual([]);
-  expect([...rows.keys()].filter(route => !routes.includes(route)), 'stale rows in the contract').toEqual([]);
+  expect(
+    routes.filter(route => !rows.has(route)),
+    'rows missing from the contract',
+  ).toEqual([]);
+  expect(
+    [...rows.keys()].filter(route => !routes.includes(route)),
+    'stale rows in the contract',
+  ).toEqual([]);
   const tools = new Set(TOOLS.map(tool => tool.name));
   let exposed = 0;
   for (const [route, disposition] of rows) {

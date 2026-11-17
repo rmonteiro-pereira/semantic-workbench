@@ -17,7 +17,8 @@ async function call(name: string, args: Record<string, unknown>): Promise<any> {
   return ((await client.callTool({ name, arguments: args })) as any).structuredContent;
 }
 
-const http = (path: string, init: RequestInit = {}) => server.handler(new Request(server.url + path, { ...init, headers: { host: `127.0.0.1:${server.port}`, 'content-type': 'application/json', 'sec-fetch-site': 'same-origin' } }));
+const http = (path: string, init: RequestInit = {}) =>
+  server.handler(new Request(server.url + path, { ...init, headers: { host: `127.0.0.1:${server.port}`, 'content-type': 'application/json', 'sec-fetch-site': 'same-origin' } }));
 
 test('before the first publish every published-only tool answers not_published with a reason', async () => {
   for (const [name, args] of [

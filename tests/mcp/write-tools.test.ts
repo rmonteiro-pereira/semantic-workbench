@@ -19,7 +19,8 @@ afterAll(async () => {
 async function call(name: string, args: Record<string, unknown>): Promise<any> {
   return ((await client.callTool({ name, arguments: args })) as any).structuredContent;
 }
-const http = (path: string, init: RequestInit = {}) => server.handler(new Request(server.url + path, { ...init, headers: { host: `127.0.0.1:${server.port}`, 'content-type': 'application/json', 'sec-fetch-site': 'same-origin' } }));
+const http = (path: string, init: RequestInit = {}) =>
+  server.handler(new Request(server.url + path, { ...init, headers: { host: `127.0.0.1:${server.port}`, 'content-type': 'application/json', 'sec-fetch-site': 'same-origin' } }));
 const diskFile = (path: string) => join(server.root, 'projects', PROJECT, path);
 const current = async (path = FILE) => (await (await http(`/api/projects/${PROJECT}/files/${path}`)).json()) as { source: string; hash: string };
 

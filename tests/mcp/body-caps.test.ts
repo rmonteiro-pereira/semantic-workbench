@@ -20,7 +20,14 @@ function toolCall(name: string, padding: number) {
 function post(body: string | ReadableStream<Uint8Array>, headers: Record<string, string>) {
   return fetch(server.endpoint, {
     method: 'POST',
-    headers: { 'content-type': 'application/json', accept: 'application/json', authorization: `Bearer ${server.capability()}`, 'mcp-protocol-version': '2026-07-28', 'mcp-method': 'tools/call', ...headers },
+    headers: {
+      'content-type': 'application/json',
+      accept: 'application/json',
+      authorization: `Bearer ${server.capability()}`,
+      'mcp-protocol-version': '2026-07-28',
+      'mcp-method': 'tools/call',
+      ...headers,
+    },
     body,
     // Bun streams a ReadableStream body without a declared length.
     ...(typeof body === 'string' ? {} : { duplex: 'half' }),

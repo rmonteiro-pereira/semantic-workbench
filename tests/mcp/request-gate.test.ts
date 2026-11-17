@@ -11,7 +11,8 @@ test('each check refuses with its status, in order', () => {
   expect(decideRequest({ ...good, method: 'GET' }, own)).toMatchObject({ status: 405 });
   expect(decideRequest({ ...good, method: 'DELETE', origin: 'http://x' }, own)).toMatchObject({ status: 405 });
   for (const origin of ['http://127.0.0.1:5173', 'http://localhost:4310', 'null', '']) expect(decideRequest({ ...good, origin }, own), origin).toMatchObject({ status: 403, reason: 'origin' });
-  for (const host of ['localhost.evil.example', 'evil.example:4310', '127.0.0.1:9999', '127.0.0.1', null, 'localhost:4310@evil']) expect(decideRequest({ ...good, host }, own), String(host)).toMatchObject({ status: 403, reason: 'host' });
+  for (const host of ['localhost.evil.example', 'evil.example:4310', '127.0.0.1:9999', '127.0.0.1', null, 'localhost:4310@evil'])
+    expect(decideRequest({ ...good, host }, own), String(host)).toMatchObject({ status: 403, reason: 'host' });
   expect(decideRequest({ ...good, host: 'LOCALHOST:4310' }, own)).toEqual({ allow: true });
   expect(decideRequest({ ...good, authorization: null, host: 'evil' }, own)).toMatchObject({ status: 403 });
   expect(decideRequest({ ...good, authorization: null }, own)).toMatchObject({ status: 401 });
@@ -23,7 +24,8 @@ test('each check refuses with its status, in order', () => {
 test('the mounted route refuses every unsafe request without revealing anything', async () => {
   const server = await startLocalServer();
   try {
-    const send = (headers: Record<string, string>, method = 'POST') => fetch(server.endpoint, { method, headers: { 'content-type': 'application/json', ...headers }, body: method === 'POST' ? '{}' : undefined });
+    const send = (headers: Record<string, string>, method = 'POST') =>
+      fetch(server.endpoint, { method, headers: { 'content-type': 'application/json', ...headers }, body: method === 'POST' ? '{}' : undefined });
     const bearer = { authorization: `Bearer ${server.capability()}` };
     const refused: [Response, number][] = [
       [await send({}), 401],
