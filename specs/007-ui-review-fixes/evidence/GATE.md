@@ -21,6 +21,8 @@ Completed checks on the rebased candidate:
 | Command | Summary |
 | --- | --- |
 | `bun test` | 2,446 pass, 0 fail, 347,024 assertions across 350 files (2,030.75 s). |
+| `bun --bun run check` | Exit 0 in 46.8 s. TypeScript passed, 1,180 files formatted, lint reported 2,661 warnings and 0 errors. Comments, theme and brand checks passed. |
+| `bun --bun run build` | Exit 0 in 6.2 s. Vite built in 3.24 s with the chunk-size advisory. |
 
 Reported failures on middle revision `5597ae52`: `test:responsive` observed a 481 px canvas at 1280×720 where the compact-shell check requires more than 504 px. This is distinct from the 421 px minimum on the Mall ODCS Graph. `test:admin` failed at the Dry-run result step. Candidate comparison results are pending.
 
