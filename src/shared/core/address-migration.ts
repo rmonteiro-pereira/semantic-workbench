@@ -80,12 +80,6 @@ export function validateDeclaredMigrations(input: unknown, project: string, writ
   return { ok: true, migrations };
 }
 
-/** Computes a deterministic retention cut from an instant and a whole-day setting. */
-export function migrationRetentionCut(nowMilliseconds: number, retentionDays: number): number {
-  if (!Number.isFinite(nowMilliseconds) || !Number.isSafeInteger(retentionDays) || retentionDays < 1) throw new RangeError('Migration retention requires a finite instant and positive whole days.');
-  return nowMilliseconds - retentionDays * 86_400_000;
-}
-
 /** Excludes prior history at a deleted locator so address reuse never inherits it implicitly. */
 export function historySinceDeletion(address: Address, records: readonly MigrationRecord[]): { reset: boolean; records: readonly MigrationRecord[] } {
   let deletedAt = -1;

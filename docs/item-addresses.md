@@ -106,8 +106,8 @@ item/scope declarations, requiring canonical absolute, snapshot-free, non-positi
 project and files. It returns typed declarations or a closed validation reason.
 
 Migrations remain uncompacted because collapsing interleaved ancestor and descendant rewrites can change replay results.
-The store must refuse writes exceeding 50,000 records atomically. `migrationRetentionCut(instant, days)` is a pure
-calculation and does not delete history. The server store stages uncompacted appends in the owning journal.
+The store must refuse writes exceeding 50,000 records atomically. The server store stages uncompacted appends in the
+owning journal.
 Operation-derived record IDs make replay idempotent, and conflicting reuse of an operation ID is refused.
 
 ```sh

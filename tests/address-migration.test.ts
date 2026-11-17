@@ -1,6 +1,6 @@
 /** Exercises migration decisions through the public pure API. */
 import { expect, test } from 'bun:test';
-import { migrateAddress, historySinceDeletion, migrationRetentionCut, validateDeclaredMigrations, type MigrationRecord } from '../src/shared/core/address-migration';
+import { migrateAddress, historySinceDeletion, validateDeclaredMigrations, type MigrationRecord } from '../src/shared/core/address-migration';
 import { formatAddress, parseAddress, type Address } from '../src/shared/core/item-address';
 import { withAddressSeed } from './helpers/seeded-random';
 
@@ -56,11 +56,6 @@ test('declarations are typed at the request boundary and restricted to written p
   expect(validateDeclaredMigrations([{ ...declaration, kind: 'scope' }], 'p', ['model.yaml'])).toMatchObject({ ok: false, reason: 'scope' });
   const scope = { kind: 'scope' as const, from: 'sw1:p/model.yaml#model:A', to: 'sw1:p/model.yaml#model:B' };
   expect(validateDeclaredMigrations([scope], 'p', ['model.yaml'])).toMatchObject({ ok: true });
-});
-
-test('retention cut uses the supplied instant and positive whole days', () => {
-  expect(migrationRetentionCut(86_400_000 * 400, 365)).toBe(86_400_000 * 35);
-  expect(() => migrationRetentionCut(0, 0)).toThrow(RangeError);
 });
 
 test('generated histories terminate and a resolving second application is idempotent', () => {

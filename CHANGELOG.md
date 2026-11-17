@@ -8,37 +8,17 @@ not configure a production deployment.
 
 ### Added
 
-- Item-address resolution and explicit reconciliation share inventoried HTTP/twin operations, scoped effects and audit.
-
+- Canonical `sw1` item addresses identify structured definitions, nested ODCS properties and mapping items.
+  Inspector results, canvas cards and agent context use them; unnamed items have volatile positional addresses.
+- Item-address resolution and explicit reconciliation share scoped, audited HTTP and in-process operations,
+  with visibility checks and idempotent reconciliation retries.
+- Renames, moves and deletions record ordered address history atomically with definition changes. History follows
+  project trash/restore, preserves cross-project arrival order and remains uncompacted, bounded at 50,000 records per project.
+  Reusing a deleted locator does not implicitly restore its earlier history.
+- Stable grouping assignments are backed up and converted to addresses while retaining unconvertible keys and existing API behavior.
 - Reviewed operation inventory and generated reference, trusted in-process operation dispatch,
   connection effect restrictions, audit attribution fields and origin/tool filters.
 - Independent dry-run samples retain write and denial evidence during non-HTTP read floods.
-- Preserve rename order across project moves and ignore destination history that predates the arrival.
-- Leave no staged save files when the local Git metadata lookup fails before an address-history write.
-
-- Reuse a model-local index for repeated metric field references, preserving canonical priority and ambiguity checks.
-
-- Resolve structured item locators behind caller visibility checks and support authorized explicit reconciliation with idempotent retries.
-- Keep migration history uncompacted and bounded at 50,000 records per project; no age-retention setting is introduced.
-
-- Explicit item/file deletes retain address tombstones; reusing a locator does not automatically inherit prior history.
-
-- File moves record document-prefix history in both affected projects, and project trash/restore carries the history store.
-
-- Save and batch-save requests can declare stable item/scope renames, atomically recorded with their definition writes.
-
-- Back up and convert stable grouping assignments to item locators, retaining unconvertible keys and existing grouping API behavior.
-
-- Agent context field IDs and metadata scope labels use canonical locators; metric extension references retain their source spelling.
-
-- Mapping canvas cards and rows use scoped item addresses, preserving visible labels and binding behavior.
-
-- Structured inspector results now include item addresses; unnamed scopes use volatile positional segments. RDF and built-ins remain unaddressed.
-
-- Add pure ordered locator replay, retention-cut calculation and save-declaration validation APIs.
-
-- Derive and resolve structured definition addresses, including nested ODCS properties and volatile unnamed mappings.
-- Add the pure `sw1` item-locator grammar with canonical escaping, relative resolution and segment prefix operations.
 
 ### Changed
 

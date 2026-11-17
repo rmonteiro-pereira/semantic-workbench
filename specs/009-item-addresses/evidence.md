@@ -1410,3 +1410,5 @@ feb35ab7 test: record recovered authentication browser gate
 - `bun test tests/address-reconciliation.test.ts`: 2 pass, 0 fail, 13 expect() calls.
 - `bun test tests/auth/item-address-scope.test.ts`: 1 pass, 0 fail, 4 expect() calls.
 - `bun test tests/address-migration-store.test.ts`: 13 pass, 0 fail, 142 expect() calls after the reader-signature change.
+- Removed the unused retention-cut function and test, its API documentation and the unsupported environment-variable name. History remains uncompacted with the existing atomic 50,000-record bound. Consolidated the Unreleased item-address entries into user-facing behavior.
+- `bun test tests/address-migration.test.ts`: 6 pass, 0 fail, 3022 expect() calls.
