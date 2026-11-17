@@ -9,6 +9,7 @@ import { TEST_USERS, type TestUserName } from '../helpers/auth-identities';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 import { useDefaultBrand } from '../helpers/brand-fixture';
 import { accessFixture, person } from './access-fixture';
+import recording from '../fixtures/characterization/http-v1.json';
 import { routeExamples } from './route-actions';
 
 const fixedTime = new Date('2026-09-15T12:00:00.000Z');
@@ -74,7 +75,8 @@ async function captureCaller(caller: CallerName) {
   using fixture = await authWorkspace();
   const { handler, audit } = callerHandler(caller, fixture);
   const captures = [];
-  for (const example of routeExamples) {
+  const recordedRows = new Set(recording.filter(capture => capture.caller === caller).map(capture => `${capture.method} ${capture.path}`));
+  for (const example of routeExamples.filter(example => recordedRows.has(`${example.method} ${example.path}`))) {
     const controller = new AbortController();
     const headers: Record<string, string> = { Origin: 'http://localhost:5312', 'X-SW-Request': '1', 'Content-Type': 'application/json' };
     if (caller === 'client') headers.Authorization = 'Bearer characterization';

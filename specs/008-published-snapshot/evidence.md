@@ -1142,3 +1142,16 @@ check before advancing the published default. This corrects the earlier integrat
 
 Proof: `bun test tests/auth/published-operation-parity.test.ts tests/auth/operation-inventory.test.ts`:
 `14 pass, 0 fail, 269 expect() calls; Ran 14 tests across 2 files. [7.59s]`.
+
+
+### Frozen HTTP compatibility after snapshot integration
+
+The frozen `tests/fixtures/characterization/http-v1.json` is byte-for-byte unchanged. The input
+driver runs its original 1,547 recorded caller/route cases, excluding only newly added route rows.
+Comparison preserves every original response field and audit outcome. The intentional additive
+`published` identity on `/api/projects` is asserted as a branch/full commit pair, then omitted
+from the comparison with the older shape. It is the only response projection. New operations
+have separate parity and published-definition tests.
+
+Remote `bun test tests/auth/http-characterization.test.ts`: `1 pass, 0 fail,
+1576 expect() calls; Ran 1 test across 1 file. [21.00s]`.
