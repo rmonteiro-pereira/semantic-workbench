@@ -333,3 +333,7 @@ Server preview requires the person’s session and existing read authorization. 
 must not be represented as published context. Historical inputs accept full published-history ids
 or tags within that history, not branches or abbreviated ids. Publication does not create release
 tags, validate a whole definition set or supply dependency manifests; diverged history is not adopted.
+
+## Agent tools
+
+Local mode also serves the Model Context Protocol at `POST /api/mcp`, with 21 tools described in [the agent endpoint guide](mcp.md). Four of them (`get_mapping_catalog`, `get_mapping_context`, `plan_query` and `explain_metric`) call the routes described above and so read only the published snapshot; the others list, read and validate files, inspect Git, change files and commit. No tool executes a plan, contacts a warehouse or calls a model.

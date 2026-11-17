@@ -178,6 +178,7 @@ suites use `SW_BASE_URL`. The full runner supplies fresh frontend processes as n
 | `test:sidebar` | Sidebar footer visibility and project list fill at short heights, resize and delete |
 | `test:metrics` | Metric list, definitions, explanations and graph navigation |
 | `test:addresses` | Canonical selection, reload, unchanged source bytes and declared rename with ticked references |
+| `test:mcp:browser` | An agent's save through the local endpoint refreshing an open editor, the person's unsaved draft kept, and agent records with their tool in the Admin audit view |
 | `test:graph` | Whole graph, neighborhood walk, expansion, scale and response budget |
 | `test:editor` | Serialization colors, located findings, byte preservation and typing |
 | `test:item-edit` | Forms, new items, rename/delete and metric wizard |
@@ -393,6 +394,10 @@ conformance tests and the acceptance script use as the reference client; it is n
 For API work, maintain the action inventory and relevant HTTP/configuration contracts. The actual
 handlers, schemas and tests remain authoritative when an older design contract describes an
 unimplemented or superseded detail.
+
+## Agent endpoint
+
+`bun test tests/mcp` runs the endpoint's tests: the tool contract and route inventory comparisons, the request gate, the capability file, protocol conformance for the current and earlier protocol eras, body caps, the read, write, commit and receipt tools, the authorization matrix for every test identity, audit records and the outbound-call check. `bun run test:mcp` is the scripted acceptance run with the reference client; it runs in the verify step after `bun test`. `docs/mcp-acceptance.md` records its result and the client versions. Agent endpoint mutants live in `scripts/mcp-mutants.ts` with their assertions in `scripts/mcp-mutation-cases.ts`.
 
 ## Operation boundary
 

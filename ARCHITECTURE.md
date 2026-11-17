@@ -260,6 +260,13 @@ concatenating project, document or item names.
   and command-scoped credentials. `src/server/bin/sw-askpass` is the final host-specific credential
   boundary; Git filters and local merge steps must not inherit remote tokens.
 
+### Agent endpoint
+
+- `src/server/routes/mcp.ts` serves `POST /api/mcp` in local mode only and does transport work only: it applies the request gate, reads the body under its caps and hands the message to the protocol library. It is mounted by `src/server/handler.ts` when `src/server/index.ts` opened a capability.
+- `src/server/mcp/` holds one module per concern: `request-gate.ts` (method, `Origin`, `Host`, capability, content type, in that order), `local-capability.ts` (the secret file), `body-limits.ts`, `server-factory.ts` (builds the protocol server for one request from the registry), `tool-registry.ts` and `tool-definition.ts` (the 21 tools as plain data), `tools/` (grouped by what they do), `twin-dispatch.ts` (runs a tool's request through the operation boundary and maps the answer), `tool-results.ts`, `tool-paging.ts` and `cursors.ts`, `call-limits.ts`, `receipts.ts` (durable retry safety for delete, restore and commit) and `call-audit.ts`.
+- Nothing under `src/server/mcp/` reads project files or decides access. A tool is the twin of the inventory operation it names, so adding a tool means adding it to the registry, to the route inventory contract and to `docs/mcp.md`; `tests/mcp/` compares the three.
+- `scripts/mcp-stdio.ts` is the bridge for clients that start a program; `scripts/mcp-capability.ts` rotates the secret.
+
 ### Parsing, editing, metrics and agent planning
 
 - `src/shared/core/model.ts` projects supported definitions into entities and relationships.
@@ -406,6 +413,13 @@ concatenating project, document or item names.
    Publication is separate from remote Push.
 5. All worktrees of a repository share its serialized Git queue. Sparse paths, multi-project
    ownership and protected content apply to both direct changes and incoming Git content.
+
+### Agent tool call
+
+1. The route gates the request, streams its body under the cap of the named tool and gives it to the protocol library, which checks the headers, the envelope and the revision.
+2. The tool checks its arguments against its JSON Schema, takes a place under the call limits and builds the request of its twin route.
+3. `operation-boundary.ts` decides and audits the call as the twin with the `mcp` origin, and the route runs unchanged. The tool maps the HTTP answer to a result.
+4. Delete, restore and commit write a receipt before and after the effect, so a retry returns the original result. A commit also checks the branch, head and file versions in the same turn of the repository queue that commits.
 
 ### Access administration
 

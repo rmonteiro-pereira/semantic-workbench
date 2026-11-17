@@ -1,6 +1,6 @@
 # Operation inventory
 
-This reference describes the shared operation boundary. It does not imply that a protocol transport is available.
+This reference describes the shared operation boundary. Each tool of the local agent endpoint is the twin of one of these operations; see docs/mcp.md for the tools.
 Regenerate this page with `bun scripts/operation-inventory-table.ts` after reviewing the inventory.
 
 | Operation | Route | Action | Targets | Effects | Request limit | Exposure |

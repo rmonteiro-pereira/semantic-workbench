@@ -307,3 +307,15 @@ completion report are described in [item addresses](item-addresses.md).
 Repositories cloned or registered while the application is running use the same first-snapshot adoption as
 startup. Existing default-branch commits become available immediately without moving a ref or rewriting a
 commit.
+
+## Agent endpoint (local mode)
+
+The agent endpoint needs no environment variable. It uses `DATA_DIR` and `SW_PORT` like the rest of the server.
+
+| File or command | Meaning |
+| --- | --- |
+| `<data root>/state/mcp-capability` | The local capability: one line of 43 characters, created on first start with owner-only access. Local mode refuses to mount the endpoint when owner-only access cannot be set. |
+| `<data root>/state/mcp-receipts/<year>-<month>.json` | Receipts that make delete, restore and commit safe to retry, kept for seven days. They hold no file text. |
+| `bun run mcp:rotate` | Replaces the capability; the old value stops working on the next request. |
+
+Server mode never mounts the endpoint. See [the agent endpoint guide](mcp.md).

@@ -11,6 +11,8 @@ shapes and their SPARQL constraints over one file of the same project, in the br
 network. SQLite supports the application's internal index; it is not an analytical data source.
 Separate verification scripts can execute SQL against disposable synthetic fixtures.
 
+Semantic Workbench does not call a language model. When you connect an external agent, that agent can receive definitions you authorize and may send them to its model provider; its configuration and policies govern that onward use.
+
 ## Contents
 
 - [Quick start](#quick-start)
@@ -20,6 +22,7 @@ Separate verification scripts can execute SQL against disposable synthetic fixtu
 - [Supported formats and boundaries](#supported-formats-and-boundaries)
 - [Example workspaces](#example-workspaces)
 - [Local and shared-server modes](#local-and-shared-server-modes)
+- [Connect an agent](#connect-an-agent)
 - [Run it as a container](#run-it-as-a-container)
 - [Data, recovery and Git](#data-recovery-and-git)
 - [Configuration and integrations](#configuration-and-integrations)
@@ -443,6 +446,7 @@ application choices. [The example report](docs/example-verification.json) record
 | Git credentials | Machine helper or SSH | Session-scoped personal remote credentials |
 | Edits | Local project repositories | Personal working copy; Steward publication |
 | Telemetry | Never exported | Optional, explicitly enabled Azure Monitor export |
+| Agent endpoint | `POST /api/mcp` with a local capability | Not mounted |
 
 For a shared server, install dependencies, build the frontend and supply the required settings
 before `bun src/server/index.ts`. There is no application-owned password form. Roles come from
@@ -452,6 +456,14 @@ Built-in roles are Viewer, Editor, Steward and Admin, with custom roles and Ceda
 Read [server startup, grants and operations](docs/server-mode.md), then configure the target with
 [the environment reference](docs/configuration.md). Real-tenant identity/consent and Azure target
 acceptance are distinct from loopback mock-provider tests.
+
+## Connect an agent
+
+Local mode offers an endpoint, `POST /api/mcp`, for agents that speak the Model Context Protocol. A connected agent can read definitions, findings, Git history and the published mapping context, check proposed text, change files and commit exactly the files it names. It uses 21 tools, each the twin of an existing route, so access control, content guards, version checks and the audit record are the browser's own. The workbench only answers requests: it never runs a query plan, contacts a warehouse or calls a model.
+
+Semantic Workbench does not call a language model. When you connect an external agent, that agent can receive definitions you authorize and may send them to its model provider; its configuration and policies govern that onward use.
+
+The first start creates a secret in `data/state/mcp-capability` that only your operating-system user can read, and every request must present it. Run `bun scripts/mcp-stdio.ts` as a standard-input server in your agent client (set `DATA_DIR` and `SW_PORT` like the server), or give a client that takes a URL `http://127.0.0.1:4310/api/mcp` and the header `Authorization: Bearer <the file's contents>`. `bun run mcp:rotate` replaces the secret. The endpoint is absent in server mode, which has no agent tools yet. An agent that reads a hostile definition can be steered by it; the protocol has no way to mark text untrusted. Read [the agent endpoint guide](docs/mcp.md) for the tool list, limits, retry rules and threat model.
 
 ## Run it as a container
 

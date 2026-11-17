@@ -8,6 +8,10 @@ not configure a production deployment.
 
 ### Added
 
+- A local agent endpoint, `POST /api/mcp`, speaks the Model Context Protocol and offers 21 tools to read definitions, findings and Git history, check proposed text, save, create, delete and restore files, read the published mapping context and plans, and commit exactly the listed files. Each tool is the twin of an existing route, so access control, content guards, version checks and audit are unchanged. A per-installation capability in `data/state/mcp-capability` protects it, `bun run mcp:rotate` replaces it, and `scripts/mcp-stdio.ts` bridges clients that start a program. Server mode does not mount it. See `docs/mcp.md`.
+- `POST /api/projects/:slug/files/*/validate` checks proposed text with the save pipeline and writes nothing.
+- The commit route accepts optional `files`, `expectedBranch` and `expectedHead`, checked in the same turn of the repository queue as the commit. Deleting a file accepts an optional `baseHash`. `GET /api/documents?project=` lists a project's files without their text.
+- Audit records of agent calls carry the protocol method, a client label and a result code, and the Admin audit view shows the tool beside the action.
 - Canonical `sw1` item addresses identify structured definitions, nested ODCS properties and mapping items.
   Inspector results, canvas cards and agent context use them; unnamed items have volatile positional addresses.
 - Item-address resolution and explicit reconciliation share scoped, audited HTTP and in-process operations,
