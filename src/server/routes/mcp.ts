@@ -1,6 +1,7 @@
 // Serves `POST /api/mcp` in local mode. This file does transport work only: it applies the request gate, reads the body under its caps and hands the message to the protocol library. Each tool call then reaches the workbench through the operation boundary, as the twin of an ordinary route.
 import { createMcpHandler } from '@modelcontextprotocol/server';
-import { ATTRIBUTED_METHODS, type AuditLog } from '../auth/audit';
+import type { AuditLog } from '../auth/audit';
+import { ATTRIBUTED_METHODS } from '../auth/call-attribution';
 import { mintCaller } from '../auth/caller';
 import type { OperationBoundary } from '../auth/operation-boundary';
 import { localPrincipal } from '../auth/principal';

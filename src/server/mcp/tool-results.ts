@@ -1,27 +1,8 @@
 // The shapes every tool answers with, the closed set of failure codes, and the byte ranges that keep a result under its cap.
 import type { CallToolResult } from '@modelcontextprotocol/server';
+import { TOOL_ERROR_CODES, type ToolErrorCode } from '../auth/call-attribution';
 
-/** Failure codes a tool may answer with. A client can branch on these without parsing the message. */
-export const TOOL_ERROR_CODES = [
-  'invalid_input',
-  'not_found',
-  'refused',
-  'conflict',
-  'guard_refused',
-  'precondition_failed',
-  'key_reused',
-  'uncertain',
-  'not_published',
-  'not_ready',
-  'unavailable',
-  'version_changed',
-  'cursor_expired',
-  'limit_exceeded',
-  'rate_limited',
-  'internal',
-] as const;
-/** One failure code of a tool result. */
-export type ToolErrorCode = (typeof TOOL_ERROR_CODES)[number];
+export { TOOL_ERROR_CODES, type ToolErrorCode };
 
 /** What a tool answers: data on success, or a code with a plain sentence and optional details. */
 export type ToolResult = { ok: true; data: Record<string, unknown> } | { ok: false; error: { code: ToolErrorCode; message: string; details?: Record<string, unknown> } };
