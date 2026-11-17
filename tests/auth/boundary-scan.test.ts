@@ -21,7 +21,7 @@ const fixtureScripts = new Set([
   'scripts/operation-boundary-mutation-cases.ts',
   'scripts/snapshot-mutation-cases.ts',
 ]);
-const publicEntries = new Set(['operation-boundary', 'caller', 'twin-request', 'operation-inventory', 'call-attribution']);
+const publicEntries = new Set(['operation-boundary', 'caller', 'twin-request', 'operation-inventory', 'call-attribution', 'operation-outcome']);
 
 function violations(path: string, source: string): string[] {
   const result: string[] = [];

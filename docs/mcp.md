@@ -58,7 +58,7 @@ Each tool is the twin of an existing route and runs through the same operation b
 
 The four published-only tools (`get_mapping_catalog`, `get_mapping_context`, `plan_query`, `explain_metric`) answer from the immutable published snapshot, include its id and answer `not_published` until the project has been published from the browser. An unpublished edit never appears in them.
 
-Results are `{ "ok": true, "data": ... }` or `{ "ok": false, "error": { "code", "message", "details" } }`, with the protocol error flag set on failure. The codes are `invalid_input`, `not_found` (a hidden file answers like a missing one), `refused`, `conflict`, `guard_refused`, `precondition_failed`, `key_reused`, `uncertain`, `not_published`, `not_ready`, `unavailable`, `version_changed`, `cursor_expired`, `limit_exceeded`, `rate_limited` and `internal`.
+Results are `{ "ok": true, "data": ... }` or `{ "ok": false, "error": { "code", "message", "details" } }`, with the protocol error flag set on failure. The codes are `invalid_input`, `not_found` (a hidden file answers like a missing one), `refused`, `conflict`, `guard_refused`, `precondition_failed`, `key_reused`, `uncertain`, `not_published`, `not_ready`, `unavailable`, `version_changed`, `cursor_expired`, `limit_exceeded`, `rate_limited` and `internal`. The audit record of a tool call carries the same code in `result`, because both come from one classifier of the operation, the HTTP status and the route's answer.
 
 Changing files:
 

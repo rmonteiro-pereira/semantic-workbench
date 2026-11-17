@@ -12,12 +12,7 @@ export const mcpMutants: [string, string, string, string][] = [
   ['mcp-state', 'src/server/mcp/cursors.ts', 'claim.generation === binding.generation', 'true'],
   ['mcp-state', 'src/server/mcp/tool-results.ts', 'Math.min(requestedLength, RESULT_CAP_BYTES)', 'requestedLength'],
   ['mcp-tools', 'src/server/mcp/tools/published-context.ts', "operation: 'agent.catalog.read',", "operation: 'preview.catalog',"],
-  [
-    'mcp-tools',
-    'src/server/mcp/twin-dispatch.ts',
-    "if (status === 404) return fail('not_found', 'The target does not exist or is not available to you.');",
-    "if (status === 404) return fail('not_found', message);",
-  ],
+  ['mcp-tools', 'src/server/mcp/twin-dispatch.ts', 'return fail(code, NOT_AVAILABLE);', 'return fail(code, message);'],
   // Writes.
   ['mcp-tools', 'src/server/mcp/tools/editing.ts', 'run: (args, context) => store(context, args, args.baseVersion),', 'run: (args, context) => store(context, args, null),'],
   ['mcp-state', 'src/server/mcp/receipts.ts', "if (existing?.state === 'done' && existing.result) return existing.result;", ''],

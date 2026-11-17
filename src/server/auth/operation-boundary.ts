@@ -3,7 +3,7 @@ import { executeOperation } from './operation-execution';
 import { operationClassifiers } from './operation-classifiers';
 import { recordOperation } from '../observability/metrics';
 import { withSpan } from '../observability/tracing';
-import { callResult, classifyOutcome, statusOutcome, OPERATION_OUTCOMES, type OperationOutcome, type OutcomeClassifier } from './operation-outcome';
+import { callResultOf, classifyOutcome, statusOutcome, OPERATION_OUTCOMES, type OperationOutcome, type OutcomeClassifier } from './operation-outcome';
 import type { Workspace } from '../projects/workspace';
 import { routeVerdict, routeTargets, type RouteVerdict } from './route-verdict';
 import type { RemoteCredentials } from './remote-credentials';
@@ -176,7 +176,7 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
     return { response, denied: false };
   }
 
-  function auditAllowed(input: Execution, verdict: RouteVerdict, record: ReturnType<typeof auditInput>, semanticOutcome: OperationOutcome, status: number): void {
+  function auditAllowed(input: Execution, verdict: RouteVerdict, record: ReturnType<typeof auditInput>, semanticOutcome: OperationOutcome, result: string | undefined): void {
     if (!shouldAudit(verdict.row, input.request.method, 'allow', input.caller.origin)) return;
     try {
       const publication = input.request[requestPublication];
@@ -185,7 +185,7 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
         ...record,
         decision: 'allow',
         outcome: semanticOutcome,
-        ...(input.caller.attribution ? { result: callResult(status) } : {}),
+        ...(result ? { result } : {}),
         ...(publication ? { publication } : {}),
         ...(reason ? { reason } : {}),
       });
@@ -203,7 +203,9 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
     if (denied) return response;
     const semanticOutcome = input.classifier ? await classifyOutcome(response, input.classifier) : statusOutcome(response.status);
     input.observation.outcome = semanticOutcome;
-    auditAllowed(input, verdict, record, semanticOutcome, response.status);
+    const operationId = operationForRow(verdict.row.path)?.id ?? '';
+    const result = input.caller.attribution ? await callResultOf(operationId, response) : undefined;
+    auditAllowed(input, verdict, record, semanticOutcome, result);
     if (mode === 'server' && response.status === 404) return Response.json({ error: 'Not found.' }, { status: 404 });
     return response;
   }
