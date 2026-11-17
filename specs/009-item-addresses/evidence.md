@@ -1156,3 +1156,18 @@ The initial selection checks passed, then the Table customers `Walk here` click 
 This differs from the previously reproduced first-view performance failure, so it is not yet
 classified as a baseline exception. Its owned server stopped. lineage-summary.txt contains the
 small local failure summary; the complete log and captures remain remote.
+
+### Lineage main comparison and repeated feature run
+
+The unchanged-main a153c20f production build passed `Walk here`, then failed the known first-view
+budget: `Received: 3408`, `Expected: <= 2000`; its script exited 1. The launcher exited before
+writing its summary, so the retained complete remote log supplied main-lineage-summary.txt on
+the next wrapper command. No SSH failure occurred, and its server/archive cleanup ran.
+The collection script now preserves failure summaries before returning the test status.
+
+The repeated feature `bun run test:lineage` also passed `Walk here` and failed at the same budget:
+`Received: 3460`, `Expected: <= 2000`; `error: script "test:lineage" exited with code 1`.
+The first pointer-interception attempt did not recur and is not claimed as a main-reproduced
+failure or as a code fix. No application or test assertion changed between runs. The final
+lineage gate retains the directly reproduced performance exception. Feature and main logs stay
+remote; only small summaries were pulled. Both owned production servers stopped.
