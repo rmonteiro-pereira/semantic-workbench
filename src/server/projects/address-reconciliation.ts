@@ -41,7 +41,7 @@ export async function recordReconciliation(context: AddressReconciliationContext
   const [pair] = declaredAddressMigrations([{ kind: 'item', from: declaration.from, to: declaration.to }], project, [previousPath, path]);
   if (!/^[A-Za-z0-9_-]{1,128}$/.test(declaration.operationId)) throw new BadRequestError('Invalid reconciliation operation identifier.');
   return context.lock(projectLockKey(project, reader.copy?.key ?? null), async () => {
-    const id = `m-${declaration.operationId}-0`;
+    const id = `r-${declaration.operationId}-0`;
     const previous = readAddressMigrations(context.layout, project, reader).find(record => record.id === id);
     if (previous) {
       if (previous.kind !== 'reconciliation' || previous.from !== pair.from || previous.to !== pair.to) throw new BadRequestError('A reconciliation operation was replayed with different content.');

@@ -110,7 +110,7 @@ project and files. It returns typed declarations or a closed validation reason.
 Migrations remain uncompacted because collapsing interleaved ancestor and descendant rewrites can change replay results.
 The store must refuse writes exceeding 50,000 records atomically. The server store stages uncompacted appends in the
 owning journal.
-Operation-derived record IDs make replay idempotent, and conflicting reuse of an operation ID is refused.
+Operation-derived record IDs use separate `m-` (save/move), `d-` (deletion) and `r-` (reconciliation) namespaces to make replay idempotent, and conflicting reuse of an operation ID is refused.
 
 ```sh
 bun test tests/address-migration.test.ts

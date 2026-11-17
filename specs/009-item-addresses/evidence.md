@@ -1421,3 +1421,6 @@ feb35ab7 test: record recovered authentication browser gate
 - `bun test tests/address-migration-store.test.ts`: 13 pass, 0 fail, 142 expect() calls (save failure cleanup, moves, deletion and replay).
 - `bun test tests/address-declared-save.test.ts`: 4 pass, 0 fail, 30 expect() calls after commit/record consolidation.
 - `bun test tests/address-reconciliation.test.ts`: 2 pass, 0 fail, 13 expect() calls after commit lookup consolidation.
+- Reconciliation records now use `r-<operationId>-0`, distinct from save/move `m-` and deletion `d-` records. The idempotency lookup uses the same namespace; a same-key construction regression covers the separation.
+- `bun test tests/address-reconciliation.test.ts`: 2 pass, 0 fail, 13 expect() calls.
+- `bun test tests/address-migration-store.test.ts`: 14 pass, 0 fail, 144 expect() calls.

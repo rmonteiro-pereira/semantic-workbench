@@ -300,3 +300,10 @@ test('a deleted item explicitly reconciled later resolves to its target', async 
   await workspace.ws.reconcileAddress({ operationId: 'after-delete', from: oldAddress, to: target }, LOCAL_READER);
   expect(workspace.ws.resolveAddress(oldAddress, LOCAL_READER)).toMatchObject({ status: 'found', address: target });
 });
+
+test('save and reconciliation records use separate namespaces for the same operation key', () => {
+  const [saved] = operationMigrations(operation, [{ kind: 'item', from, to }]);
+  const [reconciled] = operationMigrations(operation, [{ kind: 'reconciliation', from, to }]);
+  expect(saved.id).toBe('m-stable-operation-0');
+  expect(reconciled.id).toBe('r-stable-operation-0');
+});

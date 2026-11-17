@@ -76,7 +76,12 @@ export function readAddressMigrations(layout: DataLayout, project: string, reade
 /** Assigns repeatable record identifiers from the journal's business operation identifier. */
 export function operationMigrations(operation: { id: string; at: string; commit: string }, changes: readonly Omit<MigrationRecord, 'id' | 'at' | 'commit'>[]): MigrationRecord[] {
   if (!operation.id) throw new BadRequestError('A migration operation identifier is required.');
-  return changes.map((change, index) => ({ ...change, id: `${change.kind === 'deleted' ? 'd' : 'm'}-${operation.id}-${index}`, at: operation.at, commit: operation.commit }));
+  return changes.map((change, index) => {
+    let prefix = 'm';
+    if (change.kind === 'deleted') prefix = 'd';
+    if (change.kind === 'reconciliation') prefix = 'r';
+    return { ...change, id: `${prefix}-${operation.id}-${index}`, at: operation.at, commit: operation.commit };
+  });
 }
 
 /** Prepares an idempotent append, refusing overflow before any existing file is moved. */

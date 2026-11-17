@@ -28,7 +28,7 @@ test('an editor reconciles an approved guarded metric without changing it and re
   const original = workspace.ws.readFile('sales-metrics', 'sales.semantic.yaml').source;
   const request = requestFor('alice');
   const record = await workspace.ws.reconcileAddress(declaration, requestReader(request));
-  expect(record).toMatchObject({ id: 'm-reconcile-one-0', kind: 'reconciliation', from: declaration.from, to: declaration.to });
+  expect(record).toMatchObject({ id: 'r-reconcile-one-0', kind: 'reconciliation', from: declaration.from, to: declaration.to });
   const stored = readFileSync(addressMigrationFile(layout, 'sales-metrics'));
   expect(await workspace.ws.reconcileAddress(declaration, requestReader(request))).toEqual(record);
   expect(readFileSync(addressMigrationFile(layout, 'sales-metrics'))).toEqual(stored);
