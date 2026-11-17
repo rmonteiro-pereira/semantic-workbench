@@ -1,6 +1,6 @@
 // Coordinates project files, durable state, and workspace services. Project folders are the source
 // of truth; the SQLite cache can be rebuilt.
-import { upgradePublications } from '../auth/operation-boundary';
+import { upgradePublications } from '../auth/operation-execution';
 import type { PublicationObserver } from './local-publication';
 import { readAddressMigrations } from './address-migrations';
 import { resolveForCaller } from './address-resolution';

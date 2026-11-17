@@ -1,6 +1,5 @@
 // Decides and executes operations through the same handler and durable audit path.
 import { executeOperation } from './operation-execution';
-export { upgradePublications } from './operation-execution';
 import { operationClassifiers } from './operation-classifiers';
 import { recordOperation } from '../observability/metrics';
 import { withSpan } from '../observability/tracing';
