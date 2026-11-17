@@ -16,7 +16,7 @@ test('C1 discovery answers with tools only and C7 carries result metadata', asyn
   expect(answer.status).toBe(200);
   const result = (answer.json as { result: Record<string, any> }).result;
   expect(result.supportedVersions).toEqual(['2026-07-28']);
-  expect(Object.keys(result.capabilities)).toEqual(['tools']);
+  expect(result.capabilities).toEqual({ tools: { listChanged: false } });
   expect(result.resultType).toBe('complete');
   expect(result.cacheScope).toBe('private');
 });

@@ -22,7 +22,7 @@ The bridge reads the capability file for every message, so `bun run mcp:rotate` 
 
 Directly over HTTP, for clients that take a URL and a header: URL `http://127.0.0.1:4310/api/mcp` and the header `Authorization: Bearer <contents of data/state/mcp-capability>`. Browser-based clients cannot connect, by design.
 
-Codex CLI registers a command server with `codex mcp add semantic-workbench --env DATA_DIR=<data folder> -- bun scripts/mcp-stdio.ts` (the acceptance record in `docs/mcp-acceptance.md` states the version this was checked against). The exact syntax of any client is that client's own, so check its documentation.
+Codex CLI has not been tried with this endpoint yet; `docs/mcp-acceptance.md` records what is verified and what is not. Only the reference client of the protocol library has been run against it. The registration command differs by client, so follow that client's own documentation and point it at `bun scripts/mcp-stdio.ts` with `DATA_DIR` set to your data folder.
 
 Rotate the secret with `bun run mcp:rotate`. The old value stops working on the next request.
 
@@ -58,7 +58,7 @@ Each tool is the twin of an existing route and runs through the same operation b
 
 The four published-only tools (`get_mapping_catalog`, `get_mapping_context`, `plan_query`, `explain_metric`) answer from the immutable published snapshot, include its id and answer `not_published` until the project has been published from the browser. An unpublished edit never appears in them.
 
-Results are `{ "ok": true, "data": ... }` or `{ "ok": false, "error": { "code", "message", "details" } }`, with the protocol error flag set on failure. The codes are `invalid_input`, `not_found` (a hidden file answers like a missing one), `refused`, `conflict`, `guard_refused`, `precondition_failed`, `key_reused`, `uncertain`, `not_published`, `not_ready`, `unavailable`, `version_changed`, `cursor_expired`, `limit_exceeded`, `rate_limited` and `internal`. The audit record of a tool call carries the same code in `result`, because both come from one classifier of the operation, the HTTP status and the route's answer.
+Results are `{ "ok": true, "data": ... }` or `{ "ok": false, "error": { "code", "message", "details" } }`, with the protocol error flag set on failure. The codes are `invalid_input`, `not_found` (a hidden file answers like a missing one), `refused`, `conflict`, `guard_refused`, `precondition_failed`, `key_reused`, `uncertain`, `not_published`, `unavailable`, `version_changed`, `cursor_expired`, `limit_exceeded`, `rate_limited` and `internal`. The audit record of a tool call carries the same code in `result`, because both come from one classifier of the operation, the HTTP status and the route's answer.
 
 Changing files:
 
@@ -80,7 +80,7 @@ Changing files:
 
 ## Threat model
 
-The capability protects against another page in your browser, a web page using DNS rebinding, another operating-system user without read access to the data folder, and a container that shares the network but not the files. Any `Origin` header is refused, `Host` must be exactly a loopback name with the server's port, and the method and content type are checked before the capability is compared in constant time.
+The capability protects against another page in your browser, a web page using DNS rebinding, another operating-system user without read access to the data folder, and a container that shares the network but not the files. Any `Origin` header is refused, `Host` must be exactly a loopback name with the server's port, and the checks run in this order, stopping at the first failure: method, `Origin`, `Host`, the capability (compared in constant time), then the content type.
 
 It does not protect against a process running as your own operating-system user, which can read the file. It is not a sandbox, and the other local routes keep their existing boundary.
 

@@ -10,4 +10,6 @@ Result on the release candidate: all ten steps pass.
 
 ## Codex CLI
 
-The run with Codex CLI needs a real agent session with a model and the owner's Codex configuration, which an automated change cannot start. Before release, register the bridge as in `docs/mcp.md`, ask the agent to list the files of a project, read one, validate and save one change and commit it, and record here the output of `codex --version`, the configuration used and the result. Until that is recorded, only the reference client is verified.
+Status: not done. Codex CLI has not been run against this endpoint, and nothing here claims it works.
+
+The run needs a real agent session with a model and the owner's Codex configuration, which an automated change cannot start. Before release, register the bridge with Codex (for example `codex mcp add semantic-workbench --env DATA_DIR=<data folder> -- bun scripts/mcp-stdio.ts`, checked against `codex mcp add --help`), ask the agent to list the files of a project, read one, validate and save one change and commit it, and record here the output of `codex --version`, the configuration used and the result. Until that is recorded, only the reference client is verified.

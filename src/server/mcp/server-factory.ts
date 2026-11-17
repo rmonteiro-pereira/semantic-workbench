@@ -85,7 +85,7 @@ async function runTool(tool: ToolDefinition, args: unknown, dependencies: ToolSe
 
 /** Creates a protocol server whose tools are the visible part of the registry. */
 export function buildToolServer(dependencies: ToolServerDependencies): McpServer {
-  const server = new McpServer({ name: 'semantic-workbench', version: '1.0.0' });
+  const server = new McpServer({ name: 'semantic-workbench', version: '1.0.0' }, { capabilities: { tools: { listChanged: false } } });
   const visible = dependencies.visibleOperations;
   for (const tool of dependencies.tools) {
     if (visible && !visible.has(tool.operation)) continue;
