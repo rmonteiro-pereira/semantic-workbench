@@ -6,7 +6,7 @@ import { LOCAL_READER, type Reader } from './reader';
 import { BadRequestError, HiddenResourceError, PreconditionError } from './errors';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { GitError, redactCredentials, symbolicBranch, type CommitAuthor, type CommitPathsResult, type Git } from './git';
+import { GitError, GitRefusalError, redactCredentials, symbolicBranch, type CommitAuthor, type CommitPathsResult, type Git } from './git';
 import { MergingError } from './errors';
 import { decode, sha256 } from './atomic';
 import { assertExactCase, assertNoLinks, projectPath, repoDir } from './paths';
@@ -144,7 +144,7 @@ export function createScm(deps: ScmDeps) {
   async function commitIndex(slug: string, message: string, author?: CommitAuthor) {
     const directory = dir(slug);
     const gitStatus = await git.status(directory);
-    if (gitStatus.entries.some(e => e.conflicted)) throw new GitError('Resolve the conflicted files and stage them before committing.');
+    if (gitStatus.entries.some(e => e.conflicted)) throw new GitRefusalError('Resolve the conflicted files and stage them before committing.');
     const staged = gitStatus.entries.filter(e => e.index !== '.' && !e.untracked);
     const merging = await git.merging(directory);
     // A merge commit holds everything the merge brought in, so only a plain commit is limited.
@@ -154,7 +154,7 @@ export function createScm(deps: ScmDeps) {
         directory,
         staged.map(e => e.path),
       );
-    if (!staged.length && !merging) throw new GitError('Nothing is staged. Stage the changes to include, then commit.');
+    if (!staged.length && !merging) throw new GitRefusalError('Nothing is staged. Stage the changes to include, then commit.');
     const clean = staged.filter(e => e.worktree === '.').map(e => e.path);
     const before = await git.worktreeIds(
       directory,
@@ -212,7 +212,7 @@ export function createScm(deps: ScmDeps) {
     const clean = chosen.filter(p => existsSync(join(directory, p)));
     const before = await git.worktreeIds(directory, clean);
     const commitPathsResult = await git.commitPaths(directory, chosen, message, author);
-    if (!commitPathsResult.committed) throw new GitError(NOT_COMMITTED_MESSAGE[commitPathsResult.reason]);
+    if (!commitPathsResult.committed) throw new GitRefusalError(NOT_COMMITTED_MESSAGE[commitPathsResult.reason]);
     const checked = clean.filter(p => before.has(p));
     const [disk, tree] = await Promise.all([
       git.worktreeIds(

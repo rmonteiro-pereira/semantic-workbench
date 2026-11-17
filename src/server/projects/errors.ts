@@ -21,9 +21,30 @@ export class StaleError extends Error {
  * the caller, so the HTTP boundary shows it. Any other error is unexpected and stays private.
  */
 export class BadRequestError extends Error {
-  constructor(message: string) {
+  constructor(
+    message: string,
+    /** A machine-readable reason sent in the answer, so a protocol caller never has to read the sentence. */
+    public code?: RequestFailureCode,
+  ) {
     super(message);
     this.name = 'BadRequestError';
+  }
+}
+/** The response header that carries a failure's reason, so the status and the body of a legacy answer stay as they were. */
+export const FAILURE_CODE_HEADER = 'X-Workbench-Failure';
+/** Reasons a route answer names in `FAILURE_CODE_HEADER` besides its status. */
+export type RequestFailureCode = 'not-found' | 'git-unavailable' | 'git-refused';
+/** The reason a route names for an error, or undefined when the error has no reason a caller may rely on. */
+export function failureCodeOf(error: unknown): RequestFailureCode | undefined {
+  if (error instanceof NotFoundError) return 'not-found';
+  if (error instanceof BadRequestError) return error.code;
+  return undefined;
+}
+/** Reports that Git is not installed or usable, for the operations that need it. */
+export class GitUnavailableError extends BadRequestError {
+  constructor() {
+    super('Git is not available on this machine.', 'git-unavailable');
+    this.name = 'GitUnavailableError';
   }
 }
 /** Reports a missing workspace resource. */

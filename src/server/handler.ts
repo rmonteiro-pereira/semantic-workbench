@@ -1,6 +1,6 @@
 // Routes API requests and preserves the legacy document interface. Host and origin checks restrict
 // access to local clients.
-import { BadRequestError, HiddenResourceError, SnapshotUnavailableError, SnapshotUnreadableError } from './projects/errors';
+import { BadRequestError, failureCodeOf, FAILURE_CODE_HEADER, HiddenResourceError, SnapshotUnavailableError, SnapshotUnreadableError } from './projects/errors';
 import { requestReader } from './auth/request-scope';
 import { authorizeWrite, WriteAccessError } from './auth/write-access';
 import { createAccessMiddleware, defaultAccess, defaultAdministration, defaultAudit, type HandlerOptions } from './auth/middleware';
@@ -83,7 +83,7 @@ const legacyRoutes: Route = async (ws, req, url) => {
       }
     } catch (error) {
       // Legacy local clients expect a 400; server mode answers a missing document like a hidden one.
-      if (error instanceof NotFoundError && !reader.view) throw new BadRequestError('Document not found.');
+      if (error instanceof NotFoundError && !reader.view) throw new BadRequestError('Document not found.', 'not-found');
       throw error;
     }
   }
@@ -147,7 +147,7 @@ const legacyRoutes: Route = async (ws, req, url) => {
       return Response.json(await ws.saveDocument(body.filename, body.source, requestReader(req), body.id, version, authorizeTargets));
     } catch (error) {
       if (error instanceof StaleError) throw new BadRequestError('Document changed. Reload before saving.');
-      if (error instanceof NotFoundError) throw new BadRequestError('Document not found.');
+      if (error instanceof NotFoundError) throw new BadRequestError('Document not found.', 'not-found');
       throw error;
     }
   }
@@ -276,12 +276,13 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
       }
       const legacyClient = url.pathname.startsWith('/api/documents') || url.pathname.startsWith('/api/agent/');
       if (legacyClient && !serverMode) {
+        const code = failureCodeOf(error);
         return Response.json(
           {
             error: (error as Error).message,
             ...(error instanceof InputError ? { issues: error.issues } : {}),
           },
-          { status: 400 },
+          { status: 400, headers: code ? { [FAILURE_CODE_HEADER]: code } : undefined },
         );
       }
       return errorResponse(error, options.publicOrigin, context);

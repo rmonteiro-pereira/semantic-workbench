@@ -5,7 +5,7 @@ import type { Caller } from '../auth/caller';
 import type { OperationBoundary } from '../auth/operation-boundary';
 import { classifyCallFailure } from '../auth/operation-outcome';
 import { buildTwinRequest, type TwinRequestInput } from '../auth/twin-request';
-import { BadRequestError } from '../projects/errors';
+import { BadRequestError, FAILURE_CODE_HEADER } from '../projects/errors';
 import { fail, type ToolResult } from './tool-results';
 
 /** What a twin answered, with the headers a tool may report, such as the published snapshot id. */
@@ -30,7 +30,7 @@ export function mapTwinFailure(operationId: string, answer: TwinAnswer): ToolRes
   const { status, body } = answer;
   const record = body && typeof body === 'object' ? (body as Record<string, unknown>) : {};
   const message = plainSentence(body, 'The workbench could not complete this request.');
-  const code = classifyCallFailure(operationId, status, body);
+  const code = classifyCallFailure(operationId, status, body, answer.headers.get(FAILURE_CODE_HEADER));
   switch (code) {
     case 'not_found':
       return fail(code, NOT_AVAILABLE);

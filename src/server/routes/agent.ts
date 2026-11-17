@@ -54,7 +54,7 @@ function requireMappingInProject(ws: Workspace, mappingId: string, project: stri
 }
 function requireProject(ws: Workspace, request: Request, project: unknown): asserts project is string {
   if (typeof project !== 'string' || !project) throw new BadRequestError('project is required. List projects at /api/agent/projects.');
-  if (!agentProjects(ws, request).some(known => known.slug === project)) throw new BadRequestError('Project not found.');
+  if (!agentProjects(ws, request).some(known => known.slug === project)) throw new BadRequestError('Project not found.', 'not-found');
 }
 
 /** Creates the agent route group using one explicit source of definition documents. */

@@ -18,7 +18,7 @@ import { indexBytes } from '../scanner';
 import type { Patch, ProjectEntry, State } from '../state';
 import { guardRevert, type GuardedFile, type Trash } from '../trash';
 import type { Place, WorkingCopies } from '../working-copies';
-import { BadRequestError, OccupiedError, StaleError } from '../errors';
+import { BadRequestError, GitUnavailableError, OccupiedError, StaleError } from '../errors';
 import { demotionsOf, type ContentGuard } from '../../auth/guards';
 
 /** Applies ordered UTF-16 ranges from the end, preserving untouched source text exactly. */
@@ -313,7 +313,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
   async function revertFile(slug: string, path: string, baseHash: unknown, reader: Reader) {
     entry(slug);
     if (baseHash !== null && (typeof baseHash !== 'string' || !/^[0-9a-f]{64}$/.test(baseHash))) throw new BadRequestError('baseHash must be a SHA-256 hex digest or null.');
-    if (!gitAvailable) throw new BadRequestError('Git is not available on this machine.');
+    if (!gitAvailable) throw new GitUnavailableError();
     const relativePath = projectPath(path);
     const committedIn = (at: Place) => git.blob(repoDir(at.layout, slug), 'HEAD', projectPrefix(layout, slug) + relativePath);
     const check = async (at: Place) => guardRevert(at.layout, { slug, path: relativePath }, await committedIn(at), reader.guard);

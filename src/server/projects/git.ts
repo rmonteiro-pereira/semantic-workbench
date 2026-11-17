@@ -28,6 +28,13 @@ export class GitError extends Error {
     this.name = 'GitError';
   }
 }
+/** A refusal a person can act on, such as nothing to commit, rather than a failure of Git. */
+export class GitRefusalError extends GitError {
+  constructor(message: string) {
+    super(message);
+    this.name = 'GitRefusalError';
+  }
+}
 /** Configures the allowed repository root, Git binary, environment, and timeouts. */
 export type GitOptions = {
   projectsRoot: string;
