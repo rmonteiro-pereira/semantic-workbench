@@ -1220,3 +1220,8 @@ and explicit per-test limit while budgeting the capped shared machine consistent
 - Final complete unit/integration gate, remote `bun test --timeout 30000`: `2279 pass,
   0 fail, 208937 expect() calls; Ran 2279 tests across 322 files. [1638.93s]`.
   Exit 0. The timeout budget is the shared-remote execution adjustment described above.
+
+- Final remote `bun --bun run check` after fixture/identity corrections: exit 0;
+  `All matched files use the correct format.`; `Found 2624 warnings and 0 errors.`;
+  comment, theme and brand checks all passed with their unchanged success lines above.
+  Readability, docs-sync and public-doc/internal-evidence leak checks also exited 0 with no findings.
