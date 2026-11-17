@@ -1400,3 +1400,9 @@ feb35ab7 test: record recovered authentication browser gate
 4b75cad9 docs: distinguish history listing from scoped address operations
 8da41663 test: record passing final unit gate after operation integration
 ```
+
+## Architecture review corrections
+
+- Resolver replay now delegates prefix changes and deletion cuts to the pure migration functions, including destination-store arrival cuts. A workspace deletion followed by explicit reconciliation reproduced `missing` before the fix and now resolves to the target. Existing hidden-endpoint and deleted-alias behavior stays covered.
+- `bun test tests/address-migration-store.test.ts`: 13 pass, 0 fail, 142 expect() calls.
+- `bun test tests/address-hidden-missing.test.ts`: 4 pass, 0 fail, 20 expect() calls.

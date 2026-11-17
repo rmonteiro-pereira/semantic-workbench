@@ -1,8 +1,8 @@
 /** Resolves structured items only after the caller's project and path visibility checks. */
 import { inspect } from '../../shared/core/model';
 import { resolveInModel, type AddressedItem } from '../../shared/core/model-addresses';
-import { formatAddress, hasPrefix, parseAddress, replacePrefix, type Address } from '../../shared/core/item-address';
-import type { MigrationRecord } from '../../shared/core/address-migration';
+import { formatAddress, parseAddress, type Address } from '../../shared/core/item-address';
+import { historySinceDeletion, migrateAddress, type MigrationRecord } from '../../shared/core/address-migration';
 import { InputError } from '../../shared/validation/diagnostics';
 import { NotFoundError } from './errors';
 import { assertSlug, projectPath, PathError } from './paths';
@@ -64,18 +64,19 @@ export function resolveForCaller(context: AddressResolutionContext, text: string
   if (!context.projectExists(address.project!)) return { status: 'missing' };
   let records = context.readMigrations(address.project!, reader);
   const histories = new Map([[address.project!, records]]);
+  records = historySinceDeletion(address, records).records;
   const applied = new Set<string>();
   for (let index = 0; index < records.length; index++) {
     const record = records[index];
     if (applied.has(record.id)) continue;
     applied.add(record.id);
     const from = parseAddress(record.from);
-    if (!from.ok || !readable(from.address, reader) || !hasPrefix(address, from.address)) continue;
-    if (record.kind === 'deleted') return { status: 'missing' };
+    if (!from.ok || !readable(from.address, reader)) continue;
+    if (historySinceDeletion(address, [record]).reset) return { status: 'missing' };
     const to = parseAddress(record.to ?? '');
     if (!to.ok || !readable(to.address, reader)) continue;
     const previousProject = address.project;
-    address = replacePrefix(address, from.address, to.address);
+    address = migrateAddress(address, [record], false);
     if (address.project && address.project !== previousProject) {
       if (!histories.has(address.project)) {
         if (!context.projectExists(address.project)) return { status: 'missing' };
@@ -83,8 +84,10 @@ export function resolveForCaller(context: AddressResolutionContext, text: string
       }
       records = histories.get(address.project)!;
       // Both stores share the move marker, so earlier destination history belongs to another arrival.
-      index = records.findIndex(candidate => candidate.id === record.id);
-      if (index < 0) return { status: 'missing' };
+      const arrival = records.findIndex(candidate => candidate.id === record.id);
+      if (arrival < 0) return { status: 'missing' };
+      records = historySinceDeletion(address, records.slice(arrival + 1)).records;
+      index = -1;
     }
   }
   if (formatAddress(address) === text) return { status: 'missing' };

@@ -187,9 +187,9 @@ stage the same record in both stores. Project deletion archives the store beside
 the same journal, preserving every historical endpoint byte-for-byte. Restoring under a different slug carries the
 history file to the restored project but does not rewrite old locators or infer identity at a reused project address.
 
-Deletion markers terminate old address history. Consumers reading current-item history must use `historySinceDeletion`:
-its reset flag excludes records preceding the last matching item or document deletion. Recreating a locator is allowed
-but never restores prior history implicitly; a later explicit reconciliation remains visible after the reset.
+Deletion markers cut history through the last matching item or document deletion, using `historySinceDeletion` before
+replay. Recreating a locator never restores prior history implicitly; a later explicit reconciliation remains visible
+after the cut. A deletion reached while following an older alias stops that alias from resolving to a reused item.
 `deletedItemAddresses` derives minimal stable prefixes for explicit workbench deletes and omits positional/ambiguous
 items.
 
@@ -217,6 +217,6 @@ is added. Trusted adapters use `buildTwinRequest` and `handler.boundary.operate`
 The workspace resolver returns the same missing result for unreadable and absent items. It checks project and path
 visibility before opening definitions or history, resolves current items before applying history, and follows only
 visible migration endpoints. Cross-project replay resumes after the move marker shared by both stores, preserving
-arrival order even when a document moves back. A deletion ends replay even when the destination was later reused. Snapshot suffixes remain
+arrival order even when a document moves back. Deletions follow the history-cut rule above. Snapshot suffixes remain
 opaque and are preserved during prefix replacement; until published-snapshot integration, this resolver reads the
 current definition and makes no historical-version claim.
