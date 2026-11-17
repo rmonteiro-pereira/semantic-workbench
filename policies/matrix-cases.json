@@ -376,6 +376,15 @@
       }
     },
     {
+      "case": "POST /api/projects/:slug/files/*/validate",
+      "action": "edit",
+      "resource": {
+        "type": "file",
+        "project": "sales-metrics",
+        "path": "example.yaml"
+      }
+    },
+    {
       "case": "DELETE /api/projects/:slug/files/*",
       "action": "delete",
       "resource": {

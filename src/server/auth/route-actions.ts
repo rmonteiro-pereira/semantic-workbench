@@ -8,6 +8,8 @@ export type RouteAction = {
   method: string;
   methods?: string[];
   serverOnly?: true;
+  /** Served in local mode only; server mode answers the path like any unknown route. */
+  localOnly?: true;
   path: string;
   pattern: RegExp;
   action: Action;
@@ -96,6 +98,8 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   { ...row('GET', '/api/projects/:slug/files/*/explain/:metric', 'read', file), readSource: 'by-surface' },
   { ...row('GET', '/api/projects/:slug/files/*', 'read', file), readSource: 'editing' },
   { ...row('PUT', '/api/projects/:slug/files/*', 'edit', file), readSource: 'editing' },
+  // Checks proposed text with the save pipeline's rules and writes nothing, so it needs the right to edit the file.
+  { ...row('POST', '/api/projects/:slug/files/*/validate', 'edit', file), readSource: 'editing' },
   { ...row('DELETE', '/api/projects/:slug/files/*', 'delete', file), readSource: 'editing' },
   { ...row('GET', '/api/drafts', 'viewOwnState', workspace), readSource: 'editing' },
   { ...row('GET', '/api/drafts/:slug/*', 'viewOwnState', file), readSource: 'editing' },
@@ -214,12 +218,16 @@ export const ROUTE_ACTIONS: RouteAction[] = [
     methods: ['GET', 'HEAD'],
     serverOnly: true,
   },
+  // The local agent transport. Each tool call it carries is decided and audited as the twin of an ordinary route, so this
+  // row grants nothing beyond reaching the transport and leaves no record of its own.
+  { ...row('POST', '/api/mcp', 'read', workspace), localOnly: true, unaudited: true },
   pageRow,
 ];
 /** Finds the first matching method and path, or refuses an unmapped entry point. */
 export function routeFor(method: string, pathname: string, mode: 'local' | 'server' = 'local') {
   for (const row of ROUTE_ACTIONS) {
     if (row.serverOnly && mode !== 'server') continue;
+    if (row.localOnly && mode !== 'local') continue;
     if (!(row.methods ?? [row.method]).includes(method)) continue;
     const match = pathname.match(row.pattern);
     if (match) return { row, match };

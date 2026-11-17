@@ -310,6 +310,26 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         });
     });
   }
+  /**
+   * The files of one project the reader may open, without their text. A project that is missing and
+   * one the reader may not see answer alike.
+   */
+  function documentIndexFor(slug: string, reader: Reader) {
+    const { view } = reader;
+    if (!projects().some(projectEntry => projectEntry.slug === slug) || (view && !view.readableProjects.has(slug))) throw new NotFoundError('Project not found.');
+    const place = copies.readPlace(reader, slug);
+    return place.cache
+      .files(slug)
+      .filter(f => f.visible && (!view || view.canRead(slug, f.path)))
+      .flatMap(cachedFile => {
+        try {
+          const size = statSync(indexedFile(place.layout, slug, cachedFile.path)).size;
+          return [{ project: slug, path: cachedFile.path, hash: cachedFile.hash, docType: cachedFile.docType, size, updated: cachedFile.indexedAt }];
+        } catch {
+          return [];
+        }
+      });
+  }
   // Every project of a repository notices a change under .git; the browser hears of it once.
   const pendingGitEvents = new Set<string>();
   function announceGitChange(slug: string) {
@@ -823,11 +843,13 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     registrySteps,
     readFile,
     saveFile,
+    validateFile: documentSave.validateFile,
     resolveAddress: (address: string, reader: Reader) => resolveForCaller({ ...addressReads, readMigrations: (project, caller) => readAddressMigrations(layout, project, caller) }, address, reader),
     reconcileAddress: (declaration: ReconciliationRequest, reader: Reader) => recordReconciliation(addressReconciliation, declaration, reader),
     saveFiles: documentSave.saveFiles,
     documents: () => documentsFor(LOCAL_READER),
     documentsFor,
+    documentIndexFor,
     resolveId,
     preflight,
     trash,

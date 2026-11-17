@@ -39,6 +39,7 @@ export const routeExamples: { method: string; path: string; body?: unknown }[] =
   { method: 'GET', path: '/api/projects/missing/files/example.yaml/explain/metric' },
   { method: 'GET', path: '/api/projects/missing/files/example.yaml' },
   { method: 'PUT', path: '/api/projects/missing/files/example.yaml' },
+  { method: 'POST', path: '/api/projects/missing/files/example.yaml/validate' },
   { method: 'DELETE', path: '/api/projects/missing/files/example.yaml' },
   { method: 'GET', path: '/api/drafts' },
   { method: 'GET', path: '/api/drafts/missing/example.yaml' },
@@ -131,6 +132,7 @@ export const routeExamples: { method: string; path: string; body?: unknown }[] =
   { method: 'GET', path: '/healthz' },
   { method: 'GET', path: '/readyz' },
   { method: 'GET', path: '/brand/logo-mark.svg' },
+  { method: 'POST', path: '/api/mcp' },
   { method: 'GET', path: '/catalog' },
 ];
 

@@ -82,7 +82,12 @@ const legacyRoutes: Route = async (ws, req, url) => {
       throw error;
     }
   }
-  if (url.pathname === '/api/documents' && req.method === 'GET') return Response.json(ws.documentsFor(requestReader(req)));
+  if (url.pathname === '/api/documents' && req.method === 'GET') {
+    // Naming a project lists its files without their text, which is how tools list large projects cheaply.
+    const project = url.searchParams.get('project');
+    if (project !== null) return Response.json(ws.documentIndexFor(project, requestReader(req)));
+    return Response.json(ws.documentsFor(requestReader(req)));
+  }
   if (url.pathname === '/api/documents' && req.method === 'POST') {
     // Bound the request stream before parsing; JSON escaping can expand a 2 MB source.
     const reader = req.body?.getReader();

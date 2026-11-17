@@ -39,6 +39,7 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 | metrics.explain | GET /api/projects/:slug/files/*/explain/:metric | read | file | read | none | local-edit |
 | files.read | GET /api/projects/:slug/files/* | read | file | read | none | local-edit |
 | files.save | PUT /api/projects/:slug/files/* | edit | file | localWrite | FILE_SAVE_REQUEST_LIMIT | local-edit |
+| files.validate | POST /api/projects/:slug/files/*/validate | edit | file | read | FILE_SAVE_REQUEST_LIMIT | local-edit |
 | files.delete | DELETE /api/projects/:slug/files/* | delete | file | localWrite | TRASH_REQUEST_LIMIT | local-edit |
 | drafts.list | GET /api/drafts | viewOwnState | workspace | read | none | local-edit |
 | drafts.read | GET /api/drafts/:slug/* | viewOwnState | file | read | none | local-edit |
@@ -131,6 +132,7 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 | preview.catalog | GET /api/preview/catalog | read | workspace | read | none | never |
 | preview.context | GET /api/preview/context | read | workspace | read | none | never |
 | preview.plan | POST /api/preview/plan | read | workspace | read | AGENT_PLAN_REQUEST_LIMIT | never |
+| mcp.transport | POST /api/mcp | read | workspace | read | FILE_SAVE_REQUEST_LIMIT | never |
 
 ## Internal publication steps
 

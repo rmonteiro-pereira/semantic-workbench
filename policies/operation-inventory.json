@@ -501,6 +501,20 @@
       },
       "outcomeClassifier": "fileSave"
     },
+    "POST /api/projects/:slug/files/*/validate": {
+      "id": "files.validate",
+      "handlerChecks": [],
+      "limits": {
+        "request": "FILE_SAVE_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
+    },
     "DELETE /api/projects/:slug/files/*": {
       "id": "files.delete",
       "handlerChecks": [],
@@ -1850,6 +1864,23 @@
       "exposure": {
         "increment": "never",
         "reason": "Browser authoring preview or personal notice."
+      }
+    },
+    "POST /api/mcp": {
+      "id": "mcp.transport",
+      "handlerChecks": [],
+      "limits": {
+        "request": "FILE_SAVE_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["read"],
+      "dispatch": {
+        "no": "stream"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The local protocol transport hands each tool call to the twin of an ordinary route; it is not itself an operation."
       }
     }
   },

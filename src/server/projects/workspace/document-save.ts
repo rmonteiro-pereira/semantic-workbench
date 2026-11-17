@@ -35,6 +35,17 @@ export function applyPatches(base: string, patches: Patch[]) {
   return out;
 }
 
+/** The checks a definition passes before any byte is stored: its size, its type and, through the index, its syntax. */
+function checkedBytes(slug: string, relativePath: string, text: string) {
+  const bytes = encode(text);
+  if (bytes.length > MAX_INPUT_BYTES) {
+    throw new InputError([{ severity: 'error', code: 'size', path: '/', message: 'The definition exceeds the 2 MB UTF-8 limit. Split it into smaller documents.' }]);
+  }
+  const indexed = indexBytes(slug, relativePath, bytes);
+  if (!indexed.file.visible) throw new InputError([{ severity: 'error', code: 'unsupported', path: '/', message: 'Unsupported file type.' }]);
+  return { bytes, indexed };
+}
+
 // The file as the last commit has it, so an owner handed over in an earlier save still counts
 // for self-approval. Null without Git, without a commit, or for a binary file.
 export async function committedText(source: { git: Git; gitAvailable: boolean }, files: DataLayout, slug: string, path: string): Promise<string | null> {
@@ -100,6 +111,25 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     const change = { project: slug, path, before, after: edited, committed };
     return { edited, before, guarded: guard?.([change]) };
   }
+  // Judges proposed text exactly as a save would, through the same edit, guard and index steps, and stores nothing.
+  async function validateFile(slug: string, path: string, body: { baseHash?: string | null; source?: string; patches?: Patch[] }, reader: Reader) {
+    entry(slug);
+    const relativePath = projectPath(path);
+    const place = copies.readPlace(reader, slug);
+    let current: Uint8Array | null = null;
+    try {
+      current = readFileSync(projectFile(place.layout, slug, relativePath));
+    } catch {}
+    const version = current ? sha256(current) : null;
+    // Proposed full text needs no base, and a patch is refused against any base other than the current one.
+    const base = body.baseHash === undefined && body.source !== undefined ? version : (body.baseHash ?? null);
+    const { edited, guarded } = await guardedEdit(place, { slug, path: relativePath }, { baseHash: base, source: body.source, patches: body.patches }, reader.guard);
+    const stored = guarded?.changes[0].after ?? edited;
+    const { indexed } = checkedBytes(slug, relativePath, stored);
+    const demoted = guarded ? demotionsOf(guarded) : [];
+    const guard = demoted.length ? { outcome: 'rewritten' as const, demoted, storedSource: stored } : { outcome: 'accepted' as const };
+    return { version, valid: indexed.file.valid, findings: indexed.findings, guard };
+  }
   async function saveFile(
     slug: string,
     path: string,
@@ -122,18 +152,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     return lock(projectLock(place, slug), async () => {
       const { edited, guarded } = await check(place);
       const next = guarded?.changes[0].after ?? edited;
-      const bytes = encode(next);
-      if (bytes.length > MAX_INPUT_BYTES)
-        throw new InputError([
-          {
-            severity: 'error',
-            code: 'size',
-            path: '/',
-            message: 'The definition exceeds the 2 MB UTF-8 limit. Split it into smaller documents.',
-          },
-        ]);
-      const indexed = indexBytes(slug, relativePath, bytes);
-      if (!indexed.file.visible) throw new InputError([{ severity: 'error', code: 'unsupported', path: '/', message: 'Unsupported file type.' }]);
+      const { bytes, indexed } = checkedBytes(slug, relativePath, next);
       if (!indexed.file.valid) throw new InputError(indexed.findings);
       const opId = journal.newId();
       const records = await saveMigrations(place.layout, slug, opId, declarations, deletedItems);
@@ -307,7 +326,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     } catch {}
     return reverted;
   }
-  return { saveFile, saveFiles, revertFile };
+  return { saveFile, saveFiles, revertFile, validateFile };
 }
 
 /** Classifies an atomic batch save and any governance demotions it reports. */
