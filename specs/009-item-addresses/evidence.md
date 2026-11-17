@@ -1099,3 +1099,10 @@ the two audit-strata cases exceeded their unchanged 60- and 120-second budgets (
 206.05 seconds). These are not reported as passing or classified as baseline exceptions yet.
 The generated HTTP fixture, address entry points, migration parity and both new operation parity
 cases passed. The complete log stays remote; unit-summary.txt contains the local command summary.
+
+The replay difference was introduced by the new inventory, not changed authorization: its
+matrix count grows from 963 to 981 (two rows across nine people), and the removed-role fixture
+loses access to the new resolve route. All original changed decisions and people results are
+unchanged. The small administration baseline now includes that additional read decision.
+`bun test ./tests/auth/dry-run-baseline.test.ts`: `1 pass`, `0 fail`, `1 expect() calls`;
+`Ran 1 test across 1 file. [5.92s]`. The full unit command will run again after this fixture fix.
