@@ -1,10 +1,14 @@
 // Starts a local-mode workbench on a spare port with a temporary data root, the shipped examples loaded and the agent endpoint mounted, and hands out reference clients and raw requests.
 import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';
 import { join } from 'node:path';
+import type { CallLimitSettings } from '../../../src/server/mcp/call-limits';
 import { createHandler } from '../../../src/server/handler';
 import { CAPABILITY_FILE, openLocalCapability, rotateCapability } from '../../../src/server/mcp/local-capability';
 import { testWorkspace } from '../../helpers/temp-data-dir';
 import { readFileSync } from 'node:fs';
+
+/** Limits loose enough that a loop of test calls never meets them. */
+const GENEROUS_LIMITS: CallLimitSettings = { callsPerSecond: 100_000, burst: 100_000, concurrent: 16, deadlineMs: 30_000 };
 
 /** The protocol revision the endpoint speaks. */
 export const PROTOCOL_VERSION = '2026-07-28';
@@ -12,7 +16,7 @@ export const PROTOCOL_VERSION = '2026-07-28';
 export type LocalServer = Awaited<ReturnType<typeof startLocalServer>>;
 
 /** Starts a server. `examples` lists the shipped examples to load, such as `commerce`. */
-export async function startLocalServer(options: { examples?: string[]; handlerOptions?: Parameters<typeof createHandler>[1] } = {}) {
+export async function startLocalServer(options: { examples?: string[]; handlerOptions?: Parameters<typeof createHandler>[1]; limits?: CallLimitSettings } = {}) {
   const workspace = await testWorkspace();
   for (const example of options.examples ?? []) await workspace.ws.loadExample(example);
   const capabilityFile = join(workspace.root, 'state', CAPABILITY_FILE);
@@ -20,7 +24,7 @@ export async function startLocalServer(options: { examples?: string[]; handlerOp
   if (!opened.ok) throw new Error(opened.reason);
   let handler: ReturnType<typeof createHandler> | undefined;
   const server = Bun.serve({ hostname: '127.0.0.1', port: 0, fetch: request => handler!(request) });
-  handler = createHandler(workspace.ws, { port: server.port as number, mcp: { capability: opened.capability }, ...options.handlerOptions });
+  handler = createHandler(workspace.ws, { port: server.port as number, mcp: { capability: opened.capability, limits: options.limits ?? GENEROUS_LIMITS }, ...options.handlerOptions });
   const url = `http://127.0.0.1:${server.port}`;
   const capability = () => readFileSync(capabilityFile, 'utf8').trim();
   const clients: Client[] = [];
