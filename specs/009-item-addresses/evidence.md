@@ -1171,3 +1171,10 @@ The first pointer-interception attempt did not recur and is not claimed as a mai
 failure or as a code fix. No application or test assertion changed between runs. The final
 lineage gate retains the directly reproduced performance exception. Feature and main logs stay
 remote; only small summaries were pulled. Both owned production servers stopped.
+
+### Recovered metrics browser suite
+
+`bun run test:metrics`: exit 0;
+`11 metrics checks passed on isolated data root /srv/dev/tmp-009-item-addresses-operation-boundary/workbench-browser-6gvlgT.`
+This includes formula/context/lineage reads, refused rollups, narrow/wide layouts and extension-only
+writes. The owned production server stopped; only metrics-summary.txt was pulled.
