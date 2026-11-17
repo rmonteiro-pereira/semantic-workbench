@@ -18,6 +18,7 @@ export const gateSuites: string[] = [
   'test:editor',
   'test:item-edit',
   'test:addresses',
+  'test:mcp:browser',
   'test:rdf-edit',
   'test:validation',
   'test:scm',
@@ -45,6 +46,7 @@ export const selfServedSuites = ['test:auth', 'test:two-editors', 'test:admin', 
 export const exclusions = [
   { script: 'test:mutation', reason: 'Runs in the mutation step' },
   { script: 'test:container', reason: 'Runs in the container step' },
+  { script: 'test:mcp', reason: 'Runs in the verify step: an isolated local server driven by the reference client' },
   { script: 'test:examples', reason: 'Unit-level example check covered by bun test' },
   { script: 'test:auth:keycloak', reason: "Compatibility suite on the owner's machine" },
 ];

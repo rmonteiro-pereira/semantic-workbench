@@ -48,7 +48,7 @@ export function stepCommands(step: GateStep, suite?: string): string[][] {
   const run = (script: string, ...args: string[]) => ['bun', 'run', script, ...args];
   switch (step) {
     case 'verify':
-      return [run('check'), ['bun', 'test'], run('build')];
+      return [run('check'), ['bun', 'test'], run('test:mcp'), run('build')];
     case 'mutation':
       return [run('test:mutation')];
     case 'browser':

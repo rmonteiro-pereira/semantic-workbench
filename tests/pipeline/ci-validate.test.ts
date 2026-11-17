@@ -18,6 +18,7 @@ describe('local quality gate', () => {
     expect(stepCommands('verify')).toEqual([
       ['bun', 'run', 'check'],
       ['bun', 'test'],
+      ['bun', 'run', 'test:mcp'],
       ['bun', 'run', 'build'],
     ]);
     expect(stepCommands('browser', 'test:ui')).toEqual([['bun', 'run', 'test:ui']]);

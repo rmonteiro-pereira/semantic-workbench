@@ -58,6 +58,8 @@ jobs:
           suite: test:item-edit
         addresses:
           suite: test:addresses
+        mcp:
+          suite: test:mcp:browser
         rdf_edit:
           suite: test:rdf-edit
         validation:
