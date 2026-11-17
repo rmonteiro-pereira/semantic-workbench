@@ -63,6 +63,9 @@ function addressReplayCase(candidate: typeof Resolution, reader: typeof LOCAL_RE
   };
   const arrivalReader = boundaryReader({ readableProjects: new Set(['visible', 'destination']), canRead: () => true, roles: () => [] }, 'reader');
   assert.equal(candidate.resolveForCaller(arrivalContext, oldAddress, arrivalReader).status, 'missing');
+  const fresh = candidate.resolveForCaller(arrivalContext, movedAddress, arrivalReader);
+  assert.equal(fresh.status, 'found');
+  if (fresh.status === 'found') assert.equal(fresh.address, movedAddress.replace('concept:Old', 'concept:New'));
   const renamedFirst = {
     ...arrivalContext,
     readMigrations: (project: string) => {
