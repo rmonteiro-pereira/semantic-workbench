@@ -407,7 +407,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         if (!pointer.intent) continue;
         const directory = join(layout.projects, repository);
         const ref = await git.revParse(directory, `refs/heads/${pointer.branch}`);
-        await pointers.reconcile(repository, ref, (from, to) => git.isAncestor(directory, from, to));
+        await publication.recover(repository, ref);
       }
     });
   if (gitAvailable && options.reconcilePublished) await reconcilePublishedCheckouts();
@@ -425,7 +425,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         git,
         layout,
         state,
-        pointers,
+        publication,
         serverMode: options.reconcilePublished === true,
         defaultBranch: repository => worktrees.defaultBranch(repository),
       }),

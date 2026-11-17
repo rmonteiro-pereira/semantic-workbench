@@ -16,7 +16,7 @@ import { requestAccess } from '../src/server/auth/request-scope';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import type { RouteAction } from '../src/server/auth/route-actions';
 import { type createWorktrees, type defaultBranchAt } from '../src/server/projects/worktrees';
-import type { createPublication } from '../src/server/projects/publication';
+import { createPublication } from '../src/server/projects/publication';
 import { publicationQueueCase } from '../tests/helpers/publication-queue-case';
 import { publicationMoveFixture } from '../tests/helpers/publication-fixture';
 import { attachRequestSurface } from '../src/server/auth/request-surface';
@@ -316,7 +316,7 @@ async function startupCase(category: string, candidate: { openWorkspace?: typeof
         git,
         layout,
         state,
-        pointers,
+        publication: createPublication({ git, pointers, directory: () => fixture.repository, readable: async () => {}, supersede: () => {} }),
         serverMode: false,
         defaultBranch: async () => {
           throw new UnknownDefaultBranchError('definitions');

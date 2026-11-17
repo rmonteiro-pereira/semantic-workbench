@@ -165,8 +165,9 @@ concatenating project, document or item names.
   or refusal. The first published read reuses that index within the existing retention bound.
 - `publication.ts` is the single publication writer and repository queue for local Publish, server Publish,
   remote follow and adoption. It applies `publication-checks.ts`, writes intent, compare-and-swaps the ref,
-  records the pointer and supersedes the resolver. A failed swap abandons intent; startup reconciles
-  interrupted intents before repairing the server checkout. Server adoption and base repair live in `worktrees.ts`.
+  records the pointer and supersedes the resolver. A failed swap abandons intent. `recover` finishes or drops
+  interrupted intents at startup, before the server checkout is repaired, and `adoptInitial` records the first
+  pointer of a repository that already has default-branch history; both are registered upgrade steps. Server adoption and base repair live in `worktrees.ts`.
 - `scm-published.ts` formats publication identity and authoring distance for Source Control; its
   acknowledgement writes only the caller's typed personal publication notice. Legacy synthetic file entries
   migrate into that notice on read. Status checks compare ref identity and cache
@@ -222,8 +223,9 @@ concatenating project, document or item names.
 - `operation-execution.ts` carries the admitted operation’s reviewed internal steps across asynchronous work.
   Pointer advance and abandoned intent are steps of Publish, adoption or authorized remote follow, with
   the enclosing operation’s decision and single audit outcome. Snapshot reads are reviewed read steps.
-  The registered publication upgrade includes intent reconciliation and first-pointer adoption at
-  trusted workspace initialization or repository registration. Clone and registration owners declare
+  The registered publication upgrade includes intent recovery and first-pointer adoption (the
+  `publication.recover` and `publication.adopt-initial` steps) at trusted workspace initialization or
+  repository registration. Clone and registration owners declare
   its local-write and publication connection effects;
   it has no transport dispatch. Direct domain calls remain available to embedded code and isolated tests.
 - `operation-inventory.ts` validates `policies/operation-inventory.json` with the application Ajv schema and resolves operation ids and route rows.

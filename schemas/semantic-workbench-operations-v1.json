@@ -211,6 +211,8 @@
               "publication.advance",
               "publication.abandon",
               "publication.upgrade",
+              "publication.recover",
+              "publication.adopt-initial",
               "snapshot.read"
             ]
           }
@@ -311,6 +313,8 @@
               "publication.advance",
               "publication.abandon",
               "publication.upgrade",
+              "publication.recover",
+              "publication.adopt-initial",
               "snapshot.read"
             ]
           }

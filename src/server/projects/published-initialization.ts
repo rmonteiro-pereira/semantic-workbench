@@ -8,14 +8,14 @@ import type { Git } from './git';
 import type { DataLayout } from './paths';
 import { locationOf } from './paths';
 import type { State } from './state';
-import type { PublishedPointers } from './published-pointer';
+import type { Publication } from './publication';
 
 /** State and Git boundaries used while opening an existing data root. */
 export type PublishedInitializationDeps = {
   git: Git;
   layout: DataLayout;
   state: State;
-  pointers: PublishedPointers;
+  publication: Publication;
   serverMode: boolean;
   repositories?: readonly string[];
   defaultBranch: (repository: string) => Promise<string>;
@@ -23,13 +23,12 @@ export type PublishedInitializationDeps = {
 
 /** Records the first snapshot and local notice, preserving all pre-existing Git content. */
 export async function initializePublishedPointers(deps: PublishedInitializationDeps): Promise<void> {
-  const { git, layout, state, pointers } = deps;
+  const { git, layout, state, publication } = deps;
   const projects = state.registry().projects;
   for (const repository of deps.repositories ?? new Set(projects.map(project => locationOf(project).repo))) {
     const directory = join(layout.projects, repository);
     if (!existsSync(join(directory, '.git'))) continue;
-    const existing = pointers.get(repository);
-    if (existing) continue;
+    if (publication.pointer(repository)) continue;
     let branch: string;
     try {
       branch = await deps.defaultBranch(repository);
@@ -53,6 +52,6 @@ export async function initializePublishedPointers(deps: PublishedInitializationD
         setPublicationNotice(state, project.slug, true, LOCAL_READER);
       }
     }
-    pointers.complete(repository, branch, commit);
+    publication.adoptInitial(repository, branch, commit);
   }
 }
