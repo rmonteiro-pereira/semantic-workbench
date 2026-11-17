@@ -1450,3 +1450,6 @@ feb35ab7 test: record recovered authentication browser gate
 - `bun test tests/item-address-docs.test.ts`: 1 pass, 0 fail, 3 expect() calls.
 - `bun test tests/item-address.test.ts`: 8 pass, 0 fail, 296 expect() calls.
 - Architecture re-review at `1983bde5`: ready, no remaining fix-first findings. Formatter and readability checks passed on changed source; public docs and internal evidence confidentiality scans passed. The repository has no `scripts/commit_cadence.py`; the earlier missing-script limitation remains recorded.
+
+- Final remote `sw-midgard-run -- bun test`: exit 0; **2278 pass, 0 fail, 341629 expect() calls. Ran 2278 tests across 327 files. [1404.58s]**. This includes the frozen HTTP characterization and all operation parity cases; the requested isolated characterization run follows below. No unit-test exception was needed.
+- The test-only documentation follow-up at `c2794c29` also passed read-only architecture review with no blocker.
