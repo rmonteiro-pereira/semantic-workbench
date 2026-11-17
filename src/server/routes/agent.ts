@@ -28,6 +28,11 @@ export const publishedAgentDocuments: AgentDocumentSource = (workspace, request,
     return response;
   });
 
+/** Chooses the document source for a request: the caller's editing view in the browser, the published snapshot elsewhere. */
+export function documentSourceFor(request: Request): AgentDocumentSource {
+  return requestSurface(request) === 'browser' ? editingAgentDocuments : publishedAgentDocuments;
+}
+
 function requireReadableDocument(ws: Workspace, request: Request, id: string) {
   const { view } = requestReader(request);
   if (!view) return;
