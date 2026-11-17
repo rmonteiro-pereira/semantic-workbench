@@ -1471,3 +1471,27 @@ feb35ab7 test: record recovered authentication browser gate
 - Remote `sw-midgard-run -- bun run test:edges`: exit 0; **6 edge attachment UI checks passed**, including zoom, selection, entity/parent dragging and layout changes, with no runtime errors.
 - Remote `sw-midgard-run -- bun run test:auth`: **exit 0**. Authentication, caller visibility, owner picker, remote credentials and restricted project export checks passed. This script also rebuilt the production bundle. The final audit below counts its PASS lines from the complete remote log.
 - Final remote `sw-midgard-run -- bun --bun run check`, after the harness-only save caller correction: exit 0; **All matched files use the correct format** (1075 files); **Found 2605 warnings and 0 errors** (1045 linted files). TypeScript, comment, theme and brand checks passed again.
+- Final remote ownership/source audit at `59a7237a`: **Remote source tree is clean. Active test/browser/server runtimes in this checkout or its temporary root: 0. Authentication PASS lines: 36.** Full artifacts remain on midgard; only summary files were pulled. No SSH retry was needed.
+
+### Review correction handoff
+
+All ten findings are fixed; no review finding was skipped. Each fix was committed separately, with follow-up commits for the two replay-order counterexamples and harness contracts.
+
+| Finding | Fix commits |
+| --- | --- |
+| Ordered replay and explicit reconciliation after deletion | `79736df8`, `d3a8aaf1`, `1983bde5` |
+| Route-owned authorization and already-authorized reader | `a756c59e` |
+| Dead retention API/configuration and changelog cleanup | `1e220b8d` |
+| Route-only validation and typed save service inputs | `a6a0e1c9` |
+| Save options, shared local commit/document locator/record construction | `a5916c95`, `dda1b6f0`, `f7a49ef4` |
+| Reconciliation ID namespace | `0da7a4e3` |
+| One-off timing script removal | `30cf4419` |
+| Module headers before imports | `b841a20b` |
+| Old-address resolution assertions after reconciliation/retry | `d12eafa5` |
+| Public registry documentation as the executable contract | `e9c4004c`, `c2794c29` |
+
+Additional mutation coverage is in `e6cc1052`, `d3a8aaf1` and `1983bde5`; individual address-module code-map entries are in `d29e1d00`. Each remote gate result above has its own commit.
+
+The final gate passes unit tests, check, build, all 711 mutations, frozen HTTP characterization and the addresses/metrics/item-edit/UI/edges/auth browser suites. Graph, lineage and responsive strict failures match the already-proven unchanged-main exceptions; earlier paired phone-canvas warning evidence remains valid. The first graph scale-picker timeout did not recur on the unchanged retry and is retained as an observed first-attempt failure, not a main-baseline claim.
+
+Integration limits remain unchanged: snapshot suffixes are opaque until published-snapshot integration; RDF/SHACL and built-ins remain unaddressed; migrations stay uncompacted and atomically bounded at 50,000 records per project. Compaction remains dropped by the integrator because its replay counterexample changes results. The operation-boundary follow-up is complete, and all original frozen HTTP records remain unchanged.
