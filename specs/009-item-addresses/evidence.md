@@ -1433,3 +1433,6 @@ feb35ab7 test: record recovered authentication browser gate
 - `bun test tests/item-address-operations.test.ts`: 3 pass, 0 fail, 22 expect() calls.
 - Registry conformance now reads the public `docs/item-addresses.md` kind table rather than a feature-spec artifact. Public documentation includes each kind's source shape, parent kinds, name field and positional fallback, so the test checks the complete supported registry.
 - `bun test tests/item-address.test.ts`: 8 pass, 0 fail, 296 expect() calls.
+- Registered two additional mutation cases for the corrected predicates: removing the resolver's deletion cut, and putting reconciliation IDs back in the save namespace. Focused unmodified cases pass; the full mutation run below must kill both mutants.
+- `bun scripts/mutation-case.ts "$PWD/src/server/projects/address-resolution.ts" address-server`: exit 0.
+- `bun scripts/mutation-case.ts "$PWD/src/server/projects/address-migrations.ts" address-store`: exit 0.

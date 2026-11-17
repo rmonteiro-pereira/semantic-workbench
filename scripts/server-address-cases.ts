@@ -30,6 +30,17 @@ export function serverAddressCase(candidate: typeof Resolution) {
   assert.deepEqual(candidate.resolveForCaller(context, hidden, reader), { status: 'missing' });
   assert.deepEqual(opened, []);
   assert.equal(candidate.resolveForCaller(context, hidden.replace('hidden/', 'visible/'), reader).status, 'found');
+  const oldAddress = 'sw1:visible/a.yaml#ontology:O/concept:Old';
+  const targetAddress = oldAddress.replace('concept:Old', 'concept:New');
+  const replayContext = {
+    projectExists: () => true,
+    readFile: () => ({ source: 'name: O\nontology: [{concept: New}]' }),
+    readMigrations: () => [
+      { id: 'delete', kind: 'deleted' as const, from: oldAddress, at: '', commit: '' },
+      { id: 'reconcile', kind: 'reconciliation' as const, from: oldAddress, to: targetAddress, at: '', commit: '' },
+    ],
+  };
+  assert.equal(candidate.resolveForCaller(replayContext, oldAddress, reader).status, 'found');
   console.log = originalLog;
   for (const forbidden of ['sw1:', 'hidden', 'visible', 'private.yaml', 'SecretScope', 'SecretItem']) assert(!lines.join('\n').includes(forbidden));
 }
@@ -43,6 +54,9 @@ export function addressStoreCase(candidate: typeof Store) {
     const record = candidate.operationMigrations({ id: 'repeat', at: '2026-11-16T00:00:00Z', commit: '' }, [
       { kind: 'item', from: 'sw1:p/a.yaml#ontology:O/concept:A', to: 'sw1:p/a.yaml#ontology:O/concept:B' },
     ]);
+    const [reconciliation] = candidate.operationMigrations({ id: 'repeat', at: '2026-11-16T00:00:00Z', commit: '' }, [{ kind: 'reconciliation', from: record[0].from, to: record[0].to }]);
+    assert.equal(reconciliation.id, 'r-repeat-0');
+    assert.notEqual(reconciliation.id, record[0].id);
     for (let index = 0; index < 2; index++) {
       const staging = join(layout.state, 'stage-' + index);
       const steps = candidate.stageAddressMigrations({ layout, project: 'p', staging }, record);
