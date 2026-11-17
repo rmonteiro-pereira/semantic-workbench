@@ -1319,3 +1319,8 @@ and explicit per-test limit while budgeting the capped shared machine consistent
   `no uncaught browser errors` passed. The direct launcher owns and stops its frontend
   and child through the existing `stopVite`; no timeout or canvas assertion was changed.
   This is a successful run of the original script, not an additional baseline exception.
+
+- Remote direct `RESPONSIVE_ONLY="examples: 2560" SW_BASE_URL=http://127.0.0.1:5481
+  bun scripts/responsive-ui-tests.ts`: exit 0; `2 responsive UI checks passed`.
+  Both `examples: 2560×1440 metric screens readable, no overlaps` and
+  `no uncaught browser errors` passed, with the same disposable frontend and unchanged assertions.
