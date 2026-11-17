@@ -1,10 +1,11 @@
 import { join } from 'node:path';
 import { cpSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 const source = process.argv[2];
 const { openWorkspace } = await import(join(source, 'src/server/projects/workspace.ts'));
 const { createHandler } = await import(join(source, 'src/server/handler.ts'));
-const fixture = '/tmp/sw-008/performance-fixture';
-const root = '/tmp/sw-008/performance-active';
+const fixture = join(tmpdir(), 'published-snapshot-performance', 'fixture');
+const root = join(tmpdir(), 'published-snapshot-performance', 'active');
 const requests = [
   ['/api/agent/catalog?project=mapped-commerce'],
   ['/api/agent/context?project=mapped-commerce&mappingId=mapped-commerce/commerce.mapping.yaml'],

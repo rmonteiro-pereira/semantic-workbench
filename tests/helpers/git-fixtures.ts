@@ -104,9 +104,7 @@ export type PublicationFixtureKind = 'history' | 'unborn' | 'outside-forward' | 
 /** Creates a repository with distinct published, authoring and foreign personal commits. */
 export function publicationRepository(kind: PublicationFixtureKind = 'history', objectFormat: 'sha1' | 'sha256' = 'sha1') {
   isolateGit();
-  const parent = '/tmp/sw-008';
-  mkdirSync(parent, { recursive: true });
-  const dir = mkdtempSync(join(parent, 'publication-'));
+  const dir = mkdtempSync(join(tmpdir(), 'publication-'));
   const repository = join(dir, 'projects', 'definitions');
   mkdirSync(repository, { recursive: true });
   git(repository, ['init', '-q', '-b', 'main', `--object-format=${objectFormat}`]);

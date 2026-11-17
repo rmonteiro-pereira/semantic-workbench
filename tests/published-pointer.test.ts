@@ -2,7 +2,6 @@
 import { expect, test } from 'bun:test';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { tmpdir } from 'node:os';
 import { classify, createPublishedPointers } from '../src/server/projects/published-pointer';
 import { createState } from '../src/server/projects/state';
 import { dataLayout } from '../src/server/projects/paths';
@@ -30,8 +29,7 @@ for (const [ref, pointer, descends, expected] of [
 }
 
 test('durable intents are completed or dropped on restart and outside moves remain unserved', async () => {
-  mkdirSync(join(tmpdir(), 'sw-008'), { recursive: true });
-  const temporary = tempDataDir('sw-008/pointers-');
+  const temporary = tempDataDir('pointers-');
   const layout = dataLayout(temporary.root);
   mkdirSync(layout.state, { recursive: true });
   try {
@@ -54,8 +52,7 @@ test('durable intents are completed or dropped on restart and outside moves rema
 });
 
 test('damaged pointer state refuses startup without replacing its bytes', () => {
-  mkdirSync(join(tmpdir(), 'sw-008'), { recursive: true });
-  const temporary = tempDataDir('sw-008/pointers-');
+  const temporary = tempDataDir('pointers-');
   const layout = dataLayout(temporary.root);
   mkdirSync(layout.state, { recursive: true });
   const path = join(layout.state, 'published.json');

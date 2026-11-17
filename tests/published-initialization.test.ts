@@ -2,6 +2,7 @@
 import { expect, test } from 'bun:test';
 import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { openWorkspace } from '../src/server/projects/workspace';
 import { createState } from '../src/server/projects/state';
 import { dataLayout } from '../src/server/projects/paths';
@@ -21,7 +22,7 @@ function git(cwd: string, args: string[]) {
 
 test('local upgrade adopts the old default tip from a copy without losing staged, unstaged or untracked work', async () => {
   const fixture = preChangeRoot();
-  const copy = mkdtempSync('/tmp/sw-008/upgrade-');
+  const copy = mkdtempSync(join(tmpdir(), 'upgrade-'));
   try {
     const path = join(fixture.repository, 'shop.ontology.yaml');
     writeFileSync(path, 'name: Staged\nontology: [{concept: Staged}]\n');

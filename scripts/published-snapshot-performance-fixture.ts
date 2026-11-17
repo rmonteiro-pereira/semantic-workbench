@@ -1,8 +1,11 @@
 import { rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { testWorkspace } from '../tests/helpers/temp-data-dir';
 import { publishFixture } from '../tests/helpers/published-workspace';
-rmSync('/tmp/sw-008/performance-fixture', { recursive: true, force: true });
-const fixture = await testWorkspace({ root: '/tmp/sw-008/performance-fixture', watch: false });
+const fixtureRoot = join(tmpdir(), 'published-snapshot-performance', 'fixture');
+rmSync(fixtureRoot, { recursive: true, force: true });
+const fixture = await testWorkspace({ root: fixtureRoot, watch: false });
 for (const example of ['ubl', 'commerce', 'mapped-commerce', 'mall']) await fixture.ws.loadExample(example);
 await publishFixture(fixture);
 fixture.ws.close();
