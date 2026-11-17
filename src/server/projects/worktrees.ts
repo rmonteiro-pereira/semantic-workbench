@@ -8,6 +8,7 @@ import type { PublicationObserver } from './local-publication';
 import { BranchInUseError, NotFastForwardError, PublicationRefChangedError, PublicationAdoptionError } from './errors';
 import { authorship, commitOf, GitError, isBranchName, symbolicBranch, type CommitAuthor, type Git } from './git';
 import { USER_KEY, type DataLayout } from './paths';
+import { log } from '../observability/log';
 import { checkOutFolders, sparseFolders } from './sparse-folder';
 
 /** One entry of `git worktree list --porcelain`. */
@@ -198,6 +199,19 @@ async function repairBase(context: WorktreeContext, repo: string) {
   await git.run(dir, ['checkout', '-q', '--force', '--detach', tip]);
 }
 
+/**
+ * Repairs the published checkout after a publication took effect. The branch and pointer have
+ * already moved, so a checkout failure is logged and left for the next startup repair instead of
+ * reporting a successful publication as failed.
+ */
+async function repairBaseAfterPublication(context: WorktreeContext, repo: string, commit: string) {
+  try {
+    await repairBase(context, repo);
+  } catch (error) {
+    log.error('publication.base-repair-failed', { repository: repo, commit, detail: error instanceof Error ? error.message : String(error) });
+  }
+}
+
 async function listed(context: WorktreeContext, repo: string) {
   const cached = context.listings?.get(repo);
   if (cached) return cached;
@@ -258,7 +272,7 @@ async function ensure(context: WorktreeContext, repo: string, owner: CopyOwner) 
 async function moveDefault(context: WorktreeContext, repo: string, move: { branch: string; previous: string | null; next: string }, check: PublicationGuard, advance: PublicationAdvance) {
   const { branch, previous, next } = move;
   const result = await advance(repo, branch, { previous, next }, baseGuard(context, repo, check));
-  await repairBase(context, repo);
+  await repairBaseAfterPublication(context, repo, result.commit);
   context.listings?.delete(repo);
   return result;
 }
@@ -279,7 +293,7 @@ async function adopt(context: WorktreeContext, repository: string, guard: Public
   if (!previous || !next || previous === next) throw new PublicationAdoptionError('nothing-pending');
   try {
     const result = await advance(repository, branch, { previous, next, expectedRef: next }, baseGuard(context, repository, guard));
-    await repairBase(context, repository);
+    await repairBaseAfterPublication(context, repository, result.commit);
     context.listings?.delete(repository);
     return result;
   } catch (error) {

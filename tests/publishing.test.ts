@@ -1,5 +1,7 @@
 // Injects stops around durable publication and reopens the real data root to reconcile them.
 import { expect, test } from 'bun:test';
+import { writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { createWorktrees } from '../src/server/projects/worktrees';
 import { openWorkspace } from '../src/server/projects/workspace';
 import { publicationMoveFixture } from './helpers/publication-fixture';
@@ -34,6 +36,19 @@ test('a refused publication never writes a candidate pointer or intent', async (
       }),
     ).rejects.toThrow('Guard refused');
     expect(pointers.get('definitions')).toEqual({ branch: 'main', commit: fixture.published! });
+  } finally {
+    fixture.dispose();
+  }
+});
+
+test('a published checkout that cannot be repaired still reports the publication that took effect', async () => {
+  const { fixture, pointers, worktrees, owner, next } = await publicationMoveFixture();
+  try {
+    // Git cannot move the published files while another process holds the index.
+    writeFileSync(join(fixture.repository, '.git', 'index.lock'), '');
+    const result = await worktrees.publish('definitions', owner.key, async () => {});
+    expect(result.commit).toBe(next);
+    expect(pointers.get('definitions')).toEqual({ branch: 'main', commit: next });
   } finally {
     fixture.dispose();
   }
