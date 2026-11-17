@@ -6,16 +6,16 @@ import { mintCaller } from '../../../src/server/auth/caller';
 import type { Principal } from '../../../src/server/auth/principal';
 import type { createHandler } from '../../../src/server/handler';
 import { createCursorCodec } from '../../../src/server/mcp/cursors';
-import { createReceiptStore } from '../../../src/server/mcp/receipts';
+import { createReceiptStore, type ReceiptStore } from '../../../src/server/mcp/receipts';
 import { checkToolInput } from '../../../src/server/mcp/tool-definition';
 import { TOOLS } from '../../../src/server/mcp/tool-registry';
 import { fail, type ToolResult } from '../../../src/server/mcp/tool-results';
 import { createTwinCall } from '../../../src/server/mcp/twin-dispatch';
 
 /** A runner of tools for one principal against one handler. */
-export function toolRunner(handler: ReturnType<typeof createHandler>, principal: Principal) {
+export function toolRunner(handler: ReturnType<typeof createHandler>, principal: Principal, store?: ReceiptStore) {
   const caller = mintCaller({ principal, origin: 'mcp', connection: 'local' });
-  const receipts = createReceiptStore(join(mkdtempSync(join(tmpdir(), 'receipts-')), 'mcp-receipts'));
+  const receipts = store ?? createReceiptStore(join(mkdtempSync(join(tmpdir(), 'receipts-')), 'mcp-receipts'));
   const cursors = createCursorCodec();
   return {
     caller,
