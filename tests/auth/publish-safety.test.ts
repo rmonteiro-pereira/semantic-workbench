@@ -8,6 +8,7 @@ import { createGit } from '../../src/server/projects/git';
 import { createWorktrees } from '../../src/server/projects/worktrees';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { gitOutput } from './working-copy-fixture';
+import { plainPublication } from '../helpers/publication-fixture';
 
 const REPO = 'sales-contracts';
 const ANN = { key: 'ua'.repeat(20), handle: 'ann', name: 'Ann' };
@@ -19,7 +20,7 @@ async function copiesFixture() {
   const fixture = await authWorkspace();
   const { layout } = fixture.ws;
   const git = createGit({ projectsRoot: layout.projects, worktreesRoot: layout.worktrees });
-  const worktrees = createWorktrees({ layout, git, people: () => [ANN, BEN] });
+  const worktrees = createWorktrees({ layout, git, people: () => [ANN, BEN], publication: plainPublication(git, layout) });
   const base = join(layout.projects, REPO);
   return { fixture, worktrees, base };
 }

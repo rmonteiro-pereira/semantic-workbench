@@ -3,10 +3,8 @@
 // default branch and holds the published state; only publishing moves it.
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import type { PublicationCandidate } from './publication-checks';
-import { createPublication, type Publication, type PublicationAdvance, type PublicationGuard } from './publication';
+import { type Publication, type PublicationAdvance, type PublicationGuard } from './publication';
 import type { PublicationObserver } from './local-publication';
-import type { PublishedPointers } from './published-pointer';
 import { BranchInUseError, NotFastForwardError, PublicationRefChangedError, PublicationAdoptionError } from './errors';
 import { authorship, commitOf, GitError, isBranchName, symbolicBranch, type CommitAuthor, type Git } from './git';
 import { USER_KEY, type DataLayout } from './paths';
@@ -108,13 +106,7 @@ export type WorktreeContext = {
   layout: DataLayout;
   git: Git;
   people: () => CopyOwner[];
-  publisher?: Publication;
-  publication?: {
-    pointers: PublishedPointers;
-    readable: (candidate: PublicationCandidate) => Promise<unknown>;
-    supersede: () => void;
-    stage?: (stage: 'intent' | 'ref' | 'pointer') => void;
-  };
+  publication: Publication;
   /**
    * Each repository's worktree list, kept until a copy is created, removed or switches branch,
    * or the default branch moves, so a project listing does not ask Git again for every project.
@@ -199,7 +191,7 @@ async function repairBase(context: WorktreeContext, repo: string) {
   const dir = baseDir(context, repo);
   const remembered = await git.configValue(dir, DEFAULT_BRANCH_KEY, 'local');
   if (!remembered) return;
-  const tip = context.publication?.pointers.get(repo)?.commit ?? (await commitOf(git, dir, 'refs/heads/' + remembered));
+  const tip = context.publication.recorded(repo) ?? (await commitOf(git, dir, 'refs/heads/' + remembered));
   if (!tip) return;
   const attached = await symbolicBranch(git, dir);
   if (!attached && (await commitOf(git, dir, 'HEAD')) === tip) return;
@@ -281,7 +273,7 @@ function baseGuard(context: WorktreeContext, repository: string, guard: Publicat
 
 async function adopt(context: WorktreeContext, repository: string, guard: PublicationGuard, advance: PublicationAdvance, observe?: PublicationObserver) {
   const branch = await defaultBranch(context, repository);
-  const previous = context.publication?.pointers.get(repository)?.commit;
+  const previous = context.publication.recorded(repository);
   const next = await commitOf(context.git, baseDir(context, repository), `refs/heads/${branch}`);
   observe?.(previous ?? null, next);
   if (!previous || !next || previous === next) throw new PublicationAdoptionError('nothing-pending');
@@ -394,16 +386,6 @@ async function remove(context: WorktreeContext, repo: string, key: string) {
 /** Creates, lists, publishes and removes the per-person working copies of repositories. */
 export function createWorktrees(options: Omit<WorktreeContext, 'listings'>) {
   const context: WorktreeContext = { ...options, listings: new Map() };
-  const publisher =
-    options.publisher ??
-    createPublication({
-      git: context.git,
-      directory: repository => baseDir(context, repository),
-      pointers: context.publication?.pointers,
-      readable: context.publication?.readable ?? (async () => {}),
-      supersede: context.publication?.supersede ?? (() => {}),
-      stage: context.publication?.stage,
-    });
   return {
     /** Forgets the cached worktree list after a branch switch in one of the copies. */
     branchesMoved: (repo: string) => context.listings?.delete(repo),
@@ -419,11 +401,11 @@ export function createWorktrees(options: Omit<WorktreeContext, 'listings'>) {
     releaseCopies: (repo: string) => releaseCopies(context, repo),
     ensure: (repo: string, owner: CopyOwner) => ensure(context, repo, owner),
     assertFree: (repo: string, key: string, branch: string) => assertFree(context, repo, key, branch),
-    publish: (repo: string, key: string, check: (previous: string | null, next: string) => Promise<void>) => publisher.serialized(repo, advance => publish(context, repo, key, check, advance)),
-    adopt: (repo: string, guard: PublicationGuard, observe?: PublicationObserver) => publisher.serialized(repo, advance => adopt(context, repo, guard, advance, observe)),
+    publish: (repo: string, key: string, check: (previous: string | null, next: string) => Promise<void>) => context.publication.serialized(repo, advance => publish(context, repo, key, check, advance)),
+    adopt: (repo: string, guard: PublicationGuard, observe?: PublicationObserver) => context.publication.serialized(repo, advance => adopt(context, repo, guard, advance, observe)),
     remoteAhead: (repo: string, remote: string) => remoteAhead(context, repo, remote),
     followRemote: (repo: string, remote: string, check: (previous: string | null, next: string) => Promise<void>) =>
-      publisher.serialized(repo, advance => followRemote(context, repo, remote, check, advance)),
+      context.publication.serialized(repo, advance => followRemote(context, repo, remote, check, advance)),
     mergeDefault: (repo: string, key: string, author: CommitAuthor | undefined, check: (tip: string) => Promise<void>) => mergeDefault(context, repo, key, author, check),
     remove: (repo: string, key: string) => remove(context, repo, key),
   };

@@ -34,7 +34,6 @@ import { createWorktrees } from './worktrees';
 import { copyScmHooks, createWorkingCopies, projectLockKey, type Place, type RepositoryFacts } from './working-copies';
 import { createPublishing } from './publishing';
 import { createLocalPublication, prepareLocalCommit } from './local-publication';
-import type { PublicationCandidate } from './publication-checks';
 import { judgePublish } from './publishing';
 import { createUnpublishedWork } from './unpublished-work';
 import { createCloner, rollBackInterruptedClones, type AssignProject, type FolderRequest } from './clone';
@@ -359,12 +358,11 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         locate: slug => locationOf(entry(slug)),
       })
     : null;
-  const readablePublication = (candidate: PublicationCandidate) => snapshots.validate(candidate);
   const publication = createPublication({
     git,
     pointers,
     directory: repository => join(layout.projects, repository),
-    readable: readablePublication,
+    readable: candidate => snapshots.validate(candidate),
     supersede: () => snapshots.supersede(),
   });
   const localPublication = createLocalPublication({
@@ -372,19 +370,12 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     pointers,
     publication,
     directory: repository => join(layout.projects, repository),
-    readable: readablePublication,
-    supersede: () => snapshots.supersede(),
   });
   const worktrees = createWorktrees({
     layout,
     git,
     people: () => copies.owners(),
-    publisher: publication,
-    publication: {
-      pointers,
-      readable: readablePublication,
-      supersede: () => snapshots.supersede(),
-    },
+    publication,
   });
   // The repository paths of files that copy-less trash entries hold, per repository folder.
   function trashedPaths(): Map<string, Set<string>> {

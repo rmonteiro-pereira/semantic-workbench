@@ -1,9 +1,8 @@
 // Moves local authoring away from the served default ref without replacing working files.
 import { GitError, symbolicBranch, type Git } from './git';
 import { NothingToPublishError, NotFastForwardError, PublicationRefChangedError, PendingPublicationError, PublicationAdoptionError } from './errors';
-import { type PublicationCandidate } from './publication-checks';
 import type { PublishedPointers } from './published-pointer';
-import { createPublication, type Publication, type PublicationAdvance, type PublicationGuard } from './publication';
+import { type Publication, type PublicationAdvance, type PublicationGuard } from './publication';
 import { defaultBranchAt, rememberDefaultBranch } from './worktrees';
 
 /** Observes the immutable commits considered by one serialized adoption attempt. */
@@ -34,17 +33,15 @@ export async function moveToAuthoringBranch(git: Git, directory: string, default
 
 /** The workspace's existing Git, pointer and bounded-read boundaries for local publication. */
 export type LocalPublicationDeps = {
-  publication?: Publication;
+  publication: Publication;
   git: Git;
   directory: (repository: string) => string;
   pointers: PublishedPointers;
-  readable: (candidate: PublicationCandidate) => Promise<unknown>;
-  supersede: () => void;
 };
 
 /** Creates serialized local publication operations; compare-and-swap also rejects outside Git races. */
 export function createLocalPublication(deps: LocalPublicationDeps) {
-  const publication = deps.publication ?? createPublication(deps);
+  const { publication } = deps;
   async function publish(repository: string, branch: string, guard: PublicationGuard, advance: PublicationAdvance) {
     const { git, pointers } = deps;
     const directory = deps.directory(repository);

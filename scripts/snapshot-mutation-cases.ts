@@ -17,8 +17,6 @@ import { LOCAL_READER } from '../src/server/projects/reader';
 import type { RouteAction } from '../src/server/auth/route-actions';
 import { type createWorktrees, type defaultBranchAt } from '../src/server/projects/worktrees';
 import type { createPublication } from '../src/server/projects/publication';
-import { createLocalPublication } from '../src/server/projects/local-publication';
-import { worktreesWithPublication } from './publication-mutation-cases';
 import { publicationQueueCase } from '../tests/helpers/publication-queue-case';
 import { publicationMoveFixture } from '../tests/helpers/publication-fixture';
 import { attachRequestSurface } from '../src/server/auth/request-surface';
@@ -171,14 +169,14 @@ export async function snapshotMutationCase(
     const { moveToAuthoringBranch } = await import('../src/server/projects/local-publication');
     await localPublicationCase({
       moveToAuthoringBranch,
-      createLocalPublication: deps => createLocalPublication({ ...deps, publication: candidate.createPublication!(deps) }),
+      createPublication: candidate.createPublication,
     });
   }
   if (category === 'snapshot-adoption-writer') {
-    await adoptionCase({ createLocalPublication: deps => createLocalPublication({ ...deps, publication: candidate.createPublication!(deps) }) });
+    await adoptionCase({ createPublication: candidate.createPublication });
   }
   if (category === 'snapshot-publication') {
-    const fixture = await publicationMoveFixture(options => worktreesWithPublication(candidate.createPublication!, options));
+    const fixture = await publicationMoveFixture(undefined, candidate.createPublication);
     try {
       await assert.rejects(() =>
         fixture.worktrees.publish('definitions', fixture.owner.key, async () => {

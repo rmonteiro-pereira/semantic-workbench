@@ -19,8 +19,8 @@ export async function publicationQueueCase(factory = createPublication) {
     supersede: () => {},
   };
   const publication = factory(shared);
-  const local = createLocalPublication({ ...shared, publication });
-  const worktrees = createWorktrees({ layout, git: fixture.git, people: () => [], publisher: publication, publication: shared });
+  const local = createLocalPublication({ git: fixture.git, pointers: fixture.pointers, directory: shared.directory, publication });
+  const worktrees = createWorktrees({ layout, git: fixture.git, people: () => [], publication });
   await rememberDefaultBranch(fixture.git, fixture.repository, 'main');
   await fixture.git.run(fixture.repository, ['switch', 'work/local']);
   await fixture.git.run(fixture.repository, ['update-ref', 'refs/remotes/origin/main', fixture.authoring]);

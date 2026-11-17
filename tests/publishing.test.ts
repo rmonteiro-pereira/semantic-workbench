@@ -6,7 +6,7 @@ import { publicationMoveFixture } from './helpers/publication-fixture';
 
 for (const stage of ['intent', 'ref', 'pointer'] as const) {
   test(`publication stopped after ${stage} recovers at startup`, async () => {
-    const { fixture, pointers, worktrees, owner, next } = await publicationMoveFixture(createWorktrees, stage);
+    const { fixture, pointers, worktrees, owner, next } = await publicationMoveFixture(stage);
     try {
       await expect(worktrees.publish('definitions', owner.key, async () => {})).rejects.toThrow('Stopped');
       if (stage === 'intent') expect(pointers.get('definitions')?.commit).toBe(fixture.published!);
@@ -26,7 +26,7 @@ for (const stage of ['intent', 'ref', 'pointer'] as const) {
 }
 
 test('a refused publication never writes a candidate pointer or intent', async () => {
-  const { fixture, pointers, worktrees, owner } = await publicationMoveFixture(createWorktrees);
+  const { fixture, pointers, worktrees, owner } = await publicationMoveFixture();
   try {
     await expect(
       worktrees.publish('definitions', owner.key, async () => {
@@ -41,7 +41,7 @@ test('a refused publication never writes a candidate pointer or intent', async (
 
 for (const move of ['outside-forward', 'outside-diverged'] as const) {
   test(`publication refuses ${move} before validating from an unserved baseline`, async () => {
-    const { fixture, pointers, worktrees, owner, next } = await publicationMoveFixture(createWorktrees);
+    const { fixture, pointers, worktrees, owner, next } = await publicationMoveFixture();
     try {
       const ref = move === 'outside-forward' ? fixture.authoring : fixture.previous!;
       const result = Bun.spawnSync(['git', 'update-ref', 'refs/heads/main', ref], { cwd: fixture.repository, env: process.env });
@@ -86,7 +86,7 @@ test('the local HTTP publication creates the first snapshot, preserves dirty aut
 for (const stage of ['intent', 'ref', 'pointer'] as const) {
   for (const movement of ['fast-forward', 'diverged'] as const) {
     test(`restart after ${stage} and an outside ${movement} retains the settled snapshot and reports the move`, async () => {
-      const { fixture, worktrees, owner, next } = await publicationMoveFixture(createWorktrees, stage);
+      const { fixture, worktrees, owner, next } = await publicationMoveFixture(stage);
       try {
         await expect(worktrees.publish('definitions', owner.key, async () => {})).rejects.toThrow('Stopped');
         const copy = `${fixture.dir}/worktrees/${owner.key}/definitions`;

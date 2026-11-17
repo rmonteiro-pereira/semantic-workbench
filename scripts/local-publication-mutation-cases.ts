@@ -3,11 +3,12 @@ import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type * as local from '../src/server/projects/local-publication';
+import type * as publication from '../src/server/projects/publication';
 import { localPublicationFixture } from '../tests/helpers/local-publication-fixture';
 
 /** Verifies preserved authoring changes and rejection of an outside compare-and-swap race. */
-export async function localPublicationCase(candidate: { createLocalPublication?: typeof local.createLocalPublication; moveToAuthoringBranch?: typeof local.moveToAuthoringBranch }) {
-  using fixture = localPublicationFixture('history', candidate.createLocalPublication);
+export async function localPublicationCase(candidate: { createLocalPublication?: typeof local.createLocalPublication; createPublication?: typeof publication.createPublication; moveToAuthoringBranch?: typeof local.moveToAuthoringBranch }) {
+  using fixture = localPublicationFixture('history', candidate);
   const path = join(fixture.repository, 'unrelated.txt');
   writeFileSync(path, 'staged');
   await fixture.git.stage(fixture.repository, ['unrelated.txt']);
@@ -45,8 +46,8 @@ export async function localCommitCase(candidate: { openWorkspace?: typeof import
 }
 
 /** Adopting must run the content guard and refuse a non-descendant default ref. */
-export async function adoptionCase(candidate: { createLocalPublication?: typeof local.createLocalPublication }) {
-  using fixture = localPublicationFixture('history', candidate.createLocalPublication);
+export async function adoptionCase(candidate: { createLocalPublication?: typeof local.createLocalPublication; createPublication?: typeof publication.createPublication }) {
+  using fixture = localPublicationFixture('history', candidate);
   await fixture.git.run(fixture.repository, ['update-ref', 'refs/heads/main', fixture.authoring]);
   await assert.rejects(
     () =>

@@ -17,7 +17,7 @@ export type PublicationAdvance = (repository: string, branch: string, move: Publ
 export type PublicationDeps = {
   git: Git;
   directory: (repository: string) => string;
-  pointers?: PublishedPointers;
+  pointers: PublishedPointers;
   /** A successful validation may return a release callback for its active candidate index. */
   readable: (candidate: PublicationCandidate) => Promise<unknown>;
   supersede: () => void;
@@ -32,7 +32,7 @@ export function createPublication(deps: PublicationDeps) {
       const { git, pointers } = deps;
       const { previous, next } = move;
       const directory = deps.directory(repository);
-      const recorded = pointers?.get(repository)?.commit;
+      const recorded = pointers.get(repository)?.commit;
       if (recorded && recorded !== previous) throw new PendingPublicationError(recorded);
       const candidate = { repo: repository, branch, previous, next };
       let release: (() => void) | undefined;
@@ -46,7 +46,7 @@ export function createPublication(deps: PublicationDeps) {
       });
       try {
         for (const check of checks) await check(candidate);
-        pointers?.intent(repository, branch, next);
+        pointers.intent(repository, branch, next);
         deps.stage?.('intent');
         try {
           const expected = move.expectedRef === undefined ? previous : move.expectedRef;
@@ -54,12 +54,12 @@ export function createPublication(deps: PublicationDeps) {
           if (swapped.code !== 0) throw new PublicationRefChangedError(branch);
         } catch (error) {
           operationStep('publication.abandon', () => {
-            pointers?.abandon(repository);
+            pointers.abandon(repository);
           });
           throw error;
         }
         deps.stage?.('ref');
-        pointers?.complete(repository, branch, next);
+        pointers.complete(repository, branch, next);
         deps.supersede();
         deps.stage?.('pointer');
         return { published: branch, previous, commit: next };
@@ -75,6 +75,8 @@ export function createPublication(deps: PublicationDeps) {
     });
   }
   return {
+    /** The commit the durable pointer says is published, if any. */
+    recorded: (repository: string) => deps.pointers.get(repository)?.commit,
     serialized,
     advance: (repository: string, branch: string, move: PublicationMove, guard: PublicationGuard) => serialized(repository, advance => advance(repository, branch, move, guard)),
   };
