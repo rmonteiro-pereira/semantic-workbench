@@ -1453,3 +1453,4 @@ feb35ab7 test: record recovered authentication browser gate
 
 - Final remote `sw-midgard-run -- bun test`: exit 0; **2278 pass, 0 fail, 341629 expect() calls. Ran 2278 tests across 327 files. [1404.58s]**. This includes the frozen HTTP characterization and all operation parity cases; the requested isolated characterization run follows below. No unit-test exception was needed.
 - The test-only documentation follow-up at `c2794c29` also passed read-only architecture review with no blocker.
+- Remote `sw-midgard-run -- bun --bun run check`: exit 0. **All matched files use the correct format** (1075 files); **Found 2605 warnings and 0 errors** (1045 linted files). TypeScript passed; comments are free of specification/task IDs; theme and brand checks passed. The lint warning count matches the prior gate.
