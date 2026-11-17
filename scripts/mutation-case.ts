@@ -22,6 +22,10 @@ const composed = {};
 for (const name of [...entryModules, ...authModules]) Object.assign(composed, await import(resolve(treeRoot!, name)));
 const loadedModule = { ...composed, ...mutatedModule };
 const category = process.argv[3];
+// Publication mutants load only the publication module, so working copies come from the real source.
+async function worktreeFactory(): Promise<typeof import('../src/server/projects/worktrees').createWorktrees> {
+  return loadedModule.createWorktrees ?? (await import('../src/server/projects/worktrees')).createWorktrees;
+}
 if (category === 'operation-boundary') {
   const { operationBoundaryCases } = await import('./operation-boundary-mutation-cases');
   await operationBoundaryCases(process.argv[2]);
@@ -2755,7 +2759,7 @@ if (category === 'copy-worktrees' || category === 'copy-writer-ancestry') {
     const git = createGit({ projectsRoot: layout.projects, worktreesRoot: layout.worktrees });
     const ann = { key: 'u' + 'a'.repeat(20), handle: 'ann', name: 'Ann' };
     const ben = { key: 'u' + 'b'.repeat(20), handle: 'ben', name: 'Ben' };
-    const worktrees = loadedModule.createWorktrees({ layout, git, people: () => [ann, ben], publication: plainPublication(git, layout, loadedModule.createPublication) });
+    const worktrees = (await worktreeFactory())({ layout, git, people: () => [ann, ben], publication: plainPublication(git, layout, loadedModule.createPublication) });
     const commitIn = (dir: string, name: string) => {
       writeFileSync(join(dir, name), name);
       for (const args of [
@@ -2788,7 +2792,7 @@ if (category === 'copy-publish' || category === 'copy-writer-publish') {
     const git = createGit({ projectsRoot: layout.projects, worktreesRoot: layout.worktrees });
     const ann = { key: 'u' + 'a'.repeat(20), handle: 'ann', name: 'Ann' };
     const ben = { key: 'u' + 'b'.repeat(20), handle: 'ben', name: 'Ben' };
-    const worktrees = loadedModule.createWorktrees({ layout, git, people: () => [ann, ben], publication: plainPublication(git, layout, loadedModule.createPublication) });
+    const worktrees = (await worktreeFactory())({ layout, git, people: () => [ann, ben], publication: plainPublication(git, layout, loadedModule.createPublication) });
     const run = (dir: string, args: string[]) => {
       const identity = ['-c', 'user.name=Someone', '-c', 'user.email=someone@example.org'];
       const result = Bun.spawnSync(['git', ...identity, ...args], { cwd: dir, env: { ...process.env } });
