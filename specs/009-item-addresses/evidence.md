@@ -1084,3 +1084,9 @@ Remote gate logs and small summaries use out/gate-009-operation-recovery/.
 `Finished in 152ms on 1076 files using 12 threads.`; lint: `Found 2605 warnings and 0 errors.`
 Comment, theme and brand checks also passed. Full logs remain remote; the local summary is
 out/gate-009-operation-recovery/check-summary.txt.
+
+### Recovered production build
+
+`bun --bun run build`: exit 0; `✓ built in 3.35s`. The bundle retains the module-directive
+and large-chunk warnings. Build output stays remote; only
+out/gate-009-operation-recovery/build-summary.txt is pulled locally.
