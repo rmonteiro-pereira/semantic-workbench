@@ -1014,3 +1014,10 @@ Remote `RESPONSIVE_ONLY="examples: 1440" bun scripts/responsive-ui-tests.ts` aga
 frontend exited 0: `PASS no uncaught browser errors`; `2 responsive UI checks passed`.
 The wrapper exited 0. Only `out/008-review-summary/examples-1440.txt` was pulled; full logs remain on
 midgard. The owned application server was stopped.
+
+### Responsive examples at 2560 px after repair
+
+Remote `RESPONSIVE_ONLY="examples: 2560" bun scripts/responsive-ui-tests.ts` against the built
+frontend exited 0: `PASS no uncaught browser errors`; `2 responsive UI checks passed`.
+The wrapper exited 0. Only `out/008-review-summary/examples-2560.txt` was pulled; full logs remain on
+midgard. The owned application server was stopped.
