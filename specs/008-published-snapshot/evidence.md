@@ -1000,3 +1000,10 @@ Remote `RESPONSIVE_ONLY="graph canvases:" bun scripts/responsive-ui-tests.ts` ag
 frontend exited 0: `PASS no uncaught browser errors`; `5 responsive UI checks passed`.
 The wrapper exited 0. Only `out/008-review-summary/graph-canvases.txt` was pulled; complete logs remain
 on midgard. The owned application server was stopped before starting another suite.
+
+### Responsive shell after repair
+
+Remote `RESPONSIVE_ONLY="shell screens:" bun scripts/responsive-ui-tests.ts` against the built
+frontend exited 0: `PASS no uncaught browser errors`; `5 responsive UI checks passed`.
+The wrapper exited 0. Only `out/008-review-summary/shell.txt` was pulled; full logs remain on midgard.
+The owned application server was stopped.
