@@ -1038,3 +1038,21 @@ Remote `RESPONSIVE_ONLY="examples: 1280" bun scripts/responsive-ui-tests.ts` exi
 is kept distinct from the earlier local 407 px reproduction. The wrapper exited 1; only the small
 `out/008-review-summary/mall-1280.txt` failure summary was pulled. No canvas, assertion or timeout changed.
 A matching build of the exact main/base revision is compared next; this failure is not reported as a pass.
+
+### Matching remote mall baseline after repair
+
+A fresh temporary archive of exact main/base commit `655df094` was built on midgard with the installed
+Vite executable. Its unchanged `RESPONSIVE_ONLY="examples: 1280" bun scripts/responsive-ui-tests.ts`
+reported the identical failure: `mall.odcs.yaml canvas height`, `Expected: >= 421`, `Received: 389`.
+Both feature and baseline first passed `examples: 1280×720 metric screens readable, no overlaps` and
+then exited 1 at the same height assertion. The baseline wrapper exited 1. Only the small
+`out/008-review-summary/main-mall-1280.txt` result was pulled; full logs and builds stayed on midgard.
+The temporary source archive, data root and owned application server were removed by the exit trap.
+
+This establishes the remote 389/421 failure as pre-existing, independently of the earlier local
+407/421 proof from a temporary origin/main worktree. The separate remote first-canvas 481/>504
+comparison was already committed above. No canvas, responsive assertion, acceptance threshold or
+runtime source changed to accommodate these failures. No complete responsive pass is claimed.
+The six additional responsive groups all passed again after disk repair, with 21 checks in total.
+The architecture reviewer reconfirmed PASS at `cc9ba64d`; production and harness code remain unchanged
+from the already reviewed and tested revisions. No requested application task was skipped.
