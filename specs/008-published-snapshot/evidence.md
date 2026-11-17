@@ -1241,3 +1241,7 @@ and explicit per-test limit while budgeting the capped shared machine consistent
   Run test:ui for the full browser baseline.`
   All source, askpass and visual cases completed. Default choice, abandoned intent, the shared
   queue and the newly registered operation-context faults were all detected.
+
+- Remote `bun scripts/published-snapshot-remote-gate.ts test:published-snapshot`: exit 0;
+  `2 published snapshot browser checks passed.` Local and server controls passed geometry
+  checks at all six viewports. Screenshots remain on midgard; no image folder was pulled locally.
