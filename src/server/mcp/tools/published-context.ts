@@ -4,9 +4,8 @@ import { DEFAULT_TOOL_REQUEST_CAP_BYTES } from '../body-limits';
 import type { ToolDefinition } from '../tool-definition';
 import { PAGE_ARGUMENTS, pageBinding, pageOf } from '../tool-paging';
 import { succeed } from '../tool-results';
+import { PATH, PROJECT, READ_HINTS } from './tool-arguments';
 
-const READ_HINTS = { readOnly: true, destructive: false, idempotent: true, openWorld: false } as const;
-const PROJECT = { type: 'string', minLength: 1, maxLength: 200 } as const;
 const IDENTIFIER = { type: 'string', minLength: 1, maxLength: 4096 } as const;
 const IDENTIFIERS = { type: 'array', maxItems: 100, items: IDENTIFIER } as const;
 /** Header the published routes use to name the immutable snapshot they read. */
@@ -74,7 +73,7 @@ const explainMetric: ToolDefinition = {
   description: 'Explain how one metric of a file is computed in the published snapshot, step by step.',
   inputSchema: {
     type: 'object',
-    properties: { project: PROJECT, path: { type: 'string', minLength: 1, maxLength: 1024 }, metric: IDENTIFIER },
+    properties: { project: PROJECT, path: PATH, metric: IDENTIFIER },
     required: ['project', 'path', 'metric'],
     additionalProperties: false,
   },

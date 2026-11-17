@@ -1,26 +1,20 @@
 // Tools that change definitions: save by patch or text, create, delete to the trash and restore. Saving and creating rely on the save route's version check and byte preservation; delete and restore are safe to retry through receipts.
 import { DEFAULT_TOOL_REQUEST_CAP_BYTES, GLOBAL_REQUEST_CAP_BYTES } from '../body-limits';
 import type { ToolContext, ToolDefinition } from '../tool-definition';
-import { fail, succeed, type ToolResult } from '../tool-results';
-import { EDIT_ARGUMENTS, IDEMPOTENCY_KEY, PATCHES, VERSION } from './editing-arguments';
+import { fail, findingsOf, MAXIMUM_FINDINGS, succeed, type Finding, type ToolResult, type TrashEntry } from '../tool-results';
+import { EDIT_ARGUMENTS, IDEMPOTENCY_KEY, PATCHES, VERSION, WRITE_HINTS } from './tool-arguments';
 
-/** The most findings a save answer lists. */
-const MAXIMUM_FINDINGS = 200;
-const WRITE_HINTS = { readOnly: false, destructive: false, idempotent: true, openWorld: false } as const;
-
-type Finding = { path: string; severity: string; message: string; line?: number };
 type SaveAnswer = { path: string; hash: string; findings: Finding[]; demoted?: unknown; source?: string };
-
-function summarize(findings: Finding[]) {
-  return findings
-    .slice(0, MAXIMUM_FINDINGS)
-    .map(finding => ({ pointer: finding.path, severity: finding.severity, message: finding.message, ...(finding.line !== undefined ? { line: finding.line } : {}) }));
-}
 
 /** The answer of a store: the new version, the findings and whether a content guard changed what was stored. */
 function savedResult(answer: SaveAnswer): ToolResult {
   const differs = answer.source !== undefined;
-  return succeed({ version: answer.hash, findings: summarize(answer.findings), findingCount: answer.findings.length, stored: { differs, ...(differs ? { source: answer.source } : {}) } });
+  return succeed({
+    version: answer.hash,
+    findings: findingsOf(answer.findings, MAXIMUM_FINDINGS),
+    findingCount: answer.findings.length,
+    stored: { differs, ...(differs ? { source: answer.source } : {}) },
+  });
 }
 
 /** A conflict that says whether the file already holds the text this call proposed. */
@@ -65,8 +59,6 @@ const createFile: ToolDefinition = {
   requestCapBytes: GLOBAL_REQUEST_CAP_BYTES,
   run: (args, context) => store(context, args, null),
 };
-
-type TrashEntry = { entryId: string; project: string; path?: string; hash?: string };
 
 async function trashEntries(context: ToolContext): Promise<TrashEntry[] | ToolResult> {
   const called = await context.twin('trash.list', { params: {} });

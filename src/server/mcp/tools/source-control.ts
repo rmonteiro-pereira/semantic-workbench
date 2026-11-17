@@ -3,18 +3,17 @@ import { DEFAULT_TOOL_REQUEST_CAP_BYTES } from '../body-limits';
 import type { ToolDefinition } from '../tool-definition';
 import { pageBinding } from '../tool-paging';
 import { byteRange, fail, RESULT_CAP_BYTES, succeed } from '../tool-results';
-import { versionOf } from './projects-and-files';
+import { sha256 } from '../../projects/atomic';
 import { GLOBAL_REQUEST_CAP_BYTES } from '../body-limits';
-import { IDEMPOTENCY_KEY, VERSION } from './editing-arguments';
+import { IDEMPOTENCY_KEY, PATH, PROJECT, READ_HINTS, VERSION } from './tool-arguments';
 import type { ToolContext } from '../tool-definition';
 import type { ToolResult } from '../tool-results';
 
-const READ_HINTS = { readOnly: true, destructive: false, idempotent: true, openWorld: false } as const;
-const PROJECT = { type: 'string', minLength: 1, maxLength: 200 } as const;
-const PATH = { type: 'string', minLength: 1, maxLength: 1024 } as const;
 const REVISION = { type: 'string', minLength: 1, maxLength: 64, pattern: '^[A-Za-z0-9._/-]+$' } as const;
 /** The most history entries one call returns. */
 const MAXIMUM_LOG_ENTRIES = 200;
+/** The most changed paths git_status lists; the count says how many there were. */
+const MAXIMUM_STATUS_CHANGES = 200;
 
 const gitStatus: ToolDefinition = {
   name: 'git_status',
@@ -29,7 +28,7 @@ const gitStatus: ToolDefinition = {
     if (!called.ok) return called.failure;
     const status = called.answer.body as { changes?: unknown[] } & Record<string, unknown>;
     const changes = status.changes ?? [];
-    const shown = changes.slice(0, MAXIMUM_LOG_ENTRIES);
+    const shown = changes.slice(0, MAXIMUM_STATUS_CHANGES);
     return succeed({ ...status, changes: shown, changeCount: changes.length, ...(shown.length < changes.length ? { truncated: true } : {}) });
   },
 };
@@ -61,7 +60,13 @@ const gitDiff: ToolDefinition = {
     const header = { path: diff.path, from: diff.from, to: diff.to, binary: diff.binary, beforeExists: diff.beforeExists, afterExists: diff.afterExists };
     if (diff.binary) return succeed({ ...header, text: '', side: 'before' });
     const sides = [diff.before, diff.after];
-    const binding = pageBinding('git_diff', { project: args.project, ...query }, 'before-then-after', sides.map(versionOf), context);
+    const binding = pageBinding(
+      'git_diff',
+      { project: args.project, ...query },
+      'before-then-after',
+      sides.map(side => sha256(side)),
+      context,
+    );
     let side = 0;
     let offset = 0;
     if (args.cursor !== undefined) {
@@ -140,7 +145,7 @@ const gitFileVersions: ToolDefinition = {
       author,
       date,
       message,
-      version: versionOf(source),
+      version: sha256(source),
       size: Buffer.byteLength(source),
     }));
     return succeed({ items: versions });

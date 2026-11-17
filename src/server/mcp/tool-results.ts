@@ -13,6 +13,26 @@ export const RESULT_CAP_BYTES = 32_768;
 export const DEFAULT_PAGE_SIZE = 50;
 export const MAXIMUM_PAGE_SIZE = 200;
 
+/** A finding as the save and read routes answer it. */
+export type Finding = { path: string; severity: string; message: string; line?: number; column?: number };
+
+/** The most findings one save or validation answer lists; the count says how many there were. */
+export const MAXIMUM_FINDINGS = 200;
+
+/** Findings as a tool reports them: the pointer, severity and message, with a position only when the route had one. */
+export function findingsOf(findings: Finding[], limit = findings.length) {
+  return findings.slice(0, limit).map(finding => ({
+    pointer: finding.path,
+    severity: finding.severity,
+    message: finding.message,
+    ...(finding.line !== undefined ? { line: finding.line } : {}),
+    ...(finding.column !== undefined ? { column: finding.column } : {}),
+  }));
+}
+
+/** An entry of the trash as its route lists it. */
+export type TrashEntry = { entryId: string; project: string; kind: string; deletedAt: string; path?: string; hash?: string };
+
 export function succeed(data: Record<string, unknown>): ToolResult {
   return { ok: true, data };
 }

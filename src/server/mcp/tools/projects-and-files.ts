@@ -1,13 +1,9 @@
 // Tools that list projects and files, read a file by byte ranges, list its findings and list the trash. Each is the twin of one existing route.
-import { createHash } from 'node:crypto';
 import { DEFAULT_TOOL_REQUEST_CAP_BYTES } from '../body-limits';
 import type { ToolDefinition } from '../tool-definition';
 import { PAGE_ARGUMENTS, pageBinding, pageOf } from '../tool-paging';
-import { byteRange, fail, RESULT_CAP_BYTES, succeed } from '../tool-results';
-
-const READ_HINTS = { readOnly: true, destructive: false, idempotent: true, openWorld: false } as const;
-const PROJECT = { type: 'string', minLength: 1, maxLength: 200 } as const;
-const PATH = { type: 'string', minLength: 1, maxLength: 1024 } as const;
+import { byteRange, fail, findingsOf, RESULT_CAP_BYTES, succeed, type Finding, type TrashEntry } from '../tool-results';
+import { PATH, PROJECT, READ_HINTS, VERSION } from './tool-arguments';
 
 type Listed = { slug: string; name: string; domain?: string };
 
@@ -49,7 +45,7 @@ const listFiles: ToolDefinition = {
   },
 };
 
-type ReadAnswer = { source: string; hash: string; findings: { path: string; severity: string; message: string; line?: number; column?: number }[] };
+type ReadAnswer = { source: string; hash: string; findings: Finding[] };
 
 const readFile: ToolDefinition = {
   name: 'read_file',
@@ -61,7 +57,7 @@ const readFile: ToolDefinition = {
       path: PATH,
       offset: { type: 'integer', minimum: 0 },
       length: { type: 'integer', minimum: 1, maximum: RESULT_CAP_BYTES },
-      expectedVersion: { type: 'string', pattern: '^[0-9a-f]{64}$' },
+      expectedVersion: VERSION,
     },
     required: ['project', 'path'],
     additionalProperties: false,
@@ -100,19 +96,11 @@ const getFindings: ToolDefinition = {
     const called = await context.twin('files.read', { params: { slug: args.project, '*': args.path } });
     if (!called.ok) return called.failure;
     const file = called.answer.body as ReadAnswer;
-    const findings = file.findings.map(finding => ({
-      pointer: finding.path,
-      severity: finding.severity,
-      message: finding.message,
-      ...(finding.line !== undefined ? { line: finding.line } : {}),
-      ...(finding.column !== undefined ? { column: finding.column } : {}),
-    }));
+    const findings = findingsOf(file.findings);
     const paged = pageOf(findings, args, context, pageBinding('get_findings', { project: args.project, path: args.path, version: file.hash }, 'position', findings, context));
     return paged.ok ? succeed({ version: file.hash, ...paged.page }) : paged.failure;
   },
 };
-
-type TrashEntry = { entryId: string; project: string; path?: string; deletedAt: string; kind: string };
 
 const listTrash: ToolDefinition = {
   name: 'list_trash',
@@ -133,10 +121,5 @@ const listTrash: ToolDefinition = {
     return paged.ok ? succeed(paged.page) : paged.failure;
   },
 };
-
-/** The version hash of text, as the editor computes it. */
-export function versionOf(text: string): string {
-  return createHash('sha256').update(text).digest('hex');
-}
 
 export const projectAndFileTools: ToolDefinition[] = [listProjects, listFiles, readFile, getFindings, listTrash];
