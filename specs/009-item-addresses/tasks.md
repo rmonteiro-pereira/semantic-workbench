@@ -311,5 +311,5 @@ changes.
   authorization matrix and HTTP/twin parity cases; preserve opaque snapshot suffixes.
 - [x] T048 Prove declared rename and deletion history through inventoried save/batch/move/delete
   operations, register targeted mutants and remove obsolete operation-boundary deferral claims.
-- [ ] T049 Run all completion commands serially through the remote wrapper, retaining reproduced
+- [x] T049 Run all completion commands serially through the remote wrapper, retaining reproduced
   main browser failures as baseline exceptions and pasting command summaries into evidence.md.

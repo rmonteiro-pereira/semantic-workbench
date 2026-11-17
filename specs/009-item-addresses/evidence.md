@@ -1217,3 +1217,16 @@ The mock-provider suite covers sign-in/out, role control, bearer and visibility/
 remote credential fixtures and scoped exports. Its isolated servers/browser and the owned
 production server stopped. Only auth-summary.txt was pulled; full output remains remote.
 All nine named browser suites have now executed on the rebased implementation.
+
+### Final recovered full unit gate
+
+`bun test`: exit 0; `2275 pass`, `0 fail`, `341630 expect() calls`;
+`Ran 2275 tests across 327 files. [1201.06s]`.
+This supersedes the earlier recovered unit failure checkpoint. HTTP and administration replay
+fixtures now include only the new inventory coverage; all original decisions remain preserved.
+Both audit-strata tests pass within their original limits in this final run. Their prior
+feature/main timeout comparison remains recorded, but neither is a remaining unit-gate failure.
+No timeout, assertion or durable audit write was weakened. All completion commands have run
+serially through the remote wrapper; only small summaries were pulled locally.
+The strict remaining browser exceptions are graph select clipping, lineage first-view timing
+and responsive graph height. The previously recorded phone-canvas visual warnings remain.
