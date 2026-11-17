@@ -1058,3 +1058,22 @@ The first full integration run also passed both migration-history parity journey
 entry points, the conditional-file role regression and generic operation parity for both new
 IDs. A fresh plain full unit gate is running on the corrected generated fixtures. No runtime
 implementation changed to repair these two failures.
+
+## Disk-recovery completion gates
+
+After the disk failure, the clean worktree was verified at c595b1da with a153c20f as an
+ancestor. Runtime source still matched the reviewed f4f7ec07 tree. Uncommitted results from
+the interrupted run and lost temporary logs are not used as proof. Every remaining completion
+command is rerun remotely, serially, with large logs and captures retained on midgard. Only
+small command summaries are pulled back. The temporary non-force wrapper was recreated from
+the installed wrapper with the same two documented changes; no GitHub push or force push is used.
+
+The fresh `bun --bun run check` exited 2: duplicate `tmpdir` and `join` imports in
+`tests/pipeline/deploy-azure.test.ts` survived the automatic rebase. Main has only one copy of
+each import, so this was an integration error. Removing the duplicate pair restores that file
+to main without changing its test behavior or temporary-directory isolation.
+
+`bun test ./tests/pipeline/deploy-azure.test.ts`: `5 pass`, `0 fail`, `20 expect() calls`;
+`Ran 5 tests across 1 file. [63.00ms]`. The fixture uses fake deployment commands; no external
+service, container or real deployment is invoked. Formatter and changed-line readability pass.
+Remote gate logs and small summaries use out/gate-009-operation-recovery/.
