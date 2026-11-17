@@ -1245,3 +1245,7 @@ and explicit per-test limit while budgeting the capped shared machine consistent
 - Remote `bun scripts/published-snapshot-remote-gate.ts test:published-snapshot`: exit 0;
   `2 published snapshot browser checks passed.` Local and server controls passed geometry
   checks at all six viewports. Screenshots remain on midgard; no image folder was pulled locally.
+
+- Remote `bun scripts/published-snapshot-remote-gate.ts test:ui`: exit 0;
+  `20 UI checks passed`. This includes repaired saved mapping references, changed mapping
+  selection, stale response protection and no browser runtime errors.
