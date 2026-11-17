@@ -1,5 +1,5 @@
-import { operationStep } from '../auth/operation-execution';
 // Resolves production definitions from durable pointers and retains indexes for live request pins.
+import { assertOperationStep } from '../auth/operation-execution';
 import { SnapshotUnavailableError } from './errors';
 import { GitError } from './git';
 import { log } from '../observability/log';
@@ -110,7 +110,7 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
     return new SnapshotUnavailableError(deps.gitAvailable() ? 'no-commit' : 'no-git');
   }
   async function files(requestPin: PublishedPin, project: string) {
-    operationStep('snapshot.read', () => {});
+    assertOperationStep('snapshot.read');
     if (!deps.gitAvailable()) throw absence();
     const repository = projectRepository(project, requestPin);
     const chosen = requestPin.commits.get(repository);

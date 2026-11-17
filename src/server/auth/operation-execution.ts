@@ -16,6 +16,11 @@ export function operationStep<T>(id: string, use: () => T): T {
   return use();
 }
 
+/** Fails when the running operation did not register the step; a call outside any operation is allowed. */
+export function assertOperationStep(id: string): void {
+  operationStep(id, () => undefined);
+}
+
 /** Runs the registered startup upgrade, with no HTTP or protocol dispatch surface. */
 export function upgradePublications<T>(use: () => T): T {
   const entry = operationInventory.lifecycleOperations['publication.upgrade'];
