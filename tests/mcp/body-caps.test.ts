@@ -34,24 +34,24 @@ function post(body: string | ReadableStream<Uint8Array>, headers: Record<string,
   } as RequestInit);
 }
 
-test('C18 a declared length over the global cap is refused before the body is read', async () => {
+test('a declared length over the global cap is refused before the body is read', async () => {
   const response = await post('x'.repeat(GLOBAL_REQUEST_CAP_BYTES + 1), { 'mcp-name': 'save_file' });
   expect(response.status).toBe(413);
 });
 
-test('C18 the cap of the named tool applies, and a larger tool may carry more', async () => {
+test('the cap of the named tool applies, and a larger tool may carry more', async () => {
   const large = toolCall('read_file', DEFAULT_TOOL_REQUEST_CAP_BYTES + 100);
   expect((await post(large, { 'mcp-name': 'read_file' })).status).toBe(413);
   const bigButFine = toolCall('save_file', DEFAULT_TOOL_REQUEST_CAP_BYTES + 100);
   expect((await post(bigButFine, { 'mcp-name': 'save_file' })).status).not.toBe(413);
 });
 
-test('C18 a client with no tool name is checked again after parsing', async () => {
+test('a client with no tool name is checked again after parsing', async () => {
   const response = await post(toolCall('read_file', DEFAULT_TOOL_REQUEST_CAP_BYTES + 100), { 'mcp-name': '' });
   expect(response.status).toBe(413);
 });
 
-test('C18 a body that lies about its length is cut off at the cap', async () => {
+test('a body that lies about its length is cut off at the cap', async () => {
   const chunk = new TextEncoder().encode('y'.repeat(65_536));
   let sent = 0;
   const stream = new ReadableStream<Uint8Array>({

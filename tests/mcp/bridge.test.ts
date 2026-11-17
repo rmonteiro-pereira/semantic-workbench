@@ -1,6 +1,6 @@
 // The standard-input bridge derives the mirrored headers, explains both failure cases, follows a rotation and never prints the capability.
 import { expect, test } from 'bun:test';
-import { answerLines, bridgeError, deliver, mirroredHeaders } from '../../scripts/mcp-stdio';
+import { answerLines, BRIDGE_TIMEOUT_MS, bridgeError, deliver, mirroredHeaders } from '../../scripts/mcp-stdio';
 import { startLocalServer } from './helpers/local-server';
 
 const meta = { 'io.modelcontextprotocol/protocolVersion': '2026-07-28', 'io.modelcontextprotocol/clientCapabilities': {}, 'io.modelcontextprotocol/clientInfo': { name: 'bridge-test', version: '1' } };
@@ -64,4 +64,14 @@ test('the bridge process answers messages, follows a rotation and prints no capa
   } finally {
     await server.close();
   }
+});
+
+test('a workbench that never answers ends the request with a clear error after the timeout', async () => {
+  const hanging = (_url: string, init: RequestInit) =>
+    new Promise<Response>((_resolve, reject) => {
+      init.signal?.addEventListener('abort', () => reject(init.signal?.reason));
+    });
+  const answered = await deliver(message(7, 'tools/list'), 4310, () => 'capability', hanging, 50);
+  expect(JSON.parse(answered[0]).error.message).toContain('did not answer in time');
+  expect(BRIDGE_TIMEOUT_MS).toBeGreaterThan(30_000);
 });

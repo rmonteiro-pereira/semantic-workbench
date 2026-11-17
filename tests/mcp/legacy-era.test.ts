@@ -19,7 +19,7 @@ async function legacy(body: unknown, method = 'POST') {
   return { status: response.status, text: await response.text(), headers: response.headers };
 }
 
-test('C14 initialize, list and call work without a session and GET and DELETE are refused', async () => {
+test('initialize, list and call work without a session and GET and DELETE are refused', async () => {
   const initialize = await legacy({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'old-client', version: '1' } } });
   expect(initialize.status).toBe(200);
   expect(initialize.text).toContain('tools');

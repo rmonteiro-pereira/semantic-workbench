@@ -24,7 +24,7 @@ Directly over HTTP, for clients that take a URL and a header: URL `http://127.0.
 
 Codex CLI has not been tried with this endpoint yet; `docs/mcp-acceptance.md` records what is verified and what is not. Only the reference client of the protocol library has been run against it. The registration command differs by client, so follow that client's own documentation and point it at `bun scripts/mcp-stdio.ts` with `DATA_DIR` set to your data folder.
 
-Rotate the secret with `bun run mcp:rotate`. The old value stops working on the next request.
+Rotate the secret with `bun run mcp:rotate` (`scripts/mcp-rotate.ts`). The bridge gives up on a call that gets no answer after 35 seconds, a little after the server's own 30-second deadline. The old value stops working on the next request.
 
 ## What the tools do
 
@@ -66,6 +66,8 @@ Changing files:
 - `delete_file`, `restore_file` and `git_commit` need an `idempotencyKey` of 16 to 128 characters (letters, digits, dash, underscore). A retry with the same key and arguments returns the original result. The same key with other arguments answers `key_reused`. After a crash that cannot be settled the answer is `uncertain`, which means: read the trash or the Git log before trying again. Receipts live under `data/state/mcp-receipts/` for seven days: an expired receipt is ignored at once, and expired ones are removed when the endpoint starts. A second call with a key whose first call is still running is answered `rate_limited` before anything is read. If a receipt file cannot be parsed, it is moved aside as `*.corrupt-<time>` and the call is answered `uncertain`.
 - `git_commit` takes `files` (path and version), `expectedBranch` and `expectedHead`. Exactly those files are committed, in the same step of the repository's queue that checks them, and other staged work stays staged. The commit holds the project's write lock while it runs, so a save of the same project waits for it. If a hook or filter changed a listed file during the commit, the answer is `conflict` with the commit and the changed paths in `details`. There is no push and no commit-all argument. A commit made while the default branch is checked out lands on the authoring branch (`work/local`) and the answer carries `movedFrom`; what agents and people read changes only when you publish from the browser. The commit carries the configured Git identity and no agent marker.
 - An agent's save never discards a person's unsaved draft of the same file, and open browsers refresh through the live events.
+
+The tools, their twin routes and their hints are listed in [mcp-contract.md](mcp-contract.md), which tests compare with the registry and the route table.
 
 ## Limits
 

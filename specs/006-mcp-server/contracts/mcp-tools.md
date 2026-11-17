@@ -57,29 +57,7 @@ reproduces the file.
 The four hints are set independently. `destructive` is stated even though the protocol only reads it
 when the tool is not read-only. The server never relies on a hint.
 
-| Tool | Twin route | Action | readOnly | destructive | idempotent | openWorld | Retry class |
-|------|------------|--------|----------|-------------|------------|-----------|-------------|
-| `explain_metric` | `GET .../files/*/explain/:metric` | read | true | false | true | false | repeatable |
-| `get_findings` | `GET .../files/*` | read | true | false | true | false | repeatable |
-| `get_mapping_catalog` | `GET /api/agent/catalog` | read | true | false | true | false | repeatable |
-| `get_mapping_context` | `GET /api/agent/context` | read | true | false | true | false | repeatable |
-| `git_branches` | `GET .../git/branches` | history | true | false | true | false | repeatable |
-| `git_diff` | `GET .../git/diff` | history | true | false | true | false | repeatable |
-| `git_file_versions` | `GET .../git/versions` | history | true | false | true | false | repeatable |
-| `git_log` | `GET .../git/log` | history | true | false | true | false | repeatable |
-| `git_show` | `GET .../git/show` | history | true | false | true | false | repeatable |
-| `git_status` | `GET .../git/status` | history | true | false | true | false | repeatable |
-| `list_files` | `GET /api/documents` | read | true | false | true | false | repeatable |
-| `list_projects` | `GET /api/projects` | read | true | false | true | false | repeatable |
-| `list_trash` | `GET /api/trash` | read | true | false | true | false | repeatable |
-| `plan_query` | `POST /api/agent/plan` | read | true | false | true | false | repeatable |
-| `read_file` | `GET .../files/*` | read | true | false | true | false | repeatable |
-| `validate_text` | `POST .../files/*/validate` (new) | edit | true | false | true | false | repeatable |
-| `create_file` | `PUT .../files/*` with null base | edit | false | false | true | false | precondition-protected |
-| `save_file` | `PUT .../files/*` | edit | false | true | true | false | precondition-protected |
-| `delete_file` | `DELETE .../files/*` | delete | false | false | true | false | receipt-backed |
-| `restore_file` | `POST /api/trash/:entry/restore` | restoreOwn | false | false | true | false | receipt-backed |
-| `git_commit` | `POST .../git/commit` | commit | false | false | true | false | receipt-backed |
+The table of the 21 tools, their twin routes, effects, hints and retry classes lives in `docs/mcp-contract.md`, which tests read.
 
 Why the write values are what they are. `save_file` replaces existing bytes that may not be in Git
 yet, so it is destructive; `delete_file` moves to the trash and is recoverable, so it is not.

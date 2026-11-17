@@ -191,7 +191,7 @@ src/server/routes/git.ts, src/server/projects/scm.ts  # optional commit precondi
 src/app/admin/AuditSection.tsx           # shows the tool beside the action; nothing else in the view changes
 src/server/handler.ts                    # mounts the route in local mode; passes audit retention
 scripts/mcp-stdio.ts                     # the bridge
-scripts/mcp-capability.ts                # `bun run mcp:rotate`
+scripts/mcp-rotate.ts                # `bun run mcp:rotate`
 scripts/mcp-acceptance.ts                # `bun run test:mcp`, the scripted run and refused cases
 scripts/mcp-browser-check.ts             # editor refresh and audit view
 scripts/mcp-mutants.ts                   # targeted mutants, imported by mutation-tests.ts

@@ -6,7 +6,7 @@ import { TOOLS } from '../../src/server/mcp/tool-registry';
 
 function inventoryRows(): Map<string, string> {
   const rows = new Map<string, string>();
-  for (const line of readFileSync('specs/006-mcp-server/contracts/mcp-inventory.md', 'utf8').split('\n')) {
+  for (const line of readFileSync('docs/mcp-contract.md', 'utf8').split('\n')) {
     const match = line.match(/^\| `([A-Z/]+ [^`]+)` \| (.+?) \|/);
     if (match) rows.set(match[1], match[2]);
   }

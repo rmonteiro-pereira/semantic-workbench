@@ -5,7 +5,7 @@ type ContractRow = { name: string; route: string; action: string; hints: boolean
 
 /** The table of the tool contract, one entry per tool. */
 export function contractRows(): ContractRow[] {
-  const text = readFileSync('specs/006-mcp-server/contracts/mcp-tools.md', 'utf8');
+  const text = readFileSync('docs/mcp-contract.md', 'utf8');
   return text
     .split('\n')
     .filter(line => /^\| `[a-z_]+` \| `/.test(line))

@@ -3,8 +3,11 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createInterface } from 'node:readline';
+import { DEFAULT_CALL_LIMITS } from '../src/server/mcp/call-limits';
 
 const DEFAULT_PORT = 4310;
+/** How long the bridge waits for an answer: a little longer than the server's own deadline for one call, so the server's answer arrives first. */
+export const BRIDGE_TIMEOUT_MS = DEFAULT_CALL_LIMITS.deadlineMs + 5000;
 const PROTOCOL_META = 'io.modelcontextprotocol/protocolVersion';
 
 type Message = { jsonrpc?: string; id?: string | number | null; method?: string; params?: { name?: unknown; _meta?: Record<string, unknown> } };
@@ -44,7 +47,13 @@ export function answerLines(contentType: string, body: string): string[] {
 }
 
 /** Posts one message. Returns the lines to write, which may be none for a notification. */
-export async function deliver(line: string, port: number, readCapability: () => string, send: (url: string, init: RequestInit) => Promise<Response> = fetch): Promise<string[]> {
+export async function deliver(
+  line: string,
+  port: number,
+  readCapability: () => string,
+  send: (url: string, init: RequestInit) => Promise<Response> = fetch,
+  timeoutMs = BRIDGE_TIMEOUT_MS,
+): Promise<string[]> {
   let message: Message;
   try {
     message = JSON.parse(line);
@@ -62,6 +71,7 @@ export async function deliver(line: string, port: number, readCapability: () => 
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream', Authorization: `Bearer ${capability}`, ...mirroredHeaders(message) },
       body: line,
+      signal: AbortSignal.timeout(timeoutMs),
     });
     const text = await response.text();
     if (response.status === 404 && !text.includes('jsonrpc'))
@@ -69,7 +79,9 @@ export async function deliver(line: string, port: number, readCapability: () => 
     if (response.status === 401)
       return [bridgeError(message, 'The workbench refused the capability. If it was rotated, retry; otherwise check DATA_DIR.')].filter((entry): entry is string => entry !== null);
     return answerLines(response.headers.get('content-type') ?? '', text);
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && error.name === 'TimeoutError')
+      return [bridgeError(message, 'The workbench did not answer in time. Check that it is still running, then retry.')].filter((entry): entry is string => entry !== null);
     return [bridgeError(message, `The workbench is not running on port ${port}. Start it in local mode with bun run dev.`)].filter((entry): entry is string => entry !== null);
   }
 }

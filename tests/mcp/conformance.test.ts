@@ -11,7 +11,7 @@ afterAll(async () => {
   await server.close();
 });
 
-test('C1 discovery answers with tools only and C7 carries result metadata', async () => {
+test('discovery answers with tools only and carries result metadata', async () => {
   const answer = await server.raw({ method: 'server/discover' });
   expect(answer.status).toBe(200);
   const result = (answer.json as { result: Record<string, any> }).result;
@@ -21,7 +21,7 @@ test('C1 discovery answers with tools only and C7 carries result metadata', asyn
   expect(result.cacheScope).toBe('private');
 });
 
-test('C2 and C3 missing or disagreeing headers are refused with -32020', async () => {
+test('missing or disagreeing headers are refused with -32020', async () => {
   const missing = await server.raw({ method: 'tools/list' }, { 'mcp-method': '' });
   expect(missing.status).toBe(400);
   expect((missing.json as any).error.code).toBe(-32020);
@@ -30,14 +30,14 @@ test('C2 and C3 missing or disagreeing headers are refused with -32020', async (
   expect((disagreeing.json as any).error.code).toBe(-32020);
 });
 
-test('C4 an unsupported revision lists the supported one', async () => {
+test('an unsupported revision lists the supported one', async () => {
   const answer = await server.raw({ method: 'tools/list', params: { _meta: { 'io.modelcontextprotocol/protocolVersion': '2099-01-01' } } }, { 'mcp-protocol-version': '2099-01-01' });
   expect(answer.status).toBe(400);
   expect((answer.json as any).error.code).toBe(-32022);
   expect((answer.json as any).error.data.supported).toEqual(['2026-07-28']);
 });
 
-test('C5 and C16 unknown methods, resources, prompts and subscriptions answer -32601', async () => {
+test('unknown methods, resources, prompts and subscriptions answer -32601', async () => {
   for (const method of ['bogus/method', 'resources/list', 'prompts/list', 'subscriptions/listen']) {
     const answer = await server.raw({ method });
     expect(answer.status, method).toBe(404);
@@ -45,7 +45,7 @@ test('C5 and C16 unknown methods, resources, prompts and subscriptions answer -3
   }
 });
 
-test('C6 a body without the client envelope is refused with -32602', async () => {
+test('a body without the client envelope is refused with -32602', async () => {
   const response = await fetch(server.endpoint, {
     method: 'POST',
     headers: { 'content-type': 'application/json', accept: 'application/json', authorization: `Bearer ${server.capability()}`, 'mcp-protocol-version': '2026-07-28', 'mcp-method': 'tools/list' },
@@ -55,7 +55,7 @@ test('C6 a body without the client envelope is refused with -32602', async () =>
   expect(((await response.json()) as any).error.code).toBe(-32602);
 });
 
-test('C8 and C15 the list is sorted, stable and carries the contract hints', async () => {
+test('the list is sorted, stable and carries the contract hints', async () => {
   const first = await server.raw({ method: 'tools/list' });
   const second = await server.raw({ method: 'tools/list' });
   expect(first.text).toBe(second.text);
@@ -72,13 +72,13 @@ test('C8 and C15 the list is sorted, stable and carries the contract hints', asy
   }
 });
 
-test('C10 a notification is acknowledged without a body', async () => {
+test('a notification is acknowledged without a body', async () => {
   const answer = await server.raw({ method: 'notifications/initialized', id: undefined });
   expect(answer.status).toBe(202);
   expect(answer.text).toBe('');
 });
 
-test('C12 invalid input is a tool error naming the field', async () => {
+test('invalid input is a tool error naming the field', async () => {
   const answer = await server.raw({ method: 'tools/call', params: { name: 'read_file', arguments: { project: 'x' } } });
   const result = (answer.json as any).result;
   expect(result.isError).toBe(true);
@@ -87,7 +87,7 @@ test('C12 invalid input is a tool error naming the field', async () => {
   expect((extra.json as any).result.structuredContent.error.details.field).toBe('surprise');
 });
 
-test('C13 a header naming a read tool with a body naming a write tool is refused before dispatch', async () => {
+test('a header naming a read tool with a body naming a write tool is refused before dispatch', async () => {
   const answer = await server.raw({ method: 'tools/call', params: { name: 'delete_file', arguments: {} } }, { 'mcp-name': 'read_file' });
   expect(answer.status).toBe(400);
   expect((answer.json as any).error.code).toBe(-32020);
