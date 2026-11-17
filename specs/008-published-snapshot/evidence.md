@@ -1301,3 +1301,7 @@ and explicit per-test limit while budgeting the capped shared machine consistent
 - Remote `RESPONSIVE_ONLY="graph canvases:" bun scripts/published-snapshot-remote-gate.ts
   test:responsive`: exit 0; `5 responsive UI checks passed` (390, 1280, 1440 and 2560 px
   plus no uncaught browser errors). Names, overlaps and toolbar geometry passed.
+
+- Remote `RESPONSIVE_ONLY="shell screens:" bun scripts/published-snapshot-remote-gate.ts
+  test:responsive`: exit 0; `5 responsive UI checks passed` (four viewports plus no
+  uncaught browser errors). Headers, tab strip, tree and content width passed.
