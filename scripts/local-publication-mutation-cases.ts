@@ -7,7 +7,11 @@ import type * as publication from '../src/server/projects/publication';
 import { localPublicationFixture } from '../tests/helpers/local-publication-fixture';
 
 /** Verifies preserved authoring changes and rejection of an outside compare-and-swap race. */
-export async function localPublicationCase(candidate: { createLocalPublication?: typeof local.createLocalPublication; createPublication?: typeof publication.createPublication; moveToAuthoringBranch?: typeof local.moveToAuthoringBranch }) {
+export async function localPublicationCase(candidate: {
+  createLocalPublication?: typeof local.createLocalPublication;
+  createPublication?: typeof publication.createPublication;
+  moveToAuthoringBranch?: typeof local.moveToAuthoringBranch;
+}) {
   using fixture = localPublicationFixture('history', candidate);
   const path = join(fixture.repository, 'unrelated.txt');
   writeFileSync(path, 'staged');

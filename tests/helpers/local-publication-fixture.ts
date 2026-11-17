@@ -9,7 +9,10 @@ import { createSnapshotIndexes } from '../../src/server/projects/snapshot-index'
 import { publicationRepository } from './git-fixtures';
 
 /** Opens an isolated publication fixture using the supplied implementation. */
-export function localPublicationFixture(kind: 'history' | 'unborn' = 'history', factories: { createLocalPublication?: typeof createLocalPublication; createPublication?: typeof createPublication } = {}) {
+export function localPublicationFixture(
+  kind: 'history' | 'unborn' = 'history',
+  factories: { createLocalPublication?: typeof createLocalPublication; createPublication?: typeof createPublication } = {},
+) {
   const fixture = publicationRepository(kind);
   const layout = dataLayout(fixture.dir);
   const git = createGit({ projectsRoot: layout.projects });

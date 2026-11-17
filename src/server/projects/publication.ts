@@ -81,9 +81,7 @@ export function createPublication(deps: PublicationDeps) {
     recorded: (repository: string) => deps.pointers.get(repository)?.commit,
     /** Finishes or drops an interrupted publication by comparing its intent with the branch tip. */
     recover: (repository: string, ref: string | null) =>
-      operationStep('publication.recover', () =>
-        deps.pointers.reconcile(repository, ref, (from, to) => deps.git.isAncestor(deps.directory(repository), from, to)),
-      ),
+      operationStep('publication.recover', () => deps.pointers.reconcile(repository, ref, (from, to) => deps.git.isAncestor(deps.directory(repository), from, to))),
     /** Records the first published commit of a repository that already had default-branch history. */
     adoptInitial: (repository: string, branch: string, commit: string) =>
       operationStep('publication.adopt-initial', () => {

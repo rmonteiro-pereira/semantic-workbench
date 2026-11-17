@@ -415,7 +415,8 @@ export function createWorktrees(options: Omit<WorktreeContext, 'listings'>) {
     releaseCopies: (repo: string) => releaseCopies(context, repo),
     ensure: (repo: string, owner: CopyOwner) => ensure(context, repo, owner),
     assertFree: (repo: string, key: string, branch: string) => assertFree(context, repo, key, branch),
-    publish: (repo: string, key: string, check: (previous: string | null, next: string) => Promise<void>) => context.publication.serialized(repo, advance => publish(context, repo, key, check, advance)),
+    publish: (repo: string, key: string, check: (previous: string | null, next: string) => Promise<void>) =>
+      context.publication.serialized(repo, advance => publish(context, repo, key, check, advance)),
     adopt: (repo: string, guard: PublicationGuard, observe?: PublicationObserver) => context.publication.serialized(repo, advance => adopt(context, repo, guard, advance, observe)),
     remoteAhead: (repo: string, remote: string) => remoteAhead(context, repo, remote),
     followRemote: (repo: string, remote: string, check: (previous: string | null, next: string) => Promise<void>) =>
