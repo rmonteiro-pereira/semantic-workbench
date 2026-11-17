@@ -1077,3 +1077,10 @@ to main without changing its test behavior or temporary-directory isolation.
 `Ran 5 tests across 1 file. [63.00ms]`. The fixture uses fake deployment commands; no external
 service, container or real deployment is invoked. Formatter and changed-line readability pass.
 Remote gate logs and small summaries use out/gate-009-operation-recovery/.
+
+### Recovered static gate
+
+`bun --bun run check`: exit 0. `All matched files use the correct format.`;
+`Finished in 152ms on 1076 files using 12 threads.`; lint: `Found 2605 warnings and 0 errors.`
+Comment, theme and brand checks also passed. Full logs remain remote; the local summary is
+out/gate-009-operation-recovery/check-summary.txt.
