@@ -1353,3 +1353,20 @@ Remote results after the rebase:
   behaviour recorded earlier); against the built frontend served by the application they exit 0.
 
 Follow-up: item addresses reserve an opaque `@snapshot` segment. It is not wired to published snapshots yet.
+
+## Review corrections after the rebase
+
+Ten review findings were fixed, one commit each (metric document source, required publication instance,
+startup recovery and first adoption as registered steps, repair failure after a completed publication,
+execution-module import, narrowed snapshot-status catch, step assertion and header order, shared gate runner,
+system temporary directories, startup notice migration with one authoring-branch constant).
+
+- Responsive canvas height: `Expected: > 503.99999999999994, Received: 481` reproduces on unchanged
+  `origin/main` (`fd09377e`) in a temporary checkout on the dev server, so it is inherited. The checkout was
+  removed afterwards.
+- Targeted responsive groups pass against the built frontend: dark theme, examples 1440, examples 2560 and
+  the phone drawer. Graph canvases and shell screens passed earlier on the development frontend.
+- `bun scripts/ci-validate.ts --step mutation`: `755/755 targeted mutants killed`.
+- Browser suites through `ci-validate.ts --step browser --suite <script>`: published-snapshot, ui, edges,
+  grouping-validation, examples:ui, scm, mappings-layout, projects and auth exit 0. `test:projects` failed
+  once waiting for the Projects tree on a cold frontend and passed on the immediate retry.
