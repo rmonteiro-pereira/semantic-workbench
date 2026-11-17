@@ -1,6 +1,6 @@
 /** Exercises migration decisions through the public pure API. */
 import { expect, test } from 'bun:test';
-import { migrateAddress, historySinceDeletion, validateDeclaredMigrations, type MigrationRecord } from '../src/shared/core/address-migration';
+import { migrateAddress, deletesAddress, historySinceDeletion, validateDeclaredMigrations, type MigrationRecord } from '../src/shared/core/address-migration';
 import { formatAddress, parseAddress, type Address } from '../src/shared/core/item-address';
 import { withAddressSeed } from './helpers/seeded-random';
 
@@ -94,4 +94,13 @@ test('history at a reused locator resets at its last deletion and retains only l
   expect(historySinceDeletion(address(text('B')), [past, removed])).toEqual({ reset: true, records: [] });
   expect(historySinceDeletion(address(text('B')), [past, removed, explicit])).toEqual({ reset: true, records: [explicit] });
   expect(historySinceDeletion(address(text('Other')), [past, removed])).toEqual({ reset: false, records: [past, removed] });
+});
+
+test('deletion matching covers descendants without matching a longer sibling name', () => {
+  const deletion: MigrationRecord = { id: 'deleted', kind: 'deleted', from: text('A'), at: '2026-11-16T00:00:00Z', commit: '' };
+  const descendant = address(text('A') + '/field:Value');
+  expect(deletesAddress(deletion, descendant)).toBe(true);
+  expect(deletesAddress(deletion, address(text('AGroup')))).toBe(false);
+  expect(deletesAddress({ ...deletion, kind: 'item', to: text('B') }, descendant)).toBe(false);
+  expect(historySinceDeletion(descendant, [deletion])).toEqual({ reset: true, records: [] });
 });

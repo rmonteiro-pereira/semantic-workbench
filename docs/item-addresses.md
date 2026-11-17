@@ -103,6 +103,8 @@ Canonical keys take precedence over colliding legacy labels.
 
 `migrateAddress(address, records, resolved)` leaves a resolving locator unchanged. Otherwise it applies distinct record
 IDs once in append order, using whole-segment prefixes and preserving descendants and the opaque snapshot suffix.
+`deletesAddress(record, address)` tests whether a stable deletion prefix covers that locator; replay, history cuts and
+the workspace resolver share this predicate.
 Deleted markers stop further replay. `validateDeclaredMigrations(value, project, writtenDocuments)` accepts at most 64
 item/scope declarations, requiring canonical absolute, snapshot-free, non-positional locators within the request's
 project and files. It returns typed declarations or a closed validation reason.

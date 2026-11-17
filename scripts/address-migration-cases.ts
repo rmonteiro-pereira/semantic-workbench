@@ -13,6 +13,11 @@ export function addressMigrationCase(candidate: typeof AddressMigration) {
   };
   const record = (from: string, to: string, id: string) => ({ id, kind: 'item' as const, from: text(from), to: text(to), at: '2026-11-16T00:00:00Z', commit: '' });
   const records = [record('A', 'B', '1'), record('B', 'C', '2')];
+  const deletion = { ...record('A', 'B', 'deleted'), kind: 'deleted' as const, to: undefined };
+  const descendant = parse(text('A') + '/field:Value');
+  assert(candidate.deletesAddress(deletion, descendant));
+  assert(!candidate.deletesAddress(deletion, parse(text('AGroup'))));
+  assert.deepEqual(candidate.historySinceDeletion(descendant, [records[0], deletion, records[1]]), { reset: true, records: [records[1]] });
   assert.equal(formatAddress(candidate.migrateAddress(parse(text('A')), records, false)), text('C'));
   assert.equal(formatAddress(candidate.migrateAddress(parse(text('A')), records, true)), text('A'));
   assert.equal(formatAddress(candidate.migrateAddress(parse(text('AGroup')), records, false)), text('AGroup'));

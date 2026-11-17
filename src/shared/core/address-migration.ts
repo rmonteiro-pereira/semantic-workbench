@@ -28,6 +28,13 @@ function stableAbsolute(text: string): Address | null {
   return parsed.address;
 }
 
+/** Tests whether a stable deletion prefix covers the current locator. */
+export function deletesAddress(record: MigrationRecord, address: Address): boolean {
+  if (record.kind !== 'deleted') return false;
+  const from = stableAbsolute(record.from);
+  return from !== null && itemAddress.hasPrefix(address, from);
+}
+
 /** Applies each distinct record once in append order, preserving a resolving input. */
 export function migrateAddress(address: Address, records: readonly MigrationRecord[], resolved: boolean): Address {
   if (resolved) return address;
@@ -36,12 +43,10 @@ export function migrateAddress(address: Address, records: readonly MigrationReco
   for (const record of records) {
     if (applied.has(record.id)) continue;
     applied.add(record.id);
+    if (deletesAddress(record, current)) return current;
+    if (record.kind === 'deleted') continue;
     const from = stableAbsolute(record.from);
     if (!from) continue;
-    if (record.kind === 'deleted') {
-      if (itemAddress.hasPrefix(current, from)) return current;
-      continue;
-    }
     const to = record.to === undefined ? null : stableAbsolute(record.to);
     if (to) current = replacePrefix(current, from, to);
   }
@@ -84,9 +89,7 @@ export function validateDeclaredMigrations(input: unknown, project: string, writ
 export function historySinceDeletion(address: Address, records: readonly MigrationRecord[]): { reset: boolean; records: readonly MigrationRecord[] } {
   let deletedAt = -1;
   for (const [index, record] of records.entries()) {
-    if (record.kind !== 'deleted') continue;
-    const from = stableAbsolute(record.from);
-    if (from && itemAddress.hasPrefix(address, from)) deletedAt = index;
+    if (deletesAddress(record, address)) deletedAt = index;
   }
   return { reset: deletedAt >= 0, records: records.slice(deletedAt + 1) };
 }

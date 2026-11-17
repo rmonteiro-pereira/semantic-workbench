@@ -2,7 +2,7 @@
 import { inspect } from '../../shared/core/model';
 import { resolveInModel, type AddressedItem } from '../../shared/core/model-addresses';
 import { formatAddress, parseAddress, type Address } from '../../shared/core/item-address';
-import { historySinceDeletion, migrateAddress, type MigrationRecord } from '../../shared/core/address-migration';
+import { deletesAddress, historySinceDeletion, migrateAddress, type MigrationRecord } from '../../shared/core/address-migration';
 import { InputError } from '../../shared/validation/diagnostics';
 import { NotFoundError } from './errors';
 import { assertSlug, projectPath, PathError } from './paths';
@@ -73,7 +73,7 @@ export function resolveForCaller(context: AddressResolutionContext, text: string
     applied.add(record.id);
     const from = parseAddress(record.from);
     if (!from.ok || !readable(from.address, reader)) continue;
-    if (historySinceDeletion(address, [record]).reset) {
+    if (deletesAddress(record, address)) {
       waitingForReconciliation = true;
       continue;
     }

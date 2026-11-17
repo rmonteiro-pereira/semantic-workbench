@@ -25,6 +25,8 @@ export const modelAddressMutants: [string, string, string, string][] = [
 
 /** Faults in migration ordering, stable replay and request ownership. */
 export const migrationAddressMutants: [string, string, string, string][] = [
+  ['address-migration', 'src/shared/core/address-migration.ts', "if (record.kind !== 'deleted') return false;", ''],
+  ['address-migration', 'src/shared/core/address-migration.ts', 'return from !== null && itemAddress.hasPrefix(address, from);', 'return from !== null;'],
   ['address-migration', 'src/shared/core/address-migration.ts', 'for (const record of records)', 'for (const record of [...records].reverse())'],
   ['address-migration', 'src/shared/core/address-migration.ts', 'if (applied.has(record.id)) continue;', ''],
   ['address-migration', 'src/shared/core/address-migration.ts', 'if (resolved) return address;', ''],

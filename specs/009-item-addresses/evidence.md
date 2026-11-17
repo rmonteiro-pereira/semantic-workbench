@@ -1506,3 +1506,8 @@ Branch `009-address-followups` starts from the merged `origin/main` at `56603266
 - `bun test tests/address-migration-store.test.ts`: **17 pass, 0 fail, 150 expect() calls**.
 - `bun test tests/address-hidden-missing.test.ts`: **4 pass, 0 fail, 20 expect() calls**.
 - `bun scripts/mutation-case.ts "$PWD/src/server/projects/address-resolution.ts" address-server`: **exit 0**. New mutants cover the reconciliation kind, exact source locator and resuming replay; the full remote gate follows below.
+- Exported `deletesAddress(record, address)` from the pure migration module. Ordered migration replay, `historySinceDeletion` and the workspace resolver now share its stable, whole-segment deletion predicate; the resolver no longer creates a singleton history just to test deletion.
+- `bun test tests/address-migration.test.ts`: **7 pass, 0 fail, 3026 expect() calls**. Coverage includes descendants, sibling-name boundaries and non-deletion records.
+- `bun scripts/mutation-case.ts "$PWD/src/shared/core/address-migration.ts" address-migration`: **exit 0**.
+- `bun scripts/mutation-case.ts "$PWD/src/server/projects/address-resolution.ts" address-server`: **exit 0** after predicate extraction.
+- `bun test tests/address-migration-store.test.ts`: **17 pass, 0 fail, 150 expect() calls** after predicate extraction.
