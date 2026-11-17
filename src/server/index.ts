@@ -18,6 +18,7 @@ import { installShutdownHandlers } from './shutdown';
 import { configureLogging, log } from './observability/log';
 import { configureActorSalt } from './observability/request-context';
 import { startTelemetry } from './observability/telemetry';
+import { CAPABILITY_FILE, openLocalCapability } from './mcp/local-capability';
 
 const config = readConfig();
 configureLogging({
@@ -72,8 +73,11 @@ async function initializeWorkspace() {
   if (config.mode === 'server') {
     authentication = await createServerAuthentication(workspace, config, signInProvider);
   }
+  const capability = config.mode === 'local' ? openLocalCapability(join(config.dataDir, 'state', CAPABILITY_FILE)) : undefined;
+  if (capability && !capability.ok) log.warn('mcp.endpoint-not-mounted', { detail: capability.reason });
   handler = createHandler(workspace, {
     port: config.port,
+    ...(capability?.ok ? { mcp: { capability: capability.capability } } : {}),
     ...authentication,
     sourceIp: request => server.requestIP(request)?.address,
     clientAddress: request => clientAddress(server.requestIP(request)?.address, request.headers.get('x-forwarded-for'), config.mode === 'server' ? config.trustedProxyHops : 0),

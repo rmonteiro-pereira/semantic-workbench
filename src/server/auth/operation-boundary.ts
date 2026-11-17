@@ -3,7 +3,7 @@ import { executeOperation } from './operation-execution';
 import { operationClassifiers } from './operation-classifiers';
 import { recordOperation } from '../observability/metrics';
 import { withSpan } from '../observability/tracing';
-import { classifyOutcome, statusOutcome, OPERATION_OUTCOMES, type OperationOutcome, type OutcomeClassifier } from './operation-outcome';
+import { callResult, classifyOutcome, statusOutcome, OPERATION_OUTCOMES, type OperationOutcome, type OutcomeClassifier } from './operation-outcome';
 import type { Workspace } from '../projects/workspace';
 import { routeVerdict, routeTargets, type RouteVerdict } from './route-verdict';
 import type { RemoteCredentials } from './remote-credentials';
@@ -44,6 +44,11 @@ function auditScope(scope: AccessScope, ws: Workspace): Set<string> | null {
 }
 function projectSlugs(ws: Workspace): string[] {
   return ws.state.registry().projects.map(project => project.slug);
+}
+/** What a refused protocol caller is told: a hidden target reads as missing, any other refusal as refused. */
+function deniedResult(input: { decision: 'allow' | 'deny'; reason?: string }): string | undefined {
+  if (input.decision !== 'deny') return undefined;
+  return input.reason === 'not-readable' ? 'not_found' : 'refused';
 }
 /** Selects denials, explicitly audited routes, and operations other than ordinary reads. */
 export function shouldAudit(row: RouteAction, method: string, decision: 'allow' | 'deny', origin: CallerOrigin = 'http'): boolean {
@@ -171,12 +176,12 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
     return { response, denied: false };
   }
 
-  function auditAllowed(input: Execution, verdict: RouteVerdict, record: ReturnType<typeof auditInput>, semanticOutcome: OperationOutcome): void {
+  function auditAllowed(input: Execution, verdict: RouteVerdict, record: ReturnType<typeof auditInput>, semanticOutcome: OperationOutcome, status: number): void {
     if (!shouldAudit(verdict.row, input.request.method, 'allow', input.caller.origin)) return;
     try {
       const publication = input.request[requestPublication];
       const reason = input.request[requestPublicationRefusal];
-      input.audit.append({ ...record, decision: 'allow', outcome: semanticOutcome, ...(publication ? { publication } : {}), ...(reason ? { reason } : {}) });
+      input.audit.append({ ...record, decision: 'allow', outcome: semanticOutcome, result: callResult(status), ...(publication ? { publication } : {}), ...(reason ? { reason } : {}) });
     } catch (error) {
       // The operation already ran; a failure response could trigger a duplicate write on retry.
       reportAuditFailure({ requestId: input.requestId, action: verdict.row.action, error });
@@ -191,7 +196,7 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
     if (denied) return response;
     const semanticOutcome = input.classifier ? await classifyOutcome(response, input.classifier) : statusOutcome(response.status);
     input.observation.outcome = semanticOutcome;
-    auditAllowed(input, verdict, record, semanticOutcome);
+    auditAllowed(input, verdict, record, semanticOutcome, response.status);
     if (mode === 'server' && response.status === 404) return Response.json({ error: 'Not found.' }, { status: 404 });
     return response;
   }
@@ -208,7 +213,15 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
         ? sharedAudit
         : {
             ...sharedAudit,
-            append: input => sharedAudit.append({ ...input, origin: caller.origin, tool: entry?.id, connection: caller.connection }),
+            append: input =>
+              sharedAudit.append({
+                ...input,
+                origin: caller.origin,
+                tool: entry?.id,
+                connection: caller.connection,
+                ...caller.attribution,
+                result: input.result ?? deniedResult(input),
+              }),
           };
     const wrongRow = call.operationId !== undefined && call.operationId !== entry?.id;
     if (wrongRow || (caller.origin !== 'http' && !found)) {
@@ -271,3 +284,6 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
   }
   return { operate, availableOperations };
 }
+
+/** The decision and execution boundary a transport adapter calls with an authenticated caller. */
+export type OperationBoundary = ReturnType<typeof createOperationBoundary>;

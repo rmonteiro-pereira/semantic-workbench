@@ -46,3 +46,14 @@ export async function classifyOutcome(response: Response, classifier: OutcomeCla
     return 'failed';
   }
 }
+
+/** The result code a protocol caller is told for an HTTP status, using the failure codes of the tool contract. */
+export function callResult(status: number): string {
+  if (status >= 200 && status < 300) return 'ok';
+  if (status === 400) return 'invalid_input';
+  if (status === 404) return 'not_found';
+  if (status === 409) return 'conflict';
+  if (status === 413) return 'limit_exceeded';
+  if (status >= 500) return 'internal';
+  return 'refused';
+}

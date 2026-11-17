@@ -1,5 +1,7 @@
 // Applies one request-scoped decision and records outcomes before returning an HTTP response.
 import type { BearerValidator } from './bearer';
+import type { LocalCapability } from '../mcp/local-capability';
+import type { CallLimitSettings } from '../mcp/call-limits';
 import { createOperationBoundary } from './operation-boundary';
 import { mintCaller } from './caller';
 export { shouldAudit } from './operation-boundary';
@@ -65,6 +67,8 @@ export type HandlerOptions = {
   remoteCredentials?: RemoteCredentials;
   /** True when exported telemetry is on, so browsers may send their error reports. */
   browserReports?: boolean;
+  /** Local mode: the capability that opens the agent endpoint. Without it the endpoint is not mounted. */
+  mcp?: { capability: LocalCapability; limits?: CallLimitSettings };
 };
 /** The access boundary of a handler that was given none, read from the data root's settings. */
 export function defaultAccess(ws: Workspace, mode: 'local' | 'server'): AccessControl {

@@ -13,6 +13,12 @@ export type AuditInput = {
   origin?: CallerOrigin;
   tool?: string;
   connection?: string;
+  /** The protocol method of a call that arrived over a protocol transport. */
+  method?: string;
+  /** The client's own name for itself, shortened and stripped of control characters. */
+  clientLabel?: string;
+  /** What the caller was told: `ok` or one failure code of the tool contract. */
+  result?: string;
   principal: { id: string; kind: string; name?: string; clientId?: string; [key: string]: unknown };
   action: string;
   resource: { type: string; [key: string]: unknown };
@@ -50,7 +56,7 @@ function pick(value: Record<string, unknown>, keys: string[]) {
 const resourceKeys = ['type', 'project', 'path', 'branch', 'metric', 'entry', 'area', 'role', 'grant'];
 function record(input: AuditInput, at: string, prev: string): AuditEntry {
   const entry = {
-    ...pick(input, ['requestId', 'action', 'decision', 'rules', 'reason', 'outcome', 'version', 'tool', 'connection']),
+    ...pick(input, ['requestId', 'action', 'decision', 'rules', 'reason', 'outcome', 'version', 'tool', 'connection', 'method', 'clientLabel', 'result']),
     type: 'audit',
     at,
     prev,
@@ -72,9 +78,34 @@ function record(input: AuditInput, at: string, prev: string): AuditEntry {
   return entry;
 }
 
+/** Protocol methods a record may name. */
+export const ATTRIBUTED_METHODS = ['server/discover', 'tools/list', 'tools/call', 'initialize', 'ping', 'resources/list', 'prompts/list', 'subscriptions/listen', 'notifications/initialized', 'notifications/cancelled', 'unknown'];
+/** Results a record may carry: `ok` and the failure codes of the tool contract. */
+export const AUDIT_RESULTS = [
+  'ok',
+  'invalid_input',
+  'not_found',
+  'refused',
+  'conflict',
+  'guard_refused',
+  'precondition_failed',
+  'key_reused',
+  'uncertain',
+  'not_published',
+  'not_ready',
+  'unavailable',
+  'version_changed',
+  'cursor_expired',
+  'limit_exceeded',
+  'rate_limited',
+  'internal',
+];
 function validateAttribution(input: AuditInput): void {
   if (input.origin !== undefined && !CALLER_ORIGINS.includes(input.origin)) throw new Error('Invalid audit origin.');
   if (input.tool !== undefined && (typeof input.tool !== 'string' || !operationById(input.tool))) throw new Error('Invalid audit tool: expected an inventory id.');
+  if (input.method !== undefined && !ATTRIBUTED_METHODS.includes(input.method)) throw new Error('Invalid audit method.');
+  if (input.clientLabel !== undefined && (typeof input.clientLabel !== 'string' || input.clientLabel.length > 64 || /[\u0000-\u001f\u007f]/.test(input.clientLabel))) throw new Error('Invalid audit client label.');
+  if (input.result !== undefined && (typeof input.result !== 'string' || !AUDIT_RESULTS.includes(input.result))) throw new Error('Invalid audit result.');
   if (input.connection !== undefined && (typeof input.connection !== 'string' || !/^[A-Za-z0-9_-]{1,64}$/.test(input.connection))) throw new Error('Invalid audit connection id.');
 }
 
@@ -367,7 +398,7 @@ export function queryAudit(entries: AuditEntry[], filters: Record<string, string
 /** Encodes filtered records for download without allowing spreadsheet formula execution. */
 export function exportAudit(entries: AuditEntry[], format: 'csv' | 'jsonl'): string {
   if (format === 'jsonl') return entries.map(entry => JSON.stringify(entry) + '\n').join('');
-  const keys = ['at', 'requestId', 'principal', 'action', 'resource', 'decision', 'outcome', 'rules', 'origin', 'tool', 'connection'];
+  const keys = ['at', 'requestId', 'principal', 'action', 'resource', 'decision', 'outcome', 'rules', 'origin', 'tool', 'method', 'connection', 'result'];
   const cell = (value: unknown) => {
     let text = typeof value === 'string' ? value : JSON.stringify(value ?? '');
     if (/^[=+@\-\t\r]/.test(text)) text = "'" + text;

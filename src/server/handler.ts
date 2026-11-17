@@ -32,6 +32,11 @@ import { repoRoutes } from './routes/repos';
 import { peopleRoutes } from './routes/people';
 import type { AccessControl } from './auth/authorize';
 import { browserReportRoutes } from './routes/browser-reports';
+import { createMcpRoute } from './routes/mcp';
+import { createReceiptStore } from './mcp/receipts';
+import { TOOLS } from './mcp/tool-registry';
+import type { OperationBoundary } from './auth/operation-boundary';
+import { join } from 'node:path';
 /** Local browser origins allowed to call the API. */
 export const ALLOWED_ORIGINS = allowedOrigins(4310);
 /** Includes the configured API origin and the Vite development server. */
@@ -209,7 +214,25 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
     });
     return accessAdmin;
   }
+  let operationBoundary: OperationBoundary | undefined;
+  // The agent endpoint exists in local mode only, and only when a capability was opened for it.
+  const agentEndpoint =
+    options.mode !== 'server' && options.mcp
+      ? [
+          createMcpRoute({
+            capability: options.mcp.capability,
+            port: options.port ?? 4310,
+            boundary: () => operationBoundary!,
+            audit: options.audit!,
+            tools: TOOLS,
+            receipts: createReceiptStore(join(ws.layout.state, 'mcp-receipts')),
+            limits: options.mcp.limits,
+            now: options.now,
+          }),
+        ]
+      : [];
   const routes: Route[] = [
+    ...agentEndpoint,
     adminRoutes(adminService, options),
     auditRoutes(options),
     ...(options.authentication ? [authRoutes(options.authentication, options.remoteCredentials)] : []),
@@ -270,6 +293,7 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
       requestId,
     });
   const boundary = createAccessMiddleware(ws, options, localCheck, run, failure);
+  operationBoundary = boundary.boundary;
   if (options.mode !== 'server') return boundary;
   const httpHandler = async (request: Request) => {
     const response = await boundary(request);
