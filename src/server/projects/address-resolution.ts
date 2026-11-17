@@ -66,17 +66,23 @@ export function resolveForCaller(context: AddressResolutionContext, text: string
   const histories = new Map([[address.project!, records]]);
   records = historySinceDeletion(address, records).records;
   const applied = new Set<string>();
+  let waitingForReconciliation = false;
   for (let index = 0; index < records.length; index++) {
     const record = records[index];
     if (applied.has(record.id)) continue;
     applied.add(record.id);
     const from = parseAddress(record.from);
     if (!from.ok || !readable(from.address, reader)) continue;
-    if (historySinceDeletion(address, [record]).reset) return { status: 'missing' };
+    if (historySinceDeletion(address, [record]).reset) {
+      waitingForReconciliation = true;
+      continue;
+    }
+    if (waitingForReconciliation && (record.kind !== 'reconciliation' || record.from !== formatAddress({ ...address, snapshot: undefined }))) continue;
     const to = parseAddress(record.to ?? '');
     if (!to.ok || !readable(to.address, reader)) continue;
     const previousProject = address.project;
     address = migrateAddress(address, [record], false);
+    waitingForReconciliation = false;
     if (address.project && address.project !== previousProject) {
       if (!histories.has(address.project)) {
         if (!context.projectExists(address.project)) return { status: 'missing' };
@@ -90,6 +96,6 @@ export function resolveForCaller(context: AddressResolutionContext, text: string
       index = -1;
     }
   }
-  if (formatAddress(address) === text) return { status: 'missing' };
+  if (waitingForReconciliation || formatAddress(address) === text) return { status: 'missing' };
   return publicResult(resolveCurrentItem(context, address, reader), address);
 }

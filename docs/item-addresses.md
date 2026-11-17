@@ -194,7 +194,9 @@ history file to the restored project but does not rewrite old locators or infer 
 
 Deletion markers cut history through the last matching item or document deletion, using `historySinceDeletion` before
 replay. Recreating a locator never restores prior history implicitly; a later explicit reconciliation remains visible
-after the cut. A deletion reached while following an older alias stops that alias from resolving to a reused item.
+after the cut. When an older alias reaches a deletion, replay pauses until a later explicit reconciliation whose `from`
+is exactly the current locator; ordinary renames and unrelated reconciliations cannot cross that deletion. Without
+such a reconciliation the alias stays missing, even if the locator is reused. Opaque snapshot suffixes are preserved.
 `deletedItemAddresses` derives minimal stable prefixes for explicit workbench deletes and omits positional/ambiguous
 items.
 

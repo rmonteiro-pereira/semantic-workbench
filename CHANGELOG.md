@@ -38,6 +38,8 @@ not configure a production deployment.
 
 ### Fixed
 
+- Older item-address aliases resume after deletion when the current locator is explicitly reconciled.
+
 - The administration audit retention setting reaches the single production audit log.
 
 - A fresh development server no longer reloads the page while the Network graph loads for the first

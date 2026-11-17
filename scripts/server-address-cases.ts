@@ -31,6 +31,7 @@ export function serverAddressCase(candidate: typeof Resolution) {
   assert.deepEqual(opened, []);
   assert.equal(candidate.resolveForCaller(context, hidden.replace('hidden/', 'visible/'), reader).status, 'found');
   addressReplayCase(candidate, reader);
+  reconciledAliasCase(candidate, reader);
   console.log = originalLog;
   for (const forbidden of ['sw1:', 'hidden', 'visible', 'private.yaml', 'SecretScope', 'SecretItem']) assert(!lines.join('\n').includes(forbidden));
 }
@@ -70,6 +71,37 @@ function addressReplayCase(candidate: typeof Resolution, reader: typeof LOCAL_RE
     },
   };
   assert.equal(candidate.resolveForCaller(renamedFirst, oldAddress, arrivalReader).status, 'found');
+}
+
+function reconciledAliasCase(candidate: typeof Resolution, reader: typeof LOCAL_READER) {
+  const oldAddress = 'sw1:visible/a.yaml#ontology:O/concept:Old';
+  const renamedAddress = oldAddress.replace('concept:Old', 'concept:Renamed');
+  const targetAddress = oldAddress.replace('concept:Old', 'concept:New');
+  const records = [
+    { id: 'rename', kind: 'item' as const, from: oldAddress, to: renamedAddress, at: '', commit: '' },
+    { id: 'delete', kind: 'deleted' as const, from: renamedAddress, at: '', commit: '' },
+    { id: 'reconcile', kind: 'reconciliation' as const, from: renamedAddress, to: targetAddress, at: '', commit: '' },
+  ];
+  const context = {
+    projectExists: () => true,
+    readFile: () => ({ source: 'name: O\nontology: [{concept: New}]' }),
+    readMigrations: () => records,
+  };
+  const resolved = candidate.resolveForCaller(context, oldAddress, reader);
+  assert.equal(resolved.status, 'found');
+  if (resolved.status === 'found') assert.equal(resolved.address, targetAddress);
+  const snapshot = candidate.resolveForCaller(context, oldAddress + '@opaque', reader);
+  assert.equal(snapshot.status, 'found');
+  if (snapshot.status === 'found') assert.equal(snapshot.address, targetAddress + '@opaque');
+  const unrelated = {
+    ...context,
+    readMigrations: () => [
+      ...records.slice(0, 2),
+      { ...records[2], from: oldAddress.replace('concept:Old', 'concept:Unrelated') },
+      { id: 'reused-rename', kind: 'item' as const, from: renamedAddress, to: targetAddress, at: '', commit: '' },
+    ],
+  };
+  assert.equal(candidate.resolveForCaller(unrelated, oldAddress, reader).status, 'missing');
 }
 
 /** Replays the same operation through real journal installation and requires exactly one record. */

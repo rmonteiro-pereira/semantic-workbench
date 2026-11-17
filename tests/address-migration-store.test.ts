@@ -363,3 +363,38 @@ test('a cross-project alias follows its rename before an unrelated reused locato
   await workspace.ws.saveFile(second.slug, 'moved.yaml', { baseHash: reused.hash, source: renamedSource, deletedItems: [movedAddress] }, LOCAL_READER);
   expect(workspace.ws.resolveAddress(oldAddress, LOCAL_READER)).toMatchObject({ status: 'found', address: target });
 });
+
+test('an older alias follows an explicit reconciliation after its renamed target is deleted', async () => {
+  using workspace = await testWorkspace();
+  const source = 'name: O\nontology: [{concept: A}, {concept: C}]';
+  const project = await workspace.seed([{ path: 'a.yaml', source }], 'Reconcile alias');
+  const oldAddress = `sw1:${project.slug}/a.yaml#ontology:O/concept:A`;
+  const renamedAddress = oldAddress.replace('concept:A', 'concept:B');
+  const target = oldAddress.replace('concept:A', 'concept:C');
+  const file = workspace.ws.readFile(project.slug, 'a.yaml');
+  await workspace.ws.saveFile(
+    project.slug,
+    'a.yaml',
+    {
+      baseHash: file.hash,
+      source: source.replace('concept: A', 'concept: B'),
+      declaredMigrations: [{ kind: 'item', from: oldAddress, to: renamedAddress }],
+    },
+    LOCAL_READER,
+  );
+  const renamed = workspace.ws.readFile(project.slug, 'a.yaml');
+  await workspace.ws.saveFile(
+    project.slug,
+    'a.yaml',
+    {
+      baseHash: renamed.hash,
+      source: 'name: O\nontology: [{concept: C}]',
+      deletedItems: [renamedAddress],
+    },
+    LOCAL_READER,
+  );
+  expect(workspace.ws.resolveAddress(oldAddress, LOCAL_READER)).toEqual({ status: 'missing' });
+  await workspace.ws.reconcileAddress({ operationId: 'reconcile-renamed', from: renamedAddress, to: target }, LOCAL_READER);
+  expect(workspace.ws.resolveAddress(oldAddress, LOCAL_READER)).toMatchObject({ status: 'found', address: target });
+  expect(workspace.ws.resolveAddress(renamedAddress, LOCAL_READER)).toMatchObject({ status: 'found', address: target });
+});

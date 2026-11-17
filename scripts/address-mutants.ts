@@ -39,6 +39,9 @@ export const migrationAddressMutants: [string, string, string, string][] = [
 
 /** Faults in hidden-equals-missing, read ordering, durable replay and locator logging. */
 export const serverAddressMutants: [string, string, string, string][] = [
+  ['address-server', 'src/server/projects/address-resolution.ts', "record.kind !== 'reconciliation' || ", ''],
+  ['address-server', 'src/server/projects/address-resolution.ts', 'record.from !== formatAddress({ ...address, snapshot: undefined })', 'false'],
+  ['address-server', 'src/server/projects/address-resolution.ts', '    waitingForReconciliation = false;', ''],
   ['address-server', 'src/server/projects/address-resolution.ts', 'records = records.slice(arrival + 1);', 'records = historySinceDeletion(address, records.slice(arrival + 1)).records;'],
   ['address-server', 'src/server/projects/address-resolution.ts', 'records = historySinceDeletion(address, records).records;', 'records = records;'],
   ['address-store', 'src/server/projects/address-migrations.ts', "if (change.kind === 'reconciliation') prefix = 'r';", "if (change.kind === 'reconciliation') prefix = 'm';"],

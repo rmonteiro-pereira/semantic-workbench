@@ -1502,3 +1502,7 @@ Branch `009-address-followups` starts from the merged `origin/main` at `56603266
 
 - Restored the existing header comment before imports in all 18 named files. This is an import/comment reorder only, with no behavior change.
 - `bunx --bun oxfmt --check` on those 18 files: **All matched files use the correct format.** All 18 headers precede imports.
+- Older aliases now wait at a deletion and resume only at a later explicit reconciliation whose `from` exactly equals their current locator (ignoring the opaque snapshot suffix). Ordinary reuse/rename records and unrelated reconciliations cannot release the deletion boundary. The workspace regression reproduced `missing` before the correction and now finds the declared target through both the old and renamed locators.
+- `bun test tests/address-migration-store.test.ts`: **17 pass, 0 fail, 150 expect() calls**.
+- `bun test tests/address-hidden-missing.test.ts`: **4 pass, 0 fail, 20 expect() calls**.
+- `bun scripts/mutation-case.ts "$PWD/src/server/projects/address-resolution.ts" address-server`: **exit 0**. New mutants cover the reconciliation kind, exact source locator and resuming replay; the full remote gate follows below.
