@@ -197,6 +197,24 @@ export function createScm(deps: ScmDeps) {
     if (files.length) changed.files = files.map(file => file.path);
     if (Object.keys(changed).length) throw new PreconditionError(changed);
   }
+  /** The projects whose files a commit names, this one included, in the order their locks are taken. */
+  function lockedProjects(slug: string, options: { paths?: unknown; base?: PathBase }): string[] {
+    const projects = new Set([slug]);
+    if (options.paths !== undefined) {
+      for (const path of paths(slug, options.paths, options.base ?? 'project')) {
+        const owner = ownerOf(slug, path);
+        if (owner) projects.add(owner.project);
+      }
+    }
+    return [...projects].sort();
+  }
+  /** Runs the work holding the write lock of each project, the first of the list outermost. */
+  function lockAll<T>(projects: string[], work: () => Promise<T>): Promise<T> {
+    const [first, ...rest] = projects;
+    if (first === undefined) return work();
+    const inner = () => lockAll(rest, work);
+    return deps.withProjectLock ? deps.withProjectLock(first, inner) : inner();
+  }
   async function commitSelection(slug: string, list: unknown, base: PathBase) {
     const directory = dir(slug);
     const chosen = paths(slug, list, base);
@@ -305,9 +323,10 @@ export function createScm(deps: ScmDeps) {
         const committed = chosen === null ? await commitIndex(slug, message, author) : await commitChosen(slug, message, chosen, author);
         return { ...committed, ...authoring };
       };
-      // A commit takes the project's write lock first, as a save does, and then its turn of the repository queue, so no save lands between the checks and the commit.
+      // A commit takes the write lock of every project whose files it names, in sorted order so two commits cannot deadlock, and then its turn of the repository queue, so no save lands between the checks and the commit.
+      // A commit of the whole index names no paths, so it locks only this project; files staged for a sibling project in a shared repository are not covered.
       const inTurn = () => (options.expected ? git.exclusive(dir(slug), commitHere) : commitHere());
-      const result = deps.withProjectLock ? await deps.withProjectLock(slug, inTurn) : await inTurn();
+      const result = await lockAll(lockedProjects(slug, options), inTurn);
       if (!options.push) return result;
       let pushed: { ok: boolean; message: string };
       try {
