@@ -1437,3 +1437,6 @@ feb35ab7 test: record recovered authentication browser gate
 - `bun scripts/mutation-case.ts "$PWD/src/server/projects/address-resolution.ts" address-server`: exit 0.
 - `bun scripts/mutation-case.ts "$PWD/src/server/projects/address-migrations.ts" address-store`: exit 0.
 - The architecture code map lists each address module separately, including conversion stores and shared grouping translation. Reconciliation explicitly receives an already-authorized reader; the route owns file authorization.
+- Re-review caught a cross-project edge introduced by cutting destination history: an old source alias could follow a rename of a recreated destination item past its tombstone. The workspace regression reproduced that incorrect `found` result. Destination history now uses the pure cut's reset flag to stop older aliases; direct resolution of the reused destination locator remains fresh. Added a corresponding mutant.
+- `bun test tests/address-migration-store.test.ts`: 15 pass, 0 fail, 146 expect() calls.
+- `bun scripts/mutation-case.ts "$PWD/src/server/projects/address-resolution.ts" address-server`: exit 0 after the destination reset regression.

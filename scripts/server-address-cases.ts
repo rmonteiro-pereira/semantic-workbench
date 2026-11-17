@@ -41,6 +41,21 @@ export function serverAddressCase(candidate: typeof Resolution) {
     ],
   };
   assert.equal(candidate.resolveForCaller(replayContext, oldAddress, reader).status, 'found');
+  const movedAddress = oldAddress.replace('visible/a.yaml', 'destination/b.yaml');
+  const move = { id: 'move', kind: 'document' as const, from: 'sw1:visible/a.yaml', to: 'sw1:destination/b.yaml', at: '', commit: '' };
+  const arrivalContext = {
+    ...replayContext,
+    readMigrations: (project: string) =>
+      project === 'visible'
+        ? [move]
+        : [
+            move,
+            { id: 'deleted-target', kind: 'deleted' as const, from: movedAddress, at: '', commit: '' },
+            { id: 'new-rename', kind: 'item' as const, from: movedAddress, to: movedAddress.replace('concept:Old', 'concept:New'), at: '', commit: '' },
+          ],
+  };
+  const arrivalReader = boundaryReader({ readableProjects: new Set(['visible', 'destination']), canRead: () => true, roles: () => [] }, 'reader');
+  assert.equal(candidate.resolveForCaller(arrivalContext, oldAddress, arrivalReader).status, 'missing');
   console.log = originalLog;
   for (const forbidden of ['sw1:', 'hidden', 'visible', 'private.yaml', 'SecretScope', 'SecretItem']) assert(!lines.join('\n').includes(forbidden));
 }

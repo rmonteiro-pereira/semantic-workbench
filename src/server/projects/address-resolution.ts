@@ -86,7 +86,9 @@ export function resolveForCaller(context: AddressResolutionContext, text: string
       // Both stores share the move marker, so earlier destination history belongs to another arrival.
       const arrival = records.findIndex(candidate => candidate.id === record.id);
       if (arrival < 0) return { status: 'missing' };
-      records = historySinceDeletion(address, records.slice(arrival + 1)).records;
+      const destinationHistory = historySinceDeletion(address, records.slice(arrival + 1));
+      if (destinationHistory.reset) return { status: 'missing' };
+      records = destinationHistory.records;
       index = -1;
     }
   }

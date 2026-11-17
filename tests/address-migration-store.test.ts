@@ -307,3 +307,31 @@ test('save and reconciliation records use separate namespaces for the same opera
   expect(saved.id).toBe('m-stable-operation-0');
   expect(reconciled.id).toBe('r-stable-operation-0');
 });
+
+test('a cross-project alias stops at deletion before a recreated item is renamed', async () => {
+  using workspace = await testWorkspace();
+  const source = 'name: O\nontology: [{concept: A}, {concept: Keep}]';
+  const first = await workspace.seed([{ path: 'a.yaml', source }], 'First');
+  const second = await workspace.seed([{ path: 'other.yaml', source: 'name: Other\nontology: [{concept: Other}]' }], 'Second');
+  const oldAddress = `sw1:${first.slug}/a.yaml#ontology:O/concept:A`;
+  const reusedAddress = `sw1:${second.slug}/moved.yaml#ontology:O/concept:A`;
+  await workspace.ws.moveFile(first.slug, 'a.yaml', second.slug, 'moved.yaml', false, LOCAL_READER);
+  const moved = workspace.ws.readFile(second.slug, 'moved.yaml');
+  await workspace.ws.saveFile(second.slug, 'moved.yaml', { baseHash: moved.hash, source: 'name: O\nontology: [{concept: Keep}]', deletedItems: [reusedAddress] }, LOCAL_READER);
+  const deleted = workspace.ws.readFile(second.slug, 'moved.yaml');
+  await workspace.ws.saveFile(second.slug, 'moved.yaml', { baseHash: deleted.hash, source }, LOCAL_READER);
+  const recreated = workspace.ws.readFile(second.slug, 'moved.yaml');
+  const target = reusedAddress.replace('concept:A', 'concept:Renamed');
+  await workspace.ws.saveFile(
+    second.slug,
+    'moved.yaml',
+    {
+      baseHash: recreated.hash,
+      source: source.replace('concept: A', 'concept: Renamed'),
+      declaredMigrations: [{ kind: 'item', from: reusedAddress, to: target }],
+    },
+    LOCAL_READER,
+  );
+  expect(workspace.ws.resolveAddress(oldAddress, LOCAL_READER)).toEqual({ status: 'missing' });
+  expect(workspace.ws.resolveAddress(reusedAddress, LOCAL_READER)).toMatchObject({ status: 'found', address: target });
+});
