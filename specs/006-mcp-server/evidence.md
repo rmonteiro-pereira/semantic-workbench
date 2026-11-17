@@ -54,4 +54,15 @@ Commit races: 200 randomized interleavings of a person staging, saving, committi
 
 ## Gate
 
-Recorded when the gate was run; see the final report of the change.
+Run on the development server after the last source change (only test files changed afterwards):
+
+| Step | Result |
+|------|--------|
+| `bun --bun run check` | passed (types, format, lint, comment ids, theme, brand) |
+| `bun test` (full, includes the frozen HTTP characterization) | 2,489 passed; the 2 failures of that run were this feature's own tests (a start-up hook that timed out under load and a keep-alive reset in the race test). Both were fixed in the test harness and `bun test tests/mcp tests/scm-commit-preconditions.test.ts` then passed (81 tests). A full run before the audit and inventory fixes had also failed the operation parity, boundary scan, guard inventory, dry-run baseline and capability rotation tests; each was fixed at its cause. |
+| `bun run test:mcp` | passed, 10 steps |
+| `bun --bun run build` | passed |
+| `bun scripts/ci-validate.ts --step mutation` | passed: 776 of 776 targeted mutants killed, including the 21 added in `scripts/mcp-mutants.ts` |
+| `test:mcp:browser` | passed |
+| `test:responsive` | failed on the inherited canvas-height check (481 against more than 504), not touched |
+| `test:admin` | failed in the first dry-run review step (`Dry-run result` region not shown). The same failure occurs on `origin/main` without this feature, so it is inherited; the cause was not investigated. |
