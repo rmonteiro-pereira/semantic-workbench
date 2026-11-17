@@ -248,3 +248,26 @@ test('a commit answer that reports altered files is kept, and a retry with the k
   expect(await store.run(altered)).toEqual(first);
   expect(effects).toBe(1);
 });
+
+test('while a corrupt receipt file is recent, any key that is not found is answered uncertain', async () => {
+  const directory = join(server.root, 'receipts-corrupt-recent');
+  const store = createReceiptStore(directory);
+  await store.run(simpleRequest('recent-key-0000001', async () => succeed({ n: 1 })));
+  const [monthFile] = readdirSync(directory);
+  writeFileSync(join(directory, monthFile), '{ not json');
+  await store.run(simpleRequest('recent-key-0000001', async () => succeed({ n: 2 })));
+  const other = await store.run(simpleRequest('recent-key-0000002', async () => succeed({ n: 3 })));
+  expect(other).toMatchObject({ ok: false, error: { code: 'uncertain' } });
+});
+
+test('a corrupt receipt file older than the retention period no longer blocks new keys', async () => {
+  let now = new Date('2026-11-01T00:00:00Z');
+  const directory = join(server.root, 'receipts-corrupt-old');
+  const store = createReceiptStore(directory, () => now);
+  await store.run(simpleRequest('old-key-000000001', async () => succeed({ n: 1 })));
+  const [monthFile] = readdirSync(directory);
+  writeFileSync(join(directory, monthFile), '{ not json');
+  await store.run(simpleRequest('old-key-000000001', async () => succeed({ n: 2 })));
+  now = new Date(now.getTime() + RECEIPT_RETENTION_MS + 1000);
+  expect(await store.run(simpleRequest('old-key-000000002', async () => succeed({ n: 3 })))).toMatchObject({ ok: true });
+});

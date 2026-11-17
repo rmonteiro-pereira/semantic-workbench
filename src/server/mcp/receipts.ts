@@ -2,6 +2,7 @@
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
+import { log } from '../observability/log';
 import { atomicWriteJson } from '../projects/atomic';
 import { fail, type ToolResult } from './tool-results';
 
@@ -65,21 +66,28 @@ export function createReceiptStore(directory: string, now: () => Date = () => ne
     try {
       return { receipts: JSON.parse(readFileSync(file, 'utf8')), corrupt: false };
     } catch {
-      renameSync(file, `${file}.corrupt-${now().getTime()}`);
+      const aside = `${file}.corrupt-${now().getTime()}`;
+      renameSync(file, aside);
+      log.warn('mcp.receipts-corrupt', { file, movedTo: aside });
       return { receipts: {}, corrupt: true };
     }
   }
-  /** An expired receipt is absent. A corrupt month file means the key may have been used, which only "uncertain" answers honestly. */
+  /** Whether a month file was moved aside within the retention period, so keys it held may have been used. */
+  function recentlyCorrupted(): boolean {
+    const oldest = now().getTime() - RECEIPT_RETENTION_MS;
+    return readdirSync(directory).some(entry => {
+      const moved = entry.match(/\.json\.corrupt-(\d+)$/);
+      return moved !== null && Number(moved[1]) > oldest;
+    });
+  }
+  /** An expired receipt is absent. While a corrupt month file is recent, any key not found may have been used, which only "uncertain" answers honestly. */
   function find(id: string): Receipt | 'corrupt' | undefined {
     mkdirSync(directory, { recursive: true });
-    let sawCorrupt = false;
     for (const name of readdirSync(directory).filter(entry => entry.endsWith('.json'))) {
-      const month = readMonth(join(directory, name));
-      sawCorrupt ||= month.corrupt;
-      const found = month.receipts[id];
+      const found = readMonth(join(directory, name)).receipts[id];
       if (found && found.expiresAt > now().toISOString()) return found;
     }
-    return sawCorrupt ? 'corrupt' : undefined;
+    return recentlyCorrupted() ? 'corrupt' : undefined;
   }
   function save(receipt: Receipt) {
     mkdirSync(directory, { recursive: true });
