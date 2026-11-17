@@ -19,6 +19,7 @@ const fixtureScripts = new Set([
   'scripts/session-security-mutation-cases.ts',
   'scripts/observability-cases.ts',
   'scripts/operation-boundary-mutation-cases.ts',
+  'scripts/snapshot-mutation-cases.ts',
 ]);
 const publicEntries = new Set(['operation-boundary', 'caller', 'twin-request', 'operation-inventory']);
 

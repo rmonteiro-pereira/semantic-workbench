@@ -230,6 +230,7 @@ concatenating project, document or item names.
 - `operation-boundary.ts` owns route decisions, effective-permission listing, target refusal mapping,
   handler execution and audit for authenticated callers. `createHandler` exposes that same instance
   as `handler.boundary` to trusted in-process adapters; invocation requires a minted caller.
+  Identity attachment clears prior publication outcomes so reusing a request cannot carry stale audit metadata.
   `route-verdict.ts` owns the pure admission decision shared by invocation and listing, including
   client actions, no-access refusals, Steward audit passes and resolved trash targets. Listing
   reuses action and target-kind probes within one call. `authorize.ts` supplies representative

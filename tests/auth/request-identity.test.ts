@@ -10,6 +10,8 @@ test('identity attachment sets every exported identity symbol', () => {
   const principal = localPrincipal();
   const scope = createAccessControl({ ...accessFixture(), mode: 'local' }).forRequest(principal);
   const request = new Request('http://operation.internal/api/projects') as identity.AccessRequest;
+  request[identity.requestPublication] = { previous: null, commit: 'a'.repeat(40) };
+  request[identity.requestPublicationRefusal] = 'changed';
   identity.attachIdentity(
     request,
     { principal, origin: 'mcp', sourceIp: '127.0.0.2', session: null },
@@ -28,5 +30,7 @@ test('identity attachment sets every exported identity symbol', () => {
   expect(request[identity.requestRemote]).toBe('local');
   expect(request[identity.requestAuditProjects]).toBeNull();
   expect(request[identity.requestSession]).toBeNull();
+  expect(request[identity.requestPublication]).toBeUndefined();
+  expect(request[identity.requestPublicationRefusal]).toBeUndefined();
   expect(identity.requestReader(request)).toBeDefined();
 });

@@ -1183,3 +1183,27 @@ and browser output remain on midgard. Only small summary text is pulled back.
 
 The driver accepts one named suite so each finished browser or mutation gate can be recorded
 and committed independently, and always stops its owned frontend.
+
+
+### Full-test integration corrections
+
+The first integrated `bun test` failed: `2272 pass, 7 fail, 183072 expect() calls;
+Ran 2279 tests across 322 files. [1422.25s]`. No failure was accepted as a baseline exception.
+The read matrix now publishes its added semantic fixture before consumer reads, and the preview
+matrix creates a real session through the session store instead of treating a cookie string as
+authenticated metadata. The isolated snapshot mutation harness joins the existing boundary-scan
+fixture allow-list. The complete audit serializer input includes publication identifiers.
+Identity attachment initializes publication metadata and clears outcomes on a reused request.
+
+The generated administration comparison changes from 963 to 1,008 matrix cases because the
+five added routes join its nine-principal policy replay. Original audit records and the frozen
+HTTP fixture remain unchanged. The regenerated baseline adds only those route decisions and count.
+
+Focused remote proof: `bun test tests/kpi-save.test.ts tests/auth/matrix.test.ts
+tests/auth/request-identity.test.ts tests/auth/boundary-scan.test.ts
+tests/auth/dry-run-baseline.test.ts tests/auth/audit-origin.test.ts`:
+`35 pass, 0 fail, 42962 expect() calls; Ran 35 tests across 6 files. [101.70s]`.
+The capped remote’s cold mall KPI workflow took 8,375.70 ms; that test now has a 30-second
+execution budget with every content, journal and binding assertion preserved.
+Additional reuse proof: `bun test tests/auth/request-identity.test.ts`: `1 pass, 0 fail,
+18 expect() calls; Ran 1 test across 1 file. [623.00ms]`.

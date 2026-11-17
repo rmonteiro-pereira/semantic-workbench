@@ -19,6 +19,7 @@ export const attributedInput: AuditInput = {
   origin: 'mcp',
   tool: 'projects.list',
   connection: 'connection_1-A',
+  publication: { previous: 'a'.repeat(40), commit: 'b'.repeat(40) },
   snapshot: { grants: ['grant'], roles: ['reader'], groups: ['group'], emailMatched: false, resourceAttrs: { type: 'project', project: 'sales' } },
 };
 

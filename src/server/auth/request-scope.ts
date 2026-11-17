@@ -76,6 +76,9 @@ export function attachIdentity(
   attached[requestAuditProjects] = context.auditProjects;
   attached[requestSession] = caller.session ?? null;
   attached[requestConnectionScope] = caller.scope;
+  // A reused request must not carry a previous operation's publication outcome.
+  attached[requestPublication] = undefined;
+  attached[requestPublicationRefusal] = undefined;
 }
 
 /**

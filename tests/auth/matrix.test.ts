@@ -1,4 +1,7 @@
 // Read coverage stays separate so write cases can extend the matrix independently.
+import { randomBytes } from 'node:crypto';
+import { createSessionStore } from '../../src/server/auth/sessions';
+import { publishFixture } from '../helpers/published-workspace';
 import { clientPrincipal } from '../../src/server/auth/principal';
 import { LOCAL_READER } from '../../src/server/projects/reader';
 import { describe, expect, test } from 'bun:test';
@@ -112,6 +115,7 @@ describe('read route inventory', () => {
     for (const project of AUTH_PROJECTS) {
       await fixture.ws.saveFile(project, 'preview.semantic.yaml', { baseHash: null, source }, LOCAL_READER);
     }
+    await publishFixture(fixture);
     const access = createAccessControl(accessFixture());
     for (const name of Object.keys(TEST_USERS) as TestUserName[]) {
       const principal = access.principalFor(person(name));
@@ -634,8 +638,18 @@ test('preview routes admit session and marked local browsers while other surface
   using fixture = await authWorkspace();
   const access = createAccessControl(accessFixture());
   const principal = access.principalFor(person('alice'));
+  const sessions = createSessionStore({ dir: join(fixture.root, 'preview-sessions'), key: randomBytes(32) });
+  const session = await sessions.create({ principal, tokens: { accessToken: 'fixture', expiresAt: Date.now() + 60_000 } });
   const server = createHandler(fixture.ws, {
     mode: 'server',
+    authentication: {
+      sessions,
+      session: async request => (request.headers.get('Cookie') === 'session=fixture' ? session : null),
+      login: async () => new Response(null, { status: 302 }),
+      callback: async () => new Response(null, { status: 302 }),
+      logout: async () => new Response(null, { status: 303 }),
+      frontChannelLogout: async () => new Response(null, { status: 200 }),
+    },
     access,
     principal: () => principal,
     bearer: async () => clientPrincipal('sw-agent'),
