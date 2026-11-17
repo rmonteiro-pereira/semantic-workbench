@@ -1147,3 +1147,12 @@ select-clipping failure already reproduced on unchanged main above. Early graph 
 empty-state/page-error and phone expansion checks passed. This remains a strict baseline
 exception, not a passing gate. The owned server stopped; graph-summary.txt is the small local
 summary and graph.log plus captures remain remote.
+
+### Recovered lineage browser attempt: comparison required
+
+`bun run test:lineage`: exit 1; `error: script "test:lineage" exited with code 1`.
+The initial selection checks passed, then the Table customers `Walk here` click exceeded
+30 seconds because `Resize sidebar` intercepted pointer events at lineage-browser-check.ts:419.
+This differs from the previously reproduced first-view performance failure, so it is not yet
+classified as a baseline exception. Its owned server stopped. lineage-summary.txt contains the
+small local failure summary; the complete log and captures remain remote.
