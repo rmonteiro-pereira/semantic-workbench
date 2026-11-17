@@ -72,6 +72,7 @@ test('a lost reconciliation reply replays through the twin with one migration an
   expect(await repeated.response.json()).toEqual(record);
   expect(readFileSync(addressMigrationFile(layout, project))).toEqual(bytes);
   expect(readAddressMigrations(layout, project, LOCAL_READER)).toEqual([record]);
+  expect(workspace.ws.resolveAddress(declaration.from, LOCAL_READER)).toMatchObject({ status: 'found', address: target });
   expect(workspace.ws.readFile(project, 'sales.semantic.yaml').source).toBe(original);
   expect((await invoke({ ...declaration, to: prefix + 'order_count' })).response.status).toBe(400);
   expect(context.audit.recent(10).filter(entry => entry.decision === 'allow' && entry.outcome === 'ok')).toHaveLength(2);

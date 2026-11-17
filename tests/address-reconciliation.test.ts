@@ -33,6 +33,7 @@ test('an editor reconciles an approved guarded metric without changing it and re
   expect(await workspace.ws.reconcileAddress(declaration, requestReader(request))).toEqual(record);
   expect(readFileSync(addressMigrationFile(layout, 'sales-metrics'))).toEqual(stored);
   expect(readAddressMigrations(layout, 'sales-metrics', LOCAL_READER)).toEqual([record]);
+  expect(workspace.ws.resolveAddress(declaration.from, requestReader(request))).toMatchObject({ status: 'found', address: declaration.to });
   expect(workspace.ws.readFile('sales-metrics', 'sales.semantic.yaml').source).toBe(original);
   await expect(workspace.ws.reconcileAddress({ ...declaration, to: prefix + 'order_count' }, requestReader(request))).rejects.toThrow('different content');
   await expect(workspace.ws.reconcileAddress({ ...declaration, operationId: 'resolving-old', from: prefix + 'order_count' }, requestReader(request))).rejects.toThrow('still resolves');

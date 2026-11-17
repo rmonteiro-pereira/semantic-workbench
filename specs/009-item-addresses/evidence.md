@@ -1428,3 +1428,6 @@ feb35ab7 test: record recovered authentication browser gate
 - Reference inspection (`rg -n 'item-address-timing' scripts src tests docs README.md package.json`) found no remaining runtime, test or command references.
 - Restored module header comments before imports in all nine reported files and the touched migration-store test. This commit only reorders comments/imports.
 - `bunx --bun oxfmt --check` on the ten reordered files: all matched files use the correct format.
+- Both existing reconciliation proofs now assert the user-visible result: after initial acceptance and same-key retry, resolving the old locator finds the declared target. The workspace and HTTP/twin lost-reply tests retain their unchanged-definition and single-record assertions.
+- `bun test tests/address-reconciliation.test.ts`: 2 pass, 0 fail, 14 expect() calls.
+- `bun test tests/item-address-operations.test.ts`: 3 pass, 0 fail, 22 expect() calls.
