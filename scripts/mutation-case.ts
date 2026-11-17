@@ -960,7 +960,7 @@ if (category === 'save-client') {
     body = JSON.parse(init.body);
     return new Response(JSON.stringify({ path: 'a.yaml', hash: 'b'.repeat(64) }), { status: 200 });
   };
-  await loadedModule.api.save('p', 'a.yaml', 'a'.repeat(64), 'new', [{ from: 0, to: 1, insert: 'x' }]);
+  await loadedModule.api.save('p', 'a.yaml', 'a'.repeat(64), 'new', { patches: [{ from: 0, to: 1, insert: 'x' }] });
   assert.deepEqual(body, { baseHash: 'a'.repeat(64), patches: [{ from: 0, to: 1, insert: 'x' }] });
 }
 if (category === 'rdf-gate') {
