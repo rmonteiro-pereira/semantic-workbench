@@ -1207,3 +1207,11 @@ The capped remote’s cold mall KPI workflow took 8,375.70 ms; that test now has
 execution budget with every content, journal and binding assertion preserved.
 Additional reuse proof: `bun test tests/auth/request-identity.test.ts`: `1 pass, 0 fail,
 18 expect() calls; Ran 1 test across 1 file. [623.00ms]`.
+
+
+Second integrated full run: `2278 pass, 1 fail, 1 error, 208933 expect() calls;
+Ran 2279 tests across 322 files. [1557.90s]`. Every earlier functional failure is fixed.
+The remaining failure is the unchanged metric-binding fixture taking 5,169.61 ms against Bun’s
+default 5,000-ms test timeout; the killed fixture also produced the dangling-process error.
+The remote complete-suite retry uses `bun test --timeout 30000`, preserving every assertion
+and explicit per-test limit while budgeting the capped shared machine consistently.
