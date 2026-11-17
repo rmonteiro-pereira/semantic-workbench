@@ -14,6 +14,59 @@ The conflict resolutions preserve operation boundary mutation coverage and the a
 
 Midgard execution is pending a transfer method consistent with the no-push limit. The installed `sw-midgard-run` calls `git push --force` before its SSH command, so it has not been invoked. No heavy verification ran locally after this rebase. T075, T076 and T078 are open.
 
+The comparison fixture consists of the seven release projects with 36 unique source files.
+Each file was read once from the release Git blob using `git show` and hashed with SHA-256.
+The duplicate Commerce contract is shared by the Commerce and Mapped commerce imports.
+Entity and relationship totals are pending the three version-specific imports.
+
+<details>
+<summary>Frozen input hashes</summary>
+
+| Release example source | SHA-256 |
+| --- | --- |
+| `billing/billing.mapping.yaml` | `8df7269adfa49bae09ebedd26da75e03a8b7e134333a96c44e1b4cfeb7c481f4` |
+| `billing/billing.odcs.yaml` | `3f3bbda2933f10e6e42e3ffaaaef58b7de9ab78eaef1405c8ec7096fbcb4d078` |
+| `billing/billing.ontology.yaml` | `faf35e9592ade9fe15ff5107bf24258b7156c3346f8443b43e6c479d8554b1a3` |
+| `billing/billing.semantic.yaml` | `2653c136378a00df30b90649ca1fd06d5268d5a7bb0adcb588cbb07f3e3bbdc0` |
+| `commerce/commerce-business.ossie.yaml` | `7ad7245528e26cac6ba14f8fba5541562d5aed76399b126aae40bef06bb911b0` |
+| `commerce/commerce-data.ttl` | `3ff01477fdba89c0f36030cbc271b7a73c618682f06c405dcde8c0634e98d31a` |
+| `commerce/commerce-scale.ttl` | `e93b0b93f039617d868f49cc52f5cfc04db2d8be245f45c88170be11f5d389e3` |
+| `commerce/commerce.mapped-ontology.yaml` | `21f1ff7a40946b0fc7cd46bdc130390e243f904dbb00fbd9c5f35f16f2e80a01` |
+| `commerce/commerce.mapped-semantic.yaml` | `64c18fb46af93c4f00f804a578312f9af7f476157cf89b373dd3ab556ee6168e` |
+| `commerce/commerce.mapping.yaml` | `bed274e8cb6d3b632e7dfe1d5e02f70d8a3af1b8e0fd162a717899887e423599` |
+| `commerce/commerce.odcs.yaml` | `30cbafad91dac376320668e6a3df16913f171bdf156c2114913e5d17a80e1992` |
+| `commerce/commerce.owl` | `d92ee09aaeea891f6774a822f46aefa1de5065ff2c5be03c8374e8646b422a3a` |
+| `commerce/commerce.owl.ttl` | `cc7f01232bb10a8fd73bc394ba3378765572112b32662a4a4bddb11bd90178f1` |
+| `commerce/commerce.shacl.ttl` | `0ee9a65a3aa413f3478419e8260fdadcfd6b8f71a2ee43ff47ac8e08da60a552` |
+| `commerce/sales.mapping.yaml` | `e4d29469e30fd486805980b377976338a4127341255bb75ad1d45affed505c49` |
+| `commerce/sales.ossie.yaml` | `42d5fd7389861ef34349b2d5d9b9be91c4a80528b55ba2720aac9e51de6f2232` |
+| `mall/mall-data.ttl` | `b2a24c09086d44b178210fb6a0376d1529d103ee552399b2e3a5e3e0e1faa532` |
+| `mall/mall.mapping.yaml` | `ddfe91807d88a22a91948e790852dff9dcfe28f962cc90b3a0ad74e3ea28177f` |
+| `mall/mall.odcs.yaml` | `707d338f3f3fdee63b5fa5e2e9fa1ed1d8f7a0b14b7c20863a1b84dfa333c400` |
+| `mall/mall.ontology.yaml` | `5d11b246f6890a4e3a11a0ed17e08810945dfeac458d369d0726dec54a8fe4f7` |
+| `mall/mall.owl.ttl` | `df4b7eb7fead55f9061ee194f7ba482fab1bdebd4015fa8a39fa5c552b1e02b2` |
+| `mall/mall.semantic.yaml` | `ce3ba1ed501bd170d24e30cd6c04746a9319dab7734943a8e3de99dcfb5692e1` |
+| `mall/mall.shacl.ttl` | `0f9f4e5c3b4e069018c7c8768f7b8bf841ef26db505a4984b71fefaee96711b9` |
+| `ossie/flights.mapping.yaml` | `dd62e2614097d0fa3f457fdb15a4ac431cfbbc088fa0a46148d2671ca6b1215c` |
+| `ossie/flights.metrics.mapping.yaml` | `73a7a1061c2b5f6c273cee8e3b8c93a2a8f8c73affbe1f1c469dbba3d6deaa0b` |
+| `ossie/flights.metrics.semantic.yaml` | `2d7aa9fada288ae70acb41921f4f58f555b928b26b009d7a0517d531cddb1c86` |
+| `ossie/flights.odcs.yaml` | `9a7c220945419e97b815f185a707ecbc692110366bb1fc74a67262a3ba2a7d61` |
+| `ossie/flights.ontology.yaml` | `4035aa22494a1dfc739f5fe6689ffa74d07338497ef67a7acab69c568eae00fd` |
+| `ossie/flights.semantic_model.yaml` | `e0652e489c1bbf69066c9c17109175721e7d9e7e27d302a5cae9747cabbac75e` |
+| `ossie/flights.yaml` | `1d716be212d952422885fd74997583b466d267c78f5add3a71fd357f84012130` |
+| `ubl/ubl.odcs.yaml` | `bd2eedd821abef9b834e2bbad8e70495042b922ee73ca1a67ed06dba8e35efb4` |
+| `ubl/ubl.ontology.yaml` | `ac8343193ce8b087c9975583e6b047caf653e59c2416dc40c043bb35bea63b2f` |
+| `ubl/ubl.owl.ttl` | `4ae7d7872dcde977f71fc2e50ec22a7b0bf453919db954fe5c9ac72062a221de` |
+| `ubl/ubl.semantic-mapping.yaml` | `ad70e22d7a6b171b1644d1e113b307f440f9c934de218af16dbbfedee455a6a0` |
+| `ubl/ubl.semantic.yaml` | `3b97121ee492a6eaea2a3798ced9810462e7da58701445bb272b232b898ad6ab` |
+| `ubl/ubl.shacl.ttl` | `a40474f3e9e2593664ffb2d4561afa40670171c810832070d48141d953f7282d` |
+
+</details>
+
+`bunx --bun oxfmt --check` passed on all 196 changed TypeScript, JSX and CSS files. The formatter configuration excludes Markdown.
+The confidential-only scanner passed for the task and evidence documents. Neither the repository nor the installed skills includes the named cadence checker.
+The superseded output bundle contained 3,559 exact copies of the previous review PNGs. Byte comparison confirmed every copy before removal, leaving the source archive intact and the output folder at 28 MB.
+
 Status: in progress. No visual pair is classified before both images have been opened.
 
 ## Scope ledger
