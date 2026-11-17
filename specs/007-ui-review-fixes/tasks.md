@@ -35,7 +35,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: The scripts import `../helpers/*` and `../../src/*`, so they only run from inside the repository. Copy them unchanged apart from formatting, set `GIT_AUTHOR_NAME`, `GIT_AUTHOR_EMAIL`, `GIT_COMMITTER_NAME` and `GIT_COMMITTER_EMAIL` to a neutral identity in the shared fixture helper so no capture shows the owner's name, and keep them as a development tool documented in `docs/development.md`.
   - Proof: `bun --bun run check` passes; `bun scripts/ui-review/known-issues.ts <out> 1 1` runs against a lane dev server and writes images.
 
-- [ ] T002 Write `specs/007-ui-review-fixes/capture-index.md`: for every review screenshot named in `spec.md` and `tasks.md`, the exact script, `SW_ONLY` group, `SW_THEME` and widths that reproduce it.
+- [x] T002 (`5f77711f`, refined in `ceaeed5d` and `6e301fd4`) Write `specs/007-ui-review-fixes/capture-index.md`: for every review screenshot named in `spec.md` and `tasks.md`, the exact script, `SW_ONLY` group, `SW_THEME` and widths that reproduce it.
   - Files: `specs/007-ui-review-fixes/capture-index.md`
   - Change: Several screenshot names do not appear literally in the scripts (for example `source-control--diff-modified`); resolve each to a command by reading the scripts, and run one command per script to prove it produces the named file.
   - Proof: Every row has a command; one run per script produced the named file in a scratch folder.

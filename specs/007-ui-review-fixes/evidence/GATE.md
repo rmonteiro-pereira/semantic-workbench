@@ -1,5 +1,19 @@
 # Integration and regression gate
 
+
+## Gate after rebase
+
+`git fetch origin` resolved `origin/main` to `5597ae52c55cb76a864aa242873dbbe7083a000e`. `git rebase origin/main` replayed the prior integration branch `a8cf837e` through `6e301fd4`. The release baseline `v0.6.1` resolves to commit `3b1c2c10bc6ae96c6c603301764bde4cfdc4dcd4`. All results in the historical sections below precede this rebase.
+
+The conflict resolutions preserve operation boundary mutation coverage and the address architecture map, while adding the lane mutation registrations and font map. FullGraph keeps canonical entity addresses and delegates edge styling, fitting and opening to the lane modules. Graph and lineage suites retain their screenshot and address handling alongside layout checks. Mapping graph assertions use canonical selectors while opening and fitting the detailed card rows. Source Control retains publication styles alongside phone diff rules. Footer and theme tests keep both existing cases. The changelog retains publication, addresses, operation boundary and the UI entries. Git dropped the portable registry temp path patch because its contents were already upstream.
+
+- T002 is complete. The capture index introduced in `5f77711f` and refined in `ceaeed5d` and `6e301fd4` covers all 109 distinct PNG paths named in the spec and tasks.
+- T057 is partially accepted. `81bee1e1` implements the catalog alignment, inline badges, sidebar scroll fade and humanized type labels. `77cd6447` and `7733dfb0` preserve complete descriptions and consistent row height. Hover-only Edit is skipped because it would remove the visible entry point for the established edit tour. Catalog descriptions remain whole under the current text requirement. Integrated visual proof is pending.
+- T064 is partially accepted. `81bee1e1` preserves the sidebar spacing and reuses the content cap for the metrics list. The metric detail remains beside that list. Moving it onto the same left edge as other tabs would redesign the approved master/detail layout, so that portion is skipped. See the measured offsets in `E.md`.
+- T035 and T055 were already checked and their final lane evidence records successful runs. T009, T023, T047 and T073 remain unchecked because their lane evidence records failed or blocked checks. Pre-rebase results below do not settle the rebased gate.
+
+Midgard execution is pending a transfer method consistent with the no-push limit. The installed `sw-midgard-run` calls `git push --force` before its SSH command, so it has not been invoked. No heavy verification ran locally after this rebase. T075, T076 and T078 are open.
+
 Status: in progress. No visual pair is classified before both images have been opened.
 
 ## Scope ledger
