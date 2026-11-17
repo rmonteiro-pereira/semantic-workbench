@@ -2792,7 +2792,8 @@ if (category === 'copy-publish' || category === 'copy-writer-publish') {
     const git = createGit({ projectsRoot: layout.projects, worktreesRoot: layout.worktrees });
     const ann = { key: 'u' + 'a'.repeat(20), handle: 'ann', name: 'Ann' };
     const ben = { key: 'u' + 'b'.repeat(20), handle: 'ben', name: 'Ben' };
-    const worktrees = (await worktreeFactory())({ layout, git, people: () => [ann, ben], publication: plainPublication(git, layout, loadedModule.createPublication) });
+    const publication = plainPublication(git, layout, loadedModule.createPublication);
+    const worktrees = (await worktreeFactory())({ layout, git, people: () => [ann, ben], publication });
     const run = (dir: string, args: string[]) => {
       const identity = ['-c', 'user.name=Someone', '-c', 'user.email=someone@example.org'];
       const result = Bun.spawnSync(['git', ...identity, ...args], { cwd: dir, env: { ...process.env } });
@@ -2837,6 +2838,7 @@ if (category === 'copy-publish' || category === 'copy-writer-publish') {
     assert.equal(tip(), benTip);
     // The branch moved without the published files: the next start puts them back in step.
     assert.notEqual(run(base, ['rev-parse', 'HEAD']), benTip);
+    publication.adoptInitial('sales-contracts', 'main', benTip);
     await worktrees.repairBase('sales-contracts');
     assert.equal(run(base, ['rev-parse', 'HEAD']), benTip);
     // The remote is ahead, but the guards refuse what it brings, so main stays.
