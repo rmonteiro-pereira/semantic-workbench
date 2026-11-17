@@ -140,7 +140,7 @@ export function AddItem({ doc, base, document, kind: fixed, owner, preset = {}, 
     setSaving(true);
     setError('');
     try {
-      const saved = await api.save(doc.project, doc.path, doc.hash, plan.text, diffPatches(doc.source, plan.text));
+      const saved = await api.save(doc.project, doc.path, doc.hash, plan.text, { patches: diffPatches(doc.source, plan.text) });
       onSaved({ docId: doc.id, source: plan.text, hash: saved.hash }, plan.path, kind);
     } catch (error) {
       setError(error instanceof StaleSave ? 'Not saved: the file changed since you opened it. Close this and try again.' : (error as Error).message);

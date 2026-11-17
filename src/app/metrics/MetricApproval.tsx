@@ -15,7 +15,7 @@ async function saveAttributes(project: string, kpi: KpiSummary, changes: Record<
   const path = metricPathIn(file.source, kpi.modelPath, kpi.name);
   if (!path) throw Error(`${kpi.name} is no longer in ${kpi.file}. Reload and try again.`);
   const next = withMetricAttributes(file.source, kpi.file, path, changes);
-  await api.save(project, kpi.file, file.hash, next, diffPatches(file.source, next));
+  await api.save(project, kpi.file, file.hash, next, { patches: diffPatches(file.source, next) });
 }
 
 /**

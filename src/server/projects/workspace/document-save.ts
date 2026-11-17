@@ -186,15 +186,15 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     slug: string,
     writes: { path: string; baseHash: string | null; source?: string; patches?: Patch[] }[],
     reader: Reader,
-    options: string | { kind?: string; declaredMigrations?: DeclaredMigration[]; deletedItems?: string[] } = 'save-files',
+    options: { kind?: string; declaredMigrations?: DeclaredMigration[]; deletedItems?: string[] } = {},
   ) {
     const { guard } = reader;
-    const kind = typeof options === 'string' ? options : (options.kind ?? 'save-files');
+    const kind = options.kind ?? 'save-files';
     entry(slug);
     if (!Array.isArray(writes) || !writes.length || writes.length > 50) throw new BadRequestError('Expected 1–50 files.');
     const files = writes.map(w => ({ ...w, path: projectPath(w.path) }));
-    const declarations = typeof options === 'string' ? [] : (options.declaredMigrations ?? []);
-    const deletedItems = typeof options === 'string' ? [] : (options.deletedItems ?? []);
+    const declarations = options.declaredMigrations ?? [];
+    const deletedItems = options.deletedItems ?? [];
     if (new Set(files.map(f => f.path)).size !== files.length) throw new BadRequestError('Each file may appear once.');
     if (reader.view && files.some(file => !reader.view!.canRead(slug, file.path))) {
       throw new OccupiedError('The target is unavailable.', {});

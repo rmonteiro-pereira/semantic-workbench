@@ -129,7 +129,7 @@ async function saveChanges(options: Options, objectIndex: number, path: string, 
   const { doc } = options;
   try {
     const next = patchedSource(options, objectIndex, path, changes);
-    const result = await api.save(doc.project, doc.path, doc.hash, next, diffPatches(doc.source, next));
+    const result = await api.save(doc.project, doc.path, doc.hash, next, { patches: diffPatches(doc.source, next) });
     const keys = changes.map(change => change.key).join(', ');
     options.onSaved([{ docId: doc.id, source: next, hash: result.hash }], `Saved ${keys} of ${path}.`);
     return null;

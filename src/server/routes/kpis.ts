@@ -140,5 +140,5 @@ export const kpiRoutes: Route = async (ws, req, url) => {
     'edit',
     writes.map(file => ({ type: 'file', project: slug, path: file.path })),
   );
-  return Response.json(await ws.saveFiles(slug, writes, requestReader(req), 'kpi'));
+  return Response.json(await ws.saveFiles(slug, writes, requestReader(req), { kind: 'kpi' }));
 };

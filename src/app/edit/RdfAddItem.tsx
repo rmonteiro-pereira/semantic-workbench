@@ -138,7 +138,7 @@ export function RdfAddItem({ doc, base, onClose, onSaved }: { doc: Doc; base: st
     setSaving(true);
     setError('');
     try {
-      const saved = await api.save(doc.project, doc.path, doc.hash, plan.text, diffPatches(doc.source, plan.text));
+      const saved = await api.save(doc.project, doc.path, doc.hash, plan.text, { patches: diffPatches(doc.source, plan.text) });
       onSaved({ docId: doc.id, source: plan.text, hash: saved.hash }, plan.subject!);
     } catch (error) {
       setError(error instanceof StaleSave ? 'Not saved: the file changed since you opened it. Close this and try again.' : (error as Error).message);
@@ -246,7 +246,7 @@ export function RdfDeleteItem({
     setBusy(true);
     setError('');
     try {
-      const saved = await api.save(doc.project, doc.path, doc.hash, result.text, diffPatches(doc.source, result.text));
+      const saved = await api.save(doc.project, doc.path, doc.hash, result.text, { patches: diffPatches(doc.source, result.text) });
       onDeleted([{ docId: doc.id, source: result.text, hash: saved.hash }]);
     } catch (error) {
       setError(error instanceof StaleSave ? 'Nothing was deleted: the file changed since this opened.' : `Nothing was deleted: ${(error as Error).message}`);

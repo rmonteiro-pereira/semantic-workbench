@@ -147,7 +147,7 @@ export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClos
             baseHash: file.doc.hash,
             patches: diffPatches(file.doc.source, file.source),
           })),
-          declaredMigrations,
+          { declaredMigrations },
         );
         files.forEach((file, i) =>
           written.push({

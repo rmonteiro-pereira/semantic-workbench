@@ -315,9 +315,9 @@ export const api = {
     path: string,
     baseHash: string | null,
     source: string,
-    options?: { from: number; to: number; insert: string }[] | { patches: { from: number; to: number; insert: string }[]; declaredMigrations?: DeclaredMigration[]; deletedItems?: string[] },
+    options: { patches?: { from: number; to: number; insert: string }[]; declaredMigrations?: DeclaredMigration[]; deletedItems?: string[] } = {},
   ) {
-    const { patches, declaredMigrations, deletedItems } = Array.isArray(options) ? { patches: options, declaredMigrations: undefined, deletedItems: undefined } : (options ?? {});
+    const { patches, declaredMigrations, deletedItems } = options;
     const write = patches && baseHash !== null ? { baseHash, patches } : { baseHash, source };
     const response = await apiFetch(
       fileUrl(project, path),
@@ -338,9 +338,9 @@ export const api = {
       source?: string;
       patches?: { from: number; to: number; insert: string }[];
     }[],
-    options?: DeclaredMigration[] | { declaredMigrations?: DeclaredMigration[]; deletedItems?: string[] },
+    options: { declaredMigrations?: DeclaredMigration[]; deletedItems?: string[] } = {},
   ) {
-    const { declaredMigrations, deletedItems } = Array.isArray(options) ? { declaredMigrations: options, deletedItems: undefined } : (options ?? {});
+    const { declaredMigrations, deletedItems } = options;
     const response = await apiFetch(
       `/api/projects/${encodeURIComponent(project)}/save-batch`,
       send('POST', { files, ...(declaredMigrations?.length ? { declaredMigrations } : {}), ...(deletedItems?.length ? { deletedItems } : {}) }),

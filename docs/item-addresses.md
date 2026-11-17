@@ -177,6 +177,9 @@ or make separate processes sharing one data root supported. These requests enter
 `files.save` and `files.saveBatch`; the boundary owns authorization, effect restrictions and audit, not durable receipts
 or stable client operation keys. A lost save reply retried against the old base remains a stale save.
 
+`api.save` and `api.saveBatch` accept one options object for declaration and deletion lists; single saves also accept
+`patches` in that object. Workspace batch saves use an options object for their journal kind and declaration lists.
+
 The structured item editor declares a stable item's subtree rename in the same single/batch request as ticked reference
 rewrites. Source autosave declares named document and embedded scope changes; named-root reordering declares nothing.
 Positional or ambiguous scopes/items never enter history. Save acknowledgements must identify the requested files in

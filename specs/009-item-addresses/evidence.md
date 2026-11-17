@@ -1414,3 +1414,6 @@ feb35ab7 test: record recovered authentication browser gate
 - `bun test tests/address-migration.test.ts`: 6 pass, 0 fail, 3022 expect() calls.
 - Single and batch save routes remain the declaration-validation boundary. Document-save services now accept typed `DeclaredMigration[]` and `string[]`, retaining semantic checks against the guarded deletion result without parsing request lists twice.
 - `bun test tests/address-declared-save.test.ts`: 4 pass, 0 fail, 30 expect() calls, including malformed declarations refused through both HTTP entry points.
+- Save APIs and every caller now use options objects: browser saves carry patches/declarations/deletions there, and workspace batch saves carry their journal kind and typed declarations there. Removed positional-array and string compatibility branches.
+- `bun test tests/address-declared-save.test.ts`: 4 pass, 0 fail, 30 expect() calls.
+- `bun test tests/save-reply.test.ts`: 2 pass, 0 fail, 8 expect() calls.

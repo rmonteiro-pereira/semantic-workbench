@@ -152,7 +152,7 @@ export function RdfItemEditor({ doc, base, subject, label, kind, onClose, onSave
     setSaving(true);
     setError('');
     try {
-      const saved = await api.save(doc.project, doc.path, doc.hash, draft, diffPatches(doc.source, draft));
+      const saved = await api.save(doc.project, doc.path, doc.hash, draft, { patches: diffPatches(doc.source, draft) });
       onSaved([{ docId: doc.id, source: draft, hash: saved.hash }]);
     } catch (error) {
       setError(error instanceof StaleSave ? 'Not saved: the file changed since this editor opened. Close it and open the item again.' : (error as Error).message);
