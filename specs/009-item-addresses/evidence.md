@@ -1412,3 +1412,5 @@ feb35ab7 test: record recovered authentication browser gate
 - `bun test tests/address-migration-store.test.ts`: 13 pass, 0 fail, 142 expect() calls after the reader-signature change.
 - Removed the unused retention-cut function and test, its API documentation and the unsupported environment-variable name. History remains uncompacted with the existing atomic 50,000-record bound. Consolidated the Unreleased item-address entries into user-facing behavior.
 - `bun test tests/address-migration.test.ts`: 6 pass, 0 fail, 3022 expect() calls.
+- Single and batch save routes remain the declaration-validation boundary. Document-save services now accept typed `DeclaredMigration[]` and `string[]`, retaining semantic checks against the guarded deletion result without parsing request lists twice.
+- `bun test tests/address-declared-save.test.ts`: 4 pass, 0 fail, 30 expect() calls, including malformed declarations refused through both HTTP entry points.

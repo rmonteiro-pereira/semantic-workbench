@@ -1,7 +1,8 @@
+import type { DeclaredMigration } from '../../../shared/core/address-migration';
 import type { OperationOutcome } from '../../auth/operation-outcome';
 import { parseAddress } from '../../../shared/core/item-address';
 import { deletedItemAddresses } from '../../../shared/edit/address-changes';
-import { declaredAddressMigrations, declaredDeletedItems, operationMigrations, stageAddressMigrations } from '../address-migrations';
+import { operationMigrations, stageAddressMigrations } from '../address-migrations';
 // Saves and reverts documents: a stale base is refused, the reader's guard judges the text, and the
 // swap is journaled so a crash leaves either the old or the new bytes.
 import { existsSync, readFileSync, rmSync } from 'node:fs';
@@ -94,12 +95,17 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     const change = { project: slug, path, before, after: edited, committed };
     return { edited, before, guarded: guard?.([change]) };
   }
-  async function saveFile(slug: string, path: string, body: { baseHash: string | null; source?: string; patches?: Patch[]; declaredMigrations?: unknown; deletedItems?: unknown }, reader: Reader) {
+  async function saveFile(
+    slug: string,
+    path: string,
+    body: { baseHash: string | null; source?: string; patches?: Patch[]; declaredMigrations?: DeclaredMigration[]; deletedItems?: string[] },
+    reader: Reader,
+  ) {
     const { guard } = reader;
     entry(slug);
     const relativePath = projectPath(path);
-    const declarations = declaredAddressMigrations(body.declaredMigrations, slug, [relativePath]);
-    const deletedItems = declaredDeletedItems(body.deletedItems, slug, [relativePath]);
+    const declarations = body.declaredMigrations ?? [];
+    const deletedItems = body.deletedItems ?? [];
     const check = async (at: Place) => {
       const result = await guardedEdit(at, { slug, path: relativePath }, body, guard);
       const after = result.guarded?.changes[0].after ?? result.edited;
@@ -180,23 +186,15 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     slug: string,
     writes: { path: string; baseHash: string | null; source?: string; patches?: Patch[] }[],
     reader: Reader,
-    options: string | { kind?: string; declaredMigrations?: unknown; deletedItems?: unknown } = 'save-files',
+    options: string | { kind?: string; declaredMigrations?: DeclaredMigration[]; deletedItems?: string[] } = 'save-files',
   ) {
     const { guard } = reader;
     const kind = typeof options === 'string' ? options : (options.kind ?? 'save-files');
     entry(slug);
     if (!Array.isArray(writes) || !writes.length || writes.length > 50) throw new BadRequestError('Expected 1–50 files.');
     const files = writes.map(w => ({ ...w, path: projectPath(w.path) }));
-    const declarations = declaredAddressMigrations(
-      typeof options === 'string' ? undefined : options.declaredMigrations,
-      slug,
-      files.map(file => file.path),
-    );
-    const deletedItems = declaredDeletedItems(
-      typeof options === 'string' ? undefined : options.deletedItems,
-      slug,
-      files.map(file => file.path),
-    );
+    const declarations = typeof options === 'string' ? [] : (options.declaredMigrations ?? []);
+    const deletedItems = typeof options === 'string' ? [] : (options.deletedItems ?? []);
     if (new Set(files.map(f => f.path)).size !== files.length) throw new BadRequestError('Each file may appear once.');
     if (reader.view && files.some(file => !reader.view!.canRead(slug, file.path))) {
       throw new OccupiedError('The target is unavailable.', {});
