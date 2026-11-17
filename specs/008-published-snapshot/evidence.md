@@ -1229,3 +1229,8 @@ and explicit per-test limit while budgeting the capped shared machine consistent
 - Final remote `bun --bun run build`: exit 0; `✓ built in 3.12s`.
   The existing module-directive and large-chunk warnings remain warnings.
 - Final architecture review remains PASS after publication-outcome reset; no fix-first finding remains.
+
+- Final remote frozen HTTP gate, `bun test tests/auth/http-characterization.test.ts`:
+  `1 pass, 0 fail, 1576 expect() calls; Ran 1 test across 1 file. [29.20s]`.
+  Frozen fixture SHA-256 remains `64ee445a73ffc360c337bd4cb8fad37216bad4ddf5f264c54907b412d84d124d`,
+  identical to `origin/main`; the additive project identity is asserted by the explicit comparison above.
