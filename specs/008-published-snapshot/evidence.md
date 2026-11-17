@@ -1324,3 +1324,32 @@ and explicit per-test limit while budgeting the capped shared machine consistent
   bun scripts/responsive-ui-tests.ts`: exit 0; `2 responsive UI checks passed`.
   Both `examples: 2560×1440 metric screens readable, no overlaps` and
   `no uncaught browser errors` passed, with the same disposable frontend and unchanged assertions.
+
+## Rebase onto address-feature main
+
+The branch was rebased onto `origin/main` (item addresses included). Each conflict kept both features:
+auth matrix and route-action fixtures list the preview routes together with the address-resolution route;
+workspace imports merge both modules; development, configuration and item-address docs keep both
+features' paragraphs; subprocess environment fixtures take main's isolated-environment form; the
+mutation case dispatcher keeps the address categories and the copy-writer category. Two fixtures needed
+follow-up: the persisted-key inventory now lists the publication notice flag (a boolean, no item key),
+and the administration comparison baseline matrix count is 1026.
+
+Remote results after the rebase:
+
+- `bun test`: `2410 pass, 2 fail` before the two fixture fixes above; both fixtures were then corrected.
+- `bun --bun run check`: exit 0. `bun --bun run build`: exit 0, `built in 3.30s`.
+- Frozen HTTP characterization is part of `bun test` and passed. The frozen fixture is identical to
+  `origin/main`; its current SHA-256 is `488586eb5a56b86c0843a6c4398ba281cc7147d46fc36327c1d027197f1f66e0`
+  (main re-recorded it for address routes, so the earlier hash no longer applies).
+- `bun scripts/published-snapshot-remote-gate.ts test:mutation`: `755/755 targeted mutants killed`.
+- Browser suites through the same driver: `test:published-snapshot`, `test:ui` (20), `test:edges` (6),
+  `test:grouping-validation` (8), `test:examples:ui` (19), `test:scm` (18), `test:mappings-layout` (7),
+  `test:projects` (8) and `test:auth` all exit 0.
+- `test:responsive` exits 1 at the inherited `Expected: > 503.99999999999994, Received: 481` canvas
+  assertion, the same value already reproduced on unchanged main above. Targeted groups: graph canvases,
+  shell screens and sidebar phone drawer exit 0. Dark theme, examples 1440 and examples 2560 exit 1 on the
+  development frontend only because the UBL title is not ready within five seconds (the cold-start
+  behaviour recorded earlier); against the built frontend served by the application they exit 0.
+
+Follow-up: item addresses reserve an opaque `@snapshot` segment. It is not wired to published snapshots yet.
