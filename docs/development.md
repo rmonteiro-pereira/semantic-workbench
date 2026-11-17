@@ -368,6 +368,12 @@ stops after 30 seconds. In `bun run build` its own chunk is about 54 kB, its SPA
 about 1.2 MB and the worker wrapper about 284 kB; none of them is part of the main bundle.
 A test in `tests/validation-honesty.test.ts` checks that a `SERVICE` clause makes no network request.
 
+`@modelcontextprotocol/server` 2.4.0 (Apache-2.0) speaks the Model Context Protocol for the local
+`POST /api/mcp` endpoint. It needs `@modelcontextprotocol/core` 2.4.0 and `zod`, which Bun installs with it.
+Measured on disk: 7.0 MB, 1.4 MB and 8.2 MB. It is server-only and never part of the browser bundle, and it
+makes no network request of its own. `@modelcontextprotocol/client` 2.4.0 is a development dependency that the
+conformance tests and the acceptance script use as the reference client; it is not shipped.
+
 ## Contribution rules
 
 - Read [architecture](../ARCHITECTURE.md), the owning module and neighboring tests first.
