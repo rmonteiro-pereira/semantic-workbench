@@ -1275,3 +1275,8 @@ and explicit per-test limit while budgeting the capped shared machine consistent
   `7 mapping layout checks passed on isolated data root
   /srv/dev/tmp-008-published-snapshot-boundary-20261117/workbench-browser-38Jb3l.`
   Includes project-local selection, bounded mapping lists and no uncaught browser errors.
+
+- Remote `bun scripts/published-snapshot-remote-gate.ts test:projects`: exit 0;
+  `8 project checks passed on isolated data root
+  /srv/dev/tmp-008-published-snapshot-boundary-20261117/workbench-browser-zLR1zC.`
+  Includes cache rebuild/restart, exact ZIP round trip, project context and new-file creation.
