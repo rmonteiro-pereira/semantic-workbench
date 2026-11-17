@@ -1,6 +1,5 @@
 # Integration and regression gate
 
-
 ## Gate after rebase
 
 `git fetch origin` resolved `origin/main` to `5597ae52c55cb76a864aa242873dbbe7083a000e`. `git rebase origin/main` replayed the prior integration branch `a8cf837e` through `6e301fd4`. The release baseline `v0.6.1` resolves to commit `3b1c2c10bc6ae96c6c603301764bde4cfdc4dcd4`. All results in the historical sections below precede this rebase.
@@ -29,12 +28,15 @@ Reported failures on middle revision `5597ae52`: `test:responsive` observed a 48
 The comparison fixture consists of the seven release projects with 36 unique source files.
 Each file was read once from the release Git blob using `git show` and hashed with SHA-256.
 The duplicate Commerce contract is shared by the Commerce and Mapped commerce imports.
-Entity and relationship totals are pending the three version-specific imports.
+Three supplemental files exercise SQL colouring, SQL warnings and a mapping with no bindings.
+The two SQL files come from the release fixtures. The empty mapping keeps the Commerce mapping reference fields and drops its bindings.
+A candidate inventory using `bun -e`, `validateInput` and `inspect` verified all 39 hashes and accepted all files. Across unique files it returned
+5,298 entities and 12,145 relationships. The Import UI and the other version inventories still need to run.
 
 <details>
 <summary>Frozen input hashes</summary>
 
-| Release example source | SHA-256 |
+| Frozen source | SHA-256 |
 | --- | --- |
 | `billing/billing.mapping.yaml` | `8df7269adfa49bae09ebedd26da75e03a8b7e134333a96c44e1b4cfeb7c481f4` |
 | `billing/billing.odcs.yaml` | `3f3bbda2933f10e6e42e3ffaaaef58b7de9ab78eaef1405c8ec7096fbcb4d078` |
@@ -72,6 +74,9 @@ Entity and relationship totals are pending the three version-specific imports.
 | `ubl/ubl.semantic-mapping.yaml` | `ad70e22d7a6b171b1644d1e113b307f440f9c934de218af16dbbfedee455a6a0` |
 | `ubl/ubl.semantic.yaml` | `3b97121ee492a6eaea2a3798ced9810462e7da58701445bb272b232b898ad6ab` |
 | `ubl/ubl.shacl.ttl` | `a40474f3e9e2593664ffb2d4561afa40670171c810832070d48141d953f7282d` |
+| `sql/case-when.ossie.yaml` | `17c3bfc8909fb2420224b0fc83aab7db65e21333ebf70fbb27862d9e9e056415` |
+| `sql/case-when-broken.ossie.yaml` | `23ba6a85d5d846fb00fb2fb326ba324f43d0ad62988bc6191f548e810f7f3cf1` |
+| `unbound/commerce.mapping.yaml` | `ae4b63433db73d910c9536d77313a7841b22c223e1f17d3a3d504b0cbdbbd4fc` |
 
 </details>
 
