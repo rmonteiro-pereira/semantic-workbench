@@ -44,6 +44,10 @@ validity before workspace traffic is served. Server mode serves the built `dist/
 CSP and security headers. A non-loopback HTTP public URL is refused. Loopback HTTP is a development
 exception, not a production transport.
 
+## Agent endpoint
+
+Server mode does not mount `POST /api/mcp`; the path answers like any unknown route. Bearer tokens stay on the agent API (`/api/agent/*`). Connecting agents to a team server needs person sign-in and registered clients, which are a later increment. [The agent endpoint guide](mcp.md) covers local mode.
+
 ## Identity providers
 
 ### Microsoft Entra ID

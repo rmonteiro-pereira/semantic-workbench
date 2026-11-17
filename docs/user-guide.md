@@ -560,6 +560,10 @@ the write path. Authorized approvers can retain approval where the guard permits
 incoming-content operations can refuse rather than demote it. Deprecation needs a replacement or
 reason. See [the server governance rules](server-mode.md#governed-content).
 
+## Connecting an agent in local mode
+
+An agent client that speaks the Model Context Protocol can read, check, change and commit definitions in a local workbench. Semantic Workbench does not call a language model. When you connect an external agent, that agent can receive definitions you authorize and may send them to its model provider; its configuration and policies govern that onward use. Its saves appear in the open editor like any outside edit and never discard what you typed but have not saved, and its changes are only committed and never published: publish from the browser. [The agent endpoint guide](mcp.md) explains how to connect a client and what each tool does.
+
 ## Ontology mappings and agent context
 
 The **Mappings** view resolves ontology → mapping → semantic model → physical source. Object,
