@@ -335,3 +335,31 @@ test('a cross-project alias stops at deletion before a recreated item is renamed
   expect(workspace.ws.resolveAddress(oldAddress, LOCAL_READER)).toEqual({ status: 'missing' });
   expect(workspace.ws.resolveAddress(reusedAddress, LOCAL_READER)).toMatchObject({ status: 'found', address: target });
 });
+
+test('a cross-project alias follows its rename before an unrelated reused locator is deleted', async () => {
+  using workspace = await testWorkspace();
+  const source = 'name: O\nontology: [{concept: A}, {concept: Keep}]';
+  const first = await workspace.seed([{ path: 'a.yaml', source }], 'First');
+  const second = await workspace.seed([{ path: 'other.yaml', source: 'name: Other\nontology: [{concept: Other}]' }], 'Second');
+  const oldAddress = `sw1:${first.slug}/a.yaml#ontology:O/concept:A`;
+  const movedAddress = `sw1:${second.slug}/moved.yaml#ontology:O/concept:A`;
+  const target = movedAddress.replace('concept:A', 'concept:Renamed');
+  await workspace.ws.moveFile(first.slug, 'a.yaml', second.slug, 'moved.yaml', false, LOCAL_READER);
+  const moved = workspace.ws.readFile(second.slug, 'moved.yaml');
+  const renamedSource = source.replace('concept: A', 'concept: Renamed');
+  await workspace.ws.saveFile(
+    second.slug,
+    'moved.yaml',
+    {
+      baseHash: moved.hash,
+      source: renamedSource,
+      declaredMigrations: [{ kind: 'item', from: movedAddress, to: target }],
+    },
+    LOCAL_READER,
+  );
+  const renamed = workspace.ws.readFile(second.slug, 'moved.yaml');
+  await workspace.ws.saveFile(second.slug, 'moved.yaml', { baseHash: renamed.hash, source: renamedSource.replace(']', ', {concept: A}]') }, LOCAL_READER);
+  const reused = workspace.ws.readFile(second.slug, 'moved.yaml');
+  await workspace.ws.saveFile(second.slug, 'moved.yaml', { baseHash: reused.hash, source: renamedSource, deletedItems: [movedAddress] }, LOCAL_READER);
+  expect(workspace.ws.resolveAddress(oldAddress, LOCAL_READER)).toMatchObject({ status: 'found', address: target });
+});

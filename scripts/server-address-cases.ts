@@ -30,6 +30,12 @@ export function serverAddressCase(candidate: typeof Resolution) {
   assert.deepEqual(candidate.resolveForCaller(context, hidden, reader), { status: 'missing' });
   assert.deepEqual(opened, []);
   assert.equal(candidate.resolveForCaller(context, hidden.replace('hidden/', 'visible/'), reader).status, 'found');
+  addressReplayCase(candidate, reader);
+  console.log = originalLog;
+  for (const forbidden of ['sw1:', 'hidden', 'visible', 'private.yaml', 'SecretScope', 'SecretItem']) assert(!lines.join('\n').includes(forbidden));
+}
+
+function addressReplayCase(candidate: typeof Resolution, reader: typeof LOCAL_READER) {
   const oldAddress = 'sw1:visible/a.yaml#ontology:O/concept:Old';
   const targetAddress = oldAddress.replace('concept:Old', 'concept:New');
   const replayContext = {
@@ -56,8 +62,14 @@ export function serverAddressCase(candidate: typeof Resolution) {
   };
   const arrivalReader = boundaryReader({ readableProjects: new Set(['visible', 'destination']), canRead: () => true, roles: () => [] }, 'reader');
   assert.equal(candidate.resolveForCaller(arrivalContext, oldAddress, arrivalReader).status, 'missing');
-  console.log = originalLog;
-  for (const forbidden of ['sw1:', 'hidden', 'visible', 'private.yaml', 'SecretScope', 'SecretItem']) assert(!lines.join('\n').includes(forbidden));
+  const renamedFirst = {
+    ...arrivalContext,
+    readMigrations: (project: string) => {
+      const records = arrivalContext.readMigrations(project);
+      return project === 'visible' ? records : [records[0], records[2], records[1]];
+    },
+  };
+  assert.equal(candidate.resolveForCaller(renamedFirst, oldAddress, arrivalReader).status, 'found');
 }
 
 /** Replays the same operation through real journal installation and requires exactly one record. */
