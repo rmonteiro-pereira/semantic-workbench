@@ -1443,3 +1443,10 @@ feb35ab7 test: record recovered authentication browser gate
 - The inverse-order regression also failed under destination look-ahead: moving then renaming the original item, then recreating/deleting its old destination name incorrectly hid the original item. Destination history is now replayed in arrival order, using `historySinceDeletion` for each current replayed locator and `migrateAddress` for every change. Only the initial requested locator takes the bulk cut; applying a bulk cut before a cross-project arrival's ordered replay changes identity in one ordering or the other. Both workspace orderings and their mutation seam now pass.
 - `bun test tests/address-migration-store.test.ts`: 16 pass, 0 fail, 147 expect() calls.
 - `bun scripts/mutation-case.ts "$PWD/src/server/projects/address-resolution.ts" address-server`: exit 0 for both destination deletion orderings.
+
+### Architecture gate rerun
+
+- Initial remote `bun test`: 2277 pass, 1 fail, 341615 expect() calls; Ran 2278 tests across 327 files. [1453.26s]. The failure was introduced by the public registry table's new full contract shape: the older documentation test still expected the old three-column table. The registry test now owns all table-row assertions; the documentation test retains kind/fixture-count assertions, avoiding duplicate representations of the same registry contract.
+- `bun test tests/item-address-docs.test.ts`: 1 pass, 0 fail, 3 expect() calls.
+- `bun test tests/item-address.test.ts`: 8 pass, 0 fail, 296 expect() calls.
+- Architecture re-review at `1983bde5`: ready, no remaining fix-first findings. Formatter and readability checks passed on changed source; public docs and internal evidence confidentiality scans passed. The repository has no `scripts/commit_cadence.py`; the earlier missing-script limitation remains recorded.
