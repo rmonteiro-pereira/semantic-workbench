@@ -15,6 +15,13 @@ export const requestConnectionScope = Symbol('requestConnectionScope');
 /** Delegated-credential session supplied by the caller, including an explicit absence. */
 export const requestSession = Symbol('requestSession');
 
+/** The transport that authenticated the request's caller. */
+export const requestCallerOrigin = Symbol('requestCallerOrigin');
+/** The transport that authenticated a request, which is `http` for a request that was not attached to a caller. */
+export function callerOriginOf(request: Request): Caller['origin'] {
+  return (request as AccessRequest)[requestCallerOrigin] ?? 'http';
+}
+
 /** Request scope attached after identity resolution, so routes never resolve identity again. */
 export const requestAccess = Symbol('requestAccess');
 /** Server mode's per-person remote Git credentials, or `local`, attached before routes run. */
@@ -28,6 +35,7 @@ export type AccessRequest = Request & {
   [requestRemote]?: RemoteCredentials | 'local';
   [requestSession]?: Session | null;
   [requestConnectionScope]?: Caller['scope'];
+  [requestCallerOrigin]?: Caller['origin'];
   [requestPublicationRefusal]?: string;
   [requestPublication]?: { previous: string | null; commit: string | null };
 };
@@ -76,6 +84,7 @@ export function attachIdentity(
   attached[requestAuditProjects] = context.auditProjects;
   attached[requestSession] = caller.session ?? null;
   attached[requestConnectionScope] = caller.scope;
+  attached[requestCallerOrigin] = caller.origin;
   // A reused request must not carry a previous operation's publication outcome.
   attached[requestPublication] = undefined;
   attached[requestPublicationRefusal] = undefined;

@@ -44,7 +44,7 @@ export function answerLines(contentType: string, body: string): string[] {
 }
 
 /** Posts one message. Returns the lines to write, which may be none for a notification. */
-export async function deliver(line: string, port: number, readCapability: () => string, send: typeof fetch = fetch): Promise<string[]> {
+export async function deliver(line: string, port: number, readCapability: () => string, send: (url: string, init: RequestInit) => Promise<Response> = fetch): Promise<string[]> {
   let message: Message;
   try {
     message = JSON.parse(line);

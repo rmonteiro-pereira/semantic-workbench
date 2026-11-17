@@ -39,7 +39,7 @@ test('hints, retry classes, actions and twin routes equal the contract', () => {
     expect<string>(tool.retryClass, row.name).toBe(row.retry);
     const twin = operationById(tool.operation)!;
     expect(normalizedRoute(twin.row.replace('/api/projects/:slug', '...')), row.name).toBe(normalizedRoute(row.route));
-    expect(ROUTE_ACTIONS.find(candidate => candidate.path === twin.row)!.action, row.name).toBe(row.action);
+    expect<string>(ROUTE_ACTIONS.find(candidate => candidate.path === twin.row)!.action, row.name).toBe(row.action);
   }
 });
 

@@ -133,7 +133,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
   async function saveFile(
     slug: string,
     path: string,
-    body: { baseHash: string | null; source?: string; patches?: Patch[]; declaredMigrations?: DeclaredMigration[]; deletedItems?: string[] },
+    body: { baseHash: string | null; source?: string; patches?: Patch[]; declaredMigrations?: DeclaredMigration[]; deletedItems?: string[]; keepDrafts?: boolean },
     reader: Reader,
   ) {
     const { guard } = reader;
@@ -159,7 +159,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
       const staging = join(layout.state, `.staging-${opId}`);
       const staged = join(staging, 'source');
       const hash = atomicWrite(staged, bytes);
-      const steps = clearPersonalDrafts(state, slug, [relativePath], staging, place.copy ?? undefined);
+      const steps = body.keepDrafts ? [] : clearPersonalDrafts(state, slug, [relativePath], staging, place.copy ?? undefined);
       if (existsSync(file)) steps.push({ from: file, to: join(staging, 'previous') });
       steps.push({ from: staged, to: file });
       try {

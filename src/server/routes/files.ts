@@ -1,7 +1,7 @@
 // Serves project files and validates save requests against their original content hashes.
 import { declaredAddressMigrations, declaredDeletedItems } from '../projects/address-migrations';
 import { FILE_SAVE_REQUEST_LIMIT } from '../request';
-import { requestReader } from '../auth/request-scope';
+import { callerOriginOf, requestReader } from '../auth/request-scope';
 import { decodeSegment, decodePath, readJson } from '../request';
 import type { Route } from './http';
 import type { Workspace } from '../projects/workspace';
@@ -39,7 +39,9 @@ export const fileRoutes: Route = async (ws, req, url) => {
     if (body.source !== undefined && typeof body.source !== 'string') throw new BadRequestError('source must be text.');
     const declaredMigrations = declaredAddressMigrations(body.declaredMigrations, slug, [path]);
     const deletedItems = declaredDeletedItems(body.deletedItems, slug, [path]);
-    return Response.json(await ws.saveFile(slug, path, { ...body, declaredMigrations, deletedItems }, reader));
+    // A protocol caller's save leaves the person's unsaved draft in place, so the editor shows the change as an outside edit.
+    const keepDrafts = callerOriginOf(req) === 'mcp';
+    return Response.json(await ws.saveFile(slug, path, { ...body, declaredMigrations, deletedItems, keepDrafts }, reader));
   }
   return null;
 };
