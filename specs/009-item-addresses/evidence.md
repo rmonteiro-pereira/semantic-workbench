@@ -1178,3 +1178,11 @@ remote; only small summaries were pulled. Both owned production servers stopped.
 `11 metrics checks passed on isolated data root /srv/dev/tmp-009-item-addresses-operation-boundary/workbench-browser-6gvlgT.`
 This includes formula/context/lineage reads, refused rollups, narrow/wide layouts and extension-only
 writes. The owned production server stopped; only metrics-summary.txt was pulled.
+
+### Recovered item-edit browser suite
+
+`bun run test:item-edit`: exit 0;
+`11 item-edit checks passed on isolated data root /srv/dev/tmp-009-item-addresses-operation-boundary/workbench-browser-fodX92.`
+Byte-preserving YAML/JSON edits, validation, add/delete, checked-reference rename, metric wizard
+and governance transitions pass without browser errors. The owned production server stopped;
+only item-edit-summary.txt was pulled.
