@@ -1208,3 +1208,12 @@ responsive-summary.txt is the small local summary, with captures and full logs r
 Actual borders, zoom/selection, entity/parent dragging and layout changes preserve attachment,
 with no browser runtime errors. The owned production server stopped;
 only edges-summary.txt was pulled.
+
+### Recovered authentication browser suite
+
+`bun run test:auth`: exit 0; final summary line:
+`PASS Git history is refused for a person who cannot read every file`.
+The mock-provider suite covers sign-in/out, role control, bearer and visibility/governance checks,
+remote credential fixtures and scoped exports. Its isolated servers/browser and the owned
+production server stopped. Only auth-summary.txt was pulled; full output remains remote.
+All nine named browser suites have now executed on the rebased implementation.
