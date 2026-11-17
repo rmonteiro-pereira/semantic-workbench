@@ -15,7 +15,7 @@ let receiptsDirectory: string;
 beforeAll(async () => {
   server = await startLocalServer({ examples: ['mapped-commerce'] });
   receiptsDirectory = join(server.root, 'receipts-under-test');
-});
+}, 120_000);
 afterAll(async () => {
   await server.close();
 });

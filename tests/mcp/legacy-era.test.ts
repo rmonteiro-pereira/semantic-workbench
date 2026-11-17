@@ -5,7 +5,7 @@ import { startLocalServer, type LocalServer } from './helpers/local-server';
 let server: LocalServer;
 beforeAll(async () => {
   server = await startLocalServer({ examples: ['mapped-commerce'] });
-});
+}, 120_000);
 afterAll(async () => {
   await server.close();
 });

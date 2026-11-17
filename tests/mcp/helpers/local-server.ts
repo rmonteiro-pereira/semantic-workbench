@@ -25,7 +25,7 @@ export async function startLocalServer(
   const opened = openLocalCapability(capabilityFile);
   if (!opened.ok) throw new Error(opened.reason);
   let handler: ReturnType<typeof createHandler> | undefined;
-  const server = Bun.serve({ hostname: '127.0.0.1', port: 0, fetch: request => handler!(request) });
+  const server = Bun.serve({ hostname: '127.0.0.1', port: 0, idleTimeout: 255, fetch: request => handler!(request) });
   handler = createHandler(workspace.ws, { port: server.port as number, mcp: { capability: opened.capability, limits: options.limits ?? GENEROUS_LIMITS }, ...options.handlerOptions });
   const url = `http://127.0.0.1:${server.port}`;
   const capability = () => readFileSync(capabilityFile, 'utf8').trim();

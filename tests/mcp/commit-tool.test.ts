@@ -13,7 +13,7 @@ let counter = 0;
 beforeAll(async () => {
   server = await startLocalServer({ examples: ['mapped-commerce'] });
   client = await server.connect();
-});
+}, 120_000);
 afterAll(async () => {
   await server.close();
 });

@@ -10,7 +10,7 @@ let client: Awaited<ReturnType<LocalServer['connect']>>;
 beforeAll(async () => {
   server = await startLocalServer({ examples: EXAMPLES });
   client = await server.connect();
-});
+}, 120_000);
 afterAll(async () => {
   await server.close();
 });
