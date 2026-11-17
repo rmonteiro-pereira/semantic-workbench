@@ -1090,3 +1090,12 @@ out/gate-009-operation-recovery/check-summary.txt.
 `bun --bun run build`: exit 0; `✓ built in 3.35s`. The bundle retains the module-directive
 and large-chunk warnings. Build output stays remote; only
 out/gate-009-operation-recovery/build-summary.txt is pulled locally.
+
+### Recovered full unit run: failures under investigation
+
+`bun test`: `2272 pass`, `3 fail`, `341585 expect() calls`;
+`Ran 2275 tests across 327 files. [1880.21s]`. Administration replay characterization differs;
+the two audit-strata cases exceeded their unchanged 60- and 120-second budgets (98.41 and
+206.05 seconds). These are not reported as passing or classified as baseline exceptions yet.
+The generated HTTP fixture, address entry points, migration parity and both new operation parity
+cases passed. The complete log stays remote; unit-summary.txt contains the local command summary.
