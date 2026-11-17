@@ -36,7 +36,7 @@ export type ToolDefinition = {
   run: (args: any, context: ToolContext) => Promise<ToolResult>;
 };
 
-const ajv = new Ajv({ strict: true, allErrors: false });
+const ajv = new Ajv({ strict: true, strictRequired: false, allErrors: false });
 const checks = new Map<string, ReturnType<typeof ajv.compile>>();
 
 /** Checks arguments against the tool's schema and names the field that is wrong. */

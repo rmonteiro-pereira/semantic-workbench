@@ -9,7 +9,7 @@ import { fail, type ToolResult } from './tool-results';
 export const RECEIPT_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
 
 type ReceiptState = 'pending' | 'done' | 'uncertain';
-type Receipt = { id: string; principalId: string; tool: string; argumentsHash: string; state: ReceiptState; result?: ToolResult; createdAt: string; expiresAt: string };
+type Receipt = { note?: Record<string, unknown>; id: string; principalId: string; tool: string; argumentsHash: string; state: ReceiptState; result?: ToolResult; createdAt: string; expiresAt: string };
 
 /** What to do with one call, given what the store already knows about its key. */
 export type ReceiptRequest = {
@@ -18,10 +18,12 @@ export type ReceiptRequest = {
   idempotencyKey: string;
   /** The tool's arguments. The key itself is left out of the comparison. */
   args: Record<string, unknown>;
+  /** Reads what verification will need from the state before the effect, such as the project and path of a trash entry. A failure ends the call. */
+  prepare?: () => Promise<Record<string, unknown> | ToolResult>;
   /** Runs the effect once. */
   effect: () => Promise<ToolResult>;
   /** After a restart left a receipt pending, reports the effect's result when it can be shown to have happened, and null when it cannot. */
-  verify: () => Promise<ToolResult | null>;
+  verify: (note: Record<string, unknown>) => Promise<ToolResult | null>;
 };
 
 export type ReceiptStore = {
@@ -96,7 +98,7 @@ export function createReceiptStore(directory: string, now: () => Date = () => ne
     }
   }
   async function afterRestart(receipt: Receipt, request: ReceiptRequest): Promise<ToolResult> {
-    const verified = await request.verify();
+    const verified = await request.verify(receipt.note ?? {});
     save({ ...receipt, state: verified ? 'done' : 'uncertain', ...(verified ? { result: verified } : {}) });
     return verified ?? fail('uncertain', 'The earlier attempt may or may not have completed. Read the current state before trying again.');
   }
@@ -113,8 +115,19 @@ export function createReceiptStore(directory: string, now: () => Date = () => ne
         if (inFlight.has(id)) return fail('rate_limited', 'The first attempt with this key is still running.', { retryAfterSeconds: 1 });
         return afterRestart(existing, request);
       }
+      const prepared = request.prepare ? await request.prepare() : {};
+      if ('ok' in prepared && typeof prepared.ok === 'boolean') return prepared as ToolResult;
       const created = now().toISOString();
-      const receipt: Receipt = { id, principalId: request.principalId, tool: request.tool, argumentsHash: hash, state: 'pending', createdAt: created, expiresAt: new Date(now().getTime() + RECEIPT_RETENTION_MS).toISOString() };
+      const receipt: Receipt = {
+        note: prepared,
+        id,
+        principalId: request.principalId,
+        tool: request.tool,
+        argumentsHash: hash,
+        state: 'pending',
+        createdAt: created,
+        expiresAt: new Date(now().getTime() + RECEIPT_RETENTION_MS).toISOString(),
+      };
       save(receipt);
       inFlight.add(id);
       try {

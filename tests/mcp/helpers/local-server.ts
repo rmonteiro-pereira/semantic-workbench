@@ -20,7 +20,7 @@ export async function startLocalServer(options: { examples?: string[]; handlerOp
   if (!opened.ok) throw new Error(opened.reason);
   let handler: ReturnType<typeof createHandler> | undefined;
   const server = Bun.serve({ hostname: '127.0.0.1', port: 0, fetch: request => handler!(request) });
-  handler = createHandler(workspace.ws, { port: server.port, mcp: { capability: opened.capability }, ...options.handlerOptions });
+  handler = createHandler(workspace.ws, { port: server.port as number, mcp: { capability: opened.capability }, ...options.handlerOptions });
   const url = `http://127.0.0.1:${server.port}`;
   const capability = () => readFileSync(capabilityFile, 'utf8').trim();
   const clients: Client[] = [];
@@ -28,7 +28,7 @@ export async function startLocalServer(options: { examples?: string[]; handlerOp
     ...workspace,
     url,
     endpoint: `${url}/api/mcp`,
-    port: server.port,
+    port: server.port as number,
     capability,
     capabilityFile,
     rotate: () => rotateCapability(capabilityFile),
@@ -44,7 +44,11 @@ export async function startLocalServer(options: { examples?: string[]; handlerOp
     async raw(message: Record<string, unknown>, headers: Record<string, string> = {}) {
       const method = String(message.method);
       const params = (message.params ?? {}) as Record<string, unknown>;
-      const meta = { 'io.modelcontextprotocol/protocolVersion': PROTOCOL_VERSION, 'io.modelcontextprotocol/clientCapabilities': {}, 'io.modelcontextprotocol/clientInfo': { name: 'raw-client', version: '1' } };
+      const meta = {
+        'io.modelcontextprotocol/protocolVersion': PROTOCOL_VERSION,
+        'io.modelcontextprotocol/clientCapabilities': {},
+        'io.modelcontextprotocol/clientInfo': { name: 'raw-client', version: '1' },
+      };
       const body = { jsonrpc: '2.0', id: 1, ...message, params: { ...params, _meta: { ...meta, ...(params._meta as object) } } };
       const response = await fetch(`${url}/api/mcp`, {
         method: 'POST',

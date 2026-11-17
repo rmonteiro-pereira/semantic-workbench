@@ -90,7 +90,9 @@ export function buildToolServer(dependencies: ToolServerDependencies): McpServer
   for (const tool of dependencies.tools) {
     if (visible && !visible.has(tool.operation)) continue;
     const annotations = { readOnlyHint: tool.hints.readOnly, destructiveHint: tool.hints.destructive, idempotentHint: tool.hints.idempotent, openWorldHint: tool.hints.openWorld };
-    server.registerTool(tool.name, { description: tool.description, inputSchema: listedSchema(tool), annotations }, async (args: Record<string, unknown>): Promise<CallToolResult> => toCallToolResult(await runTool(tool, args, dependencies)));
+    server.registerTool(tool.name, { description: tool.description, inputSchema: listedSchema(tool), annotations }, async (args: Record<string, unknown>): Promise<CallToolResult> =>
+      toCallToolResult(await runTool(tool, args, dependencies)),
+    );
   }
   return server;
 }

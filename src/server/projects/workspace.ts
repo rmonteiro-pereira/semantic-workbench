@@ -825,12 +825,12 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       return existsSync(projectFile(place.layout, slug, relative)) || place.cache.file(slug, relative) !== null;
     },
     /** Moves a file to the trash from the place the person edits it in. */
-    deleteFile: async (slug: string, path: string, reader: Reader) => {
+    deleteFile: async (slug: string, path: string, reader: Reader, baseHash?: string) => {
       entry(slug);
       const relativePath = projectPath(path);
       const check = (at: Place) => guardDeletion(at.layout, slug, relativePath, reader.guard);
       const place = await copies.writePlace(reader, slug, check);
-      return trash.deleteFile(slug, path, reader.owner, reader, place.copy);
+      return trash.deleteFile(slug, path, reader.owner, reader, place.copy, baseHash);
     },
     /** People's copies in use now, with the repository folders watched for each. */
     activeCopies: () => copies.active(),

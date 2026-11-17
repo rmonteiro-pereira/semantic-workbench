@@ -16,6 +16,7 @@ import {
   HiddenResourceError,
   NotFoundError,
   StaleError,
+  PreconditionError,
   GoneError,
   MissingFolderError,
   OccupiedError,
@@ -79,6 +80,7 @@ export function errorResponse(error: unknown, publicUrl?: string, context: Error
   if (error instanceof AdminStaleError) return Response.json({ error: 'stale', message: error.message }, { status: 409 });
   if (error instanceof AdminConfigError || error instanceof AccessConfigError) return Response.json({ error: error.message }, { status: 400 });
   if (error instanceof StaleError) return Response.json({ error: 'stale', currentHash: error.currentHash, currentSource: error.currentSource }, { status: 409 });
+  if (error instanceof PreconditionError) return Response.json({ error: 'precondition', message: error.message, changed: error.changed }, { status: 409 });
   if (error instanceof ConnectRequiredError) return Response.json({ error: error.message, connect: error.connect }, { status: 428 });
   if (error instanceof RemoteHostError) return Response.json({ error: error.message, allowedHosts: error.allowedHosts }, { status: 400 });
   if (error instanceof GoneError) return Response.json({ error: error.message }, { status: 410 });

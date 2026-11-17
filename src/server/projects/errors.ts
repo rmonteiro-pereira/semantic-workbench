@@ -1,4 +1,11 @@
 // Defines workspace errors translated into HTTP responses by the route layer.
+/** Reports that the branch, the head or a file differs from what a commit was prepared against. */
+export class PreconditionError extends Error {
+  constructor(public changed: { branch?: { expected: string; actual: string | null }; head?: { expected: string | null; actual: string | null }; files?: string[] }) {
+    super('The repository changed since this commit was prepared.');
+    this.name = 'PreconditionError';
+  }
+}
 /** Reports a changed base version and carries the current hash and source for conflict handling. */
 export class StaleError extends Error {
   constructor(

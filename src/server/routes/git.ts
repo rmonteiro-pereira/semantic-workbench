@@ -12,12 +12,29 @@ import type { Route } from './http';
 import type { HandlerOptions } from '../auth/middleware';
 import { BadRequestError, PublicationAdoptionError, SnapshotUnreadableError } from '../projects/errors';
 import { acknowledgePublication } from '../projects/scm-published';
+import type { CommitExpectation } from '../projects/scm';
 // Files are named relative to the project (`paths`) or to its repository root (`repoPaths`), the
 // latter for files of sibling projects in a shared repository.
 function chosenPaths(body: { paths?: unknown; repoPaths?: unknown }) {
   if (body.paths !== undefined && body.repoPaths !== undefined) throw new BadRequestError('Send paths or repoPaths, not both.');
   if (body.repoPaths !== undefined) return { list: body.repoPaths, base: 'repository' as const };
   return { list: body.paths, base: 'project' as const };
+}
+const FILE_VERSION = /^[0-9a-f]{64}$/;
+/**
+ * The branch, head and file versions a commit was prepared against, when the request names them.
+ * They come as a set: naming files without the branch and head, or the reverse, is a mistake.
+ */
+function commitExpectation(body: { files?: unknown; expectedBranch?: unknown; expectedHead?: unknown; paths?: unknown; repoPaths?: unknown }): CommitExpectation | undefined {
+  const named = [body.files, body.expectedBranch, body.expectedHead].filter(value => value !== undefined);
+  if (!named.length) return undefined;
+  if (named.length !== 3) throw new BadRequestError('Send files, expectedBranch and expectedHead together.');
+  if (body.paths !== undefined || body.repoPaths !== undefined) throw new BadRequestError('Send files or paths, not both.');
+  const { files, expectedBranch, expectedHead } = body;
+  const wellFormed = Array.isArray(files) && files.length > 0 && files.length <= 200 && files.every(file => file && typeof file.path === 'string' && FILE_VERSION.test(file.version));
+  if (!wellFormed || typeof expectedBranch !== 'string' || (expectedHead !== null && typeof expectedHead !== 'string'))
+    throw new BadRequestError('Expected files [{path, version}], expectedBranch and expectedHead.');
+  return { branch: expectedBranch, head: expectedHead, files };
 }
 // Commands that talk to the remote can run longer than the server's idle timeout without sending
 // a byte, so their connections are kept open.
@@ -98,7 +115,9 @@ export const createGitRoutes =
         return Response.json(await change(slug, list, base, reader));
       }
       if (action === 'git/commit') {
-        const requestBody = await body(['message', 'paths', 'repoPaths', 'push']);
+        const requestBody = await body(['message', 'paths', 'repoPaths', 'push', 'files', 'expectedBranch', 'expectedHead']);
+        const expected = commitExpectation(requestBody);
+        if (expected) requestBody.paths = expected.files.map(file => file.path);
         if (requestBody.push !== undefined && typeof requestBody.push !== 'boolean') throw new BadRequestError('push must be true or false.');
         await authorizeGitPaths(gitTarget, 'commit', {
           paths: requestBody.repoPaths ?? requestBody.paths,
@@ -114,6 +133,7 @@ export const createGitRoutes =
             push: requestBody.push === true,
             credentialFor: delegatedCredentials(req),
             author: reader.copy?.author,
+            expected,
           }),
         );
       }

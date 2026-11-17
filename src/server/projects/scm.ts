@@ -3,10 +3,10 @@ import type { OperationOutcome } from '../auth/operation-outcome';
 // detect bytes rewritten by hooks or filters.
 import type { AccessView } from '../auth/authorize';
 import { LOCAL_READER, type Reader } from './reader';
-import { BadRequestError, HiddenResourceError } from './errors';
+import { BadRequestError, HiddenResourceError, PreconditionError } from './errors';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { GitError, redactCredentials, type CommitAuthor, type CommitPathsResult, type Git } from './git';
+import { GitError, redactCredentials, symbolicBranch, type CommitAuthor, type CommitPathsResult, type Git } from './git';
 import { MergingError } from './errors';
 import { decode, sha256 } from './atomic';
 import { assertExactCase, assertNoLinks, projectPath, repoDir } from './paths';
@@ -15,6 +15,8 @@ import { HIDDEN_LABEL, asText, createScmContext, type PathBase, type CredentialF
 import { createScmRemote } from './scm-remote';
 import { createScmBranches } from './scm-branches';
 export { BlockedError, HIDDEN_LABEL, blockers, type CredentialFor, type FollowRequest, type FollowResult, type PathBase, type ScmDeps } from './scm-context';
+/** What a commit was prepared against: the branch, the head and the version of each file it names. */
+export type CommitExpectation = { branch: string; head: string | null; files: { path: string; version: string }[] };
 const REV = /^(HEAD|[0-9a-f]{7,64})$/;
 const NOT_COMMITTED_MESSAGE: Record<Extract<CommitPathsResult, { committed: false }>['reason'], string> = {
   'no-identity': 'Not committed: set your Git identity (user.name and user.email) for this repository.',
@@ -176,6 +178,25 @@ export function createScm(deps: ScmDeps) {
     await after(slug, altered);
     return { commit: head, altered };
   }
+  // Compares the repository with what a commit was prepared against, inside the repository's own turn.
+  async function assertExpected(slug: string, expected: CommitExpectation) {
+    const directory = dir(slug);
+    const [branch, head] = await Promise.all([symbolicBranch(git, directory), git.head(directory)]);
+    const changed: ConstructorParameters<typeof PreconditionError>[0] = {};
+    if (branch !== expected.branch) changed.branch = { expected: expected.branch, actual: branch };
+    if (head !== expected.head) changed.head = { expected: expected.head, actual: head };
+    const repositoryPaths = paths(
+      slug,
+      expected.files.map(file => file.path),
+      'project',
+    );
+    const files = expected.files.filter((file, index) => {
+      const absolute = join(directory, repositoryPaths[index]);
+      return !existsSync(absolute) || sha256(readFileSync(absolute)) !== file.version;
+    });
+    if (files.length) changed.files = files.map(file => file.path);
+    if (Object.keys(changed).length) throw new PreconditionError(changed);
+  }
   async function commitSelection(slug: string, list: unknown, base: PathBase) {
     const directory = dir(slug);
     const chosen = paths(slug, list, base);
@@ -270,16 +291,22 @@ export function createScm(deps: ScmDeps) {
         base?: PathBase;
         credentialFor?: CredentialFor;
         author?: CommitAuthor;
+        expected?: CommitExpectation;
       } = {},
     ) {
       if (typeof message !== 'string' || !message.trim()) throw new GitError('A commit message is required.');
       // A missing credential stops the request before the commit, so a retry commits only once.
       const choice = options.push ? await chooseRemote(slug, options.credentialFor) : null;
       const { author } = options;
-      const chosen = options.paths === undefined ? null : await commitSelection(slug, options.paths, options.base ?? 'project');
-      const authoring = await deps.beforeCommit?.(slug);
-      const committed = chosen === null ? await commitIndex(slug, message, author) : await commitChosen(slug, message, chosen, author);
-      const result = { ...committed, ...authoring };
+      const commitHere = async () => {
+        if (options.expected) await assertExpected(slug, options.expected);
+        const chosen = options.paths === undefined ? null : await commitSelection(slug, options.paths, options.base ?? 'project');
+        const authoring = await deps.beforeCommit?.(slug);
+        const committed = chosen === null ? await commitIndex(slug, message, author) : await commitChosen(slug, message, chosen, author);
+        return { ...committed, ...authoring };
+      };
+      // A commit prepared against a branch, a head and file versions checks them in the same turn of the repository's queue that commits.
+      const result = options.expected ? await git.exclusive(dir(slug), commitHere) : await commitHere();
       if (!options.push) return result;
       let pushed: { ok: boolean; message: string };
       try {

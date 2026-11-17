@@ -1,6 +1,7 @@
 // Runs the installed Git with argument arrays, timeouts, and a queue per repository. In local
 // mode credentials come from Git configuration; in server mode a remote command receives the
 // signed-in person's credential for that command only. Terminal prompts are disabled.
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { BadRequestError } from './errors';
@@ -200,6 +201,7 @@ export function createGit(options: GitOptions) {
   const remoteTimeoutMs = options.remoteTimeoutMs ?? REMOTE_TIMEOUT_MS;
   const queues = new Map<string, Promise<unknown>>();
   const cancels = new Map<string, () => void>();
+  const holding = new AsyncLocalStorage<string>();
   function insideProjects(cwd: string) {
     const dir = resolve(cwd);
     if (dir.startsWith(root + sep)) return dir;
@@ -290,8 +292,13 @@ export function createGit(options: GitOptions) {
     };
     if (opts.readOnly) return exec();
     const key = queueKey(dir);
+    // Work that holds the repository's turn runs its own commands inside that turn.
+    if (holding.getStore() === key) return exec();
+    return enqueue(key, exec);
+  }
+  function enqueue<T>(key: string, task: () => Promise<T>): Promise<T> {
     const previous = queues.get(key) ?? Promise.resolve();
-    const next = previous.catch(() => {}).then(exec);
+    const next = previous.catch(() => {}).then(task);
     queues.set(key, next);
     next
       .catch(() => {})
@@ -299,6 +306,11 @@ export function createGit(options: GitOptions) {
         if (queues.get(key) === next) queues.delete(key);
       });
     return next;
+  }
+  /** Runs several commands as one turn of the repository's queue, so no other command interleaves with them. */
+  function exclusive<T>(cwd: string, work: () => Promise<T>): Promise<T> {
+    const key = queueKey(insideProjects(cwd));
+    return enqueue(key, () => holding.run(key, work));
   }
   const read = (cwd: string, args: string[], allowFailure = false) =>
     run(cwd, ['--no-optional-locks', '-c', 'core.quotepath=off', ...args], {
@@ -506,6 +518,7 @@ export function createGit(options: GitOptions) {
     },
     merging,
     commitPaths,
+    exclusive,
     async branches(cwd: string) {
       const gitResult = await read(cwd, ['for-each-ref', '--format=%(refname)', 'refs/heads', 'refs/remotes']);
       const refs = gitResult.stdout.split('\n').filter(Boolean);

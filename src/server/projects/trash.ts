@@ -177,7 +177,7 @@ export function createTrash(ctx: TrashContext) {
   });
   // A guard, given in server mode, refuses deleting a file that holds an approved metric or a
   // protected property for someone who may not change them.
-  async function deleteFile(slug: string, path: string, deletedBy: string | undefined, { guard }: Reader, copy: string | null = null) {
+  async function deleteFile(slug: string, path: string, deletedBy: string | undefined, { guard }: Reader, copy: string | null = null, baseHash?: string) {
     const relativePath = projectPath(path);
     const project = registryEntry(assertSlug(slug));
     return lock(projectLockKey(slug, copy), async () => {
@@ -188,6 +188,8 @@ export function createTrash(ctx: TrashContext) {
       } catch {
         throw new NotFoundError('File not found.');
       }
+      // An edit that started from another version of the file must not remove the newer one.
+      if (baseHash !== undefined && baseHash !== sha256(bytes)) throw new StaleError(sha256(bytes), decode(bytes));
       guardDeletion(filesOf(copy), slug, relativePath, guard);
       const commit = ctx.head ? await ctx.head(filesOf(copy), slug) : '';
       const view = state.view(slug).files[relativePath];

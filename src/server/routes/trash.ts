@@ -81,8 +81,11 @@ const handleTrash = async (ws: Workspace, req: Request, url: URL, administration
   }
   const file = pathname.match(/^\/api\/projects\/([^/]+)\/files\/(.+)$/);
   if (file && req.method === 'DELETE') {
-    requireConfirm(await readJson(req, TRASH_REQUEST_LIMIT));
-    return Response.json(await ws.deleteFile(decodeSegment(file[1]), decodePath(file[2]), reader));
+    const body = await readJson(req, TRASH_REQUEST_LIMIT);
+    requireConfirm(body);
+    if (body.baseHash !== undefined && (typeof body.baseHash !== 'string' || !/^[0-9a-f]{64}$/.test(body.baseHash)))
+      throw new BadRequestError('baseHash must be the SHA-256 of the file version being deleted.');
+    return Response.json(await ws.deleteFile(decodeSegment(file[1]), decodePath(file[2]), reader, body.baseHash));
   }
   const project = pathname.match(/^\/api\/projects\/([^/]+)$/);
   if (project && req.method === 'DELETE') {

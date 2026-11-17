@@ -11,12 +11,15 @@ import { fail, type ToolResult } from './tool-results';
 export type TwinAnswer = { status: number; body: unknown; headers: Headers };
 
 /** Calls the twin of an inventory operation. A failed call is already a tool result. */
-export type TwinCall = (operationId: string, input: TwinRequestInput) => Promise<{ ok: true; answer: TwinAnswer } | { ok: false; failure: ToolResult }>;
+export type TwinCall = (operationId: string, input: TwinRequestInput) => Promise<{ ok: true; answer: TwinAnswer } | { ok: false; failure: ToolResult; answer?: TwinAnswer }>;
 
 function plainSentence(body: unknown, fallback: string): string {
   if (body && typeof body === 'object' && 'error' in body && typeof body.error === 'string' && body.error.length < 400) return body.error;
   return fallback;
 }
+
+/** Git answers that are a refusal the person can act on, not a failure of Git. */
+const GIT_REFUSAL = /^(Nothing to commit|Not committed|Nothing is staged|Resolve the conflicted)/;
 
 /** Local agent and document routes answer every error as 400, so a missing target is recognised by its sentence. */
 function looksMissing(message: string): boolean {
@@ -35,13 +38,17 @@ export function mapTwinFailure(operationId: string, answer: TwinAnswer): ToolRes
   if (status === 404) return fail('not_found', 'The target does not exist or is not available to you.');
   if (status === 403 && Array.isArray(record.guarded)) return fail('guard_refused', message, { guarded: record.guarded });
   if (status === 403) return fail('refused', message);
-  if (status === 409 && record.code === 'no-published-snapshot') return fail('not_published', 'No published snapshot answers this request yet. Publish the project from the browser first.', { reason: record.reason });
-  if (status === 409 && record.error === 'stale') return fail('conflict', 'The file changed since the version this edit started from.', { currentVersion: record.currentHash ?? null, currentSource: record.currentSource ?? null });
+  if (status === 409 && record.code === 'no-published-snapshot')
+    return fail('not_published', 'No published snapshot answers this request yet. Publish the project from the browser first.', { reason: record.reason });
+  if (status === 409 && record.error === 'precondition')
+    return fail('precondition_failed', 'The repository changed since this commit was prepared. Read the state again and retry.', { changed: record.changed });
+  if (status === 409 && record.error === 'stale') return fail('conflict', 'The file changed since the version this edit started from.', { currentVersion: record.currentHash ?? null });
   if (status === 409) return fail('conflict', message, record.paths ? { paths: record.paths } : undefined);
   if (status === 413) return fail('limit_exceeded', message, { limit: record.limitBytes ?? 'request' });
   if (status === 400 && /git is not available|not a git repository/i.test(message)) return fail('unavailable', 'Git is not available for this project.');
   if (status === 400 && looksMissing(message)) return fail('not_found', 'The target does not exist or is not available to you.');
   if (status === 400) return fail('invalid_input', message, Array.isArray(record.issues) ? { issues: record.issues } : undefined);
+  if (status === 500 && operationId.startsWith('git.') && GIT_REFUSAL.test(message)) return fail('refused', message);
   if (status === 500 && operationId.startsWith('git.')) return fail('unavailable', 'Git could not answer this request.');
   return fail('internal', 'The workbench could not complete this request.');
 }
@@ -69,6 +76,6 @@ export function createTwinCall(boundary: OperationBoundary, caller: Caller, sign
     const { response } = await boundary.operate({ caller, request, operationId });
     const answer: TwinAnswer = { status: response.status, body: await readBody(response), headers: response.headers };
     if (answer.status >= 200 && answer.status < 300) return { ok: true, answer };
-    return { ok: false, failure: mapTwinFailure(operationId, answer) };
+    return { ok: false, failure: mapTwinFailure(operationId, answer), answer };
   };
 }
