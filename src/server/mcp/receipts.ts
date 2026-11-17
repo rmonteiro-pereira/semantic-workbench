@@ -1,6 +1,6 @@
 // Durable receipts that make delete, restore and commit safe to retry. A receipt is written before the effect and completed after it, so a retry after a crash or a lost answer gets the original result, or an honest "uncertain", and never a second effect. File text is never stored.
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { atomicWriteJson } from '../projects/atomic';
 import { fail, type ToolResult } from './tool-results';
@@ -54,34 +54,43 @@ export function argumentsHash(args: Record<string, unknown>): string {
 
 /** Opens the receipt store under a state folder. Month files hold receipts keyed by id and are rewritten atomically. */
 export function createReceiptStore(directory: string, now: () => Date = () => new Date()): ReceiptStore {
-  const inFlight = new Set<string>();
+  // The arguments hash of each call that is running, by receipt id, so a second call with the key is answered before it reads or prepares anything.
+  const inFlight = new Map<string, string>();
   function fileFor(createdAt: string) {
     return join(directory, `${createdAt.slice(0, 7)}.json`);
   }
-  function readMonth(file: string): Record<string, Receipt> {
-    if (!existsSync(file)) return {};
+  /** A month file that cannot be parsed is moved aside for a person to inspect, and the month starts empty. */
+  function readMonth(file: string): { receipts: Record<string, Receipt>; corrupt: boolean } {
+    if (!existsSync(file)) return { receipts: {}, corrupt: false };
     try {
-      return JSON.parse(readFileSync(file, 'utf8'));
+      return { receipts: JSON.parse(readFileSync(file, 'utf8')), corrupt: false };
     } catch {
-      return {};
+      renameSync(file, `${file}.corrupt-${now().getTime()}`);
+      return { receipts: {}, corrupt: true };
     }
   }
-  function find(id: string): Receipt | undefined {
+  /** An expired receipt is absent. A corrupt month file means the key may have been used, which only "uncertain" answers honestly. */
+  function find(id: string): Receipt | 'corrupt' | undefined {
     mkdirSync(directory, { recursive: true });
+    let sawCorrupt = false;
     for (const name of readdirSync(directory).filter(entry => entry.endsWith('.json'))) {
-      const found = readMonth(join(directory, name))[id];
-      if (found) return found;
+      const month = readMonth(join(directory, name));
+      sawCorrupt ||= month.corrupt;
+      const found = month.receipts[id];
+      if (found && found.expiresAt > now().toISOString()) return found;
     }
-    return undefined;
+    return sawCorrupt ? 'corrupt' : undefined;
   }
   function save(receipt: Receipt) {
     mkdirSync(directory, { recursive: true });
     const file = fileFor(receipt.createdAt);
-    atomicWriteJson(file, { ...readMonth(file), [receipt.id]: receipt });
+    atomicWriteJson(file, { ...readMonth(file).receipts, [receipt.id]: receipt });
   }
   function forget(receipt: Receipt) {
     const file = fileFor(receipt.createdAt);
-    const month = readMonth(file);
+    const month = readMonth(file).receipts;
+    // A newer receipt under the same id is not this call's to remove.
+    if (month[receipt.id]?.createdAt !== receipt.createdAt) return;
     delete month[receipt.id];
     if (Object.keys(month).length) atomicWriteJson(file, month);
     else rmSync(file, { force: true });
@@ -90,7 +99,7 @@ export function createReceiptStore(directory: string, now: () => Date = () => ne
     if (!existsSync(directory)) return;
     for (const name of readdirSync(directory).filter(entry => entry.endsWith('.json'))) {
       const file = join(directory, name);
-      const month = readMonth(file);
+      const month = readMonth(file).receipts;
       const kept = Object.fromEntries(Object.entries(month).filter(([, receipt]) => receipt.expiresAt > now().toISOString()));
       if (Object.keys(kept).length === Object.keys(month).length) continue;
       if (Object.keys(kept).length) atomicWriteJson(file, kept);
@@ -102,40 +111,47 @@ export function createReceiptStore(directory: string, now: () => Date = () => ne
     save({ ...receipt, state: verified ? 'done' : 'uncertain', ...(verified ? { result: verified } : {}) });
     return verified ?? fail('uncertain', 'The earlier attempt may or may not have completed. Read the current state before trying again.');
   }
+  async function runOnce(request: ReceiptRequest, id: string, hash: string): Promise<ToolResult> {
+    const existing = find(id);
+    if (existing === 'corrupt') return fail('uncertain', 'The record of earlier attempts could not be read, so this key may have been used. Read the current state before trying again.');
+    if (existing && existing.argumentsHash !== hash) return fail('key_reused', 'This idempotency key was already used with different arguments. Use a new key for a new request.');
+    if (existing?.state === 'done' && existing.result) return existing.result;
+    if (existing?.state === 'uncertain') return fail('uncertain', 'The earlier attempt may or may not have completed. Read the current state before trying again.');
+    if (existing?.state === 'pending') return afterRestart(existing, request);
+    const prepared = request.prepare ? await request.prepare() : {};
+    if ('ok' in prepared && typeof prepared.ok === 'boolean') return prepared as ToolResult;
+    const created = now().toISOString();
+    const receipt: Receipt = {
+      note: prepared,
+      id,
+      principalId: request.principalId,
+      tool: request.tool,
+      argumentsHash: hash,
+      state: 'pending',
+      createdAt: created,
+      expiresAt: new Date(now().getTime() + RECEIPT_RETENTION_MS).toISOString(),
+    };
+    save(receipt);
+    const result = await request.effect();
+    // A refusal left nothing behind, so the key stays usable for a corrected retry.
+    if (result.ok) save({ ...receipt, state: 'done', result });
+    else forget(receipt);
+    return result;
+  }
+  prune();
   return {
     prune,
     async run(request) {
       const id = sha256(`${request.principalId}\n${request.tool}\n${request.idempotencyKey}`);
       const hash = argumentsHash(request.args);
-      const existing = find(id);
-      if (existing && existing.argumentsHash !== hash) return fail('key_reused', 'This idempotency key was already used with different arguments. Use a new key for a new request.');
-      if (existing?.state === 'done' && existing.result) return existing.result;
-      if (existing?.state === 'uncertain') return fail('uncertain', 'The earlier attempt may or may not have completed. Read the current state before trying again.');
-      if (existing?.state === 'pending') {
-        if (inFlight.has(id)) return fail('rate_limited', 'The first attempt with this key is still running.', { retryAfterSeconds: 1 });
-        return afterRestart(existing, request);
+      const running = inFlight.get(id);
+      if (running !== undefined) {
+        if (running !== hash) return fail('key_reused', 'This idempotency key was already used with different arguments. Use a new key for a new request.');
+        return fail('rate_limited', 'The first attempt with this key is still running.', { retryAfterSeconds: 1 });
       }
-      const prepared = request.prepare ? await request.prepare() : {};
-      if ('ok' in prepared && typeof prepared.ok === 'boolean') return prepared as ToolResult;
-      const created = now().toISOString();
-      const receipt: Receipt = {
-        note: prepared,
-        id,
-        principalId: request.principalId,
-        tool: request.tool,
-        argumentsHash: hash,
-        state: 'pending',
-        createdAt: created,
-        expiresAt: new Date(now().getTime() + RECEIPT_RETENTION_MS).toISOString(),
-      };
-      save(receipt);
-      inFlight.add(id);
+      inFlight.set(id, hash);
       try {
-        const result = await request.effect();
-        // A refusal left nothing behind, so the key stays usable for a corrected retry.
-        if (result.ok) save({ ...receipt, state: 'done', result });
-        else forget(receipt);
-        return result;
+        return await runOnce(request, id, hash);
       } finally {
         inFlight.delete(id);
       }

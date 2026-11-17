@@ -315,7 +315,7 @@ The agent endpoint needs no environment variable. It uses `DATA_DIR` and `SW_POR
 | File or command | Meaning |
 | --- | --- |
 | `<data root>/state/mcp-capability` | The local capability: one line of 43 characters, created on first start with owner-only access. Local mode refuses to mount the endpoint when owner-only access cannot be set. |
-| `<data root>/state/mcp-receipts/<year>-<month>.json` | Receipts that make delete, restore and commit safe to retry, kept for seven days. They hold no file text. |
+| `<data root>/state/mcp-receipts/<year>-<month>.json` | Receipts that make delete, restore and commit safe to retry, kept for seven days, removed when the endpoint starts and ignored once expired. An unreadable file is moved aside as `*.corrupt-<time>` and the call that found it is answered `uncertain`. They hold no file text. |
 | `bun run mcp:rotate` | Replaces the capability; the old value stops working on the next request. |
 
 Server mode never mounts the endpoint. See [the agent endpoint guide](mcp.md).

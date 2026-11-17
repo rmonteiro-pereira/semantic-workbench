@@ -1,11 +1,11 @@
 // Receipts make delete, restore and commit safe to retry: the original result comes back, a different request with the key is refused, a crash at any step never causes a second effect, and no file text is stored.
 import { afterAll, beforeAll, expect, test } from 'bun:test';
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { localPrincipal } from '../../src/server/auth/principal';
 import { createReceiptStore, RECEIPT_RETENTION_MS, type ReceiptStore } from '../../src/server/mcp/receipts';
 import { TOOLS } from '../../src/server/mcp/tool-registry';
-import { succeed } from '../../src/server/mcp/tool-results';
+import { fail, succeed } from '../../src/server/mcp/tool-results';
 import { toolRunner } from './helpers/in-process-tools';
 import { startLocalServer, type LocalServer } from './helpers/local-server';
 
@@ -168,4 +168,73 @@ test('a commit whose answer was lost is recognised from the Git log after a rest
   expect(recovered).toMatchObject({ ok: true });
   expect((await log()).length).toBe(commitsAfterEffect);
   expect((await log())[0].commit).toBe((recovered as unknown as { data: { commit: string } }).data.commit);
+});
+
+const simpleRequest = (idempotencyKey: string, effect: () => Promise<ReturnType<typeof succeed>>, prepare?: () => Promise<Record<string, unknown>>) => ({
+  principalId: 'local',
+  tool: 'git_commit',
+  idempotencyKey,
+  args: { m: 1 },
+  prepare,
+  effect,
+  verify: async () => null,
+});
+
+test('a second call with the key while the first is still preparing is told to wait, and the first receipt survives', async () => {
+  const directory = join(server.root, 'receipts-preparing');
+  const store = createReceiptStore(directory);
+  let release!: () => void;
+  const gate = new Promise<void>(resolve => (release = resolve));
+  let effects = 0;
+  const first = store.run(
+    simpleRequest(
+      'preparing-key-000001',
+      async () => (effects++, succeed({ n: effects })),
+      async () => {
+        await gate;
+        return {};
+      },
+    ),
+  );
+  await Bun.sleep(20);
+  const second = await store.run(simpleRequest('preparing-key-000001', async () => (effects++, succeed({ n: effects }))));
+  expect(second).toMatchObject({ ok: false, error: { code: 'rate_limited' } });
+  release();
+  const finished = await first;
+  expect(finished.ok).toBe(true);
+  expect(await store.run(simpleRequest('preparing-key-000001', async () => succeed({ n: 99 })))).toEqual(finished);
+  expect(effects).toBe(1);
+});
+
+test('a refusal removes only its own receipt', async () => {
+  const directory = join(server.root, 'receipts-forget');
+  const store = createReceiptStore(directory);
+  const refused = await store.run(simpleRequest('forget-key-00000001', async () => fail('refused', 'No.')));
+  expect(refused.ok).toBe(false);
+  const retried = await store.run(simpleRequest('forget-key-00000001', async () => succeed({ n: 2 })));
+  expect(retried).toMatchObject({ ok: true, data: { n: 2 } });
+});
+
+test('an expired receipt is absent before it is pruned, and opening the store prunes', async () => {
+  let now = new Date('2026-11-01T00:00:00Z');
+  const directory = join(server.root, 'receipts-expiry');
+  const store = createReceiptStore(directory, () => now);
+  await store.run(simpleRequest('expiry-key-000000001', async () => succeed({ n: 1 })));
+  now = new Date(now.getTime() + RECEIPT_RETENTION_MS + 1000);
+  expect(await store.run(simpleRequest('expiry-key-000000001', async () => succeed({ n: 2 })))).toMatchObject({ ok: true, data: { n: 2 } });
+  now = new Date(now.getTime() + RECEIPT_RETENTION_MS + 1000);
+  createReceiptStore(directory, () => now);
+  expect(readdirSync(directory)).toEqual([]);
+});
+
+test('a month file that cannot be read is moved aside and the call is answered uncertain', async () => {
+  const directory = join(server.root, 'receipts-corrupt');
+  const store = createReceiptStore(directory);
+  await store.run(simpleRequest('corrupt-key-00000001', async () => succeed({ n: 1 })));
+  const [monthFile] = readdirSync(directory);
+  writeFileSync(join(directory, monthFile), '{ not json');
+  const answer = await store.run(simpleRequest('corrupt-key-00000001', async () => succeed({ n: 2 })));
+  expect(answer).toMatchObject({ ok: false, error: { code: 'uncertain' } });
+  expect(readdirSync(directory).some(name => name.includes('.corrupt-'))).toBe(true);
+  expect(readdirSync(directory).some(name => name === monthFile)).toBe(false);
 });
