@@ -138,3 +138,34 @@ test('retention removes expired receipts and an expired key is a new call', asyn
   await store.run(request());
   expect(effects).toBe(2);
 });
+
+test('a commit whose answer was lost is recognised from the Git log after a restart, and never committed twice', async () => {
+  const directory = join(server.root, 'receipts-commit');
+  const path = 'commerce.mapping.yaml';
+  const before = await current(path);
+  await server.handler(
+    new Request(`${server.url}/api/projects/${PROJECT}/files/${path}`, { method: 'PUT', body: JSON.stringify({ baseHash: before.hash, patches: [{ from: 0, to: 0, insert: '# commit me\n' }] }) }),
+  );
+  const edited = await current(path);
+  const log = async () => (await (await server.handler(new Request(`${server.url}/api/projects/${PROJECT}/git/log`))).json()) as { commit: string; message: string }[];
+  const branches = (await (await server.handler(new Request(`${server.url}/api/projects/${PROJECT}/git/branches`))).json()) as { current: string };
+  const args = {
+    project: PROJECT,
+    message: 'Lost answer',
+    files: [{ path, version: edited.hash }],
+    expectedBranch: branches.current,
+    expectedHead: (await log())[0].commit,
+    idempotencyKey: 'commit-lost-answer-001',
+  };
+  const crashing = createReceiptStore(directory);
+  const dying = {
+    ...crashing,
+    run: (request: Parameters<ReceiptStore['run']>[0]) => crashing.run({ ...request, effect: async () => (await request.effect(), Promise.reject(new Error('simulated crash'))) }),
+  };
+  await expect(runner(dying).run('git_commit', args)).rejects.toThrow('simulated crash');
+  const commitsAfterEffect = (await log()).length;
+  const recovered = await runner(createReceiptStore(directory)).run('git_commit', args);
+  expect(recovered).toMatchObject({ ok: true });
+  expect((await log()).length).toBe(commitsAfterEffect);
+  expect((await log())[0].commit).toBe((recovered as unknown as { data: { commit: string } }).data.commit);
+});
