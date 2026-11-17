@@ -12,7 +12,11 @@ The conflict resolutions preserve operation boundary mutation coverage and the a
 - T064 is partially accepted. `81bee1e1` preserves the sidebar spacing and reuses the content cap for the metrics list. The metric detail remains beside that list. Moving it onto the same left edge as other tabs would redesign the approved master/detail layout, so that portion is skipped. See the measured offsets in `E.md`.
 - T035 and T055 were already checked and their final lane evidence records successful runs. T009, T023, T047 and T073 remain unchecked because their lane evidence records failed or blocked checks. Pre-rebase results below do not settle the rebased gate.
 
-Midgard execution is pending a transfer method consistent with the no-push limit. The installed `sw-midgard-run` calls `git push --force` before its SSH command, so it has not been invoked. No heavy verification ran locally after this rebase. T075, T076 and T078 are open.
+The rebased candidate under test is `c8a99063d82a2e1e92758da847de631bb80cb743`. Heavy verification runs through `sw-midgard-run` in the isolated Midgard checkout. Its Git transfer goes to the authorized scratch bare repository. No project remote received a push.
+
+The suite driver checks available memory before each command, waits below 8 GB, and records terminal output and exit status per command. It runs unit tests, check, build, the mutation gate and each of the 36 registered browser suites serially. The suite log and completion status are written under `out/gate-007/suites/` on Midgard.
+
+Reported failures on middle revision `5597ae52`: `test:responsive` observed a 481 px canvas at 1280×720 where the compact-shell check requires more than 504 px. This is distinct from the 421 px minimum on the Mall ODCS Graph. `test:admin` failed at the Dry-run result step. Candidate comparison results are pending.
 
 The comparison fixture consists of the seven release projects with 36 unique source files.
 Each file was read once from the release Git blob using `git show` and hashed with SHA-256.
