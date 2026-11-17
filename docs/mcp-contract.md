@@ -37,6 +37,8 @@ published snapshot reader is present.
 | `restore_file` | `POST /api/trash/:entry/restore` | restoreOwn | false | false | true | false | receipt-backed |
 | `git_commit` | `POST .../git/commit` | commit | false | false | true | false | receipt-backed |
 
+A `git_commit` answer is `{ commit, branch, files }`, plus `movedFrom` when the commit left the default branch and `altered` (the paths whose committed bytes differ from the listed versions) when a hook or filter rewrote them. An altered commit is a success, so its receipt is kept.
+
 ## Route dispositions
 
 Every row of `ROUTE_ACTIONS` in `src/server/auth/route-actions.ts` is an exposed tool, a named later

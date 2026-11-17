@@ -238,3 +238,13 @@ test('a month file that cannot be read is moved aside and the call is answered u
   expect(readdirSync(directory).some(name => name.includes('.corrupt-'))).toBe(true);
   expect(readdirSync(directory).some(name => name === monthFile)).toBe(false);
 });
+
+test('a commit answer that reports altered files is kept, and a retry with the key returns it without a second effect', async () => {
+  const store = createReceiptStore(join(server.root, 'receipts-altered'));
+  let effects = 0;
+  const altered = simpleRequest('altered-key-0000001', async () => (effects++, succeed({ commit: 'abc', branch: 'work/local', files: ['a.yaml'], altered: ['a.yaml'] })));
+  const first = await store.run(altered);
+  expect(first).toMatchObject({ ok: true, data: { altered: ['a.yaml'] } });
+  expect(await store.run(altered)).toEqual(first);
+  expect(effects).toBe(1);
+});

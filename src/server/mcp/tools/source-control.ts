@@ -227,15 +227,13 @@ const gitCommit: ToolDefinition = {
         const called = await context.twin('git.commit', { params: { slug: args.project }, body });
         if (!called.ok) return called.failure;
         const committed = called.answer.body as { commit: string; branch?: string; movedFrom?: string; altered?: string[] };
-        // A hook or a filter rewrote a file after it was saved, so the commit holds bytes the caller never listed.
-        if (committed.altered?.length) {
-          return fail('conflict', 'The commit was made, but these files changed while it was made and no longer match what you listed.', { commit: committed.commit, altered: committed.altered });
-        }
         return succeed({
           commit: committed.commit,
           branch: committed.branch ?? args.expectedBranch,
           ...(committed.movedFrom ? { movedFrom: committed.movedFrom } : {}),
           files: args.files.map(file => file.path),
+          // A hook or a filter rewrote these after they were saved, so the commit holds bytes the caller never listed. The commit happened, so this is data, and a retry gets the same answer.
+          ...(committed.altered?.length ? { altered: committed.altered } : {}),
         });
       },
       verify: () => commitHappened(args, context),
