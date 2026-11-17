@@ -1424,3 +1424,5 @@ feb35ab7 test: record recovered authentication browser gate
 - Reconciliation records now use `r-<operationId>-0`, distinct from save/move `m-` and deletion `d-` records. The idempotency lookup uses the same namespace; a same-key construction regression covers the separation.
 - `bun test tests/address-reconciliation.test.ts`: 2 pass, 0 fail, 13 expect() calls.
 - `bun test tests/address-migration-store.test.ts`: 14 pass, 0 fail, 144 expect() calls.
+- Removed the one-off inspector timing script from the production scripts directory: it depended on an old feature-base commit and a fixed temporary path. Earlier measured timing evidence stays historical; no package command or source caller referenced this script.
+- Reference inspection (`rg -n 'item-address-timing' scripts src tests docs README.md package.json`) found no remaining runtime, test or command references.
