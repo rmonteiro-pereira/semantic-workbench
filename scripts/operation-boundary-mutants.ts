@@ -1,6 +1,8 @@
 // Faults that exercise the guarantees preserved by the shared operation entry point.
 /** Deliberate boundary faults paired with the focused operation assertions. */
 export const operationBoundaryMutants: [string, string, string, string][] = [
+  ['operation-boundary', 'src/server/auth/operation-boundary.ts', 'await executeOperation(entry, () => run(input.request))', 'await run(input.request)'],
+  ['operation-boundary', 'src/server/auth/operation-execution.ts', 'operation && !operation.steps.includes(id)', 'false'],
   ['operation-boundary', 'src/server/auth/route-verdict.ts', "(row.targets !== 'body' && !client)", 'false'],
   [
     'operation-boundary',

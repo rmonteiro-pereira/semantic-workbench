@@ -22,7 +22,8 @@ import { worktreesWithPublication } from './publication-mutation-cases';
 import { publicationQueueCase } from '../tests/helpers/publication-queue-case';
 import { publicationMoveFixture } from '../tests/helpers/publication-fixture';
 import { attachRequestSurface } from '../src/server/auth/request-surface';
-import type { surfaceFromCredential } from '../src/server/auth/request-surface';
+import { mintCaller } from '../src/server/auth/caller';
+import type { requestSurface } from '../src/server/auth/request-surface';
 import { join } from 'node:path';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { publicationRepository } from '../tests/helpers/git-fixtures';
@@ -48,7 +49,8 @@ export async function snapshotMutationCase(
     createAgentRoutes?: typeof agentRoutes.createAgentRoutes;
     createPreviewRoutes?: typeof agentRoutes.createPreviewRoutes;
     publishedAgentDocuments?: typeof agentRoutes.publishedAgentDocuments;
-    surfaceFromCredential?: typeof surfaceFromCredential;
+    attachRequestSurface?: typeof attachRequestSurface;
+    requestSurface?: typeof requestSurface;
     createWorktrees?: typeof createWorktrees;
     createPublication?: typeof createPublication;
     defaultBranchAt?: typeof defaultBranchAt;
@@ -104,9 +106,9 @@ export async function snapshotMutationCase(
     const access = createAccessControl({ ...accessFixture(), mode: 'local', knownProjects: () => [slug] });
     const request = Object.assign(new Request(`http://localhost/api/preview/catalog?project=${slug}`), { [requestAccess]: access.forRequest(localPrincipal()) });
     assert.equal(await route(fixture.ws, request, new URL(request.url)), null);
-    attachRequestSurface(request, { mode: 'local', session: false, originAllowed: true });
+    attachRequestSurface(request, mintCaller({ principal: localPrincipal(), origin: 'http' }));
     const browser = Object.assign(new Request(request, { headers: { 'Sec-Fetch-Site': 'same-origin' } }), { [requestAccess]: access.forRequest(localPrincipal()) });
-    attachRequestSurface(browser, { mode: 'local', session: false, originAllowed: true });
+    attachRequestSurface(browser, mintCaller({ principal: localPrincipal(), origin: 'http', surface: 'browser' }));
     assert.equal((await route(fixture.ws, browser, new URL(browser.url)))?.status, 200);
   }
   if (category === 'snapshot-adoption') await adoptionCase(candidate);
@@ -145,7 +147,9 @@ export async function snapshotMutationCase(
     assert.ok(!(await response!.text()).includes('Unpublished mapping'));
   }
   if (category === 'snapshot-surface') {
-    assert.equal(candidate.surfaceFromCredential!(new Request('http://localhost/'), { mode: 'local', session: false, originAllowed: true }), 'agent');
+    const request = new Request('http://localhost/');
+    candidate.attachRequestSurface!(request, mintCaller({ principal: localPrincipal(), origin: 'mcp', surface: 'browser' }));
+    assert.equal(candidate.requestSurface!(request), 'agent');
   }
   if (category === 'snapshot-default') {
     const fixture = publicationRepository();

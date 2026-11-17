@@ -1155,3 +1155,13 @@ have separate parity and published-definition tests.
 
 Remote `bun test tests/auth/http-characterization.test.ts`: `1 pass, 0 fail,
 1576 expect() calls; Ran 1 test across 1 file. [21.00s]`.
+
+
+### Mutation proof integration
+
+Updated the surface mutant and its assertions to authenticated caller metadata. Added faults
+for dropping the admitted execution context and accepting an unowned internal step. Existing
+default-selection, abandoned-intent and single-queue mutants remain registered. The boundary
+mutation baseline ran remotely with `bun scripts/mutation-case.ts
+$PWD/src/server/auth/operation-boundary.ts operation-boundary`: `operation boundary baseline exit 0`.
+The complete mutation gate remains required below.

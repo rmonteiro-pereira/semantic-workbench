@@ -12,6 +12,7 @@ import type { OperationCall } from '../src/server/auth/operation-boundary';
 async function setup(target: string, fixture: Awaited<ReturnType<typeof authWorkspace>>, options = accessFixture()) {
   const folder = dirname(target);
   const { createAccessMiddleware } = await import(join(folder, 'middleware.ts'));
+  const { operationStep } = await import(join(folder, 'operation-execution.ts'));
   const { createAccessControl } = await import(join(folder, 'authorize.ts'));
   const { mintCaller } = await import(join(folder, 'caller.ts'));
   const { createAuditLog } = await import(join(folder, 'audit.ts'));
@@ -20,13 +21,14 @@ async function setup(target: string, fixture: Awaited<ReturnType<typeof authWork
   const { sampleReplayEntries } = await import(join(folder, 'replay-sample.ts'));
   const access = createAccessControl(options);
   const audit = createAuditLog({ dir: join(fixture.root, 'operation-mutations') });
-  const state = { response: Response.json({ ran: true }), error: undefined as Error | undefined };
+  const state = { response: Response.json({ ran: true }), error: undefined as Error | undefined, step: undefined as string | undefined };
   const handler = createAccessMiddleware(
     fixture.ws,
     { mode: 'server', access, audit },
     () => null,
     async () => {
       if (state.error) throw state.error;
+      if (state.step) operationStep(state.step, () => {});
       return state.response;
     },
   );
@@ -39,7 +41,12 @@ async function setup(target: string, fixture: Awaited<ReturnType<typeof authWork
 type Context = Awaited<ReturnType<typeof setup>>;
 
 async function dispatchCases(context: Context) {
-  const { caller, invoke, mintCaller, access } = context;
+  const { caller, invoke, mintCaller, access, state } = context;
+  state.step = 'snapshot.read';
+  assert.equal((await invoke(caller('dave'), '/api/agent/catalog')).status, 200, 'admitted snapshot step');
+  state.step = 'publication.advance';
+  await assert.rejects(invoke(caller('dave'), '/api/agent/catalog'), /does not own internal step/, 'snapshot cannot advance a publication');
+  state.step = undefined;
   const { clientPrincipal } = await import(join(context.folder, 'principal.ts'));
   assert.deepEqual(await (await invoke(caller('erin'), '/api/projects')).json(), { error: 'no access' }, 'no-grant refusal');
   assert.equal((await invoke(caller('bob'), '/api/audit')).status, 200, 'Steward audit scope');
