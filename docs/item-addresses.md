@@ -97,6 +97,8 @@ For repeated reads, `itemKeyLookup` prepares canonical and legacy indexes for on
 Validation builds the index lazily and reuses it within that call; callers recreate it after edits.
 Canonical keys take precedence over colliding legacy labels.
 
+`documentAddress(project, path)` constructs a canonical document locator with the same escaping and validation as item locators.
+
 ## Pure migration API
 
 `migrateAddress(address, records, resolved)` leaves a resolving locator unchanged. Otherwise it applies distinct record

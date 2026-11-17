@@ -65,6 +65,7 @@ export type DocumentSaveContext = {
   layout: DataLayout;
   git: Git;
   gitAvailable: boolean;
+  localCommit: (files: DataLayout, project: string) => Promise<string>;
   journal: Journal;
   state: State;
   copies: WorkingCopies;
@@ -77,7 +78,11 @@ export type DocumentSaveContext = {
 
 /** Document use cases: saving one or several files, and reverting a file to its committed text. */
 export function createDocumentSave(ctx: DocumentSaveContext) {
-  const { layout, git, gitAvailable, journal, state, copies, trash, lock, entry, projectLock, rescanIn } = ctx;
+  const { layout, git, gitAvailable, localCommit, journal, state, copies, trash, lock, entry, projectLock, rescanIn } = ctx;
+  async function saveMigrations(files: DataLayout, project: string, id: string, declarations: DeclaredMigration[], deletedItems: string[]) {
+    const commit = declarations.length || deletedItems.length ? await localCommit(files, project) : '';
+    return operationMigrations({ id, at: new Date().toISOString(), commit }, [...declarations, ...deletedItems.map(from => ({ kind: 'deleted' as const, from }))]);
+  }
   // The edit a save makes to the file in a place: a stale base is refused, and the reader's
   // guard, given in server mode, may refuse it or store an approved metric as proposed.
   async function guardedEdit(place: Place, file: GuardedFile, body: { baseHash: string | null; source?: string; patches?: Patch[] }, guard: ContentGuard | undefined) {
@@ -130,15 +135,14 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
       const indexed = indexBytes(slug, relativePath, bytes);
       if (!indexed.file.visible) throw new InputError([{ severity: 'error', code: 'unsupported', path: '/', message: 'Unsupported file type.' }]);
       if (!indexed.file.valid) throw new InputError(indexed.findings);
-      const commit = (declarations.length || deletedItems.length) && gitAvailable ? ((await git.head(repoDir(place.layout, slug))) ?? '') : '';
       const opId = journal.newId();
+      const records = await saveMigrations(place.layout, slug, opId, declarations, deletedItems);
       const staging = join(layout.state, `.staging-${opId}`);
       const staged = join(staging, 'source');
       const hash = atomicWrite(staged, bytes);
       const steps = clearPersonalDrafts(state, slug, [relativePath], staging, place.copy ?? undefined);
       if (existsSync(file)) steps.push({ from: file, to: join(staging, 'previous') });
       steps.push({ from: staged, to: file });
-      const records = operationMigrations({ id: opId, at: new Date().toISOString(), commit }, [...declarations, ...deletedItems.map(from => ({ kind: 'deleted' as const, from }))]);
       try {
         steps.push(...stageAddressMigrations({ layout, project: slug, staging }, records));
         journal.run('save', steps, [staging], opId);
@@ -264,8 +268,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
             place.copy ?? undefined,
           ),
         );
-        const commit = (declarations.length || deletedItems.length) && gitAvailable ? ((await git.head(repoDir(place.layout, slug))) ?? '') : '';
-        const records = operationMigrations({ id: opId, at: new Date().toISOString(), commit }, [...declarations, ...deletedItems.map(from => ({ kind: 'deleted' as const, from }))]);
+        const records = await saveMigrations(place.layout, slug, opId, declarations, deletedItems);
         steps.push(...stageAddressMigrations({ layout, project: slug, staging }, records));
         journal.run(kind, steps, [staging], opId);
       } catch (error) {

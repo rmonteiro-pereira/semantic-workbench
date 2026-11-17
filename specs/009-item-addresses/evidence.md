@@ -1417,3 +1417,7 @@ feb35ab7 test: record recovered authentication browser gate
 - Save APIs and every caller now use options objects: browser saves carry patches/declarations/deletions there, and workspace batch saves carry their journal kind and typed declarations there. Removed positional-array and string compatibility branches.
 - `bun test tests/address-declared-save.test.ts`: 4 pass, 0 fail, 30 expect() calls.
 - `bun test tests/save-reply.test.ts`: 2 pass, 0 fail, 8 expect() calls.
+- Consolidated local Git-head lookup in the workspace composition root and injected it into saves, moves, deletion and reconciliation. Save and batch-save migration records share one construction function; file moves and deletion share the canonical `documentAddress(project, path)` constructor.
+- `bun test tests/address-migration-store.test.ts`: 13 pass, 0 fail, 142 expect() calls (save failure cleanup, moves, deletion and replay).
+- `bun test tests/address-declared-save.test.ts`: 4 pass, 0 fail, 30 expect() calls after commit/record consolidation.
+- `bun test tests/address-reconciliation.test.ts`: 2 pass, 0 fail, 13 expect() calls after commit lookup consolidation.

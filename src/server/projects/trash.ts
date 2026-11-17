@@ -1,4 +1,4 @@
-import { formatAddress } from '../../shared/core/item-address';
+import { documentAddress } from '../../shared/core/item-address';
 import { archiveAddressMigrations, operationMigrations, stageAddressMigrations } from './address-migrations';
 // Moves deleted files and project folders into journaled trash without rewriting Git history.
 // Restoration refuses occupied paths and suggests a free alternative.
@@ -211,7 +211,7 @@ export function createTrash(ctx: TrashContext) {
       if (existsSync(state.draftFile(slug, relativePath))) steps.push({ from: state.draftFile(slug, relativePath), to: join(dir, 'draft.json') });
       steps.push(...archivePersonalState(state, slug, relativePath, join(dir, 'personal')));
       const staging = join(dir, '.address-history');
-      const from = formatAddress({ grammar: 1, form: 'absolute', project: slug, document: relativePath.split('/'), chain: [] });
+      const from = documentAddress(slug, relativePath);
       const records = operationMigrations({ id: trashEntry.entryId, at: trashEntry.deletedAt, commit }, [{ kind: 'deleted', from }]);
       try {
         steps.push(...stageAddressMigrations({ layout, project: slug, staging }, records));

@@ -199,13 +199,16 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   function notifySuggestions() {
     if (!closed) events.emit('suggestions', {}, { audience: 'all' });
   }
+  async function localCommit(files: DataLayout, project: string): Promise<string> {
+    return gitAvailable ? ((await git.head(repoDir(files, project))) ?? '') : '';
+  }
   const addressReads = { projectExists: (project: string) => projects().some(entry => entry.slug === project), readFile };
   const addressReconciliation = {
     ...addressReads,
     layout,
     journal,
     lock,
-    head: async (project: string, reader: Reader) => (gitAvailable ? ((await git.head(repoDir(copies.readPlace(reader, project).layout, project))) ?? '') : ''),
+    head: (project: string, reader: Reader) => localCommit(copies.readPlace(reader, project).layout, project),
   };
   function groupingEntities(reference: { project: string; path: string }, reader: Reader) {
     const document = readFile(reference.project, reference.path, reader);
@@ -450,7 +453,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   const { createProjectFolder } = importBatch;
   const trash = createTrash({
     layout,
-    head: async (files, project) => (gitAvailable ? ((await git.head(repoDir(files, project))) ?? '') : ''),
+    head: localCommit,
     state,
     journal,
     lock,
@@ -477,9 +480,9 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     },
     createProject: (name, origin, files) => createProjectFolder(name, origin, files),
   });
-  const documentSave = createDocumentSave({ layout, git, gitAvailable, journal, state, copies, trash, lock, entry, projectLock, rescanIn });
+  const documentSave = createDocumentSave({ layout, git, gitAvailable, localCommit, journal, state, copies, trash, lock, entry, projectLock, rescanIn });
   const { saveFile } = documentSave;
-  const { moveFile } = createFileMove({ layout, git, gitAvailable, journal, state, copies, lock, entry, projectLock, rescanIn });
+  const { moveFile } = createFileMove({ layout, localCommit, journal, state, copies, lock, entry, projectLock, rescanIn });
   async function acceptSuggestion(id: string, reader: Reader) {
     const suggestion = suggestions(reader).find(x => x.id === id);
     if (!suggestion) throw new NotFoundError('Suggestion not found or no longer valid.');

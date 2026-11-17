@@ -80,7 +80,7 @@ The integration view shows what the application reads and contacts, and what it 
 ## Code map
 
 `src/shared/core/address-kinds.ts` owns the versioned item-address kind registry and parent rules.
-`item-address.ts` owns canonical parsing, formatting, relative resolution and whole-segment prefix
+`item-address.ts` owns canonical parsing, document-locator construction, formatting, relative resolution and whole-segment prefix
 operations. `address-migration.ts` validates declared rename ownership and applies ordered prefix records
 without I/O. `model-addresses.ts` derives and resolves structured definition items, detects duplicates and
 flags positional ancestors as volatile. The inspector derives required locators for structured
@@ -125,7 +125,7 @@ IDs and the existing grouping/persistence boundaries.
 
 ### Filesystem, Git and personal working copies
 
-- `src/server/projects/workspace.ts` is the workspace composition root. It wires registration,
+- `src/server/projects/workspace.ts` is the workspace composition root. It supplies the shared local-commit lookup and wires registration,
   reads/saves, scanning, Git, journals, trash, working copies, publishing and event delivery.
   The use cases it composes live in `src/server/projects/workspace/`: `import-batch.ts` (imports,
   new projects from a batch, examples, project folder creation), `document-save.ts` (saves and

@@ -14,6 +14,10 @@ export type Address = {
 };
 /** Gives the closed set of canonical grammar failures. */
 export type AddressFailure = 'prefix' | 'length' | 'depth' | 'empty' | 'escape' | 'encoding' | 'kind' | 'position' | 'form' | 'snapshot' | 'trailing';
+/** Formats a canonical document locator from its project and relative path. */
+export function documentAddress(project: string, path: string): string {
+  return formatAddress({ grammar: 1, form: 'absolute', project, document: path.split('/'), chain: [] });
+}
 /** Returns parsed data or a bounded grammar failure. */
 export type AddressResult = { ok: true; address: Address } | { ok: false; reason: AddressFailure };
 
