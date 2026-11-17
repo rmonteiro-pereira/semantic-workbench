@@ -1270,3 +1270,8 @@ and explicit per-test limit while budgeting the capped shared machine consistent
   `18 source-control checks passed on isolated data root
   /srv/dev/tmp-008-published-snapshot-boundary-20261117/workbench-browser-9CpftC.`
   Includes missing-Git behavior, native actions and panel geometry at 390, 1280, 1440 and 2560 px.
+
+- Remote `bun scripts/published-snapshot-remote-gate.ts test:mappings-layout`: exit 0;
+  `7 mapping layout checks passed on isolated data root
+  /srv/dev/tmp-008-published-snapshot-boundary-20261117/workbench-browser-38Jb3l.`
+  Includes project-local selection, bounded mapping lists and no uncaught browser errors.
