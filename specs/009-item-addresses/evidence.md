@@ -1186,3 +1186,10 @@ writes. The owned production server stopped; only metrics-summary.txt was pulled
 Byte-preserving YAML/JSON edits, validation, add/delete, checked-reference rename, metric wizard
 and governance transitions pass without browser errors. The owned production server stopped;
 only item-edit-summary.txt was pulled.
+
+### Recovered general UI browser suite
+
+`bun run test:ui`: exit 0; `20 UI checks passed`. This includes graph retention, byte-exact
+exports, repair/retry flows, mapped layers, context provenance, mapping refresh and stale-query
+selection protection, with no browser runtime errors. The owned production server stopped;
+only ui-summary.txt was pulled.
