@@ -1119,3 +1119,15 @@ The audit writer, replay sampler and comparison modules have no feature diff. Th
 clock failures are now reproduced baseline exceptions, not addressed by weakening assertions,
 removing durable fsyncs or raising timeouts. The archive was removed by the exit trap.
 Only main-strata-summary.txt was pulled; the full baseline log remains remote.
+
+### Recovered mutation gate
+
+`bun scripts/mutation-tests.ts`: exit 0;
+`708/708 targeted mutants killed; all unmodified module baselines passed. Run test:ui for the full browser baseline.`
+This includes all seven registered address-operation predicates, including URI/destination file
+binding, plus both features' existing mutants and the browser layout mutants. The normal runner
+used its existing timeouts; no mutant or assertion was removed. Vite and API ownership was
+verified on 5489/5490 and their process groups stopped through the exit trap. Full logs and
+screenshots remain remote; only mutation-summary.txt was pulled.
+Migration save/batch/move/delete HTTP/twin parity and the new entry points are verified; the
+remaining completion work is the unmutated browser suites and the final full unit rerun.

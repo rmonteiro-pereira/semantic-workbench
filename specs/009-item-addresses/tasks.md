@@ -309,7 +309,7 @@ changes.
   inventory and mutation registrations. Proof: focused operation-inventory test, 7 pass, 0 fail.
 - [x] T047 Expose item resolution and reconciliation through the shared boundary with inventory,
   authorization matrix and HTTP/twin parity cases; preserve opaque snapshot suffixes.
-- [ ] T048 Prove declared rename and deletion history through inventoried save/batch/move/delete
+- [x] T048 Prove declared rename and deletion history through inventoried save/batch/move/delete
   operations, register targeted mutants and remove obsolete operation-boundary deferral claims.
 - [ ] T049 Run all completion commands serially through the remote wrapper, retaining reproduced
   main browser failures as baseline exceptions and pasting command summaries into evidence.md.
