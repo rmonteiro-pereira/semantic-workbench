@@ -170,7 +170,7 @@ concatenating project, document or item names.
   pointer of a repository that already has default-branch history; both are registered upgrade steps. Server adoption and base repair live in `worktrees.ts`.
 - `scm-published.ts` formats publication identity and authoring distance for Source Control; its
   acknowledgement writes only the caller's typed personal publication notice. Legacy synthetic file entries
-  migrate into that notice on read. Status checks compare ref identity and cache
+  migrate into that notice once at startup (`migrateLegacyPublicationNotices`), so status reads never write. Status checks compare ref identity and cache
   ancestry/counts by ref and pointer; Git events invalidate and refresh that cache. The wire shape lives in shared SCM types.
 - `local-publication.ts` preserves the local index and working files when authoring moves to
   `work/local`, and advances the default ref through the shared checks and durable pointer protocol.

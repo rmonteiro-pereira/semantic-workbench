@@ -1930,7 +1930,7 @@
   "lifecycleOperations": {
     "publication.upgrade": {
       "id": "publication.upgrade",
-      "steps": ["publication.advance", "publication.abandon", "publication.recover", "publication.adopt-initial"],
+      "steps": ["publication.recover", "publication.adopt-initial"],
       "effects": ["localWrite", "publish"],
       "entryPoint": "src/server/projects/published-initialization.ts",
       "reason": "Trusted data-root startup reconciles interrupted publication and adopts existing default commits without rewriting Git content; no transport dispatch."
