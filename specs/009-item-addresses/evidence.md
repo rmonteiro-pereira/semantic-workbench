@@ -1131,3 +1131,10 @@ verified on 5489/5490 and their process groups stopped through the exit trap. Fu
 screenshots remain remote; only mutation-summary.txt was pulled.
 Migration save/batch/move/delete HTTP/twin parity and the new entry points are verified; the
 remaining completion work is the unmutated browser suites and the final full unit rerun.
+
+### Recovered item-address browser suite
+
+`bun run test:addresses`: exit 0; `4 item address browser checks passed`.
+Canonical selection survives reload, preserves source bytes without page errors, and a concept
+rename with ticked cross-file references appends exactly one migration. The owned production
+frontend/API on 5489 stopped through the exit trap; large outputs remain remote.
