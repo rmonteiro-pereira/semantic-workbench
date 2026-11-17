@@ -84,3 +84,15 @@ test('no record holds arguments, file text or the capability, and every record k
   const { verifyAuditChain, readStoredMonths } = await import('../../src/server/auth/audit');
   expect(verifyAuditChain(readStoredMonths(join(server.root, 'state', 'audit'))).ok).toBe(true);
 });
+
+test('a failure the tool decides after its twin answered is recorded with the code the caller was told', async () => {
+  const mark = mcp().length;
+  const answer = (await client.callTool({ name: 'read_file', arguments: { project: PROJECT, path: 'commerce.mapping.yaml', expectedVersion: 'a'.repeat(64) } })) as {
+    structuredContent?: { error?: { code: string } };
+  };
+  expect(answer.structuredContent?.error?.code).toBe('version_changed');
+  expect(mcp().slice(mark)).toMatchObject([
+    { tool: 'files.read', result: 'ok' },
+    { tool: 'files.read', result: 'version_changed', outcome: 'refused' },
+  ]);
+});

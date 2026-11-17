@@ -43,15 +43,19 @@ function withinCap(result: ToolResult): ToolResult {
   return fail('limit_exceeded', 'The result is larger than one answer may be. Ask for a smaller page or range.', { limit: 'result' });
 }
 
-/** Counts twin calls so a failure that never reached a twin can be audited by this module. */
-function countingTwin(call: TwinCall): { twin: TwinCall; dispatched: () => number } {
+/** Counts twin calls and remembers the failure codes twins answered, which the operation boundary has already recorded. */
+function countingTwin(call: TwinCall): { twin: TwinCall; dispatched: () => number; reported: Set<string> } {
   let count = 0;
+  const reported = new Set<string>();
   return {
-    twin: (operationId, input) => {
+    twin: async (operationId, input) => {
       count++;
-      return call(operationId, input);
+      const called = await call(operationId, input);
+      if (!called.ok && !called.failure.ok) reported.add(called.failure.error.code);
+      return called;
     },
     dispatched: () => count,
+    reported,
   };
 }
 
@@ -76,7 +80,8 @@ async function runTool(tool: ToolDefinition, args: unknown, dependencies: ToolSe
       return tool.run(args, { twin, cursors: dependencies.cursors, receipts: dependencies.receipts, principalId: dependencies.caller.principal.id, signal: signals });
     });
     const result = outcome.finished ? withinCap(outcome.value) : fail('limit_exceeded', 'The call took longer than the deadline.', { limit: 'deadline' });
-    if (!result.ok && counted.dispatched() === 0) audit.undispatched(attribution, tool.operation, result.error.code);
+    // A failure the tool decided itself, such as a changed version or an expired cursor, was not seen by any twin, so it is recorded here with the code the caller was told.
+    if (!result.ok && (counted.dispatched() === 0 || !counted.reported.has(result.error.code))) audit.undispatched(attribution, tool.operation, result.error.code);
     return result;
   } finally {
     admission.permit.release();
