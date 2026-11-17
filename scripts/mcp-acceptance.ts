@@ -19,7 +19,8 @@ function pass(description: string) {
   step++;
   console.log(`PASS ${String(step).padStart(2, '0')} ${description}`);
 }
-const http = (path: string, init: RequestInit = {}) => server.handler(new Request(server.url + path, { ...init, headers: { host: `127.0.0.1:${server.port}`, 'content-type': 'application/json', 'sec-fetch-site': 'same-origin' } }));
+const http = (path: string, init: RequestInit = {}) =>
+  server.handler(new Request(server.url + path, { ...init, headers: { host: `127.0.0.1:${server.port}`, 'content-type': 'application/json', 'sec-fetch-site': 'same-origin' } }));
 
 try {
   const tools = (await client.listTools()).tools;
@@ -69,7 +70,17 @@ try {
   const branch = (await call('git_branches', { project: PROJECT })).data.current;
   const head = (await call('git_log', { project: PROJECT })).data.commits[0].commit;
   const key = 'acceptance-commit-0001';
-  const commitArgs = { project: PROJECT, message: 'Review definitions', files: [{ path: SEMANTIC, version: first.data.version }, { path: MAPPING, version: second.data.version }], expectedBranch: branch, expectedHead: head, idempotencyKey: key };
+  const commitArgs = {
+    project: PROJECT,
+    message: 'Review definitions',
+    files: [
+      { path: SEMANTIC, version: first.data.version },
+      { path: MAPPING, version: second.data.version },
+    ],
+    expectedBranch: branch,
+    expectedHead: head,
+    idempotencyKey: key,
+  };
   const committed = await call('git_commit', commitArgs);
   assert.equal(committed.ok, true);
   const log = (await call('git_log', { project: PROJECT })).data.commits;
@@ -100,7 +111,8 @@ try {
   pass('published context and plans carry the snapshot id and equal the agent API');
 
   // Refused cases: each must be refused, and none may reveal more than its status.
-  const post = (headers: Record<string, string>, method = 'POST') => fetch(server.endpoint, { method, headers: { 'content-type': 'application/json', ...headers }, body: method === 'POST' ? '{}' : undefined });
+  const post = (headers: Record<string, string>, method = 'POST') =>
+    fetch(server.endpoint, { method, headers: { 'content-type': 'application/json', ...headers }, body: method === 'POST' ? '{}' : undefined });
   const bearer = { authorization: `Bearer ${server.capability()}` };
   const refusals: [string, Response, number][] = [
     ['no capability', await post({}), 401],

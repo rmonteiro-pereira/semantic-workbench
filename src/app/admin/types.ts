@@ -107,6 +107,8 @@ export type AuditEntry = {
   requestId: string;
   principal: { id: string; name?: string };
   action: string;
+  /** The operation an agent called, present only on records written for a protocol caller. */
+  tool?: string;
   resource: Record<string, string>;
   decision: string;
   /** Recorded for changes and refusals; plain read decisions have none. */
