@@ -1215,3 +1215,8 @@ The remaining failure is the unchanged metric-binding fixture taking 5,169.61 ms
 default 5,000-ms test timeout; the killed fixture also produced the dangling-process error.
 The remote complete-suite retry uses `bun test --timeout 30000`, preserving every assertion
 and explicit per-test limit while budgeting the capped shared machine consistently.
+
+
+- Final complete unit/integration gate, remote `bun test --timeout 30000`: `2279 pass,
+  0 fail, 208937 expect() calls; Ran 2279 tests across 322 files. [1638.93s]`.
+  Exit 0. The timeout budget is the shared-remote execution adjustment described above.
