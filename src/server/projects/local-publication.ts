@@ -8,6 +8,9 @@ import { defaultBranchAt, rememberDefaultBranch } from './worktrees';
 /** Observes the immutable commits considered by one serialized adoption attempt. */
 export type PublicationObserver = (previous: string | null, commit: string | null) => void;
 
+/** The branch where local-mode commits go once the default branch is the published one. */
+export const LOCAL_AUTHORING_BRANCH = 'work/local';
+
 /** Remembers the default name before a local commit can create or advance its authoring branch. */
 export async function prepareLocalCommit(git: Git, directory: string) {
   const branch = await defaultBranchAt(git, directory, 'the local repository');
@@ -20,15 +23,15 @@ export async function moveToAuthoringBranch(git: Git, directory: string, default
   const branch = await symbolicBranch(git, directory);
   if (!branch) throw new GitError('Choose an authoring branch before committing a detached HEAD.');
   if (branch !== defaultBranch) return { branch };
-  if (defaultBranch === 'work/local') throw new GitError('The default branch is work/local. Choose another authoring branch before committing.');
+  if (defaultBranch === LOCAL_AUTHORING_BRANCH) throw new GitError(`The default branch is ${LOCAL_AUTHORING_BRANCH}. Choose another authoring branch before committing.`);
   const head = await git.head(directory);
-  const authoring = await git.revParse(directory, 'refs/heads/work/local');
+  const authoring = await git.revParse(directory, `refs/heads/${LOCAL_AUTHORING_BRANCH}`);
   if (authoring && (!head || !(await git.isAncestor(directory, head, authoring)))) {
-    throw new GitError('work/local has diverged. Choose another authoring branch, or merge the default branch into work/local in Git.');
+    throw new GitError(`${LOCAL_AUTHORING_BRANCH} has diverged. Choose another authoring branch, or merge the default branch into ${LOCAL_AUTHORING_BRANCH} in Git.`);
   }
-  if (!head && !authoring) await git.run(directory, ['symbolic-ref', 'HEAD', 'refs/heads/work/local']);
-  else await git.run(directory, authoring ? ['switch', 'work/local'] : ['switch', '-c', 'work/local']);
-  return { branch: 'work/local', movedFrom: defaultBranch };
+  if (!head && !authoring) await git.run(directory, ['symbolic-ref', 'HEAD', `refs/heads/${LOCAL_AUTHORING_BRANCH}`]);
+  else await git.run(directory, authoring ? ['switch', LOCAL_AUTHORING_BRANCH] : ['switch', '-c', LOCAL_AUTHORING_BRANCH]);
+  return { branch: LOCAL_AUTHORING_BRANCH, movedFrom: defaultBranch };
 }
 
 /** The workspace's existing Git, pointer and bounded-read boundaries for local publication. */

@@ -25,7 +25,7 @@ import { migrateLegacy, type MigrationReport } from './migration';
 import { createTrash, deleteImpact as reportDeleteImpact, guardDeletion, type TrashEntry } from './trash';
 import { restoreTrashedDeletions } from './published-checkout';
 import { createScm } from './scm';
-import { scmPublishedStatus } from './scm-published';
+import { migrateLegacyPublicationNotices, scmPublishedStatus } from './scm-published';
 import { createPublication } from './publication';
 import { createPublishedPointers } from './published-pointer';
 import { createPublishedSnapshots } from './published-snapshot';
@@ -33,7 +33,7 @@ import { initializePublishedPointers } from './published-initialization';
 import { createWorktrees } from './worktrees';
 import { copyScmHooks, createWorkingCopies, projectLockKey, type Place, type RepositoryFacts } from './working-copies';
 import { createPublishing } from './publishing';
-import { createLocalPublication, prepareLocalCommit } from './local-publication';
+import { createLocalPublication, LOCAL_AUTHORING_BRANCH, prepareLocalCommit } from './local-publication';
 import { judgePublish } from './publishing';
 import { createUnpublishedWork } from './unpublished-work';
 import { createCloner, rollBackInterruptedClones, type AssignProject, type FolderRequest } from './clone';
@@ -414,6 +414,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   // A stop between moving the default branch and moving the published files is finished here.
   if (gitAvailable && options.reconcilePublished)
     for (const repo of new Set(projects().map(project => locationOf(project).repo))) if (existsSync(join(layout.projects, repo, '.git'))) await worktrees.repairBase(repo);
+  migrateLegacyPublicationNotices(state);
   const initializedRepositories = new Set<string>();
   async function initializePublications() {
     if (!gitAvailable) return;
@@ -473,7 +474,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
             owners: () => copies.owners(),
             followRemote: (slug, remote, follow) => publishing.followRemote(slug, remote, follow),
           })
-        : { untrackedPull: async (slug, branch) => (branch === 'work/local' ? worktrees.defaultBranch(repoOf(slug)) : null) }),
+        : { untrackedPull: async (slug, branch) => (branch === LOCAL_AUTHORING_BRANCH ? worktrees.defaultBranch(repoOf(slug)) : null) }),
     });
   }
   const publishedBase = { copy: null, layout, cache, scanner, tags: (tags: EventTags) => tags };

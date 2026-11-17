@@ -8,16 +8,22 @@ import type { State } from './state';
 function personalState(state: State, reader: Reader) {
   return reader.owner ? state.forOwner(reader.owner) : state;
 }
-/** Reads the typed notice and migrates the old synthetic file entry once. */
+/** Reads the typed notice. Old data is migrated once at startup, so a status read never writes. */
 export function publicationNotice(state: State, slug: string, reader: Reader): boolean {
-  const personal = personalState(state, reader);
-  const view = personal.view(slug);
-  if (view.publicationNotice !== undefined) return view.publicationNotice;
-  const legacy = view.files['@publication'];
-  if (!legacy || typeof legacy !== 'object' || !('notice' in legacy)) return false;
-  const visible = legacy.notice === true;
-  personal.writePublicationNotice(slug, visible);
-  return visible;
+  return personalState(state, reader).view(slug).publicationNotice ?? false;
+}
+
+/** Moves the old synthetic file entry into the typed notice, in the shared state and in every person's state. */
+export function migrateLegacyPublicationNotices(state: State) {
+  const holders = [state, ...state.personalStates().map(personal => personal.state)];
+  for (const project of state.registry().projects) {
+    for (const holder of holders) {
+      const view = holder.view(project.slug);
+      const legacy = view.files['@publication'];
+      if (view.publicationNotice !== undefined || !legacy || typeof legacy !== 'object' || !('notice' in legacy)) continue;
+      holder.writePublicationNotice(project.slug, legacy.notice === true);
+    }
+  }
 }
 
 /** Stores only the person's publication notice, separate from per-file settings. */

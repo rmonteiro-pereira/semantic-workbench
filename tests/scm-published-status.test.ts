@@ -6,6 +6,7 @@ import { createState } from '../src/server/projects/state';
 import { dataLayout } from '../src/server/projects/paths';
 import { publicationRepository } from './helpers/git-fixtures';
 import { testWorkspace } from './helpers/temp-data-dir';
+import { migrateLegacyPublicationNotices } from '../src/server/projects/scm-published';
 
 async function fixture(gitBinary?: string) {
   const repository = publicationRepository();
@@ -93,6 +94,8 @@ for (const notice of [true, false]) {
       ...view,
       files: { 'shop.ontology.yaml': { zoom: 2 }, '@publication': { notice, branch: 'main' } },
     });
+    expect((await status(workspace)).notice).toBe(false);
+    migrateLegacyPublicationNotices(workspace.ws.state);
     expect((await status(workspace)).notice).toBe(notice);
     expect(workspace.ws.state.view('definitions')).toEqual({
       formatVersion: 1,
