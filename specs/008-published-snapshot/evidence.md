@@ -1234,3 +1234,10 @@ and explicit per-test limit while budgeting the capped shared machine consistent
   `1 pass, 0 fail, 1576 expect() calls; Ran 1 test across 1 file. [29.20s]`.
   Frozen fixture SHA-256 remains `64ee445a73ffc360c337bd4cb8fad37216bad4ddf5f264c54907b412d84d124d`,
   identical to `origin/main`; the additive project identity is asserted by the explicit comparison above.
+
+- Final remote mutation gate, `bun scripts/published-snapshot-remote-gate.ts test:mutation`
+  (runs `bun scripts/mutation-tests.ts` with its owned frontend): exit 0;
+  `722/722 targeted mutants killed; all unmodified module baselines passed.
+  Run test:ui for the full browser baseline.`
+  All source, askpass and visual cases completed. Default choice, abandoned intent, the shared
+  queue and the newly registered operation-context faults were all detected.
