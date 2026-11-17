@@ -144,3 +144,31 @@ test('porcelain v2 status is read per path', () => {
     'untracked.yaml': 'untracked',
   });
 });
+test('work started inside an exclusive turn waits in the queue once the turn has ended', async () => {
+  const { tempData, layout, git } = setup();
+  try {
+    const directory = join(layout.projects, 'p');
+    mkdirSync(directory, { recursive: true });
+    await git.run(directory, ['init', '--quiet']);
+    let lateWorkSettled = false;
+    let lateWork: Promise<unknown> = Promise.resolve();
+    await git.exclusive(directory, async () => {
+      lateWork = Bun.sleep(30)
+        .then(() => git.run(directory, ['config', 'user.name', 'Late']))
+        .then(() => {
+          lateWorkSettled = true;
+        });
+    });
+    let release!: () => void;
+    const gate = new Promise<void>(resolve => (release = resolve));
+    const nextTurn = git.exclusive(directory, () => gate);
+    await Bun.sleep(150);
+    expect(lateWorkSettled).toBe(false);
+    release();
+    await nextTurn;
+    await lateWork;
+    expect(lateWorkSettled).toBe(true);
+  } finally {
+    tempData.cleanup();
+  }
+});

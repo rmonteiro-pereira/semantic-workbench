@@ -208,7 +208,8 @@ export function createGit(options: GitOptions) {
   const remoteTimeoutMs = options.remoteTimeoutMs ?? REMOTE_TIMEOUT_MS;
   const queues = new Map<string, Promise<unknown>>();
   const cancels = new Map<string, () => void>();
-  const holding = new AsyncLocalStorage<string>();
+  // The turn the running code holds. Async work started inside a turn keeps this object after the turn ends, so the turn says whether it is still open.
+  const holding = new AsyncLocalStorage<{ key: string; open: boolean }>();
   function insideProjects(cwd: string) {
     const dir = resolve(cwd);
     if (dir.startsWith(root + sep)) return dir;
@@ -300,7 +301,8 @@ export function createGit(options: GitOptions) {
     if (opts.readOnly) return exec();
     const key = queueKey(dir);
     // Work that holds the repository's turn runs its own commands inside that turn.
-    if (holding.getStore() === key) return exec();
+    const turn = holding.getStore();
+    if (turn?.open && turn.key === key) return exec();
     return enqueue(key, exec);
   }
   function enqueue<T>(key: string, task: () => Promise<T>): Promise<T> {
@@ -317,7 +319,14 @@ export function createGit(options: GitOptions) {
   /** Runs several commands as one turn of the repository's queue, so no other command interleaves with them. */
   function exclusive<T>(cwd: string, work: () => Promise<T>): Promise<T> {
     const key = queueKey(insideProjects(cwd));
-    return enqueue(key, () => holding.run(key, work));
+    return enqueue(key, async () => {
+      const turn = { key, open: true };
+      try {
+        return await holding.run(turn, work);
+      } finally {
+        turn.open = false;
+      }
+    });
   }
   const read = (cwd: string, args: string[], allowFailure = false) =>
     run(cwd, ['--no-optional-locks', '-c', 'core.quotepath=off', ...args], {
