@@ -16,8 +16,8 @@ export const PROTOCOL_VERSION = '2026-07-28';
 export type LocalServer = Awaited<ReturnType<typeof startLocalServer>>;
 
 /** Starts a server. `examples` lists the shipped examples to load, such as `commerce`. */
-export async function startLocalServer(options: { examples?: string[]; handlerOptions?: Parameters<typeof createHandler>[1]; limits?: CallLimitSettings } = {}) {
-  const workspace = await testWorkspace();
+export async function startLocalServer(options: { examples?: string[]; handlerOptions?: Parameters<typeof createHandler>[1]; limits?: CallLimitSettings; workspace?: Parameters<typeof testWorkspace>[0] } = {}) {
+  const workspace = await testWorkspace(options.workspace);
   for (const example of options.examples ?? []) await workspace.ws.loadExample(example);
   const capabilityFile = join(workspace.root, 'state', CAPABILITY_FILE);
   const opened = openLocalCapability(capabilityFile);
