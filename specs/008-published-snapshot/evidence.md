@@ -1077,3 +1077,11 @@ docs-sync and whitespace checks exited 0. Local ports 5321 and 5322 have no list
 `python3 scripts/commit_cadence.py "$PWD"` was attempted again and exited 2 because the repository does
 not contain that script; no replacement tooling was introduced. Every completed post-repair gate step
 was committed separately, and no large artifact was written or pulled locally during this resumption.
+
+## Operation-boundary integration scope ledger
+
+The operation boundary already authenticates minted callers, admits inventory rows and preserves HTTP refusals and audit outcomes.
+Published snapshots already pin immutable Git bytes and serialize publication without rewriting author commits.
+The integration replaces credential-derived surfaces with caller metadata and routes publication/read operations through that existing boundary.
+Inventory/parity cases must prove HTTP and trusted invocation preserve snapshot choice, permissions and publication races.
+The branch is rebased onto origin/main `a153c20f` under constitution 4.0.1; the frozen HTTP characterization remains unchanged.
