@@ -94,3 +94,51 @@ test('startup upgrade cannot be selected by a protocol caller', async () => {
   expect(fixture.ws.state.published()).toEqual(before);
   expect(handler.boundary.availableOperations(mintCaller({ principal, origin: 'mcp' }))).not.toContain('publication.upgrade');
 });
+
+test('repository initialization requires its publication effects before dispatch', async () => {
+  using fixture = await authWorkspace();
+  const access = createAccessControl(accessFixture());
+  const principal = access.principalFor(person('dave'));
+  const handler = createHandler(fixture.ws, { mode: 'server', remoteCredentials: allowEveryRemote(), access, principal: () => principal, publicOrigin: origin });
+  const caller = mintCaller({ principal, origin: 'mcp', scope: ['administration', 'remote', 'localWrite'] });
+  const before = fixture.ws.state.published();
+  const clone = spyOn(fixture.ws, 'clone');
+  const register = spyOn(fixture.ws, 'registerRepositoryProjects');
+  try {
+    const operations: (TwinRequestInput & { id: string })[] = [
+      { id: 'repositories.clone', params: {}, body: { url: '/unavailable-parity-remote', domain: 'sales' } },
+      { id: 'repositories.registerProjects', params: { repo: 'sales-contracts' }, body: { projects: [] } },
+    ];
+    for (const operation of operations) {
+      const request = buildTwinRequest(operation.id, operation);
+      expect((await handler.boundary.operate({ caller, request })).response.status).toBe(403);
+      expect(handler.boundary.availableOperations(caller)).not.toContain(operation.id);
+    }
+    expect(clone).not.toHaveBeenCalled();
+    expect(register).not.toHaveBeenCalled();
+    expect(fixture.ws.state.published()).toEqual(before);
+  } finally {
+    clone.mockRestore();
+    register.mockRestore();
+  }
+});
+
+test('published export checks its snapshot step before reading entries', async () => {
+  using fixture = await authWorkspace();
+  const { executeOperation } = await import('../../src/server/auth/operation-execution');
+  const { operationById } = await import('../../src/server/auth/operation-inventory');
+  const { LOCAL_READER } = await import('../../src/server/projects/reader');
+  const owner = operationById('projects.export');
+  if (!owner) throw new Error('Missing export operation.');
+  const entries = spyOn(fixture.ws.published, 'fileBytes');
+  try {
+    await expect(
+      executeOperation({ ...owner.entry, steps: [] }, () =>
+        fixture.ws.exportProject('sales-contracts', LOCAL_READER, { source: 'published', includeHistory: false, historyAllowed: true }, 64_000_000),
+      ),
+    ).rejects.toThrow('projects.export does not own internal step snapshot.read');
+    expect(entries).not.toHaveBeenCalled();
+  } finally {
+    entries.mockRestore();
+  }
+});

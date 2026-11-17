@@ -124,3 +124,12 @@ test('schema classifier names and body limits match their typed owners', () => {
   expect(schema.$defs.operation.properties.outcomeClassifier.enum).toEqual(Object.keys(operationClassifiers));
   expect(schema.$defs.operation.properties.limits.properties.request.enum).toEqual(['none', ...Object.keys(REQUEST_LIMITS)]);
 });
+
+test('lifecycle owners must declare all effects needed by initialization', () => {
+  const invalid = structuredClone(operationInventory);
+  invalid.operations['POST /api/clone'].effects = ['administration', 'remote'];
+  expect(() => parseOperationInventory(invalid)).toThrow('lifecycle effects missing for publication.upgrade');
+  const duplicated = structuredClone(operationInventory);
+  duplicated.lifecycleOperations['publication.upgrade'].id = 'git.publish';
+  expect(() => parseOperationInventory(duplicated)).toThrow('Invalid lifecycle operation id');
+});

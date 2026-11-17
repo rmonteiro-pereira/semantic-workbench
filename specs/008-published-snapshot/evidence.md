@@ -1126,3 +1126,19 @@ with new rows covered separately by publication parity cases.
 
 Final focused proof for this step: `bun test tests/auth/published-operation-parity.test.ts
 tests/auth/operation-inventory.test.ts`: `11 pass, 0 fail, 258 expect() calls; Ran 11 tests across 2 files. [2.39s]`.
+
+
+### Review corrections for lifecycle and byte reads
+
+The independent architecture review found three integration gaps, all corrected: clone and
+repository registration now declare initialization’s local-write/publication connection effects;
+the parser rejects owners that omit lifecycle effects; published ZIPs check the snapshot step at
+the shared pinned-file entry; startup intent reconciliation runs in the registered lifecycle.
+The review of these corrections returned PASS, pending the full gate.
+
+`git.pullDefault` retains its existing `localWrite` effect: it merges the published default into
+the authoring copy. It is not remote follow. Fetch retains its existing dynamic publication-scope
+check before advancing the published default. This corrects the earlier integration note above.
+
+Proof: `bun test tests/auth/published-operation-parity.test.ts tests/auth/operation-inventory.test.ts`:
+`14 pass, 0 fail, 269 expect() calls; Ran 14 tests across 2 files. [7.59s]`.

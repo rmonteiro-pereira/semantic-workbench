@@ -17,7 +17,7 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 | projects.create | POST /api/projects | createProject | workspace | localWrite | PROJECT_REQUEST_LIMIT | local-edit |
 | projects.import | POST /api/import | createProject | workspace | localWrite | IMPORT_REQUEST_LIMIT | local-edit |
 | workspace.clear | POST /api/clear | clear | workspace | destroy | TRASH_REQUEST_LIMIT | local-edit |
-| repositories.clone | POST /api/clone | clone | workspace | administration, remote | PROJECT_REQUEST_LIMIT | workspace-scm |
+| repositories.clone | POST /api/clone | clone | workspace | administration, remote, localWrite, publish | PROJECT_REQUEST_LIMIT | workspace-scm |
 | documents.save | POST /api/documents | edit | body | localWrite | FILE_SAVE_REQUEST_LIMIT | local-edit |
 | examples.load | POST /api/examples/:name | createProject | workspace | localWrite | PROJECT_REQUEST_LIMIT | local-edit |
 | projects.rename | PATCH /api/projects/:slug | renameProject | project | localWrite | PROJECT_REQUEST_LIMIT | local-edit |
@@ -71,14 +71,14 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 | git.push | POST /api/projects/:slug/git/push | push | project | localWrite, remote | GIT_REQUEST_LIMIT | workspace-scm |
 | git.cancel | POST /api/projects/:slug/git/cancel | cancelOwn | project | localWrite | GIT_REQUEST_LIMIT | local-edit |
 | git.publish | POST /api/projects/:slug/git/publish | publish | project | publish | GIT_REQUEST_LIMIT | workspace-scm |
-| git.pullDefault | POST /api/projects/:slug/git/pull-default | pull | project | remote, publish | GIT_REQUEST_LIMIT | workspace-scm |
+| git.pullDefault | POST /api/projects/:slug/git/pull-default | pull | project | localWrite | GIT_REQUEST_LIMIT | workspace-scm |
 | git.pushDefault | POST /api/projects/:slug/git/push-default | publish | project | publish, remote | GIT_REQUEST_LIMIT | workspace-scm |
 | git.remote.set | PUT /api/projects/:slug/git/remote | setRemote | project | administration | GIT_REQUEST_LIMIT | workspace-scm |
 | git.remote.delete | DELETE /api/projects/:slug/git/remote | setRemote | project | administration | GIT_REQUEST_LIMIT | workspace-scm |
 | git.folder.set | PUT /api/projects/:slug/git/folder | setRemote | project | administration | GIT_REQUEST_LIMIT | workspace-scm |
 | repositories.cancelClone | POST /api/clone/:operation/cancel | clone | workspace | localWrite | none | local-edit |
 | repositories.projectCandidates | GET /api/repos/:repo/project-candidates | registerProjects | workspace | administration | none | workspace-scm |
-| repositories.registerProjects | PUT /api/repos/:repo/projects | registerProjects | workspace | administration | METRIC_REQUEST_LIMIT | workspace-scm |
+| repositories.registerProjects | PUT /api/repos/:repo/projects | registerProjects | workspace | administration, localWrite, publish | METRIC_REQUEST_LIMIT | workspace-scm |
 | agent.projects.list | GET /api/agent/projects | read | workspace | read | none | local-edit |
 | agent.catalog.read | GET /api/agent/catalog | read | workspace | read | none | local-edit |
 | agent.context.read | GET /api/agent/context | read | workspace | read | none | local-edit |
@@ -146,7 +146,6 @@ These steps run inside the admitted route and share its authorization and audit 
 | metrics.explain | snapshot.read |
 | git.fetch | publication.advance, publication.abandon |
 | git.publish | publication.advance, publication.abandon |
-| git.pullDefault | publication.advance, publication.abandon |
 | repositories.registerProjects | publication.upgrade |
 | agent.catalog.read | snapshot.read |
 | agent.context.read | snapshot.read |
@@ -157,7 +156,7 @@ These steps run inside the admitted route and share its authorization and audit 
 
 | Operation | Effects | Entry point | Dispatch |
 | --- | --- | --- | --- |
-| publication.upgrade | localWrite, publish | src/server/projects/published-initialization.ts | Trusted data-root startup adopts existing default commits without changing Git content; no transport dispatch. |
+| publication.upgrade | localWrite, publish | src/server/projects/published-initialization.ts | Trusted data-root startup reconciles interrupted publication and adopts existing default commits without rewriting Git content; no transport dispatch. |
 
 ## Browser capabilities
 

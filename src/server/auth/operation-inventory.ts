@@ -75,6 +75,11 @@ export function parseOperationInventory(value: unknown): OperationInventory {
   for (const [id, entry] of Object.entries(value.lifecycleOperations ?? {})) {
     if (id !== entry.id || seen.has(id)) throw new OperationInventoryError(`Invalid lifecycle operation id ${id}.`);
     seen.add(id);
+    for (const [row, owner] of Object.entries(value.operations)) {
+      if (owner.steps?.includes(id) && entry.effects.some(effect => !owner.effects.includes(effect))) {
+        throw new OperationInventoryError(`${row}: lifecycle effects missing for ${id}.`);
+      }
+    }
   }
   const parsed = structuredClone(value);
   parsed.lifecycleOperations ??= {};

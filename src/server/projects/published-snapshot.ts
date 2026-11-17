@@ -108,6 +108,7 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
     return new SnapshotUnavailableError(deps.gitAvailable() ? 'no-commit' : 'no-git');
   }
   async function files(requestPin: PublishedPin, project: string) {
+    operationStep('snapshot.read', () => {});
     if (!deps.gitAvailable()) throw absence();
     const repository = projectRepository(project, requestPin);
     const chosen = requestPin.commits.get(repository);
@@ -210,7 +211,6 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
     },
     /** Resolves identity and visibility from the pin's registry before exposing documents. */
     async readableDocuments(requestPin: PublishedPin, project: string, reader: Reader) {
-      operationStep('snapshot.read', () => {});
       const repository = projectRepository(project, requestPin);
       const chosen = requestPin.commits.get(repository);
       if (!chosen) throw absence();

@@ -222,7 +222,9 @@ concatenating project, document or item names.
 - `operation-execution.ts` carries the admitted operation’s reviewed internal steps across asynchronous work.
   Pointer advance and abandoned intent are steps of Publish, adoption or authorized remote follow, with
   the enclosing operation’s decision and single audit outcome. Snapshot reads are reviewed read steps.
-  The registered publication upgrade runs only at trusted workspace initialization or repository registration;
+  The registered publication upgrade includes intent reconciliation and first-pointer adoption at
+  trusted workspace initialization or repository registration. Clone and registration owners declare
+  its local-write and publication connection effects;
   it has no transport dispatch. Direct domain calls remain available to embedded code and isolated tests.
 - `operation-inventory.ts` validates `policies/operation-inventory.json` with the application Ajv schema and resolves operation ids and route rows.
 - `operation-boundary.ts` owns route decisions, effective-permission listing, target refusal mapping,

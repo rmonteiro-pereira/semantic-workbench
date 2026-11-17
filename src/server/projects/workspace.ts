@@ -410,14 +410,15 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       await restoreTrashedDeletions({ git, dir, repo, trashed: paths, log: report });
     }
   }
-  if (gitAvailable) {
-    for (const [repository, pointer] of pointers.entries()) {
-      if (!pointer.intent) continue;
-      const directory = join(layout.projects, repository);
-      const ref = await git.revParse(directory, `refs/heads/${pointer.branch}`);
-      await pointers.reconcile(repository, ref, (from, to) => git.isAncestor(directory, from, to));
-    }
-  }
+  if (gitAvailable)
+    await upgradePublications(async () => {
+      for (const [repository, pointer] of pointers.entries()) {
+        if (!pointer.intent) continue;
+        const directory = join(layout.projects, repository);
+        const ref = await git.revParse(directory, `refs/heads/${pointer.branch}`);
+        await pointers.reconcile(repository, ref, (from, to) => git.isAncestor(directory, from, to));
+      }
+    });
   if (gitAvailable && options.reconcilePublished) await reconcilePublishedCheckouts();
   // A stop between moving the default branch and moving the published files is finished here.
   if (gitAvailable && options.reconcilePublished)

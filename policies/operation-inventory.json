@@ -189,7 +189,7 @@
         "response": "bounded",
         "work": "network"
       },
-      "effects": ["administration", "remote"],
+      "effects": ["administration", "remote", "localWrite", "publish"],
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
@@ -965,13 +965,12 @@
         "response": "bounded",
         "work": "git"
       },
-      "effects": ["remote", "publish"],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
       },
-      "outcomeClassifier": "remote",
-      "steps": ["publication.advance", "publication.abandon"]
+      "outcomeClassifier": "remote"
     },
     "POST /api/projects/:slug/git/push-default": {
       "id": "git.pushDefault",
@@ -1066,7 +1065,7 @@
         "response": "bounded",
         "work": "git"
       },
-      "effects": ["administration"],
+      "effects": ["administration", "localWrite", "publish"],
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
@@ -1931,10 +1930,10 @@
   "lifecycleOperations": {
     "publication.upgrade": {
       "id": "publication.upgrade",
-      "steps": [],
+      "steps": ["publication.advance", "publication.abandon"],
       "effects": ["localWrite", "publish"],
       "entryPoint": "src/server/projects/published-initialization.ts",
-      "reason": "Trusted data-root startup adopts existing default commits without changing Git content; no transport dispatch."
+      "reason": "Trusted data-root startup reconciles interrupted publication and adopts existing default commits without rewriting Git content; no transport dispatch."
     }
   }
 }
