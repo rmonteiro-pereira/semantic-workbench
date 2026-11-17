@@ -20,9 +20,10 @@ async function copiesFixture() {
   const fixture = await authWorkspace();
   const { layout } = fixture.ws;
   const git = createGit({ projectsRoot: layout.projects, worktreesRoot: layout.worktrees });
-  const worktrees = createWorktrees({ layout, git, people: () => [ANN, BEN], publication: plainPublication(git, layout) });
+  const publication = plainPublication(git, layout);
+  const worktrees = createWorktrees({ layout, git, people: () => [ANN, BEN], publication });
   const base = join(layout.projects, REPO);
-  return { fixture, worktrees, base };
+  return { fixture, worktrees, publication, base };
 }
 
 // Commits one new file in a copy and returns the commit.
@@ -77,11 +78,12 @@ test('a published checkout with a new file refuses the publish before anything m
 });
 
 test('a stop between moving the branch and the files is repaired on the next start', async () => {
-  const { fixture, worktrees, base } = await copiesFixture();
+  const { fixture, worktrees, publication, base } = await copiesFixture();
   using _ = fixture;
   const ann = commitIn((await worktrees.ensure(REPO, ANN)).dir, 'ann.txt');
-  // The branch moved, then the server stopped before the published files followed.
+  // The branch and the pointer moved, then the server stopped before the published files followed.
   gitOutput(base, ['update-ref', 'refs/heads/main', ann]);
+  publication.adoptInitial(REPO, 'main', ann);
   expect(gitOutput(base, ['rev-parse', 'HEAD']).text).not.toBe(ann);
   await worktrees.repairBase(REPO);
   expect(gitOutput(base, ['rev-parse', 'HEAD']).text).toBe(ann);
