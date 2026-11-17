@@ -48,6 +48,15 @@ function parseMessage(text: string): ParsedMessage | null {
   }
 }
 
+/** The id of a JSON-RPC message, so an error answer can name the request it answers. */
+function messageId(text: string): unknown {
+  try {
+    return JSON.parse(text).id ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function emptyResponse(status: number): Response {
   return new Response(null, { status, ...(status === 405 ? { headers: { Allow: 'POST' } } : {}) });
 }
@@ -90,6 +99,8 @@ export function createMcpRoute(dependencies: McpRouteDependencies): Route {
     const size = Buffer.byteLength(body.text);
     const capAfterParsing = (parsed: ParsedMessage | null) => (parsed === null ? GLOBAL_REQUEST_CAP_BYTES : capFor(parsed.toolName));
     if (size > capAfterParsing(message)) return emptyResponse(413);
+    // The release serves no change notices, so a subscription stream is a method that does not exist.
+    if (message?.method === 'subscriptions/listen') return Response.json({ jsonrpc: '2.0', id: messageId(body.text), error: { code: -32601, message: 'Method not found.' } }, { status: 404 });
     const requestId = (request as AuditRequest)[requestAuditId] ?? crypto.randomUUID();
     const attribution: CallAttribution = { requestId, method: message?.method ?? 'unknown', clientLabel: message?.clientLabel };
     const known = !message?.toolName || dependencies.tools.some(tool => tool.name === message.toolName);
