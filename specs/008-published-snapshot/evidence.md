@@ -973,3 +973,15 @@ category remains within its original ten-second deadline. The nine browser basel
 Its owned frontend was stopped by the exit trap before the wrapper returned zero.
 The remaining responsive groups now run serially against the built frontend, served by the application
 on 5481 with a separate temporary data root. No source or check was changed for that run.
+
+## Verification after disk repair
+
+The resumed worktree is clean at `fc9b406e`. All 498 locally retained correction images were checked
+against the committed capture index: `missing=0; hash mismatches=0`. No lost temporary log is used as
+new evidence. Earlier unit, browser, capture and 700-mutant results remain available in their committed
+entries above. Responsive results that had not been committed are rerun individually on midgard, and
+each completed step is committed before the next. Full logs and new artifacts remain on the remote;
+only small result summaries are copied back.
+
+`bun --bun run check` after repair exited 0: TypeScript, formatter, lint, comments, theme and brand checks
+all passed. Its final summary is `No product name or logo is hard-coded outside public/brand.`
