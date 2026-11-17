@@ -22,6 +22,22 @@ export function operationInventoryTable(inventory: OperationInventory = operatio
     if (!row) throw new Error(`Missing route ${route}.`);
     lines.push('| ' + [entry.id, route, row.action, row.targets ?? routeResourceKind(row), entry.effects.join(', '), entry.limits.request, entry.exposure.increment].map(cell).join(' | ') + ' |');
   }
+  lines.push(
+    '',
+    '## Internal publication steps',
+    '',
+    'These steps run inside the admitted route and share its authorization and audit outcome.',
+    '',
+    '| Operation | Internal steps |',
+    '| --- | --- |',
+  );
+  for (const entry of Object.values(inventory.operations)) {
+    if (entry.steps?.length) lines.push('| ' + [entry.id, entry.steps.join(', ')].map(cell).join(' | ') + ' |');
+  }
+  lines.push('', '## Workspace lifecycle', '', '| Operation | Effects | Entry point | Dispatch |', '| --- | --- | --- | --- |');
+  for (const entry of Object.values(inventory.lifecycleOperations)) {
+    lines.push('| ' + [entry.id, entry.effects.join(', '), entry.entryPoint, entry.reason].map(cell).join(' | ') + ' |');
+  }
   lines.push('', '## Browser capabilities', '', '| Capability | Status | Reason | Exposure | Source |', '| --- | --- | --- | --- | --- |');
   for (const entry of inventory.browserCapabilities) {
     lines.push('| ' + [entry.id, entry.status, entry.reason, entry.increment, entry.source].map(cell).join(' | ') + ' |');

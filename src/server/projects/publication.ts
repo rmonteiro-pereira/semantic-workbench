@@ -1,4 +1,5 @@
 // Owns publication ordering, durable intent and the atomic default-ref transition.
+import { operationStep } from '../auth/operation-execution';
 import { publicationChecks, type PublicationCandidate } from './publication-checks';
 import { PublicationRefChangedError, PendingPublicationError } from './errors';
 import type { Git } from './git';
@@ -26,43 +27,46 @@ export type PublicationDeps = {
 /** Creates one repository queue shared by publishing, remote following and outside adoption. */
 export function createPublication(deps: PublicationDeps) {
   const active = new Map<string, Promise<unknown>>();
-  const advance: PublicationAdvance = async (repository, branch, move, guard) => {
-    const { git, pointers } = deps;
-    const { previous, next } = move;
-    const directory = deps.directory(repository);
-    const recorded = pointers?.get(repository)?.commit;
-    if (recorded && recorded !== previous) throw new PendingPublicationError(recorded);
-    const candidate = { repo: repository, branch, previous, next };
-    let release: (() => void) | undefined;
-    const checks = publicationChecks({
-      isAncestor: (_repository, from, to) => git.isAncestor(directory, from, to),
-      readable: async candidate => {
-        const validated = await deps.readable(candidate);
-        if (typeof validated === 'function') release = validated as () => void;
-      },
-      guard: () => guard(previous, next),
-    });
-    try {
-      for (const check of checks) await check(candidate);
-      pointers?.intent(repository, branch, next);
-      deps.stage?.('intent');
+  const advance: PublicationAdvance = (repository, branch, move, guard) =>
+    operationStep('publication.advance', async () => {
+      const { git, pointers } = deps;
+      const { previous, next } = move;
+      const directory = deps.directory(repository);
+      const recorded = pointers?.get(repository)?.commit;
+      if (recorded && recorded !== previous) throw new PendingPublicationError(recorded);
+      const candidate = { repo: repository, branch, previous, next };
+      let release: (() => void) | undefined;
+      const checks = publicationChecks({
+        isAncestor: (_repository, from, to) => git.isAncestor(directory, from, to),
+        readable: async candidate => {
+          const validated = await deps.readable(candidate);
+          if (typeof validated === 'function') release = validated as () => void;
+        },
+        guard: () => guard(previous, next),
+      });
       try {
-        const expected = move.expectedRef === undefined ? previous : move.expectedRef;
-        const swapped = await git.run(directory, ['update-ref', `refs/heads/${branch}`, next, expected ?? ''], { allowFailure: true });
-        if (swapped.code !== 0) throw new PublicationRefChangedError(branch);
-      } catch (error) {
-        pointers?.abandon(repository);
-        throw error;
+        for (const check of checks) await check(candidate);
+        pointers?.intent(repository, branch, next);
+        deps.stage?.('intent');
+        try {
+          const expected = move.expectedRef === undefined ? previous : move.expectedRef;
+          const swapped = await git.run(directory, ['update-ref', `refs/heads/${branch}`, next, expected ?? ''], { allowFailure: true });
+          if (swapped.code !== 0) throw new PublicationRefChangedError(branch);
+        } catch (error) {
+          operationStep('publication.abandon', () => {
+            pointers?.abandon(repository);
+          });
+          throw error;
+        }
+        deps.stage?.('ref');
+        pointers?.complete(repository, branch, next);
+        deps.supersede();
+        deps.stage?.('pointer');
+        return { published: branch, previous, commit: next };
+      } finally {
+        release?.();
       }
-      deps.stage?.('ref');
-      pointers?.complete(repository, branch, next);
-      deps.supersede();
-      deps.stage?.('pointer');
-      return { published: branch, previous, commit: next };
-    } finally {
-      release?.();
-    }
-  };
+    });
   function serialized<T>(repository: string, use: (advance: PublicationAdvance) => Promise<T>): Promise<T> {
     const operation = (active.get(repository) ?? Promise.resolve()).catch(() => {}).then(() => use(advance));
     active.set(repository, operation);

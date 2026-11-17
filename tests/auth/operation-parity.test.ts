@@ -29,6 +29,7 @@ export const parityCases: ParityCase[] = [
   { id: 'git.revert', body: path => ({ path, baseHash: null }) },
   { id: 'git.switch', body: () => ({ branch: 'parity', create: true }) },
   { id: 'git.publish', body: () => ({}) },
+  { id: 'git.adopt', body: () => ({}) },
   { id: 'git.pushDefault' },
   { id: 'git.remote.set', body: () => ({ name: 'origin', url: '/unavailable-parity-remote' }) },
   { id: 'git.folder.set', body: () => ({ folder: '.' }) },

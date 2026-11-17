@@ -1,5 +1,6 @@
 // Coordinates project files, durable state, and workspace services. Project folders are the source
 // of truth; the SQLite cache can be rebuilt.
+import { upgradePublications } from '../auth/operation-boundary';
 import type { PublicationObserver } from './local-publication';
 import { readAddressMigrations } from './address-migrations';
 import { resolveForCaller } from './address-resolution';
@@ -426,15 +427,17 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     if (!gitAvailable) return;
     const repositories = [...new Set(projects().map(project => locationOf(project).repo))].filter(repository => !initializedRepositories.has(repository));
     if (!repositories.length) return;
-    await initializePublishedPointers({
-      repositories,
-      git,
-      layout,
-      state,
-      pointers,
-      serverMode: options.reconcilePublished === true,
-      defaultBranch: repository => worktrees.defaultBranch(repository),
-    });
+    await upgradePublications(() =>
+      initializePublishedPointers({
+        repositories,
+        git,
+        layout,
+        state,
+        pointers,
+        serverMode: options.reconcilePublished === true,
+        defaultBranch: repository => worktrees.defaultBranch(repository),
+      }),
+    );
     for (const repository of repositories) initializedRepositories.add(repository);
   }
   await initializePublications();

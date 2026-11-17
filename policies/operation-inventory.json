@@ -194,7 +194,8 @@
       "exposure": {
         "increment": "workspace-scm"
       },
-      "outcomeClassifier": "cloneAcceptance"
+      "outcomeClassifier": "cloneAcceptance",
+      "steps": ["publication.upgrade"]
     },
     "POST /api/documents": {
       "id": "documents.save",
@@ -293,7 +294,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
-      }
+      },
+      "steps": ["snapshot.read"]
     },
     "POST /api/projects/:slug/save-batch": {
       "id": "files.saveBatch",
@@ -364,7 +366,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
-      }
+      },
+      "steps": ["snapshot.read"]
     },
     "GET /api/projects/:slug/delete-impact": {
       "id": "projects.deleteImpact",
@@ -393,7 +396,8 @@
       "exposure": {
         "increment": "local-edit"
       },
-      "outcomeClassifier": "batchSave"
+      "outcomeClassifier": "batchSave",
+      "steps": ["snapshot.read"]
     },
     "GET /api/projects/:slug/people": {
       "id": "people.list",
@@ -421,7 +425,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
-      }
+      },
+      "steps": ["snapshot.read"]
     },
     "POST /api/projects/:slug/kpis": {
       "id": "kpis.save",
@@ -464,7 +469,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
-      }
+      },
+      "steps": ["snapshot.read"]
     },
     "GET /api/projects/:slug/files/*": {
       "id": "files.read",
@@ -874,7 +880,8 @@
       "exposure": {
         "increment": "workspace-scm"
       },
-      "outcomeClassifier": "remote"
+      "outcomeClassifier": "remote",
+      "steps": ["publication.advance", "publication.abandon"]
     },
     "POST /api/projects/:slug/git/pull": {
       "id": "git.pull",
@@ -947,7 +954,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
-      }
+      },
+      "steps": ["publication.advance", "publication.abandon"]
     },
     "POST /api/projects/:slug/git/pull-default": {
       "id": "git.pullDefault",
@@ -962,7 +970,8 @@
       "exposure": {
         "increment": "workspace-scm"
       },
-      "outcomeClassifier": "remote"
+      "outcomeClassifier": "remote",
+      "steps": ["publication.advance", "publication.abandon"]
     },
     "POST /api/projects/:slug/git/push-default": {
       "id": "git.pushDefault",
@@ -1061,7 +1070,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
-      }
+      },
+      "steps": ["publication.upgrade"]
     },
     "GET /api/agent/projects": {
       "id": "agent.projects.list",
@@ -1089,7 +1099,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
-      }
+      },
+      "steps": ["snapshot.read"]
     },
     "GET /api/agent/context": {
       "id": "agent.context.read",
@@ -1103,7 +1114,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
-      }
+      },
+      "steps": ["snapshot.read"]
     },
     "POST /api/agent/plan": {
       "id": "agent.plan",
@@ -1117,7 +1129,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
-      }
+      },
+      "steps": ["snapshot.read"]
     },
     "GET /api/documents/:id/grouping": {
       "id": "grouping.read",
@@ -1769,7 +1782,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
-      }
+      },
+      "steps": ["publication.advance", "publication.abandon"]
     },
     "POST /api/projects/:slug/git/acknowledge-publication": {
       "id": "git.acknowledgePublication",
@@ -1913,5 +1927,14 @@
       "increment": "later",
       "source": "src/app/graph/pierce.ts"
     }
-  ]
+  ],
+  "lifecycleOperations": {
+    "publication.upgrade": {
+      "id": "publication.upgrade",
+      "steps": [],
+      "effects": ["localWrite", "publish"],
+      "entryPoint": "src/server/projects/published-initialization.ts",
+      "reason": "Trusted data-root startup adopts existing default commits without changing Git content; no transport dispatch."
+    }
+  }
 }

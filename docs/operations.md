@@ -132,6 +132,33 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 | preview.context | GET /api/preview/context | read | workspace | read | none | never |
 | preview.plan | POST /api/preview/plan | read | workspace | read | AGENT_PLAN_REQUEST_LIMIT | never |
 
+## Internal publication steps
+
+These steps run inside the admitted route and share its authorization and audit outcome.
+
+| Operation | Internal steps |
+| --- | --- |
+| repositories.clone | publication.upgrade |
+| projects.export | snapshot.read |
+| metrics.list | snapshot.read |
+| metrics.save | snapshot.read |
+| metrics.preview | snapshot.read |
+| metrics.explain | snapshot.read |
+| git.fetch | publication.advance, publication.abandon |
+| git.publish | publication.advance, publication.abandon |
+| git.pullDefault | publication.advance, publication.abandon |
+| repositories.registerProjects | publication.upgrade |
+| agent.catalog.read | snapshot.read |
+| agent.context.read | snapshot.read |
+| agent.plan | snapshot.read |
+| git.adopt | publication.advance, publication.abandon |
+
+## Workspace lifecycle
+
+| Operation | Effects | Entry point | Dispatch |
+| --- | --- | --- | --- |
+| publication.upgrade | localWrite, publish | src/server/projects/published-initialization.ts | Trusted data-root startup adopts existing default commits without changing Git content; no transport dispatch. |
+
 ## Browser capabilities
 
 | Capability | Status | Reason | Exposure | Source |

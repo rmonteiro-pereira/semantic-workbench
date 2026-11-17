@@ -219,6 +219,11 @@ concatenating project, document or item names.
   `refusal.ts` shares durable denial responses with the operation boundary. The boundary accepts only
   mode, access, audit and remote-credential dependencies and does not depend on the HTTP adapter.
 - `twin-request.ts` builds credential-free requests from inventory ids, encoded parameters, sorted queries and the existing body limits.
+- `operation-execution.ts` carries the admitted operation’s reviewed internal steps across asynchronous work.
+  Pointer advance and abandoned intent are steps of Publish, adoption or authorized remote follow, with
+  the enclosing operation’s decision and single audit outcome. Snapshot reads are reviewed read steps.
+  The registered publication upgrade runs only at trusted workspace initialization or repository registration;
+  it has no transport dispatch. Direct domain calls remain available to embedded code and isolated tests.
 - `operation-inventory.ts` validates `policies/operation-inventory.json` with the application Ajv schema and resolves operation ids and route rows.
 - `operation-boundary.ts` owns route decisions, effective-permission listing, target refusal mapping,
   handler execution and audit for authenticated callers. `createHandler` exposes that same instance

@@ -1,3 +1,4 @@
+import { operationStep } from '../auth/operation-execution';
 // Resolves production definitions from durable pointers and retains indexes for live request pins.
 import { SnapshotUnavailableError } from './errors';
 import type { PublishedPointers } from './published-pointer';
@@ -209,6 +210,7 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
     },
     /** Resolves identity and visibility from the pin's registry before exposing documents. */
     async readableDocuments(requestPin: PublishedPin, project: string, reader: Reader) {
+      operationStep('snapshot.read', () => {});
       const repository = projectRepository(project, requestPin);
       const chosen = requestPin.commits.get(repository);
       if (!chosen) throw absence();

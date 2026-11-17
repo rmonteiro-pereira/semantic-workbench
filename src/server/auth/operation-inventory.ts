@@ -34,6 +34,7 @@ export type OperationEntry = {
   handlerChecks: (typeof HANDLER_CHECKS)[number][];
   limits: { request: keyof typeof REQUEST_LIMITS | 'none'; response: 'bounded' | 'paged' | 'binary' | 'stream'; work: 'light' | 'scan' | 'git' | 'network' };
   effects: OperationEffect[];
+  steps?: string[];
   dispatch: 'twin' | { no: (typeof DISPATCH_REASONS)[number] };
   outcomeClassifier?: keyof typeof operationClassifiers;
   exposure: { increment: (typeof INCREMENTS)[number]; reason?: string };
@@ -47,8 +48,10 @@ export type BrowserCapability = {
   increment: (typeof INCREMENTS)[number];
   source: string;
 };
+/** Trusted startup work that has no transport dispatch. */
+export type LifecycleOperation = { id: string; steps: string[]; effects: OperationEffect[]; entryPoint: string; reason: string };
 /** Validated route operations and remaining browser capabilities. */
-export type OperationInventory = { operations: Record<string, OperationEntry>; browserCapabilities: BrowserCapability[] };
+export type OperationInventory = { operations: Record<string, OperationEntry>; browserCapabilities: BrowserCapability[]; lifecycleOperations: Record<string, LifecycleOperation> };
 
 /** Invalid reviewed inventory data, including the row and schema failure. */
 export class OperationInventoryError extends Error {}
@@ -69,7 +72,13 @@ export function parseOperationInventory(value: unknown): OperationInventory {
     if (seen.has(capability.id)) throw new OperationInventoryError(`Duplicate capability id ${capability.id}.`);
     seen.add(capability.id);
   }
-  return structuredClone(value);
+  for (const [id, entry] of Object.entries(value.lifecycleOperations ?? {})) {
+    if (id !== entry.id || seen.has(id)) throw new OperationInventoryError(`Invalid lifecycle operation id ${id}.`);
+    seen.add(id);
+  }
+  const parsed = structuredClone(value);
+  parsed.lifecycleOperations ??= {};
+  return parsed;
 }
 /** The checked-in operation contract, validated before it can be consumed. */
 export const operationInventory = parseOperationInventory(inventory);

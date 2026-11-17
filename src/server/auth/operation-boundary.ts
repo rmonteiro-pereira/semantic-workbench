@@ -1,4 +1,6 @@
 // Decides and executes operations through the same handler and durable audit path.
+import { executeOperation } from './operation-execution';
+export { upgradePublications } from './operation-execution';
 import { operationClassifiers } from './operation-classifiers';
 import { recordOperation } from '../observability/metrics';
 import { withSpan } from '../observability/tracing';
@@ -154,7 +156,9 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
   async function runAuthorized(input: Execution, scope: AccessScope, verdict: RouteVerdict, record: ReturnType<typeof auditInput>) {
     let response: Response;
     try {
-      response = await run(input.request);
+      const entry = operationForRow(verdict.row.path);
+      if (!entry) throw new Error(`Missing operation inventory entry: ${verdict.row.path}.`);
+      response = await executeOperation(entry, () => run(input.request));
     } catch (error) {
       if (!(error instanceof WriteAccessError)) throw error;
       // Dynamic effects belong to the enclosing operation's audit record.

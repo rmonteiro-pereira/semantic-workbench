@@ -1106,3 +1106,23 @@ Focused proof: `bun test tests/request-surface.test.ts tests/auth/operation-inve
 The installed remote wrapper still force-pushes its scratch ref. Integration gates use a worktree-local
 copy with `--force` removed and a new scratch namespace, preserving its shared SSH connection,
 unprivileged execution and resource limits. No GitHub push or existing remote ref rewrite is involved.
+
+
+### Internal publication steps and protocol parity
+
+The inventory now names pointer advance, abandoned intent, snapshot reads and the startup upgrade.
+`operation-execution.ts` carries the admitted operation’s allowed steps, so domain code cannot run
+a pointer transition from a snapshot-read operation. Internal steps share the enclosing route’s
+authorization and audit outcome rather than introducing endpoints for partial publication. The
+trusted startup upgrade is registered separately with no transport dispatch and is rejected as a
+protocol operation id. The existing single per-repository queue remains the publication writer.
+
+Focused proof: `bun test tests/auth/published-operation-parity.test.ts`: `3 pass, 0 fail,
+23 expect() calls; Ran 3 tests across 1 file. [2.57s]` before the additional startup refusal case.
+The remote pre-integration parity diagnostic passed all 22 parity cases. Its frozen HTTP check
+found 65 extra captures because the current route probe list includes five new rows for 13 callers;
+the recording itself remains unchanged. Its input driver is being limited to the recorded rows,
+with new rows covered separately by publication parity cases.
+
+Final focused proof for this step: `bun test tests/auth/published-operation-parity.test.ts
+tests/auth/operation-inventory.test.ts`: `11 pass, 0 fail, 258 expect() calls; Ran 11 tests across 2 files. [2.39s]`.

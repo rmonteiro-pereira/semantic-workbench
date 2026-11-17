@@ -21,6 +21,12 @@
       "items": {
         "$ref": "#/$defs/browserCapability"
       }
+    },
+    "lifecycleOperations": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/lifecycleOperation"
+      }
     }
   },
   "$defs": {
@@ -196,6 +202,18 @@
             "fileSave",
             "import"
           ]
+        },
+        "steps": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "publication.advance",
+              "publication.abandon",
+              "publication.upgrade",
+              "snapshot.read"
+            ]
+          }
         }
       },
       "allOf": [
@@ -268,6 +286,57 @@
           "type": "string",
           "minLength": 1,
           "pattern": "\\S"
+        }
+      }
+    },
+    "lifecycleOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "steps",
+        "effects",
+        "entryPoint",
+        "reason"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "steps": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "publication.advance",
+              "publication.abandon",
+              "publication.upgrade",
+              "snapshot.read"
+            ]
+          }
+        },
+        "effects": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "read",
+              "localWrite",
+              "commit",
+              "remote",
+              "publish",
+              "administration",
+              "destroy",
+              "credential"
+            ]
+          }
+        },
+        "entryPoint": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 10
         }
       }
     }
