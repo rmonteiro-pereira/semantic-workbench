@@ -1230,3 +1230,173 @@ No timeout, assertion or durable audit write was weakened. All completion comman
 serially through the remote wrapper; only small summaries were pulled locally.
 The strict remaining browser exceptions are graph select clipping, lineage first-view timing
 and responsive graph height. The previously recorded phone-canvas visual warnings remain.
+
+
+## Integration handoff
+
+All tasks are addressed, including the explicitly dropped compaction portion of T024. The
+rebased base is a153c20f with constitution 4.0.1. Both item-address operations use the shared
+boundary, inventory, request limits and HTTP/twin parity coverage. Existing save/batch/move/delete
+operations carry migration declarations and tombstones through that same boundary.
+
+| Final command | Result |
+| --- | --- |
+| `bun test` | `2275 pass`, `0 fail`, `341630 expect() calls`; `Ran 2275 tests across 327 files. [1201.06s]` |
+| `bun --bun run check` | Exit 0; formatting correct; lint `2605 warnings and 0 errors`; comments/theme/brand pass |
+| `bun --bun run build` | Exit 0; `✓ built in 3.35s` |
+| `bun scripts/mutation-tests.ts` | `708/708 targeted mutants killed; all unmodified module baselines passed.` |
+| `bun run test:addresses` | `4 item address browser checks passed` |
+| `bun run test:metrics` | `11 metrics checks passed` |
+| `bun run test:item-edit` | `11 item-edit checks passed` |
+| `bun run test:ui` | `20 UI checks passed` |
+| `bun run test:edges` | `6 edge attachment UI checks passed` |
+| `bun run test:auth` | Exit 0; 36 PASS lines; final `PASS Git history is refused for a person who cannot read every file` |
+| `bun run test:graph` | Exit 1; known main-reproduced `Whole model is cut off inside its select` |
+| `bun run test:lineage` | Exit 1; first view 3,460 ms vs main 3,408 ms, both above 2,000 ms |
+| `bun run test:responsive` | Exit 1; graph 481 px, requiring greater than 504 px, as on main |
+
+The overall strict browser gate remains non-green; these exceptions are not represented as
+passing thresholds. The initial lineage pointer-interception attempt did not recur on retry
+and is retained above, without claiming a product fix. The prior paired visual comparison and
+phone-canvas warnings remain recorded: src/app is identical to the previously reviewed feature
+build 46593994, and the rebase adds neither application UI nor dependency changes. No new paired
+visual capture is claimed by this integration continuation.
+
+The final remote ownership audit at 8da41663 found a clean source tree and
+`Active test/browser/server runtimes in this checkout or its temporary root: 0.`
+Only small summaries were pulled (92 KB before the final audit); full logs and screenshots remain
+in the wrapper checkout on midgard under out/gate-009-operation-recovery/.
+Local diff-whitespace, docs-sync and changed-line readability checks pass. Public documentation
+additions pass the process/confidential scan; the seven other public documents pass the full
+scan. Existing generic temporary-path command examples in configuration/development docs are
+preserved as instructed; their full confidential-content scans pass. The internal evidence log
+also passes its confidential-content scan. The requested commit-cadence command was attempted:
+Python exited 2 because scripts/commit_cadence.py does not exist. It is not reported as passing.
+
+Before merging, retain these scope limits: snapshots remain opaque until feature 008 integration;
+RDF/SHACL and built-ins remain unaddressable (IRIs are a future option for named RDF resources);
+unnamed items use volatile positional segments and never enter history. Migrations remain
+uncompacted with the atomic 50,000-record project bound. The obsolete pending-010 implementation
+path is superseded by the boundary integration; it adds no MCP transport or save receipts.
+The earlier no-new-route assumption was explicitly superseded in the spec Clarifications.
+No other unresolved specification contradiction remains.
+
+### Rebased commit ledger
+
+The following ledger, through the final unit proof, supersedes the historical pre-rebase hashes
+above. The final evidence-only handoff commit follows this list.
+
+```text
+954000ae docs(spec): specify item addresses (feature 009)
+dd43d5ff docs(spec): clarify item addresses (reconciliation permission, undone renames)
+7f82dac2 docs(spec): research for item addresses
+d6c04cf4 docs(spec): data model for item addresses
+758f19ce docs(spec): address grammar and migration store contracts
+e470633b docs(spec): quickstart for item addresses
+d9938ccf docs(spec): implementation plan for item addresses
+8ecb2c35 docs(spec): tasks for item addresses with traceability
+6b8011f7 docs(spec): analysis fixes for item addresses (migration kinds, hidden-equals-missing wording, traceability)
+98cff436 data: add item address conformance cases
+26c086f0 feat: define item address kinds and seeded fixtures
+392dab62 data: cover reserved bytes and oversized malformed locators
+8097375c feat: implement canonical item address grammar
+b62f280b fix: reject document-relative resolution without a document base
+56b4198f test: detect canonical item address grammar mutations
+02fb9a9a data: cover document snapshot and positional address forms
+4c2da6b5 docs: record item address proofs and derivation blockers
+4b8dc437 data: include unnamed embedded mapping address
+ef171fb1 feat: define volatile unnamed mappings and structured address scope
+2091a559 feat: derive and resolve structured item locators
+fd0bd0ef test: cover model locator ambiguity and volatility guards
+33d60660 feat: attach locators to structured inspector results
+69329332 feat: adapt legacy item labels without delimiter guessing
+5b3bc729 feat: use scoped locators in mapping graphs
+a6a4c808 feat: apply and validate ordered address migrations
+a510a696 test: detect migration replay and ownership faults
+c515a701 fix: preserve unresolved context responses with addressed mapping keys
+1ac8b01d test: use scoped keys in mapping mutation cases
+df2f1f22 test: record killed address migration mutants
+8b52fc55 fix: label only source-backed mapping scopes and concepts
+cd127906 fix: preserve mapping center ordering across escaped names
+1d0ad1af fix: restore unnamed legacy inspection at the scope boundary
+ffcdb247 test: verify address samples in independent cases
+b574fcd5 fix: remove unsafe exact-chain migration compaction
+23c4bb4e fix: defer mapping adoption until scope contracts are settled
+e3dcb2ff fix: reject coerced model names at the address boundary
+1b63e8c9 docs: record address gate results and unresolved scope contracts
+24a7db41 data: cover unnamed ontology roots and array item addresses
+2b43cedd feat: derive volatile locators for every unnamed structured item
+9660901c feat: attach locators to structured inspector results including unnamed roots
+a68efc63 feat: restore scoped mapping canvas keys with positional roots
+6c65d362 feat: address lineage cards and rows from structured definitions
+694f79f8 fix: preserve lineage labels and stored centers during address adoption
+416f976e feat: record graph selections and neighborhood centers as item addresses
+cfe55c9e fix: index ODCS item paths once during inspection
+a6d2705a feat: use scoped item addresses in agent context and query plans
+37950d14 feat: resolve metric extension references through item key adapters
+e220dea6 test: exercise independent consumers of the item address grammar
+d58b4ace test: expect scoped field locators in legacy wrapper resolution
+c6c0da78 test: compare canonical lineage keys against unchanged displayed labels
+8c14ebc8 test: complete graph selection and lineage adoption browser proofs
+d524b593 docs: inventory durable item key shapes before conversion
+884996a5 feat: back up and convert durable grouping keys atomically
+4c576991 feat: convert saved canvas centers after verified backups
+d04192f3 feat: stage bounded uncompacted address history in owning journals
+a87bb07c test: recover definition changes and address history at every journal boundary
+e9f075b8 feat: append declared renames atomically through save routes
+7b79b58f fix: rewrite relationship mapping targets only for their defining concept
+d7104205 feat: declare item and document scope renames from workbench edits
+9cdb0a5a feat: record document moves and carry history through project trash
+a7a2550b feat: reset reused locators at explicit deletion markers
+375ec598 feat: journal explicit item and file deletion tombstones
+c630864b feat: reconcile missing item locators with save authority and replay safety
+04eaefe3 test: preserve external rename ambiguity through pull and branch switches
+14c7a2ea feat: resolve item history behind the caller read boundary
+98a7760e test: validate resolver fixtures through real structured inspection
+804d884f test: keep item addresses out of logs and telemetry exports
+2249c35c fix: clear adoption lint failures before the mutation gate
+e85c4f85 test: route browser artifacts through the existing isolated screenshot seam
+8103efde fix: follow destination history after a cross-project item move
+452a9276 fix: read local commit before preparing address history side effects
+aeb8bcce test: kill hidden-read replay and address logging faults in the real gate
+6250b1d0 docs: define item address stability storage and integration contracts
+52a3093c refactor: retire private item key builders and guard their old spellings
+e85b1ddc perf: compare locator segments before allocating unmatched sibling paths
+de659b66 test: isolate Git fixture subprocesses and honor the temporary root
+161adaf6 perf: reuse model address indexes within metric validation and queries
+2a5e78ff fix: replay cross-project history after each shared arrival marker
+852473ab fix: fetch save history metadata before creating staged files
+9bb0365f test: record reviewed unit gate and paired browser baseline failures
+0483a211 style: keep remote gate evidence rows within the line limit
+0b442949 test: record completed functional browser gates and pending remote checks
+dcef3e4f test: format mapping mutation keys through the public address API
+1b89fa74 test: pass isolated Git configuration to mutation fixtures
+2357d4d5 test: preserve isolated Git environment across mutation case modules
+b0c07a58 test: allow the measured remote example baseline to finish
+75390930 test: record final item address gates and baseline exceptions
+19198348 docs: adopt the operation boundary integration contract
+bda2dd63 feat: dispatch item address reads and reconciliation through operations
+3a0aca93 test: prove address operation parity and request boundary predicates
+f4f7ec07 fix: admit file-scoped editors to address reconciliation
+d22a761f data: extend operation matrix and HTTP characterization for addresses
+c595b1da docs: record address operation admission and compatibility proof
+ac67ad3a fix: remove duplicate pipeline imports after rebase
+73121508 test: record recovered static gate
+dc26b7b5 test: record recovered production build
+f04fdf67 test: record recovered unit failures for diagnosis
+2cc281b3 data: extend administration replay baseline for address inventory
+35494999 test: reproduce audit strata timeout failures on unchanged main
+acf42f7a test: prove operation integration with all registered mutants
+1b919462 test: record recovered item address browser gate
+d79e4713 test: retain reproduced graph select clipping exception
+89a55b60 test: record lineage pointer interception for baseline comparison
+b07492af test: compare lineage first view against rebased main
+0eaa46ea test: record recovered metrics browser gate
+84935811 test: record recovered item editing browser gate
+d9a6be99 test: record recovered general UI gate
+75c70fb9 test: retain reproduced responsive graph height exception
+d940ccaf test: record recovered edge attachment browser gate
+feb35ab7 test: record recovered authentication browser gate
+4b75cad9 docs: distinguish history listing from scoped address operations
+8da41663 test: record passing final unit gate after operation integration
+```
