@@ -1,7 +1,7 @@
 // Deliberate faults in immutable publication selection and validation.
 /** Targeted publication faults exercised by the mutation gate. */
 export const snapshotMutants: [string, string, string, string][] = [
-  ['snapshot-local', 'src/server/projects/local-publication.ts', "if (defaultBranch === 'work/local')", 'if (false)'],
+  ['snapshot-local', 'src/server/projects/local-publication.ts', 'if (defaultBranch === LOCAL_AUTHORING_BRANCH)', 'if (false)'],
   ['snapshot-export', 'src/server/projects/workspace.ts', "if (options.source === 'published')", 'if (false)'],
   [
     'snapshot-history',
@@ -28,7 +28,12 @@ export const snapshotMutants: [string, string, string, string][] = [
     'const head = await git.head(directory);',
     "await git.run(directory, ['reset', '--hard']);\n  const head = await git.head(directory);",
   ],
-  ['snapshot-metrics', 'src/server/routes/metrics.ts', "requestSurface(request) === 'browser'", 'true'],
+  [
+    'snapshot-metrics',
+    'src/server/routes/metrics.ts',
+    'return documentSourceFor(req)(ws, req, slug, documents => {',
+    "return (await import('./agent')).editingAgentDocuments(ws, req, slug, documents => {",
+  ],
   [
     'snapshot-agent-permissions',
     'src/server/routes/agent.ts',
@@ -80,7 +85,7 @@ export const snapshotMutants: [string, string, string, string][] = [
     "const candidates = [...new Set([await symbolicBranch(git, dir), initial, 'main', 'master'].filter((branch): branch is string => Boolean(branch)))];",
   ],
   ['snapshot-default', 'src/server/projects/worktrees.ts', "[initial, 'main', 'master']", "['main', 'master']"],
-  ['snapshot-writer', 'src/server/projects/publication.ts', 'pointers?.abandon(repository);', 'void repository;'],
+  ['snapshot-writer', 'src/server/projects/publication.ts', 'pointers.abandon(repository);', 'void repository;'],
   [
     'snapshot-queue',
     'src/server/projects/publication.ts',
