@@ -1029,3 +1029,12 @@ built frontend exited 0: `PASS no uncaught browser errors`; `2 responsive UI che
 The wrapper exited 0. Only `out/008-review-summary/phone-drawer.txt` was pulled; full logs remain on
 midgard. The owned application server was stopped. The six restored responsive groups total 21 passing
 checks; none of their scripts or assertions changed.
+
+### Remote mall canvas after repair
+
+Remote `RESPONSIVE_ONLY="examples: 1280" bun scripts/responsive-ui-tests.ts` exited 1 after
+`PASS examples: 1280×720 metric screens readable, no overlaps`. The unchanged assertion reported
+`mall.odcs.yaml canvas height`, `Expected: >= 421`, `Received: 389`. This remote built-frontend value
+is kept distinct from the earlier local 407 px reproduction. The wrapper exited 1; only the small
+`out/008-review-summary/mall-1280.txt` failure summary was pulled. No canvas, assertion or timeout changed.
+A matching build of the exact main/base revision is compared next; this failure is not reported as a pass.
