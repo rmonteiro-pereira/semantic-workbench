@@ -455,14 +455,8 @@ on capped development CPUs. This framework timeout is separate from explicit gra
 assertions, which retain their existing limits.
 
 Published snapshot measurements use `scripts/published-snapshot-performance-fixture.ts` and
-`scripts/published-snapshot-performance.ts`. The serial remote browser/mutation driver is
-`scripts/published-snapshot-remote-gate.ts`; it owns its temporary frontend and stops it on completion.
-Pass one script name, for example `bun scripts/published-snapshot-remote-gate.ts test:scm`, to run
-only that suite. `test:responsive` and `test:mutation` are also accepted.
+`scripts/published-snapshot-performance.ts`. Browser suites and the mutation step run through
+`bun scripts/ci-validate.ts --step browser --suite <script>` and `--step mutation`, which start and stop
+their own frontend.
 The edge suite budgets 30 seconds for its initial model readiness on a cold frontend; its
 attachment and geometry checks retain their own limits.
-It runs the affected browser suites and authentication, both complete native capture journeys, the full
-responsive suite and remaining groups
-after the documented inherited mall-canvas failure, then all mutation cases. Each stage retains its own
-exit file; any other failure stops the gate. Each child suite runs in its own process group and uses
-the existing CI cleanup before the next suite starts. Remote output is collected under `out/008-review-gate/`.

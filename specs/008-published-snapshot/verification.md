@@ -125,7 +125,7 @@ sw-midgard-run -- bun test --timeout 30000
 sw-midgard-run --pull out/008-remote-gate -- bun scripts/published-snapshot-remote-gate.ts
 ```
 
-The versioned support driver starts its own frontend on 5481, points the API proxy at 5482, and runs the
+The driver used for these earlier runs has since been replaced by `scripts/ci-validate.ts --step browser --suite <script>`. It started its own frontend on 5481, points the API proxy at 5482, and runs the
 snapshot browser baseline, full UI baseline and full mutation suite serially. Browser harnesses own their
 isolated dynamic API listeners. The frontend is stopped in `finally`; logs and exit files are pulled from
 the dedicated output directory. No production source, dependencies or public environment settings change.
