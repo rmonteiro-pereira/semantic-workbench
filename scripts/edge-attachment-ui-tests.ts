@@ -1,5 +1,5 @@
-import { screenshotPath } from './helpers/screenshots';
 // Checks that graph edges stay attached to their nodes during browser interactions.
+import { screenshotPath } from './helpers/screenshots';
 import { appUrl } from './helpers/base-url';
 import { chooseLayout, showEveryEntity, viewOptions } from './helpers/graph-options';
 import { chromium, expect, type Page } from '@playwright/test';

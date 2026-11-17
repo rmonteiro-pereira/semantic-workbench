@@ -1,8 +1,8 @@
+/** Selects contract lineage centers and routes navigation into related documents. */
 import { saveCenterPreference } from '../../graph/center-preference';
 import { resolveInModel } from '../../../shared/core/model-addresses';
 import { displayName, parseAddress } from '../../../shared/core/item-address';
 import { legacyLineageKey } from '../../../shared/core/item-key-adapters';
-/** Selects contract lineage centers and routes navigation into related documents. */
 import React, { useEffect, useMemo } from 'react';
 import { useRecordedState } from './useRecordedState';
 import type { WalkAction } from '../../graph/walk';

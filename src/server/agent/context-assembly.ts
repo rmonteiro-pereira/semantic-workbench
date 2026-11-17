@@ -1,6 +1,6 @@
-import { relationshipMatches } from '../../shared/mappings/relationship-reference';
 // Resolves one mapping entry into a RuntimeContext: finds its ontology and semantic model, collects
 // fields, metrics and bindings, and records every problem as a finding instead of failing.
+import { relationshipMatches } from '../../shared/mappings/relationship-reference';
 import { formatAddress, type Address } from '../../shared/core/item-address';
 import { absoluteItemAddress, addressAtModelPath } from '../../shared/core/model-addresses';
 import { OSSIE_BUILTINS, builtinConcept } from '../../shared/mappings/ossie-builtins';

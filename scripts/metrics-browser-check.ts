@@ -1,5 +1,5 @@
-import { screenshotPath } from './helpers/screenshots';
 // Checks metric details, explanations and graph navigation in an isolated browser workspace.
+import { screenshotPath } from './helpers/screenshots';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { appUrl } from './helpers/base-url';
 import { setShown, showEveryEntity, showToggle, viewOptions } from './helpers/graph-options';

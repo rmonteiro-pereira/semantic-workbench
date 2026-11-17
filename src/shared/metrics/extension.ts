@@ -1,5 +1,5 @@
-import { itemKeyLookup } from '../core/item-key-adapters';
 /** Reads and validates workbench metric attributes stored as JSON in Ossie custom extensions. */
+import { itemKeyLookup } from '../core/item-key-adapters';
 import type { ValidateFunction } from 'ajv';
 import { metric as checkMetric, mapping as checkMapping } from '../../generated/validators.js';
 import { schemaErrorPath, type Issue } from '../validation/diagnostics';

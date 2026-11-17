@@ -1,5 +1,5 @@
-import { nodeLabel } from './lineage';
 /** Holds the recorded walk through the lineage graph: the current centre, the hop count and the expansions on this centre. */
+import { nodeLabel } from './lineage';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useRecordedState } from '../workspace/hooks/useRecordedState';
 import { walkReducer, emptyWalk, currentStep, canvasAt, reconcileWalk, type WalkAction } from '../graph/walk';

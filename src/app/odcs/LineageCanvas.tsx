@@ -1,5 +1,5 @@
-import { nodeLabel } from './lineage';
 /** Displays column-level lineage with path highlighting, paging and reversible graph expansion. */
+import { nodeLabel } from './lineage';
 import { useFarZoom } from '../graph/FarZoom';
 import { useStageSize } from '../graph/stage-size';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';

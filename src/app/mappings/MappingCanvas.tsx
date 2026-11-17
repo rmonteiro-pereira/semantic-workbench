@@ -1,7 +1,7 @@
+/** Displays a mapping's resolved graph at the saved revision and indicates unsaved edits. */
 import { saveCenterPreference } from '../graph/center-preference';
 import { parseAddress } from '../../shared/core/item-address';
 import { legacyMappingCardKey, legacyMappingKey } from '../../shared/core/item-key-adapters';
-/** Displays a mapping's resolved graph at the saved revision and indicates unsaved edits. */
 import { useRecordedState } from '../workspace/hooks/useRecordedState';
 import { api } from '../projects/api';
 import React, { useEffect, useMemo, useState } from 'react';

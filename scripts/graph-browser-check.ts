@@ -1,5 +1,5 @@
-import { screenshotPath } from './helpers/screenshots';
 // Checks graph navigation and rendering at multiple scales in an isolated browser workspace.
+import { screenshotPath } from './helpers/screenshots';
 import { appUrl } from './helpers/base-url';
 import { recordResizeErrors } from './helpers/resize-errors';
 import { checkExpansionViewports } from './graph-expansion-checks';

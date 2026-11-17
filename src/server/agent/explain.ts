@@ -1,7 +1,7 @@
-import { itemKeyLookup } from '../../shared/core/item-key-adapters';
-import { formatAddress } from '../../shared/core/item-address';
 // Explains project metrics using semantic models, mappings, and data contracts. SQL previews use
 // governed definitions and are never executed.
+import { itemKeyLookup } from '../../shared/core/item-key-adapters';
+import { formatAddress } from '../../shared/core/item-address';
 import { inspect } from '../../shared/core/model';
 import { rdfSyntax } from '../../shared/validation/rdf';
 import { semanticModelPaths } from '../../shared/edit/item-model';

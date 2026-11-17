@@ -1,5 +1,5 @@
-import { declaredRenames } from '../../shared/edit/address-changes';
 /** Edits one item's fields or source as a draft, then validates and saves against its base hash. */
+import { declaredRenames } from '../../shared/edit/address-changes';
 import { useCapabilities } from '../auth/Capabilities';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, FileCode, Pencil, Plus, Trash2 } from 'lucide-react';

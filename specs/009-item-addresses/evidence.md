@@ -1495,3 +1495,10 @@ Additional mutation coverage is in `e6cc1052`, `d3a8aaf1` and `1983bde5`; indivi
 The final gate passes unit tests, check, build, all 711 mutations, frozen HTTP characterization and the addresses/metrics/item-edit/UI/edges/auth browser suites. Graph, lineage and responsive strict failures match the already-proven unchanged-main exceptions; earlier paired phone-canvas warning evidence remains valid. The first graph scale-picker timeout did not recur on the unchanged retry and is retained as an observed first-attempt failure, not a main-baseline claim.
 
 Integration limits remain unchanged: snapshot suffixes are opaque until published-snapshot integration; RDF/SHACL and built-ins remain unaddressed; migrations stay uncompacted and atomically bounded at 50,000 records per project. Compaction remains dropped by the integrator because its replay counterexample changes results. The operation-boundary follow-up is complete, and all original frozen HTTP records remain unchanged.
+
+## Optional review follow-ups
+
+Branch `009-address-followups` starts from the merged `origin/main` at `56603266`.
+
+- Restored the existing header comment before imports in all 18 named files. This is an import/comment reorder only, with no behavior change.
+- `bunx --bun oxfmt --check` on those 18 files: **All matched files use the correct format.** All 18 headers precede imports.

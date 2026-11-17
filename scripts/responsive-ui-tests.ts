@@ -1,5 +1,5 @@
-import { screenshotPath } from './helpers/screenshots';
 // Checks responsive layouts, overlays and navigation in an isolated browser workspace.
+import { screenshotPath } from './helpers/screenshots';
 import { tabStripProblems } from './helpers/strip-geometry';
 import { recordResizeErrors } from './helpers/resize-errors';
 import { appUrl } from './helpers/base-url';

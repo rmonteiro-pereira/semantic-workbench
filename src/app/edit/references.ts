@@ -1,6 +1,6 @@
-import { mappingRelationshipTargets } from './relationship-references';
 /** Finds broken dependencies and rename occurrences across project files for explicit user
  * review. */
+import { mappingRelationshipTargets } from './relationship-references';
 import { isMap, isScalar, isSeq, parseDocument, type Document } from 'yaml';
 import { rdfSyntax } from '../../shared/validation/rdf';
 import { VENDOR } from '../../shared/metrics/extension';

@@ -1,5 +1,5 @@
-import { screenshotPath } from './helpers/screenshots';
 // Checks item editing and dependent changes in an isolated browser workspace.
+import { screenshotPath } from './helpers/screenshots';
 import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Locator, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';

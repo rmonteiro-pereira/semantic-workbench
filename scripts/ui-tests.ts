@@ -1,5 +1,5 @@
-import { screenshotPath } from './helpers/screenshots';
 // Checks workspace interactions in the browser using isolated example projects.
+import { screenshotPath } from './helpers/screenshots';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { appUrl } from './helpers/base-url';
 import { expectAreaEntityTotal } from './helpers/overview-areas';

@@ -1,5 +1,5 @@
-import { screenshotPath } from './helpers/screenshots';
 // Checks column lineage against reference edges and measures browser interaction latency.
+import { screenshotPath } from './helpers/screenshots';
 import { addressesOfModel } from '../src/shared/core/model-addresses';
 import { formatAddress } from '../src/shared/core/item-address';
 import { lineageDisplayKey } from '../tests/helpers/lineage-display-keys';

@@ -1,5 +1,5 @@
-import { declaredRenames } from '../../../shared/edit/address-changes';
 /** Coordinates automatic saves, conflict recovery, and drafts when leaving a file. */
+import { declaredRenames } from '../../../shared/edit/address-changes';
 import React, { useRef, useState } from 'react';
 import type { Issue } from '../../../shared/validation/diagnostics';
 import { validateInWorker } from '../../editor/lint';
