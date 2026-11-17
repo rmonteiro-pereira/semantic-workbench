@@ -1436,3 +1436,4 @@ feb35ab7 test: record recovered authentication browser gate
 - Registered two additional mutation cases for the corrected predicates: removing the resolver's deletion cut, and putting reconciliation IDs back in the save namespace. Focused unmodified cases pass; the full mutation run below must kill both mutants.
 - `bun scripts/mutation-case.ts "$PWD/src/server/projects/address-resolution.ts" address-server`: exit 0.
 - `bun scripts/mutation-case.ts "$PWD/src/server/projects/address-migrations.ts" address-store`: exit 0.
+- The architecture code map lists each address module separately, including conversion stores and shared grouping translation. Reconciliation explicitly receives an already-authorized reader; the route owns file authorization.
