@@ -1225,3 +1225,7 @@ and explicit per-test limit while budgeting the capped shared machine consistent
   `All matched files use the correct format.`; `Found 2624 warnings and 0 errors.`;
   comment, theme and brand checks all passed with their unchanged success lines above.
   Readability, docs-sync and public-doc/internal-evidence leak checks also exited 0 with no findings.
+
+- Final remote `bun --bun run build`: exit 0; `✓ built in 3.12s`.
+  The existing module-directive and large-chunk warnings remain warnings.
+- Final architecture review remains PASS after publication-outcome reset; no fix-first finding remains.
