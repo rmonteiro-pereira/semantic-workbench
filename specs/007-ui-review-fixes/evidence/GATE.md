@@ -16,6 +16,12 @@ The rebased candidate under test is `c8a99063d82a2e1e92758da847de631bb80cb743`. 
 
 The suite driver checks available memory before each command, waits below 8 GB, and records terminal output and exit status per command. It runs unit tests, check, build, the mutation gate and each of the 36 registered browser suites serially. The suite log and completion status are written under `out/gate-007/suites/` on Midgard.
 
+Completed checks on the rebased candidate:
+
+| Command | Summary |
+| --- | --- |
+| `bun test` | 2,446 pass, 0 fail, 347,024 assertions across 350 files (2,030.75 s). |
+
 Reported failures on middle revision `5597ae52`: `test:responsive` observed a 481 px canvas at 1280×720 where the compact-shell check requires more than 504 px. This is distinct from the 421 px minimum on the Mall ODCS Graph. `test:admin` failed at the Dry-run result step. Candidate comparison results are pending.
 
 The comparison fixture consists of the seven release projects with 36 unique source files.
