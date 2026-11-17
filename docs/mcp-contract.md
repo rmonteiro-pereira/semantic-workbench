@@ -10,8 +10,7 @@ on a hint. `save_file` replaces bytes that may not be in Git yet, so it is destr
 moves to the trash and is recoverable, so it is not. Idempotent is true for every write because a
 repeat with the same arguments has no further effect: a conflict for the precondition-protected
 tools, the original result for the receipt-backed ones. Open-world is false everywhere because
-nothing reaches outside the workbench. The four published-only tools are registered only when the
-published snapshot reader is present.
+nothing reaches outside the workbench.
 
 | Tool | Twin route | Action | readOnly | destructive | idempotent | openWorld | Retry class |
 |------|------------|--------|----------|-------------|------------|-----------|-------------|
@@ -68,8 +67,8 @@ the table above. The static page fallback row is not an operation and is left ou
 | `GET /api/documents` | tool: list_files |  |
 | `POST /api/projects` | later: Remaining workspace and source-control operations |  |
 | `POST /api/import` | later: Remaining workspace and source-control operations |  |
-| `POST /api/clear` | later: Remaining workspace and source-control operations | destroys the workspace; the browser-approval rule of M6 applies |
-| `POST /api/clone` | later: Remaining workspace and source-control operations | remote operation; needs the remote scope (M9) |
+| `POST /api/clear` | later: Remaining workspace and source-control operations | destroys the workspace; it needs an approval given in the browser |
+| `POST /api/clone` | later: Remaining workspace and source-control operations | remote operation; needs the remote scope |
 | `POST /api/documents` | later: Remaining workspace and source-control operations |  |
 | `POST /api/examples/:name` | later: Remaining workspace and source-control operations |  |
 | `PATCH /api/projects/:slug` | later: Remaining workspace and source-control operations |  |
@@ -94,8 +93,8 @@ the table above. The static page fallback row is not an operation and is left ou
 | `GET /api/drafts/:slug/*` | later: Remaining workspace and source-control operations |  |
 | `PUT /api/drafts/:slug/*` | later: Remaining workspace and source-control operations |  |
 | `DELETE /api/drafts/:slug/*` | later: Remaining workspace and source-control operations |  |
-| `DELETE /api/trash` | later: Remaining workspace and source-control operations | purge is irreversible; the browser-approval rule of M6 applies |
-| `DELETE /api/trash/:entry` | later: Remaining workspace and source-control operations | purge is irreversible; the browser-approval rule of M6 applies |
+| `DELETE /api/trash` | later: Remaining workspace and source-control operations | purge is irreversible; it needs an approval given in the browser |
+| `DELETE /api/trash/:entry` | later: Remaining workspace and source-control operations | purge is irreversible; it needs an approval given in the browser |
 | `POST /api/trash/:entry/undo` | later: Remaining workspace and source-control operations | same effect as restore through another entry point |
 | `POST /api/trash/:entry/restore` | tool: restore_file |  |
 | `POST /api/suggestions/:id/accept` | later: Remaining workspace and source-control operations |  |
