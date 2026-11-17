@@ -12,7 +12,7 @@ function fields(path: string, name: string): string[] {
 
 test('durable key-bearing shapes match the documented inventory', () => {
   expect(fields('src/app/graph/overview.ts', 'GroupingOptions')).toEqual(['assignments', 'mode', 'names']);
-  expect(fields('src/server/projects/state.ts', 'ViewState')).toEqual(['files', 'formatVersion']);
+  expect(fields('src/server/projects/state.ts', 'ViewState')).toEqual(['files', 'formatVersion', 'publicationNotice']);
   expect(fields('src/server/projects/state.ts', 'Draft')).toEqual(['baseHash', 'formatVersion', 'patches', 'path', 'project', 'text', 'updatedAt']);
   expect(fields('src/server/projects/state.ts', 'RejectedSuggestion')).toEqual(['hash', 'path', 'project', 'rejectedAt', 'target']);
   expect(fields('src/server/projects/trash.ts', 'TrashEntry')).toEqual([

@@ -135,7 +135,7 @@ reconciliation.
 
 | Store or field | Meaning and conversion |
 | --- | --- |
-| Shared and personal `views/<project>.json` | `files` keys locate documents; only grouping `assignments` keys are entity locators. `mode` and group `names` retain their meaning. |
+| Shared and personal `views/<project>.json` | `files` keys locate documents; only grouping `assignments` keys are entity locators. `mode` and group `names` retain their meaning. `publicationNotice` is a flag for the published-snapshot notice and holds no key. |
 | Grouping corrections | Convert stable structured assignment keys; keep and report RDF, built-in, volatile or unresolved keys. Group IDs and display names stay unchanged. |
 | Graph layout hints | Node coordinates and layout caches are held in memory. There is no durable item-keyed layout file. |
 | Personal and shared drafts | `project` and `path` locate documents; `baseHash`, `text` and `patches` preserve authoring content. They contain no separate entity key to convert. |
