@@ -1514,3 +1514,4 @@ Branch `009-address-followups` starts from the merged `origin/main` at `56603266
 - Split the opening Code map into one line per module, preserving the module roles and state/index boundaries. The pure migration module's role now includes its shared deletion predicate.
 - Read-only architecture review at `67a426cf`: **ready**, no fix-first findings. Current-item priority, caller visibility, ordered cross-project replay and opaque snapshot preservation remain covered.
 - Remote `sw-midgard-run -- bun test`: **exit 0; 2280 pass, 0 fail, 341543 expect() calls. Ran 2280 tests across 327 files. [1561.17s]**. All operation parity and frozen HTTP characterization tests passed within this run.
+- Remote `sw-midgard-run -- bun --bun run check`: **exit 0; All matched files use the correct format** (1075 files); **Found 2605 warnings and 0 errors** (1045 linted files). TypeScript, comments, theme and brand passed. The lint warning count is unchanged.
