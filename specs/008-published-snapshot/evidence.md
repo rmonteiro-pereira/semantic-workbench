@@ -1285,3 +1285,11 @@ and explicit per-test limit while budgeting the capped shared machine consistent
   `test-auth: exit 0`. The suite completed the real local mock-provider flow, visibility
   checks, permitted-file project export and refusal of history for partial readers.
   It has no numeric final summary, so no count is inferred.
+
+- Remote full `bun scripts/published-snapshot-remote-gate.ts test:responsive`: exit 1 at
+  the previously reproduced first-canvas baseline: `Expected: > 503.99999999999994; Received: 481`
+  (`scripts/responsive-ui-tests.ts:334`). This exactly matches the unchanged-main remote
+  proof recorded earlier. The full run stops before the separately documented local mall
+  407/421 assertion; it does not establish a new mall result. Neither the canvas nor its
+  check was changed. This is the user-authorized pre-existing responsive exception, not a green suite.
+  The six remaining responsive groups are rerun separately below.
