@@ -61,6 +61,8 @@ export type ScmDeps = {
   isReadableRevision: (slug: string, revision: string, head: string | null) => Promise<boolean>;
   drafts: (slug: string) => string[];
   rescan: (slug: string) => Promise<unknown>;
+  /** Runs work under the same write lock a save of this project takes, so a commit and a save never interleave. */
+  withProjectLock?: <T>(slug: string, work: () => Promise<T>) => Promise<T>;
   /** The projects that share this project's repository, itself included. */
   siblings: (slug: string) => string[];
   emit: (event: string, data: unknown, tags: EventTags) => void;

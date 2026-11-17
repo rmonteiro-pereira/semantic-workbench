@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { sha256 } from '../src/server/projects/atomic';
 import { testWorkspace } from './helpers/temp-data-dir';
 import { example } from './helpers/temp-data-dir';
+import { LOCAL_READER } from '../src/server/projects/reader';
 
 const post = (handler: (request: Request) => Promise<Response>, slug: string, body: unknown) =>
   handler(new Request(`http://localhost/api/projects/${slug}/git/commit`, { method: 'POST', body: JSON.stringify(body) }));
@@ -43,4 +44,33 @@ test('a moved head, a changed version and a wrong branch refuse with what change
   expect(await workspace.ws.git.head(join(workspace.root, 'projects', slug))).toBe(head);
   const accepted = await post(workspace.handler, slug, { message: 'Matched', files, expectedBranch: branch, expectedHead: head });
   expect(accepted.status).toBe(200);
+});
+
+test('a save of a listed file waits for the commit that checked it, so no save lands between the checks and the commit', async () => {
+  const { workspace, slug, version, head, branch } = await prepare();
+  using _workspace = workspace;
+  const directory = join(workspace.root, 'projects', slug);
+  const originalCommitPaths = workspace.ws.git.commitPaths.bind(workspace.ws.git);
+  let saveFinished = false;
+  let saveFinishedDuringCommit = false;
+  let pendingSave: Promise<unknown> | undefined;
+  workspace.ws.git.commitPaths = async (...args: Parameters<typeof originalCommitPaths>) => {
+    const text = await Bun.file(join(directory, 'a.ontology.yaml')).text();
+    pendingSave = workspace.ws.saveFile(slug, 'a.ontology.yaml', { baseHash: version, source: text + '# saved during the commit\n' }, LOCAL_READER).then(() => {
+      saveFinished = true;
+    });
+    await Bun.sleep(500);
+    saveFinishedDuringCommit = saveFinished;
+    return originalCommitPaths(...args);
+  };
+  const accepted = await post(workspace.handler, slug, {
+    message: 'Matched',
+    files: [{ path: 'a.ontology.yaml', version }],
+    expectedBranch: branch,
+    expectedHead: head,
+  });
+  expect(accepted.status).toBe(200);
+  expect(saveFinishedDuringCommit).toBe(false);
+  await pendingSave;
+  expect(saveFinished).toBe(true);
 });

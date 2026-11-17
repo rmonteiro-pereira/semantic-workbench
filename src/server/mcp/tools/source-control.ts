@@ -233,7 +233,11 @@ const gitCommit: ToolDefinition = {
         const body = { message: args.message, files: args.files, expectedBranch: args.expectedBranch, expectedHead: args.expectedHead };
         const called = await context.twin('git.commit', { params: { slug: args.project }, body });
         if (!called.ok) return called.failure;
-        const committed = called.answer.body as { commit: string; branch?: string };
+        const committed = called.answer.body as { commit: string; branch?: string; altered?: string[] };
+        // A hook or a filter rewrote a file after it was saved, so the commit holds bytes the caller never listed.
+        if (committed.altered?.length) {
+          return fail('conflict', 'The commit was made, but these files changed while it was made and no longer match what you listed.', { commit: committed.commit, altered: committed.altered });
+        }
         return succeed({ commit: committed.commit, branch: committed.branch ?? args.expectedBranch, files: args.files.map(file => file.path) });
       },
       verify: () => commitHappened(args, context),

@@ -305,8 +305,9 @@ export function createScm(deps: ScmDeps) {
         const committed = chosen === null ? await commitIndex(slug, message, author) : await commitChosen(slug, message, chosen, author);
         return { ...committed, ...authoring };
       };
-      // A commit prepared against a branch, a head and file versions checks them in the same turn of the repository's queue that commits.
-      const result = options.expected ? await git.exclusive(dir(slug), commitHere) : await commitHere();
+      // A commit takes the project's write lock first, as a save does, and then its turn of the repository queue, so no save lands between the checks and the commit.
+      const inTurn = () => (options.expected ? git.exclusive(dir(slug), commitHere) : commitHere());
+      const result = deps.withProjectLock ? await deps.withProjectLock(slug, inTurn) : await inTurn();
       if (!options.push) return result;
       let pushed: { ok: boolean; message: string };
       try {

@@ -475,6 +475,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       git,
       gitAvailable,
       siblings: slug => projectsIn(repoOf(slug)),
+      withProjectLock: (slug, work) => lock(projectLockKey(slug, place.copy), work),
       project: slug => entry(slug),
       drafts: slug =>
         drafts
