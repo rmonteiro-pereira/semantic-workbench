@@ -1193,3 +1193,11 @@ only item-edit-summary.txt was pulled.
 exports, repair/retry flows, mapped layers, context provenance, mapping refresh and stale-query
 selection protection, with no browser runtime errors. The owned production server stopped;
 only ui-summary.txt was pulled.
+
+### Recovered responsive browser suite
+
+`bun run test:responsive`: exit 1; `error: script "test:responsive" exited with code 1`.
+The graph-height assertion is unchanged: `Received: 481`, `Expected: > 503.99999999999994`.
+This is the same 481-pixel failure already reproduced on unchanged main, and remains a strict
+baseline exception. No geometry threshold changed. The owned server stopped;
+responsive-summary.txt is the small local summary, with captures and full logs retained remote.
