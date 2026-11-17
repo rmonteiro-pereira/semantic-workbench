@@ -1261,3 +1261,7 @@ and explicit per-test limit while budgeting the capped shared machine consistent
 - Remote `bun scripts/published-snapshot-remote-gate.ts test:grouping-validation`: exit 0;
   `8 grouping and validation UI checks passed`. Exact fixture exports and the absence of
   uncaught browser errors were verified by the suite.
+
+- Remote `bun scripts/published-snapshot-remote-gate.ts test:examples:ui`: exit 0;
+  `19 example UI checks passed; no browser runtime errors.` Includes mapping chains,
+  governed metric lineage, breakdown and unexecuted SQL previews.
