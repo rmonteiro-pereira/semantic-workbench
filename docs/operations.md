@@ -71,7 +71,7 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 | git.push | POST /api/projects/:slug/git/push | push | project | localWrite, remote | GIT_REQUEST_LIMIT | workspace-scm |
 | git.cancel | POST /api/projects/:slug/git/cancel | cancelOwn | project | localWrite | GIT_REQUEST_LIMIT | local-edit |
 | git.publish | POST /api/projects/:slug/git/publish | publish | project | publish | GIT_REQUEST_LIMIT | workspace-scm |
-| git.pullDefault | POST /api/projects/:slug/git/pull-default | pull | project | localWrite | GIT_REQUEST_LIMIT | workspace-scm |
+| git.pullDefault | POST /api/projects/:slug/git/pull-default | pull | project | remote, publish | GIT_REQUEST_LIMIT | workspace-scm |
 | git.pushDefault | POST /api/projects/:slug/git/push-default | publish | project | publish, remote | GIT_REQUEST_LIMIT | workspace-scm |
 | git.remote.set | PUT /api/projects/:slug/git/remote | setRemote | project | administration | GIT_REQUEST_LIMIT | workspace-scm |
 | git.remote.delete | DELETE /api/projects/:slug/git/remote | setRemote | project | administration | GIT_REQUEST_LIMIT | workspace-scm |
@@ -126,6 +126,11 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 | health.ready | GET /readyz | read | workspace | read | none | never |
 | brand.read | GET /brand/:file | read | workspace | read | none | never |
 | pages.read | GET/HEAD pages | read | workspace | read | none | never |
+| git.adopt | POST /api/projects/:slug/git/adopt | publish | project | publish | GIT_REQUEST_LIMIT | workspace-scm |
+| git.acknowledgePublication | POST /api/projects/:slug/git/acknowledge-publication | viewOwnState | project | localWrite | GIT_REQUEST_LIMIT | never |
+| preview.catalog | GET /api/preview/catalog | read | workspace | read | none | never |
+| preview.context | GET /api/preview/context | read | workspace | read | none | never |
+| preview.plan | POST /api/preview/plan | read | workspace | read | AGENT_PLAN_REQUEST_LIMIT | never |
 
 ## Browser capabilities
 

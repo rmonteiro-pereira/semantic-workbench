@@ -21,6 +21,9 @@ not configure a production deployment.
 - Independent dry-run samples retain write and denial evidence during non-HTTP read floods.
 ### Changed
 
+- Published reads, local Publish, outside adoption and browser previews share the operation boundary
+  and its reviewed inventory. MCP callers consume published definitions independently of browser sessions.
+
 - Network authentication and shared operation decisions have separate modules; existing HTTP
   behavior and audit bytes are preserved.
 - Operation names use domain terms, including `metrics.explain`, `policies.dryRun`, `trash.undo`,

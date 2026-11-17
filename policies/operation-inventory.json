@@ -957,7 +957,7 @@
         "response": "bounded",
         "work": "git"
       },
-      "effects": ["localWrite"],
+      "effects": ["remote", "publish"],
       "dispatch": "twin",
       "exposure": {
         "increment": "workspace-scm"
@@ -1755,6 +1755,88 @@
       "exposure": {
         "increment": "never",
         "reason": "The page route belongs to its HTTP transport."
+      }
+    },
+    "POST /api/projects/:slug/git/adopt": {
+      "id": "git.adopt",
+      "handlerChecks": ["authorizePublish"],
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": ["publish"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "workspace-scm"
+      }
+    },
+    "POST /api/projects/:slug/git/acknowledge-publication": {
+      "id": "git.acknowledgePublication",
+      "handlerChecks": [],
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["localWrite"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "Browser authoring preview or personal notice."
+      }
+    },
+    "GET /api/preview/catalog": {
+      "id": "preview.catalog",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["read"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "Browser authoring preview or personal notice."
+      }
+    },
+    "GET /api/preview/context": {
+      "id": "preview.context",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["read"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "Browser authoring preview or personal notice."
+      }
+    },
+    "POST /api/preview/plan": {
+      "id": "preview.plan",
+      "handlerChecks": [],
+      "limits": {
+        "request": "AGENT_PLAN_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["read"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "Browser authoring preview or personal notice."
       }
     }
   },

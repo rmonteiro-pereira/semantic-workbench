@@ -5,6 +5,7 @@ import type { RemoteCredentials } from './remote-credentials';
 import { LOCAL_READER, type CopyAccess, type Reader } from '../projects/reader';
 import { requestAuditId, requestSourceIp } from '../request';
 import { guardFor } from './guards';
+import { attachRequestSurface } from './request-surface';
 import type { Caller } from './caller';
 import type { Session } from './sessions';
 
@@ -66,6 +67,7 @@ export function attachIdentity(
     auditProjects?: Set<string> | null;
   },
 ): void {
+  attachRequestSurface(request, caller);
   const attached = request as AccessRequest;
   attached[requestAccess] = context.scope;
   attached[requestAuditId] = context.requestId;

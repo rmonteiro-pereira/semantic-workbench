@@ -5,7 +5,7 @@ import { requestSurface } from '../auth/request-surface';
 import { requestReader } from '../auth/request-scope';
 import { BadRequestError, HiddenResourceError } from '../projects/errors';
 import type { Workspace } from '../projects/workspace';
-import { readJson } from '../request';
+import { AGENT_PLAN_REQUEST_LIMIT, readJson } from '../request';
 import type { Route } from './http';
 
 /** A complete document set supplied before deterministic catalog, context or planning work. */
@@ -83,7 +83,7 @@ export function createAgentRoutes(source: AgentDocumentSource, prefix = '/api/ag
       });
     }
     if (url.pathname === `${prefix}/plan` && req.method === 'POST') {
-      const body = await readJson(req, 64_000);
+      const body = await readJson(req, AGENT_PLAN_REQUEST_LIMIT);
       if (!body || Array.isArray(body) || Object.keys(body).some(k => !['project', 'mappingId', 'concepts', 'metrics', 'dimensions'].includes(k)) || typeof body.mappingId !== 'string')
         throw new BadRequestError('Expected project, mappingId, optional concepts, metrics and dimensions. Expressions and metric overrides are not accepted.');
       for (const key of ['concepts', 'metrics', 'dimensions'])

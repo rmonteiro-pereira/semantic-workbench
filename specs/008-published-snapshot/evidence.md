@@ -1085,3 +1085,24 @@ Published snapshots already pin immutable Git bytes and serialize publication wi
 The integration replaces credential-derived surfaces with caller metadata and routes publication/read operations through that existing boundary.
 Inventory/parity cases must prove HTTP and trusted invocation preserve snapshot choice, permissions and publication races.
 The branch is rebased onto origin/main `a153c20f` under constitution 4.0.1; the frozen HTTP characterization remains unchanged.
+
+
+### Operation-boundary rebase and caller surface
+
+Rebased all feature commits onto `origin/main` `a153c20f`, retaining the 010 middleware, caller mint,
+request limits, audit outcome handling and mutation timeout verdicts. Publication audit metadata now
+travels through that boundary rather than restoring the old middleware. The pre-rebase commits remain
+reachable through `refs/backup/008-before-operation-boundary`.
+
+The interim `surfaceFromCredential` seam is removed. The HTTP adapter mints browser metadata only
+after its existing authentication and origin checks; the operation boundary attaches that caller
+metadata to requests. MCP requests always use the consumer surface. Adoption, personal publication
+notice acknowledgment and browser previews now have inventory entries. Following the remote default
+requires both remote and publication connection effects.
+
+Focused proof: `bun test tests/request-surface.test.ts tests/auth/operation-inventory.test.ts`:
+`13 pass, 0 fail, 247 expect() calls; Ran 13 tests across 2 files. [760.00ms]`.
+
+The installed remote wrapper still force-pushes its scratch ref. Integration gates use a worktree-local
+copy with `--force` removed and a new scratch namespace, preserving its shared SSH connection,
+unprivileged execution and resource limits. No GitHub push or existing remote ref rewrite is involved.

@@ -166,7 +166,9 @@ export function createAccessMiddleware(
   }
   async function invoke(principal: Principal, request: Request): Promise<Response> {
     const session = principal.kind === 'person' ? await options.authentication?.session(request) : undefined;
-    const caller = mintCaller({ principal, origin: 'http', sourceIp: options.sourceIp?.(request), session });
+    const site = request.headers.get('sec-fetch-site');
+    const browser = mode === 'local' ? site === 'same-origin' || site === 'same-site' : principal.kind === 'person' && Boolean(session);
+    const caller = mintCaller({ principal, origin: 'http', surface: browser ? 'browser' : 'agent', sourceIp: options.sourceIp?.(request), session });
     return (await boundary.operate({ caller, request })).response;
   }
   const httpAdapter = async (request: Request): Promise<Response> => {

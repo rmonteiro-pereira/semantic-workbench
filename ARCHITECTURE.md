@@ -198,8 +198,9 @@ concatenating project, document or item names.
 
 ### Identity, authorization, governance and administration
 
-- `src/server/auth/request-surface.ts` records the browser or consumer surface after credential
-  validation at the existing middleware, using a symbol on the request and one setter.
+- `src/server/auth/request-surface.ts` records the authenticated caller’s browser or consumer surface through
+  `request-scope.ts` at the operation boundary, using a symbol on the request and one setter.
+  The HTTP adapter supplies validated browser metadata; MCP callers always consume published definitions.
   Local browser markers are a guardrail.
 - `src/server/auth/authentication.ts` composes provider identity, sessions, directory membership and
   the single administration repository and mirrored audit log with configured retention. The same

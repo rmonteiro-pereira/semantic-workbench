@@ -1,4 +1,5 @@
 // Runtime provenance distinguishes authenticated callers from structural TypeScript copies.
+import type { RequestSurface } from './request-surface';
 import type { Principal } from './principal';
 import type { Session } from './sessions';
 import type { OperationEffect } from './operation-inventory';
@@ -11,6 +12,7 @@ export type { CallerOrigin } from '../../shared/observability/operation';
 export type Caller = Readonly<{
   principal: Principal;
   origin: CallerOrigin;
+  surface?: RequestSurface;
   sourceIp?: string;
   session?: Session | null;
   connection?: string;
