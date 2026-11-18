@@ -131,13 +131,16 @@ async function connectionStates(prefix: string, administrator: boolean) {
   };
   for (const state of ['empty', 'error', 'long', 'loading']) {
     const release = Promise.withResolvers<void>();
+    let revoked = false;
+    await page.route('**' + path + '/' + connection.id, async route => {
+      assert.equal(route.request().method(), 'DELETE');
+      revoked = true;
+      await route.fulfill({ json: { ended: true } });
+    });
     await page.route('**' + path, async route => {
-      if (route.request().method() === 'DELETE') {
-        await route.fulfill({ json: { ended: true } });
-        return;
-      }
       if (state === 'loading') await release.promise;
-      await route.fulfill({ status: state === 'error' ? 500 : 200, json: state === 'long' ? [connection] : [] });
+      const rows = state === 'long' ? [{ ...connection, state: revoked ? 'ended' : 'active' }] : [];
+      await route.fulfill({ status: state === 'error' ? 500 : 200, json: rows });
     });
     try {
       if (administrator) {
@@ -153,6 +156,10 @@ async function connectionStates(prefix: string, administrator: boolean) {
       }
       if (state === 'loading') await expect(section.getByRole('status').filter({ hasText: 'Loading connections' })).toBeVisible();
       await capture(page, `${prefix}-${administrator ? 'admin' : 'person'}-${state}`);
+      if (state === 'long') {
+        await section.getByRole('button', { name: 'Confirm revocation', exact: true }).click();
+        await expect(section.getByText('Status: ended', { exact: true })).toBeVisible();
+      }
     } finally {
       release.resolve();
       await page.unrouteAll({ behavior: 'wait' });

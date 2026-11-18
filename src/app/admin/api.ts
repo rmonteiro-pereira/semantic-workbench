@@ -189,7 +189,7 @@ export const adminApi = {
       scopes: 'array',
     });
     for (const program of programs) {
-      if (!program.clientId.trim() || !program.name.trim() || !program.redirectUris.length || !program.scopes.length) throw new Error('Invalid agent program metadata.');
+      if (!program.clientId.trim() || !program.name.trim() || !program.redirectUris.length) throw new Error('Invalid agent program metadata.');
       if (![...program.redirectUris, ...program.scopes].every(field => typeof field === 'string' && field.trim())) throw new Error('Invalid agent program metadata.');
     }
     return { ...value, programs };
