@@ -575,7 +575,7 @@ The original review archive contains 3,559 PNGs. A read-only count by folder mea
 Status: in progress. No visual pair is classified before both images have been opened.
 
 The gallery checkpoint of 750 rows includes 331 intended fixes, 32 expected merged-feature differences, 300 neutral changes and 11
-unchanged steps. It retains 42 frames of fixed regressions and 34 frames flagged as possible or unresolved regressions. A frame count
+unchanged steps. It retains 43 frames of fixed regressions and 33 frames flagged as possible or unresolved regressions. A frame count
 can include multiple actions that carry the same underlying issue. The manifest records actions without matched captures.
 The counted Network heading and compact mapping correction pairs were opened at 390×844 in both themes.
 The 75-state phone replay (local, light, 390×844) was opened across 25 contact sheets. Both repetitions on all three versions
@@ -604,6 +604,11 @@ keyboard focus ring on the metric grouping control. The empty Trash dialog keeps
   repeats were opened. At 1280×720 the settled UBL Overview stays visible in the candidate and the full supported-format notice
   appears below the Add project control. Release and main open the Review import parser error for the same unsupported file.
   All six actions passed. The main/candidate score is 74.038628%.
+- `bash .data/gate/pull-review-007.sh .data/gate/wide-bundle-fixed local/light/1440/wide-bundle` returned both strips and all six route
+  checks passed with `distinct_routes:9`. Both repeats and the native pair were opened. At 1440×900, the earlier candidate's
+  nine reads lay on a single stroke between compact cards. After `c5910838`, both cards expose their full column rows and nine
+  distinct routes, as in release and main. The native pair is `before/fixes/lineage-bundle-1440.png` and
+  `after/fixes/lineage-bundle-1440.png`. `python3 .data/gate/pixel-difference-007.py` reported 15.767978%.
 - `bash .data/gate/publish-current-review.sh` returned 750 rows with the counts above.
 
 The Full Graph replay scored 43 steps, from two repetitions per version. The candidate Network first view and Fit show four named counted areas.
@@ -759,6 +764,7 @@ replays. The outstanding findings still require a matched screenshot or a record
 | Finding | Opened step | Observation |
 | --- | --- | --- |
 | M2, M13 | `local/light/1280/geometry/mall.ontology.yaml/canvas-dimensions` | Counted areas replace undersized names and the toolbar leaves 30 px more graph height. |
+| M3 | `local/light/390/full-graph-controls/full-graph-layered/areas-collapsed` | The replay frames all four counted areas, even with an entity selected. |
 | M4 | `local/light/1440/mapping-fit/mall-mapping/fitted-names` | The follow-up correction keeps the Mall mapping labels inside cards at Fit. |
 | M5, m24 | `local/dark/1440/diff-surfaces/scm-stale-save/tour` | The merge gutters stay dark and Keep editing is primary. |
 | M7 | `local/light/390/import/workspace/empty-before-import` | The first-run heading changes from serif to Manrope and remains whole. |
@@ -767,11 +773,23 @@ replays. The outstanding findings still require a matched screenshot or a record
 | m18 | `local/dark/1440/typography/typography/yaml-source` | The same YAML displays light-blue keys and deeper-blue plain values. |
 | m26 | `server/dark/390/auth/auth/sign-in-error` | The sign-in error gives a primary retry and administrator guidance. |
 | M11 | `server/light/1440/admin/access-check/allowed` | The allowed result gives its reason in the banner. The matched 390 px replay also shows both banners inside the viewport. |
+| M14 | `local/light/390/graphs/full-graph-network/labels-on` | Selecting Order exposes its nearby relationship labels. |
 | M15, m10 | `local/light/1440/files/commerce.mapping.yaml/neighborhood` | One normal-size card, no empty neighbor count and cross-file links in Other files. |
+| M16 | `local/light/390/graphs/mapping-graph/node-selected` | Selecting Customer opens its path and editable binding details. |
+| M17 | `local/light/1280/dataset-chrome/mall-properties-lineage-chrome/first-view` | Hops, path, keys, trail and viewport actions share a row above the complete cards. |
+| M19 | `local/light/390/states/add-concept/field-errors` | Save to file is visibly disabled while Type is missing. |
+| M21 | `local/light/390/states/editing/stages` | The located editor error wraps without a second copy below the editor. |
 | M22 | `server/light/1440/reader/reader/admin-refusal` | A reader who opens Admin sees the role refusal. |
+| m2 | `local/light/390/walked-lineage-fit/mall-three-hop-lineage/fit` | The caption names the walked centre and the original Properties centre. |
+| m3 | `local/light/390/graphs/contract-lineage/more-columns` | The expanded Properties card shows its heading, CENTER badge, all 13 rows and Show fewer. |
+| m4 | `local/light/390/files/commerce.owl/overview` | The Order group uses the new non-error tint. |
+| m5 | `local/light/390/empty-mapping/mapping-steps/unlinked` | The unlinked mapping explains the empty canvas and disables Mapping steps. |
 | m6 | Documentation only | The graph guide names one to three foreign-key hops and one to five mapping steps. There is no requested screen change. |
+| m7 | `local/light/390/graphs/mapping-graph/fullscreen` | Full screen keeps zoom and exit controls visible, with all nine compact assets in the pane. |
+| m8 | `before/fixes/ubl-mapping-labels-390-light.png` and its after frame | The compact graph removes the overlapping raw path labels and keeps hovered relationship names available. |
 | m9 | `before/fixes/ubl-area-headings-1280.png` and its after frame | Wrapped headings have clear space above their cards. |
 | m11 | `local/dark/1440/mini-map-framing/full-graph-minimap-framing/minimap-on` | The framed mini-map marks the viewport and reserves its corner. |
+| m12 | `local/light/390/graphs/full-graph-layered/zoomed-in` | Zoom leaves the selected Order name and Metric badge legible. |
 | m13 | `local/light/1440/files/commerce-data.ttl/graph` | The Order line area title uses word boundaries. |
 | m14, m15 | `local/light/1440/files/commerce-data.ttl/catalog` | Card starts align and type badges read as words. The dedicated Catalog and sidebar strips show hover, keyboard, touch and both scroll edges. |
 | m27 | `local/light/1440/files/ubl.ontology.yaml/mappings` | The empty view offers Import and Load example. The separate phone detail transition is M24. |
@@ -785,8 +803,10 @@ replays. The outstanding findings still require a matched screenshot or a record
 | M24 | `local/light/390/followup/mapped-commerce-mappings/ai-context-open` | The details view has a Back to concepts action within the phone layout. |
 | m13 | `before/fixes/ubl-center-picker-390.png` and its after frame | The center picker accommodates the full label without dropping an action. |
 | m16 | `local/light/390/followup/add-concept/duplicate-name-refusal` | The duplicate-name refusal appears under Name and disables Save. |
+| m17 | `local/light/390/states/metrics/keyboard-focus` | The grouping control shows the candidate focus outline. |
 | m19 | `local/light/390/states/shell/avatar-menu` | The local identity menu gives its administration action a distinct name. |
 | m20 | `local/light/390/import/workspace/empty-before-import` | The empty workspace offers Import files without inactive tabs and search. |
+| m21 | `local/light/1280/refused-import/import/refused-file` | The unsupported-format notice leaves the workspace visible. |
 | m22 | `local/light/390/source-control/source-control/clean` | The why-disabled message and remote guidance wrap as body text. Branch and publication changes came from main. |
 | m23 | `local/light/390/tour/admin-settings/tour` | The Save settings control sits under Session lifetimes, apart from Remote policy. |
 | m25 | `local/light/390/tour/admin-audit/tour` | Audit rows give readable action labels and decision colors. |
