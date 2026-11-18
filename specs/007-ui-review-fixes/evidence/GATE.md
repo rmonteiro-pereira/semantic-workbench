@@ -22,12 +22,9 @@
 - The initial gallery contains 126 recorded comparison steps. At this checkpoint it shows 40 intended fixes, 6 merged feature differences, 52 neutral changes, 17 regression frames, 1 unchanged step and 10 awaiting a matched or settled capture. The regression-frame count includes downstream Walk steps blocked by one failed click. It shows the initial candidate, before the graph corrections. Graph captures that caught loading or mismatched state are scheduled for repetition. The initial page was rendered on Midgard at 1440×900 and 390×844. Both previews showed the version labels and controls, and the phone confined horizontal scrolling to the comparison strip.
 - The UBL Order replay is saved under `before/fixes/ubl-neighborhood-walk-1600.png` and `after/fixes/ubl-neighborhood-walk-1600.png` in the comparison folder. In the first frame the trail cuts across the first Walk control. The new frame shows the complete AllowanceCharge card and its Walk control, and the centered Order description wraps in full. Secondary descriptions are visibly smaller. The graph suite's edge-path failure still prevents acceptance of the viewport change.
 
-### Lineage viewport measurement
+### Matched UBL lineage timing
 
-- The worker uses card and edge geometry. The compact view also keys its result by the measured pane because packing depends on its size.
-- Before the pane is measured, the initial empty dimensions can issue an ELK request that the first real dimensions immediately supersede.
-- Deferring this compact request until the pane is measured preserves geometry, row budgeting and result sequencing. The detailed layout path has no pane dependency.
-- Check the first view through the UBL file switch in the lineage suite and the frozen three-version capture. Compare mapping Fit and resize behavior after the change.
+The repeated 1440×900 frozen-import switch from Mall ODCS to UBL ODCS measured 2,090 and 2,264 ms on main. The candidate measured 2,092 and 2,119 ms. Both exceed the 2,000 ms suite threshold in the matched built-app scenario. The candidate is within the run-to-run range on the same inputs, so no speculative worker change was retained. The standalone main suite still stops earlier at the Walk click.
 
 ### Full Graph area headings
 
