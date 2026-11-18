@@ -3,23 +3,24 @@ import React, { useState } from 'react';
 import type { UnitImport } from '../../shared/tessera/imports';
 import type { ProviderChoice } from './api';
 
-type Props = { providers: readonly ProviderChoice[]; aliases: ReadonlySet<string>; onAdd: (entry: UnitImport) => Promise<void>; onCancel: () => void };
+type Props = { providers: readonly ProviderChoice[]; existing?: UnitImport; aliases: ReadonlySet<string>; onAdd: (entry: UnitImport) => Promise<void>; onCancel: () => void };
 
 /** Renders the import form and sends a complete declaration when the author saves. */
-export function ImportEditor({ providers, aliases, onAdd, onCancel }: Props) {
-  const [selected, setSelected] = useState<ProviderChoice | undefined>();
-  const [alias, setAlias] = useState('');
-  const [concepts, setConcepts] = useState<string[]>([]);
-  const [pin, setPin] = useState(false);
-  const [version, setVersion] = useState('');
+export function ImportEditor({ providers, existing, aliases, onAdd, onCancel }: Props) {
+  const [selected, setSelected] = useState<ProviderChoice | undefined>(() => providers.find(provider => provider.project === existing?.project && provider.ontology === existing?.ontology));
+  const [alias, setAlias] = useState(existing?.alias ?? '');
+  const [concepts, setConcepts] = useState<string[]>(() => existing?.concepts.filter(concept => selected?.concepts.includes(concept)) ?? []);
+  const existingPin = typeof existing?.version === 'object' ? existing.version.pin : '';
+  const [pin, setPin] = useState(!!existingPin);
+  const [version, setVersion] = useState(existingPin);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const canSave = selected && /^[A-Za-z0-9_]+$/.test(alias) && !aliases.has(alias) && concepts.length > 0 && (!pin || !!version.trim()) && !saving;
 
   function selectProvider(provider: ProviderChoice) {
     setSelected(provider);
-    setAlias(provider.project.replaceAll('-', '_'));
-    setConcepts([]);
+    if (!existing) setAlias(provider.project.replaceAll('-', '_'));
+    setConcepts(existing?.concepts.filter(concept => provider.concepts.includes(concept)) ?? []);
     setVersion('');
   }
 
@@ -49,7 +50,7 @@ export function ImportEditor({ providers, aliases, onAdd, onCancel }: Props) {
           <label className="mesh-option" key={JSON.stringify([provider.project, provider.ontology])}>
             <input type="radio" name="mesh-provider" checked={provider === selected} onChange={() => selectProvider(provider)} />
             <span>
-              {provider.project} / {provider.ontology}
+              {provider.name} / {provider.ontology}
             </span>
           </label>
         ))}

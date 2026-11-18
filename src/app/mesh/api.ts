@@ -4,7 +4,7 @@ import type { UnitImport } from '../../shared/tessera/imports';
 import { apiFetch } from '../projects/api';
 
 /** Describes one published interface in the import picker. */
-export type ProviderChoice = { project: string; ontology: string; version: string; concepts: string[] };
+export type ProviderChoice = { project: string; name: string; ontology: string; version: string; concepts: string[] };
 
 /** Describes the status the author can read for one importing root. */
 export type DependencyState = { path: string; imports: UnitImport[]; state: 'current' | 'needs-update' };
@@ -20,6 +20,8 @@ function isProvider(value: unknown): value is ProviderChoice {
     isObject(value) &&
     typeof value.project === 'string' &&
     value.project.length > 0 &&
+    typeof value.name === 'string' &&
+    value.name.length > 0 &&
     typeof value.ontology === 'string' &&
     value.ontology.length > 0 &&
     typeof value.version === 'string' &&

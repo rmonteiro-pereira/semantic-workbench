@@ -57,6 +57,7 @@ type Props = {
   relatedDocuments: Doc[];
   openDocument: (doc: Doc) => boolean;
   applySaved: SectionSupport['applySaved'];
+  projectDocsOf: SectionSupport['projectDocsOf'];
 };
 import { declaredImports } from '../../shared/tessera/imports';
 import { documentFormat } from '../../shared/tessera/validate';
@@ -66,10 +67,10 @@ import { ontologyPartSelection } from './ontologyUnit';
 import { ItemSectionSupportContext, type SectionSupport } from '../edit/section-context';
 
 /** Renders details and makes the workspace's editing support available to its sections. */
-export function DetailsPanel({ sections, ...props }: Omit<Props, 'applySaved'> & { sections: SectionSupport }) {
+export function DetailsPanel({ sections, ...props }: Omit<Props, 'applySaved' | 'projectDocsOf'> & { sections: SectionSupport }) {
   return (
     <ItemSectionSupportContext.Provider value={sections}>
-      <DetailsPanelContent {...props} applySaved={sections.applySaved} />
+      <DetailsPanelContent {...props} applySaved={sections.applySaved} projectDocsOf={sections.projectDocsOf} />
     </ItemSectionSupportContext.Provider>
   );
 }
@@ -101,6 +102,7 @@ function DetailsPanelContent({
   relatedDocuments,
   openDocument,
   applySaved,
+  projectDocsOf,
 }: Props) {
   const unitFiles = model && 'unitFiles' in model && Array.isArray(model.unitFiles) ? model.unitFiles : undefined;
   const partSelection = ontologyPartSelection(current, model, unitFiles);
@@ -182,7 +184,9 @@ function DetailsPanelContent({
             )}
           </div>
           {partSelection && <PartPicker selection={partSelection} />}
-          {showImports && current && <ImportsSection key={current.id} doc={current} imports={declaredImports(data)} dirty={source !== current.source} applySaved={applySaved} />}
+          {showImports && current && (
+            <ImportsSection key={current.id} doc={current} imports={declaredImports(data)} dirty={source !== current.source} applySaved={applySaved} projectDocs={() => projectDocsOf(current.id)} />
+          )}
           {renderDetails()}
         </aside>
       )}

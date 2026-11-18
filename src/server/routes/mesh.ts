@@ -36,9 +36,15 @@ function readCursor(value: string | null): [string, string] | undefined {
 async function listProviders(ws: Workspace, reader: Reader, url: URL) {
   const cursor = readCursor(url.searchParams.get('cursor'));
   const requested = url.searchParams.get('project');
-  const registry = new Map(ws.state.registry().projects.map(entry => [entry.slug, locationOf(entry).repo]));
+  const registry = new Map(ws.state.registry().projects.map(entry => [entry.slug, entry]));
   const candidateProjects = requested ? [requested] : [...registry.keys()].sort(compareText);
-  const resolution = { snapshots: ws.published, repositoryOf: (project: string) => registry.get(project) ?? null };
+  const resolution = {
+    snapshots: ws.published,
+    repositoryOf: (project: string) => {
+      const entry = registry.get(project);
+      return entry ? locationOf(entry).repo : null;
+    },
+  };
   return ws.published.withPin(async pin => {
     const providers = [];
     for (const project of candidateProjects) {
@@ -49,7 +55,7 @@ async function listProviders(ws: Workspace, reader: Reader, url: URL) {
       });
       for (const provider of resolved) {
         if (cursor && project === cursor[0] && compareText(provider.ontology, cursor[1]) <= 0) continue;
-        providers.push({ project, ontology: provider.ontology, version: provider.commit, concepts: [...provider.closure.concepts.keys()] });
+        providers.push({ project, name: registry.get(project)!.name, ontology: provider.ontology, version: provider.commit, concepts: [...provider.closure.concepts.keys()] });
         if (providers.length > PAGE_SIZE) {
           providers.pop();
           const last = providers.at(-1)!;

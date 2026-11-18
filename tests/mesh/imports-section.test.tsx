@@ -24,7 +24,7 @@ test('the section reports unpublished declarations and includes their full names
 
 test('the provider editor offers a wrapping option label and reports an empty provider list', () => {
   const name = 'Long-department-ontology-name'.repeat(10);
-  const providers = [{ project: name, ontology: 'concepts.yaml', version: '1'.repeat(40), concepts: ['Order'] }];
+  const providers = [{ project: 'finance', name, ontology: 'concepts.yaml', version: '1'.repeat(40), concepts: ['Order'] }];
   const options = { aliases: new Set<string>(), onCancel: onOpen, onAdd: async () => {} };
   expect(renderToStaticMarkup(<ImportEditor providers={[]} {...options} />)).toContain('No readable project has a published interface');
   const html = renderToStaticMarkup(<ImportEditor providers={providers} {...options} />);

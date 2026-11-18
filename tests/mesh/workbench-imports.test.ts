@@ -6,6 +6,8 @@ import { formatAddress } from '../../src/shared/core/item-address';
 import type { ResolvedImportInterface } from '../../src/shared/tessera/imports';
 import type { OntologyUnit } from '../../src/shared/tessera/unit-structure';
 import { validateInput } from '../../src/shared/validation/input';
+import { LOCAL_READER } from '../../src/server/projects/reader';
+import { meshWorkspace } from '../helpers/mesh-workspace';
 
 const commit = 'a'.repeat(40);
 const provider: ResolvedImportInterface = {
@@ -77,4 +79,29 @@ test('alias renaming preserves the unrelated text and edits only the declared fi
   expect(after.description).toBe(definition.description);
   expect(after.requires[0]).toContain('"billing"."Invoice".code');
   expect(after.requires[0]).toContain("'fin.Invoice.code'");
+});
+
+test('provider discovery retains the stable project after a rename and offers a moved ontology until the project is trashed', async () => {
+  using fixture = await meshWorkspace('separate');
+  async function providers() {
+    const response = await fixture.fixture.handler(new Request('http://localhost:4310/api/mesh/providers?project=finance'));
+    expect(response.status).toBe(200);
+    return (await response.json()).providers;
+  }
+  expect(await providers()).toMatchObject([{ project: 'finance', name: 'finance', ontology: 'ontology.yaml' }]);
+  await fixture.ws.renameProject('finance', 'Finance Department');
+  await fixture.ws.moveFile('finance', 'ontology.yaml', 'finance', 'definitions.yaml', false, LOCAL_READER);
+  fixture.git('finance', ['add', '-A']);
+  fixture.git('finance', ['commit', '-qm', 'Move the public ontology']);
+  const adopted = await fixture.fixture.handler(
+    new Request('http://localhost:4310/api/projects/finance/git/adopt', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    }),
+  );
+  expect(adopted.status).toBe(200);
+  expect(await providers()).toMatchObject([{ project: 'finance', name: 'Finance Department', ontology: 'definitions.yaml' }]);
+  await fixture.ws.trash.deleteProject('finance');
+  expect(await providers()).toEqual([]);
 });

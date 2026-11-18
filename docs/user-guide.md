@@ -561,6 +561,8 @@ enter a local alias, and select the concepts the ontology can use. The version c
 the latest publication or names a published commit or release tag.
 nImported concepts show the provider and version on graph cards. Definition details show the
 full commit and link the concept’s identity to the provider ontology.
+If a provider moves its exporting file, edit the import and choose the newly published file.
+Renaming the provider project keeps its stable identity.
 
 Each mistake gives one finding with a code and a place. `tessera-marker`: the marker is not a whole
 number of at least 1; write `tessera: 1`. `tessera-revision`: the document is newer than this
