@@ -62,7 +62,8 @@ export function selectExportPaths(paths: string[], canRead: (path: string) => bo
     } catch {
       continue;
     }
-    if (path.endsWith(TEMP_SUFFIX) || posix.basename(path).toLowerCase() === ADDRESS_HISTORY_FILE) continue;
+    if (path.endsWith(TEMP_SUFFIX)) continue;
+    if (posix.basename(path).toLowerCase() === ADDRESS_HISTORY_FILE) continue;
     if (canRead(path)) included.push(path);
     else restricted += 1;
   }
