@@ -68,7 +68,7 @@ test only to make it pass.
   functions over a passed-in clock. Add `tests/acp/panel-session.test.ts` with a table of every
   transition and every end reason. Proof: each of the 13 reasons is produced by a case; `ended`
   accepts no further transition (SC-005, partial).
-- [ ] T011 [P] [US2] Create `src/server/acp/event-buffer.ts` (500 events, 4 MiB, overflow notice)
+- [x] T011 [P] [US2] Create `src/server/acp/event-buffer.ts` (500 events, 4 MiB, overflow notice)
   and `src/server/acp/panel-events.ts` (event types, plain-text normalization, placeholder for
   unknown content kinds). Add `tests/acp/event-buffer.test.ts`. Proof: overflow drops the oldest
   and emits one notice; a 1,000,000-character message is kept whole when alone; markup stays text.
