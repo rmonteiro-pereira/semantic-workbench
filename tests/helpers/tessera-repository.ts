@@ -107,6 +107,8 @@ export type TesseraRepository = {
   addPersonalBranch(branch: string): string;
   /** Commits a change to `main` and returns the new commit identifier. */
   addSecondCommit(): string;
+  /** Writes a file and commits it to `main`, returning the new commit identifier. */
+  commitFile(path: string, text: string): string;
   /** Removes the temporary folder. */
   dispose(): void;
 };
@@ -149,6 +151,12 @@ export function createTesseraRepository(): TesseraRepository {
     addSecondCommit() {
       writeFile(directory, `${PROJECT_FOLDER}/ontology.yaml`, ONTOLOGY_TEXT.replace('A person who buys.', 'A person or company that buys.'));
       git(directory, ['commit', '-q', '-am', 'Describe the customer more broadly']);
+      return git(directory, ['rev-parse', 'HEAD']);
+    },
+    commitFile(path, text) {
+      writeFile(directory, path, text);
+      git(directory, ['add', '--', path]);
+      git(directory, ['commit', '-q', '-m', `Change ${path}`]);
       return git(directory, ['rev-parse', 'HEAD']);
     },
     dispose: () => rmSync(base, { recursive: true, force: true }),

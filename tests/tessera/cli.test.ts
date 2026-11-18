@@ -1,6 +1,7 @@
 // Runs the tessera command as a child process against a temporary Git repository and checks its output, its exit statuses and what it writes.
 import { afterEach, expect, test } from 'bun:test';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { validateInput } from '../../src/shared/validation/input';
@@ -127,4 +128,58 @@ test('misuse exits 64 and names the mistake', () => {
   const result = run(['compile', '--repository', s.repository.directory], s.base);
   expect(result.status).toBe(64);
   expect(result.stderr).toContain('compile needs --out');
+});
+
+function policyFile(s: Scene, allow: string[]): string {
+  const path = join(s.base, 'policy.json');
+  writeFileSync(path, JSON.stringify({ policy: 1, allow }));
+  return path;
+}
+
+test('a loss policy that allows the lost property accepts the loss and its hash goes in the manifest', () => {
+  const s = scene();
+  const policy = policyFile(s, ['tessera_notes']);
+  const result = run(compileArgs(s, ['--loss-policy', policy]), s.base);
+  expect(result.status).toBe(0);
+  const manifest = JSON.parse(readBundle(s.out, 'manifest.json'));
+  expect(manifest.loss.accepted).toBe('policy');
+  expect(manifest.lossPolicySha256).toBe(createHash('sha256').update(readFileSync(policy)).digest('hex'));
+  expect(JSON.parse(readBundle(s.out, 'loss-report.json')).options.lossPolicy).toBe(manifest.lossPolicySha256);
+});
+
+test('a loss policy that does not list the property leaves the compile at status 2', () => {
+  const s = scene();
+  const result = run(compileArgs(s, ['--loss-policy', policyFile(s, [])]), s.base);
+  expect(result.status).toBe(2);
+  expect(result.stdout).toContain('does not allow tessera_notes');
+  expect(existsSync(s.out)).toBe(false);
+});
+
+test('a digest from before a note changed is refused with status 2 and the new digest is printed', () => {
+  const s = scene();
+  const stale = digestOf(s);
+  s.repository.commitFile(`${PROJECT_FOLDER}/ontology.yaml`, ONTOLOGY_TEXT.replace('Ask finance before adding a Return concept.', 'Ask legal instead.'));
+  const result = run(compileArgs(s, ['--accept-loss', stale]), s.base);
+  const fresh = digestOf(s);
+  expect(fresh).not.toBe(stale);
+  expect(result.status).toBe(2);
+  expect(result.stdout).toContain(fresh);
+  expect(existsSync(s.out)).toBe(false);
+});
+
+test('a schema failure is never accepted, even with the right digest', () => {
+  const s = scene();
+  const digest = digestOf(s);
+  s.repository.commitFile(`${PROJECT_FOLDER}/semantic-model.yaml`, 'version: 0.2.0.dev0\nname: broken\ndatasets: []\n');
+  const result = run(compileArgs(s, ['--accept-loss', digest]), s.base);
+  expect(result.status).toBe(1);
+  expect(existsSync(s.out)).toBe(false);
+});
+
+test('a malformed loss policy file is misuse', () => {
+  const s = scene();
+  const path = join(s.base, 'bad.json');
+  writeFileSync(path, '{"policy":2,"allow":[]}');
+  expect(run(compileArgs(s, ['--loss-policy', path]), s.base).status).toBe(64);
+  expect(run(compileArgs(s, ['--loss-policy', join(s.base, 'missing.json')]), s.base).status).toBe(64);
 });
