@@ -6,6 +6,12 @@ import { createOidcClient } from '../../src/server/auth/oidc';
 import { createServerAuthentication } from '../../src/server/auth/authentication';
 import { createHandler } from '../../src/server/handler';
 import { person } from './access-fixture';
+import { createHash } from 'node:crypto';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { createSessionStore } from '../../src/server/auth/sessions';
+import { localPrincipal } from '../../src/server/auth/principal';
 
 test('deactivation closes streams and sessions; reactivation restores the next sign-in', async () => {
   const transport = await oidcTransport('keycloak');
@@ -207,3 +213,83 @@ test('a project created into a domain reaches the open stream of the domain Stew
     auth.close();
   }
 }, 30000);
+
+function referenceStore() {
+  const dir = mkdtempSync(join(tmpdir(), 'session-reference-'));
+  let now = 1000;
+  const store = createSessionStore({ dir, key: new Uint8Array(32).fill(5), now: () => now });
+  const identity = { principal: localPrincipal(), tokens: { accessToken: 'token', expiresAt: 99999 } };
+  const referenceOf = (id: string) => createHash('sha256').update(id).digest('hex');
+  return { dir, store, identity, referenceOf, advance: (hours: number) => (now += hours * 3600000) };
+}
+
+test('a lookup by reference leaves the last-seen time unchanged', async () => {
+  const { dir, store, identity, referenceOf, advance } = referenceStore();
+  try {
+    const session = await store.create(identity);
+    advance(1);
+    for (let call = 0; call < 50; call++) expect(await store.getByReference(referenceOf(session.id))).not.toBeNull();
+    expect((await store.get(session.id, false))!.lastSeenAt).toBe(1000);
+    expect(await store.getByReference('not-a-reference')).toBeNull();
+    expect(await store.getByReference('0'.repeat(64))).toBeNull();
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('a session that reaches its idle limit ends on schedule even when found by reference', async () => {
+  const { dir, store, identity, referenceOf, advance } = referenceStore();
+  try {
+    const session = await store.create(identity);
+    const ended: string[] = [];
+    store.onEnded((reference, reason) => ended.push(`${reference}:${reason}`));
+    advance(7);
+    expect(await store.getByReference(referenceOf(session.id))).not.toBeNull();
+    advance(1);
+    expect(await store.getByReference(referenceOf(session.id))).toBeNull();
+    expect(ended).toEqual([`${referenceOf(session.id)}:expired`]);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('every way a session is removed calls the end listener once', async () => {
+  const { dir, store, identity, referenceOf, advance } = referenceStore();
+  try {
+    const ended: string[] = [];
+    store.onEnded((_reference, reason) => ended.push(reason));
+    const signedOut = await store.create(identity);
+    await store.end(signedOut.id);
+    const byAdmin = await store.create({ ...identity, principal: { ...localPrincipal(), id: 'someone' } });
+    await store.endPrincipal('someone');
+    const swept = await store.create(identity);
+    advance(9);
+    await store.sweep();
+    const viaGet = await store.create(identity);
+    advance(9);
+    await store.get(viaGet.id);
+    expect(ended).toEqual(['sign-out', 'admin', 'expired', 'expired']);
+    expect(await store.get(byAdmin.id)).toBeNull();
+    expect(await store.get(swept.id)).toBeNull();
+    expect(referenceOf(signedOut.id)).toHaveLength(64);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('a failing listener does not stop the others and a removed listener hears nothing', async () => {
+  const { dir, store, identity } = referenceStore();
+  try {
+    const heard: string[] = [];
+    store.onEnded(() => {
+      throw new Error('listener failure');
+    });
+    const stop = store.onEnded((_reference, reason) => heard.push(reason));
+    await store.end((await store.create(identity)).id);
+    stop();
+    await store.end((await store.create(identity)).id);
+    expect(heard).toEqual(['sign-out']);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

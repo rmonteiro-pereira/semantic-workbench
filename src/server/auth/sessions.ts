@@ -55,6 +55,8 @@ export type SessionOptions = {
   absoluteHours?: number;
   ended?: (session: Session, reason: string) => void;
 };
+/** Hears that a session ended. It receives the session's reference, the hash of its id, never the id. */
+export type SessionEndListener = (reference: string, reason: string) => void;
 
 /** Selects the development cookie exception only for loopback HTTP. */
 export function cookieName(publicUrl: string, kind = 'session'): string {
@@ -104,6 +106,7 @@ export function createSessionStore(options: SessionOptions) {
   const listeners = new Map<string, Set<(reason?: 'changed' | 'session-ended') => void>>();
   const pending = new Map<string, Promise<unknown>>();
   const persistedAt = new Map<string, number>();
+  const endListeners = new Set<SessionEndListener>();
   function serialize<T>(hash: string, work: () => Promise<T>): Promise<T> {
     const next = (pending.get(hash) ?? Promise.resolve()).then(work);
     const settled = next
@@ -200,6 +203,17 @@ export function createSessionStore(options: SessionOptions) {
     return structuredClone(session);
   }
 
+  // A listener that fails must not stop the others or the removal, which is already done.
+  function notifyEnded(reference: string, reason: string) {
+    for (const listener of endListeners) {
+      try {
+        listener(reference, reason);
+      } catch (error) {
+        log.failure('auth.session-end-listener-failed', error);
+      }
+    }
+  }
+
   async function remove(hash: string, reason: string): Promise<Session | null> {
     const session = await load(hash);
     if (!session) return null;
@@ -214,6 +228,7 @@ export function createSessionStore(options: SessionOptions) {
     } catch (error) {
       log.failure('auth.session-end-audit-failed', error);
     }
+    notifyEnded(hash, reason);
     return session;
   }
   async function get(id: string, touch = true) {
@@ -232,6 +247,23 @@ export function createSessionStore(options: SessionOptions) {
         if (session.lastSeenAt - (persistedAt.get(hash) ?? 0) >= Math.min(60_000, idle / 100)) {
           await persist(hash, session);
         }
+      }
+      return session;
+    });
+  }
+  /**
+   * Looks a session up by the hash of its id, the form other records keep. It never updates the
+   * last-seen time, so a program using a session through this call cannot keep it alive. The
+   * returned session has no id, because the hash cannot give it back.
+   */
+  async function getByReference(reference: string) {
+    if (!/^[a-f0-9]{64}$/.test(reference)) return null;
+    return serialize(reference, async () => {
+      const session = await load(reference);
+      if (!session) return null;
+      if (sessionExpired(session, now(), idle, absolute)) {
+        await remove(reference, 'expired');
+        return null;
       }
       return session;
     });
@@ -306,6 +338,12 @@ export function createSessionStore(options: SessionOptions) {
     },
     notifyAccessChanged,
     get,
+    getByReference,
+    /** Calls the listener once for every session that ends, whatever ended it. Returns a function that stops listening. */
+    onEnded(listener: SessionEndListener) {
+      endListeners.add(listener);
+      return () => endListeners.delete(listener);
+    },
     sweep: () => sweep(),
     endPrincipal: (principalId: string) => sweep(principalId),
     end: (id: string, reason = 'sign-out') => serialize(sha256(id), () => remove(sha256(id), reason)),
