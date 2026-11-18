@@ -2,6 +2,7 @@
 import type { BearerValidator } from './bearer';
 import type { LocalCapability } from '../mcp/local-capability';
 import type { CallLimitSettings } from '../mcp/call-limits';
+import type { ConnectionDirectory } from '../acp/connection-directory';
 import { createOperationBoundary } from './operation-boundary';
 import { mintCaller } from './caller';
 export { shouldAudit } from './operation-boundary';
@@ -69,6 +70,10 @@ export type HandlerOptions = {
   browserReports?: boolean;
   /** Local mode: the capability that opens the agent endpoint. Without it the endpoint is not mounted. */
   mcp?: { capability: LocalCapability; limits?: CallLimitSettings };
+  /** Server mode: the connection service the agent panel's relay authenticates through. Without it the panel is not offered. */
+  acp?: { connections: ConnectionDirectory };
+  /** True when the agent panel is mounted. The handler sets it; it is read by the identity route. */
+  agentPanel?: boolean;
 };
 /** The access boundary of a handler that was given none, read from the data root's settings. */
 export function defaultAccess(ws: Workspace, mode: 'local' | 'server'): AccessControl {

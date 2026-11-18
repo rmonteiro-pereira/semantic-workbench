@@ -125,29 +125,29 @@ test only to make it pass.
 
 ## Phase 5: Routes and the relay
 
-- [ ] T022 [US1] Create `src/server/routes/acp-relay.ts` (hello, frames, stream, bye per
+- [x] T022 [US1] Create `src/server/routes/acp-relay.ts` (hello, frames, stream, bye per
   `contracts/relay-connection.md`): `Origin` refused, bounded body, same 404 for every failure,
   `Last-Event-ID` resume, comment keep-alive every 15 seconds. Local mode authentication through
   `connection-auth.ts` and 006's capability reader. Needs 006. Proof: `bun test
   tests/acp/relay-routes.test.ts` (wrong code, reused code, expired code, foreign session, ended
   session, oversize body, browser Origin all answer as specified).
-- [ ] T023 [US1] Create `src/server/routes/acp-panel.ts` (create, events, prompt, cancel, answer,
+- [x] T023 [US1] Create `src/server/routes/acp-panel.ts` (create, events, prompt, cancel, answer,
   end per `contracts/panel-api.md`) with the cross-site checks of browser routes and the owner
   check on every route. Proof: `bun test tests/acp/panel-routes.test.ts` including another person's
   session id, a missing `X-SW-Request` header, two tabs posting one prompt (sent once), and
   attached file paths that are refused by the virtual-path check without saying whether they exist.
-- [ ] T024 [US1] Add route rows for the ten routes in one contiguous block in
+- [x] T024 [US1] Add route rows for the ten routes in one contiguous block in
   `src/server/auth/route-actions.ts`, entries in `policies/operation-inventory.json` (exposure
   `never`; dispatch `no: browser-only` for the six panel routes and `no: public` for the four relay
   routes, which authenticate by their own credential; check
   `schemas/semantic-workbench-operations-v1.json` and add a reason only if none fits), cases in `policies/matrix-cases.json`, and regenerate
   `docs/operations.md` with `bun scripts/operation-inventory-table.ts`. Proof: `bun test
   tests/auth/operation-inventory.test.ts tests/auth/route-actions.test.ts` and the matrix test.
-- [ ] T025 [US1] Mount the stores and route groups in `src/server/handler.ts` (local mode when the
+- [x] T025 [US1] Mount the stores and route groups in `src/server/handler.ts` (local mode when the
   MCP capability exists; server mode when 013's authenticator exists), and pass the 013 or 006
   session-end signal to `session-store.ts`. Proof: `bun test tests/acp/mount.test.ts`: absent
   prerequisites mean no routes (404) and no menu item flag in `/api/me`.
-- [ ] T026 [US1] Write `scripts/acp-relay.ts`: argument parsing, child process hosting the agent,
+- [x] T026 [US1] Write `scripts/acp-relay.ts`: argument parsing, child process hosting the agent,
   frame forwarding both ways with numbering, resume on reconnect, heartbeat, exit rules, capability
   read per request (local) and credential exchange from `SW_ACP_CREDENTIAL` (server). Add
   `tests/acp/relay-script.test.ts` driving it against an in-process server and the reference agent.

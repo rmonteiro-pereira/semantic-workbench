@@ -221,6 +221,19 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   // The local agent transport. Each tool call it carries is decided and audited as the twin of an ordinary route, so this
   // row grants nothing beyond reaching the transport and leaves no record of its own.
   { ...row('POST', '/api/mcp', 'read', workspace), methods: ['POST', 'GET', 'DELETE', 'PUT', 'PATCH'], localOnly: true, unaudited: true },
+  // The agent panel. The browser routes act for the signed-in person. The relay routes answer without a sign-in because the relay
+  // authenticates by its own credential inside the handler. Neither grants anything: the agent's file requests are decided and
+  // audited as twins of ordinary routes, and the panel writes its own start and end records.
+  { ...row('POST', '/api/acp/sessions', 'read', workspace), unaudited: true },
+  { ...row('GET', '/api/acp/sessions/:id/events', 'read', workspace), unaudited: true },
+  { ...row('POST', '/api/acp/sessions/:id/prompt', 'read', workspace), unaudited: true },
+  { ...row('POST', '/api/acp/sessions/:id/cancel', 'read', workspace), unaudited: true },
+  { ...row('POST', '/api/acp/sessions/:id/questions/:question', 'read', workspace), unaudited: true },
+  { ...row('DELETE', '/api/acp/sessions/:id', 'read', workspace), unaudited: true },
+  publicRow('POST', '/api/acp/relay/:session/hello'),
+  publicRow('POST', '/api/acp/relay/:session/frames'),
+  publicRow('GET', '/api/acp/relay/:session/stream'),
+  publicRow('POST', '/api/acp/relay/:session/bye'),
   pageRow,
 ];
 /** Finds the first matching method and path, or refuses an unmapped entry point. */

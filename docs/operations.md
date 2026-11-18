@@ -133,6 +133,16 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 | preview.context | GET /api/preview/context | read | workspace | read | none | never |
 | preview.plan | POST /api/preview/plan | read | workspace | read | AGENT_PLAN_REQUEST_LIMIT | never |
 | mcp.transport | POST /api/mcp | read | workspace | read | FILE_SAVE_REQUEST_LIMIT | never |
+| agentPanel.start | POST /api/acp/sessions | read | workspace | localWrite | AGENT_PANEL_REQUEST_LIMIT | never |
+| agentPanel.events | GET /api/acp/sessions/:id/events | read | workspace | read | none | never |
+| agentPanel.prompt | POST /api/acp/sessions/:id/prompt | read | workspace | localWrite | AGENT_PANEL_REQUEST_LIMIT | never |
+| agentPanel.cancel | POST /api/acp/sessions/:id/cancel | read | workspace | localWrite | AGENT_PANEL_REQUEST_LIMIT | never |
+| agentPanel.answer | POST /api/acp/sessions/:id/questions/:question | read | workspace | localWrite | AGENT_PANEL_REQUEST_LIMIT | never |
+| agentPanel.end | DELETE /api/acp/sessions/:id | read | workspace | localWrite | AGENT_PANEL_REQUEST_LIMIT | never |
+| agentRelay.hello | POST /api/acp/relay/:session/hello | read | workspace | localWrite | AGENT_PANEL_REQUEST_LIMIT | never |
+| agentRelay.frames | POST /api/acp/relay/:session/frames | read | workspace | localWrite | AGENT_PANEL_REQUEST_LIMIT | never |
+| agentRelay.stream | GET /api/acp/relay/:session/stream | read | workspace | read | none | never |
+| agentRelay.bye | POST /api/acp/relay/:session/bye | read | workspace | localWrite | AGENT_PANEL_REQUEST_LIMIT | never |
 
 ## Internal publication steps
 

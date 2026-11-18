@@ -1,6 +1,7 @@
 // Who owns which panel session, in memory only: create, find by owner, replace, end and sweep what the clock has expired.
 import { randomBytes, createHash, timingSafeEqual } from 'node:crypto';
 import type { OperationEffect } from '../auth/operation-inventory';
+import type { Principal } from '../auth/principal';
 import { createEventBuffer, type EventBuffer } from './event-buffer';
 import { createFrameLink, type FrameLink } from './frame-link';
 import { applyEvent, endDueAt, newPanelSession, retentionOver, type EndReason, type PanelSessionState, type SessionEvent } from './panel-session';
@@ -18,7 +19,10 @@ export type RunningTurn = { id: string; startedAt: number; cancelled: boolean };
 export type PanelSession = {
   readonly id: string;
   readonly owner: string;
-  readonly connection: string;
+  /** The person, for audit records. Absent only where a test does not need one. */
+  readonly principal?: Principal;
+  /** The connection id. Server mode learns it when the relay first connects, so it is bound once, while waiting. */
+  connection: string;
   readonly scope: readonly OperationEffect[];
   readonly buffer: EventBuffer;
   readonly link: FrameLink;
@@ -77,6 +81,7 @@ export function createSessionStore(options: SessionStoreOptions) {
     /** Starts a session for a person. A person with a live session must confirm replacing it. */
     create(input: {
       owner: string;
+      principal?: Principal;
       scope: readonly OperationEffect[];
       connection?: string;
       confirmReplace?: boolean;
@@ -88,6 +93,7 @@ export function createSessionStore(options: SessionStoreOptions) {
       const session: PanelSession = {
         id: randomBytes(16).toString('base64url'),
         owner: input.owner,
+        principal: input.principal,
         connection: input.connection ?? 'acp-' + pick(CONNECTION_ALPHABET, 12, random),
         scope: input.scope,
         buffer: createEventBuffer(),
@@ -112,10 +118,17 @@ export function createSessionStore(options: SessionStoreOptions) {
     /** Uses the code once. A wrong, reused or expired code is refused and leaves the session as it was. */
     consumeCode(session: PanelSession, code: string): boolean {
       const expected = session.code;
-      if (expected === undefined || session.timing.state !== 'waiting') return false;
+      // A code past its waiting period is refused even before the sweep has ended the session.
+      if (expected === undefined || session.timing.state !== 'waiting' || endDueAt(session.timing, options.now()) !== undefined) return false;
       const matches = sameText(expected, code.toUpperCase());
       if (matches) session.code = undefined;
       return matches;
+    },
+    /** Names the connection a waiting session belongs to. A session that is no longer waiting keeps the one it has. */
+    bindConnection(session: PanelSession, connection: string): boolean {
+      if (session.timing.state !== 'waiting') return false;
+      session.connection = connection;
+      return true;
     },
     apply(session: PanelSession, event: SessionEvent): void {
       if (event.type === 'end') return end(session, event.reason);

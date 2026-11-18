@@ -36,6 +36,7 @@ import { createMcpRoute } from './routes/mcp';
 import { createReceiptStore } from './mcp/receipts';
 import { TOOLS } from './mcp/tool-registry';
 import type { OperationBoundary } from './auth/operation-boundary';
+import { agentPanelAbsentRoute, mountAgentPanel } from './acp/mount';
 import { join } from 'node:path';
 /** Local browser origins allowed to call the API. */
 export const ALLOWED_ORIGINS = allowedOrigins(4310);
@@ -231,8 +232,22 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
           }),
         ]
       : [];
+  // The agent panel needs the local capability in local mode and the connection service in server mode; without them it has no routes.
+  const agentPanel = mountAgentPanel({
+    mode: options.mode ?? 'local',
+    port: options.port ?? 4310,
+    publicOrigin: options.publicOrigin,
+    capability: options.mcp?.capability,
+    connections: options.acp?.connections,
+    boundary: () => operationBoundary!,
+    audit: options.audit!,
+    keepOpen: options.keepOpen,
+    now: options.now,
+  });
+  options = { ...options, agentPanel: agentPanel !== undefined };
   const routes: Route[] = [
     ...agentEndpoint,
+    ...(agentPanel?.routes ?? [agentPanelAbsentRoute]),
     adminRoutes(adminService, options),
     auditRoutes(options),
     ...(options.authentication ? [authRoutes(options.authentication, options.remoteCredentials)] : []),
@@ -295,7 +310,7 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
     });
   const boundary = createAccessMiddleware(ws, options, localCheck, run, failure);
   operationBoundary = boundary.boundary;
-  if (options.mode !== 'server') return boundary;
+  if (options.mode !== 'server') return Object.assign(boundary, { agentPanel: agentPanel?.service });
   const httpHandler = async (request: Request) => {
     const response = await boundary(request);
     // Only the provider's sign-out page may frame the front-channel logout route.
@@ -313,5 +328,5 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
     if (!response.headers.has('Cache-Control')) response.headers.set('Cache-Control', 'no-store');
     return response;
   };
-  return Object.assign(httpHandler, { boundary: boundary.boundary });
+  return Object.assign(httpHandler, { boundary: boundary.boundary, agentPanel: agentPanel?.service });
 }
