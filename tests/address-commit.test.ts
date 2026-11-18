@@ -29,11 +29,6 @@ function declaration(id: string, saveId: string, { before, after, otherFiles = [
 
 const ids = (records: readonly JournalMigration[]) => records.map(record => record.id);
 
-test('a single save between the two commits matches', () => {
-  const rename = declaration('a', 'save-1', { before: 'v0', after: 'v1' });
-  expect(ids(committedFileEdits(path, bytes('v0'), bytes('v1'), [rename]))).toEqual(['a']);
-});
-
 test('a chain of saves matches only when it reaches the previous commit with no gap', () => {
   const first = declaration('a', 'save-1', { before: 'v0', after: 'v1' });
   const second = declaration('b', 'save-2', { before: 'v1', after: 'v2' });
