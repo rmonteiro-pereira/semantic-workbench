@@ -70,7 +70,7 @@ function manifestSourceOf(read: UnitRead): ManifestSource {
 }
 
 function compileRead(read: UnitRead, lossPolicySha256: string | null): CompileResult {
-  return compileUnit(read.files, { lossPolicySha256 });
+  return compileUnit(read.files, { lossPolicySha256, providers: read.mesh?.providers });
 }
 
 function resultOfCheck(compile: CompileResult): CheckAnswer['result'] {

@@ -1,4 +1,5 @@
 // Compiles one project folder: validates every Ossie document, compiles the Tessera ones, copies the rest of the Ossie files and checks the whole result before anything is released.
+import { deepEqual, isObject } from '../edit/source-text';
 import type { Issue } from '../validation/diagnostics';
 import { validateInput } from '../validation/input';
 import { OSSIE_SCHEMA_VERSION, isNotValidated } from '../validation/validation';
@@ -10,6 +11,10 @@ import { COMPILER_NAME, COMPILER_VERSION } from './format';
 import { buildLossReport, type GovernanceStatusKey, type LossEntry, type LossReport, type ReportInput, type ReportOutput } from './loss-report';
 import { documentMeaningFailures, summarizeItems, unitMeaningFailures, type DocumentReading } from './meaning-check';
 import { SUPPORTED_BASES, findBase } from './bases';
+import { compileMeshRoot } from './compile-mesh';
+import { declaredImports, type ResolvedImportInterface } from './imports';
+import { INCLUDES_PROPERTY } from './additions/includes';
+import { readUnitStructure, type OntologyUnit } from './unit-structure';
 import { REGISTRY } from './registry';
 
 export type { UnitFile } from './document-kind';
@@ -18,7 +23,7 @@ export type { UnitFile } from './document-kind';
 export const UNIT_LIMITS: Readonly<{ files: number; totalBytes: number; documentBytes: number }> = { files: 10_000, totalBytes: 64_000_000, documentBytes: 2_000_000 };
 
 /** Options that become part of the report, because they change what may be released. */
-export type CompileOptions = { lossPolicySha256: string | null };
+export type CompileOptions = { lossPolicySha256: string | null; providers?: ReadonlyMap<string, ResolvedImportInterface[]> };
 
 /** The findings of one document. */
 export type FileFindings = { document: string; issues: Issue[] };
@@ -113,14 +118,52 @@ function compileOntology(entry: Extract<ClassifiedFile, { kind: 'tessera-ontolog
   result.failures.push(...documentMeaningFailures(entry.reading, checked.reading));
 }
 
-function compileFiles(classified: ClassifiedFile[], steps: UnitSteps): Compiled {
+function compileMesh(
+  unit: OntologyUnit,
+  files: readonly ClassifiedFile[],
+  providers: readonly ResolvedImportInterface[],
+  steps: UnitSteps,
+  result: Compiled,
+  readings: { sources: DocumentReading[]; outputs: DocumentReading[] },
+) {
+  const source = files.find(entry => entry.kind === 'tessera-ontology' && entry.file.path === unit.root.path);
+  if (source?.kind !== 'tessera-ontology') return;
+  const parts = unit.parts.map(part => files.find(entry => entry.file.path === part.path)).filter(entry => entry?.kind === 'tessera-part');
+  const compiled = compileMeshRoot(unit, [source, ...parts], providers, steps.compileDocument);
+  if ('failures' in compiled) {
+    result.failures.push(...compiled.failures);
+    return;
+  }
+  const checked = checkOutput(source.file.path, compiled.text);
+  result.failures.push(...checked.failures);
+  if (!checked.reading) return;
+  if (!deepEqual(compiled.expected, checked.reading.data)) {
+    result.failures.push({ code: 'meaning', document: source.file.path, message: 'Compiled data differs from the merged ontology.' });
+  }
+  result.outputs.push({ path: source.file.path, bytes: encoder.encode(compiled.text) });
+  result.losses.push(...compiled.losses);
+  result.governanceStatuses.push(...compiled.governanceStatuses);
+  readings.sources.push(source.reading);
+  readings.outputs.push(checked.reading);
+  for (const part of parts) result.treatments.set(part.file.path, 'compiled');
+}
+
+function compileFiles(classified: ClassifiedFile[], steps: UnitSteps, options: CompileOptions): Compiled {
   const result: Compiled = { outputs: [], losses: [], governanceStatuses: [], failures: [], treatments: new Map() };
   const readings = { sources: [] as DocumentReading[], outputs: [] as DocumentReading[] };
+  const { units, findings } = readUnitStructure(
+    classified.flatMap(entry => {
+      if (entry.kind === 'tessera-part') return [{ path: entry.file.path, data: entry.data }];
+      if (entry.kind === 'tessera-ontology' && entry.revision === 3) return [{ path: entry.file.path, data: entry.reading.data }];
+      return [];
+    }),
+  );
+  for (const finding of findings) {
+    if (finding.severity === 'error') result.failures.push({ code: 'translation', document: finding.files[0], message: finding.message });
+  }
+  const unitByRoot = new Map(units.map(unit => [unit.root.path, unit]));
+  for (const entry of classified) result.treatments.set(entry.file.path, TREATMENT_OF_KIND[entry.kind]);
   for (const entry of classified) {
-    result.treatments.set(entry.file.path, TREATMENT_OF_KIND[entry.kind]);
-    if (entry.kind === 'tessera-part' || entry.kind === 'dependency-manifest') {
-      result.failures.push({ code: 'translation', document: entry.file.path, message: 'This input requires complete Tessera unit compilation.' });
-    }
     if (entry.kind === 'invalid') result.failures.push(...entry.failures);
     if (entry.kind === 'ossie') {
       result.outputs.push(entry.file);
@@ -132,7 +175,14 @@ function compileFiles(classified: ClassifiedFile[], steps: UnitSteps): Compiled 
           .map(() => ({ code: 'output-schema' as const, document: entry.file.path, message: 'The document was not validated against the pinned schema, so it cannot be released.' })),
       );
     }
-    if (entry.kind === 'tessera-ontology') compileOntology(entry, steps, result, readings);
+    if (entry.kind === 'tessera-ontology') {
+      const unit = unitByRoot.get(entry.file.path);
+      if (unit && isObject(unit.root.data) && (INCLUDES_PROPERTY in unit.root.data || declaredImports(unit.root.data).length)) {
+        compileMesh(unit, classified, options.providers?.get(unit.root.path) ?? [], steps, result, readings);
+      } else {
+        compileOntology(entry, steps, result, readings);
+      }
+    }
   }
   if (!result.failures.length) result.failures.push(...unitMeaningFailures(readings.sources, readings.outputs));
   return result;
@@ -149,7 +199,7 @@ export function compileUnit(files: UnitFile[], options: CompileOptions, steps: U
   const base = findBase(SUPPORTED_BASES, OSSIE_SCHEMA_VERSION)!;
   const empty = { outputs: [], losses: [], governanceStatuses: [], failures: [], treatments: new Map() } as Compiled;
   const classified = limits.length ? [] : sorted.map(classifyFile);
-  const compiled = limits.length ? empty : compileFiles(classified, steps);
+  const compiled = limits.length ? empty : compileFiles(classified, steps, options);
   const collisions = collisionFailures(compiled.outputs);
   const failures = [...limits, ...compiled.failures, ...collisions].sort(byFailureOrder);
   const inputs: ReportInput[] = sorted.map(file => ({ path: file.path, sha256: sha256Hex(file.bytes), treatment: compiled.treatments.get(file.path) ?? 'not-included' }));
