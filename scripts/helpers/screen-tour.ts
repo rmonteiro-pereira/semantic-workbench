@@ -40,6 +40,19 @@ export async function openFile(page: Page, path: string) {
   await expect(page.locator('.workspace-sidebar .document.chosen')).toHaveAttribute('aria-label', path);
 }
 
+/** Opens a named project’s file and tab when the same filename can occur in several projects. */
+export async function openProjectFileTab(page: Page, projectName: string, file: string, tab: string) {
+  await showSidebar(page);
+  await page.getByRole('button', { name: 'Model explorer', exact: true }).click();
+  await showSidebar(page);
+  const project = page.getByRole('treeitem', { name: projectName, exact: true });
+  if ((await project.getAttribute('aria-expanded')) === 'false') {
+    await project.getByRole('button', { name: projectName, exact: true }).click();
+  }
+  await project.getByRole('button', { name: file, exact: true }).click();
+  await openTab(page, tab);
+}
+
 async function openTab(page: Page, name: string) {
   const tabs = page.locator('.tabs');
   await expect(tabs).toBeVisible();

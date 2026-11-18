@@ -1,7 +1,7 @@
 // Captures shell, catalog, editing, metrics, and source-control stages. Imported by capture-states; no additional environment variables.
 import { expect, type Page } from '@playwright/test';
 import { captureScreens } from '../helpers/all-tours';
-import { fileTab, showScreen, showSidebar } from '../helpers/screen-tour';
+import { fileTab, openProjectFileTab, showScreen, showSidebar } from '../helpers/screen-tour';
 import { openNewMenu } from '../helpers/header';
 import { capture, attempt, failure, type CaptureIdentity } from './capture-records';
 
@@ -221,11 +221,7 @@ async function mappings(page: Page, identity: CaptureIdentity) {
       .click();
   });
   await attempt(page, identity, 'mappings', 'selected-document-source', async () => {
-    await showSidebar(page);
-    await page.getByRole('button', { name: 'Model explorer', exact: true }).click();
-    const project = page.getByRole('treeitem', { name: 'Unbound commerce', exact: true });
-    await project.getByRole('button', { name: 'commerce.mapped-ontology.yaml', exact: true }).click();
-    await page.locator('.tabs').getByRole('button', { name: 'Mappings', exact: true }).click();
+    await openProjectFileTab(page, 'Unbound commerce', 'commerce.mapped-ontology.yaml', 'Mappings');
     await page.getByText('No bindings in this mapping', { exact: true }).waitFor();
     await page.getByRole('button', { name: 'Show query', exact: true }).click();
     await page.getByRole('button', { name: 'Open Source to add bindings', exact: true }).click();

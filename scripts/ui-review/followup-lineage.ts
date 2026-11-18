@@ -1,6 +1,6 @@
 // Defines independent lineage column, connection, toolbar, and zero-binding captures. Imported by followup-local.
 import { expect, type Page } from '@playwright/test';
-import { fileTab, showSidebar } from '../helpers/screen-tour';
+import { fileTab, openProjectFileTab } from '../helpers/screen-tour';
 import { clickConnection } from './followup-graphs';
 import type { State, View } from './followup-capture';
 import { showLineageColumns } from './graph-states';
@@ -176,12 +176,7 @@ export function emptyMappingStates(): State[] {
       state: `after-${seconds}s`,
       timed: true,
       action: async (page, record) => {
-        await showSidebar(page);
-        await page.getByRole('button', { name: 'Model explorer', exact: true }).click();
-        const project = page.getByRole('treeitem', { name: 'Unbound commerce', exact: true });
-        if ((await project.getAttribute('aria-expanded')) === 'false') await project.getByRole('button', { name: 'Unbound commerce', exact: true }).click();
-        await project.getByRole('button', { name: 'commerce.mapping.yaml', exact: true }).click();
-        await page.waitForTimeout(500);
+        await openProjectFileTab(page, 'Unbound commerce', 'commerce.mapping.yaml', 'Source');
         opened = performance.now();
         await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
         await page.waitForTimeout(Math.max(0, seconds * 1000 - (performance.now() - opened)));
