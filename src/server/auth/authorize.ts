@@ -227,7 +227,7 @@ function accessControl(options: AccessOptions, previous?: ActiveAccess) {
         type,
       );
       const creation = action === 'createProject' && options.mode === 'server' && (resource.type === 'workspace' || (resource.type === 'project' && resource.project === NEW_PROJECT));
-      const actionClass = creation ? action : actionClasses.get(action);
+      const actionClass = creation ? ['createProject'] : actionClasses.get(action);
       const key = JSON.stringify([actionClass, project, ruleClass(snapshot, resource), context, resource.type === 'workspace' ? undefined : resource.domain]);
       const previous = decisions.get(key);
       if (previous) return previous;

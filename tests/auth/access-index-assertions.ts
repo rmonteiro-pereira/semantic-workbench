@@ -37,6 +37,18 @@ export function assertAccessIndexes(createControl: typeof createAccessControl) {
   assert.equal(scope.authorize('edit', resource).allow, true);
   assert.throws(() => access.validatePolicy({ ...changed, adminRules: { broken: 'invalid Cedar' } }));
   arbitraryPolicyActions(createControl);
+  prospectiveCreation(createControl);
+}
+
+function prospectiveCreation(createControl: typeof createAccessControl) {
+  const options = accessFixture();
+  options.config.roles.push({ ...options.config.roles[0], id: 'r_project_creator', name: 'Project creator', description: '', permissions: [{ actions: ['createProject', 'renameProject'] }] });
+  options.config.grants.push({ ...options.config.grants[0], id: 'creator', roleId: 'r_project_creator', member: { kind: 'email', email: 'erin@example.org' } });
+  const access = createControl(options);
+  const scope = access.forRequest(access.principalFor(person('erin')));
+  assert.equal(scope.authorize('renameProject', { type: 'workspace' }).allow, false);
+  assert.equal(scope.authorize('createProject', { type: 'workspace' }).allow, true);
+  assert.equal(scope.authorize('renameProject', { type: 'workspace' }).allow, false);
 }
 
 function distinctKinds(access: ReturnType<typeof createAccessControl>) {
@@ -44,6 +56,9 @@ function distinctKinds(access: ReturnType<typeof createAccessControl>) {
   assert.equal(alice.authorize('export', { type: 'project', project: 'sales-metrics' }).allow, true);
   assert.equal(alice.authorize('export', { type: 'workspace' }).allow, false);
   assert.equal(alice.authorize('read', { type: 'workspace' }).allow, true);
+  const bob = access.forRequest(access.principalFor(person('bob')));
+  assert.equal(bob.authorize('readAudit', { type: 'project', project: 'sales-metrics' }).allow, true);
+  assert.equal(bob.authorize('admin', { type: 'project', project: 'sales-metrics' }).allow, false);
   const erin = access.forRequest(access.principalFor(person('erin')));
   const resource = { type: 'project', project: 'sales-contracts' } as const;
   assert.equal(erin.authorize('edit', resource).allow, false);
