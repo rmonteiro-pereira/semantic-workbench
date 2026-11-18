@@ -11,7 +11,8 @@
 }
 .traffic-ring {
   position: absolute;
-  inset: -1px;
+  inset: 0;
+  box-sizing: border-box;
   border: calc(var(--traffic-level) * 1px) solid var(--color-accent);
   border-radius: inherit;
   pointer-events: none;
@@ -31,6 +32,8 @@
 /* Text for screen readers only; the visible meaning is the ring and the bar. */
 .traffic-sr {
   position: absolute;
+  top: 0;
+  left: 0;
   width: 1px;
   height: 1px;
   overflow: hidden;
