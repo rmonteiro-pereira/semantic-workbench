@@ -10,7 +10,7 @@ export const LOCAL_TIMEOUT_MS = 30_000;
 /** Default time limit for remote Git commands. */
 export const REMOTE_TIMEOUT_MS = 600_000;
 /** A blob entry listed from an immutable Git tree. */
-export type GitTreeEntry = { path: string; id: string; size: number };
+export type GitTreeEntry = { path: string; id: string; size: number; link?: true };
 /** Maximum bytes accepted when reading immutable definition objects. */
 export type GitObjectLimits = { documentBytes: number; totalBytes: number };
 const OBJECT_LIMITS: GitObjectLimits = { documentBytes: 2_000_000, totalBytes: 64_000_000 };
@@ -370,7 +370,7 @@ export function createGit(options: GitOptions) {
         const tab = entry.indexOf('\t');
         const fields = entry.slice(0, tab).trim().split(/\s+/);
         if (fields[1] !== 'blob') return [];
-        return [{ path: entry.slice(tab + 1), id: fields[2], size: Number(fields[3]) }];
+        return [{ path: entry.slice(tab + 1), id: fields[2], size: Number(fields[3]), ...(fields[0] === '120000' ? { link: true as const } : {}) }];
       });
   }
   async function catFileBatch(cwd: string, ids: string[], limits = OBJECT_LIMITS) {

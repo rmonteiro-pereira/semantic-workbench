@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { DEPENDENCY_MANIFEST_PATH, parseDependencyManifest, printDependencyManifest } from '../../src/shared/tessera/dependency-manifest';
 import { createAccessControl } from '../../src/server/auth/authorize';
@@ -134,5 +134,21 @@ test('publication rejects a lock that still lists a root whose imports were remo
   const refused = await publish(fixture);
   expect(refused.status).toBe(400);
   expect(JSON.stringify(await refused.json())).toContain('manifest is stale');
+  expect(fixture.ws.state.published().repositories.retail.commit).toBe(original);
+});
+
+test('a tracked symbolic link cannot supply a declared part in the publication candidate', async () => {
+  using fixture = await meshWorkspace('separate');
+  fixture.addPersonalBranch('retail');
+  const directory = fixture.projectDirectory('retail');
+  const part = join(directory, 'private/customer.yaml');
+  const source = readFileSync(part);
+  writeFileSync(join(directory, 'replacement.yaml'), source);
+  unlinkSync(part);
+  symlinkSync('../replacement.yaml', part);
+  const original = fixture.ws.state.published().repositories.retail.commit;
+  const response = await publish(fixture);
+  expect(response.status).toBe(400);
+  expect(await response.json()).toEqual({ error: 'The ontology set could not be checked.' });
   expect(fixture.ws.state.published().repositories.retail.commit).toBe(original);
 });

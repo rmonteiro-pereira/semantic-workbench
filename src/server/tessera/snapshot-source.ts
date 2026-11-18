@@ -103,7 +103,7 @@ export async function readSnapshot(request: SnapshotRequest, git: Git = gitFor(r
 export async function readCommitFolder(directory: string, commit: string, folder: string, git = gitFor(directory), limits = SNAPSHOT_LIMITS): Promise<UnitFile[]> {
   const prefix = folderPrefix(folder);
 
-  const entries = await git.lsTree(directory, commit, prefix);
+  const entries = (await git.lsTree(directory, commit, prefix)).filter(entry => !entry.link);
   if (entries.length > limits.projectFiles) throw new TesseraRefusal(`The folder holds ${entries.length} files, and the limit is ${limits.projectFiles}.`);
   const tooLarge = entries.find(entry => entry.size > limits.documentBytes);
   if (tooLarge) throw new TesseraRefusal(`${tooLarge.path} holds ${tooLarge.size} bytes, and the limit is ${limits.documentBytes}.`);
