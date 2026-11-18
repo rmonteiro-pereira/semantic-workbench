@@ -97,7 +97,8 @@ stored.
 ## Renames and deletions
 
 Counts follow items through migrations confirmed by the old and new published definitions when a
-publication moves. An unpublished rename leaves the published address and its counts in place.
+publication moves. Usage history is optional and publication proceeds if that history cannot be
+read or written. An unpublished rename leaves the published address and its counts in place.
 Reads apply the published history to in-memory and stored counts, and compaction writes it to the
 day files. Both use the commit recorded by the publication pointer. Migrations merge counts that
 meet and remove the counts of declared deletions. An item removed without a published migration

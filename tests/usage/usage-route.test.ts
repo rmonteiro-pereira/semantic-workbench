@@ -1,5 +1,8 @@
 // Tests the read route over HTTP: answers, refusals and headers.
 import { afterEach, describe, expect, test } from 'bun:test';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
+import { addressMigrationFile } from '../../src/server/projects/address-migrations';
 import { createAccessControl } from '../../src/server/auth/authorize';
 import { createHandler } from '../../src/server/handler';
 import { dataLayout } from '../../src/server/projects/paths';
@@ -10,7 +13,7 @@ import { AUTH_PROJECTS, authWorkspace } from '../helpers/auth-workspace';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 import { publishFixture } from '../helpers/published-workspace';
 import { LOCAL_READER } from '../../src/server/projects/reader';
-import { publishedMigrationRecords } from '../../src/server/usage/usage-publication';
+import { publishedMigrationFile, publishedMigrationRecords } from '../../src/server/usage/usage-publication';
 import { compactUsage } from '../../src/server/usage/usage-compaction';
 import { testWorkspace } from '../helpers/temp-data-dir';
 import { accessFixture, person } from '../auth/access-fixture';
@@ -159,3 +162,31 @@ test('two readers see the counted address change only when its rename is publish
     for (const handler of handlers) await handler.usage.close();
   }
 });
+
+for (const failure of ['malformed journal', 'unwritable usage history'] as const) {
+  test(`publication works with ${failure} while usage counters are off`, async () => {
+    const fixture = await testWorkspace();
+    disposers.push(fixture.dispose);
+    const source = 'name: O\nontology: [{concept: Before}]';
+    const { slug } = await fixture.seed([{ path: 'a.yaml', source }], 'Counted');
+    await publishFixture(fixture);
+    const file = fixture.ws.readFile(slug, 'a.yaml');
+    const address = (name: string) => `sw1:${slug}/a.yaml#ontology:O/concept:${name}`;
+    await fixture.ws.saveFile(
+      slug,
+      'a.yaml',
+      {
+        baseHash: file.hash,
+        source: source.replace('Before', 'After'),
+        declaredMigrations: [{ kind: 'item', from: address('Before'), to: address('After') }],
+      },
+      LOCAL_READER,
+    );
+    const commit = await (await fixture.ws.scmFor(slug, LOCAL_READER)).commit(slug, 'Rename the concept', { paths: ['a.yaml'] });
+    const path = failure === 'malformed journal' ? addressMigrationFile(fixture.ws.layout, slug) : dirname(publishedMigrationFile(fixture.ws.layout, slug));
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, 'invalid');
+    expect((await fixture.ws.publish(slug, LOCAL_READER)).commit).toBe(commit.commit);
+    expect(fixture.ws.published.pin().commits.get(slug)?.commit).toBe(commit.commit);
+  });
+}

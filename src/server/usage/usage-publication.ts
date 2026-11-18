@@ -28,7 +28,7 @@ export function publishedMigrationRecords(layout: DataLayout, project: string, c
       if (!version || !Array.isArray(version.records) || version.records.length > ADDRESS_MIGRATION_LIMIT) return null;
       if (version.commit === commit) return version.records;
     }
-    return [];
+    return null;
   } catch {
     return null;
   }

@@ -388,7 +388,13 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     directory: repository => join(layout.projects, repository),
     readable: candidate => snapshots.validate(candidate),
     supersede: () => snapshots.supersede(),
-    stageCandidate: candidate => stagePublishedMigrations({ layout, git, snapshots }, candidate),
+    async stageCandidate(candidate) {
+      try {
+        await stagePublishedMigrations({ layout, git, snapshots }, candidate);
+      } catch {
+        log.warn('usage.publication-history-unavailable', { repository: candidate.repo, commit: candidate.next });
+      }
+    },
     stage: options.publicationStage,
   });
   const localPublication = createLocalPublication({
