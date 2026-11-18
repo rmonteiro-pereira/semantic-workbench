@@ -142,6 +142,8 @@ behind a control. When the detailed reach needs smaller text, lineage and mappin
 name-only cards through `LineageOverviewCard.tsx`, with names compensated to at least 9 screen pixels. Their semantic edge endpoints
 anchor to the compact header; detailed cards keep the existing row ports. First view fits the
 complete compact reach when its names fit readably, otherwise it centres a whole chosen set.
+When a layered layout leaves too little space for complete names, Fit packs equal cards to the
+available pane and draws their relationships along row and column gutters.
 The remaining cards appear when the person pans, zooms or presses Fit.
 Explicit Fit requests the complete compact reach and takes precedence over a pending first view.
 Compact overviews that cannot contain their complete wrapped names at the minimum name size pack cards

@@ -4,7 +4,7 @@ import { useStoreApi, useUpdateNodeInternals, type NodeChange } from '@xyflow/re
 import ELK from 'elkjs/lib/elk-api.js';
 import elkWorkerUrl from 'elkjs/lib/elk-worker.min.js?url';
 import type { StageSize } from '../graph/stage-size';
-import { elkGraph, compactOverviewNeedsPacking, compactOverviewRoutes, positionsOf, type LayoutCard, type LayoutEdge, type LayoutResult } from './lineage-layout';
+import { elkGraph, compactOverviewNeedsPacking, compactOverviewRoutes, packOverviewCards, positionsOf, type LayoutCard, type LayoutEdge, type LayoutResult } from './lineage-layout';
 
 type NodeSize = { width: number; height: number };
 // Preserve measurements while a card keeps its rows. Changed rows invalidate the size so React
@@ -68,10 +68,10 @@ export function useLayout(cards: LayoutCard[], edges: LayoutEdge[], key: string,
     setBusy(true);
     elkInstance
       .layout(elkGraph(cards, edges))
-      .then(async layoutOutput => {
-        if (id !== seq.current || !compactOverviewNeedsPacking(cards, pane, layoutOutput)) return positionsOf(layoutOutput);
-        const packed = positionsOf(await elkInstance.layout(elkGraph(cards, edges, Math.max(1, pane!.width / pane!.height))));
-        return { ...packed, routes: compactOverviewRoutes(packed.positions, edges) };
+      .then(layoutOutput => {
+        if (id !== seq.current || !pane || !compactOverviewNeedsPacking(cards, pane, layoutOutput)) return positionsOf(layoutOutput);
+        const positions = packOverviewCards(cards, pane);
+        return { positions, routes: compactOverviewRoutes(positions, edges) };
       })
       .then(layout => {
         if (id !== seq.current) return;

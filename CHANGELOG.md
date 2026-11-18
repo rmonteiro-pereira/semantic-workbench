@@ -72,7 +72,7 @@ and protect release tags. Existing tags inside published history remain usable a
 
 - The administration audit retention setting reaches the single production audit log.
 - Catalog cards show complete descriptions, and the wider catalog search stays scoped to that view.
-- Compact lineage cards wrap complete names and pack to the pane when a layered fit would make them too small.
+- Compact lineage cards pack to the available pane so fitted names wrap within their cards.
 
 - A fresh development server no longer reloads the page while the Network graph loads for the first
   time. `cytoscape` and `cytoscape-fcose`, which only the layout worker imports, are now optimized

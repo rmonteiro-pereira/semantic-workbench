@@ -153,6 +153,22 @@ export function compactOverviewNeedsPacking(cards: LayoutCard[], pane: ViewSize 
   return (OVERVIEW_H - 16) * zoom < minimumNameHeight;
 }
 
+/** Packs equal overview cards to maximize their fitted zoom within the canvas. */
+export function packOverviewCards(cards: LayoutCard[], pane: ViewSize): LayoutResult['positions'] {
+  const gap = 34;
+  const columnPitch = CARD_W + gap;
+  const rowPitch = OVERVIEW_H + gap;
+  const idealColumns = Math.sqrt((cards.length * pane.width * rowPitch) / (pane.height * columnPitch));
+  function fittedZoom(columns: number) {
+    const rows = Math.ceil(cards.length / columns);
+    return Math.min(pane.width / (columns * columnPitch - gap), pane.height / (rows * rowPitch - gap));
+  }
+  const lower = Math.max(1, Math.min(cards.length, Math.floor(idealColumns)));
+  const upper = Math.min(cards.length, lower + 1);
+  const columns = fittedZoom(lower) >= fittedZoom(upper) ? lower : upper;
+  return Object.fromEntries(cards.map((card, index) => [card.id, { x: (index % columns) * columnPitch, y: Math.floor(index / columns) * rowPitch }]));
+}
+
 /** Maps card identifiers to layout coordinates, and line identifiers to the bend points of the
  * route the layout chose for them. */
 export type LayoutResult = {
