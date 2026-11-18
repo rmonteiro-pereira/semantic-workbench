@@ -1,7 +1,7 @@
 /** Checks ontology units and frozen imports in an immutable publication candidate. */
 import { IMPORTS_PROPERTY } from '../../shared/tessera/additions/imports';
 import { DEPENDENCY_MANIFEST_PATH, dependencyRoot, dependencyRoots, manifestIsCurrent, parseDependencyManifest, type LockedProvider } from '../../shared/tessera/dependency-manifest';
-import { declaredImports, providerOf } from '../../shared/tessera/imports';
+import { declaredImports, providerOf, type UnitImport } from '../../shared/tessera/imports';
 import { setFindings, requiredUnitFiles } from '../../shared/tessera/set-validation';
 import { readUnitStructure, type OntologyUnit } from '../../shared/tessera/unit-structure';
 import { InputError } from '../../shared/validation/diagnostics';
@@ -12,7 +12,7 @@ import type { PublishedPin, PublishedSnapshots } from '../projects/published-sna
 import type { Reader } from '../projects/reader';
 import type { PublishedDocument } from '../projects/snapshot-index';
 import { requireOneProviderVersion } from './dependency-update';
-import { exportedOntologies } from './provider-resolution';
+import { exportedOntologies, type PublicProvider } from './provider-resolution';
 
 type Candidate = Pick<PublicationCandidate, 'repo' | 'next'>;
 
@@ -36,7 +36,7 @@ function parseUnits(documents: readonly PublishedDocument[]) {
   );
 }
 
-async function checkProvider(source: FrozenDependencySource, pin: PublishedPin, candidate: Candidate, reader: Reader, provider: LockedProvider) {
+async function readProvider(source: FrozenDependencySource, pin: PublishedPin, candidate: Candidate, reader: Reader, provider: LockedProvider) {
   const { project, ontology, repository } = provider;
   if ((reader.view && !reader.view.readableProjects.has(project)) || source.repositoryOf(project) !== repository) refuse('A locked provider is unavailable.');
   const sameRepository = repository === candidate.repo;
@@ -48,21 +48,7 @@ async function checkProvider(source: FrozenDependencySource, pin: PublishedPin, 
     throw error;
   });
   if (!selected) refuse('A locked provider version is unavailable.');
-  const match = exportedOntologies(project, repository, selected.commit, selected.documents).find(entry => entry.ontology === ontology);
-  if (!match || match.closure.interfaceHash !== provider.interfaceHash) refuse('A locked provider interface differs from the candidate or pinned version.');
-  const resolved = {
-    project,
-    ontology,
-    exports: new Set(match.closure.concepts.keys()),
-    sameRepository,
-    concepts: match.closure.concepts,
-    version: match.commit,
-    scope: match.base,
-    interfaceHash: match.closure.interfaceHash,
-    sourceItems: new Map([...match.sourceItems].filter(([, path]) => !reader.view || reader.view.canRead(project, path))),
-    ontologyName: match.ontologyName,
-  };
-  return { resolved, documents: selected.documents };
+  return selected;
 }
 
 const MAX_PROVIDER_DEPTH = 8;
@@ -87,7 +73,8 @@ function providerSource(traversal: ProviderTraversal, candidate: Candidate): Fro
   };
 }
 
-function providerDependencies(documents: PublishedDocument[], root: string) {
+/** Reads the exact lock belonging to the provider root. */
+export function providerDependencies(documents: readonly PublishedDocument[], root: string) {
   const unit = documents.find(file => file.path === root);
   if (!unit) return [];
   const model = validateInput(unit.source, unit.filename).model;
@@ -105,23 +92,70 @@ function providerDependencies(documents: PublishedDocument[], root: string) {
   refuse('A locked provider has a stale or invalid dependency manifest.');
 }
 
-async function traverseProvider(traversal: ProviderTraversal, candidate: Candidate, provider: LockedProvider, visited: ReadonlySet<string>) {
+function lockedImport(entry: UnitImport, providers: LockedProvider[]): LockedProvider {
+  const provider = providers.find(provider => provider.project === entry.project && (entry.ontology === undefined || provider.ontology === entry.ontology));
+  if (!provider) refuse('A re-export has no locked provider.');
+  return provider;
+}
+
+async function traverseProvider(traversal: ProviderTraversal, candidate: Candidate, provider: LockedProvider, visited: ReadonlySet<string>, reexports: string[] = []): Promise<PublicProvider> {
   const { pin, reader, commits } = traversal;
   const commit = provider.sameRepository ? candidate.next : provider.commit;
   const key = JSON.stringify([provider.project, provider.ontology, commit]);
+  const label = provider.project + '/' + provider.ontology;
   const previous = commits.get(provider.project);
   if (previous !== undefined && previous !== commit) refuse(`Provider "${provider.project}" resolves to both "${previous}" and "${commit}".`);
   commits.set(provider.project, commit);
-  if (!visited.has(key) && visited.size >= MAX_PROVIDER_DEPTH) refuse(`An import chain exceeds ${MAX_PROVIDER_DEPTH} providers.`);
-  const { resolved, documents } = await checkProvider(providerSource(traversal, candidate), pin, candidate, reader, provider);
-  if (provider.concepts.some(name => !resolved.exports.has(name))) refuse('A locked concept is not exported by its provider.');
+  if (reexports.includes(label)) refuse(`Re-export cycle: ${[...reexports, label].join(' → ')}.`);
+  if (reexports.length >= MAX_PROVIDER_DEPTH || (!visited.has(key) && visited.size >= MAX_PROVIDER_DEPTH)) refuse(`An import chain exceeds ${MAX_PROVIDER_DEPTH} providers.`);
+  const selected = await readProvider(providerSource(traversal, candidate), pin, candidate, reader, provider);
+  const next = new Set([...visited, key]);
+  const home = { repo: provider.repository, next: commit };
+  const dependencies = () => providerDependencies(selected.documents, provider.ontology);
+  const used = new Set<LockedProvider>();
+  const [match] = await exportedOntologies(
+    { ...selected, project: provider.project, repository: provider.repository },
+    entry => {
+      const nested = lockedImport(entry, dependencies());
+      used.add(nested);
+      return traverseProvider(traversal, home, nested, next, [...reexports, label]);
+    },
+    provider.ontology,
+  );
+  if (!match || match.closure.interfaceHash !== provider.interfaceHash) refuse('A locked provider interface differs from the candidate or pinned version.');
+  if (provider.concepts.some(name => !match.closure.concepts.has(name))) refuse('A locked concept is not exported by its provider.');
   if (!visited.has(key)) {
-    const next = new Set([...visited, key]);
-    for (const dependency of providerDependencies(documents, provider.ontology)) {
-      await traverseProvider(traversal, { repo: provider.repository, next: commit }, dependency, next);
+    for (const dependency of dependencies()) {
+      if (!used.has(dependency)) await traverseProvider(traversal, home, dependency, next);
     }
   }
-  return resolved;
+  return match;
+}
+
+/** Resolves an existing lock entry from a chosen provider snapshot. */
+export function resolveLockedProvider(source: FrozenDependencySource, pin: PublishedPin, candidate: Candidate, reader: Reader, provider: LockedProvider) {
+  const traversal = { source, pin, reader, root: candidate, commits: new Map<string, string>() };
+  return traverseProvider(traversal, candidate, provider, new Set());
+}
+
+function projectInterface(provider: PublicProvider, reader: Reader, sameRepository: boolean) {
+  const readableItems = (project: string, items?: ReadonlyMap<string, string>) => new Map([...(items ?? [])].filter(([, path]) => !reader.view || reader.view.canRead(project, path)));
+  const definitions = new Map(
+    [...provider.publicConcepts.definitions].map(([key, item]) => [key, { ...item, origin: { ...item.origin, sourceItems: readableItems(item.origin.project, item.origin.sourceItems) } }]),
+  );
+  return {
+    project: provider.project,
+    ontology: provider.ontology,
+    exports: new Set(provider.closure.concepts.keys()),
+    sameRepository,
+    concepts: provider.closure.concepts,
+    publicConcepts: { names: provider.publicConcepts.names, definitions },
+    version: provider.commit,
+    scope: provider.base,
+    interfaceHash: provider.closure.interfaceHash,
+    sourceItems: readableItems(provider.project, provider.sourceItems),
+    ontologyName: provider.ontologyName,
+  };
 }
 
 /** Resolves exactly the public interface entries selected by the lock, using only the given snapshots. */
@@ -142,7 +176,7 @@ export async function resolveFrozenUnit(source: FrozenDependencySource, pin: Pub
   const traversal = { source, pin, reader, root: candidate, commits: new Map<string, string>() };
   const providers = [];
   for (const provider of entry.providers) {
-    providers.push(await traverseProvider(traversal, candidate, provider, new Set()));
+    providers.push(projectInterface(await traverseProvider(traversal, candidate, provider, new Set()), reader, provider.sameRepository));
   }
   return { imports, providers };
 }

@@ -51,6 +51,7 @@ test('hidden and missing providers fail before file access, while an authorized 
   const resolution: ProviderResolution = {
     repositoryOf: project => (project === 'unknown' ? null : project + '-repo'),
     snapshots: {
+      pinnedDocumentsAt: async () => null,
       documents: async () => {
         objectReads++;
         return [];

@@ -17,8 +17,9 @@ import { requestReader } from '../auth/request-scope';
 import { authorizeWrite } from '../auth/write-access';
 import { planDependencyUpdate, requireOneProviderVersion } from '../mesh/dependency-update';
 import { digestOf, interfaceChanges } from '../mesh/interface-changes';
-import { exportedOntologies } from '../mesh/provider-resolution';
+import { interfacesAt, type ProviderResolution } from '../mesh/provider-resolution';
 import { BadRequestError } from '../projects/errors';
+import type { Reader } from '../projects/reader';
 import type { PublishedSnapshots } from '../projects/published-snapshot';
 import type { Workspace } from '../projects/workspace';
 import { FILE_SAVE_REQUEST_LIMIT, readJson } from '../request';
@@ -32,7 +33,8 @@ function parseUpdate(value: unknown) {
 }
 
 async function summarizePrevious(
-  snapshots: PublishedSnapshots,
+  resolution: ProviderResolution,
+  reader: Reader,
   pin: Parameters<PublishedSnapshots['documents']>[0],
   previous: RootDependencies | undefined,
   resolved: Awaited<ReturnType<typeof planDependencyUpdate>>['resolved'],
@@ -42,8 +44,14 @@ async function summarizePrevious(
       const prior = previous?.providers.find(entry => entry.project === provider.project && entry.ontology === provider.ontology);
       const commit = prior?.commit ?? (prior?.sameRepository ? pin.commits.get(prior.repository)?.commit : undefined);
       if (!commit) return { project: provider.project, ontology: provider.ontology, ...interfaceChanges(new Map(), hashes) };
-      const snapshot = await snapshots.pinnedDocumentsAt(pin, provider.project, commit);
-      const priorProvider = exportedOntologies(provider.project, provider.repository, commit, snapshot?.documents ?? []).find(entry => entry.ontology === provider.ontology);
+      const snapshot = await resolution.snapshots.pinnedDocumentsAt(pin, provider.project, commit);
+      const [priorProvider] = await interfacesAt(
+        resolution,
+        pin,
+        reader,
+        { project: provider.project, repository: provider.repository, commit, documents: snapshot?.documents ?? [] },
+        provider.ontology,
+      );
       const before = priorProvider ? digestOf(priorProvider.closure.concepts) : new Map();
       return { project: provider.project, ontology: provider.ontology, ...interfaceChanges(before, hashes) };
     }),
@@ -86,7 +94,7 @@ export async function updateDependencies(ws: Workspace, req: Request, project: s
     const lock = printDependencyManifest(projectDependencies(manifests));
     const preview = sha256Hex(lock);
     if (!request.confirm) {
-      const changes = await Promise.all(updates.map(({ manifest, resolved }) => summarizePrevious(ws.published, pin, previous ? dependencyRoot(previous, manifest.root) : undefined, resolved)));
+      const changes = await Promise.all(updates.map(({ manifest, resolved }) => summarizePrevious(source, reader, pin, previous ? dependencyRoot(previous, manifest.root) : undefined, resolved)));
       return Response.json({ preview, changes: changes.flat() });
     }
     if (request.confirm !== preview) return Response.json({ error: 'preview-changed' }, { status: 409 });

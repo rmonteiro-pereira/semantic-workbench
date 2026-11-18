@@ -1,4 +1,5 @@
 /** Checks declarations and use of the aliases of a Tessera ontology. */
+import type { PublicConcepts } from './public-concepts';
 import { isObject } from '../edit/source-text';
 import { IMPORTS_PROPERTY } from './additions/imports';
 import { conceptReferences } from './concept-references';
@@ -16,6 +17,7 @@ export type ImportedConcept = { project: string; ontology: string; version: stri
 /** Supplies the public definitions an import is allowed to use. */
 export type ResolvedImportInterface = ProviderInterface & {
   version: string;
+  publicConcepts?: PublicConcepts;
   scope?: string;
   interfaceHash?: string;
   sourceItems?: ReadonlyMap<string, string>;

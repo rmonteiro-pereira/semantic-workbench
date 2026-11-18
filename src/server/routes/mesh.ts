@@ -1,4 +1,5 @@
 /** Routes public-interface discovery and dependency status through the operation boundary. */
+import { InputError } from '../../shared/validation/diagnostics';
 import { isObject } from '../../shared/edit/source-text';
 import { compareText } from '../../shared/tessera/canonical-json';
 import { DEPENDENCY_MANIFEST_PATH, dependencyRoot, manifestIsCurrent, parseDependencyManifest, type DependencyManifest } from '../../shared/tessera/dependency-manifest';
@@ -7,7 +8,7 @@ import { declaredImports } from '../../shared/tessera/imports';
 import { readMarker } from '../../shared/tessera/marker';
 import { validateInput } from '../../shared/validation/input';
 import { requestReader, requestScope } from '../auth/request-scope';
-import { BadRequestError, HiddenResourceError, SnapshotUnavailableError } from '../projects/errors';
+import { BadRequestError, HiddenResourceError, NotFoundError, SnapshotUnavailableError } from '../projects/errors';
 import { locationOf } from '../projects/paths';
 import type { Reader } from '../projects/reader';
 import type { Workspace } from '../projects/workspace';
@@ -56,7 +57,7 @@ async function listProviders(ws: Workspace, reader: Reader, url: URL) {
     for (const project of candidateProjects) {
       if (cursor && compareText(project, cursor[0]) < 0) continue;
       const resolved = await publishedProviders(resolution, pin, reader, project).catch(error => {
-        if (error instanceof SnapshotUnavailableError) return [];
+        if (error instanceof SnapshotUnavailableError || error instanceof InputError || error instanceof NotFoundError) return [];
         throw error;
       });
       for (const provider of resolved) {

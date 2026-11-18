@@ -674,3 +674,9 @@ dependencies** to review changes and explicitly write the dependency manifest be
 committing and publishing. A reported interface change leaves compatibility for the author
 to evaluate. **Mesh** shows the published connections. People with permission to publish a
 provider can select it and open **Used by**.
+
+A provider can re-export an imported concept by listing its alias-qualified name in
+`tessera_exports`, provided the original concept is public and on the provider's allow-list.
+Mesh and **Used by** show the original owner and version. Compile writes that owner's
+qualified concept once, even if several import paths reach it. Publication refuses a
+re-export cycle.

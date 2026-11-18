@@ -7,6 +7,7 @@ import { IMPORTS_PROPERTY } from './additions/imports';
 import { PART_PROPERTY } from './additions/part';
 import { compareText } from './canonical-json';
 import { additionDispositions, additionSites, compileDocument, parseSourceDocument, syntaxOf, withoutAdditions, type CompileFailure } from './compile-document';
+import { selectPublicConcepts, type PublicConceptOrigin } from './public-concepts';
 import { conceptReferences } from './concept-references';
 import type { ClassifiedFile } from './document-kind';
 import { declaredImports, providerOf, type ResolvedImportInterface } from './imports';
@@ -19,7 +20,7 @@ import type { OntologyUnit } from './unit-structure';
 
 type DefinitionFile = Extract<ClassifiedFile, { kind: 'tessera-ontology' | 'tessera-part' }>;
 type Concept = Record<string, unknown>;
-type ImportedOrigin = ConceptOwner & { provider: ResolvedImportInterface };
+type ImportedOrigin = PublicConceptOrigin;
 type CompiledMesh =
   | {
       expected: Record<string, unknown>;
@@ -44,7 +45,7 @@ function selectedConcepts(entry: ResolvedImportInterface, names: readonly string
   return selected;
 }
 
-function importedDefinition(provider: ResolvedImportInterface, definition: Concept) {
+function importedDefinition(provider: Pick<PublicConceptOrigin, 'project' | 'ontology' | 'ontologyName'>, definition: Concept) {
   const data = { name: provider.ontologyName ?? provider.ontology, ontology: [definition] };
   const sites = additionSites(data);
   const document = `${provider.project}/${provider.ontology}`;
@@ -64,6 +65,23 @@ function importedConcepts(unit: OntologyUnit, providers: readonly ResolvedImport
     if (!provider) throw new Error(`The locked public interface for "${entry.alias}" is unavailable.`);
     if (!isObject(unit.root.data) || provider.scope !== unit.root.data.version) throw new Error(`Provider "${entry.project}" uses a different Ossie base.`);
     const owner = (concept: string) => ({ project: provider.project, ontology: provider.ontology, concept });
+    if (provider.publicConcepts) {
+      const selected = selectPublicConcepts(provider.publicConcepts, entry.concepts);
+      for (const name of entry.concepts) {
+        const key = provider.publicConcepts.names.get(name)!;
+        aliases.set(`${entry.alias}.${name}`, selected.get(key)!.origin);
+      }
+      for (const [key, item] of selected) {
+        if (localNames.has(key)) throw new Error(`A concept collides with imported name "${key}".`);
+        if (imported.has(key)) continue;
+        const standard = importedDefinition(item.origin, item.definition);
+        losses.push(...standard.losses);
+        governanceStatuses.push(...standard.governanceStatuses);
+        imported.set(key, { ...standard.definition, concept: key });
+        origins.set(key, item.origin);
+      }
+      continue;
+    }
     for (const name of entry.concepts) aliases.set(`${entry.alias}.${name}`, owner(name));
     for (const [name, definition] of selectedConcepts(provider, entry.concepts)) {
       const qualified = qualifiedConcept(owner(name));
@@ -73,7 +91,7 @@ function importedConcepts(unit: OntologyUnit, providers: readonly ResolvedImport
       governanceStatuses.push(...standard.governanceStatuses);
       const rewritten = rewriteConceptReferences(standard.definition, ref => (provider.concepts.has(ref) ? qualifiedConcept(owner(ref)) : ref));
       imported.set(qualified, { ...rewritten, concept: qualified });
-      origins.set(qualified, { ...owner(name), provider });
+      origins.set(qualified, { ...owner(name), version: provider.version, sourceItems: provider.sourceItems, ontologyName: provider.ontologyName });
     }
   }
   return {

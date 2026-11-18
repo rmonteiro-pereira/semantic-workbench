@@ -2,29 +2,27 @@
 import { formatAddress, type Address, type ItemSegment } from '../core/item-address';
 import { addressesOfModel } from '../core/model-addresses';
 import { compareText } from './canonical-json';
-import type { ResolvedImportInterface } from './imports';
+import type { PublicConceptOrigin } from './public-concepts';
 import { combineUnit } from './unit-model';
 import type { OntologyUnit } from './unit-structure';
 
 /** Pairs a source item address with its compiled address. */
 export type CompiledAddress = { from: string; to: string };
 
-type Origin = { project: string; ontology: string; concept: string; provider: ResolvedImportInterface };
-
 function at(project: string | undefined, path: string, chain: ItemSegment[]): string {
   const address: Address = project ? { grammar: 1, form: 'absolute', project, document: path.split('/'), chain } : { grammar: 1, form: 'project-relative', document: path.split('/'), chain };
   return formatAddress(address);
 }
 
-function originalImported(origin: Origin, chain: ItemSegment[]) {
+function originalImported(origin: PublicConceptOrigin, chain: ItemSegment[]) {
   const root = chain[0];
-  const sourceChain: ItemSegment[] = [origin.provider.ontologyName ? { kind: 'ontology', name: origin.provider.ontologyName } : root, { kind: 'concept', name: origin.concept }, ...chain.slice(2)];
+  const sourceChain: ItemSegment[] = [origin.ontologyName ? { kind: 'ontology', name: origin.ontologyName } : root, { kind: 'concept', name: origin.concept }, ...chain.slice(2)];
   const relative = formatAddress({ grammar: 1, form: 'document-relative', chain: sourceChain });
-  return at(origin.project, origin.provider.sourceItems?.get(relative) ?? origin.ontology, sourceChain);
+  return at(origin.project, origin.sourceItems?.get(relative) ?? origin.ontology, sourceChain);
 }
 
 /** Uses the emitted addresses and the source file ownership of each item to build the map. */
-export function meshAddressMap(unit: OntologyUnit, compiled: unknown, project: string | undefined, origins: ReadonlyMap<string, Origin>): CompiledAddress[] {
+export function meshAddressMap(unit: OntologyUnit, compiled: unknown, project: string | undefined, origins: ReadonlyMap<string, PublicConceptOrigin>): CompiledAddress[] {
   const source = combineUnit(unit);
   return addressesOfModel(compiled)
     .map(item => {

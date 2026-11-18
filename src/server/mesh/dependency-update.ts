@@ -7,6 +7,7 @@ import { InputError } from '../../shared/validation/diagnostics';
 import type { PublishedPin, PublishedSnapshots } from '../projects/published-snapshot';
 import type { Reader } from '../projects/reader';
 import type { PublishedDocument } from '../projects/snapshot-index';
+import { providerDependencies, resolveLockedProvider } from './dependency-check';
 import { exportedOntologies, type PublicProvider } from './provider-resolution';
 
 /** Resolves a dependency using an explicit copy for atomic providers and published history for the rest. */
@@ -89,7 +90,24 @@ export async function resolveDependency(source: DependencyResolution, pin: Publi
   if (!repository) return unavailable();
   const sameRepository = repository === consumerRepo;
   const chosen = await providerDocuments(source, pin, entry, repository, sameRepository);
-  const candidates = exportedOntologies(entry.project, repository, chosen.commit, chosen.documents).filter(provider => entry.ontology === undefined || entry.ontology === provider.ontology);
+  const frozen = {
+    ...source,
+    candidateDocuments: async (project: string) => {
+      if (sameRepository) return [...source.workingDocuments(project)];
+      return (await source.snapshots.pinnedDocumentsAt(pin, project, chosen.commit))?.documents ?? [];
+    },
+  };
+  const candidates = await exportedOntologies(
+    { ...chosen, project: entry.project, repository },
+    async (declaration, providerRoot) => {
+      const root = declaration.ontology;
+      const providers = providerDependencies(chosen.documents, providerRoot);
+      const locked = providers.find(provider => provider.project === declaration.project && (root === undefined || provider.ontology === root));
+      if (!locked) return unavailable();
+      return resolveLockedProvider(frozen, pin, { repo: repository, next: chosen.commit }, reader, locked);
+    },
+    entry.ontology,
+  );
   if (candidates.length !== 1) return unavailable();
   const provider = candidates[0];
   for (const concept of entry.concepts) {

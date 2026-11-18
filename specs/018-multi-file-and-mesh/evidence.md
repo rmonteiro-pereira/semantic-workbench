@@ -253,3 +253,10 @@ Screenshot comparison and every-state review are separate capture work.
 
 The fixture helper `tests/auth/working-copy-fixture.ts` also changed to expose the exact HTTP body
 to the authorization tests. The commit cadence helper is absent from this checkout.
+
+### Canonical re-exports
+
+- Exact publication locks still define the snapshots and the allow-list still gates each import.
+- Re-export edges carry the original project, ontology, version and source address through the entire closure.
+- Compile, mesh and dependents collapse paths to the same canonical item. Publication rejects circular re-exports with the root names.
+- The development server passed 17 tests across five files and killed 15 of 15 mesh mutants. A focused run of the real-route re-export tests also checked the compiled file's bytes and passed three tests.

@@ -88,6 +88,20 @@ export const meshMutants: readonly MeshMutant[] = [
     test: 'compile-mesh',
   },
   {
+    name: 'canonical owner through a re-export',
+    source: 'src/shared/tessera/compile-mesh.ts',
+    before: 'origins.set(key, item.origin);',
+    after: 'origins.set(key, { ...item.origin, ...owner(item.origin.concept) });',
+    test: 'reexports',
+  },
+  {
+    name: 'diamond de-duplication',
+    source: 'src/shared/tessera/compile-mesh.ts',
+    before: 'if (imported.has(key)) continue;',
+    after: 'if (imported.has(key)) throw new Error("Repeated concept.");',
+    test: 'reexports',
+  },
+  {
     name: 'compiler provenance version',
     source: 'src/shared/tessera/format.ts',
     before: "COMPILER_VERSION = '1.1.0'",

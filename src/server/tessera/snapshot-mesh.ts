@@ -62,7 +62,6 @@ export async function readSnapshotMesh(snapshot: SnapshotSource, directory: stri
     const registered = state?.registry.find(entry => entry.slug === name);
     if (registered) return locationOf(registered);
     if (state) return null;
-    if (!locked.some(provider => provider.project === name && provider.sameRepository)) return null;
     return { repo: repository, folder: join(repository, projectPath(name)) };
   }
   const providerDocuments = async (name: string, location: NonNullable<ReturnType<typeof locate>>, commit: string) => {
