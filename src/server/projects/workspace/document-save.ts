@@ -1,5 +1,6 @@
 // Saves and reverts documents: a stale base is refused, the reader's guard judges the text, and the
 // swap is journaled so a crash leaves either the old or the new bytes.
+import { unitEditMigrations } from './unit-edits';
 import type { DeclaredMigration } from '../../../shared/core/address-migration';
 import type { OperationOutcome } from '../../auth/operation-outcome';
 import { parseAddress } from '../../../shared/core/item-address';
@@ -120,7 +121,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     const place = await copies.writePlace(reader, slug, check);
     const file = projectFile(place.layout, slug, relativePath);
     return lock(projectLock(place, slug), async () => {
-      const { edited, guarded } = await check(place);
+      const { edited, before, guarded } = await check(place);
       const next = guarded?.changes[0].after ?? edited;
       const bytes = encode(next);
       if (bytes.length > MAX_INPUT_BYTES)
@@ -135,6 +136,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
       const indexed = indexBytes(slug, relativePath, bytes);
       if (!indexed.file.visible) throw new InputError([{ severity: 'error', code: 'unsupported', path: '/', message: 'Unsupported file type.' }]);
       if (!indexed.file.valid) throw new InputError(indexed.findings);
+      unitEditMigrations(place, slug, reader, [{ path: relativePath, before, after: next }]);
       const opId = journal.newId();
       const records = await saveMigrations(place.layout, slug, opId, declarations, deletedItems);
       const staging = join(layout.state, `.staging-${opId}`);
@@ -214,7 +216,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     };
     const place = await copies.writePlace(reader, slug, check);
     return lock(projectLock(place, slug), async () => {
-      const { edited, guarded } = await check(place);
+      const { edited, before, guarded } = await check(place);
       const prepared = edited.map((edit, index) => {
         const { file, current } = edit;
         const next = guarded?.changes[index].after ?? edit.next;
@@ -249,6 +251,16 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
           rewritten,
         };
       });
+      const moves = unitEditMigrations(
+        place,
+        slug,
+        reader,
+        edited.map((edit, index) => ({
+          path: edit.path,
+          before: edit.before,
+          after: decode(prepared[index].bytes),
+        })),
+      );
       const opId = journal.newId();
       const staging = join(place.layout.projects, `.staging-${opId}`);
       try {
@@ -268,7 +280,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
             place.copy ?? undefined,
           ),
         );
-        const records = await saveMigrations(place.layout, slug, opId, declarations, deletedItems);
+        const records = await saveMigrations(place.layout, slug, opId, [...declarations, ...moves], deletedItems);
         steps.push(...stageAddressMigrations({ layout, project: slug, staging }, records));
         journal.run(kind, steps, [staging], opId);
       } catch (error) {

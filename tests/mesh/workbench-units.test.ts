@@ -107,3 +107,29 @@ test('the add form can report both files when a concept already belongs to anoth
   expect(duplicateUnitConcept('Order', 'customers.json', files)).toBe('Concept "Order" already exists in orders.yaml. It cannot also be added to customers.json.');
   expect(duplicateUnitConcept('Invoice', 'customers.json', files)).toBeUndefined();
 });
+
+test('an atomic save refuses duplicate concepts and records a stable address when a concept moves between parts', async () => {
+  using workspace = await testWorkspace();
+  const paths = ['ontology.yaml', 'orders.yaml', 'returns.yaml', 'customers.json'];
+  const files = paths.map(path => ({
+    path,
+    source: readFileSync(`tests/fixtures/tessera/mesh/units/three-parts/${path}`, 'utf8'),
+  }));
+  const { slug } = await workspace.seed(files, 'Retail');
+  const orders = workspace.ws.readFile(slug, 'orders.yaml', LOCAL_READER);
+  const customers = workspace.ws.readFile(slug, 'customers.json', LOCAL_READER);
+  const original = JSON.parse(orders.source);
+  const destination = JSON.parse(customers.source);
+  destination.ontology.push(original.ontology[0]);
+  const write = { path: customers.path, baseHash: customers.hash, source: JSON.stringify(destination) };
+  const oldAddress = `sw1:${slug}/orders.yaml#ontology:Retail/concept:Order`;
+  const newAddress = `sw1:${slug}/customers.json#ontology:Retail/concept:Order`;
+  expect(workspace.ws.resolveAddress(oldAddress, LOCAL_READER)).toMatchObject({ status: 'found', address: oldAddress });
+  await expect(workspace.ws.saveFile(slug, write.path, write, LOCAL_READER)).rejects.toThrow('orders.yaml, customers.json');
+  expect(workspace.ws.readFile(slug, write.path, LOCAL_READER).hash).toBe(customers.hash);
+  // Keep the original part populated because a fragment is an ontology concept list.
+  original.ontology = [{ concept: 'OrderBatch', type: 'EntityType' }];
+  const updated = { path: orders.path, baseHash: orders.hash, source: JSON.stringify(original) };
+  await workspace.ws.saveFiles(slug, [updated, write], LOCAL_READER);
+  expect(workspace.ws.resolveAddress(oldAddress, LOCAL_READER)).toMatchObject({ status: 'found', address: newAddress, item: { path: ['ontology', 1] } });
+});

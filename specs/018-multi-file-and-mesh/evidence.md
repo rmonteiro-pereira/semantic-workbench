@@ -117,3 +117,9 @@ reader. The schema and runtime selection follow in T008 and T017.
 For integration with 017, the committed address history JSON Lines file remains outside
 definition reads and unit membership. Enumerate the root and its declared parts for a unit.
 The dependency manifest is separate metadata and is never a part.
+
+Concept moves between declared parts run through the existing journaled batch save. The
+whole-file move service moves a file and cannot express a concept transfer. The batch
+compares the original and candidate definitions before recording a stable address
+migration for an unchanged concept that moves to a different file. The workbench-units
+proof checks the old address through the live workspace resolver after the batch.

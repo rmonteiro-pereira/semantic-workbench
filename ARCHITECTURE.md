@@ -345,6 +345,7 @@ command line.
   The workspace graph, catalog and grouping compose the active ontology from the reader’s files.
   A selected concept keeps the address of its original file. Form edits patch that file at its source path.
   When adding a concept, the form offers the root and its declared parts as destinations.
+  The journaled batch save checks duplicate concept declarations and records cross-file concept moves.
 - `src/shared/tessera/marker.ts` reads the marker (top level only). `validate.ts` gives the Tessera
   findings and picks the derived schema by marker and base. `src/shared/validation/validation.ts`
   calls it at the top of `validateStructured`, and `src/shared/core/model.ts` returns the document

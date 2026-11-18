@@ -238,7 +238,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   async function localCommit(files: DataLayout, project: string): Promise<string> {
     return gitAvailable ? ((await git.head(repoDir(files, project))) ?? '') : '';
   }
-  const addressReads = { projectExists: (project: string) => projects().some(entry => entry.slug === project), readFile };
+  const addressReads = { projectExists: (project: string) => projects().some(entry => entry.slug === project), readFile, partOntologyName };
   const addressReconciliation = {
     ...addressReads,
     layout,
@@ -258,6 +258,11 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       if (!(error instanceof InputError)) throw error;
       return [];
     }
+  }
+  function partOntologyName(project: string, path: string, reader: Reader): string | undefined {
+    const unit = completeOntologyUnit(groupingUnitFiles(project, reader), path);
+    const data = unit?.root.data;
+    if (data && typeof data === 'object' && 'name' in data && typeof data.name === 'string') return data.name;
   }
   function groupingUnitFiles(project: string, reader: Reader) {
     const place = copies.readPlace(reader, project);
