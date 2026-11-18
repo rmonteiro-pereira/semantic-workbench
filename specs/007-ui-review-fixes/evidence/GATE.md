@@ -32,6 +32,13 @@ The repeated 1440×900 frozen-import switch from Mall ODCS to UBL ODCS measured 
 - The background's block padding consumes space reserved for a second title line. Removing that padding preserves the label, horizontal inset and background.
 - Recheck the theme and responsive tours and capture the same area headings at the same viewport in both themes.
 
+### Neighborhood walks
+
+- The first view must keep the center description readable. Walk routes use the measured card dimensions and the former center remains visible as context.
+- Both matched release and main runs have no shared path after walking to AllowanceCharge. The compensated candidate repeats a 28 px overlap there.
+- Keep the description compensation on the first center. Subsequent centers keep the route geometry of the ordinary cards while the details pane carries their full description.
+- Verify the graph's route and label assertions and repeat the matched five-step Walk.
+
 ## Gate after rebase
 
 `git fetch origin` resolved `origin/main` to `5597ae52c55cb76a864aa242873dbbe7083a000e`. `git rebase origin/main` replayed the prior integration branch `a8cf837e` through `6e301fd4`. The release baseline `v0.6.1` resolves to commit `3b1c2c10bc6ae96c6c603301764bde4cfdc4dcd4`. All results in the historical sections below precede this rebase.
