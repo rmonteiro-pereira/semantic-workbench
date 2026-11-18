@@ -78,6 +78,21 @@ test('ontology approval and metric approval are independent permissions', async 
   expect((await sendCase(metricApprover, metric)).status).toBe(200);
 });
 
+test('removing the status of an approved concept needs ontology approval permission', async () => {
+  using fixture = await authWorkspace();
+  const approved = ontology('approved');
+  const saved = await seed(fixture, approved);
+  const withoutStatus = approved.replace('      status: approved\n', '');
+  const item: GuardCase = {
+    name: 'remove approved status',
+    method: 'PUT',
+    path: `${URL_BASE}/files/${FILE}`,
+    body: { baseHash: saved.hash, source: withoutStatus },
+    guarded: GUARDED_BODY,
+  };
+  await refusedThenAllowed(fixture, 'alice', item);
+});
+
 test('deleting a file with an approved concept needs an approver', async () => {
   using fixture = await authWorkspace();
   await seed(fixture, ontology('approved'));

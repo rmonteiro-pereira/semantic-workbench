@@ -94,7 +94,11 @@ function statusChanges(file: Origin, previous: Map<string, LocatedItem>, next: M
     const approvalSet = (status === 'approved' || status === 'deprecated') && status !== oldStatus;
     const peopleChanged = oldStatus === 'approved' && status === 'approved' && peopleOf(old) !== peopleOf(current);
     if (approvalSet || peopleChanged) changes.push({ ...base, kind: 'item-status' });
-    else if (oldStatus === 'approved' && status === 'approved' && !deepEqual(comparedBody(old!), comparedBody(current))) changes.push({ ...base, kind: 'item-body', demotable: current.path });
+    else if (oldStatus === 'approved' && status === '') {
+      changes.push({ ...base, kind: 'item-body' });
+    } else if (oldStatus === 'approved' && status === 'approved' && !deepEqual(comparedBody(old!), comparedBody(current))) {
+      changes.push({ ...base, kind: 'item-body', demotable: current.path });
+    }
   }
   return changes;
 }
