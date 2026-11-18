@@ -590,13 +590,14 @@
       "limits": {
         "request": "none",
         "response": "bounded",
-        "work": "light"
+        "work": "scan"
       },
       "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
-      }
+      },
+      "steps": ["snapshot.read"]
     },
     "PUT /api/projects/:slug/files/*": {
       "id": "files.save",
