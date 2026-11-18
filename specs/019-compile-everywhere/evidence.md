@@ -63,3 +63,13 @@ No confidential-term hits occurred. Markdown files are excluded by the repositor
 The first new Unreleased entry maps to compile-service, unit-source, routes, browser-and-cli and
 compile-parity tests plus the passing compile browser journey. The second maps to convert-service,
 convert-dialog and routes tests and that journey's successful conversion/Done/one-file assertions.
+
+## HTTP acknowledgement review
+
+The browser client previously cast every 2xx JSON body to a success type. It now requires HTTP 200,
+known result discriminants, typed source identifiers and fields consumed by the review. A conversion
+must acknowledge the requested path, a SHA-256 version and exactly the accepted digest. ZIP replies
+must identify the requested commit and accepted digest. Invalid replies become visible errors rather
+than success states. This follows the existing save-reply validation pattern without adding a module.
+
+Proof: api.test.ts: 4 pass, 0 fail, 12 assertions, including malformed 200 and unsupported 202 replies.

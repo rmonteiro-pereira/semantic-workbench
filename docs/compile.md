@@ -48,7 +48,9 @@ a non-Tessera file, a failing compile or a save guard refusal. The resulting pro
 Only the selected file is saved. Nothing is committed, pushed or published. Commit the result as
 any other edit; the previous committed version remains recoverable through Git. Dropped notes have
 no reverse compiler. The success acknowledgement remains visible after the workspace refresh
-marks the converted file modified.
+marks the converted file modified. The browser only acknowledges completed HTTP 200 replies with
+the requested path, a usable content hash and the reviewed digest; malformed or unsupported success
+replies show an error.
 
 ## HTTP
 
