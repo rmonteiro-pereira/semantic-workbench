@@ -649,6 +649,9 @@ keyboard focus ring on the metric grouping control. The empty Trash dialog keeps
 - `RESPONSIVE_ONLY='full screen:' bun scripts/ci-validate.ts --step browser --suite test:responsive` on pinned main also returned 1
   waiting 3 seconds for the fullscreen exit transform at the same assertion. Expected `matrix(0.617106, 0, 0, 0.617106, -95.1602, -57.878)`,
   measured `matrix(0.316825, 0, 0, 0.316825, 29.327, 126.842)`.
+  The second main run passed both fullscreen checks and later timed out waiting for the UBL heading. Both candidate repeats hit
+  the same restore assertion. Both expected zoom 1.00515 and received 0.5635. An earlier full candidate run reached the later
+  inherited phone ID clipping check. Restore is intermittent on both revisions.
 - The first resumed matrix action, `local/light/390/import`, ended with status 0 before a planned pause (75).
   `bash .data/gate/pull-review-007.sh .data/gate/import-phone-final local/light/390/import` returned 19 strips.
   All 114 action records passed. All seven sheets and the repeats were opened. The Import dialog keeps both destinations and its
@@ -800,6 +803,8 @@ despite the visual transition. The replay uses the visible Exit full screen cont
   through the UI. The failures and exact commands are recorded in the suite table above.
 - Main and candidate both clip the same contract ID at 390×844 and both produce a 389 px Mall ODCS canvas at 1280×720. The separate 481 px Full
   Graph canvas on main is 511 px on the candidate. The owner can decide whether to take the two inherited ODCS defects into another change.
+- Full Graph occasionally restores a different pan and zoom on fullscreen exit, including on pinned main. The pinned-main failure reproduced
+  at the same assertion, independently of the responsive canvas-height check.
 - The 390 px workspace header shortens the UBL mapping filename in release, main and candidate. The matched label correction leaves that inherited
   header behavior visible in both themes.
 - The metric detail's same-left-edge proposal would displace the existing side-by-side list and detail. That design decision remains under T064.
