@@ -26,6 +26,7 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 | files.import | POST /api/projects/:slug/import | import | project | localWrite | IMPORT_REQUEST_LIMIT | local-edit |
 | projects.export | GET /api/projects/:slug/export | export | project | read | none | local-edit |
 | files.saveBatch | POST /api/projects/:slug/save-batch | edit | project | localWrite | FILE_SAVE_REQUEST_LIMIT | local-edit |
+| mesh.graph | GET /api/mesh | read | workspace | read | none | later |
 | mesh.providers.list | GET /api/mesh/providers | edit | body | read | none | later |
 | mesh.dependencies.read | GET /api/projects/:slug/dependencies | read | project | read | none | later |
 | mesh.dependencies.update | POST /api/projects/:slug/dependencies/update | edit | project | read, localWrite | FILE_SAVE_REQUEST_LIMIT | local-edit |
@@ -148,6 +149,7 @@ These steps run inside the admitted route and share its authorization and audit 
 | --- | --- |
 | repositories.clone | publication.upgrade |
 | projects.export | snapshot.read |
+| mesh.graph | snapshot.read |
 | mesh.providers.list | snapshot.read |
 | mesh.dependencies.update | snapshot.read |
 | mesh.dependents.read | snapshot.read |

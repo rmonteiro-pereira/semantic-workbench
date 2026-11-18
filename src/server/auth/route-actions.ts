@@ -82,6 +82,7 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   // Reads are audited only when asked; an export leaves the server, so each one is recorded.
   { ...row('GET', '/api/projects/:slug/export', 'export', project), audited: true, readSource: 'by-query' },
   row('POST', '/api/projects/:slug/save-batch', 'edit', project),
+  { ...row('GET', '/api/mesh', 'read', workspace), readSource: 'published' },
   { ...row('GET', '/api/mesh/providers', 'edit', workspace), targets: 'body', readSource: 'published' },
   { ...row('GET', '/api/projects/:slug/dependencies', 'read', project), readSource: 'editing' },
   row('POST', '/api/projects/:slug/dependencies/update', 'edit', project),

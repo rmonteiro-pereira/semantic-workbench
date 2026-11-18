@@ -268,6 +268,11 @@
       }
     },
     {
+      "case": "GET /api/mesh",
+      "action": "read",
+      "resource": { "type": "workspace" }
+    },
+    {
       "case": "GET /api/mesh/providers",
       "action": "edit",
       "resource": { "type": "workspace" }

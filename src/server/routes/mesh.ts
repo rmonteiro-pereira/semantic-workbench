@@ -12,6 +12,7 @@ import { locationOf } from '../projects/paths';
 import type { Reader } from '../projects/reader';
 import type { Workspace } from '../projects/workspace';
 import { decodeSegment } from '../request';
+import { readMeshGraph } from '../mesh/mesh-graph';
 import { publishedProviders } from '../mesh/provider-resolution';
 import type { Route } from './http';
 import { updateDependencies } from './dependency-update';
@@ -88,7 +89,7 @@ async function dependencyStatus(ws: Workspace, reader: Reader, project: string) 
     const model = validateInput(document.source, document.filename).model;
     if (!model || !('document' in model) || !isObject(model.document)) return [];
     const marker = readMarker(model.document);
-    if (marker.family !== 'tessera' || marker.revision !== 3) return [];
+    if (!(marker.family === 'tessera') || marker.revision !== 3) return [];
     const imports = declaredImports(model.document);
     if (!imports.length) return [];
     const providersVisible = !reader.view || imports.every(entry => reader.view!.readableProjects.has(entry.project));
@@ -139,6 +140,10 @@ export const meshRoutes: Route = async (ws, req, url) => {
     return update ? updateDependencies(ws, req, decodeSegment(update[1])) : null;
   }
   if (req.method !== 'GET') return null;
+  if (url.pathname === '/api/mesh') {
+    const graph = await readMeshGraph(ws.published, ws.state.registry().projects, requestReader(req), requestScope(req).projectDomain);
+    return Response.json(graph, { headers: { 'Cache-Control': 'no-store' } });
+  }
   const dependents = DEPENDENTS_ROUTE.exec(url.pathname);
   if (dependents) return Response.json(await listDependents(ws, req, url, decodeSegment(dependents[1])), { headers: { 'Cache-Control': 'no-store' } });
   if (url.pathname === '/api/mesh/providers') return Response.json(await listProviders(ws, requestReader(req), url), { headers: { 'Cache-Control': 'no-store' } });

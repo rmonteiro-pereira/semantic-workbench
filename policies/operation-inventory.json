@@ -316,6 +316,15 @@
       },
       "outcomeClassifier": "batchSave"
     },
+    "GET /api/mesh": {
+      "id": "mesh.graph",
+      "handlerChecks": [],
+      "limits": { "request": "none", "response": "bounded", "work": "scan" },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": { "increment": "later", "reason": "The interactive ontology mesh uses scoped published links." },
+      "steps": ["snapshot.read"]
+    },
     "GET /api/mesh/providers": {
       "id": "mesh.providers.list",
       "handlerChecks": [],
