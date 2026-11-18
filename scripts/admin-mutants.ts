@@ -19,18 +19,8 @@ export const adminMutants: [string, string, string, string][] = [
   ['access-index', 'src/server/auth/cedar.ts', 'policy.role === null || roles.includes(policy.role)', 'policy.role === null'],
   ['access-index', 'src/server/auth/cedar.ts', "if (head.op !== 'All')", 'if (false)'],
   ['access-index', 'src/server/auth/cedar.ts', 'representatives.get(signature) ?? action', 'ACTIONS[0]'],
-  [
-    'access-index',
-    'src/server/auth/authorize.ts',
-    'const samePolicies = previous && JSON.stringify([validated.roles, validated.adminRules]) === JSON.stringify([previous.config.roles, previous.config.adminRules]);',
-    'const samePolicies = previous;',
-  ],
-  [
-    'access-index',
-    'src/server/auth/authorize.ts',
-    'const same = JSON.stringify([config.roles, config.adminRules]) === JSON.stringify([active.config.roles, active.config.adminRules]);',
-    'const same = true;',
-  ],
+  ['access-index', 'src/server/auth/authorize.ts', 'const samePolicies = previous && matchesPolicy(previous.config, validated);', 'const samePolicies = previous;'],
+  ['access-index', 'src/server/auth/authorize.ts', 'const same = matchesPolicy(active.config, config);', 'const same = true;'],
   ['access-index', 'src/server/auth/authorize.ts', 'ruleClass(snapshot, resource), context,', 'ruleClass(snapshot, resource), {},'],
   ['access-index', 'src/server/auth/dry-run.ts', 'comparable && sameProjects &&', 'sameProjects &&'],
   ['access-index', 'src/server/auth/dry-run.ts', 'comparable && sameProjects &&', 'comparable &&'],
@@ -49,4 +39,10 @@ export const adminMutants: [string, string, string, string][] = [
   ],
   ['access-index', 'src/server/auth/authorize.ts', '...(replay ? undefined : options.context?.()),', '...options.context?.(),'],
   ['access-index', 'src/server/auth/authorize.ts', 'creationDecision(snapshot, principal, resource, contextInputs)', 'creationDecision(snapshot, principal, resource, supplied)'],
+  [
+    'access-index',
+    'src/server/auth/authorize.ts',
+    'return JSON.stringify(policyInputs(current)) === JSON.stringify(policyInputs(proposed));',
+    'return JSON.stringify(current.adminRules) === JSON.stringify(proposed.adminRules);',
+  ],
 ];

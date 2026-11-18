@@ -36,9 +36,19 @@ export function assertAccessIndexes(createControl: typeof createAccessControl) {
   const fork = access.fork(options.config);
   assert.equal(fork.authorize(fork.principalFor(person('hank')), 'edit', resource).allow, false);
   assert.equal(scope.authorize('edit', resource).allow, true);
-  assert.throws(() => access.validatePolicy({ ...changed, adminRules: { broken: 'invalid Cedar' } }));
+  policyInputsInvalidatePreparation(access, changed);
   arbitraryPolicyActions(createControl);
   prospectiveCreation(createControl);
+}
+
+function policyInputsInvalidatePreparation(access: ReturnType<typeof createAccessControl>, active: ReturnType<typeof accessFixture>['config']) {
+  const badRole = structuredClone(active);
+  badRole.roles[0].permissions = [{ actions: ['unknownAction' as (typeof ACTIONS)[number]] }];
+  const badRule = { ...active, adminRules: { broken: 'invalid Cedar' } };
+  for (const proposal of [badRole, badRule]) {
+    assert.throws(() => access.validatePolicy(proposal));
+    assert.throws(() => access.fork(proposal));
+  }
 }
 
 function prospectiveCreation(createControl: typeof createAccessControl) {

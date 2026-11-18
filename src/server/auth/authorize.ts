@@ -30,18 +30,20 @@ export type AccessOptions = {
   context?: () => Pick<DecisionContext, 'hour' | 'sourceIp'>;
 };
 
+function policyInputs(config: AccessConfig) {
+  return { builtinRoles: builtin.roles as Role[], customRoles: config.roles, adminRules: config.adminRules };
+}
+
+function matchesPolicy(current: AccessConfig, proposed: AccessConfig): boolean {
+  return JSON.stringify(policyInputs(current)) === JSON.stringify(policyInputs(proposed));
+}
+
 function prepare(config: AccessConfig, projects: string[], groupMatch: GrantOptions['groupMatch'], previous?: ActiveAccess) {
   projects = [...projects];
   try {
     const validated = validateAccessConfig(config);
-    const samePolicies = previous && JSON.stringify([validated.roles, validated.adminRules]) === JSON.stringify([previous.config.roles, previous.config.adminRules]);
-    const policy = samePolicies
-      ? previous.policy
-      : loadPolicySet({
-          builtinRoles: builtin.roles as Role[],
-          customRoles: validated.roles,
-          adminRules: validated.adminRules,
-        });
+    const samePolicies = previous && matchesPolicy(previous.config, validated);
+    const policy = samePolicies ? previous.policy : loadPolicySet(policyInputs(validated));
     const evaluate = createPolicyEvaluator(policy, {
       config: validated,
       projects,
@@ -381,9 +383,9 @@ function accessControl(options: AccessOptions, previous?: ActiveAccess) {
     snapshot,
     /** Validates policy text, reusing the active preparation only when all policy inputs match. */
     validatePolicy: (config: AccessConfig) => {
-      const same = JSON.stringify([config.roles, config.adminRules]) === JSON.stringify([active.config.roles, active.config.adminRules]);
+      const same = matchesPolicy(active.config, config);
       if (same) return;
-      loadPolicySet({ builtinRoles: builtin.roles as Role[], customRoles: config.roles, adminRules: config.adminRules });
+      loadPolicySet(policyInputs(config));
     },
     /** Builds an independent proposal boundary, reusing only unchanged prepared policy text. */
     fork: (config: AccessConfig) => accessControl({ ...options, bootstrap, config }, active),
