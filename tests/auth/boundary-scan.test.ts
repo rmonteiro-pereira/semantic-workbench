@@ -24,6 +24,27 @@ const fixtureScripts = new Set([
 // The agent panel may use these two pieces of the model-protocol surface and nothing else from it.
 const sharedMcpEntries = new Set(['call-limits', 'local-capability']);
 const publicEntries = new Set(['operation-boundary', 'caller', 'twin-request', 'operation-inventory', 'call-attribution', 'operation-outcome']);
+// These identity and audit symbols do not evaluate access or construct a request scope.
+const panelInfrastructureImports: Record<string, readonly string[]> = {
+  'src/server/acp/panel-service.ts:../auth/audit': ['reportAuditFailure'],
+  'src/server/acp/panel-service.ts:../auth/rate-limit': ['createAnonymousAuditGate'],
+  'src/server/acp/panel-service.ts:../auth/refusal': ['auditDenial'],
+  'src/server/acp/relay-authentication.ts:../auth/principal': ['localPrincipal'],
+};
+
+/** Accepts only the named infrastructure symbols at their existing owning module. */
+function panelInfrastructureImport(path: string, node: ts.ImportDeclaration): boolean {
+  const allowed = panelInfrastructureImports[path + ':' + (node.moduleSpecifier as ts.StringLiteral).text];
+  const bindings = node.importClause?.namedBindings;
+  if (!allowed || node.importClause?.name || !bindings || !ts.isNamedImports(bindings)) return false;
+  return bindings.elements.every(element => element.isTypeOnly || allowed.includes(element.propertyName?.text ?? element.name.text));
+}
+
+test('panel infrastructure exceptions cannot import access decisions or move to another module', () => {
+  expect(violations('src/server/acp/panel-service.ts', "import { auditDenial } from '../auth/refusal';")).toEqual([]);
+  expect(violations('src/server/acp/panel-service.ts', "import { createAccessControl } from '../auth/refusal';")).toHaveLength(1);
+  expect(violations('src/server/acp/x.ts', "import { auditDenial } from '../auth/refusal';")).toHaveLength(1);
+});
 
 /** The agent panel reaches authorization only through public entries, mints callers in one module and borrows only two modules from the model-protocol surface. */
 function panelImportViolations(path: string, node: ts.ImportDeclaration): string[] {
@@ -32,7 +53,7 @@ function panelImportViolations(path: string, node: ts.ImportDeclaration): string
   const typeOnly = node.importClause?.isTypeOnly === true;
   const found: string[] = [];
   if (imported.includes('/mcp/') && !sharedMcpEntries.has(name)) found.push(path + ': import of a model-protocol module ' + imported);
-  if (imported.includes('/auth/') && !publicEntries.has(name) && !typeOnly) found.push(path + ': private authorization import ' + imported);
+  if (imported.includes('/auth/') && !publicEntries.has(name) && !typeOnly && !panelInfrastructureImport(path, node)) found.push(path + ': private authorization import ' + imported);
   const importsMint =
     node.importClause?.namedBindings && ts.isNamedImports(node.importClause.namedBindings) && node.importClause.namedBindings.elements.some(element => element.name.text === 'mintCaller');
   if (importsMint && path !== 'src/server/acp/connection-auth.ts') found.push(path + ': a caller is minted outside connection-auth');

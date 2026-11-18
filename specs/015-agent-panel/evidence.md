@@ -137,3 +137,11 @@ The origin-parity proof compared rule arrays by iteration order, although the de
 the same rule set in either order. Its comparison now canonicalizes only rules; decisions,
 resources and every other audit field remain compared. No production authorization changed.
 Proof: `bun test tests/auth/acp-origin.test.ts`: 11 pass, 0 fail, 51 assertions.
+
+The boundary scan lacked declarations for the panel's audit support and local identity factory,
+including the identity import already present before this continuation. It now admits only
+reportAuditFailure, createAnonymousAuditGate, auditDenial and localPrincipal in their exact owning
+modules. Negative cases reject another symbol or another module; access evaluators and scope
+construction remain forbidden. Proof: `bun test tests/auth/boundary-scan.test.ts`: 4 pass, 0 fail,
+16 assertions. The preceding aggregate exposed these issues: 297 pass, 3 fail; the closing
+aggregate must replace that result after these three corrections.
