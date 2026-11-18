@@ -118,3 +118,8 @@ registering test:acp in those inventories includes it automatically. Proof: `bun
 The leak scanner is clean for README, architecture and the panel guide. Its complete-file scan
 flags the existing public container cache path in docs/configuration.md and .env.server.example
 as a local path; those usage defaults are preserved rather than changed to evade the scanner.
+
+Review removed a duplicate rendered copy of completed agent messages: the live announcement
+used a class that did not exist in the theme. The visible message itself is now the polite
+completed-message status region, without a second copy or clipped text. The transcript test
+asserts a single escaped copy and the polite announcement attribute.

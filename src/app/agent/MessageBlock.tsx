@@ -4,12 +4,9 @@ export function MessageBlock({ role, text, done }: { role: 'user' | 'agent'; tex
   return (
     <article className="agent-message" aria-label={role === 'agent' ? 'Agent message' : 'Your message'}>
       <strong>{role === 'agent' ? 'Agent' : 'You'}</strong>
-      <div className="agent-text">{text}</div>
-      {role === 'agent' && done && (
-        <span className="sr-only" role="status" aria-live="polite">
-          {text}
-        </span>
-      )}
+      <div className="agent-text" role={role === 'agent' && done ? 'status' : undefined} aria-live={role === 'agent' && done ? 'polite' : 'off'}>
+        {text}
+      </div>
     </article>
   );
 }
