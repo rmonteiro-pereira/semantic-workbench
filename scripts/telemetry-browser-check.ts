@@ -4,6 +4,7 @@
 import { chromium, type Page, type Route } from '@playwright/test';
 import { appUrl, BASE_URL } from './helpers/base-url';
 import { routeApi, startIsolatedApi, type IsolatedApi } from './helpers/isolated-api';
+import { openFile } from './helpers/screen-tour';
 
 type SentReport = { kind: string; name?: string; message?: string; frames?: string; operation?: string; area?: string; phase?: string; actualDurationMs?: number };
 const expectUiProfile = process.env.SW_EXPECT_UI_PROFILE === '1';
@@ -48,10 +49,7 @@ async function openPage(api: IsolatedApi, enabled: boolean) {
     return false;
   });
   await page.goto(appUrl());
-  await page
-    .getByRole('button', { name: 'Auto align', exact: true })
-    .waitFor()
-    .catch(() => {});
+  await openFile(page, 'ubl.ontology.yaml');
   return { browser, page, sent, hosts };
 }
 
@@ -160,6 +158,7 @@ async function noReportsWhenDisabled(api: IsolatedApi) {
 
 const api = await startIsolatedApi({ watch: false });
 try {
+  await api.ws.loadExample('ubl');
   await reportsWhenEnabled(api);
   await noReportsWhenDisabled(api);
   console.log(`${passed} telemetry checks passed on isolated data root ${api.root}.`);
