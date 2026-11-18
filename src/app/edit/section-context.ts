@@ -1,4 +1,5 @@
 // What a section of the details panel needs to read and write one ontology item: its document, where the item sits and how to hand saved files back to the workspace.
+import { createContext } from 'react';
 import type { Path } from '../../shared/edit/item-model';
 import type { Doc } from '../projects/api';
 import type { Saved } from './ItemEditor';
@@ -25,3 +26,6 @@ export type SectionSupport = {
   projectDocsOf: (docId: string) => Doc[];
   applySaved: (saved: Saved[], label: string) => void;
 };
+
+/** Carries the workspace's edit support through the details panel. */
+export const ItemSectionSupportContext = createContext<SectionSupport | null>(null);

@@ -2,6 +2,7 @@
 import { expect, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { parse } from 'yaml';
+import { ItemSectionSupportContext } from '../../src/app/edit/section-context';
 import { CatalogView } from '../../src/app/workspace/CatalogView';
 import { ItemSections } from '../../src/app/workspace/ItemSections';
 import { inspect } from '../../src/shared/core/model';
@@ -19,8 +20,12 @@ const support = {
   applySaved: () => {},
 };
 const noop = () => {};
-const render = (target: Parameters<typeof ItemSections>[0]['target']) =>
-  renderToStaticMarkup(<ItemSections support={support} target={target} dirty={false} openConcept={noop} removeRelationship={noop} />);
+const render = (target: Parameters<typeof ItemSections>[0]['target'], dirty = false) =>
+  renderToStaticMarkup(
+    <ItemSectionSupportContext.Provider value={support}>
+      <ItemSections target={target} dirty={dirty} openConcept={noop} removeRelationship={noop} />
+    </ItemSectionSupportContext.Provider>,
+  );
 
 test('a concept shows attributes, agent context and governance', () => {
   const html = render({ docId: docs[0].id, path: ['ontology', 2], kind: 'concept' });
@@ -50,7 +55,7 @@ test('a metric shows its governance in the same section, read through the adapte
 });
 
 test('while the Source tab has unsaved changes the sections explain why they cannot change anything', () => {
-  const html = renderToStaticMarkup(<ItemSections support={support} target={{ docId: docs[0].id, path: ['ontology', 2], kind: 'concept' }} dirty openConcept={noop} removeRelationship={noop} />);
+  const html = render({ docId: docs[0].id, path: ['ontology', 2], kind: 'concept' }, true);
   expect(html).toContain('Save or discard the unsaved changes in the Source tab first.');
   expect(html).not.toContain('Save governance');
 });

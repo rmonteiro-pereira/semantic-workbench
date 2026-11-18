@@ -6,7 +6,6 @@ import { type ItemKind } from '../../shared/edit/item-model';
 import type { Entity } from '../../shared/core/model';
 import { editEntity } from '../../shared/core/model';
 import type { Doc } from '../projects/api';
-import type { SectionSupport } from '../edit/section-context';
 import { ItemSections } from './ItemSections';
 import type { ItemTarget, RdfTarget, ValidatedModel } from './types';
 
@@ -36,7 +35,6 @@ type Props = {
   setSelectedEdge: React.Dispatch<React.SetStateAction<string>>;
   setSelected: React.Dispatch<React.SetStateAction<string>>;
   setDefinition: React.Dispatch<React.SetStateAction<{ title: string; value: unknown } | null>>;
-  sections: SectionSupport;
 };
 /** Renders entity details. */
 export function EntityDetails({
@@ -58,7 +56,6 @@ export function EntityDetails({
   setSelectedEdge,
   setSelected,
   setDefinition,
-  sections,
 }: Props) {
   function handleTextareaChange(event: React.ChangeEvent<HTMLTextAreaElement, HTMLTextAreaElement>) {
     return setSource(editEntity(source, entity.path, event.target.value, current?.filename));
@@ -204,7 +201,7 @@ export function EntityDetails({
           const found = model?.entities.find(candidate => candidate.name === name);
           if (found) setSelected(found.id);
         };
-        return <ItemSections support={sections} target={target} dirty={!!current && source !== current.source} openConcept={selectConcept} removeRelationship={setDeleting} />;
+        return <ItemSections target={target} dirty={!!current && source !== current.source} openConcept={selectConcept} removeRelationship={setDeleting} />;
       })()}
       {entity.definition && (
         <button className="view-definition" onClick={handleViewDefinitionClick}>

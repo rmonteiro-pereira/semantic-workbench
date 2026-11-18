@@ -21,7 +21,7 @@ test('a declared concept with a built-in name is not listed twice', () => {
 });
 
 test('the target field of the relationship form uses the target choices and the extends field does not', () => {
-  const choices = { concepts: ['Order'], relationshipTargets: relationshipTargetChoices(['Order']), datasets: [], metrics: [] };
+  const choices = { concepts: ['Order'], datasets: [], metrics: [] };
   const target = fieldsFor('ontology-relationship', choices).find(field => field.key === 'target');
   expect(target?.options).toContain('String');
   const extendsField = fieldsFor('concept', choices).find(field => field.key === 'extends');

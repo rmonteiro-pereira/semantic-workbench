@@ -88,7 +88,6 @@ export function allowedStatuses(current?: string): string[] {
 export type Choices = {
   concepts: string[];
   /** The concepts a relationship may point at: the declared ones, then the built-in concepts. Falls back to `concepts` when absent. */
-  relationshipTargets?: string[];
   datasets: string[];
   metrics: string[];
 };
@@ -124,7 +123,7 @@ export function fieldsFor(kind: ItemKind, choices: Choices): FieldSpec[] {
         field('name', 'Name', 'text', { required: true }),
         field('target', 'Related concept', 'select', {
           at: ['roles', 0, 'concept'],
-          options: choices.relationshipTargets ?? choices.concepts,
+          options: relationshipTargetChoices(choices.concepts),
           required: true,
         }),
         field('role', 'Role name', 'text', { at: ['roles', 0, 'name'] }),

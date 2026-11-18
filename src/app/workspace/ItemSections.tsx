@@ -3,13 +3,12 @@ import React from 'react';
 import { AgentContextSection } from '../agent-context/AgentContextSection';
 import { AttributeList } from '../attributes/AttributeList';
 import { ValueTypeUsage } from '../attributes/ValueTypeUsage';
-import type { DetailsSection, SectionSupport } from '../edit/section-context';
+import { ItemSectionSupportContext, type DetailsSection, type SectionSupport } from '../edit/section-context';
 import { GovernanceSection } from '../governance/GovernanceSection';
 import type { Doc } from '../projects/api';
 import type { ItemTarget } from './types';
 
 type Props = {
-  support: SectionSupport;
   target: ItemTarget;
   /** True while the Source tab holds changes that are not saved. */
   dirty: boolean;
@@ -31,7 +30,9 @@ function namesOf(list: unknown, key: string, except: unknown): string[] {
 }
 
 /** Renders the sections for the kinds of item that have them, and nothing for the others. */
-export function ItemSections({ support, target, dirty, openConcept, removeRelationship }: Props) {
+export function ItemSections({ target, dirty, openConcept, removeRelationship }: Props) {
+  const support = React.useContext(ItemSectionSupportContext);
+  if (!support) return null;
   const section = sectionFor(support, target, dirty, openConcept);
   if (!section) return null;
   const item = target.path.reduce((node: any, key) => node?.[key], section.document);
