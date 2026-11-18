@@ -4,7 +4,7 @@ import type { OperationBoundary } from '../auth/operation-boundary';
 import { INCOMING_PARAM_SCHEMAS, createClientSurface } from './client-surface';
 import { createFileRequests } from './file-requests';
 import { createFloodGuard } from './flood-guard';
-import { JsonRpcError, createJsonRpcConnection, type Violation } from './jsonrpc-connection';
+import { JsonRpcError, createJsonRpcConnection, MAXIMUM_FRAME_BYTES, type Violation } from './jsonrpc-connection';
 import { plainText, type PanelEventBody } from './panel-events';
 import { createPermissionQuestions, type AnswerResult } from './permission-questions';
 import { ACP_PROTOCOL_VERSION } from './protocol-schema';
@@ -163,7 +163,7 @@ export function createConversation(dependencies: ConversationDependencies) {
     /** Takes one line the agent sent, already numbered and accepted by the link. */
     receive(line: string): void {
       if (ended) return;
-      guard.noteFrame(false);
+      if (Buffer.byteLength(line) <= MAXIMUM_FRAME_BYTES) guard.noteFrame(false);
       connection.receive(line);
     },
     /** Sends the person's prompt, unless a turn is running or the session is not ready. */
