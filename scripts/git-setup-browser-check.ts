@@ -79,6 +79,15 @@ async function check(name: string, run: () => Promise<void>) {
 }
 const panel = () => page.getByRole('region', { name: 'Source Control' });
 
+/** Publishes the committed authoring head before selecting the default branch for remote actions. */
+async function publishAndSwitchDefault() {
+  const publication = panel().getByLabel('Published snapshot');
+  await publication.getByRole('button', { name: 'Publish', exact: true }).click();
+  await expect(panel().getByRole('status').filter({ hasText: 'Published to main.' })).toBeVisible();
+  await panel().getByLabel('Branch', { exact: true }).selectOption('main');
+  await expect(panel().getByLabel('Branch', { exact: true })).toHaveValue('main');
+}
+
 async function expectCloneWaiting(dialog: Locator) {
   const cloneButton = dialog.getByRole('button', { name: 'Clone', exact: true });
   for (const theme of ['light', 'dark'] as const) {
@@ -150,11 +159,12 @@ try {
     await expect(dialog).toHaveCount(0);
     expect(sh(repo, ['log', '-1', '--format=%an']).trim()).toBe('Ana Lima');
   });
-  await check('remote: the Remote dialog adds a local bare repository and Push publishes', async () => {
+  await check('remote: the Remote dialog adds a local bare repository and Push sends the published default', async () => {
     await page.getByRole('button', { name: /^Source control/ }).click();
     await expect(panel()).toBeVisible();
     await expect(panel()).toContainText('No remote yet');
     await expect(remoteButton(page)).toBeVisible();
+    await publishAndSwitchDefault();
     await setRemote(pushTarget);
     await runSyncAction(page, 'Publish branch');
     await expect(panel().getByRole('status').filter({ hasText: 'Push finished' })).toBeVisible({
@@ -206,6 +216,7 @@ try {
     expect(existsSync(join(repo, 'shop.yaml'))).toBe(false);
     expect(sh(repo, ['log', '-1', '--format=%s']).trim()).toBe('Move the project into models/shop');
     expect(sh(repo, ['rev-list', '--max-parents=0', 'HEAD']).trim()).toBe(firstCommit);
+    await publishAndSwitchDefault();
     await expect(panel().getByLabel('Repository location')).toHaveText('origin · main · models/shop');
     await runSyncAction(page, 'Push');
     await expect(panel().getByRole('status').filter({ hasText: 'Push finished' })).toBeVisible({
