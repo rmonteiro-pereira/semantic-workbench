@@ -61,10 +61,11 @@ export function createScmRemote(ctx: ScmContext) {
     return text.binary ? null : text.text;
   }
   // What moving from `base` to `tip` would bring into each project of the repository: every
-  // file changed between them, as `base` has it and as `tip` has it.
-  async function incomingChanges(slug: string, directory: string, base: string | null, tip: string): Promise<FileChange[]> {
+  // file changed between them, as `base` has it and as `tip` has it. A caller that already lists
+  // the changed paths, with renames split into two, names them in `paths`.
+  async function incomingChanges(slug: string, directory: string, base: string | null, tip: string, paths?: string[]): Promise<FileChange[]> {
     const changes: FileChange[] = [];
-    for (const path of await git.changedBetween(directory, base, tip)) {
+    for (const path of paths ?? (await git.changedBetween(directory, base, tip))) {
       const owner = ownerOf(slug, path);
       if (!owner) continue;
       changes.push({
@@ -264,7 +265,7 @@ export function createScmRemote(ctx: ScmContext) {
       return { ...result, ahead: gitStatus.ahead, behind: gitStatus.behind };
     },
     /** What moving the repository from `base` to `tip` changes, file by file, per project. */
-    changesBetween: (slug: string, base: string | null, tip: string) => incomingChanges(slug, dir(slug), base, tip),
+    changesBetween: (slug: string, base: string | null, tip: string, paths?: string[]) => incomingChanges(slug, dir(slug), base, tip, paths),
     // The reader's guard, given in server mode, refuses a pull that brings in a guarded change.
     pull: async (slug: string, reader: Reader, credentialFor?: CredentialFor) => {
       const choice = await chooseRemote(slug, credentialFor);

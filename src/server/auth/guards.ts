@@ -33,6 +33,7 @@ const OPERATION_TEXT: Record<GuardOperation, string> = {
   move: "Ask a Steward of both projects' domains, or an Admin, to move this file.",
   switch: "Ask a Steward of this project's domain, or an Admin, to switch to this branch.",
   publish: 'Ask another Steward of this domain, or an Admin, to publish these changes.',
+  contribute: "Ask a Steward of this project's domain, or an Admin, to add these changes to the proposal.",
 };
 
 const WHO_MAY_CHANGE = "needs Steward access in this project's domain, or Admin access";
