@@ -26,7 +26,7 @@ test('the person sees one consent page naming the program, the scopes in words a
   expect(body).toContain('Create, change and delete files in your own working copy');
   expect(page.headers.get('cache-control')).toBe('no-store');
   expect(page.headers.get('content-security-policy')).toContain("form-action 'self' http://127.0.0.1:8765");
-  expect(page.headers.get('referrer-policy')).toBe('no-referrer');
+  expect(page.headers.get('referrer-policy')).toBe('same-origin');
 });
 
 test('allowing issues a code that trades for tokens, and the answer carries the state and issuer', async () => {

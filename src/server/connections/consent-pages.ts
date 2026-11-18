@@ -84,7 +84,7 @@ export function consentPage(input: ConsentInput): Response {
 }
 
 /** The form that starts a setup credential for a headless program. */
-export type SetupFormInput = { programs: Program[]; pendingId?: string; personName: string; rows: ScopeRow[]; csrf: string };
+export type SetupFormInput = { programs: Program[]; pendingId: string; personName: string; rows: ScopeRow[]; csrf: string };
 
 export function setupFormPage(input: SetupFormInput): Response {
   const programs = input.programs
@@ -100,7 +100,7 @@ export function setupFormPage(input: SetupFormInput): Response {
     .join('');
   const content =
     `<p class="lead">Set up a headless agent as ${escapeHtml(input.personName)}, with your roles. You get one setup credential that works once, for ten minutes.</p>` +
-    `<form method="post" action="/oauth/setup">${hiddenField('pending', input.pendingId ?? '')}${hiddenField('csrf', input.csrf)}` +
+    `<form method="post" action="/oauth/setup">${hiddenField('pending', input.pendingId)}${hiddenField('csrf', input.csrf)}` +
     `<fieldset class="scopes"><legend>Program</legend><ul>${programs}</ul></fieldset>` +
     scopeListHtml(input.rows) +
     `<p>${ROLES_SENTENCE}</p>${reminderHtml()}` +
@@ -109,10 +109,10 @@ export function setupFormPage(input: SetupFormInput): Response {
 }
 
 /** The credential is shown once, in a box that wraps, and is never in an address. */
-export type SetupResultInput = { credential: string; expiresAtIso: string; serverUrl: string; clientId?: string };
+export type SetupResultInput = { credential: string; expiresAtIso: string; serverUrl: string; clientId: string };
 
 export function setupResultPage(input: SetupResultInput): Response {
-  const command = `SW_SERVER_URL=${escapeHtml(input.serverUrl)} SW_CLIENT_ID=${escapeHtml(input.clientId ?? 'registered-program-id')} bun scripts/mcp-stdio.ts --setup-credential-file &lt;private-file&gt;`;
+  const command = `SW_SERVER_URL=${escapeHtml(input.serverUrl)} SW_CLIENT_ID=${escapeHtml(input.clientId)} bun scripts/mcp-stdio.ts --setup-credential-file &lt;private-file&gt;`;
   const content =
     '<p class="lead">Copy this setup credential now. It is shown once and works once.</p>' +
     `<p class="credential" id="credential">${escapeHtml(input.credential)}</p>` +

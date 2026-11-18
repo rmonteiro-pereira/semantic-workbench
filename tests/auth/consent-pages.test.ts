@@ -84,7 +84,7 @@ test('the headers forbid caching, framing and referrers, and allow the redirect 
 });
 
 test('the setup form lists programs and scopes and posts to the setup address', async () => {
-  const response = setupFormPage({ programs: [program, { ...program, clientId: 'second-client', name: 'Second' }], personName: 'Chen', rows, csrf: 'csrf-token' });
+  const response = setupFormPage({ programs: [program, { ...program, clientId: 'second-client', name: 'Second' }], personName: 'Chen', pendingId: 'one-form', rows, csrf: 'csrf-token' });
   const body = await response.text();
   expect(body).toContain('method="post" action="/oauth/setup"');
   expect(body.match(/name="client"/g)).toHaveLength(2);
@@ -94,11 +94,12 @@ test('the setup form lists programs and scopes and posts to the setup address', 
 });
 
 test('the setup result shows the credential once, with no cache and no link to it', async () => {
-  const response = setupResultPage({ credential: 'swsetup_abc<def>', expiresAtIso: '2026-11-17T10:00:00.000Z', serverUrl: 'https://wb.example.org' });
+  const response = setupResultPage({ credential: 'swsetup_abc<def>', expiresAtIso: '2026-11-17T10:00:00.000Z', serverUrl: 'https://wb.example.org', clientId: 'reference-client' });
   const body = await response.text();
   expect(body).toContain('swsetup_abc&lt;def&gt;');
   expect(body).toContain('SW_SERVER_URL=https://wb.example.org');
-  expect(body).toContain('&lt;paste the setup credential here&gt;');
+  expect(body).toContain('SW_CLIENT_ID=reference-client');
+  expect(body).toContain('--setup-credential-file &lt;private-file&gt;');
   expect(body.split('swsetup_abc').length - 1).toBe(1);
   expect(body).not.toMatch(/href="[^"]*swsetup_/);
   expect(response.headers.get('cache-control')).toBe('no-store');
