@@ -72,3 +72,13 @@ Shared-file consolidation: files.ts has one keepDrafts expression; me.ts one ava
 middleware.ts one HandlerOptions block; guard-cases.ts one exemption block; route-actions.ts one
 appended registration block. The latter registers conversation-only examples after the
 definition-read matrix is derived, so event streams cannot hang the definition-read checks.
+
+## Mutation scope
+
+`sw-midgard-run -- bun scripts/acp-mutants.ts`: 19 killed, 0 survived, each candidate run through
+`scripts/mutation-case.ts` after its passing baseline. The full mutation suite was not run.
+The proposed mutant replacing the recorded base with the just-read current hash is equivalent:
+the existing equality guard proves those hashes equal before save. It is omitted rather than
+reported as killed. Dropping the equality guard, allowing an unread write and skipping the
+second read are independently killed. The content/audit-origin candidates exercise the session
+service's public start/end path; they do not add an unrestricted agent operation.

@@ -573,6 +573,7 @@ mutants.push(...observabilityMutants);
 mutants.push(...operationBoundaryMutants);
 // The local agent endpoint: access checks, cursors, receipts, tool twins, the commit tool and the audit fields.
 mutants.push(...mcpMutants);
+mutants.push(...(await import('./acp-mutants')).acpMutants);
 
 // Split modules import their siblings, so a mutant runs inside a copy of the whole folder: only
 // imports that leave the folder point back at the real sources.
