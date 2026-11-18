@@ -120,6 +120,9 @@ The application revision includes `481d012b`. The retry of the browser history s
   The instrumented `bun scripts/ci-validate.ts --step browser --suite test:back-history` recorded the same 1,114×755 graph pane for both 1440×900
   captures. Before the fix, returning to the Graph gave an infinite measured name size and rendered 195 individual cards. With `481d012b`, both visits
   measured 2.21 px at Fit and rendered 12 counted areas. The Back assertion passed at that step and the comparison images were opened.
+- After `d6bafdba`, the canonical `bun scripts/ci-validate.ts --step browser --suite test:back-history` returned 0. All 25 undo and 25 redo comparisons
+  passed. Neighborhood and Lineage arrows agree with browser history, Back does not save the grouping a second time, Back after reload leaves the
+  app, and the suite emitted `PASS back-history`. The test reads Full Graph's displayed counted-area status without treating its camera as history.
 
 ### Matched UBL lineage timing
 
