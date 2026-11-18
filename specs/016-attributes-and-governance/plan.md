@@ -224,8 +224,8 @@ scripts/attributes-governance-browser-check.ts, scripts/attributes-mutation-case
 - **Waits**: the revision number in T003 follows the merge order with 018; T033 (MCP handoff) waits for
   006 on the main branch; marks from 014 and 017 in the row slot need no work here whichever lands first;
   T030 ([CODEX] capture and comparison) waits for the integrated batch; T036 is last.
-- **Parallel groups**: {T001, T002}; {T003, T007, T012, T013}; {T008, T009, T010}; {T015, T019, T021};
-  {T025, T022}; {T031, T032}.
+- **Parallel groups**: {T001, T002}; {T003, T007, T012, T013}; {T008, T009, T010}; {T015, T021, T025}; {T019, T022, T023};
+  {T031, T032}.
 
 ## Process (owner-approved 2026-11-17)
 
