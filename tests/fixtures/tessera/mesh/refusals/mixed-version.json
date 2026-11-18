@@ -1,0 +1,13 @@
+{
+  "code": "tessera-mixed-version",
+  "files": [
+    {
+      "path": "ontology.yaml",
+      "source": "{\"tessera\": 3, \"version\": \"0.2.0.dev0\", \"name\": \"Retail\", \"ontology\": [{\"concept\": \"Order\", \"type\": \"EntityType\"}], \"tessera_includes\": [\"part.yaml\"]}"
+    },
+    {
+      "path": "part.yaml",
+      "source": "{\"tessera\": 3, \"tessera_part\": true, \"ontology\": [{\"concept\": \"Customer\", \"type\": \"EntityType\"}], \"version\": \"0.3.0.dev0\"}"
+    }
+  ]
+}

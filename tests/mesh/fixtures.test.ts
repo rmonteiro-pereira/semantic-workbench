@@ -35,3 +35,16 @@ test('each unit fixture has valid YAML or JSON syntax', () => {
     }
   }
 });
+
+test('each refusal envelope parses and its inventory names the expected finding', () => {
+  const inventory = readFileSync(join(fixtureRoot, 'README.md'), 'utf8');
+  for (const name of readdirSync(join(fixtureRoot, 'refusals'))) {
+    const refusal = readFixture(`refusals/${name}`);
+    expect(inventory).toContain(`\`${name}\` | \`${refusal.code}\``);
+    for (const file of refusal.files) {
+      const document = parseDocument(file.source, { uniqueKeys: true });
+      expect(document.errors, `${name}: ${file.path}`).toEqual([]);
+      expect(document.toJS({ maxAliasCount: 100 })).toBeObject();
+    }
+  }
+});
