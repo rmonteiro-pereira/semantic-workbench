@@ -193,14 +193,15 @@ export interface DryRunEvidence {
 /** Replays matrix and audit cases and compares every known person's and client's project actions. */
 export function compareAccess(options: AccessOptions, next: AccessConfig, { users, audit, names = new Map(), access }: DryRunEvidence) {
   const before = access ?? createAccessControl(options);
-  const scopeFor = scopeCache(before, before.fork(next), options.config, next);
+  const current = before.snapshot();
+  const scopeFor = scopeCache(before, before.fork(next), current.config, next);
   const identities = new Map(users.map(user => [user.id, user]));
-  for (const client of [...options.config.agents.clients, ...next.agents.clients]) {
+  for (const client of [...current.config.agents.clients, ...next.agents.clients]) {
     identities.set(`client:${client.clientId}`, clientPrincipal(client.clientId, client.name));
   }
-  const projects = [...new Set([...options.knownProjects(), ...Object.keys(next.projects.projects)])];
-  const replayed = replayDecisions(scopeFor, audit, identities, options.config);
-  const configs = { before: options.config, after: next, names };
+  const projects = [...new Set([...current.knownProjects(), ...Object.keys(next.projects.projects)])];
+  const replayed = replayDecisions(scopeFor, audit, identities, current.config);
+  const configs = { before: current.config, after: next, names };
   const people = peopleChanges(scopeFor, [...identities.values()], projects, configs);
   return { ...replayed, people };
 }

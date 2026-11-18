@@ -26,7 +26,9 @@ if (category === 'access-index') {
   const candidate = await import(resolve(dirname(process.argv[2]), 'authorize.ts'));
   const replay = await import(resolve(dirname(process.argv[2]), 'dry-run.ts'));
   (await import('../tests/auth/access-index-assertions')).assertAccessIndexes(candidate.createAccessControl);
-  (await import('../tests/auth/dry-run-scope-assertions')).assertDryRunScopes(replay.compareAccess);
+  const scopes = await import('../tests/auth/dry-run-scope-assertions');
+  scopes.assertDryRunScopes(replay.compareAccess);
+  scopes.assertReloadedReplay(replay.compareAccess);
 }
 // Publication mutants load only the publication module, so working copies come from the real source.
 async function worktreeFactory(): Promise<typeof import('../src/server/projects/worktrees').createWorktrees> {

@@ -75,3 +75,17 @@ export function assertDryRunScopes(compare: typeof compareAccess) {
     if (principal !== 'client:sw-agent') assert(result.changed.length > 0);
   }
 }
+
+/** Checks a comparison whose active control has moved past the supplied snapshot. */
+export function assertReloadedReplay(compare: typeof compareAccess) {
+  const options = accessFixture();
+  const access = createAccessControl(options);
+  const stale = access.snapshot();
+  access.reload({ ...stale.config, adminRules: { deny: 'forbid(principal, action == SW::Action::"read", resource);' } });
+  const alice = person('alice');
+  const result = compare(stale, stale.config, { users: [alice], audit: [], access });
+  assert(
+    result.people.some(change => change.principal === alice.id && change.gained.includes('read')),
+    'Alice regains read access',
+  );
+}

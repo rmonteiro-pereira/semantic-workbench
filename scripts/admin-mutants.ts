@@ -39,4 +39,5 @@ export const adminMutants: [string, string, string, string][] = [
   ['access-index', 'src/server/auth/dry-run.ts', 'client: config.agents.clients.find(client => client.clientId === principal.clientId),', 'client: undefined,'],
   ['access-index', 'src/server/auth/authorize.ts', "if (action === 'createProject') return [action];", "if (action === 'createProject') return action;"],
   ['access-index', 'src/server/auth/cedar.ts', 'replayClasses ??= actionClasses(staticPolicies, Object.keys(options.adminRules ?? {}).length > 0);', 'replayClasses ??= actionClasses({}, false);'],
+  ['access-index', 'src/server/auth/dry-run.ts', 'const current = before.snapshot();', 'const current = options;'],
 ];
