@@ -61,6 +61,11 @@ async function openApp(width: number, height: number, colorScheme: 'light' | 'da
 /** Opens one view tab of the file, after the sidebar steps a phone needs. */
 const openTab = (page: Page, name: string) => fileTab(FILE, name)(page);
 
+/** The cut text inside a region that the screen did not already have before Traffic was switched on. */
+async function addedCutText(page: Page, within: string, already: string[]) {
+  return (await clippedTextProblems(page, within)).filter(problem => !already.includes(problem));
+}
+
 async function setTraffic(page: Page, on: boolean) {
   await viewOptions(page, async options => setShown(options, 'Traffic', on));
 }
@@ -108,7 +113,7 @@ async function checkOn(width: number, height: number, scheme: 'light' | 'dark') 
   const before = await cardSizes(page, '.full-graph');
   // Problems the screen already has without Traffic belong to other work; Traffic must add none.
   const alreadyCut = await clippedTextProblems(page, '.full-graph');
-  const addedCut = async (within: string) => (await clippedTextProblems(page, within)).filter(problem => !alreadyCut.includes(problem));
+  const addedCut = (within: string) => addedCutText(page, within, alreadyCut);
   await setTraffic(page, true);
   await expect(page.locator('.full-graph .traffic-ring').first()).toBeAttached();
   await check(`${label}: cards keep their size and the graph has nothing cut or overlapping`, async () => {
@@ -159,6 +164,7 @@ async function checkOn(width: number, height: number, scheme: 'light' | 'dark') 
 async function checkStates(scheme: 'light' | 'dark') {
   const page = await openApp(1280, 800, scheme);
   await openTab(page, 'Graph');
+  const alreadyCut = await clippedTextProblems(page, '.full-graph');
   const legend = page.locator('.full-graph');
   const expected: [typeof mock.mode, string | RegExp][] = [
     ['empty', 'No requests through this workbench counted yet in the last 30 days.'],
@@ -172,7 +178,7 @@ async function checkStates(scheme: 'light' | 'dark') {
       await setTraffic(page, false);
       await setTraffic(page, true);
       await expect(legend).toContainText(text);
-      expect(await clippedTextProblems(page, '.full-graph')).toEqual([]);
+      expect(await addedCutText(page, '.full-graph', alreadyCut)).toEqual([]);
     });
   }
   await check(`${scheme}: after an error Retry loads the counts`, async () => {
