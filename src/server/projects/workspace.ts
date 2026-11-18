@@ -853,7 +853,10 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       gitAvailable: () => gitAvailable,
       layout,
       snapshots,
-      workingLayout: (project, reader) => copies.readPlace(reader, project).layout,
+      workingLayout: (project, reader) => {
+        const place = copies.readPlace(reader, project);
+        return !reader.view || place.copy ? place.layout : null;
+      },
       ownBranch: reader => {
         const owner = copies.owners().find(candidate => candidate.key === reader.copy?.key);
         return owner ? personalBranch(owner.handle) : null;

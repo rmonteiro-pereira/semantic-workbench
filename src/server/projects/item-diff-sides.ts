@@ -25,7 +25,7 @@ type SideDependencies = {
   git: Git;
   gitAvailable: () => boolean;
   layout: DataLayout;
-  workingLayout: (project: string, reader: Reader) => DataLayout;
+  workingLayout: (project: string, reader: Reader) => DataLayout | null;
   snapshots: PublishedSnapshots;
   ownBranch: (reader: Reader) => string | null;
   limits?: SnapshotLimits;
@@ -146,6 +146,10 @@ export function createItemDiffSides(deps: SideDependencies) {
     },
     async working(project: string, reader: Reader): Promise<LoadedDiffSide> {
       const working = deps.workingLayout(project, reader);
+      if (!working) {
+        const published = await this.published(project, reader);
+        return { ...published, version: { side: 'working', version: published.version.version } };
+      }
       const directory = projectDir(working, project);
       const listed = deps.gitAvailable() ? await git.lsFiles(directory) : walk(directory);
       const paths = listed.filter(path => isDefinition(path) && diffFileReadable(reader, project, path)).sort();

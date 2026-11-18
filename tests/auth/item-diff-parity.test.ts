@@ -30,6 +30,13 @@ test('browser HTTP and the operation boundary agree on item comparison visibilit
   const access = createAccessControl(accessFixture());
   const file = join(fixture.root, 'projects', project, restricted);
   await Bun.write(file, 'unparseable: [');
+  const repository = join(fixture.root, 'projects', project);
+  function git(...args: string[]) {
+    const result = Bun.spawnSync(['git', '-C', repository, ...args]);
+    if (result.exitCode) throw new Error(result.stderr.toString());
+  }
+  git('switch', '-c', 'visible-comparison');
+  git('commit', '-am', 'Introduce a restricted parse failure');
   for (const entry of cases) {
     const principal = access.principalFor(person(entry.username));
     const directory = join(fixture.root, 'item-parity', entry.username, entry.project);
@@ -52,7 +59,7 @@ test('browser HTTP and the operation boundary agree on item comparison visibilit
         frontChannelLogout: async () => new Response(null, { status: 200 }),
       },
     });
-    const url = `${origin}/api/projects/${entry.project}/item-diff?from=published&to=working`;
+    const url = `${origin}/api/projects/${entry.project}/item-diff?from=published&to=branch:visible-comparison`;
     const http = await handler(new Request(url, { headers: { 'Sec-Fetch-Site': 'same-origin' } }));
     const oper = await handler.boundary.operate({ caller: mintCaller({ principal, origin: 'http', surface: 'browser', session }), request: new Request(url) });
     const body = await http.text();
@@ -63,5 +70,12 @@ test('browser HTTP and the operation boundary agree on item comparison visibilit
     const records = audit.recent(10).map(auditDetails);
     expect(records).toHaveLength(2);
     expect(records[0]).toEqual(records[1]);
+    if (entry.visible) {
+      const saved = await handler(new Request(url.replace('branch:visible-comparison', 'working')));
+      expect(saved.status).toBe(200);
+      const comparison = await saved.json();
+      expect(comparison.changes).toEqual([]);
+      expect(comparison.to.version).toBe(comparison.from.version);
+    }
   }
 });
