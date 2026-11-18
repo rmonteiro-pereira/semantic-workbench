@@ -143,6 +143,15 @@ The application revision includes `481d012b`. The retry of the browser history s
   passed. Neighborhood and Lineage arrows agree with browser history, Back does not save the grouping a second time, Back after reload leaves the
   app, and the suite emitted `PASS back-history`. The test reads Full Graph's displayed counted-area status without treating its camera as history.
 
+### Phone graph capture controls
+
+- Mapping Graph already exposes its zoom actions in the Viewport group. The capture driver opens the floating Controls panel before every named
+  button, so the driver's own Pierce overlay covers Zoom when the candidate folds secondary controls.
+- Use the visible action first. Fold Controls away before pressing outside it and open it only to reach an action inside it. Use the product's
+  accessible names for the full-screen action and the one-to-three foreign-key range documented in all compared revisions.
+- Keep the first-view captures independent and verify the same phone Mapping Graph Zoom steps on all three builds before classifying the earlier
+  failed clicks.
+
 ### Matched UBL lineage timing
 
 The repeated 1440×900 frozen-import switch from Mall ODCS to UBL ODCS measured 2,090 and 2,264 ms on main. The candidate measured 2,092 and 2,119 ms.
