@@ -1,42 +1,67 @@
-# Handoff: compile everywhere
+# Compile everywhere handoff
 
-Worktree `/home/rodrigo/projetos/semantic-workbench-wt/019-compile-everywhere`, branch `019-compile-everywhere`. Nothing was pushed.
+## Current state
 
-## Done (ticked in tasks.md, each in its own commit)
+The conversion journey succeeds. The POST was already successful; the workspace refresh made the
+converted file dirty and the UI replaced the success state with its opening eligibility blocker.
+The dialog now retains its opening eligibility. Server-side cleanliness, input hashes, exact digest,
+unit compile and guarded save checks remain authoritative. The original success assertion is retained;
+the journey additionally checks the conversion HTTP response and exactly one changed file.
 
-T001-T014, T016, T017, T018. `UnitSource` exists since commit 8f9b9e5c (`src/server/tessera/unit-source.ts`, wiring in `workspace-unit-source.ts`, fixture helper in 1e7276c8).
+Completed in this continuation: T019, T034, T035, T037 and T038. T036's executable inventory/parity
+portion passed; its checkbox remains open because this base has no MCP registry or tests.
+The release check T024 follows this handoff update. Detailed departures and proofs are in evidence.md.
 
-## Not finished
+## Review changes
 
-- **T019** (unticked). The mutants are done and pass: `bun scripts/compile-mutants.ts` kills 23/23 (`scripts/compile-mutants.ts`, `scripts/compile-mutation-cases.ts`, one line in `scripts/mutation-case.ts`, one block in `scripts/mutation-tests.ts`). The conversion journey added to `scripts/compile-browser-check.ts` fails on midgard at the step "Converted. retail.ontology.yaml is now standard Ossie in your working copy." (the review, phone width and confirm pass; the success text never appears, so the convert call probably answers an error). Next worker: print the dialog text on failure, find why (likely `dirty`: the imported file may not be committed, or the unit check refuses), fix, rerun, then tick T019.
-- T034-T038 not started. T034 needs `docs/compile.md` (docs/development.md already links to it) plus README, ARCHITECTURE.md, docs/user-guide.md; T035 CHANGELOG; T036 inventory/MCP check (`bun scripts/operation-inventory-table.ts && git diff --exit-code docs/operations.md`); T037 `bun --bun run check` and build, check-comments; T038 is covered by `tests/compile/compile-dialog.test.tsx`.
-- T024 (Ossie 0.3.0 release check against the official upstream repository) not done; record result and date in research.md. Left open as instructed: T015, T020 (Codex screenshots), T021-T023 (MCP), T025-T033, T039, T040, and multi-file work for 018.
+- One shared synchronous digest replaces the browser shim and Vite alias. Native Bun and browser Web
+  Crypto comparisons prove identical hashes, including block boundaries. No dependency was added.
+- Compile HTTP acknowledgements require completed HTTP 200, supported result states and typed
+  identifiers. Conversion acknowledgements must match the requested path and reviewed digest.
+- The compile guide, README, architecture, user guide, development guide, changelog and contracts
+  describe the implemented behavior; MCP tools are explicitly unavailable on this base.
 
-## Uncommitted-then-committed in this handoff commit
+## Proof summaries
 
-browser-sha256 shim, vite.config.ts plugin, mutants, browser check edits.
+- Feature tests: 111 pass, 0 fail, 375 assertions across 17 files.
+- Inventory, route actions, matrix and HTTP/in-process parity: 45 pass, 0 fail, 45,035 assertions.
+  Generated docs/operations.md is unchanged.
+- Unchanged controls: compile-dialog.test.tsx, 13 pass, including unused export and validation entries.
+  This is a targeted control proof, not a visual regression comparison.
+- Browser journey: PASS review, acceptance, ZIP download, unpublished check and one-file conversion;
+  desktop/phone geometry and no console errors. Runtime digest comparisons also pass.
+- Scale: 200 documents, 19,551,550 bytes, compile and ZIP in 23.20 s (30-second limit passed).
+- check: exit 0, including TypeScript, formatter, lint, comments, theme and brand; lint has warnings.
+- build: exit 0, built in 3.07 s, with module-directive and chunk-size warnings.
+- Readable-code checker passed all changed TypeScript files. No commit_cadence.py exists here.
+- The inherited handoff records 23/23 targeted mutants killed; no mutation suite was rerun here.
 
-## Departures from plan.md
+## Shared-file blocks and integration notes
 
-- `bundleFiles` moved from `scripts/tessera.ts` to `src/server/tessera/bundle-files.ts`; `findingsOf` core moved to `src/shared/tessera/compile-findings.ts` (both used by the CLI and HTTP so bytes are equal). The CLI tests still pass.
-- Added `fileSizes` to `published-snapshot.ts` and `layoutFor` to `workspace.ts` (one block each). `UnitRead` carries `place` (branch, commit, projectFolder) so the manifest source equals the CLI's.
-- `compile.check` answer has an extra `accepted` boolean. Convert request uses the unit digest and unit input hashes; the dialog shows only this file's losses.
-- Convert route and tests exist; its exposure is `later`. Bundle dispatch is `browser-only`, exposure `never`.
-- Extra files: `use-convert.ts`, `workspace-conversion.ts`, `compile-request.ts`, `browser-sha256.ts`. The browser compiles one file locally for the before/after view; the shared digest module imports `node:crypto`, so `vite.config.ts` gives only that module a browser sha-256 (a first browser run failed with the app blank until this was found; the rerun after the fix loaded the app).
-- Compile fixtures reuse the access fixture project `sales-contracts` and constants in `tests/helpers/tessera-repository.ts`; `tests/fixtures/compile/` holds only the golden bundle (regenerate with `UPDATE_GOLDEN=1`).
+Inherited blocks: four route-action rows, four inventory entries, handler registration, generated
+operations reference, fileSizes in published-snapshot.ts, layoutFor in workspace.ts, export/validation
+entry points, AppDialogs wiring, package/gate registration and targeted mutation registration.
+bundleFiles moved to the owning server module; findings formatting is shared. UnitRead carries place
+for CLI-identical manifest provenance. This continuation adds documentation blocks and replaces the
+owning digest implementation; vite.config.ts loses the obsolete resolver block. No generated file
+was hand-edited. The complete departures list is in evidence.md.
 
-## Proofs run (summary lines)
+## Waiting and batch gate
 
-- `bun test tests/compile/ tests/auth/compile-parity.test.ts`: all pass when last run per file (e.g. convert-service 10 pass, routes 12 pass, parity 10 pass, loss-preview 8, compile-dialog 11, convert-dialog 9, browser-sha256 4).
-- `bun test tests/auth/operation-inventory.test.ts tests/auth/route-actions.test.ts tests/auth/matrix.test.ts`: pass.
-- `bun --bun run check`: passed (before the last edits; rerun in T037). `bun --bun run build`: built.
-- Scale on midgard: 200 documents, 19.55 MB, 19.74 s (recorded in docs/development.md).
-- `test:compile` on midgard passed before the conversion journey was added; fails now at the step above.
+Leave T015 and T020 for the later screenshot job; T021-T023 and the MCP portion of T036 for MCP
+integration; multi-file/dependency work for the complete-unit feature. T025-T033 require the stable
+upstream release, and metric conversion additionally needs its adapter. T039 and T040 stay unticked.
 
-## Notes for running the browser check on midgard
+The integrated-batch owner runs once before merge: full bun test, test:mutation, test:compile,
+test:validation, test:auth, the remaining browser suites, UI comparison with the last release and
+architecture-reviewer. No full suite or architecture review ran in this continuation. There is no PR
+or project push; only the authorized scratch transport was used.
 
-Start vite with `setsid ... &` and kill the group (`kill -TERM -- -$PID`); an earlier run left a vite on port 5431 (killed by exact PID 771552). Port 5431 was confirmed free after the last run's own cleanup message, but verify with `ss -ltn | grep :5431` before and after.
+The reviewer should check source pinning, whole-unit readability, exact acceptance, guarded one-file
+conversion, export authority and audit, shared digest cost, MCP dispositions and the documented
+single-folder limit. Screenshot/theme coverage and full-screen equality are still pending.
 
-## Exact next task
-
-Debug the failing conversion step of `scripts/compile-browser-check.ts` (T019), then T034 onward.
+The repository formatter excludes Markdown. Leak scanning passes the changed product docs except
+six existing literal /tmp screenshot examples in development.md; their existing commands are preserved.
+Internal evidence/handoff logs are scanned for confidential terms. Port 5431 was checked before each
+browser start, and each run stopped the exact process group it started; verify it is free before reuse.

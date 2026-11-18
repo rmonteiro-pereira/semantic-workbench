@@ -94,3 +94,9 @@ that portion is skipped for integration, rather than running Bun with a nonexist
 - Readable-code checker: exit 0 on every TypeScript file changed in this continuation, including the
   full-file scan as well as the requested --changed mode. Repository commit_cadence.py is absent;
   commits were made after each coherent proof, with none exceeding the requested size limit.
+
+## Entry-point regression proof
+
+T038: compile-dialog.test.tsx passed all 13 tests in the feature run. The unused export option adds
+no review controls; standard or action-less validation panels add no compile/convert controls.
+The full-screen comparison and both-theme captures remain explicitly pending.
