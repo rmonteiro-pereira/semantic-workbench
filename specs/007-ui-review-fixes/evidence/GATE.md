@@ -87,6 +87,10 @@
   and candidate repetitions failed the probe's additional visible frontier marker precondition, so this probe cannot establish a relative Pierce
   budget. The identical standalone suite assertion above supplies the inherited failure evidence.
 
+- The candidate responsive retry later passed the edit and screen tours at all four review widths. It returned 1 in the phone ODCS group with
+  `odcs-contract-search: contract id is cut off`. The canonical main suite stops earlier at the 481 px canvas. The same ODCS stage needs a focused
+  run on pinned main before attributing the clipping.
+
 ### Full Graph reopening through browser Back
 
 - The history suite can compare area contents at the same Fit zoom. The fitted retry restored selection and all explicit area actions.
@@ -94,7 +98,10 @@
   explicit area choice was still unset, so the automatic Network legibility decision ran again.
 - The opening check should still use the rendered name sizes. At Fit, a virtualized name cannot exceed its card's sizing cap multiplied by the fitted
   zoom. Use that bound even when React Flow has yet to mount a card's name element.
-- Verify through the standard Back/Forward suite and a repeated Mall opening at the same viewport. Record only reproducible before/after behavior.
+- `sw-midgard-run -- bash scripts/ui-review/gate-007/history-launch.sh` ran `bun test tests/overview-capacity.test.ts` (12 pass, 0 fail, 69 assertions).
+  The instrumented `bun scripts/ci-validate.ts --step browser --suite test:back-history` recorded the same 1,114×755 graph pane for both 1440×900
+  captures. Before the fix, returning to the Graph gave an infinite measured name size and rendered 195 individual cards. With `481d012b`, both visits
+  measured 2.21 px at Fit and rendered 12 counted areas. The Back assertion passed at that step and the comparison images were opened.
 
 ### Matched UBL lineage timing
 
@@ -112,6 +119,7 @@ These pairs compare the candidate before and after each correction. The scores a
 | `ubl-neighborhood-walk-1600.png` | M15 | 13.231375% | The first target and its Walk control are inside the canvas. |
 | `ubl-neighborhood-walk-reached-1600.png` | M15 | 11.775875% | The two relationship paths enter the reached card separately. |
 | `ubl-area-headings-1280.png` | m9 | 1.119575% | The two wrapped title plates have visible clearance above their cards. |
+| `mall-graph-back-1440.png` | M2, M13 | 40.086034% | Back restores 12 readable counted areas in place of 195 tiny individual cards. |
 
 ### Full Graph area headings
 
