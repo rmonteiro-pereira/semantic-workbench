@@ -83,7 +83,6 @@ export function rulesForRequest(input: Pick<UsageRecordInput, 'operationId' | 'o
   return countedOperation(input.operationId);
 }
 
-type ActiveRecording = { project?: string; invalidated: boolean };
 type PendingDay = { file: CounterDayFile; size: number };
 
 async function boundedAnswer(response: Response): Promise<string | null> {
@@ -115,7 +114,9 @@ export function createUsageRecorder(deps: UsageRecorderDeps): UsageRecorder {
   const now = deps.now ?? (() => new Date());
   const warn = deps.warn ?? ((event, fields) => log.warn(event, fields));
   const memory = new Map<string, Map<string, PendingDay>>();
-  const inFlight = new Map<Promise<void>, ActiveRecording>();
+  const inFlight = new Set<Promise<void>>();
+  const archivedAt = new Map<string, number>();
+  let generation = 0;
   const lastWarned = new Map<string, number>();
   let closing: Promise<void> | undefined;
   let compactedOn = '';
@@ -151,16 +152,15 @@ export function createUsageRecorder(deps: UsageRecorderDeps): UsageRecorder {
     }
   }
 
-  async function count(rule: CountedOperation, input: UsageRecordInput, copy: Response, commit: string, recording: ActiveRecording) {
+  async function count(rule: CountedOperation, input: UsageRecordInput, copy: Response, commit: string, admittedAt: number) {
     const text = await boundedAnswer(copy);
-    if (text === null || recording.invalidated) return;
+    if (text === null) return;
     const answer = JSON.parse(text);
     const project = answerProject(rule.items, answer, input.target);
-    if (!project) return;
-    recording.project = project;
+    if (!project || (archivedAt.get(project) ?? 0) > admittedAt) return;
     const marker = deps.migrationRecords(project, commit)?.at(-1)?.id ?? null;
     const models = await deps.models(project, commit);
-    if (!models || recording.invalidated) return;
+    if (!models || (archivedAt.get(project) ?? 0) > admittedAt) return;
     increment(project, rule, input, itemAddresses(rule.items, { answer, models, target: input.target }), marker);
   }
 
@@ -171,11 +171,13 @@ export function createUsageRecorder(deps: UsageRecorderDeps): UsageRecorder {
       const commit = input.response.headers.get(SNAPSHOT_HEADER);
       const length = Number(input.response.headers.get('content-length') ?? 0);
       if (!rule || !commit || length > MAX_COUNTED_RESPONSE_BYTES) return;
-      const recording = { project: input.target.project, invalidated: false };
-      const task: Promise<void> = count(rule, input, input.response.clone(), commit, recording)
+      const task: Promise<void> = count(rule, input, input.response.clone(), commit, generation)
         .catch(() => warnOncePerHour('usage.count-failed'))
-        .finally(() => inFlight.delete(task));
-      inFlight.set(task, recording);
+        .finally(() => {
+          inFlight.delete(task);
+          if (!inFlight.size) archivedAt.clear();
+        });
+      inFlight.add(task);
     } catch {
       warnOncePerHour('usage.count-failed');
     }
@@ -234,10 +236,7 @@ export function createUsageRecorder(deps: UsageRecorderDeps): UsageRecorder {
         if (days.size) throw new Error('Pending usage counts could not be archived.');
         memory.delete(project);
       }
-      for (const recording of inFlight.values()) {
-        // The body may still be resolving which project owns an answer.
-        if (!recording.project || recording.project === project) recording.invalidated = true;
-      }
+      if (inFlight.size) archivedAt.set(project, ++generation);
     },
     close() {
       if (closing) return closing;

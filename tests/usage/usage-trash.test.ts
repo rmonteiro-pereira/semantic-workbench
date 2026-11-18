@@ -149,3 +149,39 @@ async function publishNote(workspace: Awaited<ReturnType<typeof testWorkspace>>,
   const result = await workspace.ws.publish(slug, LOCAL_READER);
   return result.commit;
 }
+
+test('trashing one project preserves an undecoded count belonging to another project', async () => {
+  const { workspace, slug, store } = await projectWithCounts();
+  const target = await workspace.seed([{ path: 'a.yaml', source: 'name: O\nontology: [{concept: A}]\n# Other project' }], 'Other');
+  await publishFixture(workspace);
+  expect(target.slug).not.toBe(slug);
+  const commit = workspace.ws.published.pin().commits.get(target.slug)!.commit;
+  const handler = createHandler(workspace.ws, { usageSettings: { enabled: true, retentionDays: 30 } });
+  const body = Promise.withResolvers<string>();
+  try {
+    const stream = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        controller.enqueue(new TextEncoder().encode(await body.promise));
+        controller.close();
+      },
+    });
+    handler.usage.record({
+      operationId: 'agent.context.read',
+      origin: 'http',
+      surface: 'agent',
+      outcome: 'ok',
+      target: {},
+      response: new Response(stream, { headers: { 'X-Workbench-Snapshot': commit } }),
+    });
+    await workspace.ws.trash.deleteProject(slug);
+    body.resolve(JSON.stringify({ mappingId: target.slug + '/mapping.yaml', documents: [{ documentId: target.slug + '/a.yaml', path: ['ontology', 0] }] }));
+    await handler.usage.settled();
+    handler.usage.flush();
+    const day = store.readDay(target.slug, utcDay(new Date()));
+    expect(day.status === 'ok' && day.file.counts[address(target.slug)]['workbench-requests']['agent.context.read'].http).toBe(1);
+  } finally {
+    body.resolve('{}');
+    await handler.usage.close();
+    workspace.dispose();
+  }
+});

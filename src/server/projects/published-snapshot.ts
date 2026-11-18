@@ -248,8 +248,8 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
     async documentsAt(commit: string, project: string) {
       if (!deps.gitAvailable()) throw absence();
       const requestPin = pin();
-      if (!(await resolveRevision(commit))) throw new SnapshotUnavailableError('unavailable');
       const repository = projectRepository(project, requestPin);
+      if (!(await resolveRevision(commit, repository))) throw new SnapshotUnavailableError('unavailable');
       const pointer = deps.pointers.get(repository);
       if (!pointer?.commit || !(await deps.git.isAncestor(deps.directory(repository), commit, pointer.commit))) throw new SnapshotUnavailableError('unavailable');
       const historical = { commits: new Map([[repository, { branch: pointer.branch, commit }]]) };
