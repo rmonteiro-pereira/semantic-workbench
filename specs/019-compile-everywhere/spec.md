@@ -126,9 +126,9 @@ audit record, and that a stale file or a dirty file is refused.
 ### User Story 4 - An agent checks and compiles through MCP (Priority: P2)
 
 An agent connected to the local workbench asks whether a project compiles and, for a published
-project, asks for the compiled files page by page. It can see findings and the loss report but
-cannot accept a loss on a person's behalf by default unless it supplies the digest it was shown,
-and it cannot convert anything.
+project, asks for the compiled files page by page. It sees findings and the loss report. It gets
+file content only when it supplies the digest of the report it was shown, and it cannot convert
+anything.
 
 **Why this priority**: decision E14 names the MCP adapter, and agents are the heaviest consumers of
 standard output.
@@ -244,7 +244,7 @@ new base through validation, compilation and conversion.
 - **FR-013**: A compile MUST finish on the snapshot it started with even when the project is
   published again meanwhile, and its manifest MUST name that commit.
 - **FR-014**: A request that asks for part of the compiled output (a file, from an offset) MUST name
-  the commit it expects. When the published commit differs, the request MUST fail with a
+  the commit it expects; the commit is required for such a request. When the published commit differs, the request MUST fail with a
   snapshot-changed answer and MUST NOT return mixed content.
 - **FR-015**: Output files read part by part MUST return at most one bounded amount of text per
   answer, the version of the file's content and the offset to continue from. Nothing MUST be
@@ -312,7 +312,8 @@ new base through validation, compilation and conversion.
   list the conversion as not an agent operation yet.
 - **FR-036**: The tools MUST be available wherever the MCP endpoint is mounted. They add no exposure
   in server mode where the endpoint is not yet mounted.
-- **FR-037**: Failures MUST use the existing MCP result codes. A compile that needs acceptance or is
+- **FR-037**: Failures MUST use the existing MCP result codes; a changed published commit between two
+  part reads MUST use the code the tools already use for a changed version. A compile that needs acceptance or is
   refused MUST be a successful tool result with a state, as validation findings are; a project with no
   snapshot MUST answer `not_published`.
 

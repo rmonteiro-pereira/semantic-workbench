@@ -204,7 +204,7 @@ Conditional (after the release): `schemas/ossie-ontology-<version>.json`, `schem
 | `src/app/validation/ValidationPanel.tsx` | two buttons for Tessera documents | 016 (governance findings hints) |
 | `src/app/projects/api.ts` | none; the dialog keeps its own `src/app/compile/api.ts` | none |
 | `src/shared/tessera/bases.ts`, `schemas/README.md`, `scripts/compile-schemas.ts`, `scripts/derive-tessera-schema.ts`, `src/generated/validators.js` | the 0.3.0 entry (conditional) | 016 and 018 (derived schema per revision) |
-| `src/shared/validation/validation.ts`, `src/shared/validation/ossie-versions` modules, mapping validators | 0.3.0 rules (conditional) | 016 (governance checks) |
+| `src/shared/validation/validation.ts` (version selection and the structural expression checks), the mapping validators | 0.3.0 rules (conditional) | 016 (governance checks) |
 | `src/shared/metrics/extension.ts`, `schemas/semantic-workbench-*.json` | metric payload conversion (conditional) | 016 (adapter) |
 | `package.json`, `scripts/gate-suites.ts`, `scripts/mutation-tests.ts` | `test:compile` suite, mutants | all |
 | `README.md`, `ARCHITECTURE.md`, `CHANGELOG.md`, `docs/user-guide.md`, `docs/development.md`, `docs/operations.md` | text | all |

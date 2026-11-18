@@ -7,7 +7,7 @@ idempotent, not destructive and closed-world. Retry class `repeatable`. Request 
 | Tool | Twin operation | Action | Notes |
 |------|----------------|--------|-------|
 | `check_standard` | `compile.check` | read | arguments `project`, `source` (`published` or `working`, default `published`), optional `lossPolicy` |
-| `compile_standard` | `compile.run` | export | arguments `project`, optional `acceptDigest`, `commit`, `path`, `offset` |
+| `compile_standard` | `compile.run` | export | arguments `project`, optional `acceptDigest`; `path` and `offset` for a part, and then `commit` is required |
 
 ## `check_standard` answer
 

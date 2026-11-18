@@ -47,7 +47,7 @@ Request:
   "file": { "path": "…", "offset": 0 } }
 ```
 
-`accept`, `commit` and `file` are all optional.
+`accept` and `file` are optional. `commit` is optional except when `file` is given, where it is required.
 
 Response `200` with `result`:
 
