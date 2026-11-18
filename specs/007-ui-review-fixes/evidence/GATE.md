@@ -626,6 +626,17 @@ keyboard focus ring on the metric grouping control. The empty Trash dialog keeps
   prefixes returned four strips. Both repeats were opened and all 24 actions passed. The candidate shows the whole named UBL Network
   in four areas. Its zoom is 0.72067 with the mini-map off and 0.581006 on, stable in both repeats and themes. Both references
   rearrange the areas between repeats. The new named framing resolves the earlier mini-map-off concerns in both themes.
+- `sw-midgard-run -- bash scripts/ui-review/gate-007/verified-bundle-launch.sh` started the detached replay and serial suite retry.
+  The check finished with 2,661 warnings and zero errors. The build finished in 3.24 s with the chunk-size advisory.
+  `bun scripts/ci-validate.ts --step browser --suite test:mapping-graph` returned 0 with all 12 checks, including Shipment's Unmapped
+  badge and the Unmapped only filter after `87e4fd50`. The prior failing frame is `before/fixes/commerce-unmapped-shipment-1440.png`.
+  The success frame for that same fixture remains queued. The sidebar retry returned 1 waiting for its initial project-tree locator
+  at 30 seconds, before a geometry verdict. The earlier main and candidate sidebar runs each passed four checks.
+  The lineage retry passed commerce opening, Walk, Back, Forward and fullscreen, then returned 1 at the 2,000 ms UBL
+  first-view limit (3,707 ms). The matched frozen-import timing on both builds is recorded above.
+- `bun -` checked the mapping capture matcher against four valid singular and plural summaries and one invalid singular.
+  `36f93f35` accepts the candidate's corrected grammar during the next replay. In the previous replay the grammar assertion
+  incorrectly reported a diagnostic against the settled empty mapping.
 - `bash .data/gate/publish-current-review.sh` returned 752 rows with the counts above.
 
 The Full Graph replay scored 43 steps, from two repetitions per version. The candidate Network first view and Fit show four named counted areas.
