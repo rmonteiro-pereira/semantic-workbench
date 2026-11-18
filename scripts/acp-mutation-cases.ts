@@ -1,5 +1,7 @@
 // Focused behavioural assertions for candidate panel modules, using their public entry points.
 import assert from 'node:assert/strict';
+import { mintCaller } from '../src/server/auth/caller';
+import { sessionFor } from '../tests/connections/connection-fixture';
 import { localPrincipal } from '../src/server/auth/principal';
 import { createVersionRecords } from '../src/server/acp/version-records';
 import type { AuditInput, AuditLog } from '../src/server/auth/audit';
@@ -42,6 +44,34 @@ async function fileCases(module: typeof import('../src/server/acp/file-requests'
   assert.deepEqual(await files.read({ path }), hidden);
 }
 
+async function mountCases(module: typeof import('../src/server/acp/mount')) {
+  const principal = localPrincipal();
+  let origin: 'mcp' | 'acp' = 'mcp';
+  const mounted = module.mountAgentPanel({
+    mode: 'server',
+    port: 5418,
+    publicOrigin: 'https://workbench.test',
+    audit: { append() {} } as unknown as AuditLog,
+    boundary: () => ({}) as OperationBoundary,
+    connections: {
+      createConnectionForSession: () => ({ ok: true, credential: 'setup', expiresAt: Date.now() + 60_000 }),
+      resolve: async () => ({ ok: true, caller: mintCaller({ principal, origin, connection: 'connection', scope: ['read'] }), connection: 'connection' }),
+      onConnectionEnded: () => () => {},
+    },
+  });
+  assert.ok(mounted);
+  try {
+    const started = await mounted.service.start({ principal, session: sessionFor('browser', principal) });
+    assert.ok(started.ok);
+    const request = new Request('https://workbench.test', { headers: { Authorization: 'Bearer token' } });
+    assert.equal(await mounted.service.relayFor(request, started.session.id), undefined);
+    origin = 'acp';
+    assert.ok(await mounted.service.relayFor(request, started.session.id));
+  } finally {
+    mounted.service.stopSweeper();
+  }
+}
+
 async function serviceCases(module: typeof import('../src/server/acp/panel-service')) {
   const records: AuditInput[] = [];
   const service = module.createPanelService({
@@ -67,7 +97,8 @@ async function serviceCases(module: typeof import('../src/server/acp/panel-servi
 /** Runs the behavioural case for one candidate module. */
 export async function acpMutationCase(target: string, category: string): Promise<void> {
   const module = await import(target);
-  if (category === 'acp-files') return fileCases(module);
+  if (category === 'acp-mount') return mountCases(module);
+  else if (category === 'acp-files') return fileCases(module);
   if (category === 'acp-service') return serviceCases(module);
   if (category === 'acp-path') {
     assert.equal(module.parseVirtualPath('/elsewhere/example/file.yaml').ok, false);

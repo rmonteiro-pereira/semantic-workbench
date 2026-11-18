@@ -1,6 +1,5 @@
 // The real authentication assembly binds panel sessions to rotating person connections.
 import { expect, spyOn, test } from 'bun:test';
-import type { PanelService } from '../../src/server/acp/panel-service';
 import { openConnectionServer, referenceProgram } from '../helpers/connection-server';
 
 const relayProgram = { ...referenceProgram, clientId: 'acp-relay', scopes: ['read', 'edit'] as ('read' | 'edit')[] };
@@ -9,7 +8,7 @@ type Server = Awaited<ReturnType<typeof openConnectionServer>>;
 async function openPanel() {
   let clock = Date.now();
   const server = await openConnectionServer({ programs: [referenceProgram, relayProgram], handlerOptions: { now: () => clock } });
-  const service = (server.handler as typeof server.handler & { agentPanel: PanelService }).agentPanel;
+  const service = server.handler.agentPanel!;
   const cookie = await server.signIn('alice');
   const response = await server.json('/api/acp/sessions', 'POST', cookie, {});
   expect(response.status).toBe(201);

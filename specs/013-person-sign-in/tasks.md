@@ -147,4 +147,4 @@ ends with its own targeted proof; the full gate runs once, on the integrated bat
 ## Joined relay connections
 
 - [x] Connect the real service to the panel; list and confirm revocation with origin; refuse cross-transport tokens; prove revocation and browser lifetime endings stop the panel and 1,000 relay requests cause zero session touches (`tests/acp/server-mode.test.ts`).
-- [ ] Prove ACP receipt ownership and current authorization through the operation boundary.
+- [x] Prove ACP receipt ownership and current authorization through the operation boundary.

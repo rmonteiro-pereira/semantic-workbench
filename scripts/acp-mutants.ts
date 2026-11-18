@@ -1,6 +1,7 @@
 // Deliberate faults in the panel's access, version, protocol and lifetime rules.
 /** Faults consumed by the shared mutation runner and the focused panel runner. */
 export const acpMutants: [string, string, string, string][] = [
+  ['acp-mount', 'src/server/acp/mount.ts', "resolved.caller.origin !== 'acp'", 'false'],
   ['acp-path', 'src/server/acp/virtual-path.ts', "if (!value.startsWith(VIRTUAL_ROOT + '/')) return refuse('prefix');", ''],
   ['acp-path', 'src/server/acp/virtual-path.ts', "segment === '..'", 'false'],
   ['acp-files', 'src/server/acp/file-requests.ts', "if (recorded !== current.file.hash) return { ok: false, failure: refused(display, 'changed') };", ''],

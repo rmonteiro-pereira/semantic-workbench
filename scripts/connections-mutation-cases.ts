@@ -24,6 +24,7 @@ export const connectionsMutants: [string, string, string, string][] = [
     "if (!match) return { allow: false, status: 401, reason: 'credential' };",
     "if (!match) return { allow: true, caller: {} as Caller, connection: 'cookie' };",
   ],
+  ['connections-gate', 'src/server/mcp/server-mode-gate.ts', "resolved.caller.origin !== 'mcp'", 'false'],
   ['connections-receipts', 'src/server/mcp/receipts.ts', '(found?.principalId === request.principalId && found.connectionId === request.connectionId)', 'found'],
   ['connections-receipts', 'src/server/mcp/receipts.ts', 'if (refusal) return refusal;', ''],
 ];
@@ -71,6 +72,10 @@ export async function connectionsCase(path: string, category: string): Promise<v
     const service = { resolve: async () => ({ ok: true, caller, connection: 'connection' }) };
     const response = await decideServerRequest({ method: 'POST', origin: null, host: null, contentType: 'application/json', authorization: null, cookie: 'signed-in-person' }, service);
     assert.equal(response.allow, false);
+    const shape = { method: 'POST', origin: null, host: null, contentType: 'application/json', authorization: 'Bearer ' + 'a'.repeat(43) };
+    assert.equal((await decideServerRequest(shape, service)).allow, true);
+    const panelCaller = mintCaller({ principal: localPrincipal(), origin: 'acp', connection: 'connection' });
+    assert.equal((await decideServerRequest(shape, { resolve: async () => ({ ok: true, caller: panelCaller, connection: 'connection' }) })).allow, false);
     return;
   }
   const root = mkdtempSync(join(tmpdir(), 'connection-mutant-'));
