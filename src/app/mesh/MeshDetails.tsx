@@ -14,9 +14,10 @@ export function MeshDetails({ project, graph }: { project: MeshProjectView; grap
       {outgoing.length === 0 && <p>No published imports.</p>}
       <ul className="mesh-import-list">
         {outgoing.map(link => (
-          <li key={link.provider ?? ''}>
+          <li key={JSON.stringify([link.provider, link.version])}>
             {link.provider ? names.get(link.provider) : 'Provider unavailable'}
             {link.items.length > 0 && <div>{link.items.join(', ')}</div>}
+            {link.version && <div>Resolved provider version {link.version}</div>}
           </li>
         ))}
       </ul>

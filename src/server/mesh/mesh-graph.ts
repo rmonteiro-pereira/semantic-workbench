@@ -12,7 +12,7 @@ import type { ProjectEntry } from '../projects/state';
 export type MeshProject = { project: string; name: string; domain: string | null };
 
 /** An import between visible projects, or an unnamed unavailable target. */
-export type MeshLink = { consumer: string; provider: string | null; items: string[] };
+export type MeshLink = { consumer: string; provider: string | null; version: string | null; items: string[] };
 
 function importsIn(documents: Awaited<ReturnType<PublishedSnapshots['documents']>>) {
   const file = documents.find(document => document.path === DEPENDENCY_MANIFEST_PATH);
@@ -37,14 +37,16 @@ export async function readMeshGraph(snapshots: PublishedSnapshots, registry: Pro
     for (const consumer of visible) {
       if (!pin.commits.has(locationOf(consumer).repo)) continue;
       const { documents } = await snapshots.readableDocuments(pin, consumer.slug, reader);
-      const targets = new Map<string | null, Set<string>>();
+      const targets = new Map<string | null, { provider: string | null; version: string | null; items: Set<string> }>();
       for (const dependency of importsIn(documents)) {
         const provider = known.has(dependency.project) ? dependency.project : null;
-        const items = targets.get(provider) ?? new Set<string>();
-        if (provider) for (const item of dependency.concepts) items.add(item);
-        targets.set(provider, items);
+        const version = provider ? (dependency.commit ?? pin.commits.get(dependency.repository)?.commit ?? null) : null;
+        const key = provider && version ? JSON.stringify([provider, version]) : null;
+        const target = targets.get(key) ?? { provider: key ? provider : null, version, items: new Set<string>() };
+        if (key) for (const item of dependency.concepts) target.items.add(item);
+        targets.set(key, target);
       }
-      for (const [provider, items] of targets) links.push({ consumer: consumer.slug, provider, items: [...items].sort(compareText) });
+      for (const target of targets.values()) links.push({ ...target, consumer: consumer.slug, items: [...target.items].sort(compareText) });
     }
   });
   return { projects, links };

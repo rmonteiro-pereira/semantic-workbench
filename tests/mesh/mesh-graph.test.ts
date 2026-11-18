@@ -44,10 +44,10 @@ test('the mesh exposes only readable projects and gives hidden and missing targe
       { project: 'retail', name: 'retail', domain: 'Commerce' },
       { project: 'units', name: 'units', domain: null },
     ],
-    links: [{ consumer: 'retail', provider: null, items: [] }],
+    links: [{ consumer: 'retail', provider: null, version: null, items: [] }],
   });
   const complete = await as('bob').handler(apiRequest('/api/mesh'));
-  expect((await complete.json()).links).toEqual([{ consumer: 'retail', provider: 'finance', items: ['Invoice'] }]);
+  expect((await complete.json()).links).toEqual([{ consumer: 'retail', provider: 'finance', version: fixture.git('finance', ['rev-parse', 'HEAD']), items: ['Invoice'] }]);
   await fixture.ws.trash.deleteProject('finance');
   expect(await (await alice.handler(apiRequest('/api/mesh'))).text()).toBe(answer);
 });

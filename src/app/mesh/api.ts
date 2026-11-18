@@ -134,7 +134,7 @@ export async function readDependents(project: string, signal?: AbortSignal): Pro
 export type MeshProjectView = { project: string; name: string; domain: string | null };
 
 /** One scoped published link in the ontology mesh. */
-export type MeshLinkView = { consumer: string; provider: string | null; items: string[] };
+export type MeshLinkView = { consumer: string; provider: string | null; version: string | null; items: string[] };
 
 /** The readable projects and visible links of one published view. */
 export type MeshGraphView = { projects: MeshProjectView[]; links: MeshLinkView[] };
@@ -148,7 +148,7 @@ function isMeshLink(value: unknown): value is MeshLinkView {
     isObject(value) &&
     typeof value.consumer === 'string' &&
     !!value.consumer &&
-    (typeof value.provider === 'string' || value.provider === null) &&
+    (value.provider === null ? value.version === null : typeof value.provider === 'string' && typeof value.version === 'string' && /^[a-f0-9]{40}$|^[a-f0-9]{64}$/.test(value.version)) &&
     Array.isArray(value.items) &&
     value.items.every(item => typeof item === 'string')
   );
