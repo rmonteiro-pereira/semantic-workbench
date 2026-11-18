@@ -39,6 +39,12 @@ test('published interfaces expose exported concepts without exposing private fil
   using fixture = await meshWorkspace('separate');
   await putPublicConceptInPrivatePart(fixture);
   await publishDependent(fixture);
+  const compiled = await fixture.fixture.handler(new Request('http://localhost:4310/api/projects/retail/compile', { method: 'POST', body: '{}' }));
+  expect(compiled.status).toBe(200);
+  expect((await compiled.json()).manifest.addressMap).toContainEqual({
+    from: 'sw1:finance/private/invoice.yaml#ontology:finance/concept:Invoice',
+    to: 'sw1:retail/ontology.yaml#ontology:retail/concept:finance~ontology%252Eyaml~Invoice',
+  });
   const allowed = reader(fixture, ['finance', 'retail']);
   expect((await allowed.call('/api/projects/finance/files/private/invoice.yaml')).status).toBe(404);
   const document = '/api/projects/retail/files/ontology.yaml';
