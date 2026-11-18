@@ -1,5 +1,5 @@
 // Decides and executes operations through the same handler and durable audit path.
-import { receiptReplay, type ReceiptReplayRequest } from './receipt-replay';
+import { receiptReplay, type ReceiptReplay, type ReceiptReplayRequest } from './receipt-replay';
 import { executeOperation } from './operation-execution';
 import { operationClassifiers } from './operation-classifiers';
 import { recordOperation } from '../observability/metrics';
@@ -31,11 +31,15 @@ export type OperationBoundaryOptions = {
   remoteCredentials?: RemoteCredentials;
 };
 
+/** The original resource metadata a restore receipt carries across retries. */
+export type { ReceiptReplay, ReceiptTrashTarget } from './receipt-replay';
+
 /** One authenticated request to authorize and execute. */
 export type OperationCall = {
   caller: Caller;
   request: Request;
   operationId?: string;
+  replay?: ReceiptReplay;
 };
 
 /** The projects whose audit records the caller may read: null for an Admin, who reads them all. */
@@ -215,7 +219,8 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
   async function operate(call: OperationCall): Promise<{ response: Response; requestId: string }> {
     assertMinted(call.caller);
     const { caller } = call;
-    const request = call.request as AccessRequest;
+    const request = call.request as AccessRequest & ReceiptReplayRequest;
+    if (call.replay) request[receiptReplay] = call.replay;
     const requestId = request[requestAuditId] ?? crypto.randomUUID();
     const url = new URL(request.url);
     const found = routeFor(request.method, url.pathname, mode);

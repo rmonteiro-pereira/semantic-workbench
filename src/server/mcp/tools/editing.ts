@@ -1,4 +1,4 @@
-import type { ReceiptTrashTarget } from '../../auth/receipt-replay';
+import type { ReceiptTrashTarget } from '../../auth/operation-boundary';
 // Tools that change definitions: save by patch or text, create, delete to the trash and restore. Saving and creating rely on the save route's version check and byte preservation; delete and restore are safe to retry through receipts.
 import { DEFAULT_TOOL_REQUEST_CAP_BYTES, GLOBAL_REQUEST_CAP_BYTES } from '../body-limits';
 import type { ToolContext, ToolDefinition } from '../tool-definition';
