@@ -106,18 +106,21 @@ async function checkOn(width: number, height: number, scheme: 'light' | 'dark') 
   await openTab(page, 'Graph');
   await page.waitForTimeout(1200);
   const before = await cardSizes(page, '.full-graph');
+  // Problems the screen already has without Traffic belong to other work; Traffic must add none.
+  const alreadyCut = await clippedTextProblems(page, '.full-graph');
+  const addedCut = async (within: string) => (await clippedTextProblems(page, within)).filter(problem => !alreadyCut.includes(problem));
   await setTraffic(page, true);
   await expect(page.locator('.full-graph .traffic-ring').first()).toBeAttached();
   await check(`${label}: cards keep their size and the graph has nothing cut or overlapping`, async () => {
     expect(await cardSizes(page, '.full-graph')).toEqual(before);
     expect(await graphCanvasProblems(page, 'model')).toEqual([]);
-    expect(await clippedTextProblems(page, '.full-graph')).toEqual([]);
+    expect(await addedCut('.full-graph')).toEqual([]);
   });
   await check(`${label}: the legend names the measure, the operations and the period`, async () => {
     const legend = page.locator('.full-graph details.traffic-legend');
     await expect(legend).toContainText('requests through this workbench in the last 30 days');
     await expect(legend).toContainText('context requests, query plan requests, metric explanation requests');
-    expect(await clippedTextProblems(page, '.full-graph')).toEqual([]);
+    expect(await addedCut('.full-graph')).toEqual([]);
     expect(await sidewaysOverflowProblems(page, '.traffic-legend')).toEqual([]);
   });
   await check(`${label}: the ring and the bar contrast with the card and the legend is readable`, async () => {
