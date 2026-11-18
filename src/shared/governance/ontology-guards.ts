@@ -40,7 +40,7 @@ function itemsOf(document: any): Map<string, LocatedItem> {
   list(document.ontology).forEach((concept, conceptIndex) => {
     if (!isObject(concept) || typeof concept.concept !== 'string') return;
     const conceptPath: Path = ['ontology', conceptIndex];
-    found.set(`concept:${concept.concept}`, { path: conceptPath, value: concept, kind: 'concept', label: concept.concept });
+    found.set(JSON.stringify([concept.concept]), { path: conceptPath, value: concept, kind: 'concept', label: concept.concept });
     list(concept.relationships).forEach((relationship, relationshipIndex) => {
       if (!isObject(relationship) || typeof relationship.name !== 'string') return;
       const label = `${concept.concept}.${relationship.name}`;
