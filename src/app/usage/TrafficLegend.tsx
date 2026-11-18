@@ -44,9 +44,7 @@ export function TrafficLegend({ admin }: { admin?: boolean }) {
     <>
       <details className="traffic-legend">
         <summary>{`Traffic: ${TRAFFIC_UNIT} in ${period}`}</summary>
-        <p>
-          {explanation}
-        </p>
+        <p>{explanation}</p>
       </details>
       {traffic.status === 'partial' && (
         <p className="traffic-legend" role="status">
