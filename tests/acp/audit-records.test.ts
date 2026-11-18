@@ -14,7 +14,8 @@ test('bad credentials and foreign origins are audited through the anonymous gate
   const measured = spyOn(metrics, 'recordOperation');
   try {
     const { body } = await server.startSession();
-    for (const headers of [{ authorization: `Bearer ${canary}` }, { origin: 'https://foreign.test' }, { host: 'foreign.test' }]) {
+    const attempts: Record<string, string>[] = [{ authorization: `Bearer ${canary}` }, { origin: 'https://foreign.test' }, { host: 'foreign.test' }];
+    for (const headers of attempts) {
       const refused = await server.relay(`/api/acp/relay/${body.id}/hello`, { method: 'POST', headers, json: { code: canary } });
       expect(refused.status).toBe(404);
     }
