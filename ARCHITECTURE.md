@@ -336,6 +336,7 @@ command line.
   `export-closure.ts` checks the public concept list and computes its canonical interface hash.
   `imports.ts` checks aliases and allow-lists against the resolved public interfaces.
   `dependency-manifest.ts` reads the versioned dependency lock and compares it with the declared imports.
+  `qualify.ts` spells compiled concept names from their stable owner and rewrites their references.
 - `src/shared/tessera/marker.ts` reads the marker (top level only). `validate.ts` gives the Tessera
   findings and picks the derived schema by marker and base. `src/shared/validation/validation.ts`
   calls it at the top of `validateStructured`, and `src/shared/core/model.ts` returns the document
