@@ -340,12 +340,12 @@ export function createGit(options: GitOptions) {
   async function commitWithBlobs(cwd: string, paths: string[], blobs: ReadonlyMap<string, string>, message: string, author?: CommitAuthor) {
     return enqueue(insideProjects(cwd), () => commitIsolatedIndex(cwd, paths, blobs, message, author));
   }
-  async function commitIsolatedIndex(cwd: string, paths: string[], blobs: ReadonlyMap<string, string>, message: string, author?: CommitAuthor) {
+  async function commitIsolatedIndex(cwd: string, paths: string[], blobs: ReadonlyMap<string, string>, message: string, author?: CommitAuthor, staged = false) {
     const temporary = mkdtempSync(join(tmpdir(), 'sw-git-index-'));
     const env = { GIT_INDEX_FILE: join(temporary, 'index') };
     try {
-      const parent = await read(cwd, ['rev-parse', '--verify', 'HEAD'], true);
-      await run(cwd, ['read-tree', parent.code === 0 ? parent.stdout.trim() : '--empty'], { env, readOnly: true });
+      const base = staged ? await run(cwd, ['write-tree'], { readOnly: true }) : await read(cwd, ['rev-parse', '--verify', 'HEAD'], true);
+      await run(cwd, ['read-tree', base.code === 0 ? base.stdout.trim() : '--empty'], { env, readOnly: true });
       for (const chunk of chunks(paths)) await run(cwd, ['add', '-A', '--', ...chunk], { env, readOnly: true });
       for (const [path, source] of blobs) {
         const object = await run(cwd, ['hash-object', '-w', '--stdin'], { stdin: source, readOnly: true });
@@ -495,6 +495,10 @@ export function createGit(options: GitOptions) {
         stdin: message,
         env: signed.env,
       });
+    },
+    /** Commits the staged definitions with their corresponding history blobs. */
+    commitIndexWithBlobs(cwd: string, paths: string[], blobs: ReadonlyMap<string, string>, message: string, author?: CommitAuthor) {
+      return enqueue(insideProjects(cwd), () => commitIsolatedIndex(cwd, paths, blobs, message, author, true));
     },
     // Tracked and untracked files, with .gitignore applied by Git itself.
     async lsFiles(cwd: string) {

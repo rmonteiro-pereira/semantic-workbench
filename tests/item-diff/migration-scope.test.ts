@@ -181,6 +181,10 @@ test('a selective commit includes only the records for its selected definitions'
   expect(committed.map(record => record.from)).toEqual([prefix + 'purchases']);
   expect(git(directory, ['diff', '--cached', '--name-only'])).toBe(semanticPath);
   expect(readAddressMigrations(fixture.ws.layout, 'finance', LOCAL_READER).map(record => record.from)).toContain(metric + 'gross_revenue');
+  await scm.commit('finance', 'Commit staged metric');
+  const withMetric = parseAddressHistory(git(directory, ['show', 'HEAD:' + ADDRESS_HISTORY_FILE]));
+  expect(withMetric.map(record => record.from)).toEqual([prefix + 'purchases', metric + 'gross_revenue']);
+  expect(git(directory, ['status', '--porcelain'])).toBe('');
 });
 
 test('discard and undo journal the history changes with the definition', async () => {

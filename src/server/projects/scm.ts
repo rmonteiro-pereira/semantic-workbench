@@ -161,7 +161,14 @@ export function createScm(deps: ScmDeps) {
       clean.filter(p => existsSync(join(directory, p))),
     );
     const parent = await git.head(directory);
-    await git.commit(directory, message, false, author);
+    const selected = staged.map(entry => entry.path);
+    const history = merging ? null : await selectedHistory(slug, selected, true);
+    if (history?.blobs.size) {
+      const extraPaths = history.paths.filter(path => !selected.includes(path));
+      await git.commitIndexWithBlobs(directory, extraPaths, history.blobs, message, author);
+    } else {
+      await git.commit(directory, message, false, author);
+    }
     const head = (await git.head(directory))!;
     const committed = await git.changedBetween(directory, parent, head);
     // A hook that rewrote a file, or a clean filter whose committed bytes differ from the saved
@@ -188,7 +195,7 @@ export function createScm(deps: ScmDeps) {
     }
     return chosen;
   }
-  async function selectedHistory(slug: string, chosen: string[]) {
+  async function selectedHistory(slug: string, chosen: string[], staged = false) {
     const directory = dir(slug);
     const selected = new Set(chosen);
     const folders = new Map<string, string>();
@@ -211,6 +218,11 @@ export function createScm(deps: ScmDeps) {
           .map(record => record.id),
       );
       if (!additions.length && !removals.size) continue;
+      if (staged) {
+        const affected = [...additions, ...previous.filter(record => removals.has(record.id))];
+        const endpoints = new Set(affected.flatMap(record => historyEndpoints(record, project => folders.get(project))).filter(endpoint => selected.has(endpoint)));
+        await verifyStagedDefinitions(directory, [...endpoints]);
+      }
       blobs.set(path, serializeAddressHistory([...previous.filter(record => !removals.has(record.id)), ...additions]));
       if (!base) {
         const attributes = folder + '.gitattributes';
@@ -218,6 +230,12 @@ export function createScm(deps: ScmDeps) {
       }
     }
     return { paths: [...selected].filter(path => !blobs.has(path)), blobs };
+  }
+  async function verifyStagedDefinitions(directory: string, endpoints: string[]) {
+    for (const endpoint of endpoints) {
+      const [staged, working] = await Promise.all([content(directory, 'index', endpoint), content(directory, 'worktree', endpoint)]);
+      if ((staged && sha256(staged)) !== (working && sha256(working))) throw new GitError('Stage the saved definition again so its address history matches the commit.');
+    }
   }
   async function commitChosen(slug: string, message: string, chosen: string[], author?: CommitAuthor) {
     const directory = dir(slug);
