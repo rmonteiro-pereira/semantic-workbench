@@ -216,7 +216,8 @@ test('local mode keeps using the machine’s own Git credentials, with no host a
     );
   const url = setup.azureDevOps.repository('local/_git/notes.git');
   expect((await send('PUT', '/git/remote', { name: 'origin', url })).status).toBe(200);
-  const pushed = await send('POST', '/git/push');
+  expect((await send('POST', '/git/publish', {})).status).toBe(200);
+  const pushed = await send('POST', '/git/push-default');
   expect(pushed.status).toBe(200);
   expect((await pushed.json()).ok).toBe(true);
   expect(lastPush(setup.azureDevOps)?.identity).toBe('machine');
