@@ -1,6 +1,6 @@
 // Writes a bundle to a new folder outside every source tree: into a temporary sibling first, then renamed, so no half-written bundle is ever visible under the output name.
 import { chmodSync, closeSync, existsSync, fsyncSync, mkdirSync, mkdtempSync, openSync, readdirSync, realpathSync, renameSync, rmSync, statSync, writeSync } from 'node:fs';
-import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path';
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import type { UnitFile } from '../../shared/tessera/compile-unit';
 import { TesseraRefusal } from './refusal';
 
@@ -30,7 +30,7 @@ function realPathOf(path: string): string {
 
 function isInside(child: string, parent: string): boolean {
   const path = relative(parent, child);
-  return path === '' || (!path.startsWith('..') && !isAbsolute(path));
+  return !isAbsolute(path) && path !== '..' && !path.startsWith('..' + sep);
 }
 
 /** Refuses an output folder that is not empty, that is a file, or that sits inside a source tree. */

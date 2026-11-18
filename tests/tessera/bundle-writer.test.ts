@@ -3,7 +3,7 @@ import { afterEach, expect, test } from 'bun:test';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { writeBundle, writeFileDurably, type BundleTarget } from '../../src/server/tessera/bundle-writer';
+import { checkTarget, writeBundle, writeFileDurably, type BundleTarget } from '../../src/server/tessera/bundle-writer';
 import { TesseraRefusal } from '../../src/server/tessera/refusal';
 
 const encoder = new TextEncoder();
@@ -83,6 +83,28 @@ test('a link into the repository cannot hide the real place of the output', () =
   const link = join(base, 'link');
   symlinkSync(repository, link);
   expect(() => writeBundle(target(join(link, 'dist')), files)).toThrow('inside the repository');
+});
+
+test('containment checks whole path components through direct paths and links', () => {
+  const { base, repository, dataRoot, target } = setup();
+  const parentLink = join(base, 'parent-link');
+  symlinkSync(base, parentLink);
+  for (const parent of [base, parentLink]) {
+    expect(() => checkTarget(target(parent))).toThrow('not empty');
+  }
+
+  const sources = [repository, join(dataRoot, 'projects'), join(dataRoot, 'worktrees')];
+  for (const [index, source] of sources.entries()) {
+    for (const name of ['exports', '..exports']) {
+      const child = join(source, name);
+      const childLink = join(base, `link-${index}-${name}`);
+      mkdirSync(child);
+      symlinkSync(child, childLink);
+      for (const folder of [child, childLink]) {
+        expect(() => checkTarget(target(folder))).toThrow('inside');
+      }
+    }
+  }
 });
 
 test('an interrupted write leaves nothing under the output name and removes the temporary folder', () => {

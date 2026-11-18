@@ -447,7 +447,9 @@ never reach agent context. Tests: `tests/tessera/validation.test.ts`,
 `bun run tessera compile` reads one project folder of a Git repository as it is in a commit on the
 default branch (never the working tree or another branch), compiles every Tessera ontology to
 standard Ossie by removing the marker and the notes, copies the other Ossie files byte for byte and
-writes a bundle to a new folder outside the repository: the compiled files, `manifest.json` and
+writes a bundle outside the repository and the data root’s project and working copy trees.
+The output check follows symlinks and treats names like `..exports` as ordinary child folders.
+The bundle contains the compiled files, `manifest.json` and
 `loss-report.json`. ODCS contracts, RDF files and other files are listed in the manifest as not
 included. `bun run tessera check` runs the same validation and compilation in memory, for a
 committed snapshot or for a folder on disk (labelled unpublished), and writes nothing.
