@@ -446,7 +446,7 @@ application choices. [The example report](docs/example-verification.json) record
 | Git credentials | Machine helper or SSH | Session-scoped personal remote credentials |
 | Edits | Local project repositories | Personal working copy; Steward publication |
 | Telemetry | Never exported | Optional, explicitly enabled Azure Monitor export |
-| Agent endpoint | `POST /api/mcp` with a local capability | Not mounted |
+| Agent endpoint | `POST /api/mcp` with a local capability | Session-bound person connection token |
 
 For a shared server, install dependencies, build the frontend and supply the required settings
 before `bun src/server/index.ts`. There is no application-owned password form. Roles come from
@@ -463,7 +463,14 @@ Local mode offers an endpoint, `POST /api/mcp`, for agents that speak the Model 
 
 Semantic Workbench does not call a language model. When you connect an external agent, that agent can receive definitions you authorize and may send them to its model provider; its configuration and policies govern that onward use.
 
-The first start creates a secret in `data/state/mcp-capability` that only your operating-system user can read, and every request must present it. Run `bun scripts/mcp-stdio.ts` as a standard-input server in your agent client (set `DATA_DIR` and `SW_PORT` like the server), or give a client that takes a URL `http://127.0.0.1:4310/api/mcp` and the header `Authorization: Bearer <the file's contents>`. `bun run mcp:rotate` replaces the secret. The endpoint is absent in server mode, which has no agent tools yet. An agent that reads a hostile definition can be steered by it; the protocol has no way to mark text untrusted. Read [the agent endpoint guide](docs/mcp.md) for the tool list, limits, retry rules and threat model.
+The first start creates a secret in `data/state/mcp-capability` that only your operating-system user can read, and every request must present it. Run `bun scripts/mcp-stdio.ts` as a standard-input server in your agent client (set `DATA_DIR` and `SW_PORT` like the server), or give a client that takes a URL `http://127.0.0.1:4310/api/mcp` and the header `Authorization: Bearer <the file's contents>`. `bun run mcp:rotate` replaces the secret. Server mode mounts the same endpoint behind session-bound person connections; identity-provider tokens remain limited to the application agent API. An agent that reads a hostile definition can be steered by it; the protocol has no way to mark text untrusted. Read [the agent endpoint guide](docs/mcp.md) for the tool list, limits, retry rules and threat model.
+
+Server connections carry selected scopes and the person's current roles. Defaults are read,
+validate, edit and commit; remote and publish require separate selection, and administration is
+unavailable. Sign-out, session expiry, revocation and removed access end the connection. Agent
+traffic never extends the browser session. Programs require Admin registration; server-mode
+client support remains unconfirmed. See [agent connections](docs/agent-connections.md), including
+the current browser authorization limitation, before configuring a client.
 
 ## Run it as a container
 

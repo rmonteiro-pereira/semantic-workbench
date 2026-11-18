@@ -6,6 +6,13 @@ is registered automatically, and there is no dynamic registration or client meta
 
 Semantic Workbench does not call a language model. When you connect an external agent, that agent can receive definitions you authorize and may send them to its model provider; its configuration and policies govern that onward use.
 
+## Current limitation
+
+Browser consent and setup forms currently fail the exact-origin check: their required
+`Referrer-Policy: no-referrer` causes Chromium to send `Origin: null`. Authorization and setup
+cannot complete in that browser until the page-header and CSRF contracts agree. Server-mode
+clients therefore remain **not tested**. Server bridge credential storage is also unresolved.
+
 ## Register a program
 
 The access repository's `programs.json` contains registrations. Each has a unique `clientId`, a

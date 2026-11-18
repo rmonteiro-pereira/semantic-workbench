@@ -69,3 +69,7 @@ provenance. Publish an incompatible application-schema change under a new versio
 Update parser/schema tests, generated browser validators and the current usage/configuration
 references together. Historical design drafts under `specs/` explain earlier decisions; they do
 not replace the active schema files.
+
+The access schema also defines `programsFile` for `admin/programs.json`: pre-registered public
+agent programs, exact HTTPS or loopback redirect addresses and offered scopes. Unknown fields,
+duplicate ids, custom redirect schemes and the reserved administration scope are refused.

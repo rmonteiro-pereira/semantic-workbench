@@ -588,3 +588,14 @@ Both split Ossie files and deprecated consolidated `ontology_mappings` layouts a
 Other mixed single-file layouts are rejected with a description of the supported alternatives.
 Agent endpoints expose catalog, context and plans; the workbench does not call a hosted language
 model. See [agent runtime and protocol](agent-runtime.md).
+
+## Agent connections on a shared server
+
+The person menu's **Agent connections** lists connections acting as you, their scopes and their
+current status. **Revoke** asks for confirmation and ends that connection's current work.
+**Create a setup credential** opens the script-free setup page. Browser consent/setup is currently
+blocked by the origin-policy limitation documented in [agent connections](agent-connections.md).
+
+Admins register programs through **Admin → Agent programs**, review the dry run and confirm the
+change. Removing a program, redirect or scope ends affected connections; the review shows the
+count. **Admin → Agent connections** lists owners and allows revocation without showing tokens.

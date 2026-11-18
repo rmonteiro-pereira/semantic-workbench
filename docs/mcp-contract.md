@@ -47,7 +47,7 @@ the table above. The static page fallback row is not an operation and is left ou
 
 | Row | Disposition | Note |
 |-----|-------------|------|
-| `POST /api/mcp` | transport | local mode only; unaudited itself, each dispatched twin writes the one record |
+| `POST /api/mcp` | transport | mode-specific authentication; unaudited itself, each dispatched twin writes the one record |
 | `POST /api/projects/:slug/files/*/validate` | tool: validate_text | new twin; needs the right to edit that file |
 | `POST /api/projects/:slug/item-addresses/resolve` | later: Remaining workspace and source-control operations | item addresses are adopted by a later increment |
 | `POST /api/projects/:slug/item-addresses/reconcile/*` | later: Remaining workspace and source-control operations | item addresses are adopted by a later increment |

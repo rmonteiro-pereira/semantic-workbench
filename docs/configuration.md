@@ -319,3 +319,15 @@ The agent endpoint needs no environment variable. It uses `DATA_DIR` and `SW_POR
 | `bun run mcp:rotate` | Replaces the capability; the old value stops working on the next request. |
 
 Server mode never mounts the endpoint. See [the agent endpoint guide](mcp.md).
+
+## Person connections for server agents
+
+Server MCP discovery derives all addresses from `SW_PUBLIC_URL`. Connection token hashes derive
+from `SW_SESSION_KEY` with a separate key label. A stable key preserves readable sessions and
+connection records across restarts; key rotation ends existing access. No additional server
+setting or static personal access token is needed. Registrations live in `admin/programs.json`;
+connection metadata and keyed hashes live in `state/connections/`. Back up the complete data root.
+
+The local stdio bridge still uses `DATA_DIR` and `SW_PORT`. Server-mode bridge credential storage
+is unresolved; do not configure undocumented bridge environment variables. See
+[agent connections](agent-connections.md) for the browser-flow limitation and client status.

@@ -48,6 +48,11 @@ exception, not a production transport.
 
 Server mode mounts `POST /api/mcp` for [person connections](agent-connections.md). It requires a workbench-issued connection token on every request and ignores cookies. Identity-provider tokens remain limited to `/api/agent/*`. Any Origin header is refused; invalid credentials receive an empty 401 with protected-resource discovery in `WWW-Authenticate`.
 
+Connection records survive restarts while the browser session remains valid. An Admin manages
+registered programs and revocation; people can revoke only their own connections. The browser
+consent/setup flow currently fails because its no-referrer policy produces a null Origin; it is
+not release-ready. See [connection limits and client status](agent-connections.md).
+
 ## Identity providers
 
 ### Microsoft Entra ID

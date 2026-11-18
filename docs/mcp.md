@@ -88,6 +88,28 @@ It does not protect against a process running as your own operating-system user,
 
 Residual risk: file text is data from the project, but an agent reads it with its model, and a hostile definition can contain text that tries to steer the agent. The protocol has no marker for untrusted content, so none is applied, and tool descriptions say only that text is data. Review what an agent changes in the browser before you publish.
 
+### Server connections
+
+The server endpoint accepts only opaque workbench connection tokens. Cookies cannot authenticate
+it, and identity-provider JWTs are refused. Checks run in order: method, any Origin header, JSON
+content type, bearer shape and live connection. Refusals disclose no credential failure reason;
+an invalid token receives an empty 401 with the protected-resource metadata challenge. Every
+admitted request carries the current person, owning session, connection and scope effects to the
+same operation boundary used by local tools. Connection revocation aborts work opened through it.
+
+Access tokens last ten minutes. Codes last sixty seconds; pending consent and setup credentials
+last ten minutes. PKCE S256, exact redirects, resource/client binding and rotating refresh tokens
+prevent widening a connection. Replaying a spent code or retired refresh token ends it, including
+code replay during an exchange. Current grants are rechecked without provider calls or browser
+idle extension. See [agent connections](agent-connections.md) for the browser authorization
+limitation, onward-use warning and client acceptance status.
+
+A stolen live bearer can act within its scope until expiry or revocation. A same-user process can
+access client credentials; this is not a sandbox. A compromised session or administrator remains
+inside the existing server trust boundary. Definitions may contain prompt injection; the server
+cannot control what the external agent sends to its model provider. Audit records contain no
+credentials, verifiers or token hashes. Server state contains keyed hashes, never usable tokens.
+
 ## Later increments
 
 Not available yet, each a separate feature: application grants, the remaining workspace and source-control operations (metrics, move, import, stage, branch switching, fetch, pull, push, publish, clone and remote settings), search and lineage, resources and prompts with change notices, administration, and the agent panel. A client of the earlier protocol era gets request and response only, with no change notices or sessions.
