@@ -6,6 +6,11 @@ export type SideDefinition = { name: string; named: boolean; accepts: (reference
 /** Built-in side names shown when a request is refused. */
 export const SIDE_NAMES = ['published', 'working', 'branch:<name>', 'commit:<id>'] as const;
 
+function invalidBranchCharacter(character: string): boolean {
+  const code = character.charCodeAt(0);
+  return code <= 32 || code === 127 || '~^:?*[\\'.includes(character);
+}
+
 const branchName = (value: string) =>
   value.length > 0 &&
   value.length <= 200 &&
@@ -14,7 +19,7 @@ const branchName = (value: string) =>
   !value.includes('..') &&
   !value.includes('@{') &&
   value !== '@' &&
-  !/[\x00-\x20\x7f~^:?*\[\\]/.test(value) &&
+  !Array.from(value).some(invalidBranchCharacter) &&
   value.split('/').every(part => part.length > 0 && !part.startsWith('.') && !part.endsWith('.lock'));
 
 /** Creates an isolated registry so extra sides do not change other consumers. */

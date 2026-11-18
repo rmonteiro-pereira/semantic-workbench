@@ -10,7 +10,21 @@ test('parses published, saved working files, a branch and a full commit', () => 
 });
 
 test('refuses unknown, abbreviated and malformed sides with the supported names', () => {
-  for (const text of ['draft', 'commit:abc123', 'branch:', 'branch:work/../main', 'published:main', 'branch:work.lock', 'branch:-main', 'branch:a@{b}']) {
+  for (const text of [
+    'draft',
+    'commit:abc123',
+    'branch:',
+    'branch:work/../main',
+    'published:main',
+    'branch:work.lock',
+    'branch:-main',
+    'branch:a@{b}',
+    'branch:a b',
+    'branch:a\u0001b',
+    'branch:a[b',
+    'branch:a\\b',
+    'branch:a?b',
+  ]) {
     expect(() => parseSide(text)).toThrow(/published, working, branch:/);
   }
 });
