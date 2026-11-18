@@ -29,7 +29,7 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 | mesh.graph | GET /api/mesh | read | workspace | read | none | later |
 | mesh.providers.list | GET /api/mesh/providers | edit | body | read | none | later |
 | mesh.dependencies.read | GET /api/projects/:slug/dependencies | read | project | read | none | later |
-| mesh.dependencies.update | POST /api/projects/:slug/dependencies/update | edit | project | read, localWrite | FILE_SAVE_REQUEST_LIMIT | local-edit |
+| mesh.dependencies.update | POST /api/projects/:slug/dependencies/update | edit | project | read, localWrite | FILE_SAVE_REQUEST_LIMIT | later |
 | mesh.dependents.read | GET /api/projects/:slug/dependents | read | body | read | none | later |
 | compile.check | POST /api/projects/:slug/compile/check | read | project | read | FILE_SAVE_REQUEST_LIMIT | local-edit |
 | compile.run | POST /api/projects/:slug/compile | export | project | read | FILE_SAVE_REQUEST_LIMIT | local-edit |

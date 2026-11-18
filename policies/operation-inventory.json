@@ -349,7 +349,7 @@
       "limits": { "request": "FILE_SAVE_REQUEST_LIMIT", "response": "bounded", "work": "scan" },
       "effects": ["read", "localWrite"],
       "dispatch": "twin",
-      "exposure": { "increment": "local-edit" },
+      "exposure": { "increment": "later", "reason": "The update confirms a reviewed dependency preview and writes the lock." },
       "steps": ["snapshot.read"]
     },
     "GET /api/projects/:slug/dependents": {
