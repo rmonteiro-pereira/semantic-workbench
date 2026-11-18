@@ -1,5 +1,10 @@
 // Checks the loss report has the contract's shape, sorts its lists, hides lost values and changes its digest whenever an input, an option or the compiler version changes.
 import { expect, test } from 'bun:test';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { parse } from 'yaml';
+import { compileUnit } from '../../src/shared/tessera/compile-unit';
+import { sha256Hex } from '../../src/shared/tessera/digest';
 import { LossPolicyError, acceptLoss, buildLossReport, digestOf, parseLossPolicy, printReport, type LossEntry, type ReportSubject } from '../../src/shared/tessera/loss-report';
 import { REGISTRY } from '../../src/shared/tessera/registry';
 
@@ -122,3 +127,28 @@ test('a malformed policy is refused', () => {
 test('a registered reserved name cannot be allowed because it is not registered', () => {
   expect(() => parseLossPolicy('{"policy":1,"allow":["tessera_governance"]}', registry)).toThrow('not a registered property');
 });
+
+// Every dropped note is listed.
+const NOTES_YAML = readFileSync(join(import.meta.dir, '../fixtures/tessera/documents/notes-everywhere.yaml'), 'utf8');
+const NOTES_JSON = JSON.stringify(parse(NOTES_YAML), null, 2) + '\n';
+
+for (const [label, path, source] of [
+  ['YAML', 'retail.ontology.yaml', NOTES_YAML],
+  ['JSON', 'retail.ontology.json', NOTES_JSON],
+] as const) {
+  test(`${label}: every note is removed from the output and listed in the report, and the count equals the number of notes`, () => {
+    const noteCount = (source.match(/tessera_notes/g) ?? []).length;
+    const result = compileUnit([{ path, bytes: new TextEncoder().encode(source) }], { lossPolicySha256: null });
+    expect(result.failures).toEqual([]);
+    expect(noteCount).toBe(4);
+    const output = new TextDecoder().decode(result.outputs[0].bytes);
+    expect(output).not.toContain('tessera_notes');
+    for (const note of ['Owned by the retail data team.', 'Ask finance before adding a Return concept.', 'Revisit the cardinality after the loyalty launch.', 'Customers are people, not accounts.']) {
+      expect(output).not.toContain(note);
+      expect(result.report.losses.some(entry => entry.sha256 === sha256Hex(JSON.stringify(note)))).toBe(true);
+      expect(printReport(result.report)).not.toContain(note);
+    }
+    expect(result.report.losses).toHaveLength(noteCount);
+    expect(result.report.counts).toEqual({ tessera_notes: noteCount });
+  });
+}
