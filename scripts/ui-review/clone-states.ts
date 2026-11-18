@@ -40,7 +40,7 @@ try {
         await dialog.getByLabel('Repository URL or path').fill(fixture.bare);
         await dialog.getByLabel('Folder in repository').fill('domains/sales');
         await capture(page, identity, 'clone-repository', 'filled');
-        await expect(dialog).toContainText('Connecting to workspace updates…');
+        await expect(dialog).toContainText('Waiting for the workspace connection before cloning.');
         await capture(page, identity, 'clone-repository', 'connecting-wait');
         await dialog.getByLabel('Folder in repository').fill('../outside');
         await expect(dialog).toContainText('..');
@@ -50,7 +50,7 @@ try {
         await page.unroute('**/api/events');
         await attempt(page, identity, 'clone-repository', 'one-folder-flow', async () => {
           await dialog.getByRole('button', { name: 'Clone', exact: true }).click();
-          await expect(dialog.getByRole('status')).toContainText('Cloned.', { timeout: 15000 });
+          await expect(dialog.getByRole('status')).toContainText(/^Cloned .+\.$/, { timeout: 15000 });
           await capture(page, identity, 'clone-repository', 'cloned-folder-result');
           await dialog.getByRole('button', { name: 'Open project', exact: true }).click();
           await dialog.waitFor({ state: 'hidden', timeout: 5000 });
@@ -60,7 +60,7 @@ try {
           await dialog.getByLabel('Repository URL or path').fill(fixture.bare);
           await dialog.getByLabel('Folder in repository').fill('domains/finance');
           await dialog.getByRole('button', { name: 'Clone', exact: true }).click();
-          await expect(dialog.getByRole('status')).toContainText('Cloned.', { timeout: 15000 });
+          await expect(dialog.getByRole('status')).toContainText(/^Cloned .+\.$/, { timeout: 15000 });
           await capture(page, identity, 'clone-repository', 'cloned-folder-result');
           await dialog.getByRole('button', { name: 'Open project', exact: true }).click();
           await dialog.waitFor({ state: 'hidden', timeout: 5000 });
