@@ -169,7 +169,10 @@ export function createScmRemote(ctx: ScmContext) {
     const choice = request.choice;
     const credential = choice?.credential;
     // Refused before anything is pulled or sent, so a sync never half-runs on a work branch.
-    if (kind === 'push' || kind === 'sync') refuseWorkInProgressPush((await git.status(directory)).branch);
+    if (kind === 'push' || kind === 'sync') {
+      chosenName(choice);
+      refuseWorkInProgressPush((await git.status(directory)).branch);
+    }
     try {
       let result = { ok: true, conflicted: [] as string[], altered: [] as string[], stderr: '' };
       let follow: FollowResult | null = null;

@@ -69,7 +69,7 @@ test('a clone into a folder checks out only that folder and makes it the project
   }
 });
 
-test('edits commit and push inside the folder and leave the other folders untouched', async () => {
+test('edits commit and publish inside the folder and leave the other folders untouched', async () => {
   const team = teamRepository();
   const app = await testWorkspace();
   try {
@@ -85,15 +85,17 @@ test('edits commit and push inside the folder and leave the other folders untouc
         push: true,
       }),
     );
-    expect(committed.pushed).toMatchObject({ ok: true });
-    const changed = sh(team.bare, ['show', '--name-only', '--format=', 'work/local']).split('\n').filter(Boolean);
-    expect(changed.sort()).toEqual([`${PROJECT_FOLDER}/extra.yaml`, `${PROJECT_FOLDER}/shop.yaml`]);
-    expect(sh(team.bare, ['rev-parse', `work/local:${OTHER_FOLDER}`]).trim()).toBe(otherBefore);
-    expect(sh(team.bare, ['show', `work/local:${PROJECT_FOLDER}/shop.yaml`])).toBe(ontology('Changed.'));
-    const status = await ok(call(app, 'GET', base + '/git/status'));
-    expect(status).toMatchObject({ ahead: 0, behind: 0, changes: [] });
+    // The authoring branch is never pushed; publishing it and pushing the default branch sends the edit.
+    expect(committed.pushed).toMatchObject({ ok: false });
     const publication = await ok(call(app, 'POST', base + '/git/publish', {}));
     expect(publication.commit).toBe(sh(cloned.repository, ['rev-parse', 'HEAD']).trim());
+    expect((await ok(call(app, 'POST', base + '/git/push-default'))).ok).toBe(true);
+    const changed = sh(team.bare, ['show', '--name-only', '--format=', 'main']).split('\n').filter(Boolean);
+    expect(changed.sort()).toEqual([`${PROJECT_FOLDER}/extra.yaml`, `${PROJECT_FOLDER}/shop.yaml`]);
+    expect(sh(team.bare, ['rev-parse', `main:${OTHER_FOLDER}`]).trim()).toBe(otherBefore);
+    expect(sh(team.bare, ['show', `main:${PROJECT_FOLDER}/shop.yaml`])).toBe(ontology('Changed.'));
+    const status = await ok(call(app, 'GET', base + '/git/status'));
+    expect(status).toMatchObject({ ahead: 0, behind: 0, changes: [] });
   } finally {
     app.dispose();
     team.dispose();
@@ -198,8 +200,10 @@ test('a folder the remote branch lacks is reported, and the first push can creat
         push: true,
       }),
     );
-    expect(committed.pushed).toMatchObject({ ok: true });
-    expect(sh(team.bare, ['ls-tree', '-r', '--name-only', 'work/local']).split('\n').filter(Boolean)).toEqual(
+    expect(committed.pushed).toMatchObject({ ok: false });
+    await ok(call(app, 'POST', base + '/git/publish', {}));
+    expect((await ok(call(app, 'POST', base + '/git/push-default'))).ok).toBe(true);
+    expect(sh(team.bare, ['ls-tree', '-r', '--name-only', 'main']).split('\n').filter(Boolean)).toEqual(
       expect.arrayContaining([`${missing}/fresh.yaml`, `${PROJECT_FOLDER}/shop.yaml`, `${OTHER_FOLDER}/crm.yaml`]),
     );
   } finally {
