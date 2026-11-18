@@ -45,6 +45,10 @@ or a built-in concept, is skipped. The table of counted operations is checked in
 | `agent.plan` | `POST /api/agent/plan` | the concepts, metrics, fields and datasets the plan resolved |
 | `metrics.explain` | `GET /api/projects/:slug/files/*/explain/:metric` | the metric and the datasets and fields its explanation names (agent surface only) |
 
+Recording admits up to 16 active requests. Additional requests are answered normally without counts.
+The recorder reads at most 4,000,000 bytes of an answer for counting, and refuses a stored day over
+64 MiB, over 50,000 addresses, or with an operation outside the counting registry.
+
 Listings such as the catalog and the project list count nothing, because a listing is not a request
 about an item. MCP tools and agent panel calls that reach these operations through the operation
 boundary are counted under their own origin.

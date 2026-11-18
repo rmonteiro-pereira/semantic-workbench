@@ -1,17 +1,18 @@
 // Reads and writes the day files under state/usage. This is the only usage module that touches the
 // disk. A damaged file is reported to the caller and never repaired or deleted by a read.
-import { existsSync, readdirSync, readFileSync, rmSync } from 'node:fs';
+import { closeSync, constants, existsSync, fstatSync, openSync, readdirSync, readSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { atomicWrite, type AtomicHooks } from '../projects/atomic';
 import { assertSlug, type DataLayout } from '../projects/paths';
 import { CALLER_ORIGINS } from '../auth/operation-inventory';
-import { USAGE_MEASURES } from './usage-counted-operations';
-import { MAX_COUNT, type CounterDayFile, type ItemCounts } from './usage-counts';
+import { countedOperation, USAGE_MEASURES } from './usage-counted-operations';
+import { MAX_ADDRESSES_PER_DAY, MAX_COUNT, type CounterDayFile, type ItemCounts } from './usage-counts';
 import { isDay } from './usage-retention';
 
 /** What reading one day file found. */
 export type DayRead = { status: 'missing' } | { status: 'ok'; file: CounterDayFile } | { status: 'damaged' };
 
+const MAX_DAY_BYTES = 64 * 1024 * 1024;
 const DAY_FILE_FIELDS = ['counts', 'day', 'formatVersion', 'migratedThrough', 'other', 'project'];
 const isRecord = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
 const isCount = (value: unknown): value is number => typeof value === 'number' && Number.isInteger(value) && value >= 1 && value <= MAX_COUNT;
@@ -20,8 +21,8 @@ function parseItem(value: unknown): ItemCounts | null {
   if (!isRecord(value)) return null;
   for (const [measure, byOperation] of Object.entries(value)) {
     if (!(USAGE_MEASURES as readonly string[]).includes(measure) || !isRecord(byOperation)) return null;
-    for (const byOrigin of Object.values(byOperation)) {
-      if (!isRecord(byOrigin)) return null;
+    for (const [operation, byOrigin] of Object.entries(byOperation)) {
+      if (countedOperation(operation)?.measure !== measure || !isRecord(byOrigin)) return null;
       for (const [origin, amount] of Object.entries(byOrigin)) {
         if (!(CALLER_ORIGINS as readonly string[]).includes(origin) || !isCount(amount)) return null;
       }
@@ -37,8 +38,32 @@ export function parseDayFile(value: unknown, project: string, day: string): Coun
   if (value.migratedThrough !== null && typeof value.migratedThrough !== 'string') return null;
   if (value.other !== undefined && !isCount(value.other)) return null;
   if (!isRecord(value.counts)) return null;
-  for (const item of Object.values(value.counts)) if (!parseItem(item)) return null;
+  let size = 0;
+  for (const address in value.counts) {
+    if (!Object.hasOwn(value.counts, address)) continue;
+    size += 1;
+    if (size > MAX_ADDRESSES_PER_DAY || !parseItem(value.counts[address])) return null;
+  }
   return value as CounterDayFile;
+}
+
+function readDayJson(path: string): unknown {
+  const fd = openSync(path, constants.O_RDONLY | constants.O_NONBLOCK);
+  try {
+    const stat = fstatSync(fd);
+    if (!stat.isFile() || stat.size > MAX_DAY_BYTES) return null;
+    const bytes = Buffer.allocUnsafe(stat.size + 1);
+    let length = 0;
+    while (length < bytes.length) {
+      const read = readSync(fd, bytes, length, bytes.length - length, null);
+      if (!read) break;
+      length += read;
+    }
+    if (length !== stat.size) return null;
+    return JSON.parse(bytes.toString('utf8', 0, length));
+  } finally {
+    closeSync(fd);
+  }
 }
 
 /** The disk side of the counters, bound to one data layout. */
@@ -47,17 +72,11 @@ export function createUsageStore(layout: DataLayout) {
   const dayPath = (project: string, day: string) => join(projectFolder(project), `${day}.json`);
 
   function readDay(project: string, day: string): DayRead {
-    let text: string;
     try {
-      text = readFileSync(dayPath(project, day), 'utf8');
+      const file = parseDayFile(readDayJson(dayPath(project, day)), project, day);
+      return file ? { status: 'ok', file } : { status: 'damaged' };
     } catch (error) {
       return (error as NodeJS.ErrnoException).code === 'ENOENT' ? { status: 'missing' } : { status: 'damaged' };
-    }
-    try {
-      const file = parseDayFile(JSON.parse(text), project, day);
-      return file ? { status: 'ok', file } : { status: 'damaged' };
-    } catch {
-      return { status: 'damaged' };
     }
   }
 

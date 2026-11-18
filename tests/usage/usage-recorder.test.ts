@@ -99,12 +99,45 @@ describe('what is counted', () => {
     expect(fixture.warnings).toEqual([]);
   });
 
-  test('1,000 parallel requests add exactly 1,000 counts', async () => {
+  test('an oversized streamed answer stops reading its clone before the body ends', async () => {
     const fixture = await usage();
-    const body = await contextRequest(fixture.documents).response.json();
-    await Promise.all(Array.from({ length: 1000 }, async () => fixture.recorder.record(contextRequest(fixture.documents, { response: publishedJson(body) }))));
+    let chunks = 0;
+    const response = new Response(
+      new ReadableStream({
+        pull(controller) {
+          chunks += 1;
+          if (chunks > 16) controller.close();
+          else controller.enqueue(new Uint8Array(MAX_COUNTED_RESPONSE_BYTES));
+        },
+      }),
+      { headers: { 'X-Workbench-Snapshot': 'a'.repeat(40) } },
+    );
+    fixture.recorder.record(contextRequest(fixture.documents, { response }));
     await fixture.recorder.settled();
-    expect(countOf(fixture, metric)).toBe(1000);
+    expect(chunks).toBeLessThan(16);
+    await response.body?.cancel();
+  });
+
+  test('recordings beyond the concurrency limit are dropped before model lookup', async () => {
+    let lookups = 0;
+    const gate = Promise.withResolvers<void>();
+    const fixture = await openUsage({
+      models: async () => {
+        lookups += 1;
+        await gate.promise;
+        return fixture.models;
+      },
+    });
+    disposers.push(fixture.dispose);
+    const body = await contextRequest(fixture.documents).response.json();
+    for (let index = 0; index < 40; index += 1) fixture.recorder.record(contextRequest(fixture.documents, { response: publishedJson(body) }));
+    gate.resolve();
+    await fixture.recorder.settled();
+    expect(lookups).toBe(16);
+    expect(countOf(fixture, metric)).toBe(16);
+    fixture.recorder.record(contextRequest(fixture.documents));
+    await fixture.recorder.settled();
+    expect(countOf(fixture, metric)).toBe(17);
   });
 
   test('the day of a count is the UTC day at the moment it is counted', async () => {

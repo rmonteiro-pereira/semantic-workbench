@@ -1,6 +1,6 @@
 // Tests the day files: merge, damaged files, the size cap, atomic replacement and the stored fields.
 import { afterEach, describe, expect, test } from 'bun:test';
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, truncateSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { dataLayout } from '../../src/server/projects/paths';
 import { createUsageStore, parseDayFile } from '../../src/server/usage/usage-store';
@@ -62,11 +62,23 @@ describe('day files', () => {
 
   test('a count that is not a whole number of at least one, or an unknown origin or measure, is damaged', () => {
     const bad = (counts: unknown) => parseDayFile({ ...dayWith(), counts }, 'shop', '2026-11-10');
-    expect(bad({ a: { 'workbench-requests': { op: { http: 0 } } } })).toBeNull();
-    expect(bad({ a: { 'workbench-requests': { op: { http: 1.5 } } } })).toBeNull();
-    expect(bad({ a: { 'workbench-requests': { op: { carrier: 1 } } } })).toBeNull();
-    expect(bad({ a: { 'queries-in-production': { op: { http: 1 } } } })).toBeNull();
-    expect(bad({ a: { 'workbench-requests': { op: { http: 1 } } } })).not.toBeNull();
+    expect(bad({ a: { 'workbench-requests': { 'agent.context.read': { http: 0 } } } })).toBeNull();
+    expect(bad({ a: { 'workbench-requests': { 'agent.context.read': { http: 1.5 } } } })).toBeNull();
+    expect(bad({ a: { 'workbench-requests': { 'agent.context.read': { carrier: 1 } } } })).toBeNull();
+    expect(bad({ a: { 'queries-in-production': { 'agent.context.read': { http: 1 } } } })).toBeNull();
+    expect(bad({ a: { 'workbench-requests': { 'agent.context.read': { http: 1 } } } })).not.toBeNull();
+  });
+
+  test('a stored day rejects unknown operations, too many addresses and oversized input', () => {
+    const usage = store();
+    const file = dayWith('revenue');
+    const counts = { a: { 'workbench-requests': { unknown: { http: 1 } } } };
+    expect(parseDayFile({ ...file, counts }, file.project, file.day)).toBeNull();
+    const many = Object.fromEntries(Array.from({ length: 50_001 }, (_, index) => [address(String(index)), Object.values(file.counts)[0]]));
+    expect(parseDayFile({ ...file, counts: many }, file.project, file.day)).toBeNull();
+    usage.writeDay(file);
+    truncateSync(usage.dayPath(file.project, file.day), 65 * 1024 * 1024);
+    expect(usage.readDay(file.project, file.day)).toEqual({ status: 'damaged' });
   });
 
   test('a write interrupted before the rename leaves the old file whole and the leftover is not a day', () => {

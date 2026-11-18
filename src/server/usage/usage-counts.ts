@@ -87,10 +87,14 @@ export function itemTotal(item: ItemCounts): number {
 export function mergeIntoDay(file: CounterDayFile, counts: Record<string, ItemCounts>, other = 0, limit = MAX_ADDRESSES_PER_DAY): CounterDayFile {
   const merged: Record<string, ItemCounts> = structuredClone(file.counts);
   let overflow = other;
+  let size = addressCount(merged);
   for (const [address, item] of Object.entries(counts)) {
-    if (!merged[address] && addressCount(merged) >= limit) {
-      overflow += itemTotal(item);
-      continue;
+    if (!Object.hasOwn(merged, address)) {
+      if (size >= limit) {
+        overflow += itemTotal(item);
+        continue;
+      }
+      size += 1;
     }
     mergeItem((merged[address] ??= {}), item);
   }
