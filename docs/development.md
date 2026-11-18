@@ -405,6 +405,27 @@ Connection effects narrow allowed decisions; they preserve existence-hiding refu
 existing distinction between hidden-trash denials and unaudited missing entries.
 
 `bun scripts/boundary-benchmark.ts` measures 5,000 in-process HTTP requests with isolated temporary data and prints median and 95th-percentile durations.
+
+`bun scripts/dry-run-latency.ts 20` measures the Admin dry-run POST through a loopback socket on
+port 5461, using disposable authorization fixture data and a custom-role grant removal. Each
+matrix size has one warm-up followed by 20 sequential requests; the JSON output includes median
+and p95 wall time through response consumption. The default sizes are 115 cases × 9 principals
+(1,035 cells) and twice those cases (2,070 cells). Duplication changes only the script's in-memory
+matrix; it does not change the checked-in matrix or expected answers. An optional run count and
+case multipliers select shorter probes, for example `bun scripts/dry-run-latency.ts 3 1`.
+`--profile` reports time and call count inside Cedar's WASM authorization entry point. For sampled
+stacks, use `bun --cpu-prof --cpu-prof-dir=out/dry-run scripts/dry-run-latency.ts --profile 3 1`.
+Keep profiling separate from the uninstrumented 20-run latency measurement.
+
+The baseline at `84642cb0`, measured with Bun 1.4 on 2026-11-17, is:
+
+| Measurement host | Matrix cells | POST median (ms) | POST p95 (ms) |
+| --- | ---: | ---: | ---: |
+| Local machine | 1,035 | 2,466.99 | 3,106.11 |
+| Local machine | 2,070 | 1,976.19 | 2,190.76 |
+| Dev server | 1,035 | 7,028.60 | 7,219.57 |
+| Dev server | 2,070 | 7,010.38 | 7,149.47 |
+
 `bun test tests/auth/http-characterization.test.ts` compares the original recorded route cases and audit records; preserve its fixture unchanged.
 The comparison asserts and removes only the additive published identity on project listings. New publication and preview routes have separate parity cases.
 For new operations, regenerate `policies/matrix-cases.json` with `bun scripts/generate-access-matrix.ts` and record the new HTTP cases with
