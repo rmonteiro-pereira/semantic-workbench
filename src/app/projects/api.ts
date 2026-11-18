@@ -1,3 +1,4 @@
+import type { ReaderValidation } from '../../shared/tessera/set-validation';
 import type { PublishedStatus } from '../../shared/scm/published-status';
 /** Defines browser requests and response types for project files, metrics and source control. */
 import { fileSaveReply, batchSaveReply } from './save-reply';
@@ -312,7 +313,7 @@ export const api = {
   projects: () => apiFetch('/api/projects').then(r => json<ProjectInfo[]>(r)),
   /** People a metric owner in this project can be chosen from; empty in local mode. */
   people: (project: string) => apiFetch(`/api/projects/${encodeURIComponent(project)}/people`).then(response => json<Person[]>(response)),
-  file: (project: string, path: string) => apiFetch(fileUrl(project, path)).then(r => json<{ path: string; source: string; hash: string; docType: string }>(r)),
+  file: (project: string, path: string) => apiFetch(fileUrl(project, path)).then(r => json<{ path: string; source: string; hash: string; docType: string; unitValidation?: ReaderValidation }>(r)),
   // A save sends patches against the version it started from when it has them, else the text.
   async save(
     project: string,

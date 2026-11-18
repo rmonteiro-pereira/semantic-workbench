@@ -1,4 +1,6 @@
 /** Displays validation findings and lets users repair an import before accepting it. */
+import { UnitSetNotice } from '../mesh/UnitSetNotice';
+import type { ReaderValidation } from '../../shared/tessera/set-validation';
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import type { Issue } from '../../shared/validation/diagnostics';
 import { validateInput } from '../../shared/validation/input';
@@ -16,8 +18,10 @@ export function ValidationPanel({
   onConvertToStandard,
   source,
   format,
+  unitValidation,
 }: {
   issues: Issue[];
+  unitValidation?: ReaderValidation;
   format?: DocumentFormat;
   onLocate?: (issue: Issue) => void;
   onValidateAsShippedVersion?: () => void;
@@ -56,6 +60,7 @@ export function ValidationPanel({
   const formatLabel = format?.family === 'tessera' ? `${TesseraNames.product} ${format.revision} on Ossie ${format.base} · ` : '';
   return (
     <div className="validation-report" aria-label="Validation report">
+      <UnitSetNotice validation={unitValidation} />
       {notValidated && (
         <div className="validation-not-validated" role="status">
           <strong>Not validated</strong>

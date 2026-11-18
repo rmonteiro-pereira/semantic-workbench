@@ -1,4 +1,6 @@
 /** Loads cancellable mesh reads for the importing file. */
+import type { ReaderValidation } from '../../shared/tessera/set-validation';
+import { api, type Doc } from '../projects/api';
 import { useEffect, useState } from 'react';
 import { readDependencyState, readProviders, type DependencyState, type ProviderChoice } from './api';
 
@@ -30,4 +32,26 @@ export function useProviderChoices(open: boolean): MeshRead<ProviderChoice[]> {
 /** Loads the editing status of the active root. */
 export function useDependencyState(project: string, path: string | undefined, hash: string, refresh = 0): MeshRead<DependencyState | undefined> {
   return useRead(JSON.stringify([project, path, hash, refresh]), signal => readDependencyState(project, path, signal));
+}
+
+/** Loads authorized set findings for the visible saved revision of one document. */
+export function useUnitSet(doc: Doc | undefined, enabled: boolean): ReaderValidation | undefined {
+  const [stored, setStored] = useState<{ key: string; value?: ReaderValidation }>();
+  const key = enabled && doc ? JSON.stringify([doc.project, doc.path, doc.hash]) : '';
+  useEffect(() => {
+    if (!key || !doc) return;
+    let current = true;
+    void api
+      .file(doc.project, doc.path)
+      .then(response => {
+        if (current && response.hash === doc.hash) setStored({ key, value: response.unitValidation });
+      })
+      .catch(() => {
+        if (current) setStored({ key, value: { singleFile: {}, set: [], setNotChecked: true } });
+      });
+    return () => {
+      current = false;
+    };
+  }, [key]);
+  return stored?.key === key ? stored.value : undefined;
 }

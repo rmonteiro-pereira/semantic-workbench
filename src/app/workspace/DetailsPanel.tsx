@@ -61,6 +61,8 @@ type Props = {
 };
 import { declaredImports } from '../../shared/tessera/imports';
 import { documentFormat } from '../../shared/tessera/validate';
+import { UnitSetNotice } from '../mesh/UnitSetNotice';
+import { useUnitSet } from '../mesh/use-mesh';
 import { ImportsSection } from '../mesh/ImportsSection';
 import { PartPicker } from '../mesh/PartPicker';
 import { ontologyPartSelection } from './ontologyUnit';
@@ -108,6 +110,7 @@ function DetailsPanelContent({
   const partSelection = ontologyPartSelection(current, model, unitFiles);
   const data = model && 'document' in model ? model.document : undefined;
   const format = documentFormat(data);
+  const unitValidation = useUnitSet(current ?? undefined, inspectorVisible && format?.family === 'tessera' && format.revision === 3);
   const showImports = model?.kind === 'Ossie ontology' && format?.family === 'tessera' && format.revision === 3 && !partSelection?.part;
   function renderDetails() {
     if (relationship) {
@@ -183,6 +186,7 @@ function DetailsPanelContent({
               </button>
             )}
           </div>
+          <UnitSetNotice validation={unitValidation} />
           {partSelection && <PartPicker selection={partSelection} />}
           {showImports && current && (
             <ImportsSection key={current.id} doc={current} imports={declaredImports(data)} dirty={source !== current.source} applySaved={applySaved} projectDocs={() => projectDocsOf(current.id)} />

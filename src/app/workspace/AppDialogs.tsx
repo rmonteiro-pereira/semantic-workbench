@@ -1,4 +1,5 @@
 /** Presentation and event handling for app dialogs. */
+import { useUnitSet } from '../mesh/use-mesh';
 import { useGitSetup } from '../scm/GitSetup';
 import React from 'react';
 import type { KpiSummary } from '../../server/agent/explain';
@@ -252,6 +253,8 @@ export function AppDialogs({
 
   const creatingProject = projects.find(project => project.slug === creatingFile);
   const currentProject = current ? projects.find(project => project.slug === current.project) : undefined;
+  const activeFormat = formatOfInspection(validation.model);
+  const unitValidation = useUnitSet(current ?? undefined, showValidation && activeFormat?.family === 'tessera' && activeFormat.revision === 3);
   const mayEditCurrent = !currentProject?.actions || currentProject.actions.includes('edit');
   function handleConverted() {
     void refresh().then(docs => {
@@ -369,8 +372,9 @@ export function AppDialogs({
         >
           <ValidationPanel
             source={source}
-            issues={validation.issues}
-            format={formatOfInspection(validation.model)}
+            issues={[...validation.issues, ...(unitValidation?.set ?? [])]}
+            unitValidation={unitValidation}
+            format={activeFormat}
             onLocate={handleValidationPanelLocate}
             onValidateAsShippedVersion={validateAsShippedVersion}
             onCheckStandard={currentProject ? () => setCheckingStandard(true) : undefined}
