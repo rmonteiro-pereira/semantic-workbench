@@ -213,7 +213,7 @@ test('discard and undo journal the history changes with the definition', async (
   await fixture.ws.revertFile(project, path, current.hash, LOCAL_READER);
   expect(fixture.ws.readFile(project, path, LOCAL_READER).source).toContain('name: purchases');
   expect(readAddressMigrations(fixture.ws.layout, project, LOCAL_READER)).toEqual([]);
-  expect(git(directory, ['status', '--porcelain'])).toContain(ADDRESS_HISTORY_FILE);
+  expect(git(directory, ['status', '--porcelain'])).not.toContain(ADDRESS_HISTORY_FILE);
   const deletion = await fixture.ws.trash.deleteFile(project, path, undefined, LOCAL_READER);
   expect(readAddressMigrations(fixture.ws.layout, project, LOCAL_READER)).toMatchObject([{ kind: 'deleted' }]);
   await fixture.ws.trash.undo(deletion.entryId, LOCAL_READER);

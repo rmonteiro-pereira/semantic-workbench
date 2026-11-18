@@ -74,6 +74,8 @@ export type TrashContext = {
   /** Reads the current local commit before history is staged. */
   head?: (files: DataLayout, project: string) => Promise<string>;
   /** Reads record IDs already committed with the current definition baseline. */
+  committedHistoryExists?: (files: DataLayout, project: string) => Promise<boolean>;
+  /** Identifies the records that belong to the committed version. */
   committedHistoryIds?: (files: DataLayout, project: string) => Promise<ReadonlySet<string>>;
   /** Where a person's working copy keeps its files; absent where there are no copies. */
   copyLayout?: (copy: string) => DataLayout;
@@ -287,7 +289,8 @@ export function createTrash(ctx: TrashContext) {
         if (committedIds) {
           const belongsToFile = (record: Parameters<typeof historyEndpoints>[0]) =>
             !committedIds.has(record.id) && historyEndpoints(record, project => (project === slug ? '' : undefined)).includes(relativePath);
-          steps.push(...stageHistoryRemoval({ layout: files, project: slug, staging }, belongsToFile, entryDir ? trashedAddressHistory(entryDir) : undefined));
+          const keepEmpty = (await ctx.committedHistoryExists?.(files, slug)) ?? false;
+          steps.push(...stageHistoryRemoval({ layout: files, project: slug, staging }, belongsToFile, { keepEmpty, archive: entryDir ? trashedAddressHistory(entryDir) : undefined }));
         }
         steps.push(...clearPersonalDrafts(state, slug, [relativePath], staging, copy ?? undefined));
         journal.run('revert', steps, [staging], opId);

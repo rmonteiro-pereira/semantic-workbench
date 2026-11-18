@@ -550,6 +550,9 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   const trash = createTrash({
     layout,
     head: localCommit,
+    async committedHistoryExists(files, project) {
+      return gitAvailable && (await git.treeIds(repoDir(files, project), 'HEAD', [projectPrefix(files, project) + ADDRESS_HISTORY_FILE])).size > 0;
+    },
     async committedHistoryIds(files, project) {
       const commit = await localCommit(files, project);
       const records = commit ? await readCommittedAddressMigrations(git, files, project, commit, LOCAL_READER) : [];

@@ -86,7 +86,10 @@ export function createTrashRestore(ctx: TrashContext, shared: TrashRestoreShared
           const history = { layout: files, project: slug, staging };
           const restored = readTrashedAddressHistory(dir);
           if (restored.length) steps.push(...stageAddressMigrations(history, restored));
-          else steps.push(...stageHistoryRemoval(history, record => record.id === `d-${trashEntry.entryId}-0` && record.kind === 'deleted'));
+          else {
+            const keepEmpty = (await ctx.committedHistoryExists?.(files, slug)) ?? false;
+            steps.push(...stageHistoryRemoval(history, record => record.id === `d-${trashEntry.entryId}-0` && record.kind === 'deleted', { keepEmpty }));
+          }
         }
         journal.run('restore', steps, [dir]);
         if (trashEntry.view !== undefined) state.writeView(slug, { ...state.view(slug).files, [path]: trashEntry.view });

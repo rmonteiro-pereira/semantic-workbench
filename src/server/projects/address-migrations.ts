@@ -16,6 +16,7 @@ const kinds = new Set<MigrationKind>(['item', 'scope', 'document', 'reconciliati
 
 /** Names the repository bookkeeping file in each project folder. */
 export const ADDRESS_HISTORY_FILE = '.semantic-workbench-address-migrations.jsonl';
+const HISTORY_MERGE_RULE = `/${ADDRESS_HISTORY_FILE} merge=union`;
 
 /** Locates a project's history in the selected working copy. */
 export const addressMigrationFile = (layout: DataLayout, project: string) => projectFile(layout, project, ADDRESS_HISTORY_FILE);
@@ -185,11 +186,10 @@ function stageHistoryAttributes(layout: DataLayout, project: string, staging: st
   const destination = projectFile(layout, project, '.gitattributes');
   const existed = existsSync(destination);
   const previous = existed ? readFileSync(destination, 'utf8') : '';
-  const rule = `/${ADDRESS_HISTORY_FILE} merge=union`;
-  if (previous.split(/\r?\n/).includes(rule)) return [];
+  if (previous.split(/\r?\n/).includes(HISTORY_MERGE_RULE)) return [];
   const staged = join(staging, `attributes-${project}`);
   const separator = previous && !previous.endsWith('\n') ? '\n' : '';
-  atomicWrite(staged, previous + separator + rule + '\n');
+  atomicWrite(staged, previous + separator + HISTORY_MERGE_RULE + '\n');
   return [...(existed ? [{ from: destination, to: staged + '.previous' }] : []), { from: staged, to: destination }];
 }
 
@@ -235,7 +235,7 @@ export function serializeAddressHistory(records: readonly MigrationRecord[]): st
 export function stageHistoryRemoval(
   context: { layout: DataLayout; project: string; staging: string },
   discard: (record: MigrationRecord) => boolean,
-  archive?: string,
+  options: { archive?: string; keepEmpty: boolean },
 ): { from: string; to: string }[] {
   const { layout, project, staging } = context;
   const destination = addressMigrationFile(layout, project);
@@ -245,15 +245,34 @@ export function stageHistoryRemoval(
   if (!removed.length) return [];
   const excluded = new Set(removed.map(record => record.id));
   const staged = join(staging, 'remaining-address-history');
-  atomicWrite(staged, serializeAddressHistory(records.filter(record => !excluded.has(record.id))));
-  const steps = [
-    { from: destination, to: staged + '.previous' },
-    { from: staged, to: destination },
-  ];
-  if (archive) {
+  const remaining = records.filter(record => !excluded.has(record.id));
+  const steps = [{ from: destination, to: staged + '.previous' }];
+  if (remaining.length || options.keepEmpty) {
+    atomicWrite(staged, serializeAddressHistory(remaining));
+    steps.push({ from: staged, to: destination });
+  } else {
+    steps.push(...stageHistoryRuleRemoval(layout, project, staging));
+  }
+  if (options.archive) {
     const archived = staged + '.removed';
     atomicWrite(archived, serializeAddressHistory(removed));
-    steps.push({ from: archived, to: archive });
+    steps.push({ from: archived, to: options.archive });
+  }
+  return steps;
+}
+
+function stageHistoryRuleRemoval(layout: DataLayout, project: string, staging: string) {
+  const destination = projectFile(layout, project, '.gitattributes');
+  if (!existsSync(destination)) return [];
+  const source = readFileSync(destination, 'utf8');
+  const lines = source.match(/[^\r\n]*(?:\r\n|\n|$)/g) ?? [];
+  const retained = lines.filter(line => line.trimEnd() !== HISTORY_MERGE_RULE).join('');
+  if (retained === source) return [];
+  const staged = join(staging, 'remaining-attributes');
+  const steps = [{ from: destination, to: staged + '.previous' }];
+  if (retained) {
+    atomicWrite(staged, retained);
+    steps.push({ from: staged, to: destination });
   }
   return steps;
 }
