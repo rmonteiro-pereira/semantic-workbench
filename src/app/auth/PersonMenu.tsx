@@ -36,6 +36,14 @@ export function PersonMenu() {
   }
   const items: MenuItem[] = [];
   if (openAdmin) items.push({ label: 'Admin', run: openAdmin });
+  if ('agentPanel' in me && me.agentPanel === true) {
+    items.push({
+      label: 'Agent panel',
+      run: () => {
+        void import('../agent/AgentPanelHost').then(panel => panel.openAgentPanel());
+      },
+    });
+  }
   if (!local) {
     items.push({ label: 'Connected accounts', hint: accountsSummary(me), run: () => setAccounts(true) });
     items.push({ label: 'Sign out', run: signOut, disabled: !me.csrf && 'Session token unavailable' });

@@ -97,3 +97,11 @@ Relay token review found that any successful HTTP reply was cast to tokens witho
 fields. The relay now requires HTTP 200, Bearer type, nonempty access/refresh tokens and a positive
 integer lifetime, with a bounded request deadline. Failed refreshes report a content-free error
 and stop presenting a token. `bun test tests/acp/relay-token.test.ts`: 2 pass, 0 fail.
+
+Browser proof on the dev server: `bun run test:acp`: 6 viewport/theme conversations passed,
+including 360/768/1280 widths, both themes, real reference-agent messages, long text/paths,
+versioned write, Undo, conflict, eight options, keyboard-visible focus, cancellation, all end
+reasons and unchanged canvas geometry on close. Default screens sent no panel requests. No
+capture was made: the screenshot portion of T036 is deferred with T037 as explicitly requested.
+The baseline screenshot and exact main-bundle comparison remain the integrated regression gate's
+responsibility; the panel code and stylesheet are separate lazy build chunks.

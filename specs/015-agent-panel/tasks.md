@@ -190,7 +190,7 @@ test only to make it pass.
 - [x] T034 [US4] Create `QuestionCard.tsx`: options as plain text, focus moves to the first option,
   alert role, answer and cancel. Add `tests/agent-panel-question.test.tsx`. Proof: the test passes
   with eight long options.
-- [ ] T035 [US1] Add the person-menu item in `src/app/auth/PersonMenu.tsx`, the lazy mount in
+- [x] T035 [US1] Add the person-menu item in `src/app/auth/PersonMenu.tsx`, the lazy mount in
   `src/app/main.tsx`, and the sheet placement in `src/app/workspace/WorkspaceCanvas.tsx`; width
   rules at `NARROW_SCREEN_PX` and `PHONE_SCREEN_PX`. Add `tests/agent-panel-layout.test.tsx` with
   geometry assertions (no overlap, contained) at 360, 768 and 1280 px, light and dark tokens.
@@ -211,7 +211,7 @@ test only to make it pass.
 
 ## Phase 7: Mutants, documents and the hand-off
 
-- [ ] T038 [US7] Write `scripts/acp-mutants.ts` and `scripts/acp-mutation-cases.ts` and register
+- [x] T038 [US7] Write `scripts/acp-mutants.ts` and `scripts/acp-mutation-cases.ts` and register
   them in `scripts/mutation-tests.ts` and `scripts/mutation-case.ts`. Mutants: path check skipped;
   `..` allowed; version comparison dropped; base taken from the current version; unread write
   allowed; the second read skipped; hidden answered differently from missing; terminal
