@@ -87,7 +87,7 @@ architecture review run once on the integrated batch (last task). Heavy runs: `s
 
 ## Phase 10: Interface and browser checks
 
-- [ ] T032 [P] [US1] Add layout rules (scope rows, code box, stacked buttons at narrow width) to `src/server/routes/auth-stylesheet.ts`; no literal colours. Proof: `bun run check:theme` and `tests/auth-pages.test.ts` style assertions pass.
+- [x] T032 [P] [US1] Add layout rules (scope rows, code box, stacked buttons at narrow width) to `src/server/routes/auth-stylesheet.ts`; no literal colours. Proof: `bun run check:theme` and `tests/auth-pages.test.ts` style assertions pass.
 - [ ] T033 [P] [US2] `src/app/auth/AgentConnectionsDialog.tsx` and the menu item in `src/app/auth/PersonMenu.tsx` (server mode only): list, revoke with confirmation naming the connection, link to the setup page, empty, loading, error and long-text states. Proof: component tests `tests/agent-connections-dialog.test.tsx` including geometry and no `text-overflow`.
 - [ ] T034 [P] [US3] `AgentProgramsSection.tsx` and `AgentConnectionsSection.tsx`, entries in `src/app/admin/admin-sections.ts` and `AdminPage.tsx`, API calls in `src/app/admin/api.ts`, types, styles in `src/app/admin/admin.css`; review flow through `ReviewChange.tsx`. Proof: `tests/admin-agent-programs.test.tsx` including empty, error and long-text states and the removal confirmation text.
 - [ ] T035 Add terms to `scripts/terminology-check.ts` word list so "agent program" and "connection" are used consistently. Proof: `bun run test:terminology`.
