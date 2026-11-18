@@ -6,7 +6,7 @@ import { atomicWrite, type AtomicHooks } from '../projects/atomic';
 import { assertSlug, type DataLayout } from '../projects/paths';
 import { CALLER_ORIGINS } from '../auth/operation-inventory';
 import { countedOperation, USAGE_MEASURES } from './usage-counted-operations';
-import { MAX_ADDRESSES_PER_DAY, MAX_COUNT, type CounterDayFile, type ItemCounts } from './usage-counts';
+import { itemTotal, MAX_ADDRESSES_PER_DAY, MAX_COUNT, type CounterDayFile, type ItemCounts } from './usage-counts';
 import { isDay } from './usage-retention';
 
 /** What reading one day file found. */
@@ -66,6 +66,24 @@ function readDayJson(path: string): unknown {
   }
 }
 
+function boundedDay(file: CounterDayFile): CounterDayFile {
+  const counts: CounterDayFile['counts'] = Object.create(null);
+  let other = file.other ?? 0;
+  let remaining = MAX_DAY_BYTES - Buffer.byteLength(JSON.stringify({ ...file, counts, other: MAX_COUNT })) - 1;
+  let size = 0;
+  for (const [address, item] of Object.entries(file.counts)) {
+    const bytes = Buffer.byteLength(JSON.stringify(address)) + Buffer.byteLength(JSON.stringify(item)) + 2;
+    if (bytes > remaining || size === MAX_ADDRESSES_PER_DAY) {
+      other = Math.min(MAX_COUNT, other + itemTotal(item));
+      continue;
+    }
+    counts[address] = item;
+    remaining -= bytes;
+    size += 1;
+  }
+  return { ...file, counts, ...(other ? { other } : {}) };
+}
+
 /** The disk side of the counters, bound to one data layout. */
 export function createUsageStore(layout: DataLayout) {
   const projectFolder = (project: string) => join(layout.usage, assertSlug(project));
@@ -82,7 +100,7 @@ export function createUsageStore(layout: DataLayout) {
 
   /** Replaces a day file atomically, so an interrupted write leaves the old file whole. */
   function writeDay(file: CounterDayFile, hooks?: AtomicHooks): void {
-    atomicWrite(dayPath(file.project, file.day), JSON.stringify(file) + '\n', hooks);
+    atomicWrite(dayPath(file.project, file.day), JSON.stringify(boundedDay(file)) + '\n', hooks);
   }
 
   function listDays(project: string): string[] {

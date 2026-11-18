@@ -5,6 +5,8 @@ import { dirname } from 'node:path';
 import { dataLayout } from '../../src/server/projects/paths';
 import { createUsageStore, parseDayFile } from '../../src/server/usage/usage-store';
 import { addCount, emptyDayFile, mergeIntoDay, type CounterDayFile } from '../../src/server/usage/usage-counts';
+import { decideFlush } from '../../src/server/usage/usage-flush';
+import { parseAddress } from '../../src/shared/core/item-address';
 import { tempDataDir } from '../helpers/temp-data-dir';
 import { contextRequest, openUsage } from './usage-fixture';
 
@@ -36,6 +38,27 @@ describe('day files', () => {
     expect(usage.readDay('shop', '2026-11-10')).toEqual({ status: 'ok', file });
     expect(usage.listDays('shop')).toEqual(['2026-11-10']);
     expect(usage.listProjects()).toEqual(['shop']);
+  });
+
+  test('long addresses overflow to the aggregate and the following flush still works', () => {
+    const usage = store();
+    const file = dayWith('revenue');
+    const longName = '%C3%A9'.repeat(500);
+    expect(parseAddress(address(longName)).ok).toBe(true);
+    for (let index = 0; index < 23_000; index++) addCount(file.counts, key(address(index + longName)));
+    usage.writeDay(file);
+
+    const read = usage.readDay(file.project, file.day);
+    expect(read.status).toBe('ok');
+    if (read.status !== 'ok') throw Error('Expected to read the written day.');
+    expect(read.file.other).toBeGreaterThan(0);
+    expect(Object.keys(read.file.counts).length + (read.file.other ?? 0)).toBe(23_001);
+
+    const next = decideFlush(read, dayWith('revenue'), []);
+    if (next.action !== 'write') throw Error('Expected to flush again.');
+    usage.writeDay(next.file);
+    const flushed = usage.readDay(file.project, file.day);
+    expect(flushed.status === 'ok' && flushed.file.counts[address('revenue')]).toEqual({ 'workbench-requests': { 'agent.context.read': { http: 2 } } });
   });
 
   test('a missing day is reported as missing', () => {

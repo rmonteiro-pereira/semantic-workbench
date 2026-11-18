@@ -18,6 +18,9 @@ not count queries run in a warehouse, use in production or the popularity of dat
   people infer who asked. Treat low counts accordingly, and do not present counters as private.
 - Nothing is sent outside the workbench; the list of outbound connections is unchanged.
 
+Each UTC day has a 64 MiB serialized limit. Counts beyond the byte or address limit contribute
+to the day's unaddressed `other` total.
+
 ## Turning counters on
 
 | Variable | Default | Meaning |
