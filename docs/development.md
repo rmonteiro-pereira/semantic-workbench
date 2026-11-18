@@ -217,7 +217,7 @@ suites use `SW_BASE_URL`. The full runner supplies fresh frontend processes as n
 | `test:sql` | Embedded SQL coloring, warning locations and unchanged bytes |
 | `test:git-setup` | Identity, remotes, sparse folders, clone and credential guidance |
 | `test:monorepo` | Shared repository registration, workspace removal and folder deletion |
-| `test:dialogs` | Fit, keyboard focus and return across six viewport sizes |
+| `test:dialogs` | Fit, keyboard focus and return across six viewport sizes. A five-second workspace-readiness failure includes the page state and pending and failed requests. |
 | `test:telemetry` | Bounded error/timing reports, redaction and export-off behavior |
 | `test:tessera` | The Tessera format in the browser: format label, finding and fix |
 | `test:terminology` | Metric/table naming across the interface and current guides |

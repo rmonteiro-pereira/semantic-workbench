@@ -1,6 +1,6 @@
 // Checks dialog fit, focus trapping and dismissal across supported viewports.
 import { appUrl } from './helpers/base-url';
-import { chromium, expect, type Page } from '@playwright/test';
+import { chromium, expect, type Page, type Request as BrowserRequest } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { menuSurfaceProblems } from './helpers/menu-geometry';
@@ -141,6 +141,38 @@ async function check(name: string, run: () => Promise<void>) {
   passed++;
   console.log('PASS', name);
 }
+async function openWorkspacePage(page: Page, check: string) {
+  const pending = new Map<BrowserRequest, { resource: string; started: number; status?: number }>();
+  const failed: string[] = [];
+  const resourceOf = (request: BrowserRequest) => request.method() + ' ' + new URL(request.url()).pathname;
+  page.on('request', request => pending.set(request, { resource: resourceOf(request), started: Date.now() }));
+  page.on('response', response => {
+    const request = pending.get(response.request());
+    if (request) request.status = response.status();
+    if (!response.ok()) failed.push(resourceOf(response.request()) + ' ' + response.status());
+  });
+  page.on('requestfinished', request => pending.delete(request));
+  page.on('requestfailed', request => {
+    pending.delete(request);
+    failed.push(resourceOf(request) + ' ' + request.failure()?.errorText);
+  });
+  await routeApi(page, api);
+  await page.goto(appUrl());
+  try {
+    await expect(page.locator('.project-tree, .projects-empty').first()).toBeAttached({ timeout: 5000 });
+  } catch (error) {
+    const waiting = [...pending.values()].map(({ started, ...request }) => ({ ...request, elapsedMs: Date.now() - started }));
+    const workspace = await page.evaluate(() => ({
+      readyState: document.readyState,
+      body: document.body.innerText.slice(0, 800),
+      rootChildren: document.querySelector('#root')?.childElementCount,
+      projects: document.querySelectorAll('.project-tree, .projects-empty').length,
+    }));
+    console.error('Workspace readiness diagnostic', JSON.stringify({ check, viewport: page.viewportSize(), workspace, pending: waiting, failed, errors }));
+    throw error;
+  }
+}
+
 const ONLY = process.env.DIALOGS_ONLY;
 try {
   for (const entry of entries.filter(e => !ONLY || e.name.includes(ONLY)))
@@ -150,9 +182,7 @@ try {
         const page = await context.newPage();
         page.on('pageerror', x => errors.push(`${entry.name} ${width}: ${x.message}`));
         try {
-          await routeApi(page, api);
-          await page.goto(appUrl());
-          await expect(page.locator('.project-tree, .projects-empty').first()).toBeAttached();
+          await openWorkspacePage(page, entry.name);
           await entry.open(page);
           const trigger = entry.trigger(page);
           await trigger.scrollIntoViewIfNeeded();
@@ -226,9 +256,7 @@ try {
         const page = await context.newPage();
         page.on('pageerror', x => errors.push(`menus ${width}: ${x.message}`));
         try {
-          await routeApi(page, api);
-          await page.goto(appUrl());
-          await expect(page.locator('.project-tree, .projects-empty').first()).toBeAttached();
+          await openWorkspacePage(page, 'menus');
           await openFile(page, mall.name, 'mall.ontology.yaml');
           const openers = [
             {
