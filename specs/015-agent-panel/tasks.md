@@ -38,21 +38,21 @@ test only to make it pass.
 
 ## Phase 2: Origin `acp` (foundation)
 
-- [ ] T004 Add `acp` to `CALLER_ORIGINS` in `src/shared/observability/operation.ts`. Proof:
+- [x] T004 Add `acp` to `CALLER_ORIGINS` in `src/shared/observability/operation.ts`. Proof:
   `bun --bun run check` fails nowhere; the type now includes `acp`.
-- [ ] T005 [P] Accept and filter origin `acp` in `src/server/auth/audit.ts` and
+- [x] T005 [P] Accept and filter origin `acp` in `src/server/auth/audit.ts` and
   `src/server/routes/audit.ts`; the JSON export carries it, the CSV appends nothing new (the
   `origin` column exists from 010). Extend `tests/auth/audit-origin.test.ts` and
   `tests/auth/audit-compat.test.ts` (old months still verify). Proof: `bun test tests/auth/audit-origin.test.ts tests/auth/audit-compat.test.ts` and `bun run audit:verify tests/fixtures/audit-v1`.
-- [ ] T006 [P] Check `src/server/auth/operation-boundary.ts`, `src/server/auth/operation-inventory.ts`
+- [x] T006 [P] Check `src/server/auth/operation-boundary.ts`, `src/server/auth/operation-inventory.ts`
   and `src/server/observability/metrics.ts` for any test of the literal `'mcp'`; make each accept
   `acp` as an origin. Add `tests/auth/acp-origin.test.ts`: an `acp` caller gets the same decisions
   as an `mcp` caller for ten operations, and the metric label is `acp`. Proof: the test passes.
-- [ ] T007 [P] Add the `acp` case to `tests/auth/replay-fixture.ts` consumers: a log of 50,000 `acp`
+- [x] T007 [P] Add the `acp` case to `tests/auth/replay-fixture.ts` consumers: a log of 50,000 `acp`
   reads and 300 writes keeps all 300 writes in the dry-run sample
   (`tests/auth/dry-run-strata.test.ts`). Proof: the test passes without a change to
   `src/server/auth/replay-sample.ts`; if it needs one, change it and say why.
-- [ ] T008 [P] Add the `acp` option to the origin filter in `src/app/admin/AuditSection.tsx` and
+- [x] T008 [P] Add the `acp` option to the origin filter in `src/app/admin/AuditSection.tsx` and
   `src/app/admin/types.ts`; update `specs/003-authn-authz/contracts/audit-log.md` and
   `docs/audit-tamper-evidence.md` text. Proof: `bun test tests/admin-presentation.test.tsx`.
 

@@ -40,7 +40,7 @@ export const fileRoutes: Route = async (ws, req, url) => {
     const declaredMigrations = declaredAddressMigrations(body.declaredMigrations, slug, [path]);
     const deletedItems = declaredDeletedItems(body.deletedItems, slug, [path]);
     // A protocol caller's save leaves the person's unsaved draft in place, so the editor shows the change as an outside edit.
-    const keepDrafts = callerOriginOf(req) === 'mcp';
+    const keepDrafts = ['mcp', 'acp'].includes(callerOriginOf(req));
     return Response.json(await ws.saveFile(slug, path, { ...body, declaredMigrations, deletedItems, keepDrafts }, reader));
   }
   return null;

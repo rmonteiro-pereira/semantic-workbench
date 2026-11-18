@@ -31,6 +31,7 @@ test('attribution accepts the fixed vocabularies and HTTP remains implicit', asy
   const audit = createAuditLog({ dir: join(fixture.root, 'origins') });
   expect(audit.append(attributedInput)).toMatchObject(attributedInput);
   expect(audit.append({ ...attributedInput, origin: 'mcp' }).origin).toBe('mcp');
+  expect(audit.append({ ...attributedInput, origin: 'acp' }).origin).toBe('acp');
   expect(audit.append({ ...attributedInput, origin: 'http' }).origin).toBeUndefined();
 });
 

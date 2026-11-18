@@ -66,6 +66,7 @@ or actual log changes can all prevent verification. Preserve both copies before 
 a failure is not, by itself, proof of malicious tampering. Do not rewrite an audit record to make
 the checker pass.
 
-Attribution fields are optional: an absent `origin` means HTTP. Existing months and attributed
+Attribution fields are optional: an absent `origin` means HTTP, and `mcp` and `acp` name the two
+agent transports (the model-protocol server and the agent panel). Existing months and attributed
 records can share a month and continue across a month boundary without rewriting old bytes.
 `tests/auth/audit-compat.test.ts` checks mixed records, mirrored lines and verification exit codes.

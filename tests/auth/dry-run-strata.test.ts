@@ -33,6 +33,20 @@ test('fifty thousand reads preserve all ordinary evidence, deduplicate reads and
   }
 }, 60000);
 
+test('fifty thousand agent panel reads keep every one of its writes in the sample', () => {
+  const dir = tempDataDir();
+  try {
+    const audit = createAuditLog({ dir: join(dir.root, 'panel'), now: () => new Date('2026-10-01Z') });
+    for (let index = 0; index < 300; index++) audit.append({ ...replayEntry(index, 'acp'), requestId: 'write-' + index, action: 'edit' });
+    for (let index = 0; index < 50000; index++) audit.append({ ...replayEntry(index % 800, 'acp'), requestId: 'read-' + index });
+    const sampled = replaySample(audit);
+    expect(sampled.filter(entry => entry.action === 'edit')).toHaveLength(300);
+    expect(sampled.filter(entry => entry.action === 'read')).toHaveLength(500);
+  } finally {
+    dir.cleanup();
+  }
+}, 60000);
+
 test('stratified dry-run timings are compared against the same-size HTTP history', () => {
   const dir = tempDataDir();
   try {

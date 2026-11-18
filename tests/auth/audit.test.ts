@@ -156,6 +156,7 @@ test('origin and tool filters preserve Admin and Steward project visibility', ()
       audit.append({ ...input, origin: 'mcp', tool: 'files.read', resource: { type: 'project', project: 'hr-people' } }),
       audit.append({ ...input, origin: 'mcp', tool: 'projects.list', resource: { type: 'project', project: 'sales-contracts' } }),
       audit.append({ ...input, resource: { type: 'project', project: 'sales-contracts' } }),
+      audit.append({ ...input, origin: 'acp', tool: 'files.save', connection: 'acp-abc123', resource: { type: 'project', project: 'sales-contracts' } }),
     ];
     const access = createAccessControl(accessFixture());
     const admin = { scope: access.forRequest(access.principalFor(person('dave'))), projects: null };
@@ -165,6 +166,10 @@ test('origin and tool filters preserve Admin and Steward project visibility', ()
     expect(queryAudit(entries, { origin: 'http' }, steward)).toEqual([entries[3]]);
     expect(queryAudit(entries, { origin: 'mcp', tool: 'projects.list' }, admin)).toEqual([entries[2]]);
     expect(queryAudit(entries, { origin: 'http', tool: 'files.read' }, admin)).toEqual([]);
+    expect(queryAudit(entries, { origin: 'acp' }, admin)).toEqual([entries[4]]);
+    expect(queryAudit(entries, { origin: 'acp' }, steward)).toEqual([entries[4]]);
+    expect(queryAudit(entries, { origin: 'mcp' }, admin)).toHaveLength(3);
+    expect(exportAudit([entries[4]], 'jsonl')).toContain('"origin":"acp"');
     expect(exportAudit(entries, 'csv').split('\r\n')[0]).toEndWith(',origin,tool,connection');
     expect(exportAudit(entries, 'jsonl')).toContain('"origin":"mcp"');
   } finally {

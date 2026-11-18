@@ -56,10 +56,11 @@ test('old and attributed records verify in one month, across months and against 
   log.append(input);
   now = new Date('2026-04-01T00:00:00Z');
   log.append({ ...input, origin: 'mcp' });
+  log.append({ ...input, origin: 'acp', requestId: 'mixed-acp', tool: 'files.read', connection: 'acp-abc123' });
   const parsed = parseMirror(mirrored.join('\n'));
-  expect(parsed.records).toHaveLength(11);
+  expect(parsed.records).toHaveLength(12);
   expect(parsed.anchors).toHaveLength(1);
-  expect(verifyAuditChain(readStoredMonths(target), parsed.anchors, { mirrored: parsed.records, now })).toMatchObject({ ok: true, records: 11, months: 4 });
+  expect(verifyAuditChain(readStoredMonths(target), parsed.anchors, { mirrored: parsed.records, now })).toMatchObject({ ok: true, records: 12, months: 4 });
   const mirror = join(fixture.root, 'mirror.jsonl');
   writeFileSync(mirror, mirrored.join('\n') + '\n');
   expect(await verificationCode(target, mirror)).toBe(0);
