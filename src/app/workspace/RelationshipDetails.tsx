@@ -6,6 +6,8 @@ import { itemValue } from '../../shared/edit/yaml-patch';
 import type { Relationship } from '../../shared/core/model';
 import { editEntity } from '../../shared/core/model';
 import type { Doc } from '../projects/api';
+import type { SectionSupport } from '../edit/section-context';
+import { ItemSections } from './ItemSections';
 import type { ItemTarget, RdfTarget, ValidatedModel } from './types';
 
 type Props = {
@@ -37,6 +39,7 @@ type Props = {
   setSource: React.Dispatch<React.SetStateAction<string>>;
   current: Doc | null;
   setDefinition: React.Dispatch<React.SetStateAction<{ title: string; value: unknown } | null>>;
+  sections: SectionSupport;
 };
 /** Renders relationship details. */
 export function RelationshipDetails({
@@ -54,6 +57,7 @@ export function RelationshipDetails({
   setSource,
   current,
   setDefinition,
+  sections,
 }: Props) {
   function handleTextareaChange(event: React.ChangeEvent<HTMLTextAreaElement, HTMLTextAreaElement>) {
     return setSource(editEntity(source, relationship.data.path, event.target.value, current?.filename));
@@ -164,6 +168,12 @@ export function RelationshipDetails({
           <textarea aria-label="Relationship description" value={relationship.data.definition.description ?? ''} onChange={handleTextareaChange} />
         </label>
       )}
+      {(() => {
+        const target = relationshipTarget(relationship);
+        const whole = relationship.data.kind === 'Inheritance' || relationship.data.kind === 'Metric expression reference';
+        if (!target || whole) return null;
+        return <ItemSections support={sections} target={target} dirty={!!current && source !== current.source} openConcept={() => {}} removeRelationship={setDeleting} />;
+      })()}
       <button className="view-definition" onClick={handleViewDefinitionClick}>
         <Braces size={13} />
         View definition

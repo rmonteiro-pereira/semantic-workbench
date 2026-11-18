@@ -7,7 +7,7 @@ import { useCapabilities } from '../auth/Capabilities';
 import { useMe } from '../auth/useMe';
 import { useRevisionGate } from '../edit/RevisionConfirmation';
 import { saveWrites } from '../edit/save-writes';
-import type { DetailsSection } from '../edit/section-context';
+import { UNSAVED_SOURCE_NOTE, type DetailsSection } from '../edit/section-context';
 import type { SectionState } from '../attributes/AttributeList';
 import { GovernanceFields } from './GovernanceFields';
 import { planItemGovernance, planMetricGovernance, type GovernancePlan } from './governance-save';
@@ -143,7 +143,8 @@ export function GovernanceSection({ section, metricPath, replacementChoices }: P
   const permission = access.control('approveMetric');
   const choices = statusChoices(governance.status, { me, local: access.local, canApprove: !permission.disabled, approveRequirement: permission.title ?? '', owner: governance.owner });
   let readOnlyReason: string | undefined;
-  if (!access.can('edit')) readOnlyReason = access.control('edit').title;
+  if (section.dirty) readOnlyReason = UNSAVED_SOURCE_NOTE;
+  else if (!access.can('edit')) readOnlyReason = access.control('edit').title;
   else if (!metricPath && !ONTOLOGY_GUARDS_ACTIVE) readOnlyReason = 'Editing governance is switched off in this build until its approval rules are active.';
 
   async function write(edit: GovernanceEdit, raise: (text: string) => string) {

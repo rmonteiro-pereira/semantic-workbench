@@ -5,6 +5,10 @@ import type { Entity } from '../../shared/core/model';
 import { EntityName } from '../graph/EntityName';
 import type { AreaFilter } from '../graph/overview';
 import type { ItemTarget, RdfTarget, ValidatedModel } from './types';
+import { StatusMark } from '../governance/StatusMark';
+import { governanceOf, metricGovernanceOf } from '../../shared/governance/item-governance';
+import { conceptKindLookup, declaredAttributesOf } from '../../shared/attributes/attribute-rule';
+import { orderedAttributes, orderListOf } from '../../shared/attributes/attribute-order';
 import './catalog.css';
 
 type Props = {
@@ -20,6 +24,23 @@ type Props = {
   setEditing: React.Dispatch<React.SetStateAction<ItemTarget | null>>;
   setRdfEditing: React.Dispatch<React.SetStateAction<RdfTarget | null>>;
 };
+/** The status and the attribute names a card shows under its text, read from the item's own definition. A card with neither shows nothing. */
+function CardMarks({ entity, model }: { entity: Entity; model: ValidatedModel }) {
+  const definition = entity.definition;
+  if (!definition || typeof definition !== 'object') return null;
+  const isConcept = entity.kind === 'EntityType' || entity.kind === 'ValueType';
+  const governance = entity.kind === 'Metric' ? metricGovernanceOf(definition) : governanceOf(definition);
+  const concepts = (model?.entities ?? []).filter(candidate => candidate.kind === 'EntityType' || candidate.kind === 'ValueType').map(candidate => candidate.definition);
+  const attributes = isConcept ? orderedAttributes(declaredAttributesOf(definition, conceptKindLookup(concepts)), orderListOf(definition)) : [];
+  if (governance.status === undefined && !attributes.length) return null;
+  return (
+    <div className="catalog-marks">
+      {governance.status !== undefined && <StatusMark status={governance.status} />}
+      {attributes.length > 0 && <p className="catalog-attributes">Attributes: {attributes.map(attribute => attribute.name).join(', ')}</p>}
+    </div>
+  );
+}
+
 function metricCountLabel(count: number) {
   return count === 1 ? '1 metric' : `${count} metrics`;
 }
@@ -64,6 +85,7 @@ export function CatalogView({ model, search, area, clearArea, selectEntity, kpiB
                 <p title={entity.description || undefined}>{entity.description || 'No description yet'}</p>
                 <span className="catalog-details">View details</span>
               </button>
+              <CardMarks entity={entity} model={model} />
               {(entityTarget(entity) || rdfTarget(entity)) && (
                 <button className="catalog-edit" aria-label={`Edit ${entity.name}`} onClick={handleCatalogEditClick}>
                   <Pencil size={11} />

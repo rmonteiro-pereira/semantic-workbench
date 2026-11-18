@@ -12,4 +12,16 @@ export type DetailsSection = {
   projectDocs: Doc[];
   applySaved: (saved: Saved[], label: string) => void;
   openConcept?: (name: string) => void;
+  /** True when the Source tab holds changes that are not saved, which a section write would overwrite. */
+  dirty?: boolean;
+};
+
+/** The note shown in place of the controls while the Source tab holds unsaved changes. */
+export const UNSAVED_SOURCE_NOTE = 'Save or discard the unsaved changes in the Source tab first. Changes made here would replace them.';
+
+/** What the workspace gives the details panel so its sections can read and save documents. */
+export type SectionSupport = {
+  documentOf: (docId: string) => any;
+  projectDocsOf: (docId: string) => Doc[];
+  applySaved: (saved: Saved[], label: string) => void;
 };

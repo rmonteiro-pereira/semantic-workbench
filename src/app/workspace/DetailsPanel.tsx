@@ -7,6 +7,7 @@ import type { Entity, Relationship } from '../../shared/core/model';
 import type { Doc } from '../projects/api';
 import { EntityDetails } from './EntityDetails';
 import { RelationshipDetails } from './RelationshipDetails';
+import type { SectionSupport } from '../edit/section-context';
 import type { ItemTarget, RdfTarget, ValidatedModel } from './types';
 
 type Props = {
@@ -56,6 +57,7 @@ type Props = {
   >;
   relatedDocuments: Doc[];
   openDocument: (doc: Doc) => boolean;
+  sections: SectionSupport;
 };
 /** Renders details panel. */
 export function DetailsPanel({
@@ -84,6 +86,7 @@ export function DetailsPanel({
   setAdding,
   relatedDocuments,
   openDocument,
+  sections,
 }: Props) {
   function renderDetails() {
     if (relationship) {
@@ -103,6 +106,7 @@ export function DetailsPanel({
           setSource={setSource}
           current={current}
           setDefinition={setDefinition}
+          sections={sections}
         />
       );
     }
@@ -127,6 +131,7 @@ export function DetailsPanel({
           setSelectedEdge={setSelectedEdge}
           setSelected={setSelected}
           setDefinition={setDefinition}
+          sections={sections}
         />
       );
     }

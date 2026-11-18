@@ -5,7 +5,7 @@ import { itemValue } from '../../shared/edit/yaml-patch';
 import { orderAfterMove, orderedAttributes, orderListOf } from '../../shared/attributes/attribute-order';
 import { attributesOf, conceptKindLookup, type AttributeEntry } from '../../shared/attributes/attribute-rule';
 import { useCapabilities } from '../auth/Capabilities';
-import type { DetailsSection } from '../edit/section-context';
+import { UNSAVED_SOURCE_NOTE, type DetailsSection } from '../edit/section-context';
 import { saveWrites } from '../edit/save-writes';
 import { useRevisionGate } from '../edit/RevisionConfirmation';
 import { AttributeForm } from './AttributeForm';
@@ -140,7 +140,8 @@ export function AttributeList({ section, state = { kind: 'ready' }, onRemove }: 
   const lookup = conceptKindLookup(concepts);
   const shown = orderedAttributes(attributesOf(concept, concepts, lookup), orderListOf(concept));
   const ownNames = shown.filter(entry => !entry.inheritedFrom).map(entry => entry.name);
-  const canEdit = access.can('edit');
+  const editNote = section.dirty ? UNSAVED_SOURCE_NOTE : access.control('edit').title;
+  const canEdit = access.can('edit') && !section.dirty;
 
   async function move(name: string, direction: 'up' | 'down') {
     await gate(async finish => {
@@ -170,7 +171,7 @@ export function AttributeList({ section, state = { kind: 'ready' }, onRemove }: 
         entries={shown}
         state={state}
         canEdit={canEdit}
-        editNote={access.control('edit').title}
+        editNote={editNote}
         message={message}
         openConcept={section.openConcept}
         onAdd={() => setForm({})}

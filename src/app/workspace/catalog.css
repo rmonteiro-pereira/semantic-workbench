@@ -74,3 +74,18 @@
   color: var(--color-accent-text);
   text-decoration: underline;
 }
+/* The status and the attribute names under a card's text wrap like the rest of the card. */
+.catalog-marks {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 0 10px;
+  min-width: 0;
+}
+.catalog-attributes {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}

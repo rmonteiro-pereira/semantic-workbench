@@ -9,7 +9,7 @@ import type { SectionState } from '../attributes/AttributeList';
 import { useCapabilities } from '../auth/Capabilities';
 import { useRevisionGate } from '../edit/RevisionConfirmation';
 import { saveWrites } from '../edit/save-writes';
-import type { DetailsSection } from '../edit/section-context';
+import { UNSAVED_SOURCE_NOTE, type DetailsSection } from '../edit/section-context';
 import { AgentContextPreview } from './AgentContextPreview';
 import '../edit/edit.css';
 import './agent-context.css';
@@ -103,6 +103,9 @@ export function AgentContextSection({ section }: { section: DetailsSection }) {
   const [saving, setSaving] = useState(false);
   const item = itemValue(section.doc.source, section.itemPath) ?? {};
   const initial = fieldsOfContext(item[AI_CONTEXT_PROPERTY]);
+  let readOnlyReason: string | undefined;
+  if (section.dirty) readOnlyReason = UNSAVED_SOURCE_NOTE;
+  else if (!access.can('edit')) readOnlyReason = access.control('edit').title;
 
   async function write(fields: ContextFields, raise: (text: string) => string) {
     const written = applyPatches(section.doc.source, valuePatches(section.doc.source, [...section.itemPath, AI_CONTEXT_PROPERTY], contextOfFields(fields), section.doc.filename));
@@ -125,7 +128,7 @@ export function AgentContextSection({ section }: { section: DetailsSection }) {
       <AgentContextSectionView
         key={JSON.stringify(initial)}
         initial={initial}
-        readOnlyReason={access.can('edit') ? undefined : access.control('edit').title}
+        readOnlyReason={readOnlyReason}
         message={message}
         saving={saving}
         onSave={fields => void gate(finish => write(fields, finish))}

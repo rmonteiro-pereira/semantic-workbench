@@ -417,6 +417,7 @@ function App() {
                 setAdding={itemEditing.setAdding}
                 relatedDocuments={references.relatedDocuments}
                 openDocument={openDocument}
+                sections={{ documentOf: itemEditing.documentOf, projectDocsOf: itemEditing.projectDocsOf, applySaved: itemEditing.applySaved }}
               />
             </UiProfiler>
           </div>
