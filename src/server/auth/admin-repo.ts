@@ -60,7 +60,9 @@ export class AdminStaleError extends Error {
 export type AdminAuthor = { name: string; email: string };
 /** A versioned change with optimistic concurrency protection. */
 export type AdminWrite = { author: AdminAuthor; message: string; baseVersion: string };
-const documents = ['roles', 'grants', 'projects', 'agents', 'deactivated', 'settings'];
+const documents = ['roles', 'grants', 'projects', 'agents', 'deactivated', 'settings', 'programs'];
+/** Documents that older administration repositories do not have; a missing one reads as empty until the next save writes it. */
+const OPTIONAL_DOCUMENTS = ['programs'];
 const committer = ['-c', 'user.name=Semantic Workbench', '-c', 'user.email=workbench@localhost'];
 function validName(name: string): boolean {
   return documents.some(area => name === `${area}.json`) || /^policies\/[a-zA-Z0-9_-]+\.cedar$/.test(name);
@@ -74,6 +76,7 @@ function defaultFiles(): Record<string, string> {
     agents: config.agents,
     deactivated: config.deactivated,
     settings: SETTINGS_DEFAULTS,
+    programs: config.programs,
   };
   return Object.fromEntries(Object.entries(values).map(([name, value]) => [`${name}.json`, JSON.stringify(value, null, 2) + '\n']));
 }
@@ -96,8 +99,9 @@ function decodeFiles(files: Record<string, string>): AccessConfig {
       throw new AdminConfigError(`${name}: ${(error as Error).message}`);
     }
   }
+  parsed.programs ??= emptyAccessConfig().programs;
   for (const area of documents) {
-    if (!parsed[area]) throw new AdminConfigError(`${area}.json: missing document`);
+    if (!parsed[area] && !OPTIONAL_DOCUMENTS.includes(area)) throw new AdminConfigError(`${area}.json: missing document`);
   }
   try {
     return validateAccessConfig({
@@ -106,6 +110,7 @@ function decodeFiles(files: Record<string, string>): AccessConfig {
       projects: parsed.projects,
       agents: parsed.agents,
       deactivated: parsed.deactivated,
+      programs: parsed.programs,
       adminRules,
     });
   } catch (error) {

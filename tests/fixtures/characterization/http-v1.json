@@ -4004,7 +4004,7 @@
           "people": 0
         }
       },
-      "version": "4e0ce2b5e164cdb4435ed393bef4bb82790d060d"
+      "version": "236f9da072ec932ba98e9d0584040105fb57ab7e"
     },
     "headers": {
       "requestId": true,
@@ -4205,7 +4205,7 @@
           "addedAt": "2026-10-21T09:00:00Z"
         }
       ],
-      "version": "4e0ce2b5e164cdb4435ed393bef4bb82790d060d"
+      "version": "236f9da072ec932ba98e9d0584040105fb57ab7e"
     },
     "headers": {
       "requestId": true,
@@ -4341,7 +4341,7 @@
         },
         "protectedLevel": "confidential"
       },
-      "version": "4e0ce2b5e164cdb4435ed393bef4bb82790d060d"
+      "version": "236f9da072ec932ba98e9d0584040105fb57ab7e"
     },
     "headers": {
       "requestId": true,
@@ -4399,7 +4399,7 @@
           "domains": []
         }
       ],
-      "version": "4e0ce2b5e164cdb4435ed393bef4bb82790d060d"
+      "version": "236f9da072ec932ba98e9d0584040105fb57ab7e"
     },
     "headers": {
       "requestId": true,
@@ -4465,7 +4465,7 @@
       "audit": {
         "retentionDays": 400
       },
-      "version": "4e0ce2b5e164cdb4435ed393bef4bb82790d060d"
+      "version": "236f9da072ec932ba98e9d0584040105fb57ab7e"
     },
     "headers": {
       "requestId": true,
@@ -4571,7 +4571,7 @@
       ],
       "rules": [],
       "schema": "// Cedar schema of the workbench's access decisions. The record type `Roles::Holders` (one\n// RoleHolder per role) is generated from the role list when the policies are loaded.\nnamespace SW {\n  // Holders of one role in one project (\"<role>@<project>\") or in the whole workspace\n  // (\"<role>@workspace\"); grants make groups and addresses members of them.\n  entity RoleHolder;\n\n  // One restricted path rule satisfied by a person’s groups or verified address.\n  entity AccessSet;\n\n  entity Group in [RoleHolder] = {\n    name: String,\n  };\n\n  // A verified e-mail address, lower-cased.\n  entity Email in [RoleHolder];\n\n  entity User in [Group, Email, RoleHolder] = {\n    id: String,\n    // \"person\" or \"local\" (the implicit Admin of local mode).\n    kind: String,\n    // Verified address, lower-cased; empty when the person has none.\n    email: String,\n    username: String,\n    deactivated: Bool,\n    // At least one access grant (or bootstrap Admin) matched this person.\n    hasAccess: Bool,\n    accessSets: Set<AccessSet>,\n  };\n\n  // An agent client signed in with its own credentials; projects are those an Admin granted.\n  entity Client = {\n    id: String,\n    clientId: String,\n    projects: Set<String>,\n  };\n\n  entity Workspace = {\n    // Slug of the project the resource belongs to; empty for the workspace.\n    project: String,\n    // Domain id of the project; empty when it has none.\n    domain: String,\n    hasDomain: Bool,\n    everyoneCanRead: Bool,\n    // Holders of each role for this project (or for the workspace), built from the grants.\n    holders: Roles::Holders,\n    // Holders through grants that name this project explicitly.\n    explicitHolders: RoleHolder,\n    // Path inside the project; empty for a project or the workspace.\n    path: String,\n    docType: String,\n    // Classification level: 0 public, 1 internal, 2 confidential, 3 restricted.\n    level: Long,\n    restricted: Bool,\n    restrictedTo: Set<AccessSet>,\n    // Metric lifecycle status and owner (lower-cased address or username); empty otherwise.\n    status: String,\n    owner: String,\n    protectedLevel: Long,\n  };\n\n  entity Project = {\n    // Slug of the project the resource belongs to; empty for the workspace.\n    project: String,\n    // Domain id of the project; empty when it has none.\n    domain: String,\n    hasDomain: Bool,\n    everyoneCanRead: Bool,\n    // Holders of each role for this project (or for the workspace), built from the grants.\n    holders: Roles::Holders,\n    // Holders through grants that name this project explicitly.\n    explicitHolders: RoleHolder,\n    // Path inside the project; empty for a project or the workspace.\n    path: String,\n    docType: String,\n    // Classification level: 0 public, 1 internal, 2 confidential, 3 restricted.\n    level: Long,\n    restricted: Bool,\n    restrictedTo: Set<AccessSet>,\n    // Metric lifecycle status and owner (lower-cased address or username); empty otherwise.\n    status: String,\n    owner: String,\n    protectedLevel: Long,\n  };\n\n  entity File in [Project] = {\n    // Slug of the project the resource belongs to; empty for the workspace.\n    project: String,\n    // Domain id of the project; empty when it has none.\n    domain: String,\n    hasDomain: Bool,\n    everyoneCanRead: Bool,\n    // Holders of each role for this project (or for the workspace), built from the grants.\n    holders: Roles::Holders,\n    // Holders through grants that name this project explicitly.\n    explicitHolders: RoleHolder,\n    // Path inside the project; empty for a project or the workspace.\n    path: String,\n    docType: String,\n    // Classification level: 0 public, 1 internal, 2 confidential, 3 restricted.\n    level: Long,\n    restricted: Bool,\n    restrictedTo: Set<AccessSet>,\n    // Metric lifecycle status and owner (lower-cased address or username); empty otherwise.\n    status: String,\n    owner: String,\n    protectedLevel: Long,\n  };\n\n  entity Metric in [Project] = {\n    // Slug of the project the resource belongs to; empty for the workspace.\n    project: String,\n    // Domain id of the project; empty when it has none.\n    domain: String,\n    hasDomain: Bool,\n    everyoneCanRead: Bool,\n    // Holders of each role for this project (or for the workspace), built from the grants.\n    holders: Roles::Holders,\n    // Holders through grants that name this project explicitly.\n    explicitHolders: RoleHolder,\n    // Path inside the project; empty for a project or the workspace.\n    path: String,\n    docType: String,\n    // Classification level: 0 public, 1 internal, 2 confidential, 3 restricted.\n    level: Long,\n    restricted: Bool,\n    restrictedTo: Set<AccessSet>,\n    // Metric lifecycle status and owner (lower-cased address or username); empty otherwise.\n    status: String,\n    owner: String,\n    protectedLevel: Long,\n  };\n\n  type RequestContext = {\n    // \"local\" or \"server\".\n    mode: String,\n    hour: Long,\n    sourceIp: ipaddr,\n    // Branch the request works on; empty when none.\n    branch: String,\n    protectedBranch: Bool,\n    // Highest classification level the request touches.\n    level: Long,\n    // Kind of guarded change (classification, metric status, ...); empty when none.\n    guardKind: String,\n  };\n\n  action \"read\",\n         \"export\",\n         \"history\",\n         \"viewOwnState\",\n         \"edit\",\n         \"createMetric\",\n         \"import\",\n         \"move\",\n         \"delete\",\n         \"revert\",\n         \"restoreOwn\",\n         \"approveMetric\",\n         \"editGuarded\",\n         \"restoreOthers\",\n         \"publish\",\n         \"stage\",\n         \"commit\",\n         \"branch\",\n         \"fetch\",\n         \"pull\",\n         \"push\",\n         \"cancelOwn\",\n         \"purge\",\n         \"clear\",\n         \"createProject\",\n         \"renameProject\",\n         \"deleteProject\",\n         \"setRemote\",\n         \"clone\",\n         \"registerProjects\",\n         \"setIdentity\",\n         \"readStatus\",\n         \"readAudit\",\n         \"admin\",\n         \"agentRead\" appliesTo {\n    principal: [User, Client],\n    resource: [Workspace, Project, File, Metric],\n    context: RequestContext,\n  };\n}\n\nnamespace Roles { type Holders = { \"viewer\": SW::RoleHolder, \"editor\": SW::RoleHolder, \"steward\": SW::RoleHolder, \"r_metric_reviewer\": SW::RoleHolder }; }",
-      "version": "4e0ce2b5e164cdb4435ed393bef4bb82790d060d"
+      "version": "236f9da072ec932ba98e9d0584040105fb57ab7e"
     },
     "headers": {
       "requestId": true,
@@ -4619,7 +4619,7 @@
     "status": 200,
     "body": [
       {
-        "version": "4e0ce2b5e164cdb4435ed393bef4bb82790d060d",
+        "version": "236f9da072ec932ba98e9d0584040105fb57ab7e",
         "author": {
           "name": "Semantic Workbench",
           "email": "workbench@localhost"
@@ -4630,6 +4630,7 @@
           "agents.json",
           "deactivated.json",
           "grants.json",
+          "programs.json",
           "projects.json",
           "roles.json",
           "settings.json"
@@ -26867,7 +26868,7 @@
           "people": 0
         }
       },
-      "version": "4e0ce2b5e164cdb4435ed393bef4bb82790d060d"
+      "version": "236f9da072ec932ba98e9d0584040105fb57ab7e"
     },
     "headers": {
       "requestId": true,
@@ -27070,7 +27071,7 @@
           "addedAt": "2026-10-21T09:00:00Z"
         }
       ],
-      "version": "4e0ce2b5e164cdb4435ed393bef4bb82790d060d"
+      "version": "236f9da072ec932ba98e9d0584040105fb57ab7e"
     },
     "headers": {
       "requestId": true,
@@ -27208,7 +27209,7 @@
         },
         "protectedLevel": "confidential"
       },
-      "version": "4e0ce2b5e164cdb4435ed393bef4bb82790d060d"
+      "version": "236f9da072ec932ba98e9d0584040105fb57ab7e"
     },
     "headers": {
       "requestId": true,
@@ -27268,7 +27269,7 @@
           "domains": []
         }
       ],
-      "version": "4e0ce2b5e164cdb4435ed393bef4bb82790d060d"
+      "version": "236f9da072ec932ba98e9d0584040105fb57ab7e"
     },
     "headers": {
       "requestId": true,
@@ -27336,7 +27337,7 @@
       "audit": {
         "retentionDays": 400
       },
-      "version": "4e0ce2b5e164cdb4435ed393bef4bb82790d060d"
+      "version": "236f9da072ec932ba98e9d0584040105fb57ab7e"
     },
     "headers": {
       "requestId": true,
@@ -27444,7 +27445,7 @@
       ],
       "rules": [],
       "schema": "// Cedar schema of the workbench's access decisions. The record type `Roles::Holders` (one\n// RoleHolder per role) is generated from the role list when the policies are loaded.\nnamespace SW {\n  // Holders of one role in one project (\"<role>@<project>\") or in the whole workspace\n  // (\"<role>@workspace\"); grants make groups and addresses members of them.\n  entity RoleHolder;\n\n  // One restricted path rule satisfied by a person’s groups or verified address.\n  entity AccessSet;\n\n  entity Group in [RoleHolder] = {\n    name: String,\n  };\n\n  // A verified e-mail address, lower-cased.\n  entity Email in [RoleHolder];\n\n  entity User in [Group, Email, RoleHolder] = {\n    id: String,\n    // \"person\" or \"local\" (the implicit Admin of local mode).\n    kind: String,\n    // Verified address, lower-cased; empty when the person has none.\n    email: String,\n    username: String,\n    deactivated: Bool,\n    // At least one access grant (or bootstrap Admin) matched this person.\n    hasAccess: Bool,\n    accessSets: Set<AccessSet>,\n  };\n\n  // An agent client signed in with its own credentials; projects are those an Admin granted.\n  entity Client = {\n    id: String,\n    clientId: String,\n    projects: Set<String>,\n  };\n\n  entity Workspace = {\n    // Slug of the project the resource belongs to; empty for the workspace.\n    project: String,\n    // Domain id of the project; empty when it has none.\n    domain: String,\n    hasDomain: Bool,\n    everyoneCanRead: Bool,\n    // Holders of each role for this project (or for the workspace), built from the grants.\n    holders: Roles::Holders,\n    // Holders through grants that name this project explicitly.\n    explicitHolders: RoleHolder,\n    // Path inside the project; empty for a project or the workspace.\n    path: String,\n    docType: String,\n    // Classification level: 0 public, 1 internal, 2 confidential, 3 restricted.\n    level: Long,\n    restricted: Bool,\n    restrictedTo: Set<AccessSet>,\n    // Metric lifecycle status and owner (lower-cased address or username); empty otherwise.\n    status: String,\n    owner: String,\n    protectedLevel: Long,\n  };\n\n  entity Project = {\n    // Slug of the project the resource belongs to; empty for the workspace.\n    project: String,\n    // Domain id of the project; empty when it has none.\n    domain: String,\n    hasDomain: Bool,\n    everyoneCanRead: Bool,\n    // Holders of each role for this project (or for the workspace), built from the grants.\n    holders: Roles::Holders,\n    // Holders through grants that name this project explicitly.\n    explicitHolders: RoleHolder,\n    // Path inside the project; empty for a project or the workspace.\n    path: String,\n    docType: String,\n    // Classification level: 0 public, 1 internal, 2 confidential, 3 restricted.\n    level: Long,\n    restricted: Bool,\n    restrictedTo: Set<AccessSet>,\n    // Metric lifecycle status and owner (lower-cased address or username); empty otherwise.\n    status: String,\n    owner: String,\n    protectedLevel: Long,\n  };\n\n  entity File in [Project] = {\n    // Slug of the project the resource belongs to; empty for the workspace.\n    project: String,\n    // Domain id of the project; empty when it has none.\n    domain: String,\n    hasDomain: Bool,\n    everyoneCanRead: Bool,\n    // Holders of each role for this project (or for the workspace), built from the grants.\n    holders: Roles::Holders,\n    // Holders through grants that name this project explicitly.\n    explicitHolders: RoleHolder,\n    // Path inside the project; empty for a project or the workspace.\n    path: String,\n    docType: String,\n    // Classification level: 0 public, 1 internal, 2 confidential, 3 restricted.\n    level: Long,\n    restricted: Bool,\n    restrictedTo: Set<AccessSet>,\n    // Metric lifecycle status and owner (lower-cased address or username); empty otherwise.\n    status: String,\n    owner: String,\n    protectedLevel: Long,\n  };\n\n  entity Metric in [Project] = {\n    // Slug of the project the resource belongs to; empty for the workspace.\n    project: String,\n    // Domain id of the project; empty when it has none.\n    domain: String,\n    hasDomain: Bool,\n    everyoneCanRead: Bool,\n    // Holders of each role for this project (or for the workspace), built from the grants.\n    holders: Roles::Holders,\n    // Holders through grants that name this project explicitly.\n    explicitHolders: RoleHolder,\n    // Path inside the project; empty for a project or the workspace.\n    path: String,\n    docType: String,\n    // Classification level: 0 public, 1 internal, 2 confidential, 3 restricted.\n    level: Long,\n    restricted: Bool,\n    restrictedTo: Set<AccessSet>,\n    // Metric lifecycle status and owner (lower-cased address or username); empty otherwise.\n    status: String,\n    owner: String,\n    protectedLevel: Long,\n  };\n\n  type RequestContext = {\n    // \"local\" or \"server\".\n    mode: String,\n    hour: Long,\n    sourceIp: ipaddr,\n    // Branch the request works on; empty when none.\n    branch: String,\n    protectedBranch: Bool,\n    // Highest classification level the request touches.\n    level: Long,\n    // Kind of guarded change (classification, metric status, ...); empty when none.\n    guardKind: String,\n  };\n\n  action \"read\",\n         \"export\",\n         \"history\",\n         \"viewOwnState\",\n         \"edit\",\n         \"createMetric\",\n         \"import\",\n         \"move\",\n         \"delete\",\n         \"revert\",\n         \"restoreOwn\",\n         \"approveMetric\",\n         \"editGuarded\",\n         \"restoreOthers\",\n         \"publish\",\n         \"stage\",\n         \"commit\",\n         \"branch\",\n         \"fetch\",\n         \"pull\",\n         \"push\",\n         \"cancelOwn\",\n         \"purge\",\n         \"clear\",\n         \"createProject\",\n         \"renameProject\",\n         \"deleteProject\",\n         \"setRemote\",\n         \"clone\",\n         \"registerProjects\",\n         \"setIdentity\",\n         \"readStatus\",\n         \"readAudit\",\n         \"admin\",\n         \"agentRead\" appliesTo {\n    principal: [User, Client],\n    resource: [Workspace, Project, File, Metric],\n    context: RequestContext,\n  };\n}\n\nnamespace Roles { type Holders = { \"viewer\": SW::RoleHolder, \"editor\": SW::RoleHolder, \"steward\": SW::RoleHolder, \"r_metric_reviewer\": SW::RoleHolder }; }",
-      "version": "4e0ce2b5e164cdb4435ed393bef4bb82790d060d"
+      "version": "236f9da072ec932ba98e9d0584040105fb57ab7e"
     },
     "headers": {
       "requestId": true,
@@ -27494,7 +27495,7 @@
     "status": 200,
     "body": [
       {
-        "version": "4e0ce2b5e164cdb4435ed393bef4bb82790d060d",
+        "version": "236f9da072ec932ba98e9d0584040105fb57ab7e",
         "author": {
           "name": "Semantic Workbench",
           "email": "workbench@localhost"
@@ -27505,6 +27506,7 @@
           "agents.json",
           "deactivated.json",
           "grants.json",
+          "programs.json",
           "projects.json",
           "roles.json",
           "settings.json"

@@ -52,7 +52,8 @@ it does not change their file formats or create a separate standards layer.
 
 Access configuration uses schema ID `semantic-workbench/access/v1`. Files in `DATA_DIR/admin/`
 validate against their corresponding `$defs`: `roles.json`, `grants.json`, `projects.json`,
-`agents.json`, `deactivated.json` and `settings.json`. This is the versioned administration
+`agents.json`, `deactivated.json`, `settings.json` and `programs.json` (the agent programs that
+people may connect; an older repository without it reads as no programs). This is the versioned administration
 repository, separate from definition projects and their Git histories.
 
 ## Updating validators

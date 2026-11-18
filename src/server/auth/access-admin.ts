@@ -57,6 +57,7 @@ const DOCUMENT_KEYS: Record<string, string> = {
   projects: 'projects',
   clients: 'agents',
   rules: 'policies',
+  programs: 'programs',
 };
 const REQUEST_FIELDS = new Set(['baseVersion', 'dryRunId', 'confirmDeleteInUse']);
 
