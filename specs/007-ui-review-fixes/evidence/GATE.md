@@ -2,41 +2,92 @@
 
 ## Focused regressions and suite retries
 
-- M4, Mall mapping Fit. `sw-midgard-run` ran the detached `verify-fixes` phase and returned 0. The `fitted-names` step passed twice at the same 1440×900 light viewport after `11abdf8c`. The previous candidate's label overflow is preserved under `regression-before/{1,2}/local/light/1440/mapping-fit/` on Midgard, and the passing frames are under `candidate/{1,2}/local/light/1440/mapping-fit/`. The 1440×900 pair in `before/fixes/mall-mapping-fit-1440.png` and `after/fixes/mall-mapping-fit-1440.png` shows the 185 reachable cards filling more of the pane, with names wrapping within their borders. `bun test tests/lineage-view.test.ts` passed 11 tests and 35 assertions after removing the unused worker packing mode in `25635dac`. The standalone `bun scripts/ci-validate.ts --step browser --suite test:mapping-graph` returned 0. Its summary was `12 mapping graph checks passed`, including complete names at least 9 px at 1280×720 and 1440×900 and no browser errors (134.4 s).
-- M15, UBL Neighborhood Walk. Both focused 1600×1000 light repetitions reached all five targets after lowering the automatic fit floor. The next standalone graph run found the default center description at 4.09 px against the 9 px threshold, so the center now compensates for zoom. Both focused repetitions with compensation reached every target again. The standalone graph rerun passed the UBL Order centering check and then failed with a 28 px shared relationship path between `r-0-13` and `r-22-208`. Edge geometry remains open.
-- `bun scripts/ci-validate.ts --step browser --suite test:back-history` reached and re-centered on both Mall neighbors after the viewport change. The updated test can reach the folded Labels control but its state snapshot missed the relationship labels after Controls closes. The next retry records the rendered labels.
-- `RESPONSIVE_ONLY='examples: 1280×720 mall Graph toolbars' bun scripts/ci-validate.ts --step browser --suite test:responsive` timed out at the Mall ontology loading indicator before the Mall ODCS check. The detached `mall-example-geometry` phase then opened only Mall ODCS with the same example fixture and 1280×720 viewport. Main and candidate both logged `MALL_EXAMPLE_CANVAS {"x":313,"y":248,"width":954,"height":389}` and failed `>= 421`. The repeated frozen-import comparison also measures 389 px on release, main and candidate. Lane B's first-view change does not account for the height.
-- `bun scripts/ci-validate.ts --step browser --suite test:auth` returned 0 after using the Settings entry point and checking the read-only Source Control region. The session-change, grant and refusal checks passed, including the local workspace smoke check (`8811a5a0`).
-- `bun scripts/ci-validate.ts --step browser --suite test:item-edit` returned 0 with `11 item-edit checks passed` after opening catalog details by concept name (`e1d4acef`).
-- `bun scripts/ci-validate.ts --step browser --suite test:monorepo` returned 0 with `8 monorepo checks passed` after following the current clone and deletion labels (`c0bbf4b8`).
-- `bun scripts/ci-validate.ts --step browser --suite test:theme` passed the offline fonts, token, switching and contrast checks. The retried tour reached the light ontology graph and reported that “Allowance charge” and “Document reference” area headings overlap cards. The `test:responsive` retry cleared the previous phone startup failure and repeated the same two overlaps in its tour. The matched capture is pending.
-- `bun scripts/ci-validate.ts --step browser --suite test:two-editors` returned 0 (73.4 s). Edits, branches, commit identities, publication visible to the Viewer, pulls and sparse-project isolation all passed after the test followed the current Sync label.
-- Main `5597ae52` also returned 1 for `bun scripts/ci-validate.ts --step browser --suite test:admin`. Both candidate and main time out waiting for the `Dry-run result` region. Main `test:responsive` reproduces the 481 px Full Graph canvas against `> 503.99999999999994`. The candidate clears that check before a different phone-stage timeout. Lane B's ODCS first view is a separate check.
-- Main `test:editor` hit the same 1.9 MB sustained-typing gate as the candidate. Main measured 55.36 ms/key and the candidate measured 55.31 ms/key against the 30 ms threshold. Main passed the preceding six editor checks.
+- M4, Mall mapping Fit. `sw-midgard-run` ran the detached `verify-fixes` phase and returned 0. The `fitted-names` step passed twice at the same
+  1440×900 light viewport after `11abdf8c`. The previous candidate's label overflow is preserved under
+  `regression-before/{1,2}/local/light/1440/mapping-fit/` on Midgard, and the passing frames are under
+  `candidate/{1,2}/local/light/1440/mapping-fit/`. The 1440×900 pair in `before/fixes/mall-mapping-fit-1440.png` and
+  `after/fixes/mall-mapping-fit-1440.png` shows the 185 reachable cards filling more of the pane, with names wrapping within their borders. `bun test
+  tests/lineage-view.test.ts` passed 11 tests and 35 assertions after removing the unused worker packing mode in `25635dac`. The standalone `bun
+  scripts/ci-validate.ts --step browser --suite test:mapping-graph` returned 0. Its summary was `12 mapping graph checks passed`, including complete
+  names at least 9 px at 1280×720 and 1440×900 and no browser errors (134.4 s).
+- M15, UBL Neighborhood Walk. Both focused 1600×1000 light repetitions reached all five targets after lowering the automatic fit floor. The next
+  standalone graph run found the default center description at 4.09 px against the 9 px threshold, so the center now compensates for zoom. Both
+  focused repetitions with compensation reached every target again. The standalone graph rerun passed the UBL Order centering check and then failed
+  with a 28 px shared relationship path between `r-0-13` and `r-22-208`. Edge geometry remains open.
+- `bun scripts/ci-validate.ts --step browser --suite test:back-history` reached and re-centered on both Mall neighbors after the viewport change. The
+  updated test can reach the folded Labels control but its state snapshot missed the relationship labels after Controls closes. The next retry records
+  the rendered labels.
+- `RESPONSIVE_ONLY='examples: 1280×720 mall Graph toolbars' bun scripts/ci-validate.ts --step browser --suite test:responsive` timed out at the Mall
+  ontology loading indicator before the Mall ODCS check. The detached `mall-example-geometry` phase then opened only Mall ODCS with the same example
+  fixture and 1280×720 viewport. Main and candidate both logged `MALL_EXAMPLE_CANVAS {"x":313,"y":248,"width":954,"height":389}` and failed `>= 421`.
+  The repeated frozen-import comparison also measures 389 px on release, main and candidate. Lane B's first-view change does not account for the
+  height.
+- `bun scripts/ci-validate.ts --step browser --suite test:auth` returned 0 after using the Settings entry point and checking the read-only Source
+  Control region. The session-change, grant and refusal checks passed, including the local workspace smoke check (`8811a5a0`).
+- `bun scripts/ci-validate.ts --step browser --suite test:item-edit` returned 0 with `11 item-edit checks passed` after opening catalog details by
+  concept name (`e1d4acef`).
+- `bun scripts/ci-validate.ts --step browser --suite test:monorepo` returned 0 with `8 monorepo checks passed` after following the current clone and
+  deletion labels (`c0bbf4b8`).
+- `bun scripts/ci-validate.ts --step browser --suite test:theme` passed the offline fonts, token, switching and contrast checks. The retried tour
+  reached the light ontology graph and reported that “Allowance charge” and “Document reference” area headings overlap cards. The `test:responsive`
+  retry cleared the previous phone startup failure and repeated the same two overlaps in its tour. The matched release and main captures had no
+  heading overlap. The candidate before the fix reproduced both overlaps at 390×844 and 1280×720.
+- `bun scripts/ci-validate.ts --step browser --suite test:two-editors` returned 0 (73.4 s). Edits, branches, commit identities, publication visible to
+  the Viewer, pulls and sparse-project isolation all passed after the test followed the current Sync label.
+- Main `5597ae52` also returned 1 for `bun scripts/ci-validate.ts --step browser --suite test:admin`. Both candidate and main time out waiting for the
+  `Dry-run result` region. Main `test:responsive` reproduces the 481 px Full Graph canvas against `> 503.99999999999994`. The candidate clears that
+  check before a different phone-stage timeout. Lane B's ODCS first view is a separate check.
+- Main `test:editor` hit the same 1.9 MB sustained-typing gate as the candidate. Main measured 55.36 ms/key and the candidate measured 55.31 ms/key
+  against the 30 ms threshold. Main passed the preceding six editor checks.
 - Main `test:sidebar` passed 4 layout checks. Main `test:telemetry` passed 8 checks (79.2 s).
-- Candidate `test:sidebar` returned 0 with `4 sidebar layout checks passed` (196.0 s). Candidate `test:telemetry` again passed its first seven checks, then timed out opening Catalog with an empty fixture. The following run seeds and opens a known file.
-- `sw-midgard-run --pull out/gate-007/comparison/preliminary-proofs -- bash scripts/ui-review/gate-007/matrix-launch.sh` returned 0 after starting the detached comparison. The focused catalog baseline `bun scripts/ci-validate.ts --step browser --suite test:clipping` passed 6 checks with no browser errors (29.5 s). The same command with `RESPONSIVE_MUTATION=catalog-description-clip` printed `INJECTED_CATALOG_DESCRIPTION_CLIP` and exited 1 specifically at “a catalog card description is clipped.” The obsolete tooltip mutant is replaced in `597d6d7e`. The full mutation rerun remains pending.
-- Main `test:autosave` passed the commit UI check, then failed on the same `git log -1 --format=%s main` unknown-revision error as the candidate. Main `test:git-setup` passed identity setup and the commit action, then failed on the same `git log -1 --format=%an` error that the default branch has no commits. These postconditions still assume direct local commits on the default branch.
-- Main `test:lineage` stopped earlier, when the resize separator intercepted the Walk click. It did not reach the first-view performance assertion. The candidate reproduced the UBL timing failure at 3,811 ms against 2,000 ms. The same timed entry point is included in the matched capture.
-
-- The initial gallery contains 126 recorded comparison steps. At this checkpoint it shows 40 intended fixes, 6 merged feature differences, 52 neutral changes, 17 regression frames, 1 unchanged step and 10 awaiting a matched or settled capture. The regression-frame count includes downstream Walk steps blocked by one failed click. It shows the initial candidate, before the graph corrections. Graph captures that caught loading or mismatched state are scheduled for repetition. The initial page was rendered on Midgard at 1440×900 and 390×844. Both previews showed the version labels and controls, and the phone confined horizontal scrolling to the comparison strip.
-- The UBL Order replay is saved under `before/fixes/ubl-neighborhood-walk-1600.png` and `after/fixes/ubl-neighborhood-walk-1600.png` in the comparison folder. In the first frame the trail cuts across the first Walk control. The new frame shows the complete AllowanceCharge card and its Walk control, and the centered Order description wraps in full. Secondary descriptions are visibly smaller. The graph suite's edge-path failure still prevents acceptance of the viewport change.
+- Candidate `test:sidebar` returned 0 with `4 sidebar layout checks passed` (196.0 s). Candidate `test:telemetry` again passed its first seven checks,
+  then timed out opening Catalog with an empty fixture. With an isolated UBL file selected, `test:telemetry` returned 0 with
+  `8 telemetry checks passed` (30.4 s), including zero reports when disabled (`252764a9`).
+- `sw-midgard-run --pull out/gate-007/comparison/preliminary-proofs -- bash scripts/ui-review/gate-007/matrix-launch.sh` returned 0 after starting the
+  detached comparison. The focused catalog baseline `bun scripts/ci-validate.ts --step browser --suite test:clipping` passed 6 checks with no browser
+  errors (29.5 s). The same command with `RESPONSIVE_MUTATION=catalog-description-clip` printed `INJECTED_CATALOG_DESCRIPTION_CLIP` and exited 1
+  specifically at “a catalog card description is clipped.” The obsolete tooltip mutant is replaced in `597d6d7e`. The full mutation rerun remains
+  pending.
+- `sw-midgard-run -- bash scripts/ui-review/gate-007/fix-launch.sh` built the candidate and repeated the affected states.
+  For m9, both repetitions of the 390×844 light and 1280×720 light and dark views returned `GRAPH_HEADING_GEOMETRY []` after `c3c6f3f0`.
+  The viewed pair `before/fixes/ubl-area-headings-1280.png` and `after/fixes/ubl-area-headings-1280.png` shows separate title plates and cards.
+  The words still wrap and the plate continues to cover crossing strokes.
+- Main `test:autosave` passed the commit UI check, then failed on the same `git log -1 --format=%s main` unknown-revision error as the candidate. Main
+  `test:git-setup` passed identity setup and the commit action, then failed on the same `git log -1 --format=%an` error that the default branch has no
+  commits. These postconditions still assume direct local commits on the default branch.
+- Main `test:lineage` stopped earlier, when the resize separator intercepted the Walk click. It did not reach the first-view performance assertion.
+  The candidate reproduced the UBL timing failure at 3,811 ms against 2,000 ms. The same timed entry point is included in the matched capture.
+- The initial gallery contains 126 recorded comparison steps. At this checkpoint it shows 40 intended fixes, 6 merged feature differences, 52 neutral
+  changes, 17 regression frames, 1 unchanged step and 10 awaiting a matched or settled capture. The regression-frame count includes downstream Walk
+  steps blocked by one failed click. It shows the initial candidate, before the graph corrections. Graph captures that caught loading or mismatched
+  state are scheduled for repetition. The initial page was rendered on Midgard at 1440×900 and 390×844. Both previews showed the version labels and
+  controls, and the phone confined horizontal scrolling to the comparison strip.
+- The UBL Order replay is saved under `before/fixes/ubl-neighborhood-walk-1600.png` and `after/fixes/ubl-neighborhood-walk-1600.png` in the comparison
+  folder. In the first frame the trail cuts across the first Walk control. The new frame shows the complete AllowanceCharge card and its Walk control,
+  and the centered Order description wraps in full. Secondary descriptions are smaller than they were in the clipped first view.
+  The separate pair `before/fixes/ubl-neighborhood-walk-reached-1600.png` and `after/fixes/ubl-neighborhood-walk-reached-1600.png` shows the
+  shared path splitting after `3f08c538`. Both repetitions reached all five targets and each step reported `WALK_EDGE_GEOMETRY ... []`.
 
 ### Matched UBL lineage timing
 
-The repeated 1440×900 frozen-import switch from Mall ODCS to UBL ODCS measured 2,090 and 2,264 ms on main. The candidate measured 2,092 and 2,119 ms. Both exceed the 2,000 ms suite threshold in the matched built-app scenario. The candidate is within the run-to-run range on the same inputs, so no speculative worker change was retained. The standalone main suite still stops earlier at the Walk click.
+The repeated 1440×900 frozen-import switch from Mall ODCS to UBL ODCS measured 2,090 and 2,264 ms on main. The candidate measured 2,092 and 2,119 ms.
+Both exceed the 2,000 ms suite threshold in the matched built-app scenario. The candidate is within the run-to-run range on the same inputs, so no
+speculative worker change was retained. The standalone main suite still stops earlier at the Walk click.
 
 ### Full Graph area headings
 
 - The Network layout reserves a fixed header above each area's entity cards. The title background covers relationship strokes.
-- The background's block padding consumes space reserved for a second title line. Removing that padding preserves the label, horizontal inset and background.
+- The background's block padding consumes space reserved for a second title line. Removing that padding preserves the label, horizontal inset and
+  background.
 - Recheck the theme and responsive tours and capture the same area headings at the same viewport in both themes.
 
 ### Neighborhood walks
 
-- The first view must keep the center description readable. Walk routes use the measured card dimensions and the former center remains visible as context.
+- The first view must keep the center description readable. Walk routes use the measured card dimensions and the former center remains visible as
+  context.
 - Both matched release and main runs have no shared path after walking to AllowanceCharge. The compensated candidate repeats a 28 px overlap there.
-- Keep the description compensation on the first center. Subsequent centers keep the route geometry of the ordinary cards while the details pane carries their full description.
+- Keep the description compensation on the first center. Subsequent centers keep the route geometry of the ordinary cards while the details pane
+  carries their full description.
 - Verify the graph's route and label assertions and repeat the matched five-step Walk.
 
 ## Gate after rebase
