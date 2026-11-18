@@ -6,7 +6,7 @@ import colliding from '../fixtures/ossie-next-base/colliding-ontology.json';
 
 test('the synthetic base differs from the pinned schema only in version, id and title', () => {
   const { $id: pinnedId, title: pinnedTitle, ...pinnedRest } = pinned;
-  const { $id: syntheticId, title: syntheticTitle, ...syntheticRest } = synthetic;
+  const { $id: syntheticId, title: syntheticTitle, ...syntheticRest } = structuredClone(synthetic);
   expect(syntheticId).not.toBe(pinnedId);
   expect(syntheticTitle).not.toBe(pinnedTitle);
   expect(syntheticRest.properties.version.const).toBe('0.3.0.dev0');
