@@ -220,12 +220,14 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
   }
   let operationBoundary: OperationBoundary | undefined;
   // Each mode supplies its own credential gate to the shared protocol transport.
+  const serverEndpoint = options.mode === 'server' && options.connections ? { service: options.connections.service, publicUrl: options.publicOrigin! } : undefined;
+  const absentAgentEndpoint: Route = (_workspace, _request, url) => (url.pathname === '/api/mcp' ? new Response(null, { status: 404 }) : null);
   const agentEndpoint =
-    (options.mode === 'server' && options.connections) || (options.mode !== 'server' && options.mcp)
+    serverEndpoint || (options.mode !== 'server' && options.mcp)
       ? [
           createMcpRoute({
             capability: options.mcp?.capability,
-            ...(options.mode === 'server' && options.connections ? { server: { service: options.connections.service, publicUrl: options.publicOrigin! } } : {}),
+            server: serverEndpoint,
             port: options.port ?? 4310,
             boundary: () => operationBoundary!,
             audit: options.audit!,
@@ -235,7 +237,7 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
             now: options.now,
           }),
         ]
-      : [];
+      : [absentAgentEndpoint];
   // Agent connections: discovery, the token endpoint and the browser pages exist in server mode only.
   const connectionRoutes: Route[] =
     options.mode === 'server' && options.connections && options.authentication
@@ -255,7 +257,6 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
       : [];
   const routes: Route[] = [
     ...agentEndpoint,
-    (_workspace, _request, url) => (url.pathname === '/api/mcp' ? new Response(null, { status: 404 }) : null),
     ...connectionRoutes,
     adminRoutes(adminService, options),
     auditRoutes(options),

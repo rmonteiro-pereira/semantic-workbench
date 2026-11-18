@@ -236,7 +236,7 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   { ...row('GET', '/api/admin/programs', 'admin', workspace), serverOnly: true },
   { ...row('PUT', '/api/admin/programs', 'admin', workspace), serverOnly: true },
   { ...row('POST', '/api/admin/programs/preview', 'admin', workspace), serverOnly: true },
-  // The local agent transport. Each tool call it carries is decided and audited as the twin of an ordinary route, so this
+  // The agent transport authenticates its credential separately. Each tool is decided and audited as a route twin, so this
   // row grants nothing beyond reaching the transport and leaves no record of its own.
   { ...publicRow('POST', '/api/mcp'), methods: ['POST', 'GET', 'DELETE', 'PUT', 'PATCH'], unaudited: true },
   pageRow,

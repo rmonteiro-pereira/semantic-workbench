@@ -27,6 +27,7 @@ export function pkcePair() {
   return { verifier, challenge: createHash('sha256').update(verifier).digest('base64url') };
 }
 
+/** Opens an isolated authenticated server with registered agent programs and a controllable public address. */
 export async function openConnectionServer(
   options: { publicUrl?: string; programs?: Program[]; authenticationOptions?: Parameters<typeof createServerAuthentication>[3]; handlerOptions?: Parameters<typeof createHandler>[1] } = {},
 ) {

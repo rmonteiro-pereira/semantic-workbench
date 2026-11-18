@@ -13,7 +13,7 @@ import { auditDenial, agentRefusal } from './refusal';
 import { createAnonymousAuditGate, createRateLimitReport, createRateLimiter, DEFAULT_REQUEST_LIMITS, SIGN_IN_PATHS } from './rate-limit';
 import { recordAuthFailure } from '../observability/metrics';
 
-/** The token endpoint is called by programs, which send no cookie, no origin and no marker header. It authenticates by the grant in its own body. */
+/** Program endpoints authenticate their own grants or tokens and never use browser cookies or CSRF markers. */
 const GRANT_ENDPOINT_PATHS: ReadonlySet<string> = new Set(['/oauth/token', '/api/mcp']);
 /** Browser forms that carry the session's request token in their own body, which the route checks. The request must still come from this origin. */
 const FORM_POST_PATHS: ReadonlySet<string> = new Set(['/oauth/consent', '/oauth/setup']);
