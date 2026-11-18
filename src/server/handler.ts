@@ -20,6 +20,7 @@ import { eventRoutes } from './routes/events';
 import { projectRoutes } from './routes/projects';
 import { fileRoutes } from './routes/files';
 import { itemAddressRoutes } from './routes/item-addresses';
+import { itemDiffRoutes } from './routes/item-diff';
 import { exportRoutes } from './routes/export';
 import { draftRoutes } from './routes/drafts';
 import { trashRoutesWith } from './routes/trash';
@@ -156,6 +157,7 @@ function workspaceRoutes(administration: AdminRepository, access: AccessControl,
     repoRoutes,
     exportRoutes,
     itemAddressRoutes,
+    itemDiffRoutes,
     fileRoutes,
     draftRoutes,
     createAgentRoutes(publishedAgentDocuments),

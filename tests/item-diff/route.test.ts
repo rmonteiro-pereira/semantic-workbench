@@ -1,27 +1,11 @@
 import { expect, test } from 'bun:test';
-import { createAccessControl } from '../../src/server/auth/authorize';
-import { localPrincipal } from '../../src/server/auth/principal';
-import { requestAccess } from '../../src/server/auth/request-scope';
-import { requestDefinitionSurface } from '../../src/server/auth/request-surface';
-import { errorResponse } from '../../src/server/routes/http';
-import { itemDiffRoutes } from '../../src/server/routes/item-diff';
-import { accessFixture } from '../auth/access-fixture';
 import { itemDiffBaselineWorkspace } from '../helpers/item-diff-baseline';
 
 type Fixture = Awaited<ReturnType<typeof itemDiffBaselineWorkspace>>;
-const access = createAccessControl(accessFixture());
 
 async function request(fixture: Fixture, query: string, project = 'finance') {
   const url = new URL(`http://localhost:5173/api/projects/${project}/item-diff?${query}`);
-  const input = new Request(url, { headers: { 'Sec-Fetch-Site': 'same-origin' } });
-  Object.assign(input, { [requestAccess]: access.forRequest(localPrincipal()), [requestDefinitionSurface]: 'browser' });
-  try {
-    const response = await itemDiffRoutes(fixture.ws, input, url);
-    if (!response) throw new Error('Item comparison did not handle the request.');
-    return response;
-  } catch (error) {
-    return errorResponse(error);
-  }
+  return fixture.handler(new Request(url, { headers: { 'Sec-Fetch-Site': 'same-origin' } }));
 }
 
 test('item comparison returns version labels, bounded change details and a no-store response', async () => {
