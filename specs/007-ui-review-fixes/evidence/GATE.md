@@ -2,6 +2,13 @@
 
 ## Focused regressions and suite retries
 
+### Lineage detail camera
+
+- Lineage records a screen anchor before card representation changes or a column list opens. The worker supplies the new position and the view keeps the current zoom.
+- The anchor constrains the card vertically. At 390 px, it can preserve a negative horizontal position after zoom or column expansion.
+- Apply the same viewport bound horizontally to the anchored card and keep the existing layout, zoom and action history contracts.
+- Replay Mall Properties and UBL Consignment with the real zoom, column expansion and filter controls, then inspect the two repeated captures.
+
 - M4, Mall mapping Fit. `sw-midgard-run` ran the detached `verify-fixes` phase and returned 0. The `fitted-names` step passed twice at the same
   1440×900 light viewport after `11abdf8c`. The previous candidate's label overflow is preserved under
   `regression-before/{1,2}/local/light/1440/mapping-fit/` on Midgard, and the passing frames are under
@@ -172,6 +179,20 @@ The application revision includes `481d012b`. The retry of the browser history s
 - `sw-midgard-run -- bash scripts/ui-review/gate-007/replay-launch.sh` exited 0 and resumed the serial matrix by matched action. Before the launch,
   the previous matrix process had exited, ports 5401 and 5402 had no listeners, and `free -g` reported 106 GB available. `git diff --check` and
   the readable-code check for the graph capture driver both exited 0.
+
+### Matched phone Import, Source Control and Clone
+
+- `sw-midgard-run -- bash scripts/ui-review/gate-007/finish-launch.sh` returned 0 and started the next serial run. The Import, Source Control, Clone
+  and lineage-columns action groups recorded `MATRIX_ACTION_COMPLETE`. Every Import and Clone step worked in both repetitions of all three builds.
+- Nine file selections verified the original byte hashes and the new project's matching import notification before capture. The clean workspace
+  exposes Import files directly; the picker retains the existing disabled destination explanation until a project exists. The focused local Clone run
+  opens the same Sales and Finance files in all three builds, and the candidate confirmation reads “Cloned finance.”.
+- The revised Source Control action selects the visible Commit-to-branch button. The same Commerce edit was staged and committed twice on each version.
+  Baseline committed to main. Main and candidate committed to work/local, then both recorded “Published to main” and zero commits ahead or behind
+  the published snapshot. There is no release frame for Publish. The candidate also shows the disabled commit reason and replaces the phone split
+  diff with one readable column. The “All files” history link still wraps in all three versions at 390 px.
+- The latest standalone `test:graph` passed the new Mall 390 px assertion, the UBL five-step Walk and its Back and Forward steps. It returned 1
+  at the inherited Both-direction Full pierce assertion with 202 ms against 100 ms. The earlier pinned main run measured 240 ms at that assertion.
 
 ### Counted Mall graph on a phone
 
