@@ -206,6 +206,7 @@ Every path in the block above, plus `docs/item-diff.md`.
 | `src/app/mappings/QueryComposer.tsx` | status flag on governed metrics | none |
 | `src/app/style.css` | one import of `item-diff.css` if the repository imports feature styles there | all UI features |
 | `package.json`, `scripts/gate-suites.ts`, `scripts/mutation-tests.ts`, `scripts/ci-validate.ts` | `test:item-diff`, suite entry, mutant wiring | all |
+| `deploy/azure-devops/templates/validate-jobs.yml` | one browser matrix row mirroring the suite registry | all |
 | `README.md`, `ARCHITECTURE.md`, `CHANGELOG.md`, `docs/user-guide.md`, `docs/graph-design.md`, `docs/item-addresses.md`, `docs/development.md` | text | all |
 
 ## Overlaps with the other features
