@@ -660,3 +660,17 @@ model. See [agent runtime and protocol](agent-runtime.md).
 
 - **Tessera**: an authoring format that compiles to standard Ossie. A Tessera document is an Ossie
   ontology with the marker `tessera: 1` and, optionally, `tessera_notes`.
+
+
+### Ontology units and imports
+
+Open a revision 3 ontology's root to see its concepts together. The root lists every part
+under `tessera_includes`. Each part has `tessera: 3`, `tessera_part: true` and an ontology list.
+When adding a concept, choose the root or a declared part.
+
+**Imports** lets you select a provider project in the workbench, give it an alias and choose
+the exported concepts you need. Refer to a chosen concept as `alias.Concept`. Use **Update
+dependencies** to review changes and explicitly write the dependency manifest before
+committing and publishing. A reported interface change leaves compatibility for the author
+to evaluate. **Mesh** shows the published connections. People with permission to publish a
+provider can select it and open **Used by**.

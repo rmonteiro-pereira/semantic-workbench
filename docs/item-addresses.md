@@ -242,3 +242,9 @@ compiled output. The loss report names each dropped value by the document-relati
 item that held it (for the ontology root, the address of the ontology itself, such as
 `sw1:#ontology:Retail`). Tests: `tests/tessera/workbench-documents.test.ts` and
 `tests/tessera/determinism.test.ts`.
+
+
+An ontology unit can contain concepts from its root and its declared parts. Their addresses
+keep the source file path. Moving an unchanged concept between declared parts in a batch save
+records a migration from its previous address. A compiled mesh bundle records the output
+names alongside their source addresses in the version 2 bundle manifest.

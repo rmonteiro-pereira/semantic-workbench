@@ -344,3 +344,9 @@ Server preview requires the person’s session and existing read authorization. 
 must not be represented as published context. Historical inputs accept full published-history ids
 or tags within that history, not branches or abbreviated ids. Publication does not create release
 tags, validate a whole definition set or supply dependency manifests; diverged history is not adopted.
+
+
+For a published revision 3 ontology, roots and their declared parts contribute to the same
+ontology in agent context. Imported concepts come from the published provider versions
+recorded in the consumer's committed dependency manifest. Editing a provider's working
+files does not change agent context.

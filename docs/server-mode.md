@@ -409,3 +409,15 @@ personal drafts, Admin/session state, grouping state or trash. Stop the applicat
 removing a disposable SQLite cache, and expect it to rescan on startup. Keep the cache on local
 disk when the durable data root is on a share. Scale vertically first; horizontal scale requires
 repository partitioning or coordinated leases/storage and shared session handling.
+
+
+### Ontology units and provider access
+
+A reader missing any required part sees the findings for the visible file and a set-not-checked
+notice. Saved changes and publication requiring that set are refused. A private draft remains
+available. Each reader's set findings are calculated on their own access.
+
+An importing project can use the published concepts it selected from a readable provider
+without accessing the provider's private files. A person who can publish the provider can
+see a published importing project's name and domain, its imported public items and the
+resolved version. The publish confirmation explains this disclosure.

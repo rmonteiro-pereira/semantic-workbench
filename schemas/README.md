@@ -88,3 +88,8 @@ The revision 3 workbench schemas distinguish ontology roots from headerless part
 allows an empty ontology list when the root declares parts. The dependency manifest has its own
 version 1 schema for recording resolved providers. Regenerate the derived ontology schemas before
 compiling the standalone validators.
+
+
+Revision 3 selects either the Tessera ontology root schema or the part schema. The root
+declares part paths, exports and imports. The dependency manifest schema validates the
+project's `tessera-dependencies.json` independently of definition files.

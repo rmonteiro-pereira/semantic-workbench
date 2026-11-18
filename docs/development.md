@@ -510,3 +510,13 @@ Published snapshot measurements use `scripts/published-snapshot-performance-fixt
 their own frontend.
 The edge suite budgets 30 seconds for its initial model readiness on a cold frontend; its
 attachment and geometry checks retain their own limits.
+
+
+### Ontology mesh checks
+
+Run focused mesh tests with `bun test tests/mesh`. The isolated browser journey is
+`bun run test:mesh`. List the focused mutation cases with `bun scripts/mesh-mutants.ts --list`.
+
+The development server compiled the 200-part, 20-import, 20 MB fixture in 4,383 ms
+(`bun test tests/mesh/compile-scale.test.ts`). The test checks the measured compile time
+and validates the generated bundle.
