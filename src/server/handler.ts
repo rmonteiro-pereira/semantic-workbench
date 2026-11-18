@@ -32,6 +32,7 @@ import { repoRoutes } from './routes/repos';
 import { peopleRoutes } from './routes/people';
 import type { AccessControl } from './auth/authorize';
 import { browserReportRoutes } from './routes/browser-reports';
+import { createWorkspaceUsage } from './usage/usage-workspace';
 /** Local browser origins allowed to call the API. */
 export const ALLOWED_ORIGINS = allowedOrigins(4310);
 /** Includes the configured API origin and the Vite development server. */
@@ -182,6 +183,7 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
     access,
     administration,
     audit: options.audit ?? defaultAudit(ws, options.mode ?? 'local', administration),
+    usage: options.usage ?? createWorkspaceUsage(ws, options.usageSettings),
   };
   let accessAdmin: Promise<AccessAdmin> | undefined;
   // The service shares the process's one administration repository, whose commits reload the
@@ -283,5 +285,5 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
     if (!response.headers.has('Cache-Control')) response.headers.set('Cache-Control', 'no-store');
     return response;
   };
-  return Object.assign(httpHandler, { boundary: boundary.boundary });
+  return Object.assign(httpHandler, { boundary: boundary.boundary, usage: options.usage! });
 }

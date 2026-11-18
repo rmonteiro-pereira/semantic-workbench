@@ -21,6 +21,9 @@ import { attachIdentity, requestPublication, requestPublicationRefusal, type Acc
 import { hiddenResponses, requestAuditId } from '../request';
 import { actorPseudonym, setRequestActor } from '../observability/request-context';
 import { auditDenial, agentRefusal } from './refusal';
+import { requestSurface } from './request-surface';
+import { routeTarget } from '../usage/usage-items';
+import type { UsageRecorder } from '../usage/usage-recorder';
 
 /** Dependencies needed to decide and execute authenticated operations. */
 export type OperationBoundaryOptions = {
@@ -28,6 +31,8 @@ export type OperationBoundaryOptions = {
   access: AccessControl;
   audit: AuditLog;
   remoteCredentials?: RemoteCredentials;
+  /** Counts the items of successful counted answers; absent or no-op when counters are off. */
+  usage?: UsageRecorder;
 };
 
 /** One authenticated request to authorize and execute. */
@@ -236,6 +241,20 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
     } catch (error) {
       // A telemetry exporter cannot make a completed write appear retryable.
       log.warn('operation.metrics-failed', { requestId, operation: entry?.id, errorMessage: error instanceof Error ? error.message : String(error) });
+    }
+    // Counting happens after the answer exists and never waits for the disk or changes the answer.
+    try {
+      if (entry?.usage)
+        options.usage?.record({
+          operationId: entry.id,
+          origin: caller.origin,
+          surface: requestSurface(request),
+          outcome: observation.outcome ?? responseOutcome,
+          target: routeTarget(row.resource(found.match, url)),
+          response,
+        });
+    } catch {
+      log.warn('usage.record-failed', { requestId });
     }
     return { response, requestId };
   }

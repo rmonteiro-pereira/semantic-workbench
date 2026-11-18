@@ -22,6 +22,8 @@ import type { RequestLimits } from './rate-limit';
 import type { RemoteCredentials } from './remote-credentials';
 import { observeRequest } from '../observability/http-request';
 import { log } from '../observability/log';
+import type { UsageRecorder } from '../usage/usage-recorder';
+import type { UsageSettings } from '../usage/usage-settings';
 
 /** The access boundary instance shared across requests. */
 export type { AccessControl } from './authorize';
@@ -65,6 +67,10 @@ export type HandlerOptions = {
   remoteCredentials?: RemoteCredentials;
   /** True when exported telemetry is on, so browsers may send their error reports. */
   browserReports?: boolean;
+  /** Counts the items of successful counted answers; the handler creates one from `usageSettings`. */
+  usage?: UsageRecorder;
+  /** Whether usage counters run and for how long counts are kept; counters are off when absent. */
+  usageSettings?: UsageSettings;
 };
 /** The access boundary of a handler that was given none, read from the data root's settings. */
 export function defaultAccess(ws: Workspace, mode: 'local' | 'server'): AccessControl {
@@ -142,7 +148,7 @@ export function createAccessMiddleware(
   const access = options.access ?? defaultAccess(ws, mode);
   const audit = options.audit ?? defaultAudit(ws, mode, options.administration ?? defaultAdministration(ws, access));
   const authentication = createRequestAuthentication(options, audit, localCheck);
-  const boundary = createOperationBoundary(ws, { mode, access, audit, remoteCredentials: options.remoteCredentials }, run);
+  const boundary = createOperationBoundary(ws, { mode, access, audit, remoteCredentials: options.remoteCredentials, usage: options.usage }, run);
   async function dispatch(request: AccessRequest, requestId: string): Promise<Response> {
     const client = await authentication.authenticate(request, requestId);
     if (client instanceof Response) return client;
@@ -191,5 +197,5 @@ export function createAccessMiddleware(
       },
     });
   };
-  return Object.assign(httpAdapter, { boundary });
+  return Object.assign(httpAdapter, { boundary, usage: options.usage });
 }

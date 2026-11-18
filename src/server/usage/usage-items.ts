@@ -15,6 +15,10 @@ type ModelPath = (string | number)[];
 export type PublishedModels = ReadonlyMap<string, any>;
 /** The file an operation's route named, when the route names one. */
 export type RouteTarget = { project?: string; path?: string };
+/** The project and file a route named, from its resource; a route that names neither gives an empty target. */
+export function routeTarget(resource: { type: string; project?: string; path?: string }): RouteTarget {
+  return { ...(resource.project ? { project: resource.project } : {}), ...(resource.path ? { path: resource.path } : {}) };
+}
 /** Everything an item rule reads. */
 export type ItemRuleInput = { answer: any; models: PublishedModels; target: RouteTarget };
 /** A location inside one document: where an item lives before it becomes an address. */
