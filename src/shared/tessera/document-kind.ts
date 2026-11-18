@@ -11,7 +11,7 @@ export type UnitFile = { path: string; bytes: Uint8Array };
 
 /** What a file is to the compiler. */
 export type ClassifiedFile =
-  | { kind: 'tessera'; file: UnitFile; text: string; issues: Issue[]; revision: number }
+  | { kind: 'tessera-ontology'; file: UnitFile; text: string; issues: Issue[]; revision: number }
   | { kind: 'ossie'; file: UnitFile; text: string; issues: Issue[] }
   | { kind: 'other'; file: UnitFile }
   | { kind: 'invalid'; file: UnitFile; failures: CompileFailure[]; issues: Issue[] };
@@ -42,7 +42,7 @@ function validated(file: UnitFile, text: string, tesseraRevision: number | null)
     const failures = errors.map(issue => ({ code: 'invalid-source' as const, document: file.path, message: `${issue.path}: ${issue.message}` }));
     return { kind: 'invalid', file, issues: result.issues, failures };
   }
-  if (tesseraRevision !== null) return { kind: 'tessera', file, text, issues: result.issues, revision: tesseraRevision };
+  if (tesseraRevision !== null) return { kind: 'tessera-ontology', file, text, issues: result.issues, revision: tesseraRevision };
   return { kind: 'ossie', file, text, issues: result.issues };
 }
 

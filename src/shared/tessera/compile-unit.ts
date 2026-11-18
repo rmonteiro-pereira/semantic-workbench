@@ -36,7 +36,7 @@ const encoder = new TextEncoder();
 
 /** What happens to a file of each kind. A refused file is listed as not included, because nothing is written for it. */
 const TREATMENT_OF_KIND: Record<ClassifiedFile['kind'], ReportInput['treatment']> = {
-  tessera: 'compiled',
+  'tessera-ontology': 'compiled',
   ossie: 'copied',
   other: 'not-included',
   invalid: 'not-included',
@@ -97,7 +97,7 @@ function compileFiles(classified: ClassifiedFile[], steps: UnitSteps): Compiled 
       outputDocuments.push({ path: entry.file.path, source: entry.text });
       result.failures.push(...outputSchemaFailures(entry.file.path, entry.text));
     }
-    if (entry.kind !== 'tessera') continue;
+    if (entry.kind !== 'tessera-ontology') continue;
     const compiled = steps.compileDocument({ path: entry.file.path, source: entry.text }, REGISTRY);
     if (!compiled.ok) {
       result.failures.push(...compiled.failures);
@@ -140,7 +140,7 @@ export function compileUnit(files: UnitFile[], options: CompileOptions, steps: U
     outputs,
     losses: compiled.losses,
   });
-  const revisions = [...new Set(classified.flatMap(entry => (entry.kind === 'tessera' ? [entry.revision] : [])))].sort((first, second) => first - second);
+  const revisions = [...new Set(classified.flatMap(entry => (entry.kind === 'tessera-ontology' ? [entry.revision] : [])))].sort((first, second) => first - second);
   const findings = classified.filter(entry => entry.kind !== 'other').map(entry => ({ document: entry.file.path, issues: 'issues' in entry ? entry.issues : [] }));
   return { outputs: failures.length ? [] : compiled.outputs, report, failures, findings, tesseraRevisions: revisions };
 }
