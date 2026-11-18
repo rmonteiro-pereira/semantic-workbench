@@ -1,7 +1,7 @@
 // Defines fresh Full graph and Neighborhood states. Imported by followup-local; no additional environment variables.
 import { expect, type Page } from '@playwright/test';
 import { fileTab } from '../helpers/screen-tour';
-import { viewOptions, chooseLayout, setShown, showEveryEntity } from '../helpers/graph-options';
+import { viewOptions, chooseLayout, setShown, showEveryEntity, revealGraphControls, hideGraphControls } from '../helpers/graph-options';
 import type { State, View } from './followup-capture';
 
 /** Measures the rendered viewport and the union of node boxes in pane coordinates. */
@@ -156,9 +156,11 @@ export function neighborhoodStates(view: View): State[] {
       await page.locator('.neighborhood-node').first().waitFor();
       record('first-view', await graphMeasurement(page));
       if (state.startsWith('pierce')) {
+        await revealGraphControls(page);
         await page.getByRole('radiogroup', { name: 'Pierce direction' }).getByRole('radio', { name: 'Both', exact: true }).click();
         record('direction-both', await graphMeasurement(page));
         await page.getByRole('button', { name: 'Full pierce', exact: true }).click();
+        await hideGraphControls(page);
         await expect(page.locator('.pierce-banner')).toBeVisible();
         await page.getByRole('button', { name: 'Stop', exact: true }).waitFor({ state: 'hidden' });
         await page.waitForTimeout(500);
@@ -179,11 +181,18 @@ export function neighborhoodStates(view: View): State[] {
       }
     },
     check: async page => {
-      const label = await page.getByRole('button', { name: 'Labels', exact: true }).getAttribute('aria-pressed');
-      expect(label).toBe(String(state.endsWith('labels')));
+      const label = String(state.endsWith('labels'));
+      await viewOptions(page, async options => {
+        await expect(options.getByRole('button', { name: 'Labels', exact: true })).toHaveAttribute('aria-pressed', label);
+      });
       expect(await page.locator('.inspector').isVisible()).toBe(state === 'node-selected');
       if (state === 'pierce-alone') await expect(page.locator('.pierce-banner')).toBeVisible();
-      return { labels: label, measurement: await graphMeasurement(page), banner: await page.locator('.pierce-banner').allTextContents() };
+      return {
+        labels: label,
+        measurement: await graphMeasurement(page),
+        banner: await page.locator('.pierce-banner').allTextContents(),
+        fitPrompt: await page.getByRole('button', { name: /^\d+ entities, Fit$/ }).allTextContents(),
+      };
     },
   }));
 }
