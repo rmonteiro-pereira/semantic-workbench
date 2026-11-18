@@ -578,6 +578,7 @@ mutants.push(...mcpMutants);
 // imports that leave the folder point back at the real sources.
 const SPLIT_PROJECT_MODULES = /^src\/server\/projects\/(workspace\.ts|workspace\/|scm|trash)/;
 function copiedFolderOf(category: string, file: string) {
+  if (category === 'access-index') return 'src/server/auth';
   if (category === 'agent') return 'src/server/agent';
   if (['mcp-gate', 'mcp-state', 'mcp-tools'].includes(category)) return 'src/server/mcp';
   if (['auth-middleware', 'sec-request-limits', 'signin-redirect', 'bearer-cookie', 'observability-unaudited', 'operation-boundary', 'mcp-audit', 'mcp-rows'].includes(category))
