@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, test } from 'bun:test';
 import { measureTotal } from '../../src/server/usage/usage-counts';
 import { MAX_COUNTED_RESPONSE_BYTES, NO_USAGE_RECORDER, createUsageRecorder, rulesForRequest } from '../../src/server/usage/usage-recorder';
+import type { PublishedModels } from '../../src/server/usage/usage-items';
 import { contextRequest, openUsage, planRequest, publishedJson } from './usage-fixture';
 
 const disposers: (() => void)[] = [];
@@ -159,6 +160,28 @@ describe('what counting never does', () => {
     fixture.recorder.record(contextRequest(fixture.documents));
     await fixture.recorder.settled();
     expect(countOf(fixture, metric)).toBe(2);
+  });
+
+  test('clean close drains a recording suspended in the published model lookup', async () => {
+    const entered = Promise.withResolvers<void>();
+    const release = Promise.withResolvers<PublishedModels>();
+    const fixture = await openUsage({
+      async models() {
+        entered.resolve();
+        return release.promise;
+      },
+    });
+    disposers.push(fixture.dispose);
+    fixture.recorder.record(contextRequest(fixture.documents));
+    await entered.promise;
+    const closing = fixture.recorder.close();
+    fixture.recorder.record(contextRequest(fixture.documents));
+    release.resolve(fixture.models);
+    await fixture.recorder.settled();
+    await closing;
+    const saved = fixture.store.readDay('shop', '2026-11-17');
+    expect(saved).toMatchObject({ status: 'ok', file: { counts: { [metric]: { 'workbench-requests': { 'agent.context.read': { http: 1 } } } } } });
+    expect(fixture.recorder.pending('shop')).toEqual([]);
   });
 
   test('a snapshot that cannot be read counts nothing and says nothing about its content', async () => {

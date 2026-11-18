@@ -70,7 +70,8 @@ stored.
 ## When counts are written, kept and lost
 
 - Counting happens in memory. Every 30 seconds, and when the server stops cleanly, memory is merged into
-  the day's file. A clean stop loses nothing. After a crash, power loss or kill, up to 30 seconds of
+  the day's file. On a clean stop, the recorder refuses new recordings and drains those already
+  admitted before its final flush and workspace close. After a crash, power loss or kill, up to 30 seconds of
   counts are lost and nothing older.
 - A failed write keeps the counts in memory, logs one warning an hour without content and retries.
 - Counts older than the retention are removed at start and once a day. A lower retention removes more at

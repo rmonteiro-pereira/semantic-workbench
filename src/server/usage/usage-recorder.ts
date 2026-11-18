@@ -44,8 +44,8 @@ export type UsageRecorder = {
   /** Resolves when every request handed to `record` has been counted. */
   settled(): Promise<void>;
   flush(): void;
-  /** Writes memory and stops the timer, so a clean stop loses nothing. */
-  close(): void;
+  /** Stops admission and the timer, then drains recordings before the final flush. */
+  close(): Promise<void>;
 };
 
 /** The recorder used while counters are off: it keeps nothing and does nothing. */
@@ -55,7 +55,7 @@ export const NO_USAGE_RECORDER: UsageRecorder = {
   pending: () => [],
   settled: () => Promise.resolve(),
   flush() {},
-  close() {},
+  close: () => Promise.resolve(),
 };
 
 /** Everything the real recorder needs, passed in so tests choose the clock, the disk and the snapshot. */
@@ -87,7 +87,7 @@ export function createUsageRecorder(deps: UsageRecorderDeps): UsageRecorder {
   const memory = new Map<string, Map<string, CounterDayFile>>();
   const inFlight = new Set<Promise<void>>();
   const lastWarned = new Map<string, number>();
-  let closed = false;
+  let closing: Promise<void> | undefined;
   let compactedOn = '';
 
   function warnOncePerHour(event: string, fields: Record<string, unknown> = {}) {
@@ -128,7 +128,7 @@ export function createUsageRecorder(deps: UsageRecorderDeps): UsageRecorder {
   }
 
   function record(input: UsageRecordInput) {
-    if (closed) return;
+    if (closing) return;
     try {
       const rule = rulesForRequest({ ...input, status: input.response.status });
       const commit = input.response.headers.get(SNAPSHOT_HEADER);
@@ -189,10 +189,15 @@ export function createUsageRecorder(deps: UsageRecorderDeps): UsageRecorder {
     },
     flush,
     close() {
-      if (closed) return;
-      closed = true;
+      if (closing) return closing;
       clearInterval(timer);
-      flush();
+      closing = Promise.resolve();
+      if (inFlight.size) {
+        closing = Promise.all(inFlight).then(flush);
+      } else {
+        flush();
+      }
+      return closing;
     },
   };
 }
