@@ -92,6 +92,7 @@ type ViewOptionsProps = {
   mapping: boolean;
   centreName: string;
   steps: number;
+  stepsDisabled: boolean;
   onSteps: (count: number) => void;
   showMetrics: boolean;
   onToggleMetrics: () => void;
@@ -99,7 +100,7 @@ type ViewOptionsProps = {
   onToggleExternal: () => void;
 };
 
-function LineageViewOptions({ mapping, centreName, steps, onSteps, showMetrics, onToggleMetrics, showExternal, onToggleExternal }: ViewOptionsProps) {
+function LineageViewOptions({ mapping, centreName, steps, stepsDisabled, onSteps, showMetrics, onToggleMetrics, showExternal, onToggleExternal }: ViewOptionsProps) {
   return (
     <GraphOptions
       title="View options"
@@ -113,7 +114,7 @@ function LineageViewOptions({ mapping, centreName, steps, onSteps, showMetrics, 
         <OptionGroup title="Steps">
           <label>
             Steps
-            <select aria-label="Mapping steps" value={steps} onChange={e => onSteps(Number(e.target.value))}>
+            <select aria-label="Mapping steps" disabled={stepsDisabled} value={steps} onChange={e => onSteps(Number(e.target.value))}>
               {[1, 2, 3, 4, 5].map(stepCount => (
                 <option key={stepCount} value={stepCount}>
                   {stepCount}
@@ -178,6 +179,7 @@ export function LineageToolbar(props: ToolbarProps) {
           mapping={props.mapping}
           centreName={props.centreName}
           steps={props.steps}
+          stepsDisabled={props.stepsDisabled}
           onSteps={props.onSteps}
           showMetrics={props.showMetrics}
           onToggleMetrics={props.onToggleMetrics}

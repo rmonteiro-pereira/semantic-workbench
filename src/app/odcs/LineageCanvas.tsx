@@ -223,6 +223,7 @@ export function LineageCanvas({
     }
     return bundled;
   }, [graph, reach, rowsByCard, path, splitPairs]);
+  const isolated = lines.length === 0 && reach.cards.size <= 1;
   const allLayoutCards = useMemo<LayoutCard[]>(
     () =>
       [...reach.cards].map(id => {
@@ -617,6 +618,7 @@ export function LineageCanvas({
         extra={selectionExtra?.(selected, path)}
       />
     ) : null;
+  const visibleNodes = framedOnly ? nodes.map(node => ({ ...node, hidden: !framedOnly.has(node.id) })) : nodes;
   return (
     <section className={`lineage-view${compact ? ' compact' : ''}`} role="region" aria-label={ariaLabel}>
       <LineageToolbar
@@ -624,6 +626,7 @@ export function LineageCanvas({
         mapping={mapping}
         centreName={centreName}
         steps={steps}
+        stepsDisabled={isolated}
         onSteps={setSteps}
         showMetrics={showMetrics}
         onToggleMetrics={() => setShowMetrics(shown => !shown)}
@@ -680,7 +683,7 @@ export function LineageCanvas({
           <ReactFlow
             className={farZoom.className}
             style={farZoom.style}
-            nodes={framedOnly ? nodes.map(node => ({ ...node, hidden: !framedOnly.has(node.id) })) : nodes}
+            nodes={isolated ? [] : visibleNodes}
             edges={edges}
             onNodesChange={recordSizes}
             nodeTypes={nodeTypes}
@@ -728,7 +731,7 @@ export function LineageCanvas({
         <LineageLegend kinds={legendKinds} lines={legendLines} keys={!mapping} tint={!!groupOf} bundles={lines.some(line => line.count > 1)} />
         {mapping ? (
           <small className="lineage-reading">
-            Saved mapping · {reach.cards.size} reachable assets · {graph.cards.size} total assets
+            Saved mapping · {reach.cards.size} reachable {reach.cards.size === 1 ? 'asset' : 'assets'} · {graph.cards.size} total {graph.cards.size === 1 ? 'asset' : 'assets'}
           </small>
         ) : (
           <small
