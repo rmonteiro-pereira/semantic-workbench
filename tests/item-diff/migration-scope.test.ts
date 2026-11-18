@@ -8,6 +8,8 @@ import { publishFixture } from '../helpers/published-workspace';
 import { ADDRESS_HISTORY_FILE, addressHistoryDifference, parseAddressHistory, readAddressMigrations, readCommittedAddressMigrations } from '../../src/server/projects/address-migrations';
 import { compareItems } from '../../src/shared/item-diff/compare-items';
 import type { DiffItem } from '../../src/shared/item-diff/item-change';
+import { compileUnit } from '../../src/shared/tessera/compile-unit';
+import { boundaryReader } from '../auth/access-fixture';
 import { LOCAL_READER } from '../../src/server/projects/reader';
 import { testWorkspace } from '../helpers/temp-data-dir';
 import { createGit } from '../../src/server/projects/git';
@@ -123,7 +125,10 @@ test('Git unions independently appended histories without adding a compile input
   expect(fixture.ws.resolveAddress(prefix + 'Second', LOCAL_READER)).toMatchObject({ status: 'found', address: prefix + 'Customer' });
   expect(readFolder(directory).files.map(file => file.path)).not.toContain(ADDRESS_HISTORY_FILE);
   const snapshot = await readSnapshot({ repository: directory, branch: 'history-second' });
-  expect(snapshot.files.map(file => file.path)).not.toContain(ADDRESS_HISTORY_FILE);
+  const compiled = compileUnit(snapshot.files, { lossPolicySha256: null });
+  expect(compiled.failures).toEqual([]);
+  expect(compiled.report.inputs.map(input => input.path)).not.toContain(ADDRESS_HISTORY_FILE);
+  expect(compiled.outputs.map(file => file.path)).not.toContain(ADDRESS_HISTORY_FILE);
 });
 
 test('address resolution sees branch aliases in the editor and only published aliases for consumers', async () => {
@@ -255,7 +260,15 @@ test('the persisted history is source control bookkeeping and stays out of file 
   expect(status.changes).toContainEqual(expect.objectContaining({ path: ADDRESS_HISTORY_FILE, hidden: true }));
   const url = `http://localhost:5173/api/projects/${project}/files/${ADDRESS_HISTORY_FILE}`;
   expect((await fixture.handler(new Request(url))).status).toBe(404);
+  expect(fixture.ws.cache.files(project).map(file => file.path)).not.toContain(ADDRESS_HISTORY_FILE);
+  const reader = boundaryReader({ readableProjects: new Set([project]), canRead: (_project, path) => path !== 'finance.ontology.yaml', roles: () => [] }, 'reader');
+  expect(readAddressMigrations(fixture.ws.layout, project, reader)).toEqual([]);
   expect(await itemDiffAgentAnswers(fixture)).toEqual(consumerBefore);
+  await publishFixture(fixture);
+  const directory = join(fixture.root, 'projects', project);
+  const committed = await readCommittedAddressMigrations(fixture.ws.git, fixture.ws.layout, project, git(directory, ['rev-parse', 'HEAD']), reader);
+  expect(committed).toEqual([]);
+  expect((await fixture.handler(new Request(url))).status).toBe(404);
 });
 
 test('project trash carries a legacy import inside the archived project', async () => {
