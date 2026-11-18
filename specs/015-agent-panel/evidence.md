@@ -82,3 +82,8 @@ the existing equality guard proves those hashes equal before save. It is omitted
 reported as killed. Dropping the equality guard, allowing an unread write and skipping the
 second read are independently killed. The content/audit-origin candidates exercise the session
 service's public start/end path; they do not add an unrestricted agent operation.
+
+The browser exposed a permission-focus race: a question can arrive while the prompt POST is
+still pending, so its first button is disabled at mount and cannot receive focus. Focus is now
+applied once the action finishes as well as when the question id changes. The targeted renderer
+proof remains green; the browser check exercises this race through the real relay.

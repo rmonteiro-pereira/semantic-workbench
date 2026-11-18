@@ -5,7 +5,9 @@ import type { QuestionCard as Question } from '../../shared/agent-panel/events';
 /** Focuses the first offered option and lets the person answer or cancel the question. */
 export function QuestionCard({ question, busy, answer }: { question: Question; busy: boolean; answer(choice: { option: string } | { cancel: true }): void }) {
   const first = useRef<HTMLButtonElement>(null);
-  useEffect(() => first.current?.focus(), [question.id]);
+  useEffect(() => {
+    if (!busy) first.current?.focus();
+  }, [question.id, busy]);
   return (
     <section className="agent-question" role="alert" aria-label="Agent permission question">
       <h3>{question.text}</h3>
