@@ -22,6 +22,7 @@ export const HANDLER_CHECKS = [
   'remoteAddress',
   'trashTarget',
   'bodyTargets',
+  'authorizeProposal',
 ] as const;
 /** Audit transport origins. */
 export { CALLER_ORIGINS } from '../../shared/observability/operation';
