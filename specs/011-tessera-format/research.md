@@ -187,3 +187,7 @@ path through the boundary.
 **Decision.** The compiler calls the existing envelope check (`validateEnvelope` in
 `src/shared/validation/diagnostics.ts`) and the same `maxAliasCount` as `inspect`, per document.
 A document over the limit fails the compile with the same finding the editor shows.
+
+**Outcome (recorded at task time).** No pinned upstream development schema of the next Ossie base
+was available, so the synthetic base was used: `tests/fixtures/ossie-next-base/synthetic-ontology.json`
+and `colliding-ontology.json`.
