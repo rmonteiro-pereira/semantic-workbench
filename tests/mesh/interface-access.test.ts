@@ -41,6 +41,8 @@ test('published interfaces expose exported concepts without exposing private fil
   await publishDependent(fixture);
   const allowed = reader(fixture, ['finance', 'retail']);
   expect((await allowed.call('/api/projects/finance/files/private/invoice.yaml')).status).toBe(404);
+  const document = '/api/projects/retail/files/ontology.yaml';
+  expect((await allowed.call(document)).body.unitValidation).toMatchObject({ setNotChecked: false });
   const path = '/api/projects/retail/dependencies?interfaces=1';
   const result = await allowed.call(path);
   expect(result.status).toBe(200);
@@ -52,6 +54,7 @@ test('published interfaces expose exported concepts without exposing private fil
   expect(JSON.stringify(compile.body)).not.toMatch(/InternalLedger|private\/invoice/);
   const denied = reader(fixture, ['retail']);
   expect((await denied.call(path)).body.interfaces).toEqual([]);
+  expect((await denied.call(document)).body.unitValidation).toMatchObject({ set: [], setNotChecked: true });
   const deniedCompile = await denied.call('/api/projects/retail/compile', 'POST', {});
   expect(JSON.stringify(deniedCompile.body)).not.toContain('Invoice');
 });

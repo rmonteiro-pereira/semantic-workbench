@@ -88,7 +88,8 @@ export async function resolveFrozenUnit(source: FrozenDependencySource, pin: Pub
   return { imports, providers };
 }
 
-async function checkImports(source: FrozenDependencySource, pin: PublishedPin, candidate: Candidate, reader: Reader, unit: OntologyUnit, lockFile?: PublishedDocument) {
+/** Checks a complete unit using the public definitions frozen by its lock. */
+export async function checkImports(source: FrozenDependencySource, pin: PublishedPin, candidate: Candidate, reader: Reader, unit: OntologyUnit, lockFile?: { source: string }) {
   const { imports, providers } = await resolveFrozenUnit(source, pin, candidate, reader, unit, lockFile);
   const imported = new Map<string, Record<string, unknown>>();
   for (const entry of imports) {

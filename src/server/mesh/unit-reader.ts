@@ -6,7 +6,7 @@ import { isObject } from '../../shared/edit/source-text';
 import { declaredImports } from '../../shared/tessera/imports';
 import { readMarker } from '../../shared/tessera/marker';
 import { requiredUnitFiles, setFindings, type ReaderValidation } from '../../shared/tessera/set-validation';
-import { readUnitStructure, type UnitDocument } from '../../shared/tessera/unit-structure';
+import { readUnitStructure, type OntologyUnit, type UnitDocument, type UnitFinding } from '../../shared/tessera/unit-structure';
 import { validateInput } from '../../shared/validation/input';
 import { MissingOntologySetError } from '../projects/errors';
 
@@ -40,20 +40,22 @@ function rootOf(file: UnitDocument, source: ReadSource): UnitDocument | undefine
 }
 
 /** Recomputes each set for the caller's current access and returns only caller-readable findings. */
-export function readOntologySet(active: UnitText, source: ReadSource): ReaderValidation | undefined {
+export async function readOntologySet(active: UnitText, source: ReadSource, checkDependencies: (unit: OntologyUnit) => Promise<UnitFinding[] | undefined>): Promise<ReaderValidation | undefined> {
   const file = unitDocument(active.path, active.source);
   if (!file) return undefined;
   const individual = { [file.path]: validateInput(active.source, posix.basename(file.path)).issues };
   const partial: ReaderValidation = { singleFile: individual, set: [], setNotChecked: true };
   const root = rootOf(file, source);
-  if (!root || declaredImports(root.data).length) return partial;
+  if (!root) return partial;
   const required = requiredUnitFiles({ root, parts: [] });
   const files = required.map(path => (path === root.path ? root : unitDocument(path, source.read(path))));
   if (files.some(file => !file)) return partial;
   const { units, findings } = readUnitStructure(files.filter(file => file !== undefined));
   const unit = units.find(unit => unit.root.path === root.path);
   if (!unit) return partial;
-  return { singleFile: individual, set: [...findings, ...setFindings(unit, [])], setNotChecked: false };
+  const complete = declaredImports(root.data).length ? await checkDependencies(unit) : setFindings(unit, []);
+  if (!complete) return partial;
+  return { singleFile: individual, set: [...findings, ...complete], setNotChecked: false };
 }
 
 /** Requires the same complete set to be available before the caller may edit its source. */
