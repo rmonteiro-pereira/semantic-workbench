@@ -316,6 +316,23 @@
       },
       "outcomeClassifier": "batchSave"
     },
+    "GET /api/mesh/providers": {
+      "id": "mesh.providers.list",
+      "handlerChecks": [],
+      "limits": { "request": "none", "response": "bounded", "work": "scan" },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": { "increment": "later", "reason": "Provider discovery is part of interactive import editing." },
+      "steps": ["snapshot.read"]
+    },
+    "GET /api/projects/:slug/dependencies": {
+      "id": "mesh.dependencies.read",
+      "handlerChecks": [],
+      "limits": { "request": "none", "response": "bounded", "work": "scan" },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": { "increment": "later", "reason": "Dependency status reads the person's workbench copy." }
+    },
     "POST /api/projects/:slug/compile/check": {
       "id": "compile.check",
       "handlerChecks": [],

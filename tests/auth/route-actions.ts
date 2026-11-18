@@ -26,6 +26,8 @@ export const routeExamples: { method: string; path: string; body?: unknown }[] =
   { method: 'POST', path: '/api/projects/missing/import' },
   { method: 'GET', path: '/api/projects/missing/export' },
   { method: 'POST', path: '/api/projects/missing/save-batch' },
+  { method: 'GET', path: '/api/mesh/providers' },
+  { method: 'GET', path: '/api/projects/missing/dependencies' },
   { method: 'POST', path: '/api/projects/missing/compile/check', body: { source: 'published' } },
   { method: 'POST', path: '/api/projects/missing/compile', body: {} },
   { method: 'GET', path: '/api/projects/missing/compile/bundle' },

@@ -60,3 +60,12 @@ export async function resolveProvider(resolution: ProviderResolution, pin: Publi
   if (choices.length !== 1) throw unavailable();
   return choices[0];
 }
+
+/** Lists the public interfaces of one readable project at the caller's publication pin. */
+export async function publishedProviders(resolution: ProviderResolution, pin: PublishedPin, reader: Reader, project: string): Promise<PublicProvider[]> {
+  if (reader.view && !reader.view.readableProjects.has(project)) return [];
+  const repository = resolution.repositoryOf(project);
+  const publication = repository ? pin.commits.get(repository) : undefined;
+  if (!repository || !publication) return [];
+  return exportedOntologies(project, repository, publication.commit, await resolution.snapshots.documents(pin, project));
+}

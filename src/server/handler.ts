@@ -21,6 +21,7 @@ import { projectRoutes } from './routes/projects';
 import { fileRoutes } from './routes/files';
 import { itemAddressRoutes } from './routes/item-addresses';
 import { exportRoutes } from './routes/export';
+import { meshRoutes } from './routes/mesh';
 import { compileRoutes } from './routes/compile';
 import { draftRoutes } from './routes/drafts';
 import { trashRoutesWith } from './routes/trash';
@@ -157,6 +158,7 @@ function workspaceRoutes(administration: AdminRepository, access: AccessControl,
     repoRoutes,
     exportRoutes,
     compileRoutes,
+    meshRoutes,
     itemAddressRoutes,
     fileRoutes,
     draftRoutes,

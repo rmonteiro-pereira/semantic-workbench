@@ -345,6 +345,7 @@ command line.
   after checking whether the caller can read the provider project.
   The shared inspector connects allowed aliases to read-only concept nodes that retain the provider’s
   project, ontology, and published version.
+  `src/server/routes/mesh.ts` serves provider discovery and dependency status through the operation boundary.
   The inspector can build a composed graph with a source-file index. The scanner indexes the
   dependency manifest as project metadata and keeps parse findings per file.
   The workspace graph, catalog and grouping compose the active ontology from the reader’s files.

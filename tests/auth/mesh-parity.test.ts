@@ -1,5 +1,6 @@
 /** Exercises ontology unit edits through the HTTP and in-process operation boundaries. */
 import { expect, test } from 'bun:test';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createHandler } from '../../src/server/handler';
 import { createAccessControl } from '../../src/server/auth/authorize';
@@ -9,6 +10,7 @@ import { buildTwinRequest } from '../../src/server/auth/twin-request';
 import { LOCAL_READER } from '../../src/server/projects/reader';
 import { testWorkspace } from '../helpers/temp-data-dir';
 import { publishFixture } from '../helpers/published-workspace';
+import { meshWorkspace, MESH_PROJECTS } from '../helpers/mesh-workspace';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 import { accessFixture, person } from './access-fixture';
 
@@ -69,3 +71,40 @@ for (const operation of operations) {
     }
   }, 15000);
 }
+
+test('provider listing and dependency reads preserve access and output across operation transports', async () => {
+  using fixture = await meshWorkspace('shared');
+  const options = accessFixture();
+  const projects = JSON.parse(readFileSync('tests/fixtures/tessera/mesh/access/projects.json', 'utf8'));
+  const configured = JSON.parse(readFileSync('tests/fixtures/tessera/mesh/access/grants.json', 'utf8')).grants;
+  const grants = configured
+    .filter((grant: { id: string }) => grant.id === 'retail-author')
+    .map((grant: { scope: object }) => ({
+      ...grant,
+      scope: { kind: 'projects', projects: ['finance', 'retail'] },
+    }));
+  const access = createAccessControl({ ...options, knownProjects: () => [...MESH_PROJECTS], config: { ...options.config, projects, grants } });
+  const principal = access.principalFor(person('alice'));
+  const audit = createAuditLog({ dir: join(fixture.fixture.root, 'mesh-read-audit') });
+  const handler = createHandler(fixture.ws, { mode: 'server', access, audit, principal: () => principal, publicOrigin: origin, port: 5418, remoteCredentials: allowEveryRemote() });
+  async function read(id: string, params: Record<string, string>, query?: Record<string, string>) {
+    const request = buildTwinRequest(id, { params, query });
+    const target = new URL(request.url);
+    const http = await handler(new Request(origin + target.pathname + target.search));
+    const twin = (await handler.boundary.operate({ caller: mintCaller({ principal, origin: 'mcp' }), request })).response;
+    const content = await http.text();
+    expect(twin.status).toBe(http.status);
+    expect(await twin.text()).toBe(content);
+    return { status: http.status, content };
+  }
+  const providers = await read('mesh.providers.list', {});
+  expect(providers.status).toBe(200);
+  expect(JSON.parse(providers.content).providers).toMatchObject([{ project: 'finance', concepts: ['Currency', 'Invoice'] }]);
+  const hidden = await read('mesh.providers.list', {}, { project: 'units' });
+  const missing = await read('mesh.providers.list', {}, { project: 'missing' });
+  expect(hidden).toEqual(missing);
+  expect(JSON.parse(hidden.content)).toEqual({ providers: [], cursor: null });
+  const dependencies = await read('mesh.dependencies.read', { slug: 'retail' });
+  expect(dependencies.status).toBe(200);
+  expect(JSON.parse(dependencies.content)).toEqual({ roots: [], manifestHash: null });
+});
