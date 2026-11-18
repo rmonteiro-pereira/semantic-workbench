@@ -209,8 +209,8 @@ test('a person lists their own connections and revokes one without touching the 
   const cookie = first.cookie;
   const list = await (await server.json('/api/connections', 'GET', cookie)).json();
   expect(list).toHaveLength(2);
-  expect(list[0]).toMatchObject({ clientId: 'reference-client', programName: 'Protocol reference client', scopes: ['read', 'edit'], state: 'active' });
-  expect(Object.keys(list[0]).sort()).toEqual(['clientId', 'createdAt', 'id', 'lastUsedAt', 'personName', 'programName', 'scopes', 'state']);
+  expect(list[0]).toMatchObject({ clientId: 'reference-client', programName: 'Protocol reference client', origin: 'mcp', scopes: ['read', 'edit'], state: 'active' });
+  expect(Object.keys(list[0]).sort()).toEqual(['clientId', 'createdAt', 'id', 'lastUsedAt', 'origin', 'personName', 'programName', 'scopes', 'state']);
   const target = list.find((view: { id: string }) => view.id !== undefined);
   const revoked = await server.json(`/api/connections/${target.id}`, 'DELETE', cookie);
   expect(revoked.status).toBe(200);
