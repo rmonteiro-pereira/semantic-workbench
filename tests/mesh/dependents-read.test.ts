@@ -1,5 +1,7 @@
 import { expect, test } from 'bun:test';
-import { readFileSync } from 'node:fs';
+import { cpSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { publishFixture } from '../helpers/published-workspace';
 import { createAccessControl } from '../../src/server/auth/authorize';
 import { mintCaller } from '../../src/server/auth/caller';
 import { buildTwinRequest } from '../../src/server/auth/twin-request';
@@ -57,4 +59,34 @@ test.each(['steward', 'admin', 'editor', 'viewer'] as const)('access to dependen
     cursor: null,
   });
   if (roleId === 'steward') expect((await handler(apiRequest('/api/projects/retail/dependencies'))).status).toBe(404);
+});
+
+test('a page of fifty published consumers contains the allowed fields and a stable continuation', async () => {
+  using fixture = await meshWorkspace('shared');
+  await publishDependent(fixture);
+  const directory = join(fixture.fixture.root, 'projects', fixture.ws.repoOf('retail'));
+  const importers = Array.from({ length: 50 }, (_, index) => ({ path: `shop-${index}`, name: `Shop ${index}` }));
+  for (const importer of importers) cpSync(fixture.projectDirectory('retail'), join(directory, importer.path), { recursive: true });
+  await fixture.ws.registerRepositoryProjects(fixture.ws.repoOf('retail'), [...MESH_PROJECTS.map(path => ({ path, name: path })), ...importers]);
+  await publishFixture(fixture.fixture);
+  // Measure the listing separately from the one-time rebuild of the derivative.
+  expect(await fixture.ws.dependents.read()).toHaveLength(51);
+  const path = 'http://localhost:4310/api/projects/finance/dependents';
+  const start = performance.now();
+  const first = await fixture.fixture.handler(new Request(path));
+  const page = await first.json();
+  console.log(`Mesh dependents: ${Math.round(performance.now() - start)} ms for a 50-row page.`);
+  expect(first.status).toBe(200);
+  expect(Object.keys(page).sort()).toEqual(['cursor', 'dependents']);
+  expect(page.dependents).toHaveLength(50);
+  const last = await fixture.fixture.handler(new Request(`${path}?cursor=${encodeURIComponent(page.cursor)}`));
+  const remainder = await last.json();
+  expect(last.status).toBe(200);
+  expect(remainder.cursor).toBeNull();
+  expect(remainder.dependents).toHaveLength(1);
+  const all = [...page.dependents, ...remainder.dependents];
+  expect(all.map(row => row.name).sort()).toEqual(['retail', ...importers.map(entry => entry.name)].sort());
+  for (const row of all) {
+    expect(row).toEqual({ name: row.name, domain: null, items: ['Invoice'], version: fixture.git('finance', ['rev-parse', 'HEAD']) });
+  }
 });
