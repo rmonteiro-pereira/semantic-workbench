@@ -341,6 +341,8 @@ command line.
   The shared validator selects the revision 3 root or part schema before checking a single file.
   References outside that file are checked at the unit boundary.
   Agent context composes roots with their declared parts from the caller’s pinned published files.
+  `src/server/mesh/provider-resolution.ts` reads public interfaces from pinned publication objects
+  after checking whether the caller can read the provider project.
   The inspector can build a composed graph with a source-file index. The scanner indexes the
   dependency manifest as project metadata and keeps parse findings per file.
   The workspace graph, catalog and grouping compose the active ontology from the reader’s files.
