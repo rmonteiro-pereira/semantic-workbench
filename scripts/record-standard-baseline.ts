@@ -65,7 +65,7 @@ export function describeDocument(source: string, filename: string): DocumentReco
     valid: true,
     issues,
     kind: model.kind,
-    layout: model.layout,
+    layout: 'layout' in model ? model.layout : undefined,
     entityIds: model.entities.map(entity => entity.id),
     edgeIds: model.edges.map(edge => edge.id),
     addresses,
