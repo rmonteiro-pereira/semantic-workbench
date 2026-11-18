@@ -23,3 +23,31 @@
   outline-offset: 2px;
   background: var(--color-surface-sunken);
 }
+
+.item-overlay-control {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  position: relative;
+}
+
+.item-overlay-status {
+  position: absolute;
+  display: grid;
+  z-index: 5;
+  inset-block-start: 100%;
+  inset-inline-end: 0;
+  width: min(260px, 75vw);
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.compact-controls-panel .item-overlay-status {
+  position: static;
+  width: 100%;
+}

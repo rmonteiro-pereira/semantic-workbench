@@ -13,7 +13,7 @@ import { ReactFlow, getViewportForBounds, Background, MiniMap, MarkerType, type 
 import { SmartEdgeProvider, type SmartEdgeMetrics } from '@tisoap/react-flow-smart-edge';
 import { Crosshair, Maximize, Maximize2, Minimize2, RefreshCw } from 'lucide-react';
 import { useViewRestore, type Fullscreen } from './fullscreen';
-import { GraphOptions, OptionGroup, Segmented, ShowToggle } from './GraphOptions';
+import { ModelGraphOptions, OptionGroup, Segmented, ShowToggle } from './GraphOptions';
 import { ZoomButtons } from './ZoomButtons';
 import { MODEL_CARD_WIDTH, startsCollapsed, textSizesAt } from './overview-capacity';
 import { CompactControls } from './CompactControls';
@@ -411,7 +411,7 @@ export function FullGraph(props: Props) {
         <CompactControls>
           {props.groupMenu}
           <ZoomButtons onZoomIn={() => void flow.current?.zoomIn({ duration: 150 })} onZoomOut={() => void flow.current?.zoomOut({ duration: 150 })} />
-          <GraphOptions>
+          <ModelGraphOptions>
             <OptionGroup title="Layout">
               <Segmented
                 label="Graph layout"
@@ -463,7 +463,7 @@ export function FullGraph(props: Props) {
                 Mini-map
               </ShowToggle>
             </OptionGroup>
-          </GraphOptions>
+          </ModelGraphOptions>
           {props.fullscreen && <FullscreenButton fullscreen={props.fullscreen} />}
         </CompactControls>
       </ScrollStrip>

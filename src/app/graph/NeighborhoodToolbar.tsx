@@ -4,7 +4,7 @@ import { ArrowLeft, ArrowRight, FileSymlink, Gauge, LocateFixed } from 'lucide-r
 import { ScrollStrip } from '../components/ScrollStrip';
 import { EntityName } from './EntityName';
 import { CompactControls } from './CompactControls';
-import { GraphOptions, OptionGroup, ShowToggle } from './GraphOptions';
+import { ModelGraphOptions, OptionGroup, ShowToggle } from './GraphOptions';
 import { PierceControls } from './PierceControls';
 import { ZoomButtons } from './ZoomButtons';
 import { FullscreenButton } from './FullGraph';
@@ -160,7 +160,7 @@ function NeighborhoodOptions({
   onRearrange,
 }: OptionsProps) {
   return (
-    <GraphOptions>
+    <ModelGraphOptions>
       <OptionGroup title="Neighbors">
         {view.relationships.length > 1 && (
           <label>
@@ -204,7 +204,7 @@ function NeighborhoodOptions({
           Re-arrange
         </button>
       </OptionGroup>
-    </GraphOptions>
+    </ModelGraphOptions>
   );
 }
 

@@ -24,6 +24,18 @@ export function GraphOptions({
   );
 }
 
+import { OverlayControl } from '../item-diff/OverlayControl';
+
+/** Includes the unpublished comparison controls in a model graph toolbar. */
+export function ModelGraphOptions({ children }: { children: React.ReactNode }) {
+  return (
+    <GraphOptions>
+      {children}
+      <OverlayControl />
+    </GraphOptions>
+  );
+}
+
 /** One group of related controls, separated from its neighbors in the toolbar. */
 export function OptionGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
