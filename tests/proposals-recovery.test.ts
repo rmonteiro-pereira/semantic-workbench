@@ -1,6 +1,8 @@
 // A promotion interrupted at each durable step ends with the proposal promoted only if the default
 // branch actually moved, and a damaged proposal is shown only to people who may promote.
 import { expect, test } from 'bun:test';
+import { createGit } from '../src/server/projects/git';
+import { createProposalRefs } from '../src/server/projects/proposal-refs';
 import { openWorkspace } from '../src/server/projects/workspace';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { gitOutput } from './auth/working-copy-fixture';
@@ -39,6 +41,35 @@ for (const stage of ['intent', 'ref', 'pointer'] as const) {
       expect(reopened.state.published().repositories[fixture.repository].commit).toBe(main);
       const ref = gitOutput(reopened.worktrees.baseDir(fixture.repository), ['rev-parse', '-q', '--verify', `refs/workbench/proposals/${proposal.id}`]);
       expect(ref.text).toBe(moved ? '' : tip);
+    } finally {
+      reopened.close();
+    }
+  });
+}
+
+for (const action of ['close', 'restore'] as const) {
+  test(`restart finishes an interrupted ${action} after the Git transaction`, async () => {
+    using fixture = await proposalFixture();
+    const { sales } = fixture.projects;
+    const caller = fixture.dave();
+    const proposal = await createProposal(caller, sales.slug, 'Interrupted transition', [sales.slug]);
+    const folder = fixture.ws.worktrees.baseDir(fixture.repository);
+    const refs = createProposalRefs(createGit({ projectsRoot: fixture.ws.layout.projects }), () => folder);
+    if (action === 'restore') {
+      expect((await caller.call(proposalsPath(sales.slug, proposal.id) + '/close', 'POST', {})).status).toBe(200);
+    }
+    // Stop after the durable ref transaction, before writing the proposal record.
+    const move = action === 'close' ? refs.closeRef : refs.restoreRef;
+    expect(await move(fixture.repository, proposal.id, proposal.tip)).toBe(true);
+    fixture.ws.close();
+
+    const reopened = await openWorkspace({ root: fixture.root });
+    try {
+      const summaries = await reopened.proposals.list(sales.slug, asEveryone);
+      const status = action === 'close' ? 'closed' : 'open';
+      expect(summaries).toMatchObject([{ id: proposal.id, status, tip: proposal.tip }]);
+      expect(await refs.readTip(fixture.repository, proposal.id, status === 'closed' ? 'closed' : 'open')).toBe(proposal.tip);
+      expect(await refs.readTip(fixture.repository, proposal.id, status === 'closed' ? 'open' : 'closed')).toBeNull();
     } finally {
       reopened.close();
     }

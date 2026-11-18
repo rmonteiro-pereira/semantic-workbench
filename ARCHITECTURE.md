@@ -203,7 +203,9 @@ concatenating project, document or item names.
   A mismatch is stale state, while a storage failure returns a generic operation error.
   `proposals.ts` creates, lists and views; `proposal-contribution.ts`,
   `proposal-promotion.ts` (also startup recovery) and `proposal-closing.ts` do the rest, all inside the
-  repository publication queue. Promotion reuses `moveDefault` through `worktrees.promote`.
+  repository publication queue. Startup reconciles a close or restore when the Git transaction moved
+  the ref but the proposal record still holds the earlier state. An interrupted close records
+  recovery as the closer because the actor is unavailable. Promotion reuses `moveDefault` through `worktrees.promote`.
   `work-in-progress-push.ts` refuses pushing work and proposal branches. `routes/proposals.ts` exposes the
   routes and `auth/proposal-access.ts` decides authority. The browser side is `app/proposals/`.
   The proposal visibility boundary allows a reader of any declared project to see the name, creator,

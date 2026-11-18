@@ -107,23 +107,38 @@ export function createPromotions(context: ProposalContext) {
     return { result, audit: context.audit(record, [result.previous ?? '', result.commit].filter(Boolean)) };
   }
 
-  /**
-   * Finishes bookkeeping a stop left behind: an open proposal whose tip the default branch now
-   * contains was promoted, whatever the record says. Damaged proposals are reported, never changed.
-   */
+  // A close or restore moves both refs atomically, so one ref in the opposite namespace is enough
+  // to finish the record. Two refs or no refs leave the record alone for investigation.
+  function recoverClosing(record: ProposalRecord, open: string | undefined, closed: string | undefined): ProposalRecord {
+    if (record.status === 'open' && !open && closed) {
+      return { ...record, status: 'closed', outcome: { by: 'recovery', at: context.timestamp(), tip: closed } };
+    }
+    if (record.status === 'closed' && !closed && open && open === record.outcome?.tip) {
+      const reopened: ProposalRecord = { ...record, status: 'open' };
+      delete reopened.outcome;
+      return reopened;
+    }
+    return record;
+  }
+
+  /** Finishes proposal bookkeeping left behind by an interrupted ref transaction or publication. */
   async function recover(repositories: string[]) {
     for (const repository of repositories) {
       await deps.serialized(repository, async () => {
         const published = deps.publishedCommit(repository);
         const records = store.read(repository);
-        if (!records.length || !published) return;
-        const merged = await refs.mergedInto(repository, published);
+        if (!records.length) return;
+        const merged = published ? await refs.mergedInto(repository, published) : new Set<string>();
         const tips = await refs.listTips(repository);
         const settled = new Map<string, ProposalRecord>();
-        for (const record of records.filter(candidate => candidate.status === 'open')) {
+        for (const record of records) {
           const tip = tips.open.get(record.id);
-          if (!tip) log.warn('proposals.damaged', { repository, proposal: record.id });
-          else if (merged.has(record.id) && tip !== record.base) {
+          const closedTip = tips.closed.get(record.id);
+          const recovered = recoverClosing(record, tip, closedTip);
+          if (recovered !== record) settled.set(record.id, recovered);
+          else if (record.status !== 'open') continue;
+          else if (!tip || closedTip) log.warn('proposals.damaged', { repository, proposal: record.id });
+          else if (published && merged.has(record.id) && tip !== record.base) {
             settled.set(record.id, { ...record, status: 'promoted', outcome: { by: 'recovery', at: context.timestamp(), tip, previousPublished: null, published } });
             await refs.removeRef(repository, record.id, tip);
           }
