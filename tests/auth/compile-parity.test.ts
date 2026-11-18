@@ -8,7 +8,10 @@ import { mintCaller } from '../../src/server/auth/caller';
 import { clientFromToken } from '../../src/server/auth/principal';
 import { buildTwinRequest } from '../../src/server/auth/twin-request';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
-import { COMPILE_PROJECT, compileWorkspace } from '../helpers/compile-workspace';
+import { checkUnit } from '../../src/server/tessera/compile-service';
+import { workspaceUnitSource } from '../../src/server/tessera/workspace-unit-source';
+import { LOCAL_READER } from '../../src/server/projects/reader';
+import { COMPILE_PROJECT, ONTOLOGY_PATH, compileWorkspace } from '../helpers/compile-workspace';
 import { accessFixture, person } from './access-fixture';
 
 const origin = 'http://localhost:5312';
@@ -100,4 +103,43 @@ test('a compile is audited once as an export and a check once as a read', async 
   expect(run.audit).toMatchObject([{ action: 'export', decision: 'allow', outcome: 'ok' }]);
   const check = await invoke(workspace, 'dave', operations[0], COMPILE_PROJECT, false, 'checked');
   expect(check.audit).toMatchObject([{ action: 'read', decision: 'allow' }]);
+});
+
+/** What the review of a conversion would send, built from the project as the fixture holds it. */
+async function conversionBody(workspace: Awaited<ReturnType<typeof compileWorkspace>>) {
+  const check = await checkUnit(workspaceUnitSource(workspace.ws, COMPILE_PROJECT, LOCAL_READER), { source: 'working' });
+  return {
+    path: ONTOLOGY_PATH,
+    baseHash: workspace.ws.readFile(COMPILE_PROJECT, ONTOLOGY_PATH, LOCAL_READER).hash,
+    inputs: check.report.inputs.map(input => ({ path: input.path, sha256: input.sha256 })),
+    accept: { digest: check.report.digest },
+  };
+}
+
+/** A conversion writes, so each transport gets a workspace of its own. */
+async function convertOnce(caller: Caller, twin: boolean) {
+  using workspace = await compileWorkspace();
+  const body = await conversionBody(workspace);
+  const result = await invoke(workspace, caller, { id: 'compile.convert', body } as never, COMPILE_PROJECT, twin, 'convert');
+  return result;
+}
+
+const convertStatus: Record<string, number> = { frank: 200, viewer: 403, carol: 404, application: 403 };
+
+for (const caller of ['frank', 'viewer', 'carol', 'application'] as Caller[]) {
+  test(`compile.convert for ${caller} gives HTTP and the boundary the same answer`, async () => {
+    const http = await convertOnce(caller, false);
+    const twin = await convertOnce(caller, true);
+    expect(twin).toEqual(http);
+    expect(http.status).toBe(convertStatus[caller]);
+    const saved = (http.body as { version?: string }).version;
+    if (http.status === 200) expect(saved).toBe('<hash>');
+    else expect(saved).toBeUndefined();
+  }, 120000);
+}
+
+test('an allowed conversion leaves one save record in the audit log', async () => {
+  const result = await convertOnce('frank', false);
+  expect(result.audit).toHaveLength(1);
+  expect(result.audit[0]).toMatchObject({ action: 'edit', decision: 'allow' });
 });

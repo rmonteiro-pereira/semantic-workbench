@@ -122,3 +122,46 @@ test('a compile refused by the compiler lists its findings and cannot be accepte
   expect(check.findings.length).toBeGreaterThan(0);
   expect(check.findings[0].document).toBe(ONTOLOGY_PATH);
 });
+
+async function conversionBody(workspace: Awaited<ReturnType<typeof compileWorkspace>>) {
+  const check = await (await sendToCompile(workspace, `${base}/check`, { source: 'working' })).json();
+  return {
+    path: ONTOLOGY_PATH,
+    baseHash: workspace.ws.readFile(COMPILE_PROJECT, ONTOLOGY_PATH, LOCAL_READER).hash,
+    inputs: check.report.inputs.map((input: { path: string; sha256: string }) => ({ path: input.path, sha256: input.sha256 })),
+    accept: { digest: check.report.digest },
+  };
+}
+
+test('convert answers 200 with the new version and the accepted digest, and the file is standard afterwards', async () => {
+  using workspace = await compileWorkspace();
+  const body = await conversionBody(workspace);
+  const response = await sendToCompile(workspace, `${base}/convert`, body);
+  expect(response.status).toBe(200);
+  const answer = await response.json();
+  expect(answer).toMatchObject({ path: ONTOLOGY_PATH, lossDigest: body.accept.digest });
+  expect(answer.version).toBe(workspace.ws.readFile(COMPILE_PROJECT, ONTOLOGY_PATH, LOCAL_READER).hash);
+  expect(workspace.ws.readFile(COMPILE_PROJECT, ONTOLOGY_PATH, LOCAL_READER).source).not.toContain('tessera');
+});
+
+test('convert maps each refusal to its status and its own error name', async () => {
+  using workspace = await compileWorkspace();
+  const body = await conversionBody(workspace);
+  const stale = await sendToCompile(workspace, `${base}/convert`, { ...body, baseHash: 'f'.repeat(64) });
+  expect(stale.status).toBe(409);
+  expect((await stale.json()).error).toBe('version-changed');
+  const mismatch = await sendToCompile(workspace, `${base}/convert`, { ...body, accept: { digest: 'sha256:' + '0'.repeat(64) } });
+  expect((await mismatch.json()).error).toBe('digest-mismatch');
+  const notTessera = await sendToCompile(workspace, `${base}/convert`, { ...body, path: 'retail.semantic.yaml' });
+  expect([409, 404]).toContain(notTessera.status);
+  expect((await sendToCompile(workspace, `${base}/convert`, { path: ONTOLOGY_PATH })).status).toBe(400);
+  await workspace.editWorkingCopy(ONTOLOGY_PATH, TESSERA_FILES[ONTOLOGY_PATH] + '# not committed\n');
+  const dirty = await sendToCompile(workspace, `${base}/convert`, { ...(await conversionBody(workspace)) });
+  expect(dirty.status).toBe(409);
+  expect((await dirty.json()).error).toBe('dirty');
+});
+
+test('convert only answers POST', async () => {
+  using workspace = await compileWorkspace();
+  expect((await sendToCompile(workspace, `${base}/convert`)).status).toBeGreaterThanOrEqual(400);
+});

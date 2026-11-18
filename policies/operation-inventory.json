@@ -360,6 +360,21 @@
       },
       "steps": ["snapshot.read"]
     },
+    "POST /api/projects/:slug/compile/convert": {
+      "id": "compile.convert",
+      "handlerChecks": ["authorizeWrite"],
+      "limits": {
+        "request": "FILE_SAVE_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "scan"
+      },
+      "effects": ["localWrite"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "later",
+        "reason": "Rewrites a source file; not an agent operation yet."
+      }
+    },
     "POST /api/projects/:slug/item-addresses/resolve": {
       "id": "itemAddresses.resolve",
       "handlerChecks": [],

@@ -1,12 +1,15 @@
 // Serves check, compile and bundle of a project as standard Ossie, and routes conversion. Answers carry the source label, and refusals come before any byte of a zip.
 import { requestReader } from '../auth/request-scope';
+import { authorizeWrite } from '../auth/write-access';
 import { SnapshotUnavailableError, TooLargeError } from '../projects/errors';
 import { zipSize, zipStream, type ZipEntry } from '../projects/zip';
 import { FILE_SAVE_REQUEST_LIMIT, decodeSegment, readJson } from '../request';
 import { SnapshotChangedError, checkUnit, compilePublished, runCompile, type CompileOutcome } from '../tessera/compile-service';
-import { parseBundleQuery, parseCheckRequest, parseRunRequest } from '../tessera/compile-request';
+import { parseBundleQuery, parseCheckRequest, parseConvertRequest, parseRunRequest } from '../tessera/compile-request';
+import { ConvertRefusal, convertToStandard } from '../tessera/convert-service';
 import { OutputPartError } from '../tessera/output-part';
 import { UnitLimitError } from '../tessera/unit-source';
+import { workspaceConversion } from '../tessera/workspace-conversion';
 import { workspaceUnitSource } from '../tessera/workspace-unit-source';
 import type { Workspace } from '../projects/workspace';
 import { EXPORT_LIMIT_BYTES } from './export';
@@ -14,10 +17,16 @@ import type { Route } from './http';
 
 const COMPILE_ROUTE = /^\/api\/projects\/([^/]+)\/compile(?:\/(check|bundle|convert))?$/;
 
+function convertRefusalResponse(error: ConvertRefusal): Response {
+  if (error.code === 'refused') return Response.json({ error: 'refused', message: error.message, findings: error.findings }, { status: 422 });
+  return Response.json({ error: error.code, message: error.message }, { status: 409 });
+}
+
 /** Maps the refusals of the compile operations to the answers the contract names. Anything else is left to the shared error handling. */
 function refusalResponse(error: unknown): Response | null {
   if (error instanceof SnapshotUnavailableError) return Response.json({ error: 'not-published' }, { status: 409 });
   if (error instanceof SnapshotChangedError) return Response.json({ error: 'snapshot-changed', current: error.current }, { status: 409 });
+  if (error instanceof ConvertRefusal) return convertRefusalResponse(error);
   if (error instanceof UnitLimitError) return Response.json({ error: error.message }, { status: 413 });
   if (error instanceof OutputPartError) {
     const status = error.reason === 'snapshot-changed' ? 409 : 400;
@@ -53,6 +62,12 @@ function refusedDownload(outcome: Exclude<CompileOutcome, { result: 'released' }
 
 function zipEntries(outcome: Extract<CompileOutcome, { result: 'released' }>): ZipEntry[] {
   return outcome.bundle.map(file => ({ name: file.path, size: file.bytes.length, read: () => file.bytes }));
+}
+
+async function convertRoute(ws: Workspace, req: Request, slug: string): Promise<Response> {
+  const request = parseConvertRequest(await readJson(req, FILE_SAVE_REQUEST_LIMIT));
+  authorizeWrite(req, 'edit', [{ type: 'file', project: slug, path: request.path }]);
+  return answering(async () => Response.json(await convertToStandard(workspaceConversion(ws, slug, requestReader(req)), request)));
 }
 
 /** Builds the zip download of a released compile, or refuses when it is over the ceiling. Nothing is streamed before this returns. */
@@ -91,6 +106,7 @@ export function createCompileRoutes(options: { maxBundleBytes: number } = { maxB
     if (req.method !== 'POST') return null;
     if (operation === 'check') return checkRoute(ws, req, slug);
     if (operation === 'run') return runRoute(ws, req, slug);
+    if (operation === 'convert') return convertRoute(ws, req, slug);
     return null;
   };
 }

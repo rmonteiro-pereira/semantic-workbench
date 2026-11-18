@@ -29,6 +29,7 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 | compile.check | POST /api/projects/:slug/compile/check | read | project | read | FILE_SAVE_REQUEST_LIMIT | local-edit |
 | compile.run | POST /api/projects/:slug/compile | export | project | read | FILE_SAVE_REQUEST_LIMIT | local-edit |
 | compile.bundle | GET /api/projects/:slug/compile/bundle | export | project | read | none | never |
+| compile.convert | POST /api/projects/:slug/compile/convert | edit | project | localWrite | FILE_SAVE_REQUEST_LIMIT | later |
 | itemAddresses.resolve | POST /api/projects/:slug/item-addresses/resolve | read | project | read | ITEM_ADDRESS_REQUEST_LIMIT | local-edit |
 | itemAddresses.reconcile | POST /api/projects/:slug/item-addresses/reconcile/* | edit | file | localWrite | ITEM_ADDRESS_REQUEST_LIMIT | local-edit |
 | files.ignore | POST /api/projects/:slug/gitignore | edit | project | localWrite | GIT_REQUEST_LIMIT | local-edit |

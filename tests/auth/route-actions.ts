@@ -29,6 +29,7 @@ export const routeExamples: { method: string; path: string; body?: unknown }[] =
   { method: 'POST', path: '/api/projects/missing/compile/check', body: { source: 'published' } },
   { method: 'POST', path: '/api/projects/missing/compile', body: {} },
   { method: 'GET', path: '/api/projects/missing/compile/bundle' },
+  { method: 'POST', path: '/api/projects/missing/compile/convert' },
   { method: 'POST', path: '/api/projects/missing/item-addresses/resolve', body: { address: 'sw1:missing/example.yaml#ontology:O' } },
   { method: 'POST', path: '/api/projects/missing/item-addresses/reconcile/example.yaml' },
   { method: 'POST', path: '/api/projects/missing/gitignore' },

@@ -292,6 +292,14 @@
       }
     },
     {
+      "case": "POST /api/projects/:slug/compile/convert",
+      "action": "edit",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
       "case": "POST /api/projects/:slug/item-addresses/resolve",
       "action": "read",
       "resource": {
