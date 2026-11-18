@@ -1,3 +1,5 @@
+import { unpublishedEdge } from './edge-styles';
+import type { ChangeState } from '../../shared/item-diff/item-change';
 import { ChangeMark } from '../item-diff/ChangeMark';
 /** Displays the complete model graph with grouping, filtering and a detail inspector. */
 import { isStructuredEntity } from '../../shared/core/model';
@@ -338,6 +340,13 @@ export function FullGraph(props: Props) {
         } else {
           label = undefined;
         }
+        const style = {
+          stroke: active || adjacent ? 'var(--color-edge-active)' : 'var(--color-edge-idle)',
+          strokeWidth: active ? 2 : 1.2,
+          strokeOpacity: relationshipOpacity(active || adjacent, Boolean(focus)),
+        };
+        const change = (connection.data as { change?: ChangeState }).change;
+        const appearance = unpublishedEdge(label, connection.label, style, change);
         return {
           ...connection,
           data: {
@@ -350,7 +359,7 @@ export function FullGraph(props: Props) {
           sourceHandle: 'source-' + source,
           targetHandle: 'target-' + target,
           selected: active,
-          label,
+          ...appearance,
           markerEnd: {
             type: MarkerType.ArrowClosed,
             color: active || adjacent ? 'var(--color-edge-active)' : 'var(--color-edge-idle)',
@@ -359,11 +368,6 @@ export function FullGraph(props: Props) {
           },
           zIndex: -2,
           interactionWidth: 24,
-          style: {
-            stroke: active || adjacent ? 'var(--color-edge-active)' : 'var(--color-edge-idle)',
-            strokeWidth: active ? 2 : 1.2,
-            strokeOpacity: relationshipOpacity(active || adjacent, Boolean(focus)),
-          },
         };
       }),
     [connections, positions, props.selectedEdge, focus, labels, hoverEdge, algorithm, layoutRoutes, viewport, size, dragging],

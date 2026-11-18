@@ -68,3 +68,12 @@ export const edgeSvgStyle = (kind: EdgeKind, emphasis = false) => {
     ...(edgeStyle.dash ? { strokeDasharray: edgeStyle.dash } : {}),
   };
 };
+
+/** Shows an unpublished relationship with a grey dashed route and a visible state. */
+export function unpublishedEdge(label: React.ReactNode, fallback: string, style: React.CSSProperties | undefined, change?: import('../../shared/item-diff/item-change').ChangeState) {
+  if (!change) return { label, style };
+  return {
+    label: `${label || fallback} · Not published: ${change}`,
+    style: { ...style, stroke: 'var(--color-text-muted)', strokeDasharray: '5 4', strokeOpacity: 1 },
+  };
+}

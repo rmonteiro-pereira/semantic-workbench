@@ -170,7 +170,8 @@ export function graphView(entities: Entity[], edges: Relationship[], query: stri
 export function groupRelationships(edges: Relationship[]) {
   const groups = new Map<string, Relationship[]>();
   for (const edge of edges) {
-    const key = JSON.stringify([edge.source, edge.target]);
+    const change = 'change' in edge.data ? edge.data.change : undefined;
+    const key = JSON.stringify(change ? [edge.source, edge.target, change] : [edge.source, edge.target]);
     const group = groups.get(key) ?? [];
     group.push(edge);
     groups.set(key, group);
