@@ -6,6 +6,7 @@ import { dataLayout } from '../../src/server/projects/paths';
 import { createUsageStore, parseDayFile } from '../../src/server/usage/usage-store';
 import { addCount, emptyDayFile, mergeIntoDay, type CounterDayFile } from '../../src/server/usage/usage-counts';
 import { tempDataDir } from '../helpers/temp-data-dir';
+import { contextRequest, openUsage } from './usage-fixture';
 
 const cleanups: (() => void)[] = [];
 afterEach(() => {
@@ -121,5 +122,25 @@ describe('mergeIntoDay', () => {
     addCount(file.counts, key(address('a')), 2 ** 31 - 1);
     const merged = mergeIntoDay(file, dayWith('a').counts);
     expect(merged.counts[address('a')]['workbench-requests']['agent.context.read'].http).toBe(2 ** 31 - 1);
+  });
+});
+
+describe('the loss window', () => {
+  test('a stop without close after 29 seconds loses the unflushed counts and none that were flushed', async () => {
+    const fixture = await openUsage({ flushIntervalMs: 3_600_000 });
+    cleanups.push(fixture.dispose);
+    fixture.recorder.record(contextRequest(fixture.documents));
+    await fixture.recorder.settled();
+    fixture.clock.advance(30_000);
+    fixture.recorder.flush();
+    fixture.clock.advance(29_000);
+    fixture.recorder.record(contextRequest(fixture.documents));
+    await fixture.recorder.settled();
+    const metric = 'sw1:shop/commerce.mapped-semantic.yaml#model:Mapped%20commerce%20semantic%20model/metric:gross_revenue';
+    const afterCrash = fixture.store.readDay('shop', '2026-11-17');
+    expect(afterCrash.status === 'ok' && afterCrash.file.counts[metric]['workbench-requests']['agent.context.read'].http).toBe(1);
+    fixture.recorder.close();
+    const afterClose = fixture.store.readDay('shop', '2026-11-17');
+    expect(afterClose.status === 'ok' && afterClose.file.counts[metric]['workbench-requests']['agent.context.read'].http).toBe(2);
   });
 });
