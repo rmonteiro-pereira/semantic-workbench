@@ -4,7 +4,7 @@ Semantic Workbench does not call a language model. When you connect an external 
 
 The local workbench offers one endpoint, `POST /api/mcp`, that speaks the Model Context Protocol (revision 2026-07-28, with earlier clients served request and response). A connected agent can read definitions, findings and history, check proposed text, change files, and commit exactly the files it names. The workbench only answers requests. It never runs a query plan, contacts a warehouse or calls a model, and it makes no outbound network call for this feature.
 
-Server mode does not mount the endpoint. Person sign-in, application grants, the remaining workspace and remote operations, resources and prompts, and administration are later increments (see the end of this page).
+Server mode mounts the same endpoint with person connections and registered programs; see [agent connections](agent-connections.md). Application grants, the remaining workspace and remote operations, resources and prompts, and administration are later increments (see the end of this page).
 
 ## Connect an agent
 
@@ -90,4 +90,4 @@ Residual risk: file text is data from the project, but an agent reads it with it
 
 ## Later increments
 
-Not available yet, each a separate feature: person sign-in on a team server (MCP in server mode), application grants, the remaining workspace and source-control operations (metrics, move, import, stage, branch switching, fetch, pull, push, publish, clone and remote settings), search and lineage, resources and prompts with change notices, administration, and the agent panel. A client of the earlier protocol era gets request and response only, with no change notices or sessions.
+Not available yet, each a separate feature: application grants, the remaining workspace and source-control operations (metrics, move, import, stage, branch switching, fetch, pull, push, publish, clone and remote settings), search and lineage, resources and prompts with change notices, administration, and the agent panel. A client of the earlier protocol era gets request and response only, with no change notices or sessions.

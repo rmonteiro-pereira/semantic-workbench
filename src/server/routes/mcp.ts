@@ -1,7 +1,10 @@
-// Serves `POST /api/mcp` in local mode. This file does transport work only: it applies the request gate, reads the body under its caps and hands the message to the protocol library. Each tool call then reaches the workbench through the operation boundary, as the twin of an ordinary route.
+// Serves `POST /api/mcp` after mode-specific authentication. This file does transport work only: it applies the request gate, reads the body under its caps and hands the message to the protocol library. Each tool call then reaches the workbench through the operation boundary, as the twin of an ordinary route.
 import { createMcpHandler } from '@modelcontextprotocol/server';
 import type { AuditLog } from '../auth/audit';
 import { ATTRIBUTED_METHODS } from '../auth/call-attribution';
+import { decideServerRequest } from '../mcp/server-mode-gate';
+import { bearerChallenge } from '../connections/server-metadata';
+import type { ConnectionService } from '../connections/connection-service';
 import { mintCaller } from '../auth/caller';
 import type { OperationBoundary } from '../auth/operation-boundary';
 import { localPrincipal } from '../auth/principal';
@@ -24,7 +27,8 @@ export const MCP_PATH = '/api/mcp';
 
 /** What the route needs. The boundary is a function because the handler creates it after the routes. */
 export type McpRouteDependencies = {
-  capability: LocalCapability;
+  capability?: LocalCapability;
+  server?: { service: ConnectionService; publicUrl: string };
   port: number;
   boundary: () => OperationBoundary;
   audit: AuditLog;
@@ -66,10 +70,10 @@ function emptyResponse(status: number): Response {
 /** Creates the transport route. Its state (cursors, limits, the audit gate) lives for the life of the process. */
 export function createMcpRoute(dependencies: McpRouteDependencies): Route {
   const clock = dependencies.now ?? Date.now;
-  const caller = mintCaller({ principal: localPrincipal(), origin: 'mcp', connection: 'local' });
+  const localCaller = mintCaller({ principal: localPrincipal(), origin: 'mcp', connection: 'local' });
   const cursors = createCursorCodec({ now: clock });
   const limits = createCallLimits(dependencies.limits ?? DEFAULT_CALL_LIMITS, clock);
-  const audit = createCallAudit(dependencies.audit);
+  const gateAudit = createCallAudit(dependencies.audit, dependencies.server ? { principal: { id: 'anonymous', kind: 'anonymous' } } : undefined);
   const auditGate = createAnonymousAuditGate(clock);
   const capFor = (name: string | null) => dependencies.tools.find(tool => tool.name === name)?.requestCapBytes ?? DEFAULT_TOOL_REQUEST_CAP_BYTES;
 
@@ -77,23 +81,31 @@ export function createMcpRoute(dependencies: McpRouteDependencies): Route {
     const source = (request as AuditRequest)[requestSourceIp];
     const admission = auditGate(source, `mcp-${reason}`);
     const requestId = (request as AuditRequest)[requestAuditId] ?? crypto.randomUUID();
-    if (admission.record) audit.denied({ requestId, method: 'unknown' }, `mcp-${reason}`);
-    return emptyResponse(status);
+    if (admission.record) gateAudit.denied({ requestId, method: 'unknown' }, `mcp-${reason}`);
+    const response = emptyResponse(status);
+    if (dependencies.server) {
+      response.headers.set('Cache-Control', 'no-store');
+      if (status === 401) response.headers.set('WWW-Authenticate', bearerChallenge(dependencies.server.publicUrl));
+    }
+    return response;
   }
 
   return async (_workspace, request, url) => {
     if (url.pathname !== MCP_PATH) return null;
-    const gate = decideRequest(
-      {
-        method: request.method,
-        origin: request.headers.get('origin'),
-        host: request.headers.get('host'),
-        authorization: request.headers.get('authorization'),
-        contentType: request.headers.get('content-type'),
-      },
-      { port: dependencies.port, capabilityMatches: value => dependencies.capability.matches(value) },
-    );
+    const gateRequest = {
+      method: request.method,
+      origin: request.headers.get('origin'),
+      host: request.headers.get('host'),
+      authorization: request.headers.get('authorization'),
+      contentType: request.headers.get('content-type'),
+    };
+    const gate = dependencies.server
+      ? await decideServerRequest(gateRequest, dependencies.server.service)
+      : decideRequest(gateRequest, { port: dependencies.port, capabilityMatches: value => dependencies.capability?.matches(value) ?? false });
     if (!gate.allow) return refuseAtGate(request, gate.reason, gate.status);
+    const caller = 'caller' in gate ? gate.caller : localCaller;
+    const audit = createCallAudit(dependencies.audit, caller);
+    const signal = dependencies.server && caller.connection ? AbortSignal.any([request.signal, dependencies.server.service.endSignal(caller.connection)]) : request.signal;
     const named = request.headers.get('mcp-name');
     const body = await readBodyUnderCap(request, named ? capFor(named) : GLOBAL_REQUEST_CAP_BYTES);
     if (!body.ok) return emptyResponse(body.reason === 'too-large' ? 413 : 400);
@@ -115,17 +127,17 @@ export function createMcpRoute(dependencies: McpRouteDependencies): Route {
           tools: dependencies.tools,
           visibleOperations: listing ? new Set(boundary.availableOperations(caller)) : null,
           boundary,
-          caller: mintCaller({ principal: caller.principal, origin: 'mcp', connection: 'local', attribution: { method: attribution.method, clientLabel: attribution.clientLabel } }),
+          caller: mintCaller({ ...caller, attribution: { method: attribution.method, clientLabel: attribution.clientLabel } }),
           cursors,
           receipts: dependencies.receipts,
           limits,
           audit,
           attribution,
-          signal: request.signal,
+          signal,
         }),
       { legacy: 'stateless', maxRequestBodySize: GLOBAL_REQUEST_CAP_BYTES },
     );
-    const forwarded = new Request(request.url, { method: 'POST', headers: request.headers, body: body.text, signal: request.signal });
+    const forwarded = new Request(request.url, { method: 'POST', headers: request.headers, body: body.text, signal });
     const response = await handler.fetch(forwarded);
     if (known && message && message.method !== 'tools/call') audit.protocolCall(attribution);
     return response;

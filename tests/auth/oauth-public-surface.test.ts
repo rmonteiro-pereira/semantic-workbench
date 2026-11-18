@@ -14,10 +14,16 @@ async function open(options: Parameters<typeof openConnectionServer>[0] = {}) {
 }
 
 /** The rows this feature added. Everything else about the public rows is another test's concern. */
-const CONNECTION_ROWS = /^(GET|POST|PUT|DELETE) (\/\.well-known\/|\/oauth\/|\/api\/connections|\/api\/admin\/connections|\/api\/admin\/programs)/;
+const CONNECTION_ROWS = /^(GET|POST|PUT|DELETE) (\/\.well-known\/|\/oauth\/|\/api\/connections|\/api\/admin\/connections|\/api\/admin\/programs|\/api\/mcp)/;
 
 /** The only answers given without a principal: two discovery documents (one under two addresses) and the token endpoint. The endpoint's own challenge joins them with the endpoint itself. */
-const PUBLIC_ANSWERS = ['GET /.well-known/oauth-protected-resource', 'GET /.well-known/oauth-protected-resource/api/mcp', 'GET /.well-known/oauth-authorization-server', 'POST /oauth/token'];
+const PUBLIC_ANSWERS = [
+  'GET /.well-known/oauth-protected-resource',
+  'GET /.well-known/oauth-protected-resource/api/mcp',
+  'GET /.well-known/oauth-authorization-server',
+  'POST /oauth/token',
+  'POST /api/mcp',
+];
 
 test('among the connection rows exactly the planned answers are public', () => {
   const rows = ROUTE_ACTIONS.filter(row => CONNECTION_ROWS.test(row.path));

@@ -14,7 +14,7 @@ import { createAnonymousAuditGate, createRateLimitReport, createRateLimiter, DEF
 import { recordAuthFailure } from '../observability/metrics';
 
 /** The token endpoint is called by programs, which send no cookie, no origin and no marker header. It authenticates by the grant in its own body. */
-const GRANT_ENDPOINT_PATHS: ReadonlySet<string> = new Set(['/oauth/token']);
+const GRANT_ENDPOINT_PATHS: ReadonlySet<string> = new Set(['/oauth/token', '/api/mcp']);
 /** Browser forms that carry the session's request token in their own body, which the route checks. The request must still come from this origin. */
 const FORM_POST_PATHS: ReadonlySet<string> = new Set(['/oauth/consent', '/oauth/setup']);
 
@@ -59,7 +59,7 @@ export function createRequestAuthentication(options: RequestAuthenticationOption
    */
   async function limitedResponse(request: Request): Promise<Response | null> {
     const address = sourceOf(request) ?? 'unknown';
-    if (SIGN_IN_PATHS.has(new URL(request.url).pathname)) {
+    if (SIGN_IN_PATHS.has(new URL(request.url).pathname) || GRANT_ENDPOINT_PATHS.has(new URL(request.url).pathname)) {
       const signIn = signInLimiter.take(address);
       return signIn.allowed ? null : refuseRateLimited(request, signIn.retryAfterSeconds);
     }

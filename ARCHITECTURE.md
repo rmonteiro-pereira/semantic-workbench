@@ -199,6 +199,12 @@ concatenating project, document or item names.
 
 ### Identity, authorization, governance and administration
 
+- `src/server/connections/` owns program registrations, consent grants, token rotation and session-bound connections.
+  Server MCP authenticates through `mcp/server-mode-gate.ts` and supplies a fresh caller to the existing
+  operation boundary for every request. Scopes narrow effects; the connection end signal cancels its work.
+  Tokens on the server persist only as keyed hashes; the original browser cookie is never recovered.
+
+
 - `src/server/auth/request-surface.ts` records the authenticated caller’s browser or consumer surface through
   `request-scope.ts` at the operation boundary, using a symbol on the request and one setter.
   The HTTP adapter supplies validated browser metadata; MCP callers always consume published definitions.

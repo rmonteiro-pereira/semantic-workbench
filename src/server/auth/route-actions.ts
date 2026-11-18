@@ -238,7 +238,7 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   { ...row('POST', '/api/admin/programs/preview', 'admin', workspace), serverOnly: true },
   // The local agent transport. Each tool call it carries is decided and audited as the twin of an ordinary route, so this
   // row grants nothing beyond reaching the transport and leaves no record of its own.
-  { ...row('POST', '/api/mcp', 'read', workspace), methods: ['POST', 'GET', 'DELETE', 'PUT', 'PATCH'], localOnly: true, unaudited: true },
+  { ...publicRow('POST', '/api/mcp'), methods: ['POST', 'GET', 'DELETE', 'PUT', 'PATCH'], unaudited: true },
   pageRow,
 ];
 /** Finds the first matching method and path, or refuses an unmapped entry point. */

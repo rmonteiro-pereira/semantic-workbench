@@ -1,5 +1,5 @@
 // Writes the audit records of protocol calls that never reach a twin route: discovery and listing, refused requests, unknown tools and tool failures decided before dispatch. Dispatched calls are recorded by the operation boundary.
-import type { AuditLog } from '../auth/audit';
+import type { AuditInput, AuditLog } from '../auth/audit';
 import type { CallAudit, CallAttribution } from '../mcp/call-audit';
 import { localPrincipal } from '../auth/principal';
 import { operationById } from '../auth/operation-inventory';
@@ -12,13 +12,13 @@ function actionOf(operationId: string): Action {
 }
 
 /** Records for calls the dispatched twins do not cover. Every append is best effort: a failed audit never changes a tool's answer. */
-export function createCallAudit(audit: AuditLog): CallAudit {
-  const principal = localPrincipal();
+export function createCallAudit(audit: AuditLog, identity: { principal: AuditInput['principal']; connection?: string } = { principal: localPrincipal(), connection: 'local' }): CallAudit {
+  const { principal, connection } = identity;
   function append(attribution: CallAttribution, fields: { action: string; decision: 'allow' | 'deny'; outcome?: 'ok' | 'refused' | 'failed'; reason?: string; result: string; tool?: string }) {
     audit.append({
       requestId: attribution.requestId,
       origin: 'mcp',
-      connection: 'local',
+      connection,
       method: attribution.method,
       ...(attribution.clientLabel ? { clientLabel: attribution.clientLabel } : {}),
       principal,

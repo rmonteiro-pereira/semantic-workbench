@@ -2131,11 +2131,11 @@
       },
       "effects": ["read"],
       "dispatch": {
-        "no": "stream"
+        "no": "public"
       },
       "exposure": {
         "increment": "never",
-        "reason": "The local protocol transport hands each tool call to the twin of an ordinary route; it is not itself an operation."
+        "reason": "The authenticated protocol transport hands each tool call to the twin of an ordinary route; it is not itself an operation."
       }
     }
   },

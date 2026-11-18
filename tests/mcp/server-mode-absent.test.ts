@@ -36,8 +36,8 @@ test('server mode answers the path as an unknown route and leaves other routes u
   const mcp = await send(withEndpoint, '/api/mcp', { method: 'POST', body: '{}' });
   expect(mcp.status).toBeGreaterThanOrEqual(400);
   expect(await mcp.text()).not.toContain('tools');
-  expect(routeFor('POST', '/api/mcp', 'server')).toBeNull();
-  expect(routeFor('POST', '/api/mcp', 'local')?.row.localOnly).toBe(true);
+  expect(routeFor('POST', '/api/mcp', 'server')?.row.public).toBe(true);
+  expect(routeFor('POST', '/api/mcp', 'local')?.row.public).toBe(true);
   for (const path of ['/api/projects', '/api/trash', '/api/status']) {
     const first = await send(withEndpoint, path);
     const second = await send(without, path);

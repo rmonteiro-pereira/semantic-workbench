@@ -219,18 +219,19 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
     return accessAdmin;
   }
   let operationBoundary: OperationBoundary | undefined;
-  // The agent endpoint exists in local mode only, and only when a capability was opened for it.
+  // Each mode supplies its own credential gate to the shared protocol transport.
   const agentEndpoint =
-    options.mode !== 'server' && options.mcp
+    (options.mode === 'server' && options.connections) || (options.mode !== 'server' && options.mcp)
       ? [
           createMcpRoute({
-            capability: options.mcp.capability,
+            capability: options.mcp?.capability,
+            ...(options.mode === 'server' && options.connections ? { server: { service: options.connections.service, publicUrl: options.publicOrigin! } } : {}),
             port: options.port ?? 4310,
             boundary: () => operationBoundary!,
             audit: options.audit!,
             tools: TOOLS,
             receipts: createReceiptStore(join(ws.layout.state, 'mcp-receipts')),
-            limits: options.mcp.limits,
+            limits: options.mcp?.limits,
             now: options.now,
           }),
         ]
@@ -254,6 +255,7 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
       : [];
   const routes: Route[] = [
     ...agentEndpoint,
+    (_workspace, _request, url) => (url.pathname === '/api/mcp' ? new Response(null, { status: 404 }) : null),
     ...connectionRoutes,
     adminRoutes(adminService, options),
     auditRoutes(options),

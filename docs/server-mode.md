@@ -46,7 +46,7 @@ exception, not a production transport.
 
 ## Agent endpoint
 
-Server mode does not mount `POST /api/mcp`; the path answers like any unknown route. Bearer tokens stay on the agent API (`/api/agent/*`). Connecting agents to a team server needs person sign-in and registered clients, which are a later increment. [The agent endpoint guide](mcp.md) covers local mode.
+Server mode mounts `POST /api/mcp` for [person connections](agent-connections.md). It requires a workbench-issued connection token on every request and ignores cookies. Identity-provider tokens remain limited to `/api/agent/*`. Any Origin header is refused; invalid credentials receive an empty 401 with protected-resource discovery in `WWW-Authenticate`.
 
 ## Identity providers
 
