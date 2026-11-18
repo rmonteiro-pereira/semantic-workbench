@@ -108,6 +108,7 @@
       "telemetry": {
         "browserReports": false
       },
+      "agentPanel": false,
       "connected": {
         "azureDevOps": false,
         "github": false
@@ -5938,6 +5939,7 @@
       "telemetry": {
         "browserReports": false
       },
+      "agentPanel": false,
       "connected": {
         "azureDevOps": false,
         "github": false
@@ -11554,6 +11556,7 @@
       "telemetry": {
         "browserReports": false
       },
+      "agentPanel": false,
       "connected": {
         "azureDevOps": false,
         "github": false
@@ -17023,6 +17026,7 @@
       "telemetry": {
         "browserReports": false
       },
+      "agentPanel": false,
       "connected": {
         "azureDevOps": false,
         "github": false
@@ -22681,6 +22685,7 @@
       "telemetry": {
         "browserReports": false
       },
+      "agentPanel": false,
       "connected": {
         "azureDevOps": false,
         "github": false
@@ -33620,6 +33625,7 @@
       "telemetry": {
         "browserReports": false
       },
+      "agentPanel": false,
       "connected": {
         "azureDevOps": false,
         "github": false
@@ -44285,6 +44291,7 @@
       "telemetry": {
         "browserReports": false
       },
+      "agentPanel": false,
       "connected": {
         "azureDevOps": false,
         "github": false
@@ -49710,6 +49717,7 @@
       "telemetry": {
         "browserReports": false
       },
+      "agentPanel": false,
       "connected": {
         "azureDevOps": false,
         "github": false
