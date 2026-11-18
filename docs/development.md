@@ -53,6 +53,8 @@ bun run test:projects
 `SW_BASE_URL` defaults to `http://127.0.0.1:5173`; `UI_URL` is a legacy fallback. Browser drivers
 route API requests to their temporary fixtures. They must not point a mutation or write scenario
 at an unisolated production workspace.
+The mapping graph check reloads the restored mapping and verifies that the injected resolver
+finding clears before testing navigation.
 
 ## Fast checks
 
