@@ -178,7 +178,7 @@ test only to make it pass.
   only, no literal colours; the Modal for the connect step). The statement text is the fixed text
   of FR-003. Add `tests/agent-panel-connect.test.tsx`. Proof: the test passes for connect, waiting,
   error and ended states; `bun scripts/check-theme.ts` finds no literal colour.
-- [ ] T032 [US2] Create `Transcript.tsx`, `MessageBlock.tsx`, `TaskList.tsx` and `PromptBox.tsx`:
+- [x] T032 [US2] Create `Transcript.tsx`, `MessageBlock.tsx`, `TaskList.tsx` and `PromptBox.tsx`:
   plain-text rendering, wrapping, scroll, a polite live region, the label "the agent's task list".
   Add `tests/agent-panel-transcript.test.tsx` with a 1,000,000-character message, a 5,000-character
   task entry, a 600-character path, markup and script text. Proof: the test passes; no element
