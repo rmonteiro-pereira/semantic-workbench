@@ -338,6 +338,18 @@ The original review archive contains 3,559 PNGs. A read-only count by folder mea
 
 Status: in progress. No visual pair is classified before both images have been opened.
 
+## Differences for owner acceptance
+
+- The release has no published working-copy notice. Main adds it to Mappings, with both older release and candidate data otherwise kept under the
+  same comparison inputs. Six viewed steps show the notice from main onward, including Commerce, Sales and the OWL file. The planned Source Control
+  Publish states need their own matched replay.
+- Main's local commit path writes to the authoring branch. Two browser fixtures still inspect the default branch after successfully committing
+  through the UI. The failures and exact commands are recorded in the suite table above.
+- Main and candidate both clip the same contract ID at 390×844 and both produce a 389 px Mall ODCS canvas at 1280×720. The separate 481 px Full
+  Graph canvas on main is 511 px on the candidate. The owner can decide whether to take the two inherited ODCS defects into another change.
+- The metric detail's same-left-edge proposal would displace the existing side-by-side list and detail. The catalog's hover-only Edit proposal
+  would hide a direct action. These design trade-offs remain recorded under T064 and T057.
+
 ## Findings with opened visual evidence
 
 Paths in this table are step identifiers in `manifest.csv`, except for the explicit correction pairs above. The table covers the opened pilot and focused
