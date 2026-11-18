@@ -21,7 +21,19 @@ type Props = {
 };
 
 /** Asks before the person's branch becomes the published branch for everyone. */
-function ConfirmPublish({ project, target, branch, onCancel, onConfirm }: { project: string; target: string; branch: string; onCancel: () => void; onConfirm: (disclosureShown: boolean) => void }) {
+export function ConfirmPublish({
+  project,
+  target,
+  branch,
+  onCancel,
+  onConfirm,
+}: {
+  project: string;
+  target: string;
+  branch: string;
+  onCancel: () => void;
+  onConfirm: (disclosureShown: boolean) => void;
+}) {
   const state = useDependencyState(project, undefined, '');
   const disclose = state.status === 'ready' && Boolean(state.value?.imports.length);
   return (
