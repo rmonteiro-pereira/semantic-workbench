@@ -314,8 +314,8 @@ concatenating project, document or item names.
 ### Usage counters
 
 - `src/server/usage/` owns counts of requests through the workbench, off unless `SW_USAGE_COUNTERS=on`.
-  `usage-settings.ts` reads the two variables, `usage-counted-operations.ts` parses
-  `policies/usage-counted-operations.json`, and `usage-items.ts` is the pure rule that finds the
+  `usage-settings.ts` reads the two variables, `src/shared/usage/usage-counted-operations.ts` parses
+  `src/shared/usage/counted-operations.json`, and `usage-items.ts` is the pure rule that finds the
   addresses a counted answer names. `usage-recorder.ts` counts in memory (a no-op object when off) and
   flushes every 30 seconds through `usage-flush.ts` to day files that only `usage-store.ts` touches;
   `usage-migration.ts`, `usage-retention.ts` and `usage-compaction.ts` move counts with item addresses and
@@ -341,7 +341,8 @@ command line.
   `src/shared/tessera/additions/` (`notes.ts` is the only one) and `reserved-names.ts`. Validation,
   the derived schema, the compiler and the loss report all read it. Its header says how to add one.
 - `src/shared/tessera/bases.ts` is the table of supported Ossie bases and the check that a base
-  leaves the Tessera names alone. `schema-derivation.ts` derives the Tessera ontology schema from a
+  leaves the Tessera names alone. Its pinned schema data is copied into `src/generated/` by
+  `scripts/compile-schemas.ts`, keeping schema-file imports outside the shared layer. `schema-derivation.ts` derives the Tessera ontology schema from a
   pinned schema and the registry; `scripts/derive-tessera-schema.ts` writes it to
   `schemas/tessera-ontology-1-ossie-0.2.0.dev0.json` and `scripts/compile-schemas.ts` compiles it.
 - `src/shared/tessera/marker.ts` reads the marker (top level only). `validate.ts` gives the Tessera
@@ -551,7 +552,7 @@ the bundle outside the source trees.
 | Tessera addition, base or compiler | `src/shared/tessera/registry.ts` (read its header), `bases.ts`, `compile-document.ts`; the command line in `scripts/tessera.ts` |
 | Byte-preserving item edit | `src/shared/edit/`, `src/app/edit/` and `src/shared/editor/patch.ts` |
 | Metrics/bindings/plans | `src/shared/metrics/`, `src/app/metrics/`, `src/server/agent/` |
-| Usage counts and the Traffic display | `src/server/usage/`, `policies/usage-counted-operations.json`, `src/app/usage/`, `docs/usage-counters.md` |
+| Usage counts and the Traffic display | `src/server/usage/`, `src/shared/usage/counted-operations.json`, `src/app/usage/`, `docs/usage-counters.md` |
 | Graph layout/routing | `FullGraph.tsx`, `src/app/graph/`, `src/app/odcs/` |
 | Git/repository behavior | `src/server/projects/git.ts`, `scm.ts`, working-copy modules |
 | Theme/brand | Tokens and `public/brand/`; server sanitation under `src/server/brand/` |

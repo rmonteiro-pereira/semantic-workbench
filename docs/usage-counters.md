@@ -37,7 +37,7 @@ answer came from the published snapshot, it did not come from the browser, and i
 these operations. Each counted request adds one to every distinct item its answer names, up to 500 items
 (the first 500 in address order). An item without a stable address, such as an unnamed positional one
 or a built-in concept, is skipped. The table of counted operations is checked in as
-`policies/usage-counted-operations.json`, and a test compares it with this page.
+`src/shared/usage/counted-operations.json`, and a test compares it with this page.
 
 | Operation | Route | Counts, once each |
 | --- | --- | --- |

@@ -38,7 +38,7 @@ export type OperationEntry = {
   steps?: string[];
   dispatch: 'twin' | { no: (typeof DISPATCH_REASONS)[number] };
   outcomeClassifier?: keyof typeof operationClassifiers;
-  /** True when a successful call counts the items its answer names; see policies/usage-counted-operations.json. */
+  /** True when a successful call counts the items its answer names; see src/shared/usage/counted-operations.json. */
   usage?: true;
   exposure: { increment: (typeof INCREMENTS)[number]; reason?: string };
 };

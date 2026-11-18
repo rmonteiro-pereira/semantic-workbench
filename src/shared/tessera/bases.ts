@@ -1,6 +1,6 @@
 // The table of Ossie bases a Tessera document may declare, and the check that a base leaves the Tessera names alone.
 import type { ValidateFunction } from 'ajv';
-import ontologySchema020 from '../../../schemas/ossie-ontology-0.2.0.dev0.json';
+import ontologySchema020 from '../../generated/ossie-ontology-0.2.0.dev0.json';
 import { tessera as tesseraValidator020 } from '../../generated/validators.js';
 import { hasTesseraPrefix, TesseraNames } from './format';
 
