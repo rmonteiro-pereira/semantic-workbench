@@ -58,7 +58,7 @@ test only to make it pass.
 
 ## Phase 3: Frames and sessions (pure code first)
 
-- [ ] T009 [P] [US7] Create `src/server/acp/virtual-path.ts` with parse and format for
+- [x] T009 [P] [US7] Create `src/server/acp/virtual-path.ts` with parse and format for
   `/workbench/<project>/<path>` and the refusals of FR-022. Add `tests/acp/virtual-path.test.ts`
   with generated hostile inputs (at least 500: `..`, `%2f`, `%5c`, backslash, drive letters,
   control characters, very long, non-ASCII, empty segments). Proof: the test passes; a result is
