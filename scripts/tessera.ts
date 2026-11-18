@@ -10,6 +10,7 @@ import { bundleFiles } from '../src/server/tessera/bundle-files';
 import { checkTarget, writeBundle } from '../src/server/tessera/bundle-writer';
 import { readFolder } from '../src/server/tessera/disk-source';
 import { TesseraRefusal } from '../src/server/tessera/refusal';
+import { readSnapshotMesh } from '../src/server/tessera/snapshot-mesh';
 import { readSnapshot } from '../src/server/tessera/snapshot-source';
 import { USAGE, UsageError, parseTesseraArguments, type CheckArguments, type CompileArguments } from './tessera-arguments';
 import { EXIT, exitStatusOf, renderJson, renderText, type RunOutcome } from './tessera-output';
@@ -40,15 +41,17 @@ async function runCompile(args: CompileArguments): Promise<RunOutcome> {
   const policy = args.lossPolicy ? readPolicy(args.lossPolicy) : undefined;
   const target = { folder: args.out, repository: args.repository, dataRoot: args.dataRoot };
   let source: Awaited<ReturnType<typeof readSnapshot>>;
+  let meshRead: Awaited<ReturnType<typeof readSnapshotMesh>>;
   try {
     checkTarget(target);
     source = await readSnapshot({ repository: args.repository, projectFolder: args.projectFolder, branch: args.branch, commit: args.commit, dataRoot: args.dataRoot });
+    meshRead = await readSnapshotMesh(source, args.repository, args.dataRoot);
   } catch (error) {
     if (error instanceof TesseraRefusal) return refused({ kind: 'published-snapshot' }, error.message);
     throw error;
   }
   const manifestSource: ManifestSource = { kind: 'published-snapshot', branch: source.branch, commit: source.commit, projectFolder: source.projectFolder };
-  const result = compileUnit(source.files, { lossPolicySha256: policy?.sha256 ?? null });
+  const result = compileUnit(meshRead.mesh?.files ?? source.files, { lossPolicySha256: policy?.sha256 ?? null, providers: meshRead.mesh?.providers, project: meshRead.project });
   if (result.failures.length) return refused(manifestSource, 'The compile failed, and no acceptance can override that.', result);
   const acceptance = acceptLoss(result.report, { digest: args.acceptLoss, policy: policy?.policy });
   if ('refusal' in acceptance) return { result: 'needs-acceptance', source: manifestSource, compile: result, accepted: null, message: acceptance.refusal, bundle: null };

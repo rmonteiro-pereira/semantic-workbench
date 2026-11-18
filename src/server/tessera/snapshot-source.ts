@@ -94,7 +94,15 @@ export async function readSnapshot(request: SnapshotRequest, git: Git = gitFor(r
   const branch = await defaultBranch(git, directory, request.branch);
   const commit = await chosenCommit(git, directory, branch, await branchTip(git, directory, branch), request.commit);
   if (request.dataRoot) checkPublishedPointer(resolve(request.dataRoot), directory, branch, commit);
-  const prefix = folderPrefix(request.projectFolder);
+  const projectFolder = request.projectFolder || '.';
+  const files = await readCommitFolder(directory, commit, projectFolder, git, limits);
+  return { kind: 'published-snapshot', branch, commit, projectFolder, files };
+}
+
+/** Reads a bounded folder from an already authorized commit, without consulting working files. */
+export async function readCommitFolder(directory: string, commit: string, folder: string, git = gitFor(directory), limits = SNAPSHOT_LIMITS): Promise<UnitFile[]> {
+  const prefix = folderPrefix(folder);
+
   const entries = await git.lsTree(directory, commit, prefix);
   if (entries.length > limits.projectFiles) throw new TesseraRefusal(`The folder holds ${entries.length} files, and the limit is ${limits.projectFiles}.`);
   const tooLarge = entries.find(entry => entry.size > limits.documentBytes);
@@ -106,6 +114,5 @@ export async function readSnapshot(request: SnapshotRequest, git: Git = gitFor(r
     entries.map(entry => entry.id),
     limits,
   );
-  const files = entries.map(entry => ({ path: entry.path.slice(prefix.length), bytes: blobs.get(entry.id)! }));
-  return { kind: 'published-snapshot', branch, commit, projectFolder: prefix ? prefix.slice(0, -1) : '.', files };
+  return entries.map(entry => ({ path: entry.path.slice(prefix.length), bytes: blobs.get(entry.id)! }));
 }

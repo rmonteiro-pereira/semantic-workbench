@@ -17,7 +17,7 @@ type Candidate = Pick<PublicationCandidate, 'repo' | 'next'>;
 
 /** Supplies immutable provider snapshots and the workbench's registered repository identity. */
 export type FrozenDependencySource = {
-  snapshots: PublishedSnapshots;
+  snapshots: Pick<PublishedSnapshots, 'pinnedDocumentsAt'>;
   candidateDocuments: (project: string) => Promise<PublishedDocument[]>;
   repositoryOf: (project: string) => string | null;
 };
@@ -101,7 +101,7 @@ async function checkImports(source: FrozenDependencySource, pin: PublishedPin, c
 
 /** Blocks the ref transition unless every candidate unit and dependency agrees with the lock. */
 export async function checkPublicationDependencies(
-  source: Omit<FrozenDependencySource, 'candidateDocuments'> & { projectsIn: (repository: string) => string[] },
+  source: Omit<FrozenDependencySource, 'candidateDocuments' | 'snapshots'> & { snapshots: PublishedSnapshots; projectsIn: (repository: string) => string[] },
   candidate: Candidate,
   reader: Reader,
 ): Promise<void> {

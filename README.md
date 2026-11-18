@@ -464,6 +464,8 @@ Standard ontology output carries no governance status. Accepting a loss report g
 release that output and has no effect on the approval of its content. ODCS contracts, RDF files and other files are listed in the manifest as not
 included. `bun run tessera check` runs the same validation and compilation in memory, for a
 committed snapshot or for a folder on disk (labelled unpublished), and writes nothing.
+For mesh compiles, pass `--data-root` when a lock refers to another repository so the compiler can
+verify the provider's published history. Same-repository imports use the selected commit.
 
 ```sh
 bun run tessera compile --repository <dir> --project-folder retail --out <dir> [--accept-loss <digest>] [--loss-policy <file>] [--json]
