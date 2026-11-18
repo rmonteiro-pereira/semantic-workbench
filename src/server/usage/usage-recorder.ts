@@ -165,7 +165,7 @@ export function createUsageRecorder(deps: UsageRecorderDeps): UsageRecorder {
   function flush() {
     compactOncePerDay();
     for (const [project, days] of memory) {
-      for (const day of [...days.keys()]) {
+      for (const day of days.keys()) {
         try {
           flushDay(project, day, days);
         } catch {
@@ -185,7 +185,7 @@ export function createUsageRecorder(deps: UsageRecorderDeps): UsageRecorder {
     record,
     pending: project => [...(memory.get(project)?.values() ?? [])].map(file => structuredClone(file)),
     settled: async () => {
-      while (inFlight.size) await Promise.all([...inFlight]);
+      while (inFlight.size) await Promise.all(inFlight);
     },
     flush,
     close() {
