@@ -573,9 +573,11 @@ The original review archive contains 3,559 PNGs. A read-only count by folder mea
 
 Status: in progress. No visual pair is classified before both images have been opened.
 
-The current gallery includes 621 rows. The manifest records the reviewed phone graph states and still-open differences.
-The counted Network heading and compact mapping correction pairs were opened at 390×844.
-The gallery and CSV passed the local path and content scan. Every changed row references a present strip. The gallery folder uses 53 MB on disk.
+The current gallery includes 626 rows. Of those, 248 are intended fixes, 28 are expected merged-feature differences, 273 are neutral, and 11
+are unchanged. The gallery retains 31 frames of fixed regressions and 35 frames flagged as possible or unresolved regressions. A frame count
+can include multiple actions that carry the same underlying issue. The manifest explains which actions could not be compared at a matched state.
+The counted Network heading and compact mapping correction pairs were opened at 390×844 in both themes.
+The gallery and CSV passed the local path and content scan. The gallery folder uses 54 MB on disk.
 
 ## Differences for owner acceptance
 
@@ -586,6 +588,8 @@ The gallery and CSV passed the local path and content scan. Every changed row re
   through the UI. The failures and exact commands are recorded in the suite table above.
 - Main and candidate both clip the same contract ID at 390×844 and both produce a 389 px Mall ODCS canvas at 1280×720. The separate 481 px Full
   Graph canvas on main is 511 px on the candidate. The owner can decide whether to take the two inherited ODCS defects into another change.
+- The 390 px workspace header shortens the UBL mapping filename in release, main and candidate. The matched label correction leaves that inherited
+  header behavior visible in both themes.
 - The metric detail's same-left-edge proposal would displace the existing side-by-side list and detail. The catalog's hover-only Edit proposal
   would hide a direct action. These design trade-offs remain recorded under T064 and T057.
 
