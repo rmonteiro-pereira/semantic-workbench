@@ -85,7 +85,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Fonts change text width everywhere, so no lane captures an 'after' image until it has rebased on this merge.
   - Proof: All six commands pass; merge commit id recorded in the gate log.
 
-- [ ] T010 Create one worktree per lane from the 007 branch after the foundation commits: `wt switch -c 007-lane-a`, `-lane-b`, `-lane-c`, `-lane-d`, `-lane-e` under `/home/rodrigo/projetos/semantic-workbench-wt/`, each pointed at its own dev port in the 5200 range and its own `DATA_DIR`.
+- [x] T010 Create one worktree per lane from the 007 branch after the foundation commits: `wt switch -c 007-lane-a`, `-lane-b`, `-lane-c`, `-lane-d`, `-lane-e` under `/home/rodrigo/projetos/semantic-workbench-wt/`, each pointed at its own dev port in the 5200 range and its own `DATA_DIR`.
   - Change: Lane agents never share a dev server, a port or a data folder; each reads only its lane's files.
   - Proof: `wt list` shows five lane worktrees; no two use the same port.
 
