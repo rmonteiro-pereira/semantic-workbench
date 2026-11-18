@@ -7,7 +7,11 @@ Scopes are an authorization ceiling, not a sandbox for the external agent.
 
 Semantic Workbench does not call a language model. When you connect an external agent, that agent can receive definitions you authorize and may send them to its model provider; its configuration and policies govern that onward use.
 
-## Current limitation
+## Current limitations
+
+Completed MCP receipts can currently return an earlier result through a connection with narrower
+scopes, bypassing the operation boundary for the replay. No new effect is executed, but this also
+blocks server-mode release; see [the MCP threat model](mcp.md#server-connections).
 
 Browser consent and setup forms currently fail the exact-origin check: their required
 `Referrer-Policy: no-referrer` causes Chromium to send `Origin: null`. Authorization and setup

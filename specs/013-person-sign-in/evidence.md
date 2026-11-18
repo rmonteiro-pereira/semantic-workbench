@@ -2,6 +2,10 @@
 
 Where the plan named files or shapes that differ from the code that landed, the code was followed.
 
+## Original handoff observations
+
+These describe the earlier worker state; the continuation results below supersede resolved items.
+
 - The agent endpoint exists in `src/server/routes/mcp.ts` with its gate in `src/server/mcp/request-gate.ts`. Its row in `route-actions.ts` is `localOnly`; making it reachable in server mode is task T028 and is not done.
 - The connection service is built inside `createServerAuthentication` (not in `handler.ts`) because it needs the session store, access control, audit log and key there. It is exposed as `connections: { service, grants }` and `HandlerOptions.connections`; the handler registers the routes from it. The one-minute sweep timer is cleared by `close()`.
 - No exposure of `sessions` or `principalFor` was needed: the service gets `access.principalFor({ ...principal, deactivated: false })`, as the browser path does, so it never contacts the provider.
@@ -63,3 +67,14 @@ Where the plan named files or shapes that differ from the code that landed, the 
 
 - T041 final dev-server `bun --bun run check`: pass (TypeScript, formatting, lint with 0 errors/2,680 warnings, comments, theme and brand). The guide states the scope ceiling rather than a sandbox, onward use, session/day reconnection and unverified-program status. Docs sync exits 0; guide proof remains 2 pass.
 - Generic pre-push check: 82 unpushed commits scanned; no secret/attribution findings, one architecture-review-due finding. The brief explicitly reserves architecture review and the marker for the integrated batch and forbids origin pushes. Only owner-approved wrapper scratch synchronization was used; no review marker was manufactured and no origin push attempted.
+
+- Final dev-server build: `bun --bun run build` passed; Vite built in 3.15 seconds. Existing chunk-size and dependency directive warnings remain. `out/proofs/connections-build.log` and `connections-check.log` keep the complete outputs.
+- Targeted mutation rerun after all production changes: 10/10 connection mutants killed; both unmodified baselines passed. Complete output: `out/proofs/connections-mutation.log`. No full mutation suite ran.
+
+- Phase 10 follow-up before sign-off: program loading currently validates the document envelope/version/list, not every returned registration member. Connection loading validates its id and state but still accepts empty client identifiers. Finish successful-response member/nonempty-identifier validation with refusal cases when that phase resumes; component proofs do not establish that stronger boundary contract.
+- Final scans: 50 changed source/test files pass the confidential-term scan; ten public prose documents pass the complete scanner; configuration/env and internal notes pass confidential-only. A synthetic branding fixture collided with a confidential-term rule and was replaced with neutral wording (no allow). Its focused page proof remains 10 pass.
+
+- Phase 9 STOPPED after the fresh-call matrix: completed MCP receipts return before any twin/boundary authorization. A receipt for the same person/key/arguments can be recovered through a read-only connection, even for git_commit. This returns an earlier result; it does not execute a new unauthorized commit. Real endpoint reproduction: `bun test --todo tests/mcp/connection-receipt-authorization.test.ts` reaches the expected refusal assertion and receives `ok: true` instead of false (0 pass, 1 todo). The test remains explicitly TODO, not a passing refusal proof. T029 is unticked again: fresh-key matrix coverage is insufficient for this shortcut. Reconcile replay authorization/resource checking/audit at the operation boundary before resuming the phase; do not invent a parallel policy evaluator or merely filter tool discovery.
+- The final consolidated feature command passed: 132 pass, 0 fail, 15,414 assertions across 16 files in 417.00 seconds. Complete output is retained in `out/proofs/connections-own-proof.log`. This command excludes the explicitly pending MCP receipt regression and cannot establish release readiness.
+
+- T043: final static/HTTP run on the dev server passed `bun --bun run check` again on the final test source, followed by HTTP characterization: 1 pass, 0 fail, 1,602 assertions (29.00 seconds). The build already passed on the identical production source (2,322 modules, 3.15 seconds). The final exact feature command passed 132/0 as above. This tick records those scoped commands only; the receipt TODO and failed browser proof keep the feature/batch red.

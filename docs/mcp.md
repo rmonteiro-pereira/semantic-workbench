@@ -90,11 +90,16 @@ Residual risk: file text is data from the project, but an agent reads it with it
 
 ### Server connections
 
+Server-mode sign-off is blocked: a completed idempotency receipt can return an earlier result
+for the same person/key/arguments through a connection whose scope no longer permits that
+operation. The effect is not repeated, but replay currently bypasses the operation boundary.
+Fresh calls obey the scope gate; receipt replay must also be authorized before release.
+
 The server endpoint accepts only opaque workbench connection tokens. Cookies cannot authenticate
 it, and identity-provider JWTs are refused. Checks run in order: method, any Origin header, JSON
 content type, bearer shape and live connection. Refusals disclose no credential failure reason;
 an invalid token receives an empty 401 with the protected-resource metadata challenge. Every
-admitted request carries the current person, owning session, connection and scope effects to the
+admitted fresh tool call carries the current person, owning session, connection and scope effects to the
 same operation boundary used by local tools. Connection revocation aborts work opened through it.
 
 Access tokens last ten minutes. Codes last sixty seconds; pending consent and setup credentials

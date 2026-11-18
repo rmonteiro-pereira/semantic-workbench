@@ -9,8 +9,8 @@ not configure a production deployment.
 - Server MCP person connections: registered programs, session-bound opaque tokens, scope filtering,
   replay revocation, personal connection controls and Admin registration/revocation sections.
   Browser consent/setup remains blocked by the null-Origin form policy; server client support
-  and bridge credential storage are not release-ready.
-
+  and bridge credential storage are not release-ready. Completed receipt replay also bypasses
+  the current connection scope check and blocks server-mode release.
 
 ### Added
 
