@@ -86,9 +86,10 @@ export function planEditAttribute(docs: ProjectDoc[], doc: ProjectDoc, document:
   return { writes: writes.filter(write => write.source !== docs.find(candidate => candidate.id === write.docId)!.source) };
 }
 
-/** Writes the order list, naming every own attribute in the shown order. */
-export function planReorderAttributes(doc: ProjectDoc, conceptPath: Path, shownOwnNames: string[]): AttributePlan {
-  const source = applyPatches(doc.source, valuePatches(doc.source, [...conceptPath, ATTRIBUTE_ORDER_PROPERTY], shownOwnNames, doc.filename));
+/** Writes the order list, naming every own attribute in the shown order. The text is checked after `raise` has moved it to the revision the list needs. */
+export function planReorderAttributes(doc: ProjectDoc, conceptPath: Path, shownOwnNames: string[], raise: (text: string) => string = text => text): AttributePlan {
+  const written = applyPatches(doc.source, valuePatches(doc.source, [...conceptPath, ATTRIBUTE_ORDER_PROPERTY], shownOwnNames, doc.filename));
+  const source = raise(written);
   const invalid = validated(doc, source);
   return invalid ? { refusal: invalid } : { writes: [{ docId: doc.id, source }] };
 }

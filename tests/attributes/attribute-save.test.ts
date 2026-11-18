@@ -3,6 +3,7 @@ import { expect, test } from 'bun:test';
 import { parse } from 'yaml';
 import { planAddAttribute, planEditAttribute, planReorderAttributes } from '../../src/app/attributes/attribute-save';
 import type { ProjectDoc } from '../../src/app/edit/references';
+import { withRevision } from '../../src/shared/tessera/revision-edit';
 
 const SOURCE = [
   'tessera: 2',
@@ -101,4 +102,15 @@ test('a rename that a mapping names ambiguously is refused with the file and lin
   const customerIndex = ontology.ontology.findIndex((concept: any) => concept.concept === 'Customer');
   const plan = planEditAttribute([ambiguous, mapping], ambiguous, ontology, ['ontology', customerIndex], 0, { name: 'address', valueType: 'String', reading: 'Customer has address' });
   expect('refusal' in plan && plan.refusal).toContain('retail.mapping.yaml:6');
+});
+
+test('reordering a revision 1 document writes the list only after the revision is raised, so the text is valid', () => {
+  const older = SOURCE.replace('tessera: 2', 'tessera: 1').replace('    # the order people read first\n    tessera_attributes: [tier, email]\n', '');
+  const olderDoc = { ...doc, source: older };
+  const unraised = planReorderAttributes(olderDoc, CONCEPT, ['email', 'tier']);
+  expect('refusal' in unraised && unraised.refusal).toContain('revision 2');
+  const raised = planReorderAttributes(olderDoc, CONCEPT, ['email', 'tier'], text => withRevision(text, 'a.yaml'));
+  if ('refusal' in raised) throw new Error(raised.refusal);
+  expect(parse(raised.writes[0].source).tessera).toBe(2);
+  expect(parse(raised.writes[0].source).ontology[1].tessera_attributes).toEqual(['email', 'tier']);
 });
