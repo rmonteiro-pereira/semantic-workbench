@@ -22,3 +22,6 @@ export function hasTesseraPrefix(name: string): boolean {
 export function tesseraPropertyName(suffix: string): string {
   return TesseraNames.propertyPrefix + suffix;
 }
+
+/** What a document is: ordinary Ossie or ODCS, or Tessera at a revision on a named Ossie base. */
+export type DocumentFormat = { family: 'standard' } | { family: 'tessera'; revision: number; base: string; baseLabel: string };
