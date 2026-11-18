@@ -219,6 +219,24 @@ The application revision includes `481d012b`. The retry of the browser history s
   20 other regression frames and 233 awaiting review. Most regression frames preserve the earlier candidate. Correction pairs give the corresponding
   matched proof separately while affected matrix actions are replayed.
 
+### Phone files and dialog comparison checkpoint
+
+- The three-way strips for the remaining phone UBL file tabs show full Catalog descriptions, result counts, direct Import and Load example actions
+  in empty Mappings, and the same nine metrics. Source and mapping frames captured during validation or layer resolution still need settled replays.
+- The earlier phone capture of Commerce OWL shows one of five counted areas. UBL semantic cuts off outer areas on both sides. Neither frame substitutes
+  for a replay after the shared phone-fit fix. The phone UBL semantic mapping first view replaces the readable Party card with a dense set of names.
+  The desktop Commerce ODCS frame also loses its initial column detail. Both need matching zoom and first-view checks.
+- The 1440 px server Admin strip shows the new Allowed banner and a matching-grant sentence. The selected dry-run grant input fails validation on all
+  three builds, and the Access check fixture returns Allowed in all three. These frames cannot certify confirmation or the denied state.
+- `python3 .data/gate/contact-sheet-007.py` and the focused contact-sheet renderer produced the strips reviewed here. Publishing the checkpoint produced
+  610 rows: 187 intended fixes, 27 merged-feature differences, 197 neutral, 10 unchanged, 4 rows marked fixed by focused replays, 23 regression rows
+  including earlier candidates, and 162 awaiting review. These are comparison rows. The preceding focused replays list the distinct fixes.
+- `sw-midgard-run --pull out/gate-007/comparison/gallery-previews -- bash scripts/ui-review/gate-007/preview-launch.sh` returned 0 and rendered the
+  gallery at 1440×900 and 390×844. Both previews were visually inspected. The phone view keeps the strip scroll inside each row and the filters visible
+  above it. The same command launched the next detached serial replay. Its initial memory checks showed 104 GB available.
+- Candidate `bun scripts/ci-validate.ts --step browser --suite test:back-history` returned 0 after the picker and lineage corrections.
+  The run passed all 25 Back and Forward actions and the reload check in 208 seconds.
+
 ### Counted Mall graph on a phone
 
 - The Mall semantic Graph opens 11 counted areas after the full entity layout falls below the readable-name threshold.
