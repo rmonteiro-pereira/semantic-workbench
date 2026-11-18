@@ -194,6 +194,13 @@ The application revision includes `481d012b`. The retry of the browser history s
 - The latest standalone `test:graph` passed the new Mall 390 px assertion, the UBL five-step Walk and its Back and Forward steps. It returned 1
   at the inherited Both-direction Full pierce assertion with 202 ms against 100 ms. The earlier pinned main run measured 240 ms at that assertion.
 
+### Neighborhood phone center picker
+
+- The search field's native input size follows the current center name. The trail remains the navigation record.
+- The full-screen button consumes enough width to hide the end of “Consignment aggregate roles” in the phone import frame.
+- Keep the existing controls and let their row wrap around the natural search field size where the name needs the room.
+- Replay the frozen UBL Import at 390×844 and verify the full center name and the unchanged search and full-screen actions.
+
 ### Counted Mall graph on a phone
 
 - The Mall semantic Graph opens 11 counted areas after the full entity layout falls below the readable-name threshold.
@@ -220,7 +227,7 @@ The application revision includes `481d012b`. The retry of the browser history s
   visible sections and include different inner padding, so these figures are not the same measurement as the original lane comparison.
 - In both themes the three wide strips show Metric detail next to the list. Moving it to the Catalog or Overview edge would also move the list
   or replace the split view. T064 keeps the existing split and the metric list cap, and leaves the common-left-edge requirement as an explicit
-  design decision. The dark Metric detail strip caught the explanation mid-load on main and candidate. The settled explanation still needs a comparison.
+  design decision. The replay waits for “Where the data comes from.” Both themes and all three versions show the settled explanation in both repetitions.
 
 ### Matched UBL lineage timing
 
@@ -420,8 +427,8 @@ Status: in progress. No visual pair is classified before both images have been o
 ## Differences for owner acceptance
 
 - The release has no published working-copy notice. Main adds it to Mappings, with both older release and candidate data otherwise kept under the
-  same comparison inputs. Six viewed steps show the notice from main onward, including Commerce, Sales and the OWL file. The planned Source Control
-  Publish states need their own matched replay.
+  same comparison inputs. The notice appears in Commerce, Sales and OWL strips. Source Control confirms the separate local Publish step on main and
+  candidate in both phone repetitions.
 - Main's local commit path writes to the authoring branch. Two browser fixtures still inspect the default branch after successfully committing
   through the UI. The failures and exact commands are recorded in the suite table above.
 - Main and candidate both clip the same contract ID at 390×844 and both produce a 389 px Mall ODCS canvas at 1280×720. The separate 481 px Full
