@@ -298,6 +298,16 @@ concatenating project, document or item names.
 
 ### The Tessera format and compiler
 
+`src/server/tessera/unit-source.ts` owns the complete-unit seam; `workspace-unit-source.ts` binds
+it to pinned published bytes and the caller's saved working files. `compile-service.ts` reuses the
+shared compiler and acceptance/paging decisions. `bundle-files.ts` assembles identical CLI and HTTP
+bundle entries, while shared `compile-findings.ts` formats their findings. `workspace-conversion.ts`
+connects `convert-service.ts` to Git cleanliness and the existing guarded, hash-checked save pipeline.
+`src/server/routes/compile.ts` parses typed requests behind the operation boundary and inventory;
+`src/app/compile/` owns review, explicit acceptance, downloads and conversion states. The browser's
+one-file preview reuses the shared compiler; the server recomputes the complete unit before saving.
+The [compile guide](docs/compile.md) owns HTTP answers, usage and limits. MCP adapters await integration.
+
 The shared `src/shared/tessera/digest.ts` implements synchronous SHA-256 for both runtimes.
 The compiler and browser conversion preview use that same function without a bundler alias or
 Node imports. Native Bun hashes and browser Web Crypto verify its output at block boundaries.

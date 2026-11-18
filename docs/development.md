@@ -104,6 +104,11 @@ for the options and exit statuses (0 success, 1 refused, 2 loss needs acceptance
 ## Compile in the browser and over HTTP
 
 The compile routes, the unit source and the browser dialog are described in [compile](compile.md).
+`bun run test:compile` covers review, exact acceptance, download, unpublished check and one-file
+conversion on desktop and phone widths against an isolated API. It also compares the shared digest
+with Bun SHA-256 and browser Web Crypto. Start the frontend on a free test port and set `SW_BASE_URL`;
+the check supplies its own temporary backend and cleans it up.
+
 
 - `bun test tests/compile/ tests/auth/compile-parity.test.ts` runs the feature's own tests. The
   helper `tests/helpers/compile-workspace.ts` builds a published workspace with Tessera and standard

@@ -438,6 +438,10 @@ Agents, the item inspector and access rules treat the file as an ordinary Ossie 
 never reach agent context. Tests: `tests/tessera/validation.test.ts`,
 `tests/tessera/workbench-documents.test.ts`, `tests/tessera/agent-and-access.test.ts`.
 
+Browser and HTTP check, compile, bundle and reviewed one-file conversion are described in
+[Check, compile and convert](docs/compile.md). Export's **Standard Ossie (compiled)** option reviews
+only the published snapshot; **Validation details** checks saved working files without releasing bytes.
+
 ### The compiler and its command line
 
 `bun run tessera compile` reads one project folder of a Git repository as it is in a commit on the
@@ -474,7 +478,8 @@ Tests: `tests/tessera/compile.test.ts`, `tests/tessera/determinism.test.ts`,
 - Comments and layout of a compiled YAML or JSON document may not survive. Values and key order do,
   and so does a comment above the marker.
 - Notes are authoring-only: compiling drops them, and nothing recovers them. There is no
-  "convert to standard" operation and no reverse compiler. Source files are never rewritten.
+  reverse compiler. Only the separate reviewed **Convert to standard** operation rewrites one clean,
+  committed file through the guarded save path.
 - The command line is an operator tool. It is not an authorization boundary: it reads Git as the
   operating-system user and applies no workbench access rules.
 - The command line uses no network and needs no sign-in. Browser and HTTP export are not part of it.

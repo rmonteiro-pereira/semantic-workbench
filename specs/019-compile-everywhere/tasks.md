@@ -78,7 +78,7 @@ Do not start until T024 reports a release.
 
 ## Phase 8: Documentation and handoff
 
-- [ ] T034 [P] Write `docs/compile.md` (the four operations, acceptance, conversion, the MCP tools, limits, "accepting a loss report is not approval", the command line is the operator's tool and these entry points are authorized) and update `README.md`, `ARCHITECTURE.md`, `docs/user-guide.md`, `docs/development.md` (FR-016, FR-046). Proof: `bun test tests/compile/docs-paths.test.ts` checks that every path and command named in the documents exists.
+- [x] T034 [P] Write `docs/compile.md` (the four operations, acceptance, conversion, the MCP tools, limits, "accepting a loss report is not approval", the command line is the operator's tool and these entry points are authorized) and update `README.md`, `ARCHITECTURE.md`, `docs/user-guide.md`, `docs/development.md` (FR-016, FR-046). Proof: `bun test tests/compile/docs-paths.test.ts` checks that every path and command named in the documents exists.
 - [ ] T035 [P] Add `CHANGELOG.md` entries under Unreleased. Proof: each entry names behaviour a test covers.
 - [ ] T036 Check the operation inventory and the MCP contract: `bun test tests/auth/operation-inventory.test.ts tests/mcp/` (contract and registry tests) and `bun scripts/operation-inventory-table.ts && git diff --exit-code docs/operations.md`. Proof: exit 0.
 - [ ] T037 Run the feature's own proofs: `bun test tests/compile/`, `bun --bun run check`, `sw-midgard-run -- bun --bun run build`; run `scripts/check-comments.ts` and the readable-code checker on changed files. Proof: all exit 0.

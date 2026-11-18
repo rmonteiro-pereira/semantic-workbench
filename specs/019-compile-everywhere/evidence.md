@@ -27,3 +27,33 @@ that contract without a runtime dependency. The former shim's hash adapter and e
 Proofs: digest.test.ts: 3 pass, 0 fail, 16 assertions (block boundaries, large input, UTF-8 and exact bytes).
 The dev-server browser journey passed with additional comparisons of the shared digest in Chromium,
 Chromium Web Crypto and Bun's native SHA-256 for nine lengths including padding boundaries.
+
+## Departures from the implementation plan
+
+- `bundleFiles` moved from scripts/tessera.ts into server/tessera/bundle-files.ts so CLI and HTTP use
+  one assembly function, including manifest and report bytes. The shared compile-findings.ts replaces
+  CLI-only finding formatting for the same reason.
+- Published snapshots expose `fileSizes` for preflight limits; workspace exposes `layoutFor` for the
+  caller's read/write location. Each was added as a contiguous block. UnitRead additionally carries
+  `place` (branch, commit, projectFolder) so the HTTP manifest identifies exactly the CLI's source.
+- Check responses add `accepted`; the HTTP and proposed MCP contracts now include it. It is advisory
+  and never releases bytes. The HTTP contract clarifies source discriminants, byte counts and bundle errors.
+- Convert requests carry the unit digest and all input hashes; the dialog filters losses to the chosen
+  file while retaining the whole-unit digest. Conversion remains an inventoried `later` exposure;
+  binary bundle dispatch is `browser-only` with exposure `never`.
+- Extra modules: use-convert.ts owns review/confirm state, workspace-conversion.ts wires existing Git
+  and save behavior, compile-request.ts owns typed input validation. browser-sha256.ts was added in the
+  inherited work but has now been removed in favor of the single shared digest function.
+- Fixtures reuse sales-contracts access roles and tests/helpers/tessera-repository.ts constants.
+  tests/fixtures/compile holds only golden bundle data, regenerated with UPDATE_GOLDEN=1.
+- The local browser preview compiles one file for the diff. The server recompiles the entire unit and
+  applies the existing guarded save; the preview is not a separate authority.
+- T034's documentation proof covers the new guide's local links and commands, plus inbound links from
+  the four updated guides. It does not redefine correctness of unrelated commands in existing docs.
+- T036's MCP portion cannot execute: this base has neither tests/mcp nor a server registry. Inventory
+  and HTTP/in-process parity remain executable; tool contract/registry proof waits for integration.
+
+Documentation proof: docs-paths.test.ts: 3 pass, 0 fail, 16 assertions. Leak scanning passed README,
+ARCHITECTURE, the compile guide and user guide. The existing development guide has six scanner hits
+for literal /tmp screenshot-command examples outside this change; usage examples are preserved.
+No confidential-term hits occurred. Markdown files are excluded by the repository formatter configuration.
