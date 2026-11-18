@@ -98,6 +98,17 @@
   fixture files while the frozen imports were staged under the capture script directory. The next attempt keeps the byte-exact fixture bundle in the
   ignored output directory during mutation and formatting. The final unit/check/build phase uses the same isolation.
 
+### Verification after the graph corrections
+
+| Command | Summary |
+| --- | --- |
+| `bun test` | Exit 0. 2,448 pass, 0 fail, 346,969 assertions across 350 files (1,859.88 s). |
+| `bun --bun run check` | Exit 0. TypeScript passed, 1,180 files formatted, 2,661 lint warnings and 0 errors. Comments, theme and brand passed. |
+| `bun --bun run build` | Exit 0. Vite built in 3.18 s with the chunk-size advisory. |
+
+The application revision includes `481d012b`. The retry of the browser history suite changes its test fingerprint only.
+`sw-midgard-run -- bash scripts/ui-review/gate-007/retry-launch.sh` started the browser retry followed by mutation and the checkpointed capture.
+
 ### Full Graph reopening through browser Back
 
 - The history suite can compare area contents at the same Fit zoom. The fitted retry restored selection and all explicit area actions.
