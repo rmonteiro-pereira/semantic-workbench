@@ -9,6 +9,7 @@ not configure a production deployment.
 ### Added
 
 - A local agent endpoint, `POST /api/mcp`, speaks the Model Context Protocol and offers 21 tools to read definitions, findings and Git history, check proposed text, save, create, delete and restore files, read the published mapping context and plans, and commit exactly the listed files. Each tool is the twin of an existing route, so access control, content guards, version checks and audit are unchanged. A per-installation capability in `data/state/mcp-capability` protects it, `bun run mcp:rotate` replaces it, and `scripts/mcp-stdio.ts` bridges clients that start a program. Server mode does not mount it. See `docs/mcp.md`.
+- Findings reported by the agent tools carry their `code`, and the tool descriptions say Tessera ontologies are accepted. No tool exposes the Tessera compiler.
 - `POST /api/projects/:slug/files/*/validate` checks proposed text with the save pipeline and writes nothing.
 - The commit route accepts optional `files`, `expectedBranch` and `expectedHead`, checked in the same turn of the repository queue as the commit. Every commit now takes the project's write lock first, as a save does (and the lock of every sibling project whose files it names), so no save lands between the checks and the commit. Deleting a file accepts an optional `baseHash`. `GET /api/documents?project=` lists a project's files without their text.
 - Audit records of agent calls carry the protocol method, a client label and a result code, and the Admin audit view shows the tool beside the action.
@@ -42,6 +43,7 @@ not configure a production deployment.
   the workbench per published item, day, operation and origin. They hold no identity, never read the audit log,
   exclude browser views, follow address migrations, expire with the retention and follow a project through the
   trash. The project operation `usage.read` serves them within each reader's file access.
+  The agent endpoint's `get_mapping_context`, `plan_query` and `explain_metric` tools are counted with the origin `mcp`.
 - A **Traffic** option on the graphs shades entities and relationships by request count with weight rather than
   colour alone, shows counts with their period in details, sorts the catalog and metrics lists by traffic, and
   Admin Settings shows whether counters are on. The option is off by default.

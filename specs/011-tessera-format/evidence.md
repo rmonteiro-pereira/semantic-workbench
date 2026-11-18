@@ -6,24 +6,12 @@ reviewer must know.
 
 ## Tasks not done
 
-- **T037 to T040 (handoff to the MCP server).** `origin/main` does not contain `src/server/mcp/` yet
-  (checked with `git fetch` when Phase 9 was reached), so they stay open for the 006 owner. They need
-  no change to this feature's files. On the 006 branch they need:
-  - T037: a table-driven test in the 006 tool tests that runs every tool returning validation findings or a
-    parsed structure (`tools/validation.ts`, `tools/projects-and-files.ts` in the 006 worktree) against
-    `tests/fixtures/tessera/documents/notes-everywhere.yaml`, `notes-on-dataset.yaml` and
-    `semantic-model-marked.yaml`, and asserts the findings equal `validateInput`'s. The expected findings
-    of every fixture are in `tests/helpers/tessera-refusals.ts`. A search for `tessera` in
-    `src/server/mcp/` must find only test and description text.
-  - T038: tool tests that compare bytes before and after an unrelated patch of `notes-everywhere.yaml` for the
-    read, exact patch and guarded save tools, and a check that file creation writes no marker.
-  - T039: a tool test with a published Tessera ontology (the repository builder is
-    `tests/helpers/tessera-repository.ts`; the agent equality check is in `tests/tessera/agent-and-access.test.ts`)
-    showing context, plan and metric explanation equal those of the unmarked twin and hold no note text.
-    The shared modules already remove the additions (`src/shared/tessera/agent-view.ts`).
-  - T040: tool descriptions of the validation and read tools say Tessera ontologies are accepted and findings use the
-    Tessera codes; no tool exposes `compile` or the loss report; `docs/operations.md` regenerates with no diff
-    (checked here: `bun scripts/operation-inventory-table.ts && git diff --exit-code docs/operations.md`).
+- **T037 to T040 (handoff to the MCP server)** were done at the batch merge, in `tests/mcp/tessera-documents.test.ts`:
+  findings equal the browser validator for every fixture (tool findings now carry their `code`), reads and patches keep
+  the bytes of `notes-everywhere.yaml`, the published context, plan and metric explanation equal the unmarked twin
+  and hold no note text, and no tool mentions a compiler. `src/shared/tessera/agent-view.ts` already covers all four
+  published-only tools because they answer through the agent context and explain modules; `read_file` and
+  `git_show` return the stored bytes on purpose, so a patch or a save keeps the marker and the notes.
 
 No other task was skipped.
 
@@ -111,4 +99,4 @@ Run once on the integrated batch before the merge, and not here: the full unit s
 - Golden compiler output is `tests/fixtures/tessera/golden/`; regenerate with `UPDATE_TESSERA_GOLDEN=1`.
 - `src/shared/validation/validation.ts` gained `ValidationOptions.nested`, set by the validator itself for an embedded semantic
   model so a key named like the marker inside it stays ordinary data.
-- Phase 9 (T037 to T040) is open for the 006 owner as listed above.
+- Phase 9 (T037 to T040) was done at the batch merge as listed above.
