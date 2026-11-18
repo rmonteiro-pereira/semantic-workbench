@@ -122,8 +122,8 @@ describe('in server mode', () => {
   });
 });
 
-for (const change of ['single rename', 'independent publication', 'two renames'] as const) {
-  test(`two readers keep counts at the old address after ${change} without committed history`, async () => {
+for (const change of ['single rename', 'independent publication', 'two renames', 'two saves in one commit', 'merged rename'] as const) {
+  test(`two readers follow only committed usage migrations after ${change}`, async () => {
     const fixture = await testWorkspace();
     disposers.push(fixture.dispose);
     const source = 'name: O\nontology: [{concept: Before}]';
@@ -131,6 +131,7 @@ for (const change of ['single rename', 'independent publication', 'two renames']
     await publishFixture(fixture);
     const oldAddress = `sw1:${slug}/a.yaml#ontology:O/concept:Before`;
     const newAddress = `sw1:${slug}/a.yaml#ontology:O/concept:PrivateRename`;
+    const finalAddress = `sw1:${slug}/a.yaml#ontology:O/concept:Final`;
     writeCounts(fixture.root, slug, oldAddress);
     const store = createUsageStore(fixture.ws.layout);
     const access = createAccessControl(accessFixture());
@@ -163,7 +164,9 @@ for (const change of ['single rename', 'independent publication', 'two renames']
         },
         LOCAL_READER,
       );
-      await (await fixture.ws.scmFor(slug, LOCAL_READER)).commit(slug, 'Rename the concept', { paths: ['a.yaml'] });
+      if (change !== 'two saves in one commit') {
+        await (await fixture.ws.scmFor(slug, LOCAL_READER)).commit(slug, 'Rename the concept', { paths: ['a.yaml'] });
+      }
       await checkBoth(oldAddress);
       const compact = () =>
         compactUsage({
@@ -178,10 +181,10 @@ for (const change of ['single rename', 'independent publication', 'two renames']
       if (change === 'independent publication') {
         const directory = fixture.ws.worktrees.baseDir(slug);
         await fixture.ws.git.run(directory, ['switch', '-c', 'independent', 'main']);
-        writeFileSync(join(directory, 'a.yaml'), source.replace('Before', 'PrivateRename') + '\n# Independent replacement');
+        writeFileSync(join(directory, 'a.yaml'), source.replace('Before', 'PrivateRename'));
         await (await fixture.ws.scmFor(slug, LOCAL_READER)).commit(slug, 'Add an independent item', { paths: ['a.yaml'] });
       }
-      if (change === 'two renames') {
+      if (change === 'two renames' || change === 'two saves in one commit') {
         const renamed = fixture.ws.readFile(slug, 'a.yaml');
         await fixture.ws.saveFile(
           slug,
@@ -189,18 +192,50 @@ for (const change of ['single rename', 'independent publication', 'two renames']
           {
             baseHash: renamed.hash,
             source: source.replace('Before', 'Final'),
-            declaredMigrations: [{ kind: 'item', from: newAddress, to: `sw1:${slug}/a.yaml#ontology:O/concept:Final` }],
+            declaredMigrations: [{ kind: 'item', from: newAddress, to: finalAddress }],
           },
           LOCAL_READER,
         );
         await (await fixture.ws.scmFor(slug, LOCAL_READER)).commit(slug, 'Rename the concept again', { paths: ['a.yaml'] });
       }
+      if (change === 'merged rename') {
+        const directory = fixture.ws.worktrees.baseDir(slug);
+        await fixture.ws.git.run(directory, ['switch', '-c', 'integration', 'main']);
+        await fixture.ws.git.run(directory, ['merge', '--no-ff', '--no-edit', 'work/local']);
+      }
       await fixture.ws.publish(slug, LOCAL_READER);
-      await checkBoth(null);
+      const expected = {
+        'single rename': newAddress,
+        'two renames': finalAddress,
+        'two saves in one commit': finalAddress,
+        'merged rename': newAddress,
+        'independent publication': null,
+      }[change];
+      await checkBoth(expected);
       compact();
       const publicDay = store.readDay(slug, today());
-      expect(publicDay.status === 'ok' && Object.keys(publicDay.file.counts)).toEqual([oldAddress]);
-      await checkBoth(null);
+      expect(publicDay.status === 'ok' && Object.keys(publicDay.file.counts)).toEqual(expected ? [expected] : []);
+      await checkBoth(expected);
+      const directory = fixture.ws.worktrees.baseDir(slug);
+      const path = join(directory, 'a.yaml');
+      const current = fixture.ws.readFile(slug, 'a.yaml');
+      writeFileSync(path, current.source.replace('ontology: [', 'ontology: [{concept: Before}, '));
+      await (await fixture.ws.scmFor(slug, LOCAL_READER)).commit(slug, 'Add a different item at the original address', { paths: ['a.yaml'] });
+      await fixture.ws.publish(slug, LOCAL_READER);
+      await checkBoth(expected);
+      if (expected) {
+        const name = expected.slice(expected.lastIndexOf(':') + 1);
+        writeFileSync(path, fixture.ws.readFile(slug, 'a.yaml').source.replace(`, {concept: ${name}}`, ''));
+        await (await fixture.ws.scmFor(slug, LOCAL_READER)).commit(slug, 'Delete the counted item', { paths: ['a.yaml'] });
+        await fixture.ws.publish(slug, LOCAL_READER);
+        await checkBoth(null);
+        writeFileSync(path, source.replace('Before', name));
+        await (await fixture.ws.scmFor(slug, LOCAL_READER)).commit(slug, 'Reuse the deleted address', { paths: ['a.yaml'] });
+        await fixture.ws.publish(slug, LOCAL_READER);
+        await checkBoth(null);
+        compact();
+        await checkBoth(null);
+      }
     } finally {
       for (const handler of handlers) await handler.usage.close();
     }

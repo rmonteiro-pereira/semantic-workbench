@@ -23,6 +23,7 @@ export const MAX_COUNTED_RESPONSE_BYTES = 4_000_000;
 export const DEFAULT_FLUSH_INTERVAL_MS = 30_000;
 const MAX_ACTIVE_RECORDINGS = 16;
 const WARNING_INTERVAL_MS = 3_600_000;
+const UNRESOLVED_HISTORY = 'unresolved:';
 
 /** What the operation boundary tells the recorder about one finished request. No identity is among it. */
 export type UsageRecordInput = {
@@ -159,7 +160,8 @@ export function createUsageRecorder(deps: UsageRecorderDeps): UsageRecorder {
     const answer = JSON.parse(text);
     const project = answerProject(rule.items, answer, input.target);
     if (!project || (archivedAt.get(project) ?? 0) > admittedAt) return;
-    const marker = deps.migrationRecords(project, commit)?.at(-1)?.id ?? null;
+    const history = deps.migrationRecords(project, commit);
+    const marker = history ? (history.at(-1)?.id ?? null) : UNRESOLVED_HISTORY + commit;
     const models = await deps.models(project, commit);
     if (!models || (archivedAt.get(project) ?? 0) > admittedAt) return;
     increment(project, rule, input, itemAddresses(rule.items, { answer, models, target: input.target }), marker);
@@ -185,8 +187,15 @@ export function createUsageRecorder(deps: UsageRecorderDeps): UsageRecorder {
   }
 
   function flushDay(project: string, key: string, days: Map<string, PendingDay>) {
-    const { file } = days.get(key)!;
+    let { file } = days.get(key)!;
     const records = deps.migrationRecords(project);
+    if (file.migratedThrough?.startsWith(UNRESOLVED_HISTORY)) {
+      const commit = file.migratedThrough.slice(UNRESOLVED_HISTORY.length);
+      const source = deps.migrationRecords(project, commit);
+      if (!source) return warnOncePerHour('usage.flush-deferred', { reason: 'migrations-unavailable' });
+      file = { ...file, migratedThrough: source.at(-1)?.id ?? null };
+    }
+
     let existing = deps.store.readDay(project, file.day);
     if (records && existing.status === 'ok' && !hasPublishedDayHistory(existing.file, records)) {
       deps.store.preserveUnverifiedDay(project, file.day);

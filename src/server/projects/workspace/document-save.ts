@@ -2,14 +2,16 @@
 // swap is journaled so a crash leaves either the old or the new bytes.
 import type { DeclaredMigration } from '../../../shared/core/address-migration';
 import type { OperationOutcome } from '../../auth/operation-outcome';
-import { parseAddress } from '../../../shared/core/item-address';
+import { inspect } from '../../../shared/core/model';
+import { resolveInModel } from '../../../shared/core/model-addresses';
+import { parseAddress, replacePrefix, type Address } from '../../../shared/core/item-address';
 import { deletedItemAddresses } from '../../../shared/edit/address-changes';
-import { operationMigrations, stageAddressMigrations } from '../address-migrations';
+import { operationMigrations, stageAddressMigrations, type MigrationSave } from '../address-migrations';
 import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { InputError, MAX_INPUT_BYTES } from '../../../shared/validation/diagnostics';
 import { atomicWrite, decode, encode, sha256 } from '../atomic';
-import type { Git } from '../git';
+import { symbolicBranch, type Git } from '../git';
 import { JournalCrash, type Journal } from '../journal';
 import { projectFile, projectPath, projectPrefix, repoDir, type DataLayout } from '../paths';
 import { clearPersonalDrafts } from '../personal-state';
@@ -71,6 +73,36 @@ function verifyDeletedItems(addresses: string[], change: { project: string; path
   if (addresses.some(address => !removed.has(address))) throw new BadRequestError('A declared item was not removed by this save.');
 }
 
+type SavedSource = { path: string; before: string | null; after: string };
+
+function matchesRenamedItem(from: string, to: string, previous: readonly DeclaredMigration[], files: readonly SavedSource[]) {
+  const source = parseAddress(from);
+  const target = parseAddress(to);
+  if (!source.ok || !target.ok) return false;
+  function beforeAddress(address: Address) {
+    for (const move of [...previous].reverse()) {
+      const old = parseAddress(move.from);
+      const next = parseAddress(move.to);
+      if (old.ok && next.ok) address = replacePrefix(address, next.address, old.address);
+    }
+    return address;
+  }
+  function exists(address: Address, side: 'before' | 'after') {
+    const path = address.document!.join('/');
+    const text = files.find(file => file.path === path)?.[side];
+    if (text == null) return false;
+    try {
+      const result = inspect(text, path);
+      return 'document' in result && resolveInModel(result.document, address).status === 'found';
+    } catch (error) {
+      if (error instanceof InputError) return false;
+      throw error;
+    }
+  }
+  const original = beforeAddress(source.address);
+  return exists(original, 'before') && !exists(original, 'after') && !exists(beforeAddress(target.address), 'before') && exists(target.address, 'after');
+}
+
 /** The workspace services document saving runs on; the composition root supplies them. */
 export type DocumentSaveContext = {
   layout: DataLayout;
@@ -90,9 +122,21 @@ export type DocumentSaveContext = {
 /** Document use cases: saving one or several files, and reverting a file to its committed text. */
 export function createDocumentSave(ctx: DocumentSaveContext) {
   const { layout, git, gitAvailable, localCommit, journal, state, copies, trash, lock, entry, projectLock, rescanIn } = ctx;
-  async function saveMigrations(files: DataLayout, project: string, id: string, declarations: DeclaredMigration[], deletedItems: string[]) {
-    const commit = declarations.length || deletedItems.length ? await localCommit(files, project) : '';
-    return operationMigrations({ id, at: new Date().toISOString(), commit }, [...declarations, ...deletedItems.map(from => ({ kind: 'deleted' as const, from }))]);
+  async function saveMigrations(files: DataLayout, project: string, id: string, declarations: DeclaredMigration[], deletedItems: string[], sources: SavedSource[]) {
+    if (!declarations.length && !deletedItems.length) return [];
+    const directory = repoDir(files, project);
+    const commit = await localCommit(files, project);
+    const branch = gitAvailable ? await symbolicBranch(git, directory) : null;
+    const records = operationMigrations({ id, at: new Date().toISOString(), commit }, [...declarations, ...deletedItems.map(from => ({ kind: 'deleted' as const, from }))]);
+    const edits: MigrationSave['files'] = sources.map(file => ({ path: file.path, before: file.before === null ? null : sha256(file.before), after: sha256(file.after) }));
+    const verified: DeclaredMigration[] = [];
+    return records.map(record => {
+      if (!branch) return record;
+      if (record.to && !matchesRenamedItem(record.from, record.to, verified, sources)) return record;
+      if (record.kind === 'scope' || record.kind === 'item') verified.push({ kind: record.kind, from: record.from, to: record.to! });
+      const paths = new Set([addressDocument(record.from), ...(record.to ? [addressDocument(record.to)] : [])]);
+      return { ...record, saved: { id, directory, branch, files: edits.filter(edit => paths.has(edit.path)) } };
+    });
   }
   // The edit a save makes to the file in a place: a stale base is refused, and the reader's
   // guard, given in server mode, may refuse it or store an approved metric as proposed.
@@ -150,12 +194,12 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     const place = await copies.writePlace(reader, slug, check);
     const file = projectFile(place.layout, slug, relativePath);
     return lock(projectLock(place, slug), async () => {
-      const { edited, guarded } = await check(place);
+      const { edited, before, guarded } = await check(place);
       const next = guarded?.changes[0].after ?? edited;
       const { bytes, indexed } = checkedBytes(slug, relativePath, next);
       if (!indexed.file.valid) throw new InputError(indexed.findings);
       const opId = journal.newId();
-      const records = await saveMigrations(place.layout, slug, opId, declarations, deletedItems);
+      const records = await saveMigrations(place.layout, slug, opId, declarations, deletedItems, [{ path: relativePath, before, after: next }]);
       const staging = join(layout.state, `.staging-${opId}`);
       const staged = join(staging, 'source');
       const hash = atomicWrite(staged, bytes);
@@ -287,7 +331,14 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
             place.copy ?? undefined,
           ),
         );
-        const records = await saveMigrations(place.layout, slug, opId, declarations, deletedItems);
+        const records = await saveMigrations(
+          place.layout,
+          slug,
+          opId,
+          declarations,
+          deletedItems,
+          prepared.map((write, index) => ({ path: write.path, before: edited[index].before, after: decode(write.bytes) })),
+        );
         steps.push(...stageAddressMigrations({ layout, project: slug, staging }, records));
         journal.run(kind, steps, [staging], opId);
       } catch (error) {

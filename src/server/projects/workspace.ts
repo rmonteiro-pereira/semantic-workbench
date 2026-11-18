@@ -476,6 +476,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     const own = place.copy;
     return createScm({
       layout: place.layout,
+      migrationLayout: layout,
       git,
       gitAvailable,
       siblings: slug => projectsIn(repoOf(slug)),

@@ -614,7 +614,8 @@ export function createGit(options: GitOptions) {
     },
   };
 }
-function parseBlobBatch(bytes: Uint8Array, ids: string[]): Map<string, Uint8Array> {
+/** Reads the non-overlapping blob payloads returned by Git in request order. */
+export function parseBlobBatch(bytes: Uint8Array, ids: string[]): Map<string, Uint8Array> {
   const blobs = new Map<string, Uint8Array>();
   let offset = 0;
   for (const id of ids) {

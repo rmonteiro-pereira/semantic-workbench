@@ -96,13 +96,16 @@ stored.
 
 ## Renames and deletions
 
-A count stays at its original address when the published history cannot prove a rename. The
-authoring journal identifies the commit before each save, so neither a shared ancestor nor matching
-old and new names proves that a declaration was published. A renamed or removed item drops out of
-the response when its old address no longer resolves in the pinned published model. Compaction
-preserves the original counts. A day already rewritten with an unverified marker is reported
-unavailable and retained separately until normal expiry. Fresh counts for that day remain readable
-and are archived alongside the unverified counts when the project is trashed. Publication does not read or write usage history.
+Usage follows renames whose saved edits are present in a published commit. The workbench matches
+the working copy and branch and verifies the committed bytes before binding a declaration to the
+commit. Reads and compaction replay the committed changes in order, including chains and deletions.
+An item that later reuses a deleted address starts with its own counts. A declaration for another
+branch or a save whose exact byte transition cannot be matched does not transfer counts. Publication
+itself does not depend on this usage history.
+
+A day already rewritten with an unverified marker is reported partially unavailable when it also
+has fresh counts. The original day is preserved separately until expiry and moves with the project
+on trash and same-name restore.
 
 ## Who sees counts
 
