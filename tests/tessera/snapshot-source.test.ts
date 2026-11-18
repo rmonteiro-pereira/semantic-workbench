@@ -100,6 +100,15 @@ test('a data root without a record for its repository cannot establish publicati
   await expect(readSnapshot({ repository: inWorkbench(created, root) })).rejects.toThrow('has not published');
 });
 
+test('a repository archived under a workbench data root cannot fall back to standalone compile', async () => {
+  const created = repository();
+  const root = dataRootPointing(created.firstCommit, basename(created.directory));
+  const archive = join(root, 'trash', 'deleted-repository');
+  mkdirSync(join(archive, '..'));
+  renameSync(created.directory, archive);
+  await expect(readSnapshot({ repository: archive })).rejects.toThrow('not linked to a project repository');
+});
+
 test('standalone compile refuses reserved branch and workbench ref names', async () => {
   const created = repository();
   for (const branch of ['work/alice', 'proposal/draft', 'refs/workbench/hidden']) {

@@ -65,9 +65,7 @@ async function chosenCommit(git: Git, directory: string, branch: string, tip: st
 }
 
 function workbenchRoot(repository: string): string | undefined {
-  for (let parent = dirname(repository); parent !== dirname(parent); parent = dirname(parent)) {
-    if (!['projects', 'worktrees'].includes(basename(parent))) continue;
-    const root = dirname(parent);
+  for (let root = dirname(repository); root !== dirname(root); root = dirname(root)) {
     if (existsSync(join(root, 'state', 'projects.json')) || existsSync(join(root, 'state', 'published.json'))) return root;
   }
 }
@@ -96,7 +94,7 @@ async function snapshotPosition(git: Git, request: SnapshotRequest, directory: s
   const repository = dirname(realpathSync(commonDirectory));
   const dataRoot = workbenchRoot(repository);
   const checkoutRoot = workbenchRoot(realpathSync(directory));
-  if (checkoutRoot && (checkoutRoot !== dataRoot || !repository.startsWith(join(checkoutRoot, 'projects') + sep))) {
+  if ((checkoutRoot && checkoutRoot !== dataRoot) || (dataRoot && !repository.startsWith(join(dataRoot, 'projects') + sep))) {
     throw new TesseraRefusal('The checkout is not linked to a project repository in its workbench data root.');
   }
   if (request.dataRoot && (!existsSync(request.dataRoot) || realpathSync(request.dataRoot) !== dataRoot)) {

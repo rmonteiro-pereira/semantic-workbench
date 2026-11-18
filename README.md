@@ -447,6 +447,7 @@ Authorized MCP authoring tools can read the stored source, including unpublished
 `bun run tessera compile` reads one project folder from Git objects. In a workbench data root,
 the configured default branch and the publication record select the commit. An explicit `--branch`
 or `--commit` must match that selection. An explicit `--data-root` must contain the repository.
+A repository elsewhere inside a workbench data root, such as a trash archive, is refused.
 Anywhere else, the manifest and loss report label the source `standalone-snapshot`, meaning a Git
 commit on the chosen branch whose publication the workbench cannot establish. Reserved `work/`,
 `proposal/` and `refs/workbench/` refs are refused in either case.
