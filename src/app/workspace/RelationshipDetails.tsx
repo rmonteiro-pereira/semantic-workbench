@@ -1,3 +1,4 @@
+import { ItemChangeAnnotation } from '../item-diff/ItemChangeAnnotation';
 /** Presentation and event handling for relationship details. */
 import { Braces, Network, Pencil, Trash2 } from 'lucide-react';
 import React from 'react';
@@ -85,6 +86,7 @@ export function RelationshipDetails({
         </label>
       )}
       <h2>{relationship.label}</h2>
+      <ItemChangeAnnotation document={current} item={relationship} />
       <div className="badge">{relationship.data.kind}</div>
       {(() => {
         const targetValue = relationshipTarget(relationship);

@@ -1,3 +1,4 @@
+import { ItemChangeAnnotation } from '../item-diff/ItemChangeAnnotation';
 /** Presentation and event handling for catalog view. */
 import { Gauge, Pencil } from 'lucide-react';
 import React from 'react';
@@ -12,6 +13,7 @@ import { orderedAttributes, orderListOf } from '../../shared/attributes/attribut
 import './catalog.css';
 
 type Props = {
+  current?: import('../projects/api').Doc | null;
   model: ValidatedModel;
   search: string;
   /** When set, only this area's entities are listed. */
@@ -45,7 +47,7 @@ function metricCountLabel(count: number) {
   return count === 1 ? '1 metric' : `${count} metrics`;
 }
 /** Renders catalog view. */
-export function CatalogView({ model, search, area, clearArea, selectEntity, kpiBadges, entityTarget, rdfTarget, setEditing, setRdfEditing }: Props) {
+export function CatalogView({ current, model, search, area, clearArea, selectEntity, kpiBadges, entityTarget, rdfTarget, setEditing, setRdfEditing }: Props) {
   const areaIds = area ? new Set(area.entityIds) : null;
   const inArea = (entity: Entity) => !areaIds || areaIds.has(entity.id);
   return (
@@ -85,6 +87,7 @@ export function CatalogView({ model, search, area, clearArea, selectEntity, kpiB
                 <p title={entity.description || undefined}>{entity.description || 'No description yet'}</p>
                 <span className="catalog-details">View details</span>
               </button>
+              <ItemChangeAnnotation document={current ?? null} item={entity} />
               <CardMarks entity={entity} model={model} />
               {(entityTarget(entity) || rdfTarget(entity)) && (
                 <button className="catalog-edit" aria-label={`Edit ${entity.name}`} onClick={handleCatalogEditClick}>

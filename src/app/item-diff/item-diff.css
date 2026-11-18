@@ -17,7 +17,8 @@
   border-radius: 4px;
 }
 
-:where(.full-entity, .node, .item-change-surface):has(> .item-change-mark) {
+:where(.full-entity, .node, .item-change-surface, .catalog-card):has(> .item-change-mark),
+.attribute-row:has(.item-change-mark) {
   outline: 2px dashed var(--color-text-muted);
   outline-offset: 2px;
   background: var(--color-surface-sunken);

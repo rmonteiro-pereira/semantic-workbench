@@ -329,6 +329,7 @@ export function WorkspaceCanvas({
     if (tab === 'catalog') {
       return (
         <CatalogView
+          current={current}
           model={model}
           search={search}
           area={catalogArea}

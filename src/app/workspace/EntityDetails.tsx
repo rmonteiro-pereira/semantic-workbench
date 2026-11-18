@@ -1,3 +1,4 @@
+import { ItemChangeAnnotation } from '../item-diff/ItemChangeAnnotation';
 /** Presentation and event handling for entity details. */
 import { Box, Braces, FileCode, Focus, Pencil, Plus, Trash2 } from 'lucide-react';
 import React from 'react';
@@ -74,6 +75,7 @@ export function EntityDetails({
         <Box />
       </div>
       <h2>{entity.name}</h2>
+      <ItemChangeAnnotation document={current} item={entity} />
       <button className="inspect-neighborhood" onClick={() => showNeighborhood(entity.id)}>
         <Focus size={14} />
         Explore neighborhood
