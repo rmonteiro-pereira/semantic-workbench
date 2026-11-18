@@ -342,3 +342,26 @@ test('work opened through a connection is told when it ends', async () => {
   expect(signal.aborted).toBe(true);
   expect(fixture.service.endSignal(id).aborted).toBe(true);
 });
+
+test('a code replay during its first exchange revokes the eventual connection', async () => {
+  const fixture = open();
+  const session = fixture.signIn('session-one');
+  const code = fixture.codeFor(session);
+  const first = fixture.trade(code);
+  const replay = fixture.trade(code);
+  const outcomes = await Promise.all([first, replay]);
+  expect(outcomes.every(outcome => !outcome.ok)).toBe(true);
+  expect(fixture.store.all()).toHaveLength(1);
+  expect(fixture.store.all()[0]).toMatchObject({ state: 'ended', endReason: 'code-reuse' });
+});
+
+test('revocation during session lookup cannot mint a caller or restore token hashes', async () => {
+  const fixture = open();
+  const { tokens, id } = await connect(fixture);
+  fixture.advance(60000);
+  const resolving = fixture.service.resolve(tokens.accessToken);
+  fixture.service.end(id, 'revoked-by-person');
+  expect(await resolving).toEqual({ ok: false });
+  expect(fixture.store.get(id)).toMatchObject({ state: 'ended', endReason: 'revoked-by-person' });
+  expect((await fixture.service.resolve(tokens.accessToken)).ok).toBe(false);
+});

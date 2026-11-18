@@ -46,11 +46,11 @@ export type GrantBinding = {
   origin: ConnectionOrigin;
 };
 
-type StoredGrant = { binding: GrantBinding; expiresAt: number; spent: boolean; connectionId?: string };
+type StoredGrant = { binding: GrantBinding; expiresAt: number; spent: boolean; replayed?: boolean; connectionId?: string };
 
 /** The result of presenting a code or setup credential. */
 export type GrantPresentation =
-  | { state: 'fresh'; binding: GrantBinding; attachConnection: (connectionId: string) => void }
+  | { state: 'fresh'; binding: GrantBinding; attachConnection: (connectionId: string) => boolean }
   | { state: 'replayed'; binding: GrantBinding; connectionId?: string }
   | { state: 'unknown' };
 
@@ -115,13 +115,17 @@ export function createPendingGrants(options: { key: Uint8Array; now?: () => numb
       const stored = grants.get(hash);
       const state = presentationOf(stored, now());
       if (!stored || state === 'unknown') return { state: 'unknown' };
-      if (state === 'replayed') return { state: 'replayed', binding: stored.binding, connectionId: stored.connectionId };
+      if (state === 'replayed') {
+        stored.replayed = true;
+        return { state: 'replayed', binding: stored.binding, connectionId: stored.connectionId };
+      }
       stored.spent = true;
       return {
         state: 'fresh',
         binding: stored.binding,
         attachConnection: connectionId => {
           stored.connectionId = connectionId;
+          return !stored.replayed && grants.get(hash) === stored;
         },
       };
     },

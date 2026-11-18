@@ -3,7 +3,7 @@ import { mintCaller, type Caller } from '../auth/caller';
 import type { Principal } from '../auth/principal';
 import type { Session, SessionEndListener } from '../auth/sessions';
 import { sha256 } from '../projects/atomic';
-import { createConnectionEvents, type ConnectionEvents } from './connection-events';
+import { createConnectionEvents } from './connection-events';
 import type { ConnectionRecord, ConnectionStore, EndReason } from './connection-store';
 import { ENDED_RETENTION_MS } from './connection-store';
 import {
@@ -187,7 +187,7 @@ export function createConnectionService(dependencies: ConnectionServiceDependenc
   }
 
   /** Creates the connection for a grant that passed every check. */
-  async function openConnection(binding: GrantBinding, attach: (connectionId: string) => void): Promise<TokenOutcome> {
+  async function openConnection(binding: GrantBinding, attach: (connectionId: string) => boolean): Promise<TokenOutcome> {
     const origin = connectionCallerOrigin(binding.origin);
     const session = await sessions.getByReference(binding.sessionReference);
     if (!session) return { ok: false, reason: 'session-ended' };
@@ -212,7 +212,10 @@ export function createConnectionService(dependencies: ConnectionServiceDependenc
     });
     const issued = mintTokens(started);
     store.save(issued.record);
-    attach(issued.record.id);
+    if (!attach(issued.record.id)) {
+      end(issued.record.id, 'code-reuse');
+      return refuse('replayed-credential');
+    }
     events.record({
       action: 'connection.issued',
       origin,
@@ -263,7 +266,7 @@ export function createConnectionService(dependencies: ConnectionServiceDependenc
     return openOrRefuse(binding, presented.attachConnection);
   }
 
-  async function openOrRefuse(binding: GrantBinding, attach: (connectionId: string) => void): Promise<TokenOutcome> {
+  async function openOrRefuse(binding: GrantBinding, attach: (connectionId: string) => boolean): Promise<TokenOutcome> {
     const opened = await openConnection(binding, attach);
     return opened.ok ? opened : refuse(opened.reason);
   }
@@ -310,10 +313,14 @@ export function createConnectionService(dependencies: ConnectionServiceDependenc
   }
 
   async function resolve(accessToken: string): Promise<ResolvedConnection> {
-    const record = store.byAccessHash(keyedHash(key, accessToken));
+    const hash = keyedHash(key, accessToken);
+    let record = store.byAccessHash(hash);
     if (!record || record.state !== 'active' || record.resource !== dependencies.resource) return { ok: false };
     if (!accessTokenLive(record, now())) return { ok: false };
     const session = await sessions.getByReference(record.sessionReference);
+    // Session lookup yields to revocation and refresh, so only the current indexed token may proceed.
+    record = store.byAccessHash(hash);
+    if (!record || record.state !== 'active' || !accessTokenLive(record, now())) return { ok: false };
     const unfit = unfitnessOf(record, session);
     if (unfit || !session) {
       end(record.id, unfit ?? 'session-ended');
