@@ -1,6 +1,7 @@
 // Introduces faults into temporary source copies and checks that the test suite detects them.
 import { tmpdir } from 'node:os';
 import { operationBoundaryMutants } from './operation-boundary-mutants';
+import { proposalsMutants } from './proposals-mutants';
 import { addressMutants, modelAddressMutants, migrationAddressMutants, serverAddressMutants, addressOperationMutants } from './address-mutants';
 import { adminMutants } from './admin-mutants';
 import { sessionSecurityMutants } from './session-security-mutants';
@@ -570,6 +571,8 @@ mutants.push(...brandMutants);
 mutants.push(...observabilityMutants);
 
 mutants.push(...operationBoundaryMutants);
+// Shared proposals: scope, authority, the publication path and the push rule.
+mutants.push(...proposalsMutants);
 
 // Split modules import their siblings, so a mutant runs inside a copy of the whole folder: only
 // imports that leave the folder point back at the real sources.
