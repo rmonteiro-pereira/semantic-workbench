@@ -23,6 +23,7 @@ import {
 } from '../../shared/metrics/extension';
 import { mappingExpressionBindings, resolveBindings, type ResolvedBinding } from '../../shared/metrics/bindings';
 import { documentsOfProject } from '../../shared/core/project-scope';
+import { documentForAgents } from '../../shared/tessera/agent-view';
 import { modelContext, planQuery, type StoredDocument } from './runtime';
 import { BadRequestError } from '../projects/errors';
 type ProjectDocument = StoredDocument & { path: string };
@@ -162,7 +163,7 @@ function parseProject(documents: StoredDocument[], slug: string): Parsed[] {
       try {
         if (rdfSyntax(doc.source, doc.filename)) return [];
         const inspected = inspect(doc.source, doc.filename);
-        return 'document' in inspected && object(inspected.document) ? [{ doc, data: inspected.document }] : [];
+        return 'document' in inspected && object(inspected.document) ? [{ doc, data: documentForAgents(inspected.document) }] : [];
       } catch {
         return [];
       }
