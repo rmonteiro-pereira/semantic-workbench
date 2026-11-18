@@ -125,7 +125,7 @@ test('a malformed policy is refused', () => {
 });
 
 test('a registered reserved name cannot be allowed because it is not registered', () => {
-  expect(() => parseLossPolicy('{"policy":1,"allow":["tessera_governance"]}', registry)).toThrow('not a registered property');
+  expect(() => parseLossPolicy('{"policy":1,"allow":["tessera_imports"]}', registry)).toThrow('not a registered property');
 });
 
 // Every dropped note is listed.

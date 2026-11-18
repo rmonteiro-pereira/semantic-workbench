@@ -1,6 +1,7 @@
 tessera: 2
 version: 0.2.0.dev0
 name: Retail
+tessera_ai_context: Retail data.
 ontology:
   - concept: Order
     type: EntityType

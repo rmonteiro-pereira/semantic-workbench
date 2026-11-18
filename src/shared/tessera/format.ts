@@ -8,7 +8,7 @@ export const TesseraNames = {
 } as const;
 
 /** The revisions of the Tessera rules this workbench understands. */
-export const SUPPORTED_REVISIONS: readonly number[] = [1];
+export const SUPPORTED_REVISIONS: readonly number[] = [1, 2];
 
 /** The name the compiler goes by in reports and manifests. */
 export const COMPILER_NAME = 'tessera';

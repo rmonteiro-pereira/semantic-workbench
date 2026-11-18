@@ -1,8 +1,8 @@
-tessera: 1
+tessera: 2
 version: 0.2.0.dev0
 name: Retail
 ontology:
   - concept: Order
     type: EntityType
-    tessera_governance:
-      status: draft
+    tessera_imports:
+      - other.ontology.yaml

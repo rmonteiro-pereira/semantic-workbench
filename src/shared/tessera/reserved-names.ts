@@ -5,9 +5,4 @@ import { tesseraPropertyName } from './format';
 export type ReservedName = { name: string; owner: string };
 
 /** The reserved names. A feature that registers one removes it from this list in the same change. */
-export const RESERVED_NAMES: readonly ReservedName[] = [
-  { name: tesseraPropertyName('ai_context'), owner: 'item-level agent context' },
-  { name: tesseraPropertyName('governance'), owner: 'governance' },
-  { name: tesseraPropertyName('attributes'), owner: 'attributes' },
-  { name: tesseraPropertyName('imports'), owner: 'multi-file units' },
-];
+export const RESERVED_NAMES: readonly ReservedName[] = [{ name: tesseraPropertyName('imports'), owner: 'multi-file units' }];
