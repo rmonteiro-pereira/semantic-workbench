@@ -27,7 +27,7 @@ Browser cookie writes need the existing `X-SW-Request` header and origin check.
 | `connection.replay` | retired refresh token or spent code presented | connection origin (`mcp` or `acp`) |
 | `connection.revoked` | person or Admin revocation | http |
 | `connection.ended` | end for any other reason, with the reason | http for session end; connection origin when noticed at a call |
-| `connection.refused` | a token request refused (bounded like anonymous denials) | connection origin (`mcp` or `acp`) |
+| `connection.refused` | a token request refused (bounded like anonymous denials) | mcp for an unbound token request |
 
 Each carries the connection id when one exists, the person when known, the program id and the scope
 set. None carries a token, code, credential, verifier, hash or session reference.

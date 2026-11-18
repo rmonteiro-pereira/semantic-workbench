@@ -508,4 +508,6 @@ unchanged. `useAgentSession` owns stream retries and the known-session 404 infer
 `agent-events.ts` deduplicates replay and combines streamed text. Browser storage holds only a
 session id. `ChangeCard` restores text with the ordinary guarded save and its accepted base hash.
 The workbench never launches an agent, calls a model, supplies credentials to an agent or names
-a tool server. Server-mode connection assembly is a separate integration responsibility.
+a tool server. In server mode, `handler.ts` supplies the real person connection service to the panel; it owns
+setup exchange, token rotation and session-end notifications. Each transport binds tokens to its
+own caller origin before the shared operation boundary authorizes them.

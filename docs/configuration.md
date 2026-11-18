@@ -318,7 +318,7 @@ The agent endpoint needs no environment variable. It uses `DATA_DIR` and `SW_POR
 | `<data root>/state/mcp-receipts/<year>-<month>.json` | Receipts that make delete, restore and commit safe to retry, kept for seven days, removed when the endpoint starts and ignored once expired. An unreadable file is moved aside as `*.json.corrupt-<time>` and, for the retention period after that, every key not found is answered `uncertain`; deleting that moved-aside file, after checking the trash and the Git log, lifts this sooner. They hold no file text. |
 | `bun run mcp:rotate` | Replaces the capability; the old value stops working on the next request. |
 
-Server mode never mounts the endpoint. See [the agent endpoint guide](mcp.md).
+Server mode mounts the endpoint with person connection tokens instead of the local capability. See [the agent endpoint guide](mcp.md).
 
 ## Person connections for server agents
 
@@ -328,9 +328,8 @@ connection records across restarts; key rotation ends existing access. No additi
 setting or static personal access token is needed. Registrations live in `admin/programs.json`;
 connection metadata and keyed hashes live in `state/connections/`. Back up the complete data root.
 
-The local stdio bridge still uses `DATA_DIR` and `SW_PORT`. Server-mode bridge credential storage
-is unresolved; do not configure undocumented bridge environment variables. See
-[agent connections](agent-connections.md) for the browser-flow limitation and client status.
+The local stdio bridge still uses `DATA_DIR` and `SW_PORT`. The server bridge stores rotating
+client tokens in an owner-only file; see [agent connections](agent-connections.md) for client status.
 
 
 The stdio bridge uses `SW_SERVER_URL` for the server origin, `SW_CLIENT_ID` for the
@@ -347,4 +346,4 @@ and sign-out.
 The relay's `--session <id>.<code>`, `--url <origin>` and agent command after `--` come from the
 panel connection instructions. `DATA_DIR` and `SW_PORT` locate the local capability and server.
 Do not put a real credential in an environment file. See [the panel guide](agent-panel.md) for
-scopes, lifetime and the pending server-mode integration.
+scopes, lifetime and the required Admin registration.

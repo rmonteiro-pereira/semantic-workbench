@@ -213,8 +213,8 @@ quickstart, `docs/agent-connections.md`, `scripts/connections-*.ts`, `src/app/au
   for, `mcp` (default) or `acp`. `createConnectionForSession` accepts the client program, the scopes
   and the origin, and `resolve` returns a caller with that origin. The relay of 015 is an ordinary
   registered program (M3): the Admin registers it using the documented configuration that 015 adds to
-  its documentation, and no program is built in. Token and setup-credential events keep the origin of
-  the connection. Both plans use the inventory dispatch value `public` for routes that answer without a
+  its documentation, and no program is built in. Issue, refresh and replay events keep the connection origin. Browser setup creation and
+  revocation use `http`; unbound token refusals retain the token endpoint’s `mcp` origin. Both plans use the inventory dispatch value `public` for routes that answer without a
   session and `browser-only` for browser pages that are never agent operations.
 The joined contract uses `createConnectionForSession({ session, clientId, scopes, origin })`
 with named scopes `read` and `edit`, not effect names or a panel session id. The relay exchanges

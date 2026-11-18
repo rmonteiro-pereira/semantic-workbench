@@ -73,13 +73,13 @@ record stays for 7 days so the lists can show it.
 
 ## Connection view (what lists return)
 
-`id`, `clientId`, program `name` at the time, `scopes`, `createdAt`, `lastUsedAt`, `state`,
+`id`, `clientId`, program `name` at the time, `origin` (`mcp` or `acp`), `scopes`, `createdAt`, `lastUsedAt`, `state`,
 `endReason`, and for Admins the person's display name. Never a hash, a session reference or a token.
 
 ## Caller additions
 
 The caller of feature 010 already carries `principal`, `origin`, `connection`, `scope` and
-`session`. This feature supplies: origin `mcp`, `connection` = the connection id, `scope` = the
+`session`. Connections supply their stored origin (`mcp` or `acp`), `connection` = the connection id, `scope` = the
 effects of the scope set, and `session` = the live session found by reference. No field is added to
 the caller.
 
