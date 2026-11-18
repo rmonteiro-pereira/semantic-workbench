@@ -64,7 +64,7 @@ UI regression comparison against the last release and the architecture review ru
 
 - [x] T027 [US3] Create `src/app/item-diff/BranchControl.tsx` and mount it in `EntityDetails.tsx` and `RelationshipDetails.tsx`: the current branch name, and for editors "Start a branch for this item", which opens the create dialog of `src/app/scm/BranchPicker.tsx` with a suggested name made from the item name and the existing switch operation (FR-024, FR-025). Proof: `bun test tests/item-diff/branch-control.test.tsx` covers editor, read-only person, invalid and used names (message in words, input kept), and a branch held by another copy.
 - [x] T028 [US3] Let the `BranchPicker` create dialog take a suggested name without changing its other behaviour (`src/app/scm/BranchPicker.tsx`). Proof: the existing `BranchPicker` test, named in the pull request description, passes unchanged, and a new case covers the suggestion.
-- [ ] T029 [US3] Write `tests/item-diff/no-push.test.ts`: starting and switching a branch from the control issues no push request and the overlay recomputes after a switch (FR-025, FR-027). Proof: the test passes; adding a push call to the control makes it fail.
+- [x] T029 [US3] Write `tests/item-diff/no-push.test.ts`: starting and switching a branch from the control issues no push request and the overlay recomputes after a switch (FR-025, FR-027). Proof: the test passes; adding a push call to the control makes it fail.
 - [ ] T030 [US3] Add the branch journey to `scripts/item-diff-browser-check.ts` (see T034): start a branch from an entity, a relationship and an attribute, edit, read the overlay, switch back. Proof: covered by T034's run.
 
 ## Phase 6: User Stories 4 and 5, review and planner

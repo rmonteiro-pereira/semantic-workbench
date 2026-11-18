@@ -29,6 +29,7 @@ export function createScmBranches(ctx: ScmContext, remote: Pick<ScmRemote, 'choo
     // A volume that ignores case keeps `Work/bob` and `work/bob` in one file, so a spelling that
     // differs only in case from an existing branch is that branch under a name no rule matches.
     const known = await git.branches(directory);
+    if (create && known.local.includes(target.local)) throw new BadRequestError(`Branch "${target.local}" already exists.`);
     const existing = [...known.local, ...known.remote.map(remote => remote.slice(remote.indexOf('/') + 1))];
     const clash = branchSpelledDifferently(target.local, existing);
     if (clash) throw new BadRequestError(`"${target.local}" differs only in letter case from "${clash}".`);
