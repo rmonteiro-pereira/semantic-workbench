@@ -54,6 +54,21 @@ the table above. The static page fallback row is not an operation and is left ou
 | Row | Disposition | Note |
 |-----|-------------|------|
 | `POST /api/mcp` | transport | mode-specific authentication; unaudited itself, each dispatched twin writes the one record |
+| `GET /.well-known/oauth-protected-resource/api/mcp` | transport metadata | protected resource discovery |
+| `GET /.well-known/oauth-protected-resource` | transport metadata | root discovery alias |
+| `GET /.well-known/oauth-authorization-server` | transport metadata | authorization server discovery |
+| `POST /oauth/token` | transport authorization | code, setup and refresh exchanges |
+| `GET /oauth/authorize` | browser connection management | opens consent |
+| `POST /oauth/consent` | browser connection management | consumes consent |
+| `GET /oauth/setup` | browser connection management | opens setup |
+| `POST /oauth/setup` | browser connection management | issues a setup credential |
+| `GET /api/connections` | browser connection management | lists the person's connections |
+| `DELETE /api/connections/:id` | browser connection management | revokes the person's connection |
+| `GET /api/admin/connections` | browser administration | lists all connections |
+| `DELETE /api/admin/connections/:id` | browser administration | revokes a connection |
+| `GET /api/admin/programs` | browser administration | reads registrations |
+| `PUT /api/admin/programs` | browser administration | saves reviewed registrations |
+| `POST /api/admin/programs/preview` | browser administration | previews registration changes |
 | `POST /api/projects/:slug/files/*/validate` | tool: validate_text | new twin; needs the right to edit that file |
 | `POST /api/projects/:slug/item-addresses/resolve` | later: Remaining workspace and source-control operations | item addresses are adopted by a later increment |
 | `POST /api/projects/:slug/item-addresses/reconcile/*` | later: Remaining workspace and source-control operations | item addresses are adopted by a later increment |
