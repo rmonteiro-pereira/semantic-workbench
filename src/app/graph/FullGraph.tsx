@@ -4,6 +4,7 @@ import { formatAddress } from '../../shared/core/item-address';
 import { flushSync } from 'react-dom';
 import { ScrollStrip } from '../components/ScrollStrip';
 import type { GroupingOptions } from './overview';
+import { usePhoneScreen } from '../workspace/hooks/useNarrowScreen';
 import { useRecordedState } from '../workspace/hooks/useRecordedState';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ReactFlow, Background, MiniMap, type ReactFlowInstance } from '@xyflow/react';
@@ -53,6 +54,7 @@ type Props = {
 };
 // The mini-map is off until a person asks for it; the choice is remembered in this browser.
 const MINI_MAP_KEY = 'workbench:graph-mini-map';
+const MINI_MAP_RESERVED_WIDTH = 216;
 /** Displays the model graph with grouping, filtering and entity details. */
 export function FullGraph(props: Props) {
   const container = useRef<HTMLDivElement | null>(null);
@@ -73,6 +75,8 @@ export function FullGraph(props: Props) {
   const [labels, setLabels] = useRecordedState('graph.labels', false);
   const [version, setVersion] = useState(0);
   const [miniMap, setMiniMap] = useRecordedState('graph.miniMap', () => readFlag(MINI_MAP_KEY));
+  const phone = usePhoneScreen();
+  const miniMapReservedWidth = miniMap && !phone ? MINI_MAP_RESERVED_WIDTH : 0;
   useEffect(() => writeFlag(MINI_MAP_KEY, miniMap), [miniMap]);
   const toggleMiniMap = () => setMiniMap(shown => !shown);
   const [routeMetrics, setRouteMetrics] = useState<SmartEdgeMetrics | null>(null);
@@ -93,7 +97,7 @@ export function FullGraph(props: Props) {
   const overview = useMemo(() => modelOverview(graphEntities, graphEdges, props.name, false, props.grouping), [graphEntities, graphEdges, props.name, props.grouping]);
   // Explicit area choices survive automatic first-view decisions.
   const [collapseChoice, setCollapseChoice] = useRecordedState<Set<string> | null>('graph.collapsedAreas', null);
-  const opening = useFullGraphOpening({ overview, algorithm, collapseChoice, flow, container, reservedWidth: miniMap ? 216 : 0, onFitZoom: setFittedZoom, onArea: setZoomedGroupId });
+  const opening = useFullGraphOpening({ overview, algorithm, collapseChoice, flow, container, reservedWidth: miniMapReservedWidth, onFitZoom: setFittedZoom, onArea: setZoomedGroupId });
   const autoCollapsed = useMemo(() => (opening.automaticCollapse ? new Set(overview.groups.map(group => group.id)) : new Set<string>()), [overview, opening.automaticCollapse]);
   const collapsed = collapseChoice ?? autoCollapsed;
   const setCollapsed = (next: Set<string>) => setCollapseChoice(next);
@@ -159,10 +163,10 @@ export function FullGraph(props: Props) {
   // and a NaN viewport is replaced without animating from it.
   const fitWithin = useCallback(
     (duration: number) => {
-      const zoom = fitFullGraph(flow.current, container.current?.querySelector('.react-flow'), duration, miniMap ? 216 : 0);
+      const zoom = fitFullGraph(flow.current, container.current?.querySelector('.react-flow'), duration, miniMapReservedWidth);
       if (zoom !== undefined) setFittedZoom(zoom);
     },
-    [miniMap],
+    [miniMapReservedWidth],
   );
   const fit = useCallback(() => {
     setZoomedGroupId('');
@@ -215,7 +219,7 @@ export function FullGraph(props: Props) {
         if (!held()) {
           if (opening.checking || (opening.automaticCollapse && collapseChoice === null)) void opening.openLayout();
           else if (props.selected) focusSelection();
-          else if (algorithm === 'layered' && zoomedGroupId) fitGraphArea(flow.current!, el, zoomedGroupId, miniMap ? 216 : 0);
+          else if (algorithm === 'layered' && zoomedGroupId) fitGraphArea(flow.current!, el, zoomedGroupId, miniMapReservedWidth);
           else fitWithin(0);
         }
       }, 100);
@@ -225,7 +229,7 @@ export function FullGraph(props: Props) {
       observer.disconnect();
       clearTimeout(timer);
     };
-  }, [busy, opening.checking, opening.automaticCollapse, collapseChoice, fitWithin, focusSelection, algorithm, zoomedGroupId, miniMap]);
+  }, [busy, opening.checking, opening.automaticCollapse, collapseChoice, fitWithin, focusSelection, algorithm, zoomedGroupId, miniMapReservedWidth]);
   useEffect(() => {
     // A person who opened every area keeps them open under another grouping; any other choice
     // belonged to the old groups.
