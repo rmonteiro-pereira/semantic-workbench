@@ -87,6 +87,7 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   row('POST', '/api/projects/:slug/gitignore', 'edit', project),
   { ...row('GET', '/api/projects/:slug/metrics', 'read', project), readSource: 'by-surface' },
   row('GET', '/api/projects/:slug/delete-impact', 'read', project),
+  row('GET', '/api/projects/:slug/usage', 'read', project),
   { ...row('POST', '/api/projects/:slug/metrics', 'edit', project), readSource: 'editing' },
   // Owner choices list people's addresses, so only those who may save metrics here see them.
   row('GET', '/api/projects/:slug/people', 'edit', project),

@@ -49,7 +49,7 @@ edits a test only to make it pass.
 - [x] T015 [US2] Add the daily compaction and start-up expiry in `src/server/usage/usage-retention.ts` driven by the recorder's timer; a lower retention removes more at the next start (FR-015). Proof: `tests/usage/usage-retention.test.ts` advances the clock past retention plus one day and finds no older file.
 - [x] T016 [US2] Move `state/usage/<slug>/` with a trashed project and back on restore, remove it on purge, following how `archiveAddressMigrations` is used in `src/server/projects/trash.ts` and `restoreAddressMigrations` in `src/server/projects/trash-restore.ts` (FR-020). Proof: `tests/usage/usage-trash.test.ts` covers trash, restore and purge, that a workbench export contains no counts, and that deleting the whole `state/usage/` folder leaves every other feature working (FR-016).
 - [x] T017 [P] [US2] Register the store in the persisted-key inventory: `src/server/projects/address-key-stores.ts` comment-level entry, `docs/item-addresses.md` table row ("converted by replay; counts only"), and the shape check in `tests/address-key-inventory.test.ts` (FR-024). Proof: `bun test tests/address-key-inventory.test.ts` fails when `CounterDayFile` gains a field without a decision.
-- [ ] T018 [US2] Cover the ambiguous external change: a remove-and-add pair keeps counts with the removed item and none on the added one; a damaged migration store leaves counts unchanged on disk and marks the project's answer unavailable (FR-023). Proof: `tests/usage/usage-migration.test.ts` cases pass.
+- [x] T018 [US2] Cover the ambiguous external change: a remove-and-add pair keeps counts with the removed item and none on the added one; a damaged migration store leaves counts unchanged on disk and marks the project's answer unavailable (FR-023). Proof: `tests/usage/usage-migration.test.ts` cases pass.
 
 ## Phase 4: User Story 3 - Reading within permissions (P1)
 
@@ -57,12 +57,12 @@ edits a test only to make it pass.
 
 **Independent Test**: `bun test tests/auth/usage-read-parity.test.ts tests/usage/usage-read.test.ts`.
 
-- [ ] T019 [US3] Add the row `GET /api/projects/:slug/usage` (action `read`, project target) in `src/server/auth/route-actions.ts` as one contiguous block, and the entry `usage.read` in `policies/operation-inventory.json` (effects `read`, exposure `never` with the reason of `contracts/usage-read-api.md`) (FR-026). Proof: `bun test tests/auth/operation-inventory.test.ts tests/auth/route-actions.test.ts` pass.
-- [ ] T020 [US3] Write `src/server/usage/usage-read.ts`: merge files and memory, rekey, filter by `requestReader`, totals, `unavailableDays`, drop `other` when any file is unreadable (FR-025, FR-027, FR-028, FR-029). Proof: `tests/usage/usage-read.test.ts` covers readable, unreadable, guarded, partially readable, off, damaged day, period bounds and ordering.
-- [ ] T021 [US3] Write `src/server/routes/usage.ts` and register it in `src/server/handler.ts` after the project routes; validate `days`; set `Cache-Control: no-store` (FR-026). Proof: `tests/usage/usage-route.test.ts` covers 200, 400, 403, 404.
-- [ ] T022 [P] [US3] Add matrix cases for the row in `policies/matrix-cases.json` and an example request in `tests/auth/route-actions.ts`. Proof: `bun test tests/auth/access-boundary.test.ts tests/auth/route-actions.test.ts` pass with every test role.
-- [ ] T023 [US3] Write `tests/auth/usage-read-parity.test.ts`: HTTP and twin answers equal; a hidden project equals a missing project; an unreadable file with counts, without counts and missing give the same answer (FR-027, FR-030). Proof: passes.
-- [ ] T024 [P] [US3] Regenerate `docs/operations.md` with `bun scripts/operation-inventory-table.ts`. Proof: `bun test tests/auth/operation-inventory.test.ts` finds the table byte equal.
+- [x] T019 [US3] Add the row `GET /api/projects/:slug/usage` (action `read`, project target) in `src/server/auth/route-actions.ts` as one contiguous block, and the entry `usage.read` in `policies/operation-inventory.json` (effects `read`, exposure `never` with the reason of `contracts/usage-read-api.md`) (FR-026). Proof: `bun test tests/auth/operation-inventory.test.ts tests/auth/route-actions.test.ts` pass.
+- [x] T020 [US3] Write `src/server/usage/usage-read.ts`: merge files and memory, rekey, filter by `requestReader`, totals, `unavailableDays`, drop `other` when any file is unreadable (FR-025, FR-027, FR-028, FR-029). Proof: `tests/usage/usage-read.test.ts` covers readable, unreadable, guarded, partially readable, off, damaged day, period bounds and ordering.
+- [x] T021 [US3] Write `src/server/routes/usage.ts` and register it in `src/server/handler.ts` after the project routes; validate `days`; set `Cache-Control: no-store` (FR-026). Proof: `tests/usage/usage-route.test.ts` covers 200, 400, 403, 404.
+- [x] T022 [P] [US3] Add matrix cases for the row in `policies/matrix-cases.json` and an example request in `tests/auth/route-actions.ts`. Proof: `bun test tests/auth/access-boundary.test.ts tests/auth/route-actions.test.ts` pass with every test role.
+- [x] T023 [US3] Write `tests/auth/usage-read-parity.test.ts`: HTTP and twin answers equal; a hidden project equals a missing project; an unreadable file with counts, without counts and missing give the same answer (FR-027, FR-030). Proof: passes.
+- [x] T024 [P] [US3] Regenerate `docs/operations.md` with `bun scripts/operation-inventory-table.ts`. Proof: `bun test tests/auth/operation-inventory.test.ts` finds the table byte equal.
 
 **Checkpoint**: counts can be read within permissions.
 

@@ -33,6 +33,7 @@ import { peopleRoutes } from './routes/people';
 import type { AccessControl } from './auth/authorize';
 import { browserReportRoutes } from './routes/browser-reports';
 import { createWorkspaceUsage } from './usage/usage-workspace';
+import { usageRoutes } from './routes/usage';
 /** Local browser origins allowed to call the API. */
 export const ALLOWED_ORIGINS = allowedOrigins(4310);
 /** Includes the configured API origin and the Vite development server. */
@@ -150,6 +151,7 @@ function workspaceRoutes(administration: AdminRepository, access: AccessControl,
     suggestionRoutes,
     projectRoutes(administration),
     metricRoutes,
+    usageRoutes(options.usage!, options.usageSettings, options.now),
     peopleRoutes(access),
     kpiRoutes,
     createGitRoutes(options),

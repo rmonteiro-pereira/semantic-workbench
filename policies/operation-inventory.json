@@ -383,6 +383,21 @@
         "increment": "local-edit"
       }
     },
+    "GET /api/projects/:slug/usage": {
+      "id": "usage.read",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "never",
+        "reason": "Agents do not need traffic counts to do their work; a later increment decides whether to show them."
+      }
+    },
     "POST /api/projects/:slug/metrics": {
       "id": "metrics.save",
       "handlerChecks": ["authorizeWrite", "bodyTargets"],

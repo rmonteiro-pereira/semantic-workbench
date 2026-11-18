@@ -31,6 +31,7 @@ export const routeExamples: { method: string; path: string; body?: unknown }[] =
   { method: 'POST', path: '/api/projects/missing/gitignore' },
   { method: 'GET', path: '/api/projects/missing/metrics' },
   { method: 'GET', path: '/api/projects/missing/delete-impact' },
+  { method: 'GET', path: '/api/projects/missing/usage' },
   { method: 'POST', path: '/api/projects/missing/metrics' },
   { method: 'GET', path: '/api/projects/missing/people' },
   { method: 'POST', path: '/api/projects/missing/metrics/preview' },

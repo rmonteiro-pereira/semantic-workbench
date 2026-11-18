@@ -41,3 +41,8 @@ export const countedOperations = parseCountedOperations(table);
 export function countedOperation(operationId: string): CountedOperation | undefined {
   return countedOperations.find(entry => entry.operation === operationId);
 }
+
+/** The words shown for each measure; every label says requests through this workbench, never queries. */
+export const USAGE_MEASURE_LABELS: Record<UsageMeasure, string> = {
+  'workbench-requests': 'requests through this workbench',
+};
