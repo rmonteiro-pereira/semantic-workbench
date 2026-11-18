@@ -50,7 +50,7 @@ async function checkProvider(source: FrozenDependencySource, pin: PublishedPin, 
   if (!selected) refuse('A locked provider version is unavailable.');
   const match = exportedOntologies(project, repository, selected.commit, selected.documents).find(entry => entry.ontology === ontology);
   if (!match || match.closure.interfaceHash !== provider.interfaceHash) refuse('A locked provider interface differs from the candidate or pinned version.');
-  return {
+  const resolved = {
     project,
     ontology,
     exports: new Set(match.closure.concepts.keys()),
@@ -62,6 +62,66 @@ async function checkProvider(source: FrozenDependencySource, pin: PublishedPin, 
     sourceItems: new Map([...match.sourceItems].filter(([, path]) => !reader.view || reader.view.canRead(project, path))),
     ontologyName: match.ontologyName,
   };
+  return { resolved, documents: selected.documents };
+}
+
+const MAX_PROVIDER_DEPTH = 8;
+
+type ProviderTraversal = {
+  source: FrozenDependencySource;
+  pin: PublishedPin;
+  reader: Reader;
+  root: Candidate;
+  commits: Map<string, string>;
+};
+
+function providerSource(traversal: ProviderTraversal, candidate: Candidate): FrozenDependencySource {
+  if (candidate.repo === traversal.root.repo && candidate.next === traversal.root.next) return traversal.source;
+  return {
+    ...traversal.source,
+    candidateDocuments: async project => {
+      const snapshot = await traversal.source.snapshots.pinnedDocumentsAt(traversal.pin, project, candidate.next);
+      if (!snapshot) refuse('A locked provider version is unavailable.');
+      return snapshot.documents;
+    },
+  };
+}
+
+function providerDependencies(documents: PublishedDocument[], root: string) {
+  const unit = documents.find(file => file.path === root);
+  if (!unit) return [];
+  const model = validateInput(unit.source, unit.filename).model;
+  if (!model || !('document' in model)) return [];
+  const imports = declaredImports(model.document);
+  if (!imports.length) return [];
+  const lock = documents.find(file => file.path === DEPENDENCY_MANIFEST_PATH);
+  if (!lock) refuse('A locked provider has no dependency manifest.');
+  try {
+    const entry = dependencyRoot(parseDependencyManifest(lock.source), root);
+    if (entry && manifestIsCurrent(entry, imports)) return entry.providers;
+  } catch (error) {
+    if (!(error instanceof Error)) throw error;
+  }
+  refuse('A locked provider has a stale or invalid dependency manifest.');
+}
+
+async function traverseProvider(traversal: ProviderTraversal, candidate: Candidate, provider: LockedProvider, visited: ReadonlySet<string>) {
+  const { source, pin, reader, commits } = traversal;
+  const commit = provider.sameRepository ? candidate.next : provider.commit;
+  const key = JSON.stringify([provider.project, provider.ontology, commit]);
+  const previous = commits.get(provider.project);
+  if (previous !== undefined && previous !== commit) refuse(`Provider "${provider.project}" resolves to both "${previous}" and "${commit}".`);
+  commits.set(provider.project, commit);
+  if (!visited.has(key) && visited.size >= MAX_PROVIDER_DEPTH) refuse(`An import chain exceeds ${MAX_PROVIDER_DEPTH} providers.`);
+  const { resolved, documents } = await checkProvider(providerSource(traversal, candidate), pin, candidate, reader, provider);
+  if (provider.concepts.some(name => !resolved.exports.has(name))) refuse('A locked concept is not exported by its provider.');
+  if (!visited.has(key)) {
+    const next = new Set([...visited, key]);
+    for (const dependency of providerDependencies(documents, provider.ontology)) {
+      await traverseProvider(traversal, { repo: provider.repository, next: commit }, dependency, next);
+    }
+  }
+  return resolved;
 }
 
 /** Resolves exactly the public interface entries selected by the lock, using only the given snapshots. */
@@ -79,11 +139,10 @@ export async function resolveFrozenUnit(source: FrozenDependencySource, pin: Pub
   const entry = dependencyRoot(lock, unit.root.path);
   if (!entry || !manifestIsCurrent(entry, imports)) refuse('The dependency manifest is stale.');
   requireOneProviderVersion(entry.providers);
+  const traversal = { source, pin, reader, root: candidate, commits: new Map<string, string>() };
   const providers = [];
   for (const provider of entry.providers) {
-    const snapshot = await checkProvider(source, pin, candidate, reader, provider);
-    if (provider.concepts.some(name => !snapshot.exports.has(name))) refuse('A locked concept is not exported by its provider.');
-    providers.push(snapshot);
+    providers.push(await traverseProvider(traversal, candidate, provider, new Set()));
   }
   return { imports, providers };
 }
@@ -130,13 +189,20 @@ export async function checkPublicationDependencies(
     const frozen = { ...source, candidateDocuments: (project: string) => source.snapshots.candidateDocuments(candidate, project) };
     for (const project of source.projectsIn(candidate.repo)) {
       const documents = await frozen.candidateDocuments(project);
-      const { units, findings } = parseUnits(documents);
-      const lock = documents.find(file => file.path === DEPENDENCY_MANIFEST_PATH);
       const visible = (path: string) => !reader.view || reader.view.canRead(project, path);
-      const paths = new Set(documents.filter(file => visible(file.path)).map(file => file.path));
-      const hasUnavailableFile = units.some(unit => !requiredUnitFiles(unit).every(path => paths.has(path)));
+      const readable = documents.filter(file => visible(file.path));
+      const paths = new Set(readable.map(file => file.path));
+      const { units, findings } = parseUnits(readable);
+      const unavailable = units.map(unit => requiredUnitFiles(unit).map(path => paths.has(path)));
+      if (unavailable.some(files => files.includes(false))) throw new MissingOntologySetError();
+      const lock = readable.find(file => file.path === DEPENDENCY_MANIFEST_PATH);
       const errors = findings.filter(finding => finding.severity === 'error');
-      if (hasUnavailableFile || errors.some(finding => !finding.files.every(visible))) throw new MissingOntologySetError();
+      if (documents.length !== readable.length) {
+        const fullSet = parseUnits(documents);
+        if (fullSet.units.some(unit => !visible(unit.root.path)) || fullSet.findings.some(finding => finding.severity === 'error' && !finding.files.every(visible))) {
+          throw new MissingOntologySetError();
+        }
+      }
       checkLockCoverage(units, lock);
       for (const unit of units) errors.push(...(await checkImports(frozen, pin, candidate, reader, unit, lock)).filter(finding => finding.severity === 'error'));
       if (errors.length) throw new InputError(errors.map(({ code, path, severity, message }) => ({ code, path, severity, message })));

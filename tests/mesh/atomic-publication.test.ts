@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { meshWorkspace } from '../helpers/mesh-workspace';
+import { meshWorkspace, MESH_PROJECTS } from '../helpers/mesh-workspace';
 
 type Fixture = Awaited<ReturnType<typeof meshWorkspace>>;
 
@@ -102,4 +102,38 @@ test('a reciprocal import between same-repository public interfaces publishes an
     expect(release).toMatchObject({ result: 'released', manifest: { manifestVersion: 2 } });
     expect(release.manifest.providers).toMatchObject([{ commit: candidate, project: project === 'finance' ? 'retail' : 'finance' }]);
   }
+});
+
+test('publication refuses a chain longer than eight providers', async () => {
+  using fixture = await meshWorkspace('shared');
+  fixture.addPersonalBranch('retail');
+  const repo = fixture.ws.repoOf('retail');
+  const folder = join(fixture.fixture.root, 'projects', repo);
+  const chain = Array.from({ length: 10 }, (_, index) => ({ path: `chain-${index}`, name: `Chain ${index}` }));
+  for (const [index, { path }] of chain.entries()) {
+    mkdirSync(join(folder, path));
+    const next = chain[index + 1];
+    const data = {
+      tessera: 3,
+      version: '0.2.0.dev0',
+      name: path,
+      tessera_exports: ['Node'],
+      ontology: [{ concept: 'Node', type: 'EntityType' }],
+      ...(next ? { tessera_imports: [{ project: next.path, alias: 'next', concepts: ['Node'], version: 'latest' }] } : {}),
+    };
+    writeFileSync(join(folder, path, 'ontology.yaml'), JSON.stringify(data));
+  }
+  await fixture.ws.registerRepositoryProjects(repo, [...MESH_PROJECTS.map(path => ({ path, name: path })), ...chain]);
+  for (const { path } of chain.slice(0, -1)) {
+    const preview = await post(fixture, path, 'dependencies/update', { baseHash: null });
+    if (!preview.ok) throw new Error(await preview.text());
+    const result = await post(fixture, path, 'dependencies/update', { baseHash: null, confirm: (await preview.json()).preview });
+    if (!result.ok) throw new Error(await result.text());
+  }
+  const original = fixture.ws.state.published().repositories[repo].commit;
+  commit(fixture, 'retail');
+  const response = await post(fixture, 'retail', 'git/publish');
+  expect(response.status).toBe(400);
+  expect(await response.text()).toContain('An import chain exceeds 8 providers.');
+  expect(fixture.ws.state.published().repositories[repo].commit).toBe(original);
 });
