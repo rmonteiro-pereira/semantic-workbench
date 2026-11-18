@@ -200,3 +200,58 @@ test('the identity provider is never contacted by an agent call', async () => {
   expect(server.transport.state.codes.size).toBe(before);
   expect(referenceProgram.clientId).toBe('reference-client');
 });
+
+test('a person lists their own connections and revokes one without touching the others or the browser session', async () => {
+  const server = await open();
+  const first = await server.connect('alice');
+  const second = await server.connect('alice');
+  const bob = await server.connect('bob');
+  const cookie = first.cookie;
+  const list = await (await server.json('/api/connections', 'GET', cookie)).json();
+  expect(list).toHaveLength(2);
+  expect(list[0]).toMatchObject({ clientId: 'reference-client', programName: 'Protocol reference client', scopes: ['read', 'edit'], state: 'active' });
+  expect(Object.keys(list[0]).sort()).toEqual(['clientId', 'createdAt', 'id', 'lastUsedAt', 'personName', 'programName', 'scopes', 'state']);
+  const target = list.find((view: { id: string }) => view.id !== undefined);
+  const revoked = await server.json(`/api/connections/${target.id}`, 'DELETE', cookie);
+  expect(revoked.status).toBe(200);
+  const service = server.auth.connections.service;
+  const results = await Promise.all([service.resolve(first.tokens.access_token), service.resolve(second.tokens.access_token)]);
+  expect(results.filter(result => result.ok)).toHaveLength(1);
+  expect((await server.json('/api/me', 'GET', cookie)).status).toBe(200);
+  expect((await service.resolve(bob.tokens.access_token)).ok).toBe(true);
+  const after = await (await server.json('/api/connections', 'GET', cookie)).json();
+  expect(after.find((view: { id: string }) => view.id === target.id)).toMatchObject({ state: 'ended', endReason: 'revoked-by-person' });
+});
+
+test('another person is told 404 for a connection that is not theirs, as for one that does not exist', async () => {
+  const server = await open();
+  await server.connect('alice');
+  const bob = await server.signIn('bob');
+  const [theirs] = server.auth.connections.service.listAll();
+  const foreign = await server.json(`/api/connections/${theirs.id}`, 'DELETE', bob);
+  const missing = await server.json('/api/connections/AAAAAAAAAAAAAAAAAAAAAA', 'DELETE', bob);
+  expect(foreign.status).toBe(404);
+  expect(await foreign.text()).toBe(await missing.text());
+  expect(missing.status).toBe(404);
+  expect(server.auth.connections.service.listAll()[0].state).toBe('active');
+  expect(await (await server.json('/api/connections', 'GET', bob)).json()).toEqual([]);
+});
+
+test('an Admin lists every connection with the person named, sees no token or hash, and may revoke any', async () => {
+  const server = await open();
+  const { tokens } = await server.connect('alice');
+  const admin = await server.signIn('dave');
+  const response = await server.json('/api/admin/connections', 'GET', admin);
+  const text = await response.text();
+  expect(JSON.parse(text)[0]).toMatchObject({ personName: 'Alice Andrade', clientId: 'reference-client', state: 'active' });
+  expect(text).not.toContain(tokens.access_token);
+  expect(text).not.toContain(tokens.refresh_token);
+  expect(text).not.toMatch(/hash|sessionReference|retired/i);
+  const id = JSON.parse(text)[0].id;
+  expect((await server.json('/api/admin/connections/AAAAAAAAAAAAAAAAAAAAAA', 'DELETE', admin)).status).toBe(404);
+  expect((await server.json(`/api/admin/connections/${id}`, 'DELETE', admin)).status).toBe(200);
+  expect((await server.auth.connections.service.resolve(tokens.access_token)).ok).toBe(false);
+  expect(server.auth.connections.service.listAll()[0]).toMatchObject({ state: 'ended', endReason: 'revoked-by-admin' });
+  const alice = await server.signIn('alice');
+  expect((await server.json('/api/admin/connections', 'GET', alice)).status).toBe(403);
+});

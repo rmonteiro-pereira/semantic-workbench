@@ -51,7 +51,7 @@ architecture review run once on the integrated batch (last task). Heavy runs: `s
 
 - [x] T018 [US2] Subscribe the service to `sessions.onEnded` in `src/server/handler.ts` or `src/server/auth/authentication.ts`, end connections with the right reason, and add the one-minute sweep for deactivation, removed grants, removed programs and ended records older than 7 days. Proof: `tests/auth/connection-lifetime.test.ts` scenarios 1 to 6 of Story 2, including restart with surviving and missing sessions.
 - [x] T019 [US2] In `resolve`, rebuild the person with `access.principalFor`, refuse and end on deactivation or no grants, and never touch last-seen time or the provider. Proof: the same test file: a thousand simulated agent calls across an idle window leave `lastSeenAt` unchanged; a grant change reduces the next call; the provider fake receives no request (FR-042, FR-048).
-- [ ] T020 [US2] Person's and Admin's list and revoke routes in `src/server/routes/connections.ts` and `src/server/routes/admin-connections.ts`. Proof: `tests/auth/connection-lifetime.test.ts` scenario 6, plus 404 for another person's id, plus an Admin list that holds no token or hash.
+- [x] T020 [US2] Person's and Admin's list and revoke routes in `src/server/routes/connections.ts` and `src/server/routes/admin-connections.ts`. Proof: `tests/auth/connection-lifetime.test.ts` scenario 6, plus 404 for another person's id, plus an Admin list that holds no token or hash.
 
 ## Phase 5: User Story 3 - Admin controls programs (P1)
 

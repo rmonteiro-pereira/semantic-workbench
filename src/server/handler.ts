@@ -35,6 +35,8 @@ import { browserReportRoutes } from './routes/browser-reports';
 import { createMcpRoute } from './routes/mcp';
 import { createOAuthRoutes } from './routes/oauth';
 import { createOAuthPageRoutes } from './routes/oauth-consent';
+import { createConnectionRoutes } from './routes/connections';
+import { createAdminConnectionRoutes } from './routes/admin-connections';
 import { createReceiptStore } from './mcp/receipts';
 import { TOOLS } from './mcp/tool-registry';
 import type { OperationBoundary } from './auth/operation-boundary';
@@ -246,6 +248,8 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
             session: request => options.authentication!.session(request),
             boundary: () => operationBoundary!,
           }),
+          createConnectionRoutes(options.connections.service),
+          createAdminConnectionRoutes(adminService, options.connections.service),
         ]
       : [];
   const routes: Route[] = [

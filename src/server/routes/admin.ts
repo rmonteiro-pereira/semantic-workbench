@@ -40,14 +40,14 @@ const LOCAL_PROVIDER: ProviderStatus = {
   jwksRefreshedAt: null,
 };
 
-async function objectBody(request: Request): Promise<Record<string, unknown>> {
+export async function objectBody(request: Request): Promise<Record<string, unknown>> {
   const body = await readJson(request, ADMIN_REQUEST_LIMIT);
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     throw new AdminConfigError('Expected a JSON object.');
   }
   return body;
 }
-function actorOf(request: Request): AdminActor {
+export function actorOf(request: Request): AdminActor {
   const requestId = (request as AuditRequest)[requestAuditId]!;
   return { principal: requestScope(request).principal, requestId };
 }
