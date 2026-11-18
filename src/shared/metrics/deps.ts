@@ -163,7 +163,7 @@ function expressionSites(sql: string): { reference: ExprRef; parts: Token[] }[] 
   return refs;
 }
 /** Replaces the longest matching SQL name prefix, preserving the rest of the expression. */
-export function rewriteExpressionRefs(sql: string, rewrite: (name: string) => string): string {
+export function rewriteExpressionRefs(sql: string, rewrite: (name: string) => string, quote: (name: string) => string = name => '"' + name.replaceAll('"', '""') + '"'): string {
   let result = sql;
   for (const { parts } of expressionSites(sql).reverse()) {
     for (let count = parts.length; count > 0; count--) {
@@ -173,7 +173,7 @@ export function rewriteExpressionRefs(sql: string, rewrite: (name: string) => st
         .join('.');
       const replacement = rewrite(name);
       if (replacement === name) continue;
-      const quoted = '"' + replacement.replaceAll('"', '""') + '"';
+      const quoted = quote(replacement);
       result = result.slice(0, parts[0].start) + quoted + result.slice(parts[count - 1].end);
       break;
     }

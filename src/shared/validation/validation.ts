@@ -9,6 +9,7 @@ import { metricLayerIssues, readKpiBindings } from '../metrics/extension';
 import { INCLUDES_PROPERTY } from '../tessera/additions/includes';
 import { IMPORTS_PROPERTY } from '../tessera/additions/imports';
 import { PART_PROPERTY } from '../tessera/additions/part';
+import { checkImports, type ProviderInterface } from '../tessera/imports';
 import { TesseraNames } from '../tessera/format';
 import { readMarker } from '../tessera/marker';
 import { tesseraIssues, withoutRepeatedSchemaFindings } from '../tessera/validate';
@@ -59,6 +60,8 @@ export type ValidationOptions = {
   assumeOssieVersion?: boolean;
   /** Set when the document sits inside another one, so a key named like the Tessera marker is ordinary data. */
   nested?: boolean;
+  /** Check imports against the interfaces already resolved for this caller. */
+  providerInterfaces?: readonly ProviderInterface[];
 };
 /** Checks structured definitions against schemas and semantic rules. */
 export function validateStructured(data: any, applyPinnedSchema = true, options: ValidationOptions = {}): Issue[] {
@@ -126,6 +129,10 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
   const checkLocalReferences = !part && !unitRoot && !imported;
   if (marked) {
     issues.push(...tesseraIssues(data).issues);
+    if (imported && options.providerInterfaces) {
+      const unit = { root: { path: 'ontology', data }, parts: [] };
+      issues.push(...checkImports(unit, options.providerInterfaces).findings);
+    }
     if (data.ontology !== undefined) applyPinnedSchema = false;
     else data = withoutMarker(data);
   }

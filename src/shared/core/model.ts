@@ -13,6 +13,8 @@ import { applyPatches } from '../editor/patch';
 import { inspectRdf, rdfSyntax } from '../validation/rdf';
 import { isNotValidated, validateStructured, type ValidationOptions } from '../validation/validation';
 import { InputError, validateEnvelope, type Issue } from '../validation/diagnostics';
+import { checkImports, providerOf, type ImportedConcept, type ResolvedImportInterface } from '../tessera/imports';
+import { rewriteConceptReferences } from '../tessera/qualify';
 import { combineUnit } from '../tessera/unit-model';
 import type { OntologyUnit } from '../tessera/unit-structure';
 import { documentFormat } from '../tessera/validate';
@@ -28,6 +30,7 @@ export type Entity = {
   readOnlyForm?: boolean;
   declaredDomains?: string[];
   namespace?: Namespace;
+  imported?: ImportedConcept;
 };
 /** Describes a structured definition item with its required locator. */
 export type StructuredEntity = Entity & { address: Address };
@@ -139,9 +142,13 @@ export function inspect(source: string, filename = 'definition.yaml', options: V
 }
 
 /** Inspects a composed ontology while retaining the original source file of each item. */
-export function inspectOntologyUnit(unit: OntologyUnit, project?: string) {
+export function inspectOntologyUnit(unit: OntologyUnit, project?: string, providers?: readonly ResolvedImportInterface[]) {
   const combined = combineUnit(unit);
-  const model = inspectStructuredModel(combined.ontology, []);
+  const data = combined.ontology;
+  const imports = providers ? checkImports(unit, providers) : undefined;
+  const imported = importedDefinitions(imports?.findings.length ? new Map() : (imports?.aliases ?? new Map()), providers ?? []);
+  const ontology = [...data.ontology, ...[...imported.values()].map(item => item.definition)];
+  const model = inspectStructuredModel({ ...data, ontology }, imports?.findings ?? []);
   if (project !== undefined) {
     function sourceAddress(address: Address) {
       const file = combined.itemFiles.get(formatAddress(address));
@@ -150,7 +157,39 @@ export function inspectOntologyUnit(unit: OntologyUnit, project?: string) {
     for (const entity of model.entities) if (isStructuredEntity(entity)) entity.address = sourceAddress(entity.address);
     for (const edge of model.edges) edge.address = sourceAddress(edge.address);
   }
+  for (const entity of model.entities) {
+    const item = imported.get(entity.name);
+    if (!item) continue;
+    entity.imported = item.owner;
+    entity.readOnlyForm = true;
+    if (isStructuredEntity(entity)) {
+      const scope = item.scope ? { kind: 'ontology' as const, name: item.scope } : { kind: 'ontology' as const, position: 0 };
+      const chain = [scope, { kind: 'concept' as const, name: item.owner.concept }];
+      entity.address = { grammar: 1, form: 'absolute', project: item.owner.project, document: item.owner.ontology.split('/'), chain, snapshot: item.owner.version };
+    }
+  }
+  for (const edge of model.edges) {
+    const conceptIndex = edge.data.path[1];
+    if (typeof conceptIndex === 'number' && conceptIndex >= data.ontology.length) edge.data.readOnlyForm = true;
+  }
   return { ...model, itemFiles: combined.itemFiles, itemSources: combined.itemSources };
+}
+
+function importedDefinitions(aliases: ReturnType<typeof checkImports>['aliases'], providers: readonly ResolvedImportInterface[]) {
+  const imported = new Map<string, { owner: ImportedConcept; scope?: string; definition: Record<string, unknown> }>();
+  for (const [alias, entry] of aliases) {
+    const provider = providerOf(entry, providers);
+    if (!provider) continue;
+    for (const concept of entry.concepts) {
+      const definition = provider.concepts.get(concept);
+      if (!definition) continue;
+      const name = `${alias}.${concept}`;
+      const rewrite = (reference: string) => (entry.concepts.includes(reference) ? `${alias}.${reference}` : reference);
+      const owner = { project: provider.project, ontology: provider.ontology, version: provider.version, concept, alias };
+      imported.set(name, { owner, scope: provider.scope, definition: { ...rewriteConceptReferences(definition, rewrite), concept: name } });
+    }
+  }
+  return imported;
 }
 
 function inspectStructuredModel(data: any, issues: Issue[]) {

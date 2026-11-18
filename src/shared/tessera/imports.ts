@@ -8,7 +8,19 @@ import type { OntologyUnit, UnitFinding } from './unit-structure';
 export type UnitImport = { project: string; ontology?: string; alias: string; concepts: string[]; version: 'latest' | { pin: string } };
 
 /** Describes the public part of a provider resolved for one consumer unit. */
-export type ProviderInterface = { project: string; ontology: string; exports: ReadonlySet<string> };
+export type ProviderInterface = { project: string; ontology: string; exports: ReadonlySet<string>; sameRepository?: boolean };
+
+/** Associates a spelling with its canonical owner and exact published version. */
+export type ImportedConcept = { project: string; ontology: string; version: string; alias: string; concept: string };
+
+/** Supplies the public definitions an import is allowed to use. */
+export type ResolvedImportInterface = ProviderInterface & { version: string; scope?: string; concepts: ReadonlyMap<string, Record<string, unknown>> };
+
+/** Finds a provider only when the import resolves to one exporting ontology. */
+export function providerOf<T extends ProviderInterface>(entry: UnitImport, providers: readonly T[]): T | undefined {
+  const matches = providers.filter(candidate => candidate.project === entry.project && (entry.ontology === undefined || entry.ontology === candidate.ontology));
+  return matches.length === 1 ? matches[0] : undefined;
+}
 
 /** Reads structurally valid import entries, defaulting their version choice to latest. */
 export function declaredImports(data: unknown): UnitImport[] {
@@ -30,13 +42,13 @@ function finding(code: string, file: string, path: string, detail: string): Unit
 }
 
 /** Maps unique aliases to declarations and checks their allow-lists against public interfaces. */
-export function checkImports(unit: OntologyUnit, providers: readonly ProviderInterface[] = []): { aliases: Map<string, UnitImport>; findings: UnitFinding[] } {
+export function checkImports(unit: OntologyUnit, providers?: readonly ProviderInterface[]): { aliases: Map<string, UnitImport>; findings: UnitFinding[] } {
   const aliases = new Map<string, UnitImport>();
   const identities = new Map<string, Set<string | undefined>>();
   const findings: UnitFinding[] = [];
   const root = unit.root.path;
   for (const entry of declaredImports(unit.root.data)) {
-    const provider = providers.find(candidate => candidate.project === entry.project && (entry.ontology === undefined || entry.ontology === candidate.ontology));
+    const provider = providers ? providerOf(entry, providers) : undefined;
     const ontology = provider?.ontology ?? entry.ontology;
     const seen = identities.get(entry.project) ?? new Set<string | undefined>();
     const path = `/${IMPORTS_PROPERTY}`;
@@ -49,6 +61,10 @@ export function checkImports(unit: OntologyUnit, providers: readonly ProviderInt
     identities.set(entry.project, seen);
     if (!entry.concepts.length || new Set(entry.concepts).size !== entry.concepts.length) {
       findings.push(finding('tessera-import-allow', root, path, `Alias "${entry.alias}" needs a nonempty list with each concept named once.`));
+    } else if (providers && !provider) {
+      findings.push(finding('tessera-import-provider', root, path, `The provider for alias "${entry.alias}" is unavailable.`));
+    } else if (provider?.sameRepository && entry.version !== 'latest') {
+      findings.push(finding('tessera-import-pin', root, path, `Alias "${entry.alias}" uses the same repository and must follow the publication snapshot.`));
     } else if (provider) {
       for (const name of entry.concepts) {
         if (!provider.exports.has(name)) findings.push(finding('tessera-import-unexported', root, path, `"${entry.alias}.${name}" is not exported by the provider.`));

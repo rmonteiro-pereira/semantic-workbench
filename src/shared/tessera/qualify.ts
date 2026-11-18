@@ -10,15 +10,15 @@ export function qualifiedConcept(owner: ConceptOwner): string {
   return [owner.project, owner.ontology, owner.concept].map(part => part.replaceAll('%', '%25').replaceAll('.', '%2E').replaceAll('~', '%7E')).join('~');
 }
 
-function rewriteExpressions(record: Record<string, unknown>, rewrite: (name: string) => string) {
+function rewriteExpressions(record: Record<string, unknown>, rewrite: (name: string) => string, quote?: (name: string) => string) {
   for (const field of ['requires', 'derived_by']) {
     const expressions = record[field];
-    if (Array.isArray(expressions)) record[field] = expressions.map(value => (typeof value === 'string' ? rewriteExpressionRefs(value, rewrite) : value));
+    if (Array.isArray(expressions)) record[field] = expressions.map(value => (typeof value === 'string' ? rewriteExpressionRefs(value, rewrite, quote) : value));
   }
 }
 
 /** Rewrites a concept's parent, identifier, role and expression references without changing its declaration. */
-export function rewriteConceptReferences(definition: Record<string, unknown>, rewrite: (name: string) => string): Record<string, unknown> {
+export function rewriteConceptReferences(definition: Record<string, unknown>, rewrite: (name: string) => string, quote?: (name: string) => string): Record<string, unknown> {
   const result = { ...definition };
   if (Array.isArray(result.extends)) result.extends = result.extends.map(value => (typeof value === 'string' ? rewrite(value) : value));
   if (Array.isArray(result.identify_by)) {
@@ -29,12 +29,12 @@ export function rewriteConceptReferences(definition: Record<string, unknown>, re
       return rewrite(value.slice(0, dot)) + value.slice(dot);
     });
   }
-  rewriteExpressions(result, rewrite);
+  rewriteExpressions(result, rewrite, quote);
   if (!Array.isArray(result.relationships)) return result;
   result.relationships = result.relationships.map(relationship => {
     if (!isObject(relationship)) return relationship;
     const copy = { ...relationship };
-    rewriteExpressions(copy, rewrite);
+    rewriteExpressions(copy, rewrite, quote);
     if (Array.isArray(copy.roles)) {
       copy.roles = copy.roles.map(role => (isObject(role) && typeof role.concept === 'string' ? { ...role, concept: rewrite(role.concept) } : role));
     }
