@@ -59,7 +59,7 @@ const TREATMENT_OF_KIND: Record<ClassifiedFile['kind'], ReportInput['treatment']
 };
 
 /** The steps a unit compile delegates, so a test can replace one to inject a fault. */
-export type UnitSteps = { compileDocument: typeof compileDocument };
+export type UnitSteps = { compileDocument: typeof compileDocument; compileMeshRoot?: typeof compileMeshRoot };
 
 const DEFAULT_STEPS: UnitSteps = { compileDocument };
 
@@ -146,7 +146,7 @@ function compileMesh(
   const source = files.find(entry => entry.kind === 'tessera-ontology' && entry.file.path === unit.root.path);
   if (source?.kind !== 'tessera-ontology') return;
   const parts = unit.parts.map(part => files.find(entry => entry.file.path === part.path)).filter(entry => entry?.kind === 'tessera-part');
-  const compiled = compileMeshRoot(unit, [source, ...parts], providers, steps.compileDocument);
+  const compiled = (steps.compileMeshRoot ?? compileMeshRoot)(unit, [source, ...parts], providers, steps.compileDocument);
   if ('failures' in compiled) {
     result.failures.push(...compiled.failures);
     return;

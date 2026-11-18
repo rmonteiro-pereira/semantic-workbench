@@ -1,4 +1,5 @@
 import { expect, test } from 'bun:test';
+import { compileMeshRoot } from '../../src/shared/tessera/compile-mesh';
 import { buildManifest } from '../../src/shared/tessera/manifest';
 import { compileDocument } from '../../src/shared/tessera/compile-document';
 import { compileUnit, type UnitFile } from '../../src/shared/tessera/compile-unit';
@@ -102,4 +103,24 @@ test('a compiler that changes part content cannot release a merged ontology', ()
   );
   expect(result.outputs).toEqual([]);
   expect(result.failures).toMatchObject([{ code: 'meaning', document: 'part.json' }]);
+});
+
+test('changing one imported concept in the output prevents the bundle from being released', () => {
+  const result = compileUnit(
+    [definition('root.json', root), definition('part.json', part)],
+    { lossPolicySha256: null, providers: new Map([['root.json', [provider]]]) },
+    {
+      compileDocument,
+      compileMeshRoot: (...args) => {
+        const output = compileMeshRoot(...args);
+        if ('failures' in output) return output;
+        const data = JSON.parse(output.text);
+        const imported = data.ontology.find((concept: { concept: string }) => concept.concept.endsWith('~Invoice'));
+        imported.description = 'Changed meaning in the emitted interface';
+        return { ...output, text: JSON.stringify(data) };
+      },
+    },
+  );
+  expect(result.outputs).toEqual([]);
+  expect(result.failures).toMatchObject([{ code: 'meaning', document: 'root.json' }]);
 });
