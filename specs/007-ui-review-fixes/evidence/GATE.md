@@ -625,6 +625,17 @@ to full width. The pairs are `before/fixes/ubl-hidden-minimap-390-light-1.png` a
 
 The gallery and CSV passed the local path and content scan. The gallery folder uses 56 MB on disk.
 
+The Order inspection replay found that a delayed Layered fit could show Address while the inspector still named Order.
+Commit `fca85397` keeps the selected entity in frame when the completed layout contains it. Both 390 px light repetitions
+after the correction showed the whole Order card at 103.68 × 33.81 px. The opened native pair
+`before/fixes/ubl-layered-expanded-order-390.png` and `after/fixes/ubl-layered-expanded-order-390.png` changed 27.421922%
+of pixels. The corrected image shows Order beside Contract. The 1440 px strip likewise shows Order with its immediate
+neighbors after expansion. Explicit Collapse areas still clipped the lower counted cards on desktop and showed only part
+of the layout on phone at this checkpoint. Its correction is under a separate replay.
+
+- `bash .data/gate/pull-review-007.sh` fetched the phone and 1440 px light selection replays. The six changed triptychs were opened.
+- `git diff --check` returned 0 before the selection correction commit. The detached candidate rebuild returned 0.
+
 ## Differences for owner acceptance
 
 - The release has no published working-copy notice. Main adds it to Mappings, with both older release and candidate data otherwise kept under the
