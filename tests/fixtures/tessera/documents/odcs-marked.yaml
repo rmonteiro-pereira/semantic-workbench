@@ -1,0 +1,7 @@
+tessera: 1
+apiVersion: v3.1.0
+kind: DataContract
+id: orders
+version: 1.0.0
+schema:
+  - name: orders

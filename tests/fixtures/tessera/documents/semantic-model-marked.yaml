@@ -1,0 +1,6 @@
+tessera: 1
+version: 0.2.0.dev0
+name: retail_model
+datasets:
+  - name: orders
+    source: db.orders

@@ -1,0 +1,16 @@
+tessera: 1
+version: 0.2.0.dev0
+name: Retail
+ontology:
+  - concept: Order
+    type: EntityType
+ontology_mappings:
+  - name: retail-map
+    semantic_model:
+      version: 0.2.0.dev0
+      name: retail_model
+      datasets:
+        - name: orders
+          source: db.orders
+          tessera_notes: Notes are not allowed inside an embedded model.
+    concept_mappings: []
