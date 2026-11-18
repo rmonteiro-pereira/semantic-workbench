@@ -38,3 +38,15 @@ access can read repository branches. The operation is available only to the work
 
 The comparison reports when the checked-out branch changes or its tip moves. Source Control
 status includes the checked-out commit ID when the branch has a commit.
+
+## Performance
+
+On the development server on 2026-11-18, a comparison of 2,000 items per side with 100
+changes took 739.6 ms, including Git and saved-file reads. The target is one second.
+In a 500-entity browser fixture, the median time from opening the graph to its rendered cards
+was 2,450.1 ms with the overlay off and 2,504.4 ms with it on, an increase of 2.2%.
+The target is an increase of at most 10%. The separate graph-model timing was 4.09 ms off
+and 4.87 ms on. Browser timings use the median of three visits per setting.
+
+Run the comparison and graph measurement with `bun scripts/item-diff-measure.ts`. Set
+`SW_BASE_URL` to a running frontend to include the isolated browser measurement.
