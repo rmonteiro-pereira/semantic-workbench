@@ -144,6 +144,22 @@ export async function committedAddressHistoryFile(git: Git, layout: DataLayout, 
   return parseAddressHistory(decode(bytes));
 }
 
+/** Checks every reachable history version before a scoped Git bundle can carry it. */
+export async function historyBundleEndpointsReadable(git: Git, directory: string, ref: string, reader: Reader, maximumBytes: number): Promise<boolean> {
+  const result = await git.run(directory, ['rev-list', '--objects', '--full-history', ref, '--', ADDRESS_HISTORY_FILE], { readOnly: true, env: { GIT_NO_LAZY_FETCH: '1' } });
+  const ids = result.stdout
+    .split('\n')
+    .filter(line => line.endsWith(' ' + ADDRESS_HISTORY_FILE))
+    .map(line => line.slice(0, line.indexOf(' ')));
+  if (!ids.length) return true;
+  if (ids.length > ADDRESS_MIGRATION_LIMIT) return false;
+  const blobs = await git.catFileBatch(directory, ids, { documentBytes: maximumBytes, totalBytes: maximumBytes });
+  return ids.every(id => {
+    const bytes = blobs.get(id);
+    return bytes !== undefined && parseAddressHistory(decode(bytes)).every(record => readableRecord(record, reader));
+  });
+}
+
 /** Assigns repeatable record identifiers from the journal's business operation identifier. */
 export function operationMigrations(operation: { id: string; at: string; commit: string }, changes: readonly Omit<MigrationRecord, 'id' | 'at' | 'commit'>[]): MigrationRecord[] {
   if (!operation.id) throw new BadRequestError('A migration operation identifier is required.');

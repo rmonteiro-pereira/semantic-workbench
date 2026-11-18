@@ -176,7 +176,8 @@ Published disables Git history and does not save or include the open draft.
 or null). This metadata and the Published export choice require no Git history permission.
 
 `GET /api/projects/:slug/export?source=published` instead archives exact committed snapshot bytes
-for the files the caller may read. `source=editing` is the default. Published exports never include
+for the files the caller may read. `source=editing` is the default. Both file exports omit the
+workbench’s address-history bookkeeping. Published exports never include
 unpublished work and reject `history=1` with “history is not available for the published source”.
 
 **Include Git history**, off by default, adds `git-history.bundle`. The bundle can be read by
@@ -185,8 +186,8 @@ unpublished work and reject `history=1` with “history is not available for the
 
 In server mode, exports include only readable files from the caller's view. The number omitted
 appears in `X-Export-Omitted`; omitted names are not disclosed. History is allowed only for a
-whole-repository project when its history never touched unreadable paths, and includes the
-checked-out branch rather than other people's working branches. Exports are audited.
+whole-repository project when the caller may read every path touched in Git and every address
+history endpoint in the exported branch. The bundle includes the checked-out branch. Exports are audited.
 
 ### Grouping suggestions
 

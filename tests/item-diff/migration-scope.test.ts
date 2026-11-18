@@ -302,3 +302,19 @@ test('interrupted project trash recovers legacy import and the archived project 
   expect(existsSync(join(fixture.ws.layout.trash, archived.entryId, 'payload', slug, ADDRESS_HISTORY_FILE))).toBe(true);
   expect(existsSync(legacy)).toBe(false);
 });
+
+test('exports omit raw history and a Git bundle refuses hidden endpoints', async () => {
+  using fixture = await itemDiffBaselineWorkspace();
+  const project = 'finance';
+  const hidden = 'hidden/missing.ontology.yaml';
+  const from = `sw1:${project}/${hidden}#ontology:Finance/concept:Former`;
+  const to = `sw1:${project}/finance.ontology.yaml#ontology:Finance/concept:Customer`;
+  await fixture.ws.reconcileAddress({ operationId: 'export-alias', from, to }, LOCAL_READER);
+  const reader = boundaryReader({ readableProjects: new Set([project]), canRead: (_project, path) => path !== hidden, roles: () => [] }, 'reader');
+  const options = { includeHistory: false, historyAllowed: true };
+  const editing = await fixture.ws.exportProject(project, reader, options, 20_000_000);
+  expect(editing.entries.map(entry => entry.name)).not.toContain(ADDRESS_HISTORY_FILE);
+  expect(editing.omittedCount).toBe(0);
+  await publishFixture(fixture);
+  await expect(fixture.ws.exportProject(project, reader, { ...options, includeHistory: true }, 20_000_000)).rejects.toThrow('read every file');
+});

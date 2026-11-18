@@ -1,7 +1,8 @@
 // Plans the zip export of one project: which files go in, which the reader may not read, the
 // size check, and the optional Git bundle. Nothing is sent from here; the route streams the plan.
 import { lstatSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, posix } from 'node:path';
+import { ADDRESS_HISTORY_FILE, historyBundleEndpointsReadable } from './address-migrations';
 import { randomUUID } from 'node:crypto';
 import { TEMP_SUFFIX } from './atomic';
 import { BadRequestError, TooLargeError } from './errors';
@@ -61,7 +62,7 @@ export function selectExportPaths(paths: string[], canRead: (path: string) => bo
     } catch {
       continue;
     }
-    if (path.endsWith(TEMP_SUFFIX)) continue;
+    if (path.endsWith(TEMP_SUFFIX) || posix.basename(path).toLowerCase() === ADDRESS_HISTORY_FILE) continue;
     if (canRead(path)) included.push(path);
     else restricted += 1;
   }
@@ -98,6 +99,7 @@ async function assertHistoryReadable(deps: ExportDeps, slug: string, reader: Rea
   const ref = (await deps.git.currentRef(repo)) ?? 'HEAD';
   const touched = await deps.git.historyPaths(repo, ref);
   if (touched.some(path => !view.canRead(slug, path))) throw new BadRequestError(refusal);
+  if (touched.includes(ADDRESS_HISTORY_FILE) && !(await historyBundleEndpointsReadable(deps.git, repo, ref, reader, deps.maxBytes))) throw new BadRequestError(refusal);
 }
 
 // The bundle holds every branch for a local person and only the checked-out branch for a server
