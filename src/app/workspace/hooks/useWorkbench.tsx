@@ -10,6 +10,7 @@ import { type DeleteTarget } from '../../projects/DeleteDialog';
 import { useGrouping } from '../../graph/useGrouping';
 import { type ImportDraft } from '../../validation/ValidationPanel';
 import { parsedDoc } from '../parsedDocument';
+import { activeOntologyUnit } from '../ontologyUnit';
 import { sample } from '../sample';
 import { useExamples } from './useExamples';
 import { useFileNavigation } from './useFileNavigation';
@@ -107,7 +108,9 @@ export function useWorkbench({ setMessage }: Options) {
     source,
     tab,
   });
-  const { model, editorIssuesRef } = validationState;
+  const { model: singleFileModel, editorIssuesRef } = validationState;
+  const unitModel = useMemo(() => (tab === 'source' ? null : activeOntologyUnit(current, singleFileModel, docs)), [current, singleFileModel, docs, tab]);
+  const model = unitModel ?? singleFileModel;
   const selectionDocument = (id: string) => {
     const document = id === current?.id ? current : docsRef.current.get(id);
     if (!document) return null;
@@ -338,7 +341,7 @@ export function useWorkbench({ setMessage }: Options) {
     anchor.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
-  const creationMenu = useNewItems({ model, current, currentIsRdf, setAdding, setRdfAdding });
+  const creationMenu = useNewItems({ model: singleFileModel, current, currentIsRdf, setAdding, setRdfAdding });
 
   return {
     sample,
@@ -382,7 +385,7 @@ export function useWorkbench({ setMessage }: Options) {
     setTrashVersion,
     showValidation,
     setShowValidation,
-    validationState,
+    validationState: { ...validationState, model },
     sourceEditor,
     definition,
     setDefinition,

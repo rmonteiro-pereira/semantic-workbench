@@ -18,9 +18,10 @@ export function selectionAddress(document: SelectionDocument, id: string): strin
 export function selectionId(document: SelectionDocument, key: string): string {
   if (!key.startsWith('sw1:')) return key;
   const parsed = parseAddress(key);
-  if (!parsed.ok || parsed.address.project !== document.project || JSON.stringify(parsed.address.document) !== JSON.stringify(document.document)) return '';
-  const chain = JSON.stringify(parsed.address.chain);
-  const matches = document.entities.filter(entity => isStructuredEntity(entity) && JSON.stringify(entity.address.chain) === chain);
+  if (!parsed.ok || parsed.address.project !== document.project) return '';
+  const { snapshot: _snapshot, ...liveAddress } = parsed.address;
+  const wanted = formatAddress(liveAddress);
+  const matches = document.entities.filter(entity => isStructuredEntity(entity) && formatAddress(absoluteItemAddress(entity.address, document)) === wanted);
   return matches.length === 1 ? matches[0].id : '';
 }
 

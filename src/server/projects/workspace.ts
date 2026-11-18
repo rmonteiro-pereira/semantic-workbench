@@ -6,7 +6,11 @@ import { readAddressMigrations } from './address-migrations';
 import { resolveForCaller } from './address-resolution';
 import { recordReconciliation, type ReconciliationRequest } from './address-reconciliation';
 import { convertAddressKeys } from './address-key-conversion';
-import { inspect } from '../../shared/core/model';
+import { INCLUDES_PROPERTY } from '../../shared/tessera/additions/includes';
+import { PART_PROPERTY } from '../../shared/tessera/additions/part';
+import { DEPENDENCY_MANIFEST_PATH } from '../../shared/tessera/dependency-manifest';
+import { completeOntologyUnit } from '../../shared/tessera/unit-structure';
+import { inspect, inspectOntologyUnit } from '../../shared/core/model';
 import { encodeGrouping, decodeGrouping, type GroupingAssignments } from '../../shared/core/grouping-addresses';
 import { InputError } from '../../shared/validation/diagnostics';
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync } from 'node:fs';
@@ -77,8 +81,8 @@ export type WorkspaceOptions = {
   log?: (line: string) => void;
 };
 /** A definition file is one the person sees as a definition: visible, and not a .gitignore. */
-function isDefinitionFile(file: { visible: boolean; docType: string }) {
-  return file.visible && file.docType !== 'gitignore';
+function isDefinitionFile(file: { visible: boolean; docType: string; path: string }) {
+  return file.visible && file.docType !== 'gitignore' && file.path !== DEPENDENCY_MANIFEST_PATH;
 }
 /** Derives a numeric revision from a content hash for legacy document clients. */
 export const revisionOf = (hash: string) => parseInt(hash.slice(0, 12), 16) + 1;
@@ -245,11 +249,29 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   function groupingEntities(reference: { project: string; path: string }, reader: Reader) {
     const document = readFile(reference.project, reference.path, reader);
     try {
-      return inspect(document.source, reference.path).entities;
+      const model = inspect(document.source, posix.basename(reference.path));
+      if (!('document' in model) || (!model.document[PART_PROPERTY] && !model.document[INCLUDES_PROPERTY]?.length)) return model.entities;
+      const files = groupingUnitFiles(reference.project, reader);
+      const unit = completeOntologyUnit(files, reference.path);
+      return unit ? inspectOntologyUnit(unit, reference.project).entities : model.entities;
     } catch (error) {
       if (!(error instanceof InputError)) throw error;
       return [];
     }
+  }
+  function groupingUnitFiles(project: string, reader: Reader) {
+    const place = copies.readPlace(reader, project);
+    return place.cache.files(project).flatMap(file => {
+      if (file.docType !== 'Ossie ontology' || (reader.view && !reader.view.canRead(project, file.path))) return [];
+      try {
+        const document = readFile(project, file.path, reader);
+        const parsed = inspect(document.source, posix.basename(file.path));
+        return 'document' in parsed ? [{ path: file.path, data: parsed.document }] : [];
+      } catch (error) {
+        if (error instanceof InputError || error instanceof NotFoundError || error instanceof PathError) return [];
+        throw error;
+      }
+    });
   }
   function readFile(slug: string, path: string, reader: Reader = LOCAL_READER) {
     entry(slug);

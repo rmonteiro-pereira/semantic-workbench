@@ -5,6 +5,8 @@ import { validateInput } from '../../src/shared/validation/input';
 import { inspectOntologyUnit } from '../../src/shared/core/model';
 import { readUnitStructure } from '../../src/shared/tessera/unit-structure';
 import { indexBytes } from '../../src/server/projects/scanner';
+import { activeOntologyUnit } from '../../src/app/workspace/ontologyUnit';
+import { selectionAddress, selectionId } from '../../src/app/graph/selection-addresses';
 
 function validateFixture(folder: string, path: string) {
   return validateInput(readFileSync(`tests/fixtures/tessera/mesh/units/${folder}/${path}`, 'utf8'), path);
@@ -45,6 +47,29 @@ test('inspection gives the same graph for the composed unit and the single file'
   );
   const composed = inspectOntologyUnit(units[0]);
   const twin = validateFixture('one-file-twin', 'ontology.yaml').model;
-  expect(composed.entities).toEqual(twin?.entities);
-  expect(composed.edges).toEqual(twin?.edges);
+  if (!twin || !('document' in twin)) throw new Error('Expected the single-file ontology model.');
+  expect(composed.entities).toEqual(twin.entities);
+  expect(composed.edges).toEqual(twin.edges);
+});
+
+test('the workspace chooses the combined model only when every declared file is visible', () => {
+  const project = 'retail';
+  const documents = ['ontology.yaml', 'orders.yaml', 'returns.yaml', 'customers.json'].map(path => {
+    const source = readFileSync(`tests/fixtures/tessera/mesh/units/three-parts/${path}`, 'utf8');
+    return { id: `${project}/${path}`, project, path, filename: path, hash: source, source };
+  });
+  const root = documents[0];
+  const part = documents[1];
+  const model = validateInput(root.source, root.filename).model;
+  const composed = activeOntologyUnit(root, model, documents)!;
+  expect(composed.entities.map(entity => entity.name)).toEqual(['Shop', 'Order', 'Return', 'Customer']);
+  const order = composed.entities.find(entity => entity.name === 'Order')!;
+  const selection = { project, document: [root.path], entities: composed.entities };
+  const address = selectionAddress(selection, order.id);
+  expect(address).toContain('sw1:retail/orders.yaml#');
+  expect(selectionId(selection, address)).toBe(order.id);
+  expect(activeOntologyUnit(root, model, documents.slice(0, -1))).toBeNull();
+  const partModel = validateInput(part.source, part.filename).model;
+  expect(activeOntologyUnit(part, partModel, documents)?.itemFiles.size).toBeGreaterThan(4);
+  expect(activeOntologyUnit(part, partModel, documents.slice(1))).toBeNull();
 });

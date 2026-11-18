@@ -1,6 +1,6 @@
 /** Inspects structured and RDF documents into entities, relationships and validation findings. */
-import { addressAtModelPath, addressesOfModel } from './model-addresses';
-import type { Address } from './item-address';
+import { absoluteItemAddress, addressAtModelPath, addressesOfModel } from './model-addresses';
+import { formatAddress, type Address } from './item-address';
 import { OSSIE_BUILTINS, builtinConcept } from '../mappings/ossie-builtins';
 import { isMapping } from '../mappings/mapping-schema';
 import { expandIri, namespaceOf, prefixMap, type Namespace } from '../validation/iri';
@@ -48,7 +48,7 @@ export function isStructuredEntity(entity: Entity): entity is StructuredEntity {
   return Object.hasOwn(entity, 'address');
 }
 /** Parses a document into model entities, relationships and validation findings. */
-export function inspect(source: string, filename = 'definition.yaml', options: ValidationOptions = {}) {
+export function inspect(source: string, filename = 'definition.yaml', options: ValidationOptions = {}): ReturnType<typeof inspectRdf> | ReturnType<typeof inspectStructuredModel> {
   validateEnvelope(source, filename);
   if (/\.(trig|nq|jsonld|ofn|omn)$/i.test(filename))
     throw new InputError([
@@ -139,9 +139,18 @@ export function inspect(source: string, filename = 'definition.yaml', options: V
 }
 
 /** Inspects a composed ontology while retaining the original source file of each item. */
-export function inspectOntologyUnit(unit: OntologyUnit) {
+export function inspectOntologyUnit(unit: OntologyUnit, project?: string) {
   const combined = combineUnit(unit);
-  return { ...inspectStructuredModel(combined.ontology, []), itemFiles: combined.itemFiles };
+  const model = inspectStructuredModel(combined.ontology, []);
+  if (project !== undefined) {
+    function sourceAddress(address: Address) {
+      const file = combined.itemFiles.get(formatAddress(address));
+      return file ? absoluteItemAddress(address, { project: project!, document: file.split('/') }) : address;
+    }
+    for (const entity of model.entities) if (isStructuredEntity(entity)) entity.address = sourceAddress(entity.address);
+    for (const edge of model.edges) edge.address = sourceAddress(edge.address);
+  }
+  return { ...model, itemFiles: combined.itemFiles };
 }
 
 function inspectStructuredModel(data: any, issues: Issue[]) {

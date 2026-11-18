@@ -114,3 +114,13 @@ export function readUnitStructure(documents: readonly UnitDocument[]): { units: 
   }
   return { units, findings };
 }
+
+/** Finds the active unit in an authorized set only when all of its declared parts are available. */
+export function completeOntologyUnit(documents: readonly UnitDocument[], activePath: string): OntologyUnit | undefined {
+  const structure = readUnitStructure(documents);
+  const unit = structure.units.find(candidate => candidate.root.path === activePath || candidate.parts.some(part => part.path === activePath));
+  if (!unit || !unit.parts.length) return undefined;
+  const paths = new Set([unit.root.path, ...unit.parts.map(part => part.path)]);
+  if (structure.findings.some(finding => finding.severity === 'error' && finding.files.some(path => paths.has(path)))) return undefined;
+  return unit;
+}
