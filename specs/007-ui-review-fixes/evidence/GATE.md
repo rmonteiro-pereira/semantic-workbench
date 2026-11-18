@@ -284,6 +284,42 @@ The application revision includes `481d012b`. The retry of the browser history s
 - The opened pair `before/fixes/ubl-counted-headings-390.png` and `after/fixes/ubl-counted-headings-390.png` has a 30.750091% pixel difference.
   The four wrapped titles now have clearance above the card border. Fixed by `eaf4d1ea` for m9.
 
+### Phone Lineage Fit and walked captions
+
+- Compact card heights and related link ports use the layout's existing shared geometry. Names
+  compensate for zoom and wrap inside the text area.
+- Settled three-version phone strips exposed overlapping names on Fit and minimum zoom. They
+  also exposed a walked caption extending past the full-screen toolbar after the back and forward buttons.
+- Keep existing complete fits when they preserve whole names. When the reach is too dense, center the
+  current card, keep the other cards available by panning and bound compact zoom from the existing name estimate.
+- Keep the same trail and arrow controls and wrap the caption in the remaining width.
+  Replay the Mall contract and UBL semantic mapping in both themes with explicit Fit and the actual zoom buttons.
+- The 390 px light graph batch ran twice per version to completion. Scoring saved 141 rows, with one
+  exact unchanged result, 110 first-repeat actions reached on all three, 28 shared failures and three differing
+  action outcomes. One candidate Fit was still disabled after a Walk in its first repetition; the retry reached Fit.
+- `sw-midgard-run -- bash scripts/ui-review/gate-007/matched-states-launch.sh` preserved both completed release
+  workspace-state repetitions. The next restart interrupted its pinned-main repetition while introducing the more
+  focused phone diagnostics. The serial runner returned 143, ports 5401 and 5402 had no listeners and 103 GB was available.
+- `sw-midgard-run -- bash scripts/ui-review/gate-007/lineage-phone-launch.sh` started the matched phone measurements.
+  In the first pre-correction light run the UBL mapping rendered 84 cards with name overflow at Fit,
+  and the three-hop Mall contract rendered 127 cards with name overflow at Fit. Ten Zoom out actions
+  reproduced overlapping text on both. The full-screen Mall caption text overhung its trail by 55.94 px.
+- After `645265c9`, the walked Mall caption fits on two lines with 13.80 px spare at the right edge in
+  both 390×844 themes and repetitions. The opened light pair `before/fixes/mall-walked-caption-390.png` and
+  `after/fixes/mall-walked-caption-390.png` changed 10.093875% of pixels. The same table name and arrows remain visible.
+  This focused replay uses one hop; the source matrix frame uses three.
+- After `c7a52f9e`, both themes and repetitions reported zero name overflows. UBL mounts 3 cards around Fit
+  and 21 at minimum zoom. The three-hop Mall contract mounts 3 at Fit and 27 at minimum zoom. Other cards
+  remain available by panning. The opened light pairs have the following scores, calculated from decoded RGBA pixels.
+  At Fit, Party and Properties keep their names and CENTER markers. At minimum zoom the visible compact names
+  wrap inside distinct cards. The labeled mapping connections still need a closer comparison for m8.
+  - `{before,after}/fixes/mall-explicit-fit-390.png` — 55.173168%.
+  - `{before,after}/fixes/mall-minimum-zoom-390.png` — 25.461782%.
+  - `{before,after}/fixes/ubl-mapping-explicit-fit-390.png` — 28.567870%.
+  - `{before,after}/fixes/ubl-mapping-minimum-zoom-390.png` — 12.547697%.
+- `bun test tests/lineage-view.test.ts` passed 12 tests, 0 failures and 40 assertions. `bun --bun run build`
+  completed in 3.09 seconds with the existing chunk-size advisory.
+
 ### Counted Mall graph on a phone
 
 - The Mall semantic Graph opens 11 counted areas after the full entity layout falls below the readable-name threshold.
@@ -507,8 +543,8 @@ The original review archive contains 3,559 PNGs. A read-only count by folder mea
 
 Status: in progress. No visual pair is classified before both images have been opened.
 
-The current gallery has 621 rows. Of these, 189 are intended fixes, 27 are merged-feature differences, 197 are neutral, 32 record verified
-regression corrections, 10 are unchanged and 166 are unreviewed. The counted Network heading and compact mapping pairs were opened at 390×844.
+The current gallery includes 621 rows. The manifest records the reviewed phone graph states and still-open differences.
+The counted Network heading and compact mapping correction pairs were opened at 390×844.
 The gallery and CSV passed the local path and content scan. Every changed row references a present strip. The gallery folder uses 53 MB on disk.
 
 ## Differences for owner acceptance
