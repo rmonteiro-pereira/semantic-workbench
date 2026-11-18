@@ -139,3 +139,7 @@ The operation table regenerates without a diff, and the readable-code and commen
 The address guard against retired private keys and the role matrix caught integration issues.
 The final concept identity uses a one-part tuple and relationship identity a two-part tuple.
 The matrix expects explicit ontology approval for Admin accounts as well.
+
+The final `bun --bun run check` exited 0 on the development server. TypeScript, formatting,
+comments, theme and brand passed, and lint reported 2,678 warnings and zero errors.
+`bun --bun run build` exited 0 after schema compilation and the Vite production build.
