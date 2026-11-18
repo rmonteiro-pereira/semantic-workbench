@@ -79,7 +79,7 @@ export type ScmDeps = {
   /** The repository's default branch, which Push <default> sends. */
   defaultBranch?: (slug: string) => Promise<string>;
   /** The branch and commit recorded by publication, independent of the live branch ref. */
-  publishedPosition?: (slug: string) => { branch: string; commit: string | null } | undefined;
+  publishedPosition?: (slug: string) => { branch: string; commit?: string } | undefined;
   /** After a successful fetch, so the published default branch can follow the remote. */
   fetched?: (slug: string, remote: string, follow: FollowRequest) => Promise<FollowResult | null>;
   /** After a branch switch, so the record of who holds which branch is read again. */
