@@ -67,6 +67,23 @@ The read-only Auth check still expects the commit form the Source Control fix de
 
 Reported failures on middle revision `5597ae52`: `test:responsive` observed a 481 px canvas at 1280×720 where the compact-shell check requires more than 504 px. This is distinct from the 421 px minimum on the Mall ODCS Graph. `test:admin` failed at the Dry-run result step. The candidate diverges on compact-shell geometry and reaches the same Admin assertion. The live three-version comparison is pending.
 
+The first repeated capture batch measured the viewport at 1280×720 on the same frozen inputs.
+
+| Local Graph canvas | v0.6.1 | Main | Candidate |
+| --- | ---: | ---: | ---: |
+| UBL ontology | 481 px | 481 px | 511 px |
+| Mall ontology | 481 px | 481 px | 511 px |
+| Mall ODCS | 389 px | 389 px | 389 px |
+
+The 30 px UBL gain is in the Full Graph surface owned by lane A. The Mall ODCS canvas uses the lineage surface owned by lane B.
+The frozen-import ODCS geometry is below the suite's 421 px threshold on all versions. The standalone suite still needs to check
+the example-loading scenario where lane B passed before rebase.
+
+The repeated 1600×1000 local UBL Walk reached all five targets on the release and main. On the candidate the first button
+(`Walk to AllowanceCharge`) timed out because the trail intercepted pointer events. The Walk state is a regression.
+The 1440×900 Mall mapping Fit showed a different failure on the candidate. The two older versions had fitted name text at
+0.6 px, and the candidate reached 9 px but some names extended outside their compact cards.
+
 The comparison fixture consists of the seven release projects with 36 unique source files.
 Each file was read once from the release Git blob using `git show` and hashed with SHA-256.
 The duplicate Commerce contract is shared by the Commerce and Mapped commerce imports.
