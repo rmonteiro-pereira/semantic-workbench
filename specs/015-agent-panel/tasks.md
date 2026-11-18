@@ -197,7 +197,7 @@ test only to make it pass.
   Proof: the test passes; the canvas outside the sheet keeps its geometry when the panel is
   closed again (FR-040); the main bundle size is unchanged by more than the menu item (build
   output compared in the test).
-- [ ] T036 [US1] Write `scripts/acp-browser-check.ts` and the script `test:acp` in `package.json`:
+- [x] T036 [US1] Write `scripts/acp-browser-check.ts` and the script `test:acp` in `package.json`:
   against an isolated in-memory store and the reference agent, run connect, converse, write,
   conflict, question, cancel and every end reason in light and dark at 360, 768 and 1280 px with the
   geometry assertions; `--closed-only` opens the application, never opens the panel and fails on
