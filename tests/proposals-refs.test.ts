@@ -52,6 +52,20 @@ test('a stale expected value fails the swap and leaves the ref alone', async () 
   }
 });
 
+test('a locked proposal ref reports storage failure without reporting a stale review', async () => {
+  const { data, folder, commit, refs } = repositoryWithCommits();
+  try {
+    const tip = commit({ 'a.txt': 'one\n' });
+    const next = commit({ 'a.txt': 'two\n' });
+    expect(await refs.createRef('shared', 'p1', tip)).toBe(true);
+    writeFileSync(join(folder, '.git', 'refs', 'workbench', 'proposals', 'p1.lock'), '');
+    await expect(refs.moveRef('shared', 'p1', tip, next)).rejects.toThrow('Git could not update the proposal refs.');
+    expect(await refs.readTip('shared', 'p1')).toBe(tip);
+  } finally {
+    data.cleanup();
+  }
+});
+
 test('closing and restoring move the tip between the two namespaces and never lose it', async () => {
   const { data, commit, refs, run } = repositoryWithCommits();
   try {

@@ -33,8 +33,30 @@ export function parseChangedPaths(output: string): ChangedPath[] {
 /** Creates the proposal refs service over the repositories' base folders. */
 export function createProposalRefs(git: Git, directory: (repository: string) => string) {
   async function update(repository: string, lines: string[]) {
-    const result = await git.run(directory(repository), ['update-ref', '--stdin'], { stdin: lines.join('\n') + '\n', allowFailure: true });
-    return result.code === 0;
+    const folder = directory(repository);
+    const result = await git.run(folder, ['update-ref', '--stdin'], { stdin: lines.join('\n') + '\n', allowFailure: true });
+    if (result.code === 0) return true;
+
+    const expectations = new Map<string, string | null>();
+    for (const line of lines) {
+      const [command, ref, value, previous] = line.split(' ');
+      if (command === 'update') expectations.set(ref, /^0+$/.test(previous) ? null : previous);
+      if (command === 'delete') expectations.set(ref, value);
+    }
+
+    const listed = await git.run(folder, ['for-each-ref', '--format=%(refname) %(objectname)', ...expectations.keys()], { readOnly: true, allowFailure: true });
+    if (listed.code === 0) {
+      const actual = new Map(
+        listed.stdout
+          .split('\n')
+          .filter(Boolean)
+          .map(line => line.split(' ') as [string, string]),
+      );
+      for (const [ref, expected] of expectations) {
+        if ((actual.get(ref) ?? null) !== expected) return false;
+      }
+    }
+    throw new Error('Git could not update the proposal refs.');
   }
   async function tipsUnder(repository: string, prefix: string) {
     const listed = await git.run(directory(repository), ['for-each-ref', '--format=%(refname) %(objectname)', prefix], { readOnly: true });

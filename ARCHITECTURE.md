@@ -199,7 +199,9 @@ concatenating project, document or item names.
 
 - Shared proposals: `shared/proposals/` holds the pure model (names, identifiers, derived status, contribution
   branch names and scope judging). `proposal-store.ts` writes `state/proposals/<repo>.json` atomically and
-  `proposal-refs.ts` owns the Git refs. `proposals.ts` creates, lists and views; `proposal-contribution.ts`,
+  `proposal-refs.ts` owns the Git refs. A failed ref transaction checks the expected refs again.
+  A mismatch is stale state, while a storage failure returns a generic operation error.
+  `proposals.ts` creates, lists and views; `proposal-contribution.ts`,
   `proposal-promotion.ts` (also startup recovery) and `proposal-closing.ts` do the rest, all inside the
   repository publication queue. Promotion reuses `moveDefault` through `worktrees.promote`.
   `work-in-progress-push.ts` refuses pushing work and proposal branches. `routes/proposals.ts` exposes the
