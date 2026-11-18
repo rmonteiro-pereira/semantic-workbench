@@ -83,3 +83,8 @@ provenance. Publish an incompatible application-schema change under a new versio
 Update parser/schema tests, generated browser validators and the current usage/configuration
 references together. Historical design drafts under `specs/` explain earlier decisions; they do
 not replace the active schema files.
+
+The revision 3 workbench schemas distinguish ontology roots from headerless parts. The root schema
+allows an empty ontology list when the root declares parts. The dependency manifest has its own
+version 1 schema for recording resolved providers. Regenerate the derived ontology schemas before
+compiling the standalone validators.

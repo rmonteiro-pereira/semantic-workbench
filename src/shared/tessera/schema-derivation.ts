@@ -1,5 +1,7 @@
 // Derives the Tessera ontology schema from a pinned Ossie ontology schema and the registry, so the two can never drift apart.
 import type { JsonSchema, SupportedBase } from './bases';
+import { PART_PROPERTY } from './additions/part';
+import { INCLUDES_PROPERTY } from './additions/includes';
 import { TesseraNames } from './format';
 import type { AdditionEntry, AdditionPlace, Registry } from './registry';
 
@@ -37,10 +39,36 @@ export function deriveTesseraSchema(base: SupportedBase, registry: Registry, rev
     if (entry.since > revision) continue;
     for (const place of entry.places) PROPERTY_HOLDERS[place](schema).properties[entry.name] = additionProperty(entry);
   }
+  if (revision === 3) {
+    delete schema.properties[PART_PROPERTY];
+    schema.properties.ontology.minItems = 0;
+    schema.allOf = [...(schema.allOf ?? []), { anyOf: [{ required: [INCLUDES_PROPERTY] }, { properties: { ontology: { minItems: 1 } } }] }];
+  }
   return schema;
 }
 
 /** Prints a derived schema the way it is stored on disk. */
 export function printDerivedSchema(schema: JsonSchema): string {
   return JSON.stringify(schema, null, 2) + '\n';
+}
+
+/** Derives the headerless part schema while retaining registered concept properties. */
+export function derivePartSchema(base: SupportedBase, registry: Registry): JsonSchema {
+  const root = deriveTesseraSchema(base, registry, 3);
+  const entry = registry.byName(PART_PROPERTY);
+  if (!entry) throw new Error('The Tessera part marker must be registered.');
+  return {
+    $schema: root.$schema,
+    $id: `urn:semantic-workbench:tessera-part:3:ossie-${base.version}`,
+    $comment: 'Workbench ontology fragment schema derived from the pinned Ossie ontology schema.',
+    type: 'object',
+    additionalProperties: false,
+    required: [TesseraNames.markerKey, PART_PROPERTY, 'ontology'],
+    properties: {
+      [TesseraNames.markerKey]: root.properties[TesseraNames.markerKey],
+      [PART_PROPERTY]: additionProperty(entry),
+      ontology: root.properties.ontology,
+    },
+    $defs: root.$defs,
+  };
 }

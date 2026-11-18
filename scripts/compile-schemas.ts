@@ -14,6 +14,9 @@ import ontology from '../schemas/ossie-ontology-0.2.0.dev0.json';
 import mapping from '../schemas/ossie-mapping-0.2.0.dev0.json';
 import tesseraOntology from '../schemas/tessera-ontology-1-ossie-0.2.0.dev0.json';
 import tesseraOntologyRevisionTwo from '../schemas/tessera-ontology-2-ossie-0.2.0.dev0.json';
+import tesseraOntologyRevisionThree from '../schemas/tessera-ontology-3-ossie-0.2.0.dev0.json';
+import tesseraPart from '../schemas/tessera-part-3-ossie-0.2.0.dev0.json';
+import tesseraDependencies from '../schemas/tessera-dependencies-v1.json';
 import metric from '../schemas/semantic-workbench-metric-v1.json';
 import bindings from '../schemas/semantic-workbench-mapping-v1.json';
 
@@ -33,6 +36,9 @@ mappings.addSchema(ossie, 'https://raw.githubusercontent.com/apache/ossie/main/c
 mappings.addSchema(ontology, ontologyId);
 mappings.addSchema(tesseraOntology, tesseraOntology.$id);
 mappings.addSchema(tesseraOntologyRevisionTwo, tesseraOntologyRevisionTwo.$id);
+mappings.addSchema(tesseraOntologyRevisionThree, tesseraOntologyRevisionThree.$id);
+mappings.addSchema(tesseraPart, tesseraPart.$id);
+mappings.addSchema(tesseraDependencies, tesseraDependencies.$id);
 const mappingRef = 'urn:semantic-workbench:mapping';
 const embeddedMappingRef = 'urn:semantic-workbench:embedded-mapping';
 const metricRef = 'urn:semantic-workbench:metric';
@@ -62,6 +68,9 @@ const outputs = [
       { name: 'ossieOntology', schema: ontology },
       { name: 'tesseraOntology', schema: tesseraOntology },
       { name: 'tesseraOntologyRevisionTwo', schema: tesseraOntologyRevisionTwo },
+      { name: 'tesseraDependencies', schema: tesseraDependencies },
+      { name: 'tesseraPart', schema: tesseraPart },
+      { name: 'tesseraOntologyRevisionThree', schema: tesseraOntologyRevisionThree },
       { name: 'ossieSemanticModel', schema: ossie },
     ],
     validators: {
@@ -70,6 +79,9 @@ const outputs = [
       ontology: ontologyId,
       tessera: tesseraOntology.$id,
       tesseraRevisionTwo: tesseraOntologyRevisionTwo.$id,
+      tesseraDependencies: tesseraDependencies.$id,
+      tesseraPart: tesseraPart.$id,
+      tesseraRevisionThree: tesseraOntologyRevisionThree.$id,
     },
   },
   {
