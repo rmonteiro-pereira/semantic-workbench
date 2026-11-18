@@ -1,3 +1,4 @@
+import { itemDiffMutants } from './item-diff-mutants';
 // Introduces faults into temporary source copies and checks that the test suite detects them.
 import { tmpdir } from 'node:os';
 import { operationBoundaryMutants } from './operation-boundary-mutants';
@@ -573,7 +574,9 @@ mutants.push(...observabilityMutants);
 mutants.push(...operationBoundaryMutants);
 // The Tessera format, its compiler and its command line.
 mutants.push(...tesseraMutants, ...attributesMutants);
-mutants.push(...addressHistoryMutants);
+mutants.push(...addressHistoryMutants, ...itemDiffMutants);
+const itemDiffOnly = process.argv.includes('--item-diff');
+if (itemDiffOnly) mutants.splice(0, mutants.length, ...itemDiffMutants);
 const addressHistoryOnly = process.argv.includes('--address-history');
 if (addressHistoryOnly) mutants.splice(0, mutants.length, ...addressHistoryMutants);
 const attributesOnly = process.argv.includes('--attributes');
@@ -695,8 +698,10 @@ try {
     killed++;
     console.log(`KILLED ${category}: ${before} → ${after}`);
   }
-  if (attributesOnly || addressHistoryOnly) {
-    const subject = addressHistoryOnly ? 'address-history' : 'attribute and governance';
+  if (attributesOnly || addressHistoryOnly || itemDiffOnly) {
+    let subject = 'attribute and governance';
+    if (addressHistoryOnly) subject = 'address-history';
+    if (itemDiffOnly) subject = 'item comparison';
     console.log(`${killed}/${mutants.length} ${subject} mutants killed; all focused baselines passed.`);
     await rm(temp, { recursive: true, force: true });
     process.exit(0);

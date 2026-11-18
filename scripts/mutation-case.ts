@@ -22,6 +22,7 @@ const composed = {};
 for (const name of [...entryModules, ...authModules]) Object.assign(composed, await import(resolve(treeRoot!, name)));
 const loadedModule = { ...composed, ...mutatedModule };
 const category = process.argv[3];
+if (category.startsWith('item-diff-')) await (await import('./item-diff-mutation-cases')).itemDiffMutationCase(category, loadedModule);
 // Publication mutants load only the publication module, so working copies come from the real source.
 async function worktreeFactory(): Promise<typeof import('../src/server/projects/worktrees').createWorktrees> {
   return loadedModule.createWorktrees ?? (await import('../src/server/projects/worktrees')).createWorktrees;
