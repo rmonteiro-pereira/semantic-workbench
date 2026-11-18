@@ -93,7 +93,7 @@ under `src/`.
 - [x] T033 [US7] `src/app/proposals/proposals.css` using only theme tokens from `src/shared/theme/theme.css`; wrap long names, paths and reasons with no clipping and no ellipsis; phone width with no horizontal scroll. Proof: `bun run check:theme`, `bun test tests/clipped-text.test.ts`-style geometry assertions in `tests/proposals-geometry.test.tsx`.
 - [x] T034 [US7] Live updates: refresh the list and detail on the `proposal` event. Proof: `tests/proposals-section.test.tsx` event case.
 - [x] T035 [US7] Write `scripts/proposals-browser-check.ts` against a mocked API and add `test:proposals` to `package.json`: every state of list, create, detail, check, promote, close, restore at 1280, 768 and 390 pixel widths in light and dark; geometry assertions; screenshots to a printed folder. Proof: the script exits 0 on the dev server (`sw-midgard-run -- bun run test:proposals`).
-- [ ] T036 [US1] Extend `scripts/two-editors-check.ts` with the journey: Editor A creates a proposal and contributes, Editor B synchronizes and contributes, a Steward checks and promotes, a Viewer of a sibling project sees the published change only after promotion. Proof: passes on the dev server.
+- [x] T036 [US1] Extend `scripts/two-editors-check.ts` with the journey: Editor A creates a proposal and contributes, Editor B synchronizes and contributes, a Steward checks and promotes, a Viewer of a sibling project sees the published change only after promotion. Proof: passes on the dev server.
 
 ## Phase 8: Gate, inventory and documentation
 

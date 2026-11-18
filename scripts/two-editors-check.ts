@@ -269,7 +269,7 @@ async function contributeTo(person: Person, id: string) {
  */
 async function proposalReachesThePublishedState(alice: Person, frank: Person, bob: Person, carol: Person) {
   // Alice's unsaved draft from the earlier checks would block switching her copy, so she discards it.
-  assert.equal((await alice.call(`/api/drafts/${PROJECT}/people.mapping.yaml`, 'DELETE')).status, 200);
+  assert.equal((await alice.call(`/api/drafts/${PROJECT}/people.mapping.yaml`, 'DELETE')).status, 204);
   const created = await alice.call(proposalApi(), 'POST', { name: 'Journey proposal', projects: [PROJECT] });
   assert.equal(created.status, 201, JSON.stringify(created.body));
   const id = created.body.id;
