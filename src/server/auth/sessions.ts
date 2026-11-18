@@ -37,6 +37,8 @@ export type RemoteTokens = {
 /** A decrypted session with its browser identifier supplied separately from disk. */
 export type Session = {
   id: string;
+  /** Store reference for delegated callers that do not possess the browser cookie. */
+  reference?: string;
   principal: Principal;
   tokens: SessionTokens;
   csrf: string;
@@ -138,7 +140,7 @@ export function createSessionStore(options: SessionOptions) {
   }
 
   async function persist(hash: string, session: Session) {
-    const { id: _id, ...payload } = session;
+    const { id: _id, reference: _reference, ...payload } = session;
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const bytes = new TextEncoder().encode(JSON.stringify(payload));
     const encrypted = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv, additionalData: new TextEncoder().encode(hash) }, await key, bytes));
@@ -265,7 +267,7 @@ export function createSessionStore(options: SessionOptions) {
         await remove(reference, 'expired');
         return null;
       }
-      return session;
+      return { ...session, reference };
     });
   }
   async function sweep(principalId?: string) {
@@ -328,6 +330,22 @@ export function createSessionStore(options: SessionOptions) {
     }
     return ended;
   }
+  /** Changes delegated credentials without touching the session's idle clock. */
+  async function updateRemoteByReference(reference: string, change: (remote: RemoteTokens) => RemoteTokens) {
+    if (!/^[a-f0-9]{64}$/.test(reference)) return null;
+    return serialize(reference, async () => {
+      const current = await load(reference);
+      if (!current) return null;
+      if (sessionExpired(current, now(), idle, absolute)) {
+        await remove(reference, 'expired');
+        return null;
+      }
+      current.remote = change(current.remote ?? {});
+      await persist(reference, current);
+      return current.remote;
+    });
+  }
+
   return {
     list,
     indexStored,
@@ -373,20 +391,9 @@ export function createSessionStore(options: SessionOptions) {
         await persist(hash, session);
         return true;
       }),
-    /** Changes the remote tokens of the latest stored session; null when it has ended. */
-    updateRemote: (id: string, change: (remote: RemoteTokens) => RemoteTokens) =>
-      serialize(sha256(id), async () => {
-        const hash = sha256(id);
-        const current = await load(hash, id);
-        if (!current) return null;
-        if (sessionExpired(current, now(), idle, absolute)) {
-          await remove(hash, 'expired');
-          return null;
-        }
-        current.remote = change(current.remote ?? {});
-        await persist(hash, current);
-        return current.remote;
-      }),
+    /** Changes remote credentials through a browser identifier. */
+    updateRemote: (id: string, change: (remote: RemoteTokens) => RemoteTokens) => updateRemoteByReference(sha256(id), change),
+    updateRemoteByReference,
     subscribe(id: string, listener: (reason?: 'changed' | 'session-ended') => void) {
       const hash = sha256(id);
       const subscribers = listeners.get(hash) ?? new Set();
