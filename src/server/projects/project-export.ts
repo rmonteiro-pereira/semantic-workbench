@@ -6,7 +6,7 @@ import { ADDRESS_HISTORY_FILE, historyBundleEndpointsReadable } from './address-
 import { randomUUID } from 'node:crypto';
 import { TEMP_SUFFIX } from './atomic';
 import { BadRequestError, TooLargeError } from './errors';
-import type { Git } from './git';
+import { commitOf, type Git } from './git';
 import { PathError, projectDir, projectFile, projectPath, projectPrefix, repoDir, type DataLayout } from './paths';
 import type { Reader } from './reader';
 import { ZIP_MAX_ENTRIES, zipSize, type ZipEntry } from './zip';
@@ -92,26 +92,34 @@ function tooLarge(limit: number) {
 // and the repository holds nothing but this project.
 async function assertHistoryReadable(deps: ExportDeps, slug: string, reader: Reader, facts: { restricted: number; historyAllowed: boolean }) {
   const { view } = reader;
-  if (!view) return;
+  if (!view) return null;
   const refusal = 'Git history is exported only when you may read every file the project ever held.';
   if (!facts.historyAllowed || facts.restricted > 0 || projectPrefix(deps.layout, slug) !== '') throw new BadRequestError(refusal);
   const repo = repoDir(deps.layout, slug);
   const ref = (await deps.git.currentRef(repo)) ?? 'HEAD';
-  const touched = await deps.git.historyPaths(repo, ref);
+  const tip = await commitOf(deps.git, repo, ref);
+  if (!tip) throw new BadRequestError('This project has no Git history to include yet.');
+  const touched = await deps.git.historyPaths(repo, tip);
   if (touched.some(path => !view.canRead(slug, path))) throw new BadRequestError(refusal);
-  if (touched.includes(ADDRESS_HISTORY_FILE) && !(await historyBundleEndpointsReadable(deps.git, repo, ref, reader, deps.maxBytes))) throw new BadRequestError(refusal);
+  const histories = touched.filter(path => posix.basename(path).toLowerCase() === ADDRESS_HISTORY_FILE);
+  if (histories.length && !(await historyBundleEndpointsReadable(deps.git, repo, tip, histories, reader, deps.maxBytes))) throw new BadRequestError(refusal);
+  return { ref, tip };
 }
 
 // The bundle holds every branch for a local person and only the checked-out branch for a server
 // reader, because other people's working branches are not theirs to receive.
-async function bundleBytes(deps: ExportDeps, slug: string, reader: Reader, remaining: number) {
+async function bundleBytes(deps: ExportDeps, slug: string, selection: { ref: string; tip: string } | null, remaining: number) {
   const repo = repoDir(deps.layout, slug);
   if (!deps.gitAvailable || !(await deps.git.head(repo))) throw new BadRequestError('This project has no Git history to include yet.');
-  const ref = reader.view ? ((await deps.git.currentRef(repo)) ?? 'HEAD') : '--all';
+  const ref = selection?.ref ?? '--all';
   mkdirSync(deps.scratchDir, { recursive: true });
   const file = join(deps.scratchDir, `${randomUUID()}.bundle`);
   try {
     await deps.git.bundle(repo, file, [ref]);
+    if (selection) {
+      const heads = await deps.git.run(repo, ['bundle', 'list-heads', file], { readOnly: true });
+      if (heads.stdout.trim() !== `${selection.tip} ${selection.ref}`) throw new BadRequestError('Git history changed during export. Try exporting again.');
+    }
     const bytes = readFileSync(file);
     if (bytes.length > remaining) throw tooLarge(deps.maxBytes);
     return bytes;
@@ -143,11 +151,11 @@ export async function planProjectExport(deps: ExportDeps, slug: string, reader: 
   const totalBytes = entries.reduce((sum, item) => sum + item.size, 0);
   if (totalBytes > deps.maxBytes || entries.length >= ZIP_MAX_ENTRIES) throw tooLarge(deps.maxBytes);
   if (options.includeHistory) {
-    await assertHistoryReadable(deps, slug, reader, {
+    const selection = await assertHistoryReadable(deps, slug, reader, {
       restricted,
       historyAllowed: options.historyAllowed,
     });
-    const bundle = await bundleBytes(deps, slug, reader, deps.maxBytes - totalBytes);
+    const bundle = await bundleBytes(deps, slug, selection, deps.maxBytes - totalBytes);
     entries.push({ name: HISTORY_BUNDLE_NAME, size: bundle.length, read: () => bundle });
   }
   return {

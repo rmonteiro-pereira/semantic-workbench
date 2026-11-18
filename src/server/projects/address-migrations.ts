@@ -145,11 +145,11 @@ export async function committedAddressHistoryFile(git: Git, layout: DataLayout, 
 }
 
 /** Checks every reachable history version before a scoped Git bundle can carry it. */
-export async function historyBundleEndpointsReadable(git: Git, directory: string, ref: string, reader: Reader, maximumBytes: number): Promise<boolean> {
-  const result = await git.run(directory, ['rev-list', '--objects', '--full-history', ref, '--', ADDRESS_HISTORY_FILE], { readOnly: true, env: { GIT_NO_LAZY_FETCH: '1' } });
+export async function historyBundleEndpointsReadable(git: Git, directory: string, revision: string, paths: string[], reader: Reader, maximumBytes: number): Promise<boolean> {
+  const result = await git.run(directory, ['rev-list', '--objects', '--full-history', revision, '--', ...paths.map(path => ':(literal)' + path)], { readOnly: true, env: { GIT_NO_LAZY_FETCH: '1' } });
   const ids = result.stdout
     .split('\n')
-    .filter(line => line.endsWith(' ' + ADDRESS_HISTORY_FILE))
+    .filter(line => paths.includes(line.slice(line.indexOf(' ') + 1)) && line.includes(' '))
     .map(line => line.slice(0, line.indexOf(' ')));
   if (!ids.length) return true;
   if (ids.length > ADDRESS_MIGRATION_LIMIT) return false;
