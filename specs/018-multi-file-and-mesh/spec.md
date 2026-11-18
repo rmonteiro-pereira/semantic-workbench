@@ -673,6 +673,9 @@ Reported for the owner; none blocks this feature.
 - Feature 014's counters key items by address and exclude importers (014 FR-030). The dependents
   registry shows importers by design to a narrower audience. The two must never share a store; the plan
   states this.
+- The owner-qualified name of an imported concept needs a separator. The pinned schema allows any text in a
+  concept name, but the mapping code reads dots as steps of a path. The plan's first compile task settles the
+  character; the spec only requires that the name show its owner.
 - Feature 011 states that revision 1 allows no part marker. This feature adds it in a new revision.
 - Feature 012 (shared proposals) promotes atomically over every project of a repository. Same-repository
   imports depend on that atomicity; the plan states the check it relies on.
