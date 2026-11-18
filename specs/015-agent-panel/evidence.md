@@ -92,3 +92,8 @@ Lifecycle proof completed: `bun test tests/acp/end-reasons.test.ts`: 13 pass, 0 
 replacement of process-owned session state on the same data root/address, the 404 inference in
 the browser client and refusal of the next file frame. The fixture can also serve the built
 frontend through the same local static wrapper used by the production entry point.
+
+Relay token review found that any successful HTTP reply was cast to tokens without checking its
+fields. The relay now requires HTTP 200, Bearer type, nonempty access/refresh tokens and a positive
+integer lifetime, with a bounded request deadline. Failed refreshes report a content-free error
+and stop presenting a token. `bun test tests/acp/relay-token.test.ts`: 2 pass, 0 fail.
