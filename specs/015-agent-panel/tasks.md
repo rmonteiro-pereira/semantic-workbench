@@ -96,7 +96,7 @@ test only to make it pass.
   connection, scope, session)` using `mintCaller` with origin `acp`, and the scope narrowed to
   `read` and `localWrite`. Add `tests/acp/connection-auth.test.ts`: an unminted caller literal is
   refused by the boundary; the scope refuses a `commit` effect. Proof: the test passes.
-- [ ] T017 [US3] Create `src/server/acp/file-requests.ts`: read and write exactly as
+- [x] T017 [US3] Create `src/server/acp/file-requests.ts`: read and write exactly as
   `contracts/acp-client-surface.md` (two-step write, version record map with 2,000 entries, create
   semantics, applied-repeat rule, change cards, guard rewrite report). It builds requests with
   `src/server/auth/twin-request.ts` and calls `operate`; it never reads project files. Needs 006
