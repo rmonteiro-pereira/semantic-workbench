@@ -559,6 +559,8 @@ another part. Definition details show the current file’s role in the unit.
 For a revision 3 root, open **Imports** in Definition details. Choose a published provider,
 enter a local alias, and select the concepts the ontology can use. The version choice follows
 the latest publication or names a published commit or release tag.
+nImported concepts show the provider and version on graph cards. Definition details show the
+full commit and link the concept’s identity to the provider ontology.
 
 Each mistake gives one finding with a code and a place. `tessera-marker`: the marker is not a whole
 number of at least 1; write `tessera: 1`. `tessera-revision`: the document is newer than this

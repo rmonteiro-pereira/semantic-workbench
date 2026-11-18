@@ -64,3 +64,7 @@
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+
+.mesh-imported-details {
+  overflow-wrap: anywhere;
+}

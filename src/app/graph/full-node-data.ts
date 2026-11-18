@@ -21,6 +21,7 @@ export function reservedNameHeight(entity: Entity): number {
 export function entityCardData(entity: Entity, size: { width: number; height: number }) {
   const reservedHeight = reservedNameHeight(entity);
   const nameCap = cardNameFontSize(entity.name, { ...size, reservedHeight }, LARGEST_ENTITY_NAME_PX);
+  if (entity.imported) return { nameCap: `${Math.min(nameCap, 13)}px`, imported: entity.imported };
   return { nameCap: `${nameCap}px` };
 }
 

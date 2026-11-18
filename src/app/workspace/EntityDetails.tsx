@@ -81,6 +81,16 @@ export function EntityDetails({
         Explore neighborhood
       </button>
       <div className="badge">{entity.kind}</div>
+      {entity.imported && (
+        <dl className="mesh-imported-details">
+          <dt>Imported from</dt>
+          <dd>
+            {entity.imported.project} / {entity.imported.ontology}
+          </dd>
+          <dt>Published version</dt>
+          <dd>{entity.imported.version}</dd>
+        </dl>
+      )}
       {(() => {
         const rdfItem = rdfTarget(entity);
         if (rdfItem)
@@ -160,7 +170,9 @@ export function EntityDetails({
       })()}
       {entity.readOnlyForm ? (
         <p className="hint">
-          {entity.description || (rdfTarget(entity) ? 'Edit its statements with Edit; the file keeps its serialization and layout.' : 'A blank node is edited with the resource that contains it.')}
+          {entity.description ||
+            (entity.imported && 'Edit this concept in its provider ontology.') ||
+            (rdfTarget(entity) ? 'Edit its statements with Edit; the file keeps its serialization and layout.' : 'A blank node is edited with the resource that contains it.')}
         </p>
       ) : (
         <label>

@@ -17,7 +17,13 @@ export function RelationshipEdge(props: EdgeProps) {
   const displaced = Math.hypot(anchor[0] - label[0], anchor[1] - label[1]) > 1;
   return (
     <>
-      <BaseEdge id={props.id} path={orthogonalPath(points)} markerEnd={props.markerEnd} style={props.style} interactionWidth={props.interactionWidth} />
+      <BaseEdge
+        id={props.id}
+        path={orthogonalPath(points)}
+        markerEnd={props.markerEnd}
+        style={data?.imported ? { ...props.style, strokeDasharray: '5 3' } : props.style}
+        interactionWidth={props.interactionWidth}
+      />
       {visible && props.label && (
         <>
           {displaced && <line className="relationship-label-leader" x1={anchor[0]} y1={anchor[1]} x2={label[0]} y2={label[1]} />}
