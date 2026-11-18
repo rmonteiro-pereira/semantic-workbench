@@ -342,7 +342,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   }
   function dependencyCandidateDocuments(consumer: string, provider: string, reader: Reader) {
     if (repoOf(consumer) !== repoOf(provider) || (reader.view && !reader.view.readableProjects.has(provider))) return [];
-    return documentsAtPlace(provider, copies.pendingWritePlace(reader, consumer), path => !reader.view || reader.view.canRead(provider, path));
+    return documentsAtPlace(provider, copies.pendingWritePlace(reader, consumer), path => consumer !== provider || !reader.view || reader.view.canRead(provider, path));
   }
   // Every project of a repository notices a change under .git; the browser hears of it once.
   const pendingGitEvents = new Set<string>();
