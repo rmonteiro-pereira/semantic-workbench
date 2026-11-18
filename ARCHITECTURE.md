@@ -342,8 +342,8 @@ command line.
   the derived schema, the compiler and the loss report all read it. Its header says how to add one.
 - `src/shared/tessera/bases.ts` is the table of supported Ossie bases and the check that a base
   leaves the Tessera names alone. Its pinned schema data is copied into `src/generated/` by
-  `scripts/compile-schemas.ts`, keeping schema-file imports outside the shared layer. `schema-derivation.ts` derives the Tessera ontology schema from a
-  pinned schema and the registry; `scripts/derive-tessera-schema.ts` writes it to
+  `scripts/compile-schemas.ts`, keeping schema-file imports outside the shared layer.
+  `schema-derivation.ts` derives the Tessera ontology schema from a pinned schema and the registry; `scripts/derive-tessera-schema.ts` writes it to
   `schemas/tessera-ontology-1-ossie-0.2.0.dev0.json` and `scripts/compile-schemas.ts` compiles it.
 - `src/shared/tessera/marker.ts` reads the marker (top level only). `validate.ts` gives the Tessera
   findings and picks the derived schema by marker and base. `src/shared/validation/validation.ts`
@@ -484,7 +484,7 @@ the bundle outside the source trees.
 5. All worktrees of a repository share its serialized Git queue. Sparse paths, multi-project
    ownership and protected content apply to both direct changes and incoming Git content.
 
-### Agent tool call
+### Agent request
 
 1. The route gates the request, streams its body under the cap of the named tool and gives it to the protocol library, which checks the headers, the envelope and the revision.
 2. The tool checks its arguments against its JSON Schema, takes a place under the call limits and builds the request of its twin route.
