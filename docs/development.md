@@ -388,6 +388,15 @@ For API work, maintain the action inventory and relevant HTTP/configuration cont
 handlers, schemas and tests remain authoritative when an older design contract describes an
 unimplemented or superseded detail.
 
+## Usage counters
+
+`bun test tests/usage/ tests/auth/usage-read-parity.test.ts` covers counting, the store, migration, retention,
+the read operation and privacy; `tests/usage-*.test.ts*` and `tests/admin-settings-usage.test.tsx` cover the Traffic
+display. `bun run test:usage-traffic` drives the display in a browser against a mocked usage answer. Its
+`--record` option rewrites `tests/fixtures/usage/dom-baseline.json`, the structure of every view with
+Traffic off; record it only from source without the Traffic option. Usage mutants run with
+`bun scripts/mutation-tests.ts --only usage`.
+
 ## Operation boundary
 
 Connection effects narrow allowed decisions; they preserve existence-hiding refusals and the

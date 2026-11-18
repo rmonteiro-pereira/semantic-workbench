@@ -30,6 +30,7 @@ if (category === 'operation-boundary') {
   const { operationBoundaryCases } = await import('./operation-boundary-mutation-cases');
   await operationBoundaryCases(process.argv[2]);
 }
+if (category.startsWith('usage-')) await (await import('./usage-mutation-cases')).usageCase(category, loadedModule);
 if (category === 'address-operation') await (await import('./item-address-operation-cases')).itemAddressOperationCase(loadedModule as typeof import('../src/server/routes/item-addresses'));
 if (category === 'address-server') (await import('./server-address-cases')).serverAddressCase(loadedModule as typeof import('../src/server/projects/address-resolution'));
 if (category === 'address-store') (await import('./server-address-cases')).addressStoreCase(loadedModule as typeof import('../src/server/projects/address-migrations'));

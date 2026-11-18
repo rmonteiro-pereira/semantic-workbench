@@ -19,6 +19,7 @@ specific tasks without duplicating the same instructions in several places.
 | Find module owners and request boundaries | [Architecture map](../ARCHITECTURE.md) |
 | Understand graph engines, ports and measurements | [Graph design](graph-design.md) |
 | Integrate an agent or request a governed query plan | [Agent runtime](agent-runtime.md) |
+| Turn on and read counts of requests through the workbench | [Usage counters](usage-counters.md) |
 | Change colors, logos or deployment identity | [Theme and branding](theme.md) |
 | Review dispatchable operations and browser capabilities | [Operation inventory](operations.md) |
 | Verify the security audit chain | [Audit integrity](audit-tamper-evidence.md) |

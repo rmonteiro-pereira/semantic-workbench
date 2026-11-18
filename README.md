@@ -366,6 +366,7 @@ owns the data root; merely increasing container replicas is not safe scaling.
 | `src/server/auth/`, `policies/` | Identity, sessions, Cedar decisions, access review and audit |
 | `src/shared/governance/` | Shared pure metric/classification protection rules |
 | `src/server/agent/` | Filtered metadata, metric explanations and SQL planning |
+| `src/server/usage/`, `src/app/usage/` | Opt-in, identity-free counts of requests through the workbench, and the Traffic display |
 | `src/server/observability/`, `src/app/observability/` | Operational diagnostics and optional reporting |
 | `public/brand/`, `src/server/brand/`, `src/shared/theme/theme.css` | Product identity and semantic theme tokens |
 | `scripts/`, `tests/`, `patches/` | Tooling, isolated verification and locked dependency fixes |
@@ -598,6 +599,13 @@ HTTP audit selection and existing hash chains remain unchanged. Admin and Stewar
 can filter by origin and tool within their existing visibility; CSV exports append these fields.
 The [audit contract](specs/003-authn-authz/contracts/audit-log.md) defines the stored fields.
 
+Usage counters are off unless an operator sets `SW_USAGE_COUNTERS=on`. They count requests through
+this workbench (mapping contexts, query plans and metric explanations asked for by agent and
+application clients) per published item and day, keep 30 days by default
+(`SW_USAGE_RETENTION_DAYS`), and store no person, client, connection or text. They do not count queries
+run in a warehouse, and browser views are excluded. They are not anonymous: in a small team a low count
+may let people infer who asked. See [usage counters](docs/usage-counters.md).
+
 [Agent clients](docs/agent-runtime.md) use Entra application tokens only on `/api/agent/*`, with
 explicit project grants. The API exposes metadata, explanations and query plans, not execution.
 The application does not require or call a hosted language model.
@@ -711,6 +719,7 @@ by the locally recorded quality gate.
 | [Architecture](ARCHITECTURE.md) | Module responsibilities, flows and invariants |
 | [Graph design](docs/graph-design.md) | Rendering/layout engines and graph measurement rules |
 | [Agent runtime](docs/agent-runtime.md) | Metadata APIs, token setup, planning and limits |
+| [Usage counters](docs/usage-counters.md) | What is counted and stored, retention, the Traffic display and its limits |
 | [Theme and branding](docs/theme.md) | Tokens, light/dark and white-label bundles |
 | [Operation inventory](docs/operations.md) | Reviewed operations, effects, limits and browser capabilities |
 | [Audit integrity](docs/audit-tamper-evidence.md) | Hash-chain checks, anchors and limitations |

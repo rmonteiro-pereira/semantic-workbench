@@ -24,7 +24,7 @@ describe('counted operations', () => {
 
   test('the guide lists the same operations in its counted table', () => {
     const guide = readFileSync('docs/usage-counters.md', 'utf8');
-    const section = guide.slice(guide.indexOf('## What is counted'));
+    const section = guide.slice(guide.indexOf('## What is counted'), guide.indexOf('## What is stored'));
     const listed = [...section.matchAll(/^\| `([a-z.]+)` \|/gm)].map(match => match[1]).sort();
     expect(listed).toEqual(flaggedOperations);
   });
