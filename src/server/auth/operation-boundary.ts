@@ -104,7 +104,9 @@ function refusedTarget(audit: AuditLog, requestId: string, scope: AccessScope, e
  * Finds the entry a trash route names, so the decision and the audit use its original target.
  * Local mode leaves the lookup to the route, which keeps its own "not found" message.
  */
-function trashLookup(ws: Workspace, request: Request) {
+function trashLookup(ws: Workspace, request: ReceiptReplayRequest) {
+  const original = request[receiptReplay]?.trash;
+  if (original) return { entry: original };
   const trashId = new URL(request.url).pathname.match(/^\/api\/trash\/([^/]+)/)?.[1];
   if (!trashId) return undefined;
   return { entry: ws.trash.list().find(candidate => candidate.entryId === trashId) };
@@ -135,8 +137,7 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
     const projects = target.row.action === 'readAudit' ? auditScope(scope, ws) : undefined;
     attachIdentity(request, caller, { scope, requestId, remote: options.remoteCredentials ?? 'local', auditProjects: projects });
     setRequestActor(actorPseudonym(scope.principal));
-    const saved = (request as ReceiptReplayRequest)[receiptReplay]?.trash;
-    const trash = mode === 'server' ? (saved ? { entry: saved } : trashLookup(ws, request)) : undefined;
+    const trash = mode === 'server' ? trashLookup(ws, request) : undefined;
     const verdict = routeVerdict(scope, target.row, mode, {
       resource: trash?.entry ? trashResource(trash.entry) : target.resource,
       trash: trash?.entry,

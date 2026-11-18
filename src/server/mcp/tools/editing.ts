@@ -88,7 +88,7 @@ const deleteFile: ToolDefinition = {
       tool: 'delete_file',
       idempotencyKey: args.idempotencyKey,
       args,
-      async authorizeReplay(note) {
+      async authorizeReplay() {
         const called = await context.twin('files.delete', { ...receiptTarget, replay: {} });
         return called.ok ? undefined : called.failure;
       },
