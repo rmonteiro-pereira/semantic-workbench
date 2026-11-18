@@ -88,8 +88,10 @@ export function ProposalDetail({ project, id, version, onClose, onChanged }: Pro
     >
       <div className="proposal-detail">
         <p className="proposal-summary">
-          <span className={`proposal-status status-${view.status}`}>{STATUS_LABEL[view.status]}</span> Started by {view.createdByName} on {new Date(view.createdAt).toLocaleDateString()}.{' '}
-          {behindLine(view.behindPublished)}
+          <span className={`proposal-status status-${view.status}`}>{STATUS_LABEL[view.status]}</span>
+          <span>
+            Started by {view.createdByName} on {new Date(view.createdAt).toLocaleDateString()}. {behindLine(view.behindPublished)}
+          </span>
         </p>
         <p>Changes {view.projects.map(item => item.name).join(', ')}.</p>
         <p>{view.contributors.length ? `Contributors: ${view.contributors.join(', ')}.` : 'No contributions yet.'}</p>

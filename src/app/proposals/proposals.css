@@ -144,3 +144,14 @@
 .proposal-file.selected {
   background: var(--color-accent-soft);
 }
+
+.proposal-detail .proposal-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 4px 8px;
+}
+.proposal-summary > span:last-child {
+  flex: 1 1 200px;
+  min-width: 0;
+}
