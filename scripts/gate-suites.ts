@@ -23,6 +23,7 @@ export const gateSuites: string[] = [
   'test:tessera',
   'test:attributes',
   'test:compile',
+  'test:mesh',
   'test:scm',
   'test:odcs',
   'test:lineage',
