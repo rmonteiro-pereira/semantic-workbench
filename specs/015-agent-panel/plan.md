@@ -310,7 +310,8 @@ with named scopes `read` and `edit`, not effect names or a panel session id. The
 the returned setup credential at the token endpoint, then `resolve` preserves origin `acp`.
 The panel binds the connection at authenticated hello and subscribes to `onConnectionEnded`.
 Both transports reject tokens of the other origin; receipts keep person/connection ownership
-and current authorization. This reconciles the older relay contract’s panel-id/effect wording
+and current authorization. The MCP route contract classifies browser panel and ACP transport
+rows without exposing new MCP tools. This reconciles the older relay contract’s panel-id/effect wording
 with the transport-neutral service instead of adding a second connection API.
 
 ## Buildable now, needs 006, needs 013

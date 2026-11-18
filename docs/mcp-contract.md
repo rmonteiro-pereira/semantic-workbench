@@ -195,3 +195,13 @@ the table above. The static page fallback row is not an operation and is left ou
 | `GET /healthz` | not an agent operation | sign-in, health and static pages are not agent operations |
 | `GET /readyz` | not an agent operation | sign-in, health and static pages are not agent operations |
 | `GET /brand/:file` | not an agent operation | sign-in, health and static pages are not agent operations |
+| `POST /api/acp/sessions` | browser agent panel | creates a conversation and a relay setup credential in server mode |
+| `GET /api/acp/sessions/:id/events` | browser agent panel | streams the person's conversation events |
+| `POST /api/acp/sessions/:id/prompt` | browser agent panel | sends a prompt to the connected agent |
+| `POST /api/acp/sessions/:id/cancel` | browser agent panel | cancels the current turn and pending questions |
+| `POST /api/acp/sessions/:id/questions/:question` | browser agent panel | answers a permission question without widening scope |
+| `DELETE /api/acp/sessions/:id` | browser agent panel | ends the person's conversation |
+| `POST /api/acp/relay/:session/hello` | ACP transport | authenticates the relay, authorizes with origin acp and spends the session code |
+| `POST /api/acp/relay/:session/frames` | ACP transport | authenticates and authorizes numbered agent frames with origin acp |
+| `GET /api/acp/relay/:session/stream` | ACP transport | authenticates and authorizes the relay event stream with origin acp |
+| `POST /api/acp/relay/:session/bye` | ACP transport | authenticates and authorizes the relay ending with origin acp |
