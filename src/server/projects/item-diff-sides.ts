@@ -10,7 +10,7 @@ import { projectDir, projectFile, projectPrefix, repoDir, type DataLayout } from
 import type { PublishedSnapshots } from './published-snapshot';
 import type { Reader } from './reader';
 import { serializationOf, walk } from './scanner';
-import { branchShownTo } from './worktrees';
+import { diffBranchReadable, diffFileReadable } from '../auth/item-diff-access';
 import { SNAPSHOT_LIMITS, type SnapshotLimits } from './snapshot-index';
 
 /** Definition bytes and migrations captured from one readable comparison side. */
@@ -72,8 +72,8 @@ function savedDefinitions(layout: DataLayout, project: string, paths: string[], 
 async function visibleRefs(git: Git, directory: string, reader: Reader, own: string | null) {
   const branches = await git.branches(directory);
   return [
-    ...branches.local.filter(name => !reader.view || branchShownTo(name, own)).map(name => ({ name, ref: 'refs/heads/' + name })),
-    ...branches.remote.filter(name => !reader.view || branchShownTo(name, own, true)).map(name => ({ name, ref: 'refs/remotes/' + name })),
+    ...branches.local.filter(name => diffBranchReadable(reader, name, own)).map(name => ({ name, ref: 'refs/heads/' + name })),
+    ...branches.remote.filter(name => diffBranchReadable(reader, name, own, true)).map(name => ({ name, ref: 'refs/remotes/' + name })),
   ];
 }
 
@@ -98,7 +98,7 @@ async function committedDefinitions(deps: SideDependencies, project: string, com
   const prefix = projectPrefix(layout, project);
   const entries = (await git.lsTree(directory, commit, prefix))
     .map(entry => ({ ...entry, path: entry.path.slice(prefix.length) }))
-    .filter(entry => isDefinition(entry.path) && (!reader.view || reader.view.canRead(project, entry.path)));
+    .filter(entry => isDefinition(entry.path) && diffFileReadable(reader, project, entry.path));
   checkSideLimits(entries, limits);
   const blobs = await git.catFileBatch(
     directory,
@@ -136,14 +136,19 @@ export function createItemDiffSides(deps: SideDependencies) {
       return snapshots.withPin(async pin => {
         const { commit, documents } = await snapshots.readableDocuments(pin, project, reader);
         const records = await readCommittedAddressMigrations(git, layout, project, commit, reader);
-        return { version: { side: 'published', version: commit }, documents: documents.filter(document => isDefinition(document.path)), unreadable: [], records };
+        return {
+          version: { side: 'published', version: commit },
+          documents: documents.filter(document => isDefinition(document.path) && diffFileReadable(reader, project, document.path)),
+          unreadable: [],
+          records,
+        };
       });
     },
     async working(project: string, reader: Reader): Promise<LoadedDiffSide> {
       const working = deps.workingLayout(project, reader);
       const directory = projectDir(working, project);
       const listed = deps.gitAvailable() ? await git.lsFiles(directory) : walk(directory);
-      const paths = listed.filter(path => isDefinition(path) && (!reader.view || reader.view.canRead(project, path))).sort();
+      const paths = listed.filter(path => isDefinition(path) && diffFileReadable(reader, project, path)).sort();
       const { documents, unreadable } = savedDefinitions(working, project, paths, limits);
       const records = readAddressMigrations(working, project, reader);
       const digest = sha256(JSON.stringify([documents, unreadable, records]));
