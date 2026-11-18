@@ -40,4 +40,7 @@ test.each(['trashed', 'absent object', 'unexported concept'] as const)('compilat
   const response = await fixture.fixture.handler(new Request('http://localhost:4310/api/projects/retail/compile', { method: 'POST', body: '{}' }));
   expect(response.status).toBe(400);
   expect(await response.text()).toContain(expected[problem]);
+  const agent = await fixture.fixture.handler(new Request('http://localhost:4310/api/agent/catalog?project=retail'));
+  expect(agent.status).toBe(400);
+  expect(await agent.text()).toContain(expected[problem]);
 });

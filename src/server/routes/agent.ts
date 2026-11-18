@@ -25,7 +25,7 @@ export const publishedAgentDocuments: AgentDocumentSource = (workspace, request,
   workspace.published.withPin(async pin => {
     const reader = requestReader(request);
     const { commit, documents } = await workspace.published.readableDocuments(pin, project, reader);
-    const providers = await publishedUnitInterfaces(workspace, pin, reader, project, documents);
+    const providers = await publishedUnitInterfaces(workspace, pin, reader, project, documents, true);
     const response = await use(documents.map(file => (providers.has(file.path) ? { ...file, publishedInterfaces: providers.get(file.path) } : file)));
     response.headers.set('X-Workbench-Snapshot', commit);
     return response;

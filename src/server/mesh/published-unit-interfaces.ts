@@ -12,11 +12,11 @@ import type { Workspace } from '../projects/workspace';
 import { resolveFrozenUnit } from './dependency-check';
 import { unitDocument } from './unit-reader';
 
-/** Returns absent entries when the reader's complete published unit is unavailable. */
-export async function publishedUnitInterfaces(ws: Workspace, pin: PublishedPin, reader: Reader, project: string, documents: readonly PublishedDocument[]) {
+/** Projects available public interfaces and can require each complete unit's frozen inputs. */
+export async function publishedUnitInterfaces(ws: Workspace, pin: PublishedPin, reader: Reader, project: string, documents: readonly PublishedDocument[], requireAvailability = false) {
   const result = new Map<string, ResolvedImportInterface[]>();
   const lock = documents.find(file => file.path === DEPENDENCY_MANIFEST_PATH);
-  if (!lock) return result;
+  if (!lock && !requireAvailability) return result;
   const repository = ws.repoOf(project);
   const commit = pin.commits.get(repository)?.commit;
   if (!commit) return result;
@@ -42,7 +42,7 @@ export async function publishedUnitInterfaces(ws: Workspace, pin: PublishedPin, 
         }),
       );
     } catch (error) {
-      if (!(error instanceof InputError || error instanceof SnapshotUnavailableError)) throw error;
+      if (requireAvailability || !(error instanceof InputError || error instanceof SnapshotUnavailableError)) throw error;
     }
   }
   return result;
