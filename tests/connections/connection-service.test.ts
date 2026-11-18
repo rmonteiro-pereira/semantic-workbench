@@ -322,18 +322,15 @@ test('a setup credential makes the same connection, once, and its failures are t
   expect((await fixture.service.issueFromSetup({ setupCredential: orphan.credential, clientId: program.clientId, resource: RESOURCE })).ok).toBe(false);
 });
 
-test('a connection for a session carries its origin and refuses what the program may not have', async () => {
+test('a connection refuses unsupported transport origins and scopes outside the program', async () => {
   const fixture = open();
   const session = fixture.signIn('session-one');
   expect(fixture.service.createConnectionForSession({ session, clientId: 'nobody', scopes: ['read'] })).toEqual({ ok: false, reason: 'program-not-registered' });
   expect(fixture.service.createConnectionForSession({ session, clientId: program.clientId, scopes: ['publish'] })).toEqual({ ok: false, reason: 'scope-not-allowed' });
   const created = fixture.service.createConnectionForSession({ session, clientId: program.clientId, scopes: ['read'], origin: 'acp' });
   if (!created.ok) throw new Error('not created');
-  const traded = await fixture.service.issueFromSetup({ setupCredential: created.credential, clientId: program.clientId, resource: RESOURCE });
-  if (!traded.ok) throw new Error('trade refused');
-  expect(fixture.store.get(traded.connection)?.origin).toBe('acp');
-  const resolved = await fixture.service.resolve(traded.tokens.accessToken);
-  expect(resolved.ok && (resolved.caller.origin as string)).toBe('acp');
+  await expect(fixture.service.issueFromSetup({ setupCredential: created.credential, clientId: program.clientId, resource: RESOURCE })).rejects.toThrow('requires operation and audit support');
+  expect(fixture.store.all()).toEqual([]);
 });
 
 test('work opened through a connection is told when it ends', async () => {

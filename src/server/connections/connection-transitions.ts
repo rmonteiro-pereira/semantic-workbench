@@ -1,6 +1,7 @@
 // The state changes of a connection as pure functions: starting, rotating tokens, ending, and deciding whether a registration still allows it. Nothing here reads a clock, a file or a session.
 import { RETIRED_REFRESH_LIMIT, type ConnectionRecord, type EndReason } from './connection-store';
 import type { CallerOrigin } from '../auth/caller';
+import { CALLER_ORIGINS } from '../auth/operation-inventory';
 import type { Program } from './programs';
 import type { ConnectionOrigin } from './pending-grants';
 import type { Scope } from './scopes';
@@ -128,5 +129,8 @@ export function viewOf(record: ConnectionRecord): ConnectionView {
  * agent panel, so the conversion is made in this one place.
  */
 export function connectionCallerOrigin(origin: ConnectionOrigin): CallerOrigin {
+  if (!(CALLER_ORIGINS as readonly string[]).includes(origin)) {
+    throw new Error(`Connection origin ${origin} requires operation and audit support before tokens can be issued.`);
+  }
   return origin as CallerOrigin;
 }

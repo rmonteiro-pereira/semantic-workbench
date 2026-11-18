@@ -188,6 +188,7 @@ export function createConnectionService(dependencies: ConnectionServiceDependenc
 
   /** Creates the connection for a grant that passed every check. */
   async function openConnection(binding: GrantBinding, attach: (connectionId: string) => void): Promise<TokenOutcome> {
+    const origin = connectionCallerOrigin(binding.origin);
     const session = await sessions.getByReference(binding.sessionReference);
     if (!session) return { ok: false, reason: 'session-ended' };
     const person = currentPerson(session);
@@ -214,7 +215,7 @@ export function createConnectionService(dependencies: ConnectionServiceDependenc
     attach(issued.record.id);
     events.record({
       action: 'connection.issued',
-      origin: connectionCallerOrigin(binding.origin),
+      origin,
       outcome: 'ok',
       connection: issued.record.id,
       person: { id: binding.person, name: session.principal.name },
