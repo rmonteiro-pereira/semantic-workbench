@@ -154,7 +154,7 @@ test only to make it pass.
   Proof: the test passes; the credential never appears in the process arguments or in any output
   captured by the test (SC-007); a port scan during the run finds the relay listening on none
   (FR-014).
-- [ ] T027 [US5] Wire the end reasons: browser end and close, relay loss, agent exit (`bye`), idle,
+- [x] T027 [US5] Wire the end reasons: browser end and close, relay loss, agent exit (`bye`), idle,
   replace, flood, protocol error, server restart message on the next relay call. Add
   `tests/acp/end-reasons.test.ts` producing all 13 reasons end to end and checking that the next
   agent request is refused after each. Proof: the test passes (SC-005).

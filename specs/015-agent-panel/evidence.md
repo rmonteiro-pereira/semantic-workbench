@@ -87,3 +87,8 @@ The browser exposed a permission-focus race: a question can arrive while the pro
 still pending, so its first button is disabled at mount and cannot receive focus. Focus is now
 applied once the action finishes as well as when the question id changes. The targeted renderer
 proof remains green; the browser check exercises this race through the real relay.
+
+Lifecycle proof completed: `bun test tests/acp/end-reasons.test.ts`: 13 pass, 0 fail, including
+replacement of process-owned session state on the same data root/address, the 404 inference in
+the browser client and refusal of the next file frame. The fixture can also serve the built
+frontend through the same local static wrapper used by the production entry point.

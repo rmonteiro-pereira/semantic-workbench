@@ -1,6 +1,7 @@
 // Starts a local-mode workbench with the agent panel mounted on a spare port, and hands out the browser's and the relay's requests with the headers each really sends.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { serveStatic } from '../../../src/server/static';
 import { createHandler } from '../../../src/server/handler';
 import { CAPABILITY_FILE, openLocalCapability } from '../../../src/server/mcp/local-capability';
 import type { PanelService } from '../../../src/server/acp/panel-service';
@@ -10,18 +11,29 @@ import { testWorkspace } from '../../helpers/temp-data-dir';
 export type PanelServer = Awaited<ReturnType<typeof startPanelServer>>;
 
 /** Starts the server. `examples` names shipped examples to load into the workspace. */
-export async function startPanelServer(options: { examples?: string[]; now?: () => number } = {}) {
+export async function startPanelServer(options: { examples?: string[]; now?: () => number; port?: number; staticRoot?: string } = {}) {
   const workspace = await testWorkspace();
   for (const example of options.examples ?? []) await workspace.ws.loadExample(example);
   const capabilityFile = join(workspace.root, 'state', CAPABILITY_FILE);
   const opened = openLocalCapability(capabilityFile);
   if (!opened.ok) throw new Error(opened.reason);
   let handler: ReturnType<typeof createHandler> | undefined;
-  const server = Bun.serve({ hostname: '127.0.0.1', port: 0, idleTimeout: 255, fetch: request => handler!(request) });
-  handler = createHandler(workspace.ws, { port: server.port as number, mcp: { capability: opened.capability }, now: options.now });
+  const server = Bun.serve({
+    hostname: '127.0.0.1',
+    port: options.port ?? 0,
+    idleTimeout: 255,
+    fetch: async request => {
+      if (options.staticRoot) {
+        const response = await serveStatic(request, options.staticRoot);
+        if (response) return response;
+      }
+      return handler!(request);
+    },
+  });
+  handler = createHandler(workspace.ws, { port: server.port as number, mcp: { capability: opened.capability }, now: options.now, staticRoot: options.staticRoot });
   const url = `http://127.0.0.1:${server.port}`;
   const capability = () => readFileSync(capabilityFile, 'utf8').trim();
-  const service = (handler as unknown as { agentPanel: PanelService }).agentPanel;
+  let service = (handler as unknown as { agentPanel: PanelService }).agentPanel;
 
   /** A request the workbench page makes: same origin, the page's marker, JSON. */
   function browser(path: string, init: RequestInit & { json?: unknown; headers?: Record<string, string> } = {}) {
@@ -86,7 +98,15 @@ export async function startPanelServer(options: { examples?: string[]; now?: () 
     ...workspace,
     url,
     port: server.port as number,
-    service,
+    get service() {
+      return service;
+    },
+    /** Replaces process-owned session state while keeping the same data root and listening address. */
+    restart() {
+      service.stopSweeper();
+      handler = createHandler(workspace.ws, { port: server.port as number, mcp: { capability: opened.capability }, now: options.now, staticRoot: options.staticRoot });
+      service = (handler as unknown as { agentPanel: PanelService }).agentPanel;
+    },
     capability,
     browser,
     relay,
