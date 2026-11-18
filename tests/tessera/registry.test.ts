@@ -1,6 +1,6 @@
 // Checks the registry rejects bad entries when it is built and that only the format module spells the Tessera names.
 import { expect, test } from 'bun:test';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { TesseraNames } from '../../src/shared/tessera/format';
 import { RESERVED_NAMES } from '../../src/shared/tessera/reserved-names';
@@ -49,4 +49,25 @@ test('no module under src spells the prefix or the marker key except the format 
       return spellings.some(pattern => pattern.test(withoutFamilyValue));
     });
   expect(offenders).toEqual([]);
+});
+
+const FIXTURE_FOLDER = 'tests/fixtures/tessera/additions';
+
+/** Names the registered additions that have no fixture document under the fixture folder. */
+function additionsWithoutFixtures(additions: readonly AdditionEntry[], folder: string): string[] {
+  return additions.filter(addition => !existsSync(`${folder}/${addition.name}`) || readdirSync(`${folder}/${addition.name}`).length === 0).map(addition => addition.name);
+}
+
+test('every registered addition has fixture documents', () => {
+  expect(additionsWithoutFixtures(REGISTRY.additions, FIXTURE_FOLDER)).toEqual([]);
+});
+
+test('a registry entry added without a fixture folder is reported', () => {
+  const later: AdditionEntry = { ...notes, name: 'tessera_later' };
+  expect(additionsWithoutFixtures([...REGISTRY.additions, later], FIXTURE_FOLDER)).toEqual(['tessera_later']);
+});
+
+test('no reserved name is registered', () => {
+  const registered = new Set(REGISTRY.additions.map(addition => addition.name));
+  expect(RESERVED_NAMES.filter(reserved => registered.has(reserved.name))).toEqual([]);
 });
