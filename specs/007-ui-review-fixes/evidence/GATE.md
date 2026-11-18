@@ -35,6 +35,21 @@ Completed checks on the rebased candidate:
 | `bun scripts/ci-validate.ts --step browser --suite test:examples:ui` | 19 example UI checks passed, no browser runtime errors (129.7 s). |
 | `bun scripts/ci-validate.ts --step browser --suite test:projects` | 8 project checks passed (37.3 s). |
 | `bun scripts/ci-validate.ts --step browser --suite test:trash` | 13 trash checks passed (43.0 s). |
+| `bun scripts/ci-validate.ts --step browser --suite test:sidebar` | Exit 1 in 67.8 s. Timed out opening a desktop viewport before the project tree or empty state appeared. |
+| `bun scripts/ci-validate.ts --step browser --suite test:metrics` | 11 metrics checks passed (69.3 s), including phone and wide-screen containment. |
+| `bun scripts/ci-validate.ts --step browser --suite test:graph` | Exit 1 in 115.3 s. The Mall ontology Graph passed the 473 px minimum. Later, the Neighborhood trail intercepted pointer events for Walk to AllowanceCharge. |
+| `bun scripts/ci-validate.ts --step browser --suite test:editor` | Exit 1 in 56.3 s. The 1.9 MB editor check measured 55.31 ms per keystroke with a limit below 30 ms. |
+| `bun scripts/ci-validate.ts --step browser --suite test:item-edit` | Exit 1 in 50.5 s. The first two edit checks passed. The next still selected the raw EntityType label instead of the humanized catalog row. |
+| `bun scripts/ci-validate.ts --step browser --suite test:addresses` | 4 item address browser checks passed (18.1 s). |
+| `bun scripts/ci-validate.ts --step browser --suite test:rdf-edit` | 9 RDF edit checks passed (40.4 s). |
+| `bun scripts/ci-validate.ts --step browser --suite test:validation` | Exit 0 in 22.1 s. |
+| `bun scripts/ci-validate.ts --step browser --suite test:scm` | 20 Source Control checks passed (59.7 s), including phone containment and read-only actions. |
+| `bun scripts/ci-validate.ts --step browser --suite test:odcs` | 10 ODCS checks passed (39.2 s). |
+| `bun scripts/ci-validate.ts --step browser --suite test:lineage` | Exit 1 in 63.7 s. Commerce and Mall edge rendering passed. The Mall timing check measured 3,784 ms with a 2,000 ms limit. |
+| `bun scripts/ci-validate.ts --step browser --suite test:autosave` | Exit 1 in 25.6 s. Save and commit assertions passed, followed by a Git log assertion that could not resolve main. |
+| `bun scripts/ci-validate.ts --step browser --suite test:sql` | 10 SQL checks passed (36.0 s). |
+| `bun scripts/ci-validate.ts --step browser --suite test:git-setup` | Exit 1 in 12.3 s. Setting identity and committing through the UI passed. The fixture repository had no commits on its current main branch. |
+| `bun scripts/ci-validate.ts --step browser --suite test:monorepo` | Exit 1 in 30.7 s. Clone finished with “Cloned monorepo.” but the browser check required “Cloned.”. |
 
 The catalog mutation removed a tooltip from a description that already wraps in full. The mutation needs to inject actual clipping and the assertion needs to reject clipped descriptions even with a tooltip.
 The read-only Auth check still expects the commit form the Source Control fix deliberately removes. The denied state remains represented by the disabled header button and its tooltip. The two-editor check still uses the former Sync label. Both browser checks need to be rerun against the reviewed controls.
