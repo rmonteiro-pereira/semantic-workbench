@@ -792,6 +792,11 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       entry(slug);
       return copies.pendingWritePlace(reader, slug).scm;
     },
+    /** The folders a reader's saved files live in: their working copy, or the shared project folders. */
+    layoutFor: (slug: string, reader: Reader) => {
+      entry(slug);
+      return copies.readPlace(reader, slug).layout;
+    },
     /** The file a request reads, in the person's copy when they have one. */
     filePath: (slug: string, path: string, reader: Reader) => projectFile(copies.readPlace(reader, slug).layout, slug, path),
     /**

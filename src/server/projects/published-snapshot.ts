@@ -225,6 +225,10 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
     async filePaths(requestPin: PublishedPin, project: string) {
       return (await files(requestPin, project)).map(file => file.document.path);
     },
+    /** Lists every committed file path with its size, so a reader can check limits before copying any bytes. */
+    async fileSizes(requestPin: PublishedPin, project: string) {
+      return (await files(requestPin, project)).map(file => ({ path: file.document.path, size: file.bytes.length }));
+    },
     async fileBytes(requestPin: PublishedPin, project: string, path: string) {
       const file = (await files(requestPin, project)).find(file => file.document.path === path);
       return file ? file.bytes.slice() : null;
