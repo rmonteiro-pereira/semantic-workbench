@@ -216,7 +216,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     };
     const place = await copies.writePlace(reader, slug, check);
     return lock(projectLock(place, slug), async () => {
-      const { edited, before, guarded } = await check(place);
+      const { edited, guarded } = await check(place);
       const prepared = edited.map((edit, index) => {
         const { file, current } = edit;
         const next = guarded?.changes[index].after ?? edit.next;
