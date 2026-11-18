@@ -97,6 +97,14 @@
       ]
     },
     {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/projects/:slug/usage",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
       "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:POST /api/projects/:slug/metrics/preview",
       "before": true,
       "after": false,
@@ -209,6 +217,30 @@
       ]
     },
     {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/projects/:slug/proposals",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/projects/:slug/proposals/:id",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/projects/:slug/proposals/:id/diff",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
       "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/agent/projects",
       "before": true,
       "after": false,
@@ -297,7 +329,7 @@
       ]
     }
   ],
-  "matrixCases": 1035,
+  "matrixCases": 1143,
   "auditCases": 6,
   "people": [
     {
