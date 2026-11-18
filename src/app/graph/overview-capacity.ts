@@ -25,7 +25,8 @@ export function modelCardHeight(collapsed: boolean): number {
 /** Network text scales with its original cards; Layered text compensates for zoom. */
 export function textSizesAt(zoom: number, layout: 'network' | 'layered' = 'layered', counted = false) {
   const entityName = (layout === 'network' && !counted) || zoom >= READABLE_ZOOM ? 16 : Math.min(LARGEST_ENTITY_NAME_PX, Math.ceil(12 / zoom));
-  const areaTitle = layout === 'network' ? 20 : Math.min(LARGEST_AREA_TITLE_PX, Math.max(20, Math.ceil(13 / zoom)));
+  const titleTarget = layout === 'network' ? NAME_MIN_PX : 13;
+  const areaTitle = layout === 'network' && !counted ? 20 : Math.min(LARGEST_AREA_TITLE_PX, Math.max(20, Math.ceil(titleTarget / zoom)));
   // Two lines of the larger name no longer fit the card, so it keeps one.
   const areaLinks = Math.min(LARGEST_AREA_LINKS_PX, Math.max(12, Math.ceil(10 / zoom)));
   const entityLines = entityName > 17 ? 1 : 2;

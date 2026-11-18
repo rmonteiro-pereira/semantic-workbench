@@ -3,6 +3,7 @@ import { expect, type Page } from '@playwright/test';
 import { fileTab } from './screen-tour';
 import { pickCenter } from './edge-geometry';
 import { revealGraphControls, hideGraphControls, viewOptions, setShown, showEveryEntity } from './graph-options';
+import { NAME_MIN_PX } from '../../src/app/graph/overview-capacity';
 
 async function checkLayoutControls(page: Page) {
   await revealGraphControls(page);
@@ -118,6 +119,29 @@ async function checkPierceFit(page: Page) {
   console.log('PASS full pierce offers Fit for 45 entities; Fit frames every card');
 }
 
+async function checkPhoneCountedAreas(page: Page) {
+  await fileTab('mall.semantic.yaml', 'Graph')(page);
+  const canvas = page.locator('.full-graph .react-flow');
+  await expect(page.locator('.full-graph-status strong')).toContainText('11 area cards', { timeout: 30000 });
+  await expect
+    .poll(() =>
+      canvas.evaluate((pane, minimumNameSize) => {
+        const bounds = pane.getBoundingClientRect();
+        const viewport = pane.querySelector('.react-flow__viewport');
+        if (!viewport) return 0;
+        const zoom = new DOMMatrix(getComputedStyle(viewport).transform).a;
+        return [...pane.querySelectorAll('.full-entity.collapsed')].filter(card => {
+          const box = card.getBoundingClientRect();
+          const name = card.querySelector('strong');
+          const inside = box.left >= bounds.left - 1 && box.right <= bounds.right + 1 && box.top >= bounds.top - 1 && box.bottom <= bounds.bottom + 1;
+          return inside && name && Number.parseFloat(getComputedStyle(name).fontSize) * zoom >= minimumNameSize;
+        }).length;
+      }, NAME_MIN_PX),
+    )
+    .toBe(11);
+  console.log('PASS Mall semantic Graph opens with all 11 readable counted area cards inside the phone canvas');
+}
+
 /** Checks selection, neighborhood entry and the persistent phone full-screen exit. */
 export async function checkGraphReview(page: Page) {
   for (const [width, height] of [
@@ -134,6 +158,7 @@ export async function checkGraphReview(page: Page) {
   await page.getByRole('button', { name: 'Enter full screen', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Exit full screen', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Exit full screen', exact: true }).click();
+  await checkPhoneCountedAreas(page);
   await page.setViewportSize({ width: 1280, height: 720 });
   await fileTab('mall.ontology.yaml', 'Graph')(page);
   await page.locator('.full-graph-loading').waitFor({ state: 'hidden', timeout: 60000 });

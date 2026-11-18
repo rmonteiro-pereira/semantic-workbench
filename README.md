@@ -320,8 +320,9 @@ routes. Smart Edge supplies worker routing at useful detail levels.
 
 Neighborhood traversal adds nearby entities without moving existing ones and records reversible
 walk/expansion history. Contract lineage and mapping graphs connect ports on rows inside cards.
-Large models start with readable counted areas or bounded neighborhoods rather than drawing every
-label at an unreadable size. Grouping changes the view, not the standards definitions.
+Large models start with counted areas or bounded neighborhoods rather than drawing every label at
+an unreadable size. The counted areas fit within the Network pane, including on phones.
+Grouping changes the view, not the standards definitions.
 
 Measurement caches are kept only for compatible node/port shapes. The pinned dependency patch
 publishes observer-driven size changes outside the browser's resize-delivery cycle and cancels

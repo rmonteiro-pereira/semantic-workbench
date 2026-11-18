@@ -3,7 +3,7 @@ import { useRef, useState, type RefObject } from 'react';
 import type { ReactFlowInstance } from '@xyflow/react';
 import type { modelOverview } from './overview';
 import { fitFullGraph, fitGraphArea } from './full-graph-viewport';
-import { NAME_MIN_PX, LARGEST_ENTITY_NAME_PX, startsCollapsed, textSizesAt } from './overview-capacity';
+import { LARGEST_ENTITY_NAME_PX, startsCollapsed, textSizesAt } from './overview-capacity';
 
 type Overview = ReturnType<typeof modelOverview>;
 type Inputs = {
@@ -54,9 +54,7 @@ export function useFullGraphOpening({ overview, algorithm, collapseChoice, flow,
     const cards = instance.getNodes().filter(node => node.type === 'entity');
     const counted = cards.length > 0 && cards.every(node => node.data.collapsedArea);
     const nameCap = Math.min(LARGEST_ENTITY_NAME_PX, ...cards.map(node => Number.parseFloat(String(node.data.nameCap ?? 16))));
-    // A tiny margin keeps subpixel rounding from dropping a counted name below the boundary.
-    const minimumZoom = counted ? NAME_MIN_PX / nameCap + 0.001 : 0.001;
-    const zoom = fitFullGraph(instance, canvas, 0, reservedWidth, minimumZoom);
+    const zoom = fitFullGraph(instance, canvas, 0, reservedWidth);
     if (zoom === undefined) return;
     onFitZoom(zoom);
     if (algorithm === 'layered') {

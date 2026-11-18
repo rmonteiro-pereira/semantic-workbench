@@ -3,7 +3,7 @@ import { getViewportForBounds, type ReactFlowInstance } from '@xyflow/react';
 import { NAME_MIN_PX, MODEL_CARD_WIDTH } from './overview-capacity';
 
 /** Fits all current nodes, retaining the current viewport when the pane is hidden. */
-export function fitFullGraph(instance: ReactFlowInstance<any, any> | null, canvas: Element | null | undefined, duration: number, reservedWidth = 0, minimumZoom = 0.001) {
+export function fitFullGraph(instance: ReactFlowInstance<any, any> | null, canvas: Element | null | undefined, duration: number, reservedWidth = 0) {
   if (!instance || !canvas) return;
   const current = instance.getNodes();
   const byId = new Map(current.map(n => [n.id, n]));
@@ -35,7 +35,7 @@ export function fitFullGraph(instance: ReactFlowInstance<any, any> | null, canva
   const rect = canvas.getBoundingClientRect();
   if (!rect.width || !rect.height) return;
   const startsValid = Number.isFinite(instance.getViewport().zoom);
-  const viewport = getViewportForBounds({ x, y, width, height }, Math.max(1, rect.width - reservedWidth), rect.height, minimumZoom, Math.max(1, minimumZoom), 0.08);
+  const viewport = getViewportForBounds({ x, y, width, height }, Math.max(1, rect.width - reservedWidth), rect.height, 0.001, 1, 0.08);
   void instance.setViewport(viewport, { duration: startsValid ? duration : 0 });
   return viewport.zoom;
 }

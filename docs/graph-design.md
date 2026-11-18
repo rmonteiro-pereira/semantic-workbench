@@ -49,7 +49,8 @@ it is not a drop-in performance switch.
 7. Fit the actual pane, then measure painted entity names. Network starts as counted area cards
    when its smallest name is below 9 screen pixels; a 250-entity safety cap bounds very large
    initial layouts. A failed legibility check costs one additional layout of the counted cards.
-   Counted-card text compensates for zoom. Area titles keep their backing over relationship strokes
+   Counted-card text compensates for zoom, and Fit frames the complete counted layout even in a narrow pane.
+   Area titles keep their backing over relationship strokes
    and leave room above the cards when a title wraps. The fitted name limit also covers cards that
    React Flow has yet to mount when a graph is reopened, including through browser Back. Explicit
    area choices bypass the automatic decision.
