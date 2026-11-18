@@ -574,7 +574,7 @@ The original review archive contains 3,559 PNGs. A read-only count by folder mea
 
 Status: in progress. No visual pair is classified before both images have been opened.
 
-The gallery checkpoint of 744 rows includes 314 intended fixes, 32 expected merged-feature differences, 304 neutral changes and 11
+The gallery checkpoint of 749 rows includes 318 intended fixes, 32 expected merged-feature differences, 305 neutral changes and 11
 unchanged steps. It retains 42 frames of fixed regressions and 41 frames flagged as possible or unresolved regressions. A frame count
 can include multiple actions that carry the same underlying issue. The manifest records actions without matched captures.
 The counted Network heading and compact mapping correction pairs were opened at 390×844 in both themes.
@@ -595,7 +595,7 @@ keyboard focus ring on the metric grouping control. The empty Trash dialog keeps
   Both 390×844 touch repetitions leave Edit visible. The sidebar fades down at the top and up at the bottom. The last ODCS row and badge
   remain whole. Desktop main/candidate differences were 14.532022% at Catalog rest, 13.926080% on hover and focus, and 1.376157%/1.763349%
   at the top and bottom sidebar positions.
-- `bash .data/gate/publish-current-review.sh` returned 744 rows with the counts above.
+- `bash .data/gate/publish-current-review.sh` returned 749 rows with the counts above.
 
 The Full Graph replay scored 43 steps, from two repetitions per version. The candidate Network first view and Fit show four named counted areas.
 Both full-screen selection paths open Order and keep it readable. After changing area visibility with Order selected, Layered can leave Order
@@ -714,6 +714,20 @@ uses the actual Walk here button.
 - `bash .data/gate/pull-review-007.sh .data/gate/walked-fit-confirmed local/light/390/walked-lineage-fit` exported five strips.
 - The confidential scanner returned clean on the evidence, tasks, gallery page and manifest. The readability checker
   passed on the six changed TypeScript files after `bun --bun node_modules/.bin/oxfmt`. `git diff --check` returned 0.
+
+The five matched Properties phone strips were also opened, including both repeats. The candidate's centre title has
+18.22 px of horizontal clearance after the search result, Fit and Forward. Both reference full-screen frames put the
+centre behind the bottom edge. The candidate keeps it in the pane with the complete caption. The first capture
+checked the contract's full-screen wrapper in all builds, so the recorded full-screen assertion failed across builds
+despite the visual transition. The replay uses the visible Exit full screen control.
+
+- `sw-midgard-run -- bash scripts/ui-review/gate-007/sidebar-and-mapping-launch.sh` started with at least 8 GB available;
+  the sampled steps reported 105–106 GB. The serial check and build returned 0. Check formatted 1,180 files and reported 2,661 warnings,
+  zero errors, with TypeScript, comments, theme and brand checks passing. Build completed in 3.00 s with the chunk-size advisory.
+- `bun scripts/ci-validate.ts --step browser --suite test:graph` passed all 16 new and existing opening checks from `708ebe53`.
+  The four UBL Network minimum name sizes were 9.95, 9.88, 11.53 and 10.98 px at 390, 1280, 1440 and 2560 px.
+  It also logged `PASS full pierce offers Fit for 45 entities; Fit frames every card`. Exit 1 at the inherited 100 ms
+  Full pierce long-task limit. This retry measured 298 ms; pinned main previously measured 240 ms at the same assertion.
 
 ## Differences for owner acceptance
 
