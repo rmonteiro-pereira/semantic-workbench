@@ -268,6 +268,8 @@ export function compileSchemas(destination = 'src/generated') {
     exports.push(...outputNames.map(name => `export const ${name} = ${moduleName}.${name};`));
     declarations.push(...outputNames.map(name => `export declare const ${name}: ValidateFunction;`));
   }
+  const ontologyPath = join(destination, 'ossie-ontology-0.2.0.dev0.json');
+  writeFileSync(ontologyPath, JSON.stringify(ontology, null, 2) + '\n');
   const jsPath = join(destination, 'validators.js');
   const declarationPath = join(destination, 'validators.d.ts');
   writeFileSync(jsPath, `// generated, do not edit\n${[...imports].join('\n')}\n${modules.join('\n')}\n${exports.join('\n')}\n`);
@@ -279,7 +281,7 @@ export function compileSchemas(destination = 'src/generated') {
       if (existsSync(path)) unlinkSync(path);
     }
   }
-  const formatted = Bun.spawnSync([process.execPath, 'x', 'oxfmt', '--config', join(process.cwd(), '.oxfmtrc.json'), jsPath, declarationPath]);
+  const formatted = Bun.spawnSync([process.execPath, 'x', 'oxfmt', '--config', join(process.cwd(), '.oxfmtrc.json'), jsPath, declarationPath, ontologyPath]);
   if (formatted.exitCode !== 0) {
     throw new Error(`Oxfmt failed to format generated validators: ${formatted.stderr.toString()}`);
   }
