@@ -40,12 +40,13 @@ export function signedIn(ws: Workspace, access = createAccessControl(accessFixtu
       access,
       principal: () => access.principalFor(identity),
     });
+    const raw = (path: string, method = 'GET', body?: unknown) => handler(apiRequest(path, method, body));
     const call = async (path: string, method = 'GET', body?: unknown) => {
-      const response = await handler(apiRequest(path, method, body));
+      const response = await raw(path, method, body);
       const text = await response.text();
       return { status: response.status, body: text ? JSON.parse(text) : null };
     };
-    return { principal, call };
+    return { principal, call, raw };
   };
 }
 

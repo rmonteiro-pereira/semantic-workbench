@@ -32,14 +32,16 @@ async function refusals(hidden: boolean) {
   using fixture = await meshWorkspace('separate');
   if (!hidden) rmSync(join(fixture.projectDirectory('retail'), privatePart));
   const { partial } = readers(fixture, hidden);
-  const read = await partial.call(path);
+  const read = await partial.raw(path);
   expect(read.status).toBe(200);
-  expect(read.body.unitValidation).toEqual({ singleFile: { 'ontology.yaml': [] }, set: [], setNotChecked: true });
-  const edit = { path: 'ontology.yaml', baseHash: read.body.hash, source: read.body.source };
-  const single = await partial.call(path, 'PUT', { baseHash: edit.baseHash, source: edit.source });
-  const batch = await partial.call(root + '/save-batch', 'POST', { files: [edit] });
+  const readBytes = await read.text();
+  const document = JSON.parse(readBytes);
+  expect(document.unitValidation).toEqual({ singleFile: { 'ontology.yaml': [] }, set: [], setNotChecked: true });
+  const edit = { path: 'ontology.yaml', baseHash: document.hash, source: document.source };
+  const single = await partial.raw(path, 'PUT', { baseHash: edit.baseHash, source: edit.source });
+  const batch = await partial.raw(root + '/save-batch', 'POST', { files: [edit] });
   const draft = '/api/drafts/retail/ontology.yaml';
-  const text = read.body.source + '\n';
+  const text = document.source + '\n';
   expect((await partial.call(draft, 'PUT', { baseHash: edit.baseHash, text })).status).toBe(200);
   expect((await partial.call(draft)).body.text).toBe(text);
   const sourcePath = join(fixture.projectDirectory('retail'), 'ontology.yaml');
@@ -48,15 +50,16 @@ async function refusals(hidden: boolean) {
   writeFileSync(sourcePath, JSON.stringify(data));
   fixture.git('retail', ['add', '-A']);
   fixture.git('retail', ['commit', '-qm', 'Review the incomplete set']);
-  const publication = await partial.call(root + '/git/adopt', 'POST', {});
-  return { read: read.body.unitValidation, single, batch, publication };
+  const publication = await partial.raw(root + '/git/adopt', 'POST', {});
+  const response = async (answer: Response) => ({ status: answer.status, bytes: await answer.text() });
+  return { read: readBytes, single: await response(single), batch: await response(batch), publication: await response(publication) };
 }
 
 test('hidden and nonexistent parts produce the same read, save, batch and publication responses', async () => {
   const hidden = await refusals(true);
   const missing = await refusals(false);
   expect(hidden).toEqual(missing);
-  expect(hidden.single).toEqual({ status: 400, body: { error: 'The ontology set could not be checked.' } });
+  expect(hidden.single).toEqual({ status: 400, bytes: JSON.stringify({ error: 'The ontology set could not be checked.' }) });
   expect(hidden.batch).toEqual(hidden.single);
   expect(hidden.publication).toEqual(hidden.single);
 });
