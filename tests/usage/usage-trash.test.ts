@@ -1,13 +1,15 @@
 // Tests that counts follow a project into the trash and back, are removed with a purged entry, stay
 // out of exports, and that removing the whole store harms nothing else.
 import { expect, test } from 'bun:test';
-import { existsSync, rmSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createHandler } from '../../src/server/handler';
 import { LOCAL_READER } from '../../src/server/projects/reader';
 import { createUsageStore } from '../../src/server/usage/usage-store';
 import { addCount, emptyDayFile } from '../../src/server/usage/usage-counts';
+import { utcDay } from '../../src/server/usage/usage-retention';
 import { testWorkspace } from '../helpers/temp-data-dir';
+import { publishFixture } from '../helpers/published-workspace';
 import { readZip } from '../helpers/zip-reader';
 
 const address = (project: string) => `sw1:${project}/a.yaml#ontology:O/concept:A`;
@@ -86,3 +88,64 @@ test('deleting the whole usage folder leaves every other feature working', async
     workspace.dispose();
   }
 });
+
+test('trash drains pending usage and discards an old recording after slug reuse', async () => {
+  const { workspace, slug, store } = await projectWithCounts();
+  await publishFixture(workspace);
+  const documentsAt = workspace.ws.published.documentsAt;
+  const started = Promise.withResolvers<void>();
+  const release = Promise.withResolvers<void>();
+  let lookups = 0;
+  workspace.ws.published.documentsAt = async (commit, project) => {
+    const documents = await documentsAt(commit, project);
+    lookups += 1;
+    if (lookups === 2) {
+      started.resolve();
+      await release.promise;
+    }
+    return documents;
+  };
+  const firstCommit = workspace.ws.published.pin().commits.get(slug)!.commit;
+  const today = utcDay(new Date());
+  const handler = createHandler(workspace.ws, { usageSettings: { enabled: true, retentionDays: 365 } });
+  const record = (commit: string) =>
+    handler.usage.record({
+      operationId: 'agent.context.read',
+      origin: 'http',
+      surface: 'agent',
+      outcome: 'ok',
+      target: {},
+      response: Response.json({ mappingId: slug + '/mapping.yaml', documents: [{ documentId: slug + '/a.yaml', path: ['ontology', 0] }] }, { headers: { 'X-Workbench-Snapshot': commit } }),
+    });
+  try {
+    record(firstCommit);
+    await handler.usage.settled();
+    const secondCommit = await publishNote(workspace, slug);
+    record(secondCommit);
+    await started.promise;
+    const removed = await workspace.ws.trash.deleteProject(slug);
+    await workspace.seed([{ path: 'a.yaml', source: 'name: O\nontology: [{concept: A}]' }], 'Counted');
+    release.resolve();
+    await handler.usage.settled();
+    handler.usage.flush();
+    expect(store.readDay(slug, today)).toEqual({ status: 'missing' });
+    const replacement = await workspace.ws.trash.deleteProject(slug);
+    workspace.ws.trash.purge(replacement.entryId);
+    await workspace.ws.trash.restore(removed.entryId, {}, LOCAL_READER);
+    const restored = store.readDay(slug, today);
+    expect(restored.status === 'ok' && restored.file.counts[address(slug)]['workbench-requests']['agent.context.read'].http).toBe(1);
+  } finally {
+    release.resolve();
+    await handler.usage.close();
+    workspace.dispose();
+  }
+});
+
+async function publishNote(workspace: Awaited<ReturnType<typeof testWorkspace>>, slug: string) {
+  const directory = join(workspace.ws.layout.projects, slug);
+  const previous = readFileSync(join(directory, 'a.yaml'), 'utf8');
+  writeFileSync(join(directory, 'a.yaml'), previous + '\n# Published note\n');
+  await (await workspace.ws.scmFor(slug, LOCAL_READER)).commit(slug, 'Add a comment', { paths: ['a.yaml'] });
+  const result = await workspace.ws.publish(slug, LOCAL_READER);
+  return result.commit;
+}

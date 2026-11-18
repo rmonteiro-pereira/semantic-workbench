@@ -340,6 +340,10 @@ export function createTrash(ctx: TrashContext) {
           ),
         );
         removal = removalTags(slugs, entries);
+        for (const trashEntry of entries) {
+          const members = trashEntry.projects?.map(project => project.slug) ?? [trashEntry.project];
+          for (const slug of members) steps.push(...archiveUsage(layout, slug, dirOf(trashEntry.entryId)));
+        }
         for (const slug of slugs) ctx.forgetProject(slug);
         journal.run(batchId ? 'clear' : 'delete', steps, [stateStaging], opId);
       } catch (err) {
@@ -388,7 +392,6 @@ export function createTrash(ctx: TrashContext) {
     const steps: { from: string; to: string }[] = [];
     const keepState = (slug: string, viewTo: string, draftsTo: string) => {
       steps.push(...archiveAddressMigrations(layout, slug, dir));
-      steps.push(...archiveUsage(layout, slug, dir));
       if (existsSync(state.viewFile(slug))) steps.push({ from: state.viewFile(slug), to: viewTo });
       if (existsSync(state.draftDir(slug))) steps.push({ from: state.draftDir(slug), to: draftsTo });
     };

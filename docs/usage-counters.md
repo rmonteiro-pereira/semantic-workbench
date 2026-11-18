@@ -84,7 +84,9 @@ stored.
 - Deleting the whole `state/usage/` folder loses only counts. Nothing else depends on it.
 - Counts are not part of a project export, a workbench export or compiler output.
 - A project moved to the trash takes its counts with it, restoring it under the same name brings them
-  back, and purging it removes them. Restoring under another name starts without counts.
+  back, and purging it removes them. Trash flushes pending counts before moving the day files and
+  discards unfinished recordings that could belong to the removed project. A failed flush leaves the
+  project in place so trash can be retried. Restoring under another name starts without counts.
 
 ## Renames and deletions
 

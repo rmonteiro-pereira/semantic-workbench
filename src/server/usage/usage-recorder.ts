@@ -45,6 +45,8 @@ export type UsageRecorder = {
   /** Resolves when every request handed to `record` has been counted. */
   settled(): Promise<void>;
   flush(): void;
+  /** Drains one project and invalidates old recordings before its archived state is moved. */
+  archive(project: string): void;
   /** Stops admission and the timer, then drains recordings before the final flush. */
   close(): Promise<void>;
 };
@@ -56,6 +58,7 @@ export const NO_USAGE_RECORDER: UsageRecorder = {
   pending: () => [],
   settled: () => Promise.resolve(),
   flush() {},
+  archive() {},
   close: () => Promise.resolve(),
 };
 
@@ -80,6 +83,7 @@ export function rulesForRequest(input: Pick<UsageRecordInput, 'operationId' | 'o
   return countedOperation(input.operationId);
 }
 
+type ActiveRecording = { project?: string; invalidated: boolean };
 type PendingDay = { file: CounterDayFile; size: number };
 
 async function boundedAnswer(response: Response): Promise<string | null> {
@@ -111,7 +115,7 @@ export function createUsageRecorder(deps: UsageRecorderDeps): UsageRecorder {
   const now = deps.now ?? (() => new Date());
   const warn = deps.warn ?? ((event, fields) => log.warn(event, fields));
   const memory = new Map<string, Map<string, PendingDay>>();
-  const inFlight = new Set<Promise<void>>();
+  const inFlight = new Map<Promise<void>, ActiveRecording>();
   const lastWarned = new Map<string, number>();
   let closing: Promise<void> | undefined;
   let compactedOn = '';
@@ -146,14 +150,15 @@ export function createUsageRecorder(deps: UsageRecorderDeps): UsageRecorder {
     }
   }
 
-  async function count(rule: CountedOperation, input: UsageRecordInput, copy: Response, commit: string) {
+  async function count(rule: CountedOperation, input: UsageRecordInput, copy: Response, commit: string, recording: ActiveRecording) {
     const text = await boundedAnswer(copy);
-    if (text === null) return;
+    if (text === null || recording.invalidated) return;
     const answer = JSON.parse(text);
     const project = answerProject(rule.items, answer, input.target);
     if (!project) return;
+    recording.project = project;
     const models = await deps.models(project, commit);
-    if (!models) return;
+    if (!models || recording.invalidated) return;
     increment(project, rule, input, itemAddresses(rule.items, { answer, models, target: input.target }));
   }
 
@@ -164,10 +169,11 @@ export function createUsageRecorder(deps: UsageRecorderDeps): UsageRecorder {
       const commit = input.response.headers.get(SNAPSHOT_HEADER);
       const length = Number(input.response.headers.get('content-length') ?? 0);
       if (!rule || !commit || length > MAX_COUNTED_RESPONSE_BYTES) return;
-      const task: Promise<void> = count(rule, input, input.response.clone(), commit)
+      const recording = { project: input.target.project, invalidated: false };
+      const task: Promise<void> = count(rule, input, input.response.clone(), commit, recording)
         .catch(() => warnOncePerHour('usage.count-failed'))
         .finally(() => inFlight.delete(task));
-      inFlight.add(task);
+      inFlight.set(task, recording);
     } catch {
       warnOncePerHour('usage.count-failed');
     }
@@ -215,15 +221,27 @@ export function createUsageRecorder(deps: UsageRecorderDeps): UsageRecorder {
     record,
     pending: project => [...(memory.get(project)?.values() ?? [])].map(({ file }) => structuredClone(file)),
     settled: async () => {
-      while (inFlight.size) await Promise.all(inFlight);
+      while (inFlight.size) await Promise.all(inFlight.keys());
     },
     flush,
+    archive(project) {
+      const days = memory.get(project);
+      if (days) {
+        for (const day of days.keys()) flushDay(project, day, days);
+        if (days.size) throw new Error('Pending usage counts could not be archived.');
+        memory.delete(project);
+      }
+      for (const recording of inFlight.values()) {
+        // The body may still be resolving which project owns an answer.
+        if (!recording.project || recording.project === project) recording.invalidated = true;
+      }
+    },
     close() {
       if (closing) return closing;
       clearInterval(timer);
       closing = Promise.resolve();
       if (inFlight.size) {
-        closing = Promise.all(inFlight).then(flush);
+        closing = Promise.all(inFlight.keys()).then(flush);
       } else {
         flush();
       }
