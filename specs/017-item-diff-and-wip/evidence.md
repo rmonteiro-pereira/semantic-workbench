@@ -81,3 +81,96 @@ listed file ownership. Do not weaken the no-similarity or outside-rename rule to
   change; it does not replace the pending overlay browser check.
 - The browser fixture supplies authenticated same-origin metadata when intercepting the preview
   context request. Without it the existing browser-only route correctly refuses the test client.
+
+## Remaining work and batch hand-off
+
+| Tasks | Status and reason |
+| --- | --- |
+| T005 | Skipped as unnecessary; the existing attribute rule is reused and its proof passes. |
+| T010–T018 | Stopped at the operation phase because the base lacks migration provenance between named sides. No operation, route or authorization row is added. |
+| T019–T030, T032–T034 | Pending the operation and overlay data. Standalone UI fragments are not enabled against an incorrect comparison. |
+| T035 | Remains unticked for the later capture job. No screenshot set or visual-review claim accompanies this partial implementation. |
+| T036 | Pending the operation phase prerequisite; mutation wiring and the integrated mutation run remain outstanding. |
+| T037 | Pending the actual mark and its theme treatment. |
+| T038–T039 | Full-feature documentation remains pending the implemented behavior. Existing architecture and usage documentation describe only the pure module and planner status flag. |
+| T040 | Pending the overlay; no performance measurements or target claims are made. |
+| T041 | Partial verification only; the operation parity case and overlay browser proof cannot run before those features exist. |
+| T042 | Final delivery hand-off remains unticked because the feature is blocked. |
+
+The integrated batch still owns the full unit suite, full mutation suite, all browser suites,
+the last-release UI regression across the full graph journey and the architecture review. These
+must not be inferred from the targeted proofs. The current branch is not ready as the complete
+item-diff/overlay feature. Reviewers must not wire all global address history into a route as a
+shortcut around the provenance gap.
+
+Follow-ups outside this base: shared proposals register the proposal side and use the change list;
+usage counters add their separate traffic field and annotation; the MCP contract records the
+not-exposed reason for `items.diff`. These integrations remain pending, and no graph shared-file
+block has been added. The attributes annotation slot already exists on the base.
+
+## Verification corrections
+
+- The first combined server group had 86 passes and 2 failures in the new repository fixture;
+  all 60 existing authorization tests passed. Bun subprocesses need `env: process.env` to receive
+  the identity installed by the isolated fixture. The correction is in commit `c7f7ceb7`.
+- The final address comparison proof includes address reuse after a recorded rename: 7 pass,
+  0 fail, 14 assertions. Migration selection must be correct before calling this pure function.
+- No existing test file was changed. All new tests are under `tests/item-diff/` and use temporary
+  workspaces or fixtures; none reads the specification directory.
+- No extension hook file exists at `.specify/extensions.yml` on this base.
+
+## Implementation commits
+
+| Commit | Change |
+| --- | --- |
+| `2a922619` | test: add two-state item comparison repository (T001) |
+| `74813767` | test: validate comparison fixture against the shared parser |
+| `2a2e1378` | generated: record item comparison DOM and consumer baseline (T002) |
+| `c725e27d` | feat: parse named comparison sides with an extensible registry (T003) |
+| `6f6cc691` | feat: bound item comparison responses and field values (T004) |
+| `f1d1dcb5` | test: reuse the existing attribute classifier for item changes (T005) |
+| `4c91f0ce` | feat: compare parsed item fields without serialization noise (T006) |
+| `dc97126d` | feat: match item changes by address and recorded migrations (T007) |
+| `6d92f3b0` | test: prove serialization and Tessera changes at addressed items (T008) |
+| `c5875792` | test: prove deterministic item comparison under shuffled inputs (T009) |
+| `324e15f9` | test: demonstrate missing branch provenance in address history |
+| `96baa84b` | feat: label non-approved metrics in the query composer (T031) |
+| `c7f7ceb7` | test: pass the isolated Git environment to fixture subprocesses |
+| `88c2c8f5` | fix: honor recorded renames when an old address is reused |
+| `6957d141` | refactor: accumulate duplicate address candidates without repeated copying |
+| `b49d835f` | fix: validate branch characters without a control-character regex |
+
+## Final targeted verification
+
+All heavy commands below ran through `sw-midgard-run` on the development server.
+
+| Proof | Final summary |
+| --- | --- |
+| Repository fixture | 2 pass, 0 fail, 36 assertions. |
+| Published consumer baseline | 1 pass, 0 fail, 5 assertions; context, plan and explanation remain byte-identical. |
+| Side parsing | 3 pass, 0 fail, 20 assertions. |
+| Response bounds | 3 pass, 0 fail, 11 assertions. |
+| Existing attribute classifier | 2 pass, 0 fail, 5 assertions. |
+| Parsed field comparison | 3 pass, 0 fail, 11 assertions. |
+| Address comparison | 7 pass, 0 fail, 14 assertions. |
+| Serialization and Tessera | 3 pass, 0 fail, 36 assertions. |
+| Shuffled-input determinism | 1 pass, 0 fail, 100 assertions. |
+| Migration provenance diagnostic | 1 pass, 0 fail, 6 assertions, reproducing the blocker. |
+| Planner labels | 3 pass, 0 fail, 7 assertions. |
+| Combined final feature group | 29 pass, 0 fail, 251 assertions; exit 0. |
+| Existing authorization matrix, operation parity, snapshot parity and inventory | All 60 tests passed. |
+| Planner browser check | PASS at desktop and phone width, both themes, all five status cases, geometry and contrast. |
+| `bun --bun run check` | Exit 0: TypeScript, formatting, lint, comments, theme and branding. Lint reports 2,679 warnings and zero errors. |
+| `bun --bun run build` | Exit 0. Bundler warnings concern the dependency's `use client` directive and large chunks. |
+| Readable-code checker | Exit 0 on every changed source, test and script file. |
+| Leak scanner | Exit 0 on every changed file; specification logs use confidential-only mode. |
+| `git diff --check` | Exit 0. |
+
+The first `check` refused the branch-name regex for control characters and an unnecessary escape.
+Commit `b49d835f` replaces that regex predicate without disabling lint rules and adds malformed-name
+cases. The final combined test/check/build command above ran after that correction.
+
+No full unit suite, mutation suite, other browser suite, deployment, project-remote push or tag
+was run. The browser frontend used port 5447 and an isolated API. Process inspection after the
+checks showed no remaining frontend, baseline recorder or planner-check process from this run.
+The missing commit-cadence script could not run; all changes are committed in coherent steps.
