@@ -27,6 +27,7 @@ import { useNeighborhoodView } from './useNeighborhoodView';
 import { TrafficMark } from '../usage/TrafficMark';
 import { TrafficLegend } from '../usage/TrafficLegend';
 import { entityAddressText } from '../usage/usage-addresses';
+import { bundleTraffic, scopeDocument, useTraffic } from '../usage/use-usage';
 // Incoming neighbors appear left of the center and outgoing neighbors right. Navigation history
 // also records steps into other project files.
 /** Identifies a navigation target in another project document. */
@@ -78,6 +79,9 @@ const COLORS = {
 };
 function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   const { docId, entities: all, edges: allEdges, search, walk, selected, selectedEdge, kpiBadges, groupColorOf } = props;
+  const traffic = useTraffic();
+  const trafficOn = traffic.on;
+  const trafficDocument = trafficOn ? scopeDocument(traffic) : null;
   const trail = useRef<HTMLOListElement>(null);
   const actionHistory = useActionHistory();
   const [hideKpis, setHideKpis] = useRecordedState('neighborhood.hideKpis', false);
@@ -358,13 +362,13 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
                     </button>
                   )}
                 </div>
-                <TrafficMark address={entityAddressText(entity)} />
+                {trafficOn && <TrafficMark address={entityAddressText(entity)} />}
               </div>
             ),
           },
         };
       }),
-    [nodes, center, previous, selected, kpiBadges, groupColorOf, view, canvasState, pierceSet, minHeights],
+    [nodes, center, previous, selected, kpiBadges, groupColorOf, view, canvasState, pierceSet, minHeights, trafficOn],
   );
   // Relationship labels grow as the canvas zooms out so they stay readable; the cards do not
   // change with zoom.
@@ -426,6 +430,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
           direction: kind,
           labelAt: labelAt.get(edgeGroup.id),
           labelScale,
+          ...(trafficOn ? { traffic: bundleTraffic(traffic, edgeGroup.data.relationships, trafficDocument) } : {}),
         },
         label: labels || active || hovered === edgeGroup.id ? labelText(edgeGroup) : undefined,
         selected: active,

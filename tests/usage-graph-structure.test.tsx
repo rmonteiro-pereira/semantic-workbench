@@ -2,8 +2,9 @@
 // Traffic only adds absolutely positioned marks to it.
 import { describe, expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
-import { ReactFlowProvider } from '@xyflow/react';
+import { Position, ReactFlowProvider } from '@xyflow/react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { RelationshipEdge } from '../src/app/graph/RelationshipEdge';
 import { EntityNode } from '../src/app/graph/FullGraphNodes';
 import { TrafficStoreProvider } from '../src/app/usage/use-usage';
 import { answerWith, itemOf, storeWith } from './helpers/traffic-store';
@@ -63,4 +64,22 @@ describe('a graph card', () => {
       expect(rule.slice(0, rule.indexOf('}'))).toContain('position: absolute');
     }
   });
+});
+
+test('a plain neighborhood edge renders without consulting the Traffic store', async () => {
+  const { store } = await storeWith(async () => answerWith([]), { on: false });
+  const rejectingStore = {
+    ...store,
+    getSnapshot: () => {
+      throw new Error('plain edge read Traffic');
+    },
+  };
+  const edge = renderToStaticMarkup(
+    <TrafficStoreProvider store={rejectingStore}>
+      <ReactFlowProvider>
+        <RelationshipEdge id="relationship" source="a" target="b" sourceX={0} sourceY={0} targetX={100} targetY={50} sourcePosition={Position.Right} targetPosition={Position.Left} />
+      </ReactFlowProvider>
+    </TrafficStoreProvider>,
+  );
+  expect(edge).toContain('react-flow__edge-path');
 });

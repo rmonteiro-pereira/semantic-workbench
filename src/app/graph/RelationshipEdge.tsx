@@ -1,7 +1,6 @@
 /** Renders neighborhood relationships using the routes assigned by the graph layout. */
 import { BaseEdge, EdgeLabelRenderer, useStore, type EdgeProps } from '@xyflow/react';
-import type { Relationship } from '../../shared/core/model';
-import { useBundleTraffic } from '../usage/use-usage';
+import type { ItemTraffic } from '../usage/use-usage';
 import { countWords } from '../usage/usage-wording';
 import { trafficStrokeWidth } from '../usage/usage-intensity';
 import { labelBox, labelInViewport, nearestRoutePoint, orthogonalPath, routePoints, type EdgeRoute } from './routes';
@@ -11,7 +10,7 @@ export { assignRoutes, heightForEdgeEnds, placeLabels, routePoints, orthogonalPa
 /** Renders an assigned relationship route and its label. */
 export function RelationshipEdge(props: EdgeProps) {
   const { sourceX: sx, sourceY: sy, targetX: tx, targetY: ty, data } = props;
-  const traffic = useBundleTraffic(data?.relationships as Relationship[] | undefined);
+  const traffic = data?.traffic as ItemTraffic | null | undefined;
   const style = traffic?.level ? { ...props.style, strokeWidth: trafficStrokeWidth(Number(props.style?.strokeWidth ?? 1.5), traffic.level) } : props.style;
   const route = (data?.route as EdgeRoute | undefined) ?? { route: 'short', bendX: (sx + tx) / 2 };
   const { points, label: own } = routePoints({ x: sx, y: sy }, { x: tx, y: ty }, route);
