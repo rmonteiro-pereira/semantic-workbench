@@ -274,3 +274,17 @@ to the authorization tests. The commit cadence helper is absent from this checko
 | Combined | 10.00 | 9.98 | 13.22 | 14.23 |
 
 The test requires overlapping p10–p95 intervals, at most 0.5 ms median difference and at most 2 ms p95 difference in each phase and overall. The calibration run's worst gaps were 0.08 ms and 1.47 ms. The margins allow variation on the shared development server. Three tests passed, with 249 assertions. Findings remain request-local and no findings store is needed.
+
+### Refusal boundaries
+
+The ontology-unit validation guide identifies one responsible check per refusal and its
+regression test. Single-file checking and scanning use the same syntax and schema
+rules. They can validate a part without asserting anything about its owner; its editor
+notice says that set rules are checked with the whole unit. Set structure and resolved
+interfaces provide the context for cross-file checks. Publication validates the lock
+and history before moving the pointer, and compile checks its transformed output.
+
+This replaces the task's proposed requirement to reproduce set and history refusals
+in every consumer. The focused development-server proof passed nine tests with 32
+assertions. The address history integration remains based on declared parts and
+the root; the lock and project-owned history are excluded from definitions.

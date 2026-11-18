@@ -6,6 +6,7 @@ import { UnitSetNotice } from '../../src/app/mesh/UnitSetNotice';
 test('a partial set notice omits paths, counts and hidden names', () => {
   const html = renderToStaticMarkup(<UnitSetNotice validation={{ singleFile: {}, set: [], setNotChecked: true }} />);
   expect(html).toContain('The ontology set was not checked for you.');
+  expect(html).toContain('Set rules are checked with the whole unit.');
   expect(html).not.toContain('private');
   expect(renderToStaticMarkup(<UnitSetNotice validation={{ singleFile: {}, set: [], setNotChecked: false }} />)).toBe('');
 });

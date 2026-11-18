@@ -105,7 +105,7 @@ the scale test) use `sw-midgard-run -- <command>`.
 
 ## Phase 10: User Story 8 - Refusals (P2)
 
-- [ ] T055 [US8] Write `tests/mesh/refusals.test.ts`: every fixture of T004 through the browser validator, the save path, the scanner and the compiler, checking code, path and files named, and that none reaches "not validated". Proof: the test passes and each class fails when its check is removed (SC-005).
+- [x] T055 [US8] Write `tests/mesh/refusals.test.ts`: every fixture of T004 through the browser validator, the save path, the scanner and the compiler, checking code, path and files named, and that none reaches "not validated". Proof: the test passes and each class fails when its check is removed (SC-005).
 
 ## Phase 11: Gate and documentation
 

@@ -680,3 +680,6 @@ A provider can re-export an imported concept by listing its alias-qualified name
 Mesh and **Used by** show the original owner and version. Compile writes that owner's
 qualified concept once, even if several import paths reach it. Publication refuses a
 re-export cycle.
+
+See [Ontology unit validation](ontology-units.md) for the checks applied to a file, its
+complete unit and the committed dependency lock.
