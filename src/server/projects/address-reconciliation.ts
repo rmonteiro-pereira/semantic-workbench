@@ -15,8 +15,8 @@ export type AddressReconciliationContext = AddressReadContext & {
   layout: DataLayout;
   journal: Journal;
   lock: <T>(key: string, action: () => Promise<T> | T) => Promise<T>;
-  workingLayout: (project: string, reader: Reader) => DataLayout;
-  head: (project: string, reader: Reader) => Promise<string>;
+  workingLayout: (project: string, reader: Reader, precheck: () => void) => Promise<DataLayout>;
+  head: (files: DataLayout, project: string) => Promise<string>;
 };
 
 /** Requires a caller-stable operation key so a lost reply can be replayed safely. */
@@ -41,20 +41,23 @@ export async function recordReconciliation(context: AddressReconciliationContext
   }
   const [pair] = declaredAddressMigrations([{ kind: 'item', from: declaration.from, to: declaration.to }], project, [previousPath, path]);
   if (!/^[A-Za-z0-9_-]{1,128}$/.test(declaration.operationId)) throw new BadRequestError('Invalid reconciliation operation identifier.');
+  const checkTarget = () => {
+    if (resolveCurrentItem(context, from.address, reader).status !== 'missing') throw new BadRequestError('The old reconciliation locator still resolves.');
+    const target = resolveCurrentItem(context, to.address, reader);
+    if (target.status !== 'found') throw new BadRequestError('The reconciliation target must resolve uniquely.');
+    const guarded = reader.guard?.([{ project, path, before: target.source, after: target.source }]);
+    if (guarded?.changes.some(change => change.before !== change.after)) throw new BadRequestError('Reconciliation cannot change guarded source text.');
+  };
+  const layout = await context.workingLayout(project, reader, checkTarget);
   return context.lock(projectLockKey(project, reader.copy?.key ?? null), async () => {
-    const layout = context.workingLayout(project, reader);
     const id = `r-${declaration.operationId}-0`;
     const previous = readAddressMigrations(layout, project, reader).find(record => record.id === id);
     if (previous) {
       if (previous.kind !== 'reconciliation' || previous.from !== pair.from || previous.to !== pair.to) throw new BadRequestError('A reconciliation operation was replayed with different content.');
       return previous;
     }
-    const commit = await context.head(project, reader);
-    if (resolveCurrentItem(context, from.address, reader).status !== 'missing') throw new BadRequestError('The old reconciliation locator still resolves.');
-    const target = resolveCurrentItem(context, to.address, reader);
-    if (target.status !== 'found') throw new BadRequestError('The reconciliation target must resolve uniquely.');
-    const guarded = reader.guard?.([{ project, path, before: target.source, after: target.source }]);
-    if (guarded?.changes.some(change => change.before !== change.after)) throw new BadRequestError('Reconciliation cannot change guarded source text.');
+    checkTarget();
+    const commit = await context.head(layout, project);
     const [record] = operationMigrations({ id: declaration.operationId, at: new Date().toISOString(), commit }, [{ kind: 'reconciliation', from: pair.from, to: pair.to }]);
     const staging = join(context.layout.state, `.reconciliation-${declaration.operationId}`);
     try {

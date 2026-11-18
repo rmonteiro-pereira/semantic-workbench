@@ -5,10 +5,14 @@ import { join } from 'node:path';
 import { atomicWriteJson } from '../../src/server/projects/atomic';
 import { itemDiffBaselineWorkspace } from '../helpers/item-diff-baseline';
 import { publishFixture } from '../helpers/published-workspace';
-import { ADDRESS_HISTORY_FILE, addressHistoryDifference, parseAddressHistory, readAddressMigrations } from '../../src/server/projects/address-migrations';
+import { ADDRESS_HISTORY_FILE, addressHistoryDifference, parseAddressHistory, readAddressMigrations, readCommittedAddressMigrations } from '../../src/server/projects/address-migrations';
 import { compareItems } from '../../src/shared/item-diff/compare-items';
 import type { DiffItem } from '../../src/shared/item-diff/item-change';
 import { LOCAL_READER } from '../../src/server/projects/reader';
+import { testWorkspace } from '../helpers/temp-data-dir';
+import { createGit } from '../../src/server/projects/git';
+import { dataLayout } from '../../src/server/projects/paths';
+import { resolvePublishedForCaller } from '../../src/server/projects/address-resolution';
 import { readFolder } from '../../src/server/tessera/disk-source';
 import { readSnapshot } from '../../src/server/tessera/snapshot-source';
 
@@ -207,4 +211,28 @@ test('discard and undo journal the history changes with the definition', async (
   await fixture.ws.trash.undo(deletion.entryId, LOCAL_READER);
   expect(fixture.ws.readFile(project, path, LOCAL_READER).source).toContain('name: purchases');
   expect(readAddressMigrations(fixture.ws.layout, project, LOCAL_READER)).toEqual([]);
+});
+
+test('a fresh Git clone carries aliases without a workbench state file', async () => {
+  using fixture = await itemDiffBaselineWorkspace();
+  const project = 'finance';
+  const directory = join(fixture.root, 'projects', project);
+  const prefix = 'sw1:finance/finance.ontology.yaml#ontology:Finance/concept:';
+  const from = prefix + 'Former';
+  const to = prefix + 'Customer';
+  await fixture.ws.reconcileAddress({ operationId: 'cloned-alias', from, to }, LOCAL_READER);
+  await publishFixture(fixture);
+  using fresh = await testWorkspace({ watch: false });
+  const clone = join(fresh.root, 'projects', project);
+  git(fresh.root, ['clone', '--no-local', directory, clone]);
+  const clonedLayout = dataLayout(fresh.root);
+  const gitClient = createGit({ projectsRoot: clonedLayout.projects });
+  const commit = git(clone, ['rev-parse', 'HEAD']);
+  expect(existsSync(join(clonedLayout.state, 'address-migrations', project + '.json'))).toBe(false);
+  const records = await readCommittedAddressMigrations(gitClient, clonedLayout, project, commit, LOCAL_READER);
+  const result = await resolvePublishedForCaller(from, LOCAL_READER, async () => ({
+    records,
+    documents: [{ path: 'finance.ontology.yaml', source: git(clone, ['show', 'HEAD:finance.ontology.yaml']) }],
+  }));
+  expect(result).toMatchObject({ status: 'found', address: to });
 });

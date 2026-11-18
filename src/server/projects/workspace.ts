@@ -240,8 +240,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     layout,
     journal,
     lock,
-    workingLayout: (project: string, reader: Reader) => copies.readPlace(reader, project).layout,
-    head: (project: string, reader: Reader) => localCommit(copies.readPlace(reader, project).layout, project),
+    workingLayout: async (project: string, reader: Reader, precheck: () => void) => (await copies.writePlace(reader, project, precheck)).layout,
+    head: localCommit,
   };
   function groupingEntities(reference: { project: string; path: string }, reader: Reader) {
     const document = readFile(reference.project, reference.path, reader);
