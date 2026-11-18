@@ -63,7 +63,7 @@ test only to make it pass.
   with generated hostile inputs (at least 500: `..`, `%2f`, `%5c`, backslash, drive letters,
   control characters, very long, non-ASCII, empty segments). Proof: the test passes; a result is
   always either the intended project and path or a refusal.
-- [ ] T010 [P] [US5] Create `src/server/acp/panel-session.ts`: the state machine of data-model with
+- [x] T010 [P] [US5] Create `src/server/acp/panel-session.ts`: the state machine of data-model with
   the 13 end reasons and the timers (wait 10 min, idle 30 min, ended retention 10 min) as pure
   functions over a passed-in clock. Add `tests/acp/panel-session.test.ts` with a table of every
   transition and every end reason. Proof: each of the 13 reasons is produced by a case; `ended`
