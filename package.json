@@ -41,6 +41,7 @@
     "test:validation": "bun scripts/validation-browser-check.ts",
     "test:tessera": "bun scripts/tessera-browser-check.ts",
     "test:attributes": "bun scripts/attributes-governance-browser-check.ts",
+    "test:compile": "bun scripts/compile-browser-check.ts",
     "tessera": "bun scripts/tessera.ts",
     "test:scm": "bun scripts/scm-browser-check.ts",
     "test:odcs": "bun scripts/odcs-browser-check.ts",

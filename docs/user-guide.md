@@ -166,6 +166,12 @@ repository groups so their history and unpublished work can be retained together
 
 ### Project export
 
+Choose **Files to export → Standard Ossie (compiled)** for a derived ZIP of the published snapshot.
+Review the dropped values, accept that exact report, then download. **Validation details** on a
+Tessera ontology offers an unpublished check of saved working files and a reviewed conversion of
+one clean, committed ontology. See [check, compile and convert](compile.md) for acceptance,
+conflicts and the distinction from byte-preserving export.
+
 **Export project…** downloads a streaming, uncompressed ZIP containing the project's stored files,
 relative folders and `.gitignore`. It excludes `.git/`, ignored files and unsaved drafts. The dialog
 names known unsaved edits and can offer **Save and export** for the open file. When a snapshot

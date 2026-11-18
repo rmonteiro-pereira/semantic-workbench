@@ -22,13 +22,18 @@ Response `200`:
 ```json
 {
   "result": "ok" | "loss" | "refused",
-  "source": { "kind": "published-snapshot" | "working-copy", "commit": "<full id, published only>", "unpublished": true },
+  "accepted": false,
+  "source": { "kind": "published-snapshot" | "working-copy", "commit": "<full id, published only>", "unpublished": true /* working only */ },
   "base": { "version": "0.2.0.dev0", "label": "valid against the bundled Ossie 0.2.0.dev0 draft" },
   "findings": [{ "document": "…", "severity": "error", "code": "…", "path": "/…", "line": 1, "column": 1, "message": "…" }],
   "report": { "…": "the loss report of feature 011, with its digest" },
   "files": [{ "path": "…", "treatment": "compiled" | "copied" | "not-included", "sha256": "…" }]
 }
 ```
+
+`accepted` is a boolean indicating whether the report would be acceptable under the optional loss
+policy (or is lossless); it does not release content. Published sources carry only `kind` and `commit`;
+working sources carry only `kind` and `unpublished: true`.
 
 No compiled bytes. `result` is `ok` (no loss, no error), `loss` (loss, no error) or `refused`. `working`
 reads the caller's saved working copy and sets `unpublished: true`. A project without a published
@@ -56,6 +61,8 @@ Response `200` with `result`:
 - `released`: `{ result, source, manifest, report, files: [{ path, sha256, bytes }] }`, plus, when `file`
   was given, `part: { path, version, offset, nextOffset|null, text }` of at most 32,768 bytes.
 
+`files[].bytes` is a byte count, not content. `part.text` carries the requested UTF-8 content.
+
 When `commit` is given and the published commit differs: `409 { "error": "snapshot-changed", "current": "<id>" }`.
 No snapshot: `409 { "error": "not-published" }`. An acceptance that does not match the report:
 `200` with `result: loss-needs-acceptance` and the fresh report (the mismatch is visible because the
@@ -64,7 +71,8 @@ digest differs).
 ## `GET /api/projects/:slug/compile/bundle?accept=<digest>&commit=<id>` — id `compile.bundle`
 
 Action `export`. Audited. Response: `application/zip` streamed, with `Content-Disposition: attachment`,
-`X-Compile-Commit`, `X-Compile-Digest`, `Cache-Control: no-store`. Refusals are `4xx` JSON before any
+`X-Compile-Commit`, `X-Compile-Digest`, `Cache-Control: no-store`. Acceptance required: `409 { error: "acceptance-required", source, reason, report }`; compile findings:
+`422 { error: "refused", source, findings }`. Refusals are `4xx` JSON before any
 byte of the zip. Browser only: not dispatched to a twin (binary); exposure `never`.
 
 ## `POST /api/projects/:slug/compile/convert` — id `compile.convert`

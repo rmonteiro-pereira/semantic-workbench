@@ -28,6 +28,7 @@ async function worktreeFactory(): Promise<typeof import('../src/server/projects/
 }
 if (category.startsWith('attributes-')) await (await import('./attributes-mutation-cases')).attributesMutationCase(loadedModule);
 if (category === 'tessera') await (await import('./tessera-mutation-cases')).tesseraCase(loadedModule);
+if (category === 'compile') await (await import('./compile-mutation-cases')).compileCase(loadedModule);
 if (category === 'operation-boundary') {
   const { operationBoundaryCases } = await import('./operation-boundary-mutation-cases');
   await operationBoundaryCases(process.argv[2]);

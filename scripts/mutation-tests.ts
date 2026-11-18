@@ -15,6 +15,7 @@ import { themeMutants } from './theme-mutants';
 import { brandMutants } from './brand-mutants';
 import { observabilityMutants } from './observability-mutants';
 import { attributesMutants, tesseraMutants } from './tessera-mutants';
+import { compileMutants } from './compile-mutants';
 import { chmod, mkdtemp, readdir, rm, symlink } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 const root = process.cwd();
@@ -573,6 +574,8 @@ mutants.push(...observabilityMutants);
 mutants.push(...operationBoundaryMutants);
 // The Tessera format, its compiler and its command line.
 mutants.push(...tesseraMutants, ...attributesMutants);
+// Check, compile and convert: acceptance, published-only reading, unit completeness, conversion preconditions and part paging.
+mutants.push(...compileMutants);
 const attributesOnly = process.argv.includes('--attributes');
 if (attributesOnly) mutants.splice(0, mutants.length, ...attributesMutants);
 

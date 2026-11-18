@@ -1,0 +1,18 @@
+version: 0.2.0.dev0
+name: Sales mapping
+description: Maps the shared reference ontology to the sales semantic model of another project. LEAK-sales-contracts-sales.mapping.yaml
+ontology_ref:
+  name: Shared reference ontology
+  iri: ./reference.ontology.yaml
+semantic_model_ref:
+  name: Sales semantic model
+  iri: ./sales.semantic.yaml
+concept_mappings:
+  - concept: Order
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: orders.order_id
+  - concept: Revenue
+    object_mappings:
+      - expression: gross_revenue
