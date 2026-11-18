@@ -1,5 +1,5 @@
 // Parses stored documents and lists the mappings, ontologies and semantic models they define.
-import { inspect } from '../../shared/core/model';
+import { inspect, inspectOntologyUnit } from '../../shared/core/model';
 import { rdfSyntax } from '../../shared/validation/rdf';
 import { isMapping } from '../../shared/mappings/mapping-schema';
 import { documentForAgents } from '../../shared/tessera/agent-view';
@@ -39,10 +39,13 @@ function composeAgentUnits(documents: Parsed[]) {
     const paths = new Set([unit.root.path, ...unit.parts.map(part => part.path)]);
     if (structure.findings.some(finding => finding.severity === 'error' && finding.files.some(path => paths.has(path)))) continue;
     const root = byPath.get(unit.root.path)!;
-    if (!root.data[INCLUDES_PROPERTY]?.length || root.data[IMPORTS_PROPERTY]?.length) continue;
+    const imported = Boolean(root.data[IMPORTS_PROPERTY]?.length);
+    if (imported && !root.doc.publishedInterfaces?.length) continue;
+    if (!imported && !root.data[INCLUDES_PROPERTY]?.length) continue;
     const combined = combineUnit(unit);
     const unitEvidence = new Map([...combined.itemSources].map(([key, source]) => [key, { doc: byPath.get(source.file)!.doc, path: source.path }]));
-    replacements.set(root.doc.id, { ...root, data: documentForAgents(combined.ontology), unitEvidence });
+    const data = imported ? inspectOntologyUnit(unit, undefined, root.doc.publishedInterfaces).document : combined.ontology;
+    replacements.set(root.doc.id, { ...root, data: documentForAgents(data), unitEvidence });
   }
   return documents.flatMap(entry => {
     if (entry.data?.[PART_PROPERTY] === true) return [];

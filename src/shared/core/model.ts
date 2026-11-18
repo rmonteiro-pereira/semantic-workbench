@@ -186,7 +186,7 @@ function importedDefinitions(aliases: ReturnType<typeof checkImports>['aliases']
       const name = `${alias}.${concept}`;
       const rewrite = (reference: string) => (entry.concepts.includes(reference) ? `${alias}.${reference}` : reference);
       const owner = { project: provider.project, ontology: provider.ontology, version: provider.version, concept, alias };
-      imported.set(name, { owner, scope: provider.scope, definition: { ...rewriteConceptReferences(definition, rewrite), concept: name } });
+      imported.set(name, { owner, scope: provider.ontologyName ?? provider.scope, definition: { ...rewriteConceptReferences(definition, rewrite), concept: name } });
     }
   }
   return imported;

@@ -1,6 +1,6 @@
 /** Reads mesh responses through the same browser authentication boundary as other project APIs. */
 import { isObject } from '../../shared/edit/source-text';
-import type { UnitImport } from '../../shared/tessera/imports';
+import type { ResolvedImportInterface, UnitImport } from '../../shared/tessera/imports';
 import { apiFetch } from '../projects/api';
 
 /** Describes one published interface in the import picker. */
@@ -161,4 +161,38 @@ export async function readMeshGraph(signal?: AbortSignal): Promise<MeshGraphView
     throw new Error('Invalid ontology mesh response.');
   }
   return { projects: result.projects, links: result.links };
+}
+
+/** Parses the published interface payload without importing server or private source metadata. */
+export async function readPublishedInterfaces(project: string, signal?: AbortSignal) {
+  const result = await read(`/api/projects/${encodeURIComponent(project)}/dependencies?interfaces=1`, signal);
+  if (!isObject(result) || !Array.isArray(result.interfaces)) throw new Error('Invalid published interface response.');
+  const roots = new Map<string, ResolvedImportInterface[]>();
+  for (const entry of result.interfaces) {
+    if (!isObject(entry) || typeof entry.path !== 'string' || !Array.isArray(entry.providers)) throw new Error('Invalid published interface root.');
+    roots.set(entry.path, entry.providers.map(parseInterface));
+  }
+  return roots;
+}
+
+function parseInterface(value: unknown): ResolvedImportInterface {
+  if (
+    !isObject(value) ||
+    typeof value.project !== 'string' ||
+    !value.project ||
+    typeof value.ontology !== 'string' ||
+    !value.ontology ||
+    typeof value.version !== 'string' ||
+    !/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(value.version) ||
+    !Array.isArray(value.concepts)
+  ) {
+    throw new Error('Invalid published provider interface.');
+  }
+  const concepts = new Map<string, Record<string, unknown>>();
+  for (const pair of value.concepts) {
+    if (!Array.isArray(pair) || typeof pair[0] !== 'string' || !pair[0] || !isObject(pair[1]) || concepts.has(pair[0])) throw new Error('Invalid published concept.');
+    concepts.set(pair[0], pair[1]);
+  }
+  const ontologyName = typeof value.ontologyName === 'string' ? value.ontologyName : undefined;
+  return { project: value.project, ontology: value.ontology, version: value.version, ontologyName, concepts, exports: new Set(concepts.keys()) };
 }

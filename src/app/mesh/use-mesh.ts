@@ -2,7 +2,7 @@
 import type { ReaderValidation } from '../../shared/tessera/set-validation';
 import { api, type Doc } from '../projects/api';
 import { useEffect, useState } from 'react';
-import { readDependencyState, readProviders, type DependencyState, type ProviderChoice } from './api';
+import { readDependencyState, readProviders, readPublishedInterfaces, type DependencyState, type ProviderChoice } from './api';
 
 /** Distinguishes loading, failure and completed mesh reads. */
 export type MeshRead<T> = { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; value: T };
@@ -54,4 +54,9 @@ export function useUnitSet(doc: Doc | undefined, enabled: boolean): ReaderValida
     };
   }, [key]);
   return stored?.key === key ? stored.value : undefined;
+}
+
+/** Reads frozen public imports for the active project only while viewing a revision-three unit. */
+export function usePublishedInterfaces(project: string | undefined, activeHash: string, lockHash: string) {
+  return useRead(project ? JSON.stringify([project, activeHash, lockHash]) : '', signal => readPublishedInterfaces(project!, signal));
 }

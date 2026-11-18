@@ -151,6 +151,7 @@ These steps run inside the admitted route and share its authorization and audit 
 | projects.export | snapshot.read |
 | mesh.graph | snapshot.read |
 | mesh.providers.list | snapshot.read |
+| mesh.dependencies.read | snapshot.read |
 | mesh.dependencies.update | snapshot.read |
 | mesh.dependents.read | snapshot.read |
 | compile.check | snapshot.read |

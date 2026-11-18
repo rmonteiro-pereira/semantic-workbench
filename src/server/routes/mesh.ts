@@ -13,6 +13,7 @@ import type { Reader } from '../projects/reader';
 import type { Workspace } from '../projects/workspace';
 import { decodeSegment } from '../request';
 import { readMeshGraph } from '../mesh/mesh-graph';
+import { publishedUnitInterfaces } from '../mesh/published-unit-interfaces';
 import { publishedProviders } from '../mesh/provider-resolution';
 import type { Route } from './http';
 import { updateDependencies } from './dependency-update';
@@ -72,7 +73,7 @@ async function listProviders(ws: Workspace, reader: Reader, url: URL) {
   });
 }
 
-async function dependencyStatus(ws: Workspace, reader: Reader, project: string) {
+async function dependencyStatus(ws: Workspace, reader: Reader, project: string, includeInterfaces: boolean) {
   ws.project(project);
   const documents = ws.documentsFor(reader).filter(document => document.project === project);
   const lock = documents.find(document => document.path === DEPENDENCY_MANIFEST_PATH);
@@ -99,7 +100,24 @@ async function dependencyStatus(ws: Workspace, reader: Reader, project: string) 
     if (current) state = available ? 'update-available' : 'current';
     return [{ path: document.path, imports: providersVisible ? imports : [], state }];
   });
-  return { roots: roots.slice(0, PAGE_SIZE), manifestHash: lock?.hash ?? null };
+  const summary = { roots: roots.slice(0, PAGE_SIZE), manifestHash: lock?.hash ?? null };
+  if (!includeInterfaces) return summary;
+  const interfaces = await ws.published.withPin(async pin => {
+    if (!pin.commits.has(ws.repoOf(project))) return [];
+    const { documents } = await ws.published.readableDocuments(pin, project, reader);
+    const resolved = await publishedUnitInterfaces(ws, pin, reader, project, documents);
+    return [...resolved].map(([path, providers]) => ({
+      path,
+      providers: providers.map(provider => ({
+        project: provider.project,
+        ontology: provider.ontology,
+        ontologyName: provider.ontologyName,
+        version: provider.version,
+        concepts: [...provider.concepts],
+      })),
+    }));
+  });
+  return { ...summary, interfaces };
 }
 
 async function listDependents(ws: Workspace, req: Request, url: URL, provider: string) {
@@ -149,5 +167,5 @@ export const meshRoutes: Route = async (ws, req, url) => {
   if (url.pathname === '/api/mesh/providers') return Response.json(await listProviders(ws, requestReader(req), url), { headers: { 'Cache-Control': 'no-store' } });
   const match = DEPENDENCIES_ROUTE.exec(url.pathname);
   if (!match) return null;
-  return Response.json(await dependencyStatus(ws, requestReader(req), decodeSegment(match[1])), { headers: { 'Cache-Control': 'no-store' } });
+  return Response.json(await dependencyStatus(ws, requestReader(req), decodeSegment(match[1]), url.searchParams.get('interfaces') === '1'), { headers: { 'Cache-Control': 'no-store' } });
 };
