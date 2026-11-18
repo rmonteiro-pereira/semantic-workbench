@@ -79,13 +79,12 @@ export async function domSignature(page: Page, selector: string): Promise<Record
   }, selector);
 }
 
-/** The width and height of every card of a graph, by node id, for comparing a graph with Traffic on and off. */
+/** The width and height of every card of a graph in graph units, by node id, so a change of zoom does not count as a change of size. */
 export async function cardSizes(page: Page, selector: string): Promise<Record<string, [number, number]>> {
   return page.evaluate(root => {
     const sizes: Record<string, [number, number]> = {};
     for (const node of document.querySelectorAll<HTMLElement>(`${root} .react-flow__node`)) {
-      const box = node.getBoundingClientRect();
-      sizes[node.dataset.id ?? ''] = [Math.round(box.width * 2) / 2, Math.round(box.height * 2) / 2];
+      sizes[node.dataset.id ?? ''] = [node.offsetWidth, node.offsetHeight];
     }
     return sizes;
   }, selector);
