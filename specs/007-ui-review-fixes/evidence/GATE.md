@@ -92,6 +92,12 @@
   `RESPONSIVE_ONLY='ODCS screens: 390×844' bun scripts/ci-validate.ts --step browser --suite test:responsive` returned 1 at the same clipping
   assertion. The contrast with main establishes that the phone ID clipping is inherited.
 
+- `sw-midgard-run -- bash scripts/ui-review/gate-007/gate-launch.sh` ran both focused ODCS checks serially. Both returned 1 with
+  `odcs-contract-search: contract id is cut off`. Candidate preparation then returned 0 for the build, fixture inventory and both imports.
+- The mutation retry returned 1 at `Baseline failed (fmt:check)` after detecting four SCM presentation mutants. The formatter picked up 17 temporary
+  fixture files while the frozen imports were staged under the capture script directory. The next attempt keeps the byte-exact fixture bundle in the
+  ignored output directory during mutation and formatting. The final unit/check/build phase uses the same isolation.
+
 ### Full Graph reopening through browser Back
 
 - The history suite can compare area contents at the same Fit zoom. The fitted retry restored selection and all explicit area actions.
