@@ -36,23 +36,23 @@ test('a private dependency inside a provider is an absolute refusal', () => {
   const concepts = new Map([['Invoice', { concept: 'Invoice', type: 'EntityType', extends: ['Private'] }]]);
   const result = compile({ ...provider, concepts });
   expect(result.outputs).toEqual([]);
-  expect(result.failures[0].message).toContain('lacks required concept "Private"');
+  expect(result.failures[0]?.message).toContain('lacks required concept "Private"');
   expect(decideAcceptance(result.report, result.failures, { digest: result.report.digest }).decision).toBe('refused');
 });
 
 test('a different provider base and a qualified local collision cannot release output', () => {
   const baseConflict = compile({ ...provider, scope: 'another-base' });
-  expect(baseConflict.failures[0].message).toContain('different Ossie base');
+  expect(baseConflict.failures[0]?.message).toContain('different Ossie base');
   expect(baseConflict.outputs).toEqual([]);
   const collision = compile(provider, qualifiedConcept(target));
-  expect(collision.failures[0].message).toContain('collides with imported name');
+  expect(collision.failures[0]?.message).toContain('collides with imported name');
   expect(collision.outputs).toEqual([]);
 });
 
 test('incompatible versions selected by different roots refuse the complete bundle', () => {
   const other = 'b'.repeat(40);
   const result = compile(provider, 'Order', { ...provider, version: other });
-  expect(result.failures[0].message).toContain(`"${provider.version}"`);
-  expect(result.failures[0].message).toContain(`"${other}"`);
+  expect(result.failures[0]?.message).toContain(`"${provider.version}"`);
+  expect(result.failures[0]?.message).toContain(`"${other}"`);
   expect(decideAcceptance(result.report, result.failures, { digest: result.report.digest }).decision).toBe('refused');
 });

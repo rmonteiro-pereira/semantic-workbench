@@ -106,7 +106,7 @@ function providerDependencies(documents: PublishedDocument[], root: string) {
 }
 
 async function traverseProvider(traversal: ProviderTraversal, candidate: Candidate, provider: LockedProvider, visited: ReadonlySet<string>) {
-  const { source, pin, reader, commits } = traversal;
+  const { pin, reader, commits } = traversal;
   const commit = provider.sameRepository ? candidate.next : provider.commit;
   const key = JSON.stringify([provider.project, provider.ontology, commit]);
   const previous = commits.get(provider.project);
