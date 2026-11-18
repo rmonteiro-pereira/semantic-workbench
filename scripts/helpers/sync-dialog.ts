@@ -1,8 +1,9 @@
+// Follows the visible Source Control actions in the browser suites.
 import { expect, type Locator, type Page } from '@playwright/test';
 
 /** Opens the Sync dialog (published-branch actions of a server working copy) and returns it. */
 export async function openSyncDialog(page: Page) {
-  await page.getByRole('region', { name: 'Source Control' }).getByRole('button', { name: 'Sync…', exact: true }).click();
+  await page.getByRole('region', { name: 'Source Control' }).getByRole('button', { name: 'Sync', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Sync', exact: true });
   await expect(dialog).toBeVisible();
   return dialog;
