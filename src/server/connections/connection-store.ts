@@ -37,6 +37,8 @@ export type ConnectionRecord = {
   programName: string;
   scopes: Scope[];
   resource: string;
+  /** The redirect address the connection was authorized through; absent for a setup credential. */
+  redirectUri?: string;
   origin: ConnectionOrigin;
   sessionReference: string;
   createdAt: number;
