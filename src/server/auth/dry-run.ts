@@ -3,7 +3,7 @@ import { createAccessControl, type AccessOptions } from './authorize';
 import { ACTIONS, FILE_ACTIONS, isAction, type Action } from '../../shared/auth/actions';
 import type { AccessConfig } from './access-config';
 import { clientPrincipal, type NormalizedPrincipal } from './principal';
-import type { DecisionContext, ResourceRef } from './resource';
+import type { ResourceRef } from './resource';
 import type { AuditEntry } from './audit';
 import matrix from '../../../policies/matrix-cases.json';
 
@@ -28,13 +28,18 @@ type RequestScope = ReturnType<AccessControl['forRequest']>;
 /** The same identity evaluated by the active and by the proposed boundary. */
 type ScopePair = { before: RequestScope; after: RequestScope };
 
-/** Builds request scopes once per identity, since each one resolves grants and entities. */
-export function scopeCache(before: AccessControl, after: AccessControl, current: AccessConfig, next: AccessConfig, context: Pick<DecisionContext, 'hour' | 'sourceIp'> = {}) {
+/** Captures the active policy and clock, then builds paired replay scopes on demand. */
+export function scopeCache(before: AccessControl, proposal: AccessConfig) {
+  const snapshot = before.snapshot();
+  const context = snapshot.context?.() ?? {};
+  const current = snapshot.config;
+  const after = before.fork(proposal);
+  const next = after.snapshot().config;
   const scopes = new Map<string, ScopePair>();
   // Arbitrary Cedar rules can inspect other identities and otherwise unused role holders.
   const comparable = !Object.keys(current.adminRules ?? {}).length && !Object.keys(next.adminRules ?? {}).length;
   const sameProjects = JSON.stringify(current.projects) === JSON.stringify(next.projects);
-  return (identity: NormalizedPrincipal): ScopePair => {
+  function scopeFor(identity: NormalizedPrincipal): ScopePair {
     const key = JSON.stringify(identity);
     let pair = scopes.get(key);
     if (!pair) {
@@ -48,7 +53,8 @@ export function scopeCache(before: AccessControl, after: AccessControl, current:
       scopes.set(key, pair);
     }
     return pair;
-  };
+  }
+  return { snapshot, scopeFor };
 }
 
 function principalPolicy(config: AccessConfig, principal: RequestScope['principal']) {
@@ -195,9 +201,7 @@ export interface DryRunEvidence {
 /** Replays matrix and audit cases and compares every known person's and client's project actions. */
 export function compareAccess(options: AccessOptions, next: AccessConfig, { users, audit, names = new Map(), access }: DryRunEvidence) {
   const before = access ?? createAccessControl(options);
-  const current = before.snapshot();
-  const context = current.context?.() ?? {};
-  const scopeFor = scopeCache(before, before.fork(next), current.config, next, context);
+  const { snapshot: current, scopeFor } = scopeCache(before, next);
   const identities = new Map(users.map(user => [user.id, user]));
   for (const client of [...current.config.agents.clients, ...next.agents.clients]) {
     identities.set(`client:${client.clientId}`, clientPrincipal(client.clientId, client.name));

@@ -99,7 +99,7 @@ export function assertDeactivatedReplay(scopes: typeof scopeCache) {
   const next = structuredClone(options.config);
   next.grants = next.grants.filter(grant => grant.roleId !== 'admin');
   const after = before.fork(next);
-  const pair = scopes(before, after, options.config, next)(dave);
+  const pair = scopes(before, next).scopeFor(dave);
   const project = { type: 'project', project: 'sales-metrics' } as const;
   const expected = after.forRequest(after.principalFor(dave)).authorize('setRemote', project);
   assert(expected.rules.includes('F7-remote-admin'));
@@ -117,5 +117,21 @@ export function assertReplayClock(compare: typeof compareAccess, createControl =
   const result = compare(options, options.config, { users: [person('alice')], audit: [], access });
   assert.deepEqual(result.changed, []);
   assert.deepEqual(result.people, []);
+  assert.equal(samples, 1);
+}
+
+/** Replays a reloaded policy and the earlier proposal at the active control's configured hour. */
+export function assertReplayScopeSnapshot(scopes: typeof scopeCache) {
+  let samples = 0;
+  const access = createAccessControl({ ...accessFixture(), context: () => ({ hour: samples++ === 0 ? 13 : 14 }) });
+  const proposal = access.snapshot().config;
+  access.reload({
+    ...proposal,
+    adminRules: { hour: 'forbid(principal, action == SW::Action::"read", resource) when { context.hour == 13 };' },
+  });
+  const pair = scopes(access, proposal).scopeFor(person('alice'));
+  const project = { type: 'project', project: 'sales-metrics' } as const;
+  assert.equal(pair.before.authorize('read', project).allow, false);
+  assert.equal(pair.after.authorize('read', project).allow, true);
   assert.equal(samples, 1);
 }
