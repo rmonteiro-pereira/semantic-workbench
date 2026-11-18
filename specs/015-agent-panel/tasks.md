@@ -84,7 +84,7 @@ test only to make it pass.
   confirmation), find by owner (foreign and unknown identical), end, expiry sweep, memory only.
   Add `tests/acp/session-store.test.ts`. Proof: another person's id behaves exactly as an unknown
   id in answer shape and timing class; a replaced session ends with `replaced`.
-- [ ] T015 [P] [US7] Create `src/server/acp/flood-guard.ts`: per-person limits using 006's call
+- [x] T015 [P] [US7] Create `src/server/acp/flood-guard.ts`: per-person limits using 006's call
   limit settings (needs 006: import the settings type; until 006 lands use a local copy of the
   three constants marked for removal), the 5-second flood rule and the two-oversize rule. Add
   `tests/acp/flood-guard.test.ts`. Proof: bursts of 40 pass, the 41st is limited, a flood ends the
