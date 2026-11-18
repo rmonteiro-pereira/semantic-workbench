@@ -3,7 +3,7 @@ import { expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { compileDocument } from '../../src/shared/tessera/compile-document';
-import { documentMeaningFailures, unitMeaningFailures } from '../../src/shared/tessera/meaning-check';
+import { documentMeaningFailures, readForMeaning, unitMeaningFailures, type DocumentReading } from '../../src/shared/tessera/meaning-check';
 import { REGISTRY } from '../../src/shared/tessera/registry';
 import { COMMITTED_FILES, PROJECT_FOLDER } from '../helpers/tessera-repository';
 
@@ -11,28 +11,34 @@ const path = 'retail.ontology.yaml';
 const source = readFileSync(join(import.meta.dir, '../fixtures/tessera/documents/notes-everywhere.yaml'), 'utf8');
 const compiled = compileDocument({ path, source }, REGISTRY);
 if (!compiled.ok) throw new Error('The fixture must compile.');
+function reading(document: { path: string; source: string }): DocumentReading {
+  const read = readForMeaning(document);
+  if ('code' in read) throw new Error(read.message);
+  return read;
+}
+
 const clean = { path, source: compiled.text };
 
 test('clean compiler output passes the document check', () => {
-  expect(documentMeaningFailures({ path, source }, clean)).toEqual([]);
+  expect(documentMeaningFailures(reading({ path, source }), reading(clean))).toEqual([]);
 });
 
 test('a changed value fails the document check', () => {
   const changed = compiled.text.replace('A customer order.', 'A customer purchase.');
-  const failures = documentMeaningFailures({ path, source }, { path, source: changed });
+  const failures = documentMeaningFailures(reading({ path, source }), reading({ path, source: changed }));
   expect(failures.map(failure => failure.code)).toEqual(['meaning']);
 });
 
 test('a dropped concept fails the document check', () => {
   const text = compiled.text.slice(0, compiled.text.indexOf('  - concept: Customer'));
-  const failures = documentMeaningFailures({ path, source }, { path, source: text });
+  const failures = documentMeaningFailures(reading({ path, source }), reading({ path, source: text }));
   expect(failures.length).toBeGreaterThan(0);
   expect(failures.every(failure => failure.code === 'meaning')).toBe(true);
 });
 
 const sourceSet = Object.entries(COMMITTED_FILES)
-  .filter(([name]) => name.startsWith(PROJECT_FOLDER))
-  .map(([name, text]) => ({ path: name, source: text }));
+  .filter(([name]) => name.startsWith(PROJECT_FOLDER) && /ya?ml$/.test(name) && !name.endsWith('.odcs.yaml'))
+  .map(([name, text]) => reading({ path: name, source: text }));
 
 test('an unchanged set of documents passes the set check', () => {
   expect(unitMeaningFailures(sourceSet, sourceSet)).toEqual([]);

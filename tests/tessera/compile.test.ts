@@ -162,9 +162,16 @@ test('an output that fails the pinned schema fails the unit and cannot be releas
   expect(result.outputs).toEqual([]);
 });
 
+const withoutTessera = (text: string) => text.replace(/^tessera: 1\n/, '').replace(/^\s*tessera_notes:.*\n/gm, '');
+
 test('an output that changes the meaning fails the unit', () => {
   const faulty = {
-    compileDocument: (document: { source: string }) => ({ ok: true as const, text: document.source.replace(/^tessera: 1\n/, '').replace('A customer order.', 'Changed.'), data: {}, losses: [] }),
+    compileDocument: (document: { source: string }) => ({
+      ok: true as const,
+      text: withoutTessera(document.source).replace('A customer order.', 'Changed.'),
+      data: parse(withoutTessera(document.source).replace('A customer order.', 'Changed.')),
+      losses: [],
+    }),
   };
   const result = compileUnit(projectFiles, options, faulty);
   expect(result.failures.map(failure => failure.code)).toContain('meaning');

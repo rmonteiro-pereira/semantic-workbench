@@ -34,8 +34,8 @@ export const tesseraMutants: Mutant[] = [
   [
     'tessera',
     compileUnit,
-    'function outputSchemaFailures(path: string, text: string): CompileFailure[] {',
-    'function outputSchemaFailures(path: string, text: string): CompileFailure[] {\n  if (text) return [];',
+    'function outputSchemaFailures(path: string, result: ReturnType<typeof validateInput>): CompileFailure[] {',
+    'function outputSchemaFailures(path: string, result: ReturnType<typeof validateInput>): CompileFailure[] {\n  if (path) return [];',
   ],
   ['tessera', compileUnit, 'if (earlier !== undefined)', 'if (false)'],
   ['tessera', compileUnit, 'const sorted = [...files].sort((first, second) => compareText(first.path, second.path));', 'const sorted = [...files];'],

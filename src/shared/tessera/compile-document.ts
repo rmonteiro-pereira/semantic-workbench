@@ -24,6 +24,9 @@ export type AdditionSite = { path: (string | number)[]; name: string; place: Add
 /** A compiled document: its text, the data read back from that text, and what was lost. */
 export type CompiledDocument = { ok: true; text: string; data: unknown; losses: LossEntry[] } | { ok: false; failures: CompileFailure[] };
 
+/** A parsed document: its data and, for YAML, the document that keeps comments and scalar spelling. */
+export type ParsedSource = { data: any; yaml?: Document.Parsed };
+
 /** Tells which syntax a file name uses, as the editor does. */
 export function syntaxOf(path: string): DocumentSyntax {
   return path.toLowerCase().endsWith('.json') ? 'json' : 'yaml';
@@ -79,7 +82,7 @@ function lossOf(documentPath: string, data: unknown, site: AdditionSite): LossEn
 }
 
 /** Parses a document's text by its file name, returning the data and, for YAML, the document that keeps comments and scalar spelling. */
-export function parseSourceDocument(document: SourceDocument, syntax: DocumentSyntax): { data: any; yaml?: Document.Parsed } | CompileFailure {
+export function parseSourceDocument(document: SourceDocument, syntax: DocumentSyntax): ParsedSource | CompileFailure {
   if (syntax === 'json') {
     try {
       return { data: JSON.parse(document.source) };
@@ -112,9 +115,9 @@ function dispositions(document: SourceDocument, data: unknown, sites: AdditionSi
 }
 
 /** Compiles one Tessera ontology into standard Ossie text, with the losses it caused, or says why it cannot. */
-export function compileDocument(document: SourceDocument, registry: Registry): CompiledDocument {
+export function compileDocument(document: SourceDocument, registry: Registry, prepared?: ParsedSource): CompiledDocument {
   const syntax = syntaxOf(document.path);
-  const parsed = parseSourceDocument(document, syntax);
+  const parsed = prepared ?? parseSourceDocument(document, syntax);
   if ('code' in parsed) return { ok: false, failures: [parsed] };
   const sites = additionSites(parsed.data);
   const { losses, failures } = dispositions(document, parsed.data, sites, registry);

@@ -56,12 +56,16 @@ function prefixedProperties(data: unknown): PropertySite[] {
   const pending: { value: unknown; segments: string[] }[] = [{ value: data, segments: [] }];
   while (pending.length) {
     const { value, segments } = pending.pop()!;
-    if (Array.isArray(value)) value.forEach((child, index) => pending.push({ value: child, segments: [...segments, String(index)] }));
-    else if (isObject(value)) {
+    if (Array.isArray(value)) {
+      value.forEach((child, index) => {
+        if (child !== null && typeof child === 'object') pending.push({ value: child, segments: [...segments, String(index)] });
+      });
+    } else if (isObject(value)) {
       for (const [name, child] of Object.entries(value)) {
         if (segments.length === 0 && name === 'prefixes') continue;
         if (hasTesseraPrefix(name)) sites.push({ pointer: '/' + [...segments, name].map(escapePointerSegment).join('/'), name, place: placeOf(segments) });
-        pending.push({ value: child, segments: [...segments, name] });
+        // Text and numbers hold no properties, so only objects and lists are worth visiting.
+        if (child !== null && typeof child === 'object') pending.push({ value: child, segments: [...segments, name] });
       }
     }
   }

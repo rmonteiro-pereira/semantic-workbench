@@ -3,12 +3,12 @@ import type { Issue } from '../validation/diagnostics';
 import { validateInput } from '../validation/input';
 import { OSSIE_SCHEMA_VERSION, isNotValidated } from '../validation/validation';
 import { compareText } from './canonical-json';
-import { compileDocument, type CompileFailure, type SourceDocument } from './compile-document';
+import { compileDocument, type CompileFailure } from './compile-document';
 import { sha256Hex } from './digest';
 import { classifyFile, type ClassifiedFile, type UnitFile } from './document-kind';
 import { COMPILER_NAME, COMPILER_VERSION } from './format';
 import { buildLossReport, type LossEntry, type LossReport, type ReportInput, type ReportOutput } from './loss-report';
-import { documentMeaningFailures, unitMeaningFailures } from './meaning-check';
+import { documentMeaningFailures, summarizeItems, unitMeaningFailures, type DocumentReading } from './meaning-check';
 import { SUPPORTED_BASES, findBase } from './bases';
 import { REGISTRY } from './registry';
 
@@ -72,9 +72,10 @@ function collisionFailures(outputs: UnitFile[]): CompileFailure[] {
   return failures;
 }
 
-/** Checks a document that would be released: it passes the pinned schema and rules with no "not validated" notice. */
-function outputSchemaFailures(path: string, text: string): CompileFailure[] {
-  const result = validateInput(text, path.split('/').at(-1)!);
+type OutputCheck = { failures: CompileFailure[]; reading: DocumentReading | null };
+
+/** Reads the finding of a document that would be released: it passes the pinned schema and rules with no "not validated" notice. */
+function outputSchemaFailures(path: string, result: ReturnType<typeof validateInput>): CompileFailure[] {
   const errors = result.issues.filter(issue => issue.severity === 'error').map(issue => ({ code: 'output-schema' as const, document: path, message: `${issue.path}: ${issue.message}` }));
   const notices = result.issues
     .filter(isNotValidated)
@@ -82,37 +83,51 @@ function outputSchemaFailures(path: string, text: string): CompileFailure[] {
   return [...errors, ...notices];
 }
 
+/** Validates the text of an output once and keeps what the meaning check needs from that reading. */
+function checkOutput(path: string, text: string, data: unknown): OutputCheck {
+  const result = validateInput(text, path.split('/').at(-1)!);
+  const failures = outputSchemaFailures(path, result);
+  return { failures, reading: result.valid ? { path, source: text, data, summary: summarizeItems(result.model) } : null };
+}
+
 type Compiled = { outputs: UnitFile[]; losses: LossEntry[]; failures: CompileFailure[]; treatments: Map<string, ReportInput['treatment']> };
+
+/** Compiles a Tessera ontology and checks its output against its source. */
+function compileOntology(entry: Extract<ClassifiedFile, { kind: 'tessera-ontology' }>, steps: UnitSteps, result: Compiled, readings: { sources: DocumentReading[]; outputs: DocumentReading[] }) {
+  const compiled = steps.compileDocument({ path: entry.file.path, source: entry.text }, REGISTRY, entry.parsed);
+  if (!compiled.ok) {
+    result.failures.push(...compiled.failures);
+    return;
+  }
+  result.outputs.push({ path: entry.file.path, bytes: encoder.encode(compiled.text) });
+  result.losses.push(...compiled.losses);
+  const checked = checkOutput(entry.file.path, compiled.text, compiled.data);
+  result.failures.push(...checked.failures);
+  if (!checked.reading) return;
+  readings.sources.push(entry.reading);
+  readings.outputs.push(checked.reading);
+  result.failures.push(...documentMeaningFailures(entry.reading, checked.reading));
+}
 
 function compileFiles(classified: ClassifiedFile[], steps: UnitSteps): Compiled {
   const result: Compiled = { outputs: [], losses: [], failures: [], treatments: new Map() };
-  const sourceDocuments: SourceDocument[] = [];
-  const outputDocuments: SourceDocument[] = [];
+  const readings = { sources: [] as DocumentReading[], outputs: [] as DocumentReading[] };
   for (const entry of classified) {
     result.treatments.set(entry.file.path, TREATMENT_OF_KIND[entry.kind]);
     if (entry.kind === 'invalid') result.failures.push(...entry.failures);
     if (entry.kind === 'ossie') {
       result.outputs.push(entry.file);
-      sourceDocuments.push({ path: entry.file.path, source: entry.text });
-      outputDocuments.push({ path: entry.file.path, source: entry.text });
-      result.failures.push(...outputSchemaFailures(entry.file.path, entry.text));
+      readings.sources.push(entry.reading);
+      readings.outputs.push(entry.reading);
+      result.failures.push(
+        ...entry.issues
+          .filter(isNotValidated)
+          .map(() => ({ code: 'output-schema' as const, document: entry.file.path, message: 'The document was not validated against the pinned schema, so it cannot be released.' })),
+      );
     }
-    if (entry.kind !== 'tessera-ontology') continue;
-    const compiled = steps.compileDocument({ path: entry.file.path, source: entry.text }, REGISTRY);
-    if (!compiled.ok) {
-      result.failures.push(...compiled.failures);
-      continue;
-    }
-    result.outputs.push({ path: entry.file.path, bytes: encoder.encode(compiled.text) });
-    result.losses.push(...compiled.losses);
-    sourceDocuments.push({ path: entry.file.path, source: entry.text });
-    outputDocuments.push({ path: entry.file.path, source: compiled.text });
-    result.failures.push(
-      ...outputSchemaFailures(entry.file.path, compiled.text),
-      ...documentMeaningFailures({ path: entry.file.path, source: entry.text }, { path: entry.file.path, source: compiled.text }),
-    );
+    if (entry.kind === 'tessera-ontology') compileOntology(entry, steps, result, readings);
   }
-  if (!result.failures.length) result.failures.push(...unitMeaningFailures(sourceDocuments, outputDocuments));
+  if (!result.failures.length) result.failures.push(...unitMeaningFailures(readings.sources, readings.outputs));
   return result;
 }
 

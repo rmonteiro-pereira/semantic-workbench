@@ -9,8 +9,14 @@ function meaningFailure(document: string, message: string): CompileFailure {
   return { code: 'meaning', document, message };
 }
 
-function itemSummary(source: string, path: string) {
-  const model = inspect(source, path.split('/').at(-1)!);
+/** The items of a document: entity and edge identifiers and the address of each item. */
+export type ItemSummary = { entities: string[]; edges: string[]; addresses: string[] };
+
+/** A document as the meaning check reads it: its text, its parsed data and its items. */
+export type DocumentReading = { path: string; source: string; data: unknown; summary: ItemSummary };
+
+/** Lists the items of an inspected document. */
+export function summarizeItems(model: ReturnType<typeof inspect>): ItemSummary {
   const items = [...model.entities, ...model.edges];
   return {
     entities: model.entities.map(entity => entity.id),
@@ -19,50 +25,44 @@ function itemSummary(source: string, path: string) {
   };
 }
 
-/** Checks the text of one compiled document against its source: the text read back holds equal data and the same items with the same addresses. */
-export function documentMeaningFailures(source: SourceDocument, output: SourceDocument): CompileFailure[] {
-  const parsed = parseSourceDocument(source, syntaxOf(source.path));
-  if ('code' in parsed) return [parsed];
-  const reparsed = parseSourceDocument(output, syntaxOf(output.path));
-  if ('code' in reparsed) return [meaningFailure(source.path, `The compiled text cannot be read back: ${reparsed.message}`)];
-  const failures: CompileFailure[] = [];
-  const expected = withoutAdditions(parsed.data, additionSites(parsed.data));
-  if (!deepEqual(expected, reparsed.data)) failures.push(meaningFailure(source.path, 'The compiled text does not hold the same data as the source without the marker and the additions.'));
+/** Parses and inspects a document, or says why it cannot be read. */
+export function readForMeaning(document: SourceDocument): DocumentReading | CompileFailure {
+  const parsed = parseSourceDocument(document, syntaxOf(document.path));
+  if ('code' in parsed) return parsed;
   try {
-    if (!deepEqual(itemSummary(source.source, source.path), itemSummary(output.source, output.path)))
-      failures.push(meaningFailure(source.path, 'The compiled document has different items, relationships or item addresses than its source.'));
+    return { path: document.path, source: document.source, data: parsed.data, summary: summarizeItems(inspect(document.source, document.path.split('/').at(-1)!)) };
   } catch (error) {
-    failures.push(meaningFailure(source.path, `The compiled document cannot be read as the source can: ${(error as Error).message}`));
+    return meaningFailure(document.path, `The document cannot be read: ${(error as Error).message}`);
   }
+}
+
+/** Checks a compiled document against its source: the output holds equal data and the same items with the same addresses. */
+export function documentMeaningFailures(source: DocumentReading, output: DocumentReading): CompileFailure[] {
+  const failures: CompileFailure[] = [];
+  const expected = withoutAdditions(source.data, additionSites(source.data));
+  if (!deepEqual(expected, output.data)) failures.push(meaningFailure(source.path, 'The compiled text does not hold the same data as the source without the marker and the additions.'));
+  if (!deepEqual(source.summary, output.summary)) failures.push(meaningFailure(source.path, 'The compiled document has different items, relationships or item addresses than its source.'));
   return failures;
 }
 
 /** Maps each ontology and semantic model name to the document that defines it. */
-function nameIndex(documents: SourceDocument[]): Map<string, string> {
-  const index = new Map<string, string>();
+function nameIndex(documents: Pick<DocumentReading, 'path' | 'data'>[]): string[] {
+  const index: string[] = [];
   for (const document of documents) {
-    const parsed = parseSourceDocument(document, syntaxOf(document.path));
-    if ('code' in parsed || !isObject(parsed.data) || isMapping(parsed.data)) continue;
-    if (Array.isArray(parsed.data.ontology)) index.set(`ontology:${String(parsed.data.name)}`, document.path);
-    else if (Array.isArray(parsed.data.datasets)) index.set(`model:${String(parsed.data.name)}`, document.path);
+    if (!isObject(document.data) || isMapping(document.data)) continue;
+    if (Array.isArray(document.data.ontology)) index.push(`ontology:${String(document.data.name)} -> ${document.path}`);
+    else if (Array.isArray(document.data.datasets)) index.push(`model:${String(document.data.name)} -> ${document.path}`);
   }
-  return index;
-}
-
-function indexText(index: Map<string, string>): string[] {
-  return [...index].map(([name, path]) => `${name} -> ${path}`).sort();
+  return index.sort();
 }
 
 /** Checks the whole set: the same names point at the same document paths, and every mapping is copied byte for byte. */
-export function unitMeaningFailures(sources: SourceDocument[], outputs: SourceDocument[]): CompileFailure[] {
+export function unitMeaningFailures(sources: Pick<DocumentReading, 'path' | 'source' | 'data'>[], outputs: Pick<DocumentReading, 'path' | 'source' | 'data'>[]): CompileFailure[] {
   const failures: CompileFailure[] = [];
-  if (!deepEqual(indexText(nameIndex(sources)), indexText(nameIndex(outputs))))
-    failures.push(meaningFailure('', 'The compiled set resolves ontology and semantic model names to different documents than the source set.'));
+  if (!deepEqual(nameIndex(sources), nameIndex(outputs))) failures.push(meaningFailure('', 'The compiled set resolves ontology and semantic model names to different documents than the source set.'));
   const outputByPath = new Map(outputs.map(output => [output.path, output.source]));
   for (const source of sources) {
-    const parsed = parseSourceDocument(source, syntaxOf(source.path));
-    if ('code' in parsed || !isMapping(parsed.data)) continue;
-    if (outputByPath.get(source.path) !== source.source) failures.push(meaningFailure(source.path, 'A mapping document was changed or left out of the compiled set.'));
+    if (isMapping(source.data) && outputByPath.get(source.path) !== source.source) failures.push(meaningFailure(source.path, 'A mapping document was changed or left out of the compiled set.'));
   }
   return failures;
 }
