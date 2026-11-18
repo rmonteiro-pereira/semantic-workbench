@@ -434,8 +434,10 @@ export const ADMIN_EXEMPTION = 'Admin panel: changes access rules and settings, 
 
 /** Routes beyond plain reads that are not content-guarded, and why. */
 export const GUARD_EXEMPTIONS: Record<string, string> = {
+  'POST /oauth/consent': 'authorizes a person-owned connection; subsequent content changes still pass their own operation guards',
+  'POST /oauth/setup': 'creates a single-use connection credential and writes no project content',
+  'DELETE /api/connections/:id': 'revokes the person’s own connection and writes no project content',
   'POST /api/projects/:slug/files/*/validate': 'judges proposed text with the save pipeline and writes nothing; the guard outcome is reported, not applied',
-  'POST /api/mcp': 'the local agent transport only carries tool calls, each of which is decided as the twin of its own route',
   'POST /api/acp/sessions': 'starts an agent panel session and writes no definition; each file the agent saves is guarded as the twin of its own route',
   'POST /api/acp/sessions/:id/prompt': 'sends the person’s words to their own agent and writes no definition',
   'POST /api/acp/sessions/:id/cancel': 'stops the agent’s running turn and writes no definition',
