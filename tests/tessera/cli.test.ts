@@ -12,13 +12,19 @@ afterEach(() => {
   while (cleanups.length) cleanups.pop()!();
 });
 
-type Scene = { repository: TesseraRepository; base: string; out: string };
+type Scene = { repository: TesseraRepository; base: string; home: string; out: string };
 
 function scene(): Scene {
   const repository = createTesseraRepository();
   const base = mkdtempSync(join(tmpdir(), 'tessera-cli-'));
-  cleanups.push(() => rmSync(base, { recursive: true, force: true }), repository.dispose);
-  return { repository, base, out: join(base, 'bundle') };
+  // Bun keeps its own cache in HOME, so HOME sits outside the folder the tests compare before and after.
+  const home = mkdtempSync(join(tmpdir(), 'tessera-home-'));
+  cleanups.push(
+    () => rmSync(base, { recursive: true, force: true }),
+    () => rmSync(home, { recursive: true, force: true }),
+    repository.dispose,
+  );
+  return { repository, base, home, out: join(base, 'bundle') };
 }
 
 // The command must work with no network and no credentials: the proxy points nowhere and the environment holds only what Git and Bun need.
@@ -39,7 +45,7 @@ function run(args: string[], home: string) {
 const compileArgs = (s: Scene, more: string[] = []) => ['compile', '--repository', s.repository.directory, '--project-folder', PROJECT_FOLDER, '--out', s.out, ...more];
 
 function digestOf(s: Scene, more: string[] = []): string {
-  const result = run([...compileArgs(s, more), '--json'], s.base);
+  const result = run([...compileArgs(s, more), '--json'], s.home);
   return JSON.parse(result.stdout).report.digest;
 }
 
@@ -49,7 +55,7 @@ function readBundle(out: string, path: string): string {
 
 test('compile without acceptance writes nothing, prints the report digest and exits 2', () => {
   const s = scene();
-  const result = run(compileArgs(s), s.base);
+  const result = run(compileArgs(s), s.home);
   expect(result.status).toBe(2);
   expect(result.stdout).toMatch(/Digest: sha256:[0-9a-f]{64}/);
   expect(result.stdout).toContain('the loss needs acceptance');
@@ -62,7 +68,7 @@ test('compile with the digest writes a bundle of the committed snapshot only', (
   s.repository.editWithoutCommit(`${PROJECT_FOLDER}/untracked.yaml`, 'name: untracked\n');
   s.repository.addPersonalBranch('personal/someone');
   const digest = digestOf(s);
-  const result = run(compileArgs(s, ['--accept-loss', digest]), s.base);
+  const result = run(compileArgs(s, ['--accept-loss', digest]), s.home);
   expect(result.status).toBe(0);
   expect(readdirSync(s.out).sort()).toEqual(['loss-report.json', 'manifest.json', 'mapping.yaml', 'ontology.yaml', 'semantic-model.yaml']);
   const ontology = readBundle(s.out, 'ontology.yaml');
@@ -80,7 +86,7 @@ test('compile with the digest writes a bundle of the committed snapshot only', (
 
 test('every file of the bundle that is Ossie validates against the pinned schemas with no notice', () => {
   const s = scene();
-  expect(run(compileArgs(s, ['--accept-loss', digestOf(s)]), s.base).status).toBe(0);
+  expect(run(compileArgs(s, ['--accept-loss', digestOf(s)]), s.home).status).toBe(0);
   for (const name of ['ontology.yaml', 'semantic-model.yaml', 'mapping.yaml']) {
     const result = validateInput(readBundle(s.out, name), name);
     expect(result.valid).toBe(true);
@@ -91,7 +97,7 @@ test('every file of the bundle that is Ossie validates against the pinned schema
 test('an output folder inside the repository exits 1 before writing anything', () => {
   const s = scene();
   const inside = join(s.repository.directory, 'dist');
-  const result = run(['compile', '--repository', s.repository.directory, '--project-folder', PROJECT_FOLDER, '--out', inside], s.base);
+  const result = run(['compile', '--repository', s.repository.directory, '--project-folder', PROJECT_FOLDER, '--out', inside], s.home);
   expect(result.status).toBe(1);
   expect(existsSync(inside)).toBe(false);
 });
@@ -101,14 +107,14 @@ test('a repository with no commit exits 1 and says there is no published snapsho
   const empty = join(s.base, 'empty');
   mkdirSync(empty);
   Bun.spawnSync(['git', 'init', '-q', '-b', 'main'], { cwd: empty });
-  const result = run(['compile', '--repository', empty, '--out', s.out], s.base);
+  const result = run(['compile', '--repository', empty, '--out', s.out], s.home);
   expect(result.status).toBe(1);
   expect(result.stdout).toContain('no published snapshot');
 });
 
 test('--json prints one object with result, source, findings, report and bundle', () => {
   const s = scene();
-  const result = run([...compileArgs(s, ['--accept-loss', digestOf(s)]), '--json'], s.base);
+  const result = run([...compileArgs(s, ['--accept-loss', digestOf(s)]), '--json'], s.home);
   expect(result.status).toBe(0);
   const output = JSON.parse(result.stdout);
   expect(Object.keys(output).sort()).toEqual(['bundle', 'findings', 'report', 'result', 'source']);
@@ -120,12 +126,12 @@ test('--json prints one object with result, source, findings, report and bundle'
 
 test('the command works with an unroutable proxy and no credentials', () => {
   const s = scene();
-  expect(run(compileArgs(s, ['--accept-loss', digestOf(s)]), s.base).status).toBe(0);
+  expect(run(compileArgs(s, ['--accept-loss', digestOf(s)]), s.home).status).toBe(0);
 });
 
 test('misuse exits 64 and names the mistake', () => {
   const s = scene();
-  const result = run(['compile', '--repository', s.repository.directory], s.base);
+  const result = run(['compile', '--repository', s.repository.directory], s.home);
   expect(result.status).toBe(64);
   expect(result.stderr).toContain('compile needs --out');
 });
@@ -139,7 +145,7 @@ function policyFile(s: Scene, allow: string[]): string {
 test('a loss policy that allows the lost property accepts the loss and its hash goes in the manifest', () => {
   const s = scene();
   const policy = policyFile(s, ['tessera_notes']);
-  const result = run(compileArgs(s, ['--loss-policy', policy]), s.base);
+  const result = run(compileArgs(s, ['--loss-policy', policy]), s.home);
   expect(result.status).toBe(0);
   const manifest = JSON.parse(readBundle(s.out, 'manifest.json'));
   expect(manifest.loss.accepted).toBe('policy');
@@ -149,7 +155,7 @@ test('a loss policy that allows the lost property accepts the loss and its hash 
 
 test('a loss policy that does not list the property leaves the compile at status 2', () => {
   const s = scene();
-  const result = run(compileArgs(s, ['--loss-policy', policyFile(s, [])]), s.base);
+  const result = run(compileArgs(s, ['--loss-policy', policyFile(s, [])]), s.home);
   expect(result.status).toBe(2);
   expect(result.stdout).toContain('does not allow tessera_notes');
   expect(existsSync(s.out)).toBe(false);
@@ -159,7 +165,7 @@ test('a digest from before a note changed is refused with status 2 and the new d
   const s = scene();
   const stale = digestOf(s);
   s.repository.commitFile(`${PROJECT_FOLDER}/ontology.yaml`, ONTOLOGY_TEXT.replace('Ask finance before adding a Return concept.', 'Ask legal instead.'));
-  const result = run(compileArgs(s, ['--accept-loss', stale]), s.base);
+  const result = run(compileArgs(s, ['--accept-loss', stale]), s.home);
   const fresh = digestOf(s);
   expect(fresh).not.toBe(stale);
   expect(result.status).toBe(2);
@@ -171,7 +177,7 @@ test('a schema failure is never accepted, even with the right digest', () => {
   const s = scene();
   const digest = digestOf(s);
   s.repository.commitFile(`${PROJECT_FOLDER}/semantic-model.yaml`, 'version: 0.2.0.dev0\nname: broken\ndatasets: []\n');
-  const result = run(compileArgs(s, ['--accept-loss', digest]), s.base);
+  const result = run(compileArgs(s, ['--accept-loss', digest]), s.home);
   expect(result.status).toBe(1);
   expect(existsSync(s.out)).toBe(false);
 });
@@ -180,6 +186,56 @@ test('a malformed loss policy file is misuse', () => {
   const s = scene();
   const path = join(s.base, 'bad.json');
   writeFileSync(path, '{"policy":2,"allow":[]}');
-  expect(run(compileArgs(s, ['--loss-policy', path]), s.base).status).toBe(64);
-  expect(run(compileArgs(s, ['--loss-policy', join(s.base, 'missing.json')]), s.base).status).toBe(64);
+  expect(run(compileArgs(s, ['--loss-policy', path]), s.home).status).toBe(64);
+  expect(run(compileArgs(s, ['--loss-policy', join(s.base, 'missing.json')]), s.home).status).toBe(64);
+});
+
+// The check command.
+function treeOf(folder: string): string[] {
+  return readdirSync(folder, { recursive: true, withFileTypes: true })
+    .filter(entry => entry.isFile())
+    .map(entry => `${join(entry.parentPath, entry.name)} ${readFileSync(join(entry.parentPath, entry.name)).length}`)
+    .sort();
+}
+
+test('check on a clean project reports the loss and the digest, exits 0 and writes nothing', () => {
+  const s = scene();
+  const before = treeOf(s.base);
+  const result = run(['check', '--repository', s.repository.directory, '--project-folder', PROJECT_FOLDER], s.home);
+  expect(result.status).toBe(0);
+  expect(result.stdout).toContain('Loss: 3 values are dropped');
+  expect(result.stdout).toContain('Nothing was written');
+  expect(treeOf(s.base)).toEqual(before);
+  expect(existsSync(s.out)).toBe(false);
+});
+
+test('check on a broken project lists the finding with its place and exits 1', () => {
+  const s = scene();
+  s.repository.commitFile(`${PROJECT_FOLDER}/ontology.yaml`, ONTOLOGY_TEXT.replace('tessera_notes: Ask finance', 'tessera_note: Ask finance'));
+  const result = run(['check', '--repository', s.repository.directory, '--project-folder', PROJECT_FOLDER], s.home);
+  expect(result.status).toBe(1);
+  expect(result.stdout).toContain('tessera-property');
+  expect(result.stdout).toContain('/ontology/0/tessera_note');
+  expect(result.stdout).toMatch(/line \d+, column \d+/);
+});
+
+test('check --files reads the folder as it is on disk and labels the result unpublished', () => {
+  const s = scene();
+  const folder = join(s.base, 'folder');
+  mkdirSync(folder);
+  writeFileSync(join(folder, 'ontology.yaml'), ONTOLOGY_TEXT + '# edited and never committed\n');
+  const before = treeOf(s.base);
+  const result = run(['check', '--files', folder, '--json'], s.home);
+  expect(result.status).toBe(0);
+  const output = JSON.parse(result.stdout);
+  expect(output.source).toEqual({ kind: 'files-on-disk', unpublished: true });
+  expect(output.report.losses).toHaveLength(3);
+  expect(output.bundle).toBeNull();
+  expect(treeOf(s.base)).toEqual(before);
+  expect(run(['check', '--files', folder], s.home).stdout).toContain('files on disk (unpublished)');
+});
+
+test('check never needs acceptance, with or without a loss', () => {
+  const s = scene();
+  expect(run(['check', '--repository', s.repository.directory, '--project-folder', PROJECT_FOLDER, '--json'], s.home).status).toBe(0);
 });
