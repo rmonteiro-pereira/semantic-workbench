@@ -17,7 +17,11 @@ export type DependencyResolution = {
 };
 
 /** Holds the public interface and its exact lock entry. */
-export type ResolvedDependency = { provider: PublicProvider; locked: LockedProvider; hashes: ReadonlyMap<string, EntryDigest> };
+export type ResolvedDependency = {
+  provider: PublicProvider;
+  locked: LockedProvider;
+  hashes: ReadonlyMap<string, EntryDigest>;
+};
 
 function refuse(code: string, message: string): never {
   throw new InputError([{ code, path: '/dependencies', message, severity: 'error' }]);
@@ -29,7 +33,15 @@ function publishedDependencies(documents: readonly PublishedDocument[], root: st
   const lock = dependencyRoot(parseDependencyManifest(document.source), root);
   if (!lock) return [];
   return lock.providers.flatMap(provider => {
-    const own = provider.sameRepository ? [] : [{ project: provider.project, commit: provider.commit, interfaceHash: provider.interfaceHash }];
+    const own = provider.sameRepository
+      ? []
+      : [
+          {
+            project: provider.project,
+            commit: provider.commit,
+            interfaceHash: provider.interfaceHash,
+          },
+        ];
     return [...own, ...provider.dependsOn];
   });
 }
@@ -50,12 +62,19 @@ export function requireOneProviderVersion(providers: readonly LockedProvider[]):
 async function providerDocuments(source: DependencyResolution, pin: PublishedPin, entry: UnitImport, repository: string, sameRepository: boolean) {
   if (sameRepository) {
     if (entry.version !== 'latest') refuse('tessera-import-pin', `The same-repository import "${entry.alias}" must follow the candidate snapshot.`);
-    return { commit: pin.commits.get(repository)?.commit ?? '', documents: source.workingDocuments(entry.project), tag: null };
+    return {
+      commit: pin.commits.get(repository)?.commit ?? '',
+      documents: source.workingDocuments(entry.project),
+      tag: null,
+    };
   }
   if (entry.version !== 'latest') {
     const snapshot = await source.snapshots.pinnedDocumentsAt(pin, entry.project, entry.version.pin);
     if (!snapshot) refuse('tessera-import-pin', `The pin for "${entry.alias}" is outside the provider's published history.`);
-    return { ...snapshot, tag: /^[a-f0-9]{40}$|^[a-f0-9]{64}$/.test(entry.version.pin) ? null : entry.version.pin };
+    return {
+      ...snapshot,
+      tag: /^[a-f0-9]{40}$|^[a-f0-9]{64}$/.test(entry.version.pin) ? null : entry.version.pin,
+    };
   }
   const commit = pin.commits.get(repository)?.commit;
   if (!commit) refuse('tessera-import-provider', `The provider for "${entry.alias}" is unavailable.`);
@@ -70,8 +89,7 @@ export async function resolveDependency(source: DependencyResolution, pin: Publi
   if (!repository) return unavailable();
   const sameRepository = repository === consumerRepo;
   const chosen = await providerDocuments(source, pin, entry, repository, sameRepository);
-  const visible = chosen.documents.filter(document => !reader.view || reader.view.canRead(entry.project, document.path));
-  const candidates = exportedOntologies(entry.project, repository, chosen.commit, visible).filter(provider => entry.ontology === undefined || entry.ontology === provider.ontology);
+  const candidates = exportedOntologies(entry.project, repository, chosen.commit, chosen.documents).filter(provider => entry.ontology === undefined || entry.ontology === provider.ontology);
   if (candidates.length !== 1) return unavailable();
   const provider = candidates[0];
   for (const concept of entry.concepts) {
@@ -84,11 +102,16 @@ export async function resolveDependency(source: DependencyResolution, pin: Publi
     tag: chosen.tag,
     interfaceHash: provider.closure.interfaceHash,
     concepts: [...entry.concepts].sort(compareText),
-    dependsOn: publishedDependencies(visible, provider.ontology),
+    dependsOn: publishedDependencies(chosen.documents, provider.ontology),
   };
   const locked: LockedProvider = sameRepository
     ? { ...common, sameRepository: true, choice: 'latest', tag: null }
-    : { ...common, sameRepository: false, choice: entry.version === 'latest' ? 'latest' : 'pin', commit: chosen.commit };
+    : {
+        ...common,
+        sameRepository: false,
+        choice: entry.version === 'latest' ? 'latest' : 'pin',
+        commit: chosen.commit,
+      };
   return { provider, locked, hashes: digestOf(provider.closure.concepts) };
 }
 
