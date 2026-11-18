@@ -1,6 +1,6 @@
 /** The Show menu of the graph toolbars: one button that switches each kind of graph content on or off. */
 import { useRef, useState } from 'react';
-import { Check, ChevronDown, Eye } from 'lucide-react';
+import { Check, ChevronDown } from 'lucide-react';
 import { moveFocusWithArrows, useDismiss, useFocusCheckedItem, useMenuPosition } from './toolbar-menu';
 import './grouping-menu.css';
 
@@ -10,6 +10,8 @@ export type ShowItem = { name: string; summary: string; on: boolean; onToggle: (
 // These switches used to sit side by side in the toolbar, which pushed the toolbar onto another
 // row each time one was added. The button names every switch that is on, so the state stays
 // visible without opening the menu. The menu stays open while choosing, as a list of check boxes.
+// With nothing switched on the button is about as wide as the Labels switch it replaced, so a
+// toolbar that fitted before still fits.
 /** Lists the kinds of content a graph can show, each with a one-line reason to switch it on. */
 export function ShowMenu({ items }: { items: (ShowItem | null)[] }) {
   const wrapper = useRef<HTMLSpanElement>(null);
@@ -27,7 +29,6 @@ export function ShowMenu({ items }: { items: (ShowItem | null)[] }) {
   return (
     <span className="show-menu" ref={wrapper}>
       <button ref={button} type="button" className="show-menu-trigger" aria-haspopup="menu" aria-expanded={opened} aria-label={label} onClick={() => setOpened(!opened)}>
-        <Eye size={15} aria-hidden="true" />
         Show
         {onNames.length > 0 && <span className="show-menu-on">{onNames.join(', ')}</span>}
         <ChevronDown size={14} aria-hidden="true" />
