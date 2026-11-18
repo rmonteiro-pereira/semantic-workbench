@@ -78,6 +78,17 @@ The repeated 1440×900 frozen-import switch from Mall ODCS to UBL ODCS measured 
 Both exceed the 2,000 ms suite threshold in the matched built-app scenario. The candidate is within the run-to-run range on the same inputs, so no
 speculative worker change was retained. The standalone main suite still stops earlier at the Walk click.
 
+### Opened correction pairs
+
+These pairs compare the candidate before and after each correction. The scores are percentages of changed RGBA pixels at the original dimensions.
+
+| Image in `before/fixes/` and `after/fixes/` | Finding | Changed pixels | Observation |
+| --- | --- | ---: | --- |
+| `mall-mapping-fit-1440.png` | M4 | 25.618750% | The layout uses the available width. Complete names wrap inside all fitted cards. |
+| `ubl-neighborhood-walk-1600.png` | M15 | 13.231375% | The first target and its Walk control are inside the canvas. |
+| `ubl-neighborhood-walk-reached-1600.png` | M15 | 11.775875% | The two relationship paths enter the reached card separately. |
+| `ubl-area-headings-1280.png` | m9 | 1.119575% | The two wrapped title plates have visible clearance above their cards. |
+
 ### Full Graph area headings
 
 - The Network layout reserves a fixed header above each area's entity cards. The title background covers relationship strokes.
