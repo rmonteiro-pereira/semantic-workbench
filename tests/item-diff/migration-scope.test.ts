@@ -249,3 +249,18 @@ test('the persisted history is source control bookkeeping and stays out of file 
   expect((await fixture.handler(new Request(url))).status).toBe(404);
   expect(await itemDiffAgentAnswers(fixture)).toEqual(consumerBefore);
 });
+
+test('project trash carries a legacy import inside the archived project', async () => {
+  using fixture = await itemDiffBaselineWorkspace();
+  const project = 'finance';
+  const legacy = join(fixture.ws.layout.state, 'address-migrations', project + '.json');
+  const prefix = 'sw1:finance/finance.ontology.yaml#ontology:Finance/concept:';
+  const record = { id: 'legacy-trash', kind: 'item' as const, from: prefix + 'Former', to: prefix + 'Customer', at: '2025-01-01T00:00:00Z', commit: '' };
+  atomicWriteJson(legacy, { formatVersion: 1, records: [record] });
+  const entry = await fixture.ws.trash.deleteProject(project);
+  expect(existsSync(legacy)).toBe(false);
+  expect(existsSync(join(fixture.ws.layout.trash, entry.entryId, 'payload', project, ADDRESS_HISTORY_FILE))).toBe(true);
+  await fixture.ws.trash.restore(entry.entryId, {}, LOCAL_READER);
+  expect(readAddressMigrations(fixture.ws.layout, project, LOCAL_READER)).toEqual([record]);
+  expect(existsSync(legacy)).toBe(false);
+});

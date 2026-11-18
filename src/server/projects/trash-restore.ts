@@ -1,6 +1,6 @@
 // Restores trash entries: a file back into a project, or a project, subproject or repository back into the
 // workspace. Nothing is overwritten; an occupied target gets a free alternative suggested.
-import { ADDRESS_HISTORY_FILE, readTrashedAddressHistory, restoreAddressMigrations, stageAddressMigrations, stageHistoryRemoval } from './address-migrations';
+import { ADDRESS_HISTORY_FILE, readTrashedAddressHistory, stageAddressMigrations, stageHistoryRemoval } from './address-migrations';
 import { JournalCrash } from './journal';
 import { restorePersonalState } from './personal-state';
 import type { Reader } from './reader';
@@ -115,7 +115,6 @@ export function createTrashRestore(ctx: TrashContext, shared: TrashRestoreShared
       );
       const steps = [{ from: join(dir, 'payload', trashEntry.project), to: projectDir(layout, slug) }];
       steps.push(...restorePersonalState(state, { project: trashEntry.project, target: slug }, join(dir, 'personal')));
-      steps.push(...restoreAddressMigrations(layout, trashEntry.project, slug, dir));
       if (existsSync(join(dir, 'view.json')) && !existsSync(state.viewFile(slug))) steps.push({ from: join(dir, 'view.json'), to: state.viewFile(slug) });
       if (existsSync(join(dir, 'drafts')) && !existsSync(state.draftDir(slug))) steps.push({ from: join(dir, 'drafts'), to: state.draftDir(slug) });
       steps.push(
@@ -208,7 +207,6 @@ export function createTrashRestore(ctx: TrashContext, shared: TrashRestoreShared
   // Moves saved view settings and drafts back when the workspace has none for the project.
   function stateSteps(dir: string, slug: string, view: string, drafts: string) {
     const steps = restorePersonalState(state, { project: slug, target: slug }, join(dir, 'personal'));
-    steps.push(...restoreAddressMigrations(layout, slug, slug, dir));
     if (existsSync(view) && !existsSync(state.viewFile(slug))) steps.push({ from: view, to: state.viewFile(slug) });
     if (existsSync(drafts) && !existsSync(state.draftDir(slug))) steps.push({ from: drafts, to: state.draftDir(slug) });
     return steps;

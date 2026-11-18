@@ -1,7 +1,7 @@
 // Moves deleted files and project folders into journaled trash without rewriting Git history.
 // Restoration refuses occupied paths and suggests a free alternative.
 import { documentAddress } from '../../shared/core/item-address';
-import { ADDRESS_HISTORY_FILE, archiveAddressMigrations, historyEndpoints, operationMigrations, stageAddressMigrations, stageHistoryRemoval, trashedAddressHistory } from './address-migrations';
+import { ADDRESS_HISTORY_FILE, historyEndpoints, operationMigrations, stageAddressMigrations, stageHistoryRemoval, trashedAddressHistory } from './address-migrations';
 import { archivePersonalState, clearPersonalDrafts } from './personal-state';
 import type { EventTags } from './events';
 import type { Reader } from './reader';
@@ -335,6 +335,7 @@ export function createTrash(ctx: TrashContext) {
           if (unpublished.length) trashEntry.unpublished = unpublished;
           archived.push(dir);
           atomicWriteJson(join(dir, 'entry.json'), trashEntry);
+          for (const member of members) steps.push(...stageAddressMigrations({ layout, project: member.slug, staging: stateStaging }, []));
           steps.push(...unitSteps(unit, dir));
           for (const member of members) {
             steps.push(...archivePersonalState(state, member.slug, undefined, join(dir, 'personal')));
@@ -394,7 +395,6 @@ export function createTrash(ctx: TrashContext) {
   function unitSteps(unit: DeletionUnit, dir: string) {
     const steps: { from: string; to: string }[] = [];
     const keepState = (slug: string, viewTo: string, draftsTo: string) => {
-      steps.push(...archiveAddressMigrations(layout, slug, dir));
       if (existsSync(state.viewFile(slug))) steps.push({ from: state.viewFile(slug), to: viewTo });
       if (existsSync(state.draftDir(slug))) steps.push({ from: state.draftDir(slug), to: draftsTo });
     };

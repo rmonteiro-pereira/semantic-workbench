@@ -5,7 +5,7 @@ import { parseAddress } from '../../shared/core/item-address';
 import { validateDeclaredMigrations, type DeclaredMigration } from '../../shared/core/address-migration';
 import type { MigrationFile, MigrationKind, MigrationRecord } from '../../shared/core/address-migration';
 import { atomicWrite, decode, readJsonFile } from './atomic';
-import { BadRequestError, OccupiedError } from './errors';
+import { BadRequestError } from './errors';
 import { assertSlug, projectFile, projectPrefix, repoDir, type DataLayout } from './paths';
 import type { Reader } from './reader';
 import type { Git } from './git';
@@ -186,21 +186,6 @@ export function declaredAddressMigrations(input: unknown, project: string, docum
   const result = validateDeclaredMigrations(input, project, documents);
   if (!result.ok) throw new BadRequestError(`Invalid declared migrations: ${result.reason}.`);
   return result.migrations;
-}
-
-/** Moves a project's complete history into the same archive as its definitions. */
-export function archiveAddressMigrations(layout: DataLayout, project: string, archive: string): { from: string; to: string }[] {
-  const from = legacyFile(layout, project);
-  return existsSync(from) ? [{ from, to: join(archive, 'address-migrations', assertSlug(project) + '.json') }] : [];
-}
-
-/** Restores archived history without rewriting its original endpoints or overwriting another store. */
-export function restoreAddressMigrations(layout: DataLayout, originalProject: string, targetProject: string, archive: string): { from: string; to: string }[] {
-  const from = join(archive, 'address-migrations', assertSlug(originalProject) + '.json');
-  if (!existsSync(from)) return [];
-  const to = legacyFile(layout, targetProject);
-  if (existsSync(to)) throw new OccupiedError('Address history already exists for the restored project.', {});
-  return [{ from, to }];
 }
 
 /** Validates explicit item-deletion prefixes within the files owned by a save request. */

@@ -206,6 +206,7 @@ export function createScm(deps: ScmDeps) {
     const blobs = new Map<string, string>();
     for (const folder of folders.values()) {
       const path = folder + ADDRESS_HISTORY_FILE;
+      assertNoLinks(directory, path);
       if (!existsSync(join(directory, path))) continue;
       const current = parseAddressHistory(readFileSync(join(directory, path), 'utf8'));
       const base = await git.blob(directory, 'HEAD', path);

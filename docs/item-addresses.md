@@ -197,9 +197,9 @@ Positional or ambiguous scopes/items never enter history. Save acknowledgements 
 order, contain valid SHA-256 hashes, and report HTTP 200 completion before the editor accepts a new base.
 
 File moves, including accepted move suggestions, append document-prefix records with the file move. Cross-project moves
-stage the same record in both stores. Project deletion archives the store beside view state; restoration returns it in
-the same journal, preserving every historical endpoint byte-for-byte. Restoring under a different slug carries the
-history file to the restored project but does not rewrite old locators or infer identity at a reused project address.
+stage the same record in both stores. Project deletion and restoration carry the history file
+inside the project folder. Restoring under a different slug preserves all historical endpoints
+and leaves old locators as written.
 
 Deletion markers cut history through the last matching item or document deletion, using `historySinceDeletion` before
 replay. Recreating a locator never restores prior history implicitly; a later explicit reconciliation remains visible
@@ -233,9 +233,9 @@ is added. Trusted adapters use `buildTwinRequest` and `handler.boundary.operate`
 The workspace resolver returns the same missing result for unreadable and absent items. It checks project and path
 visibility before opening definitions or history, resolves current items before applying history, and follows only
 visible migration endpoints. Cross-project replay resumes after the move marker shared by both stores, preserving
-arrival order even when a document moves back. Deletions follow the history-cut rule above. Snapshot suffixes remain
-opaque and are preserved during prefix replacement; until published-snapshot integration, this resolver reads the
-current definition and makes no historical-version claim.
+arrival order even when a document moves back. Deletions follow the history-cut rule above.
+The browser editor reads saved definitions and history from the working copy. Consumers read
+both at the published commit. Prefix replacement preserves opaque snapshot suffixes.
 
 ## Tessera documents
 
