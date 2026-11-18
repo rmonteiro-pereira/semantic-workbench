@@ -417,14 +417,41 @@ case multipliers select shorter probes, for example `bun scripts/dry-run-latency
 stacks, use `bun --cpu-prof --cpu-prof-dir=out/dry-run scripts/dry-run-latency.ts --profile 3 1`.
 Keep profiling separate from the uninstrumented 20-run latency measurement.
 
-The baseline at `84642cb0`, measured with Bun 1.4 on 2026-11-17, is:
+Bun 1.4 measurements compare `84642cb0` with prepared replay scopes at `960b6dcd`. Each row uses one warm-up
+and 20 sequential POSTs on the named host. The local and shared dev-server runs have different
+CPU capacity; compare results within a host.
 
-| Measurement host | Matrix cells | POST median (ms) | POST p95 (ms) |
-| --- | ---: | ---: | ---: |
-| Local machine | 1,035 | 2,466.99 | 3,106.11 |
-| Local machine | 2,070 | 1,976.19 | 2,190.76 |
-| Dev server | 1,035 | 7,028.60 | 7,219.57 |
-| Dev server | 2,070 | 7,010.38 | 7,149.47 |
+| Measurement host | Matrix cells | Before median / p95 (ms) | After median / p95 (ms) |
+| ---------------- | -----------: | -----------------------: | ----------------------: |
+| Local machine    |        1,035 |      2,466.99 / 3,106.11 |         252.69 / 306.52 |
+| Local machine    |        2,070 |      1,976.19 / 2,190.76 |         266.07 / 312.44 |
+| Dev server       |        1,035 |      7,028.60 / 7,219.57 |         872.79 / 934.74 |
+| Dev server       |        2,070 |      7,010.38 / 7,149.47 |       878.96 / 1,040.34 |
+
+The instrumented dev-server baseline spent 6,394.51 ms per POST in 4,702 Cedar calls, against a
+7,131.65 ms median POST. Repeated decisions dominated: both matrix replay and people summaries
+asked equivalent action questions, including repeated readability checks. The corresponding
+optimized probe spends 686.87 ms in 463 Cedar calls, with an 888.34 ms median POST. On the local
+machine the optimized probe spends 218.87 ms in those 463 calls, with a 295.94 ms median POST.
+Instrumented probes use three requests after warm-up and are separate from the timing table.
+
+Validated policies own role-, principal-type- and resource-type-aware action classes, built on the first replay. Replay
+scopes reuse equivalent decisions and their readability checks; ordinary request scopes retain
+exact action keys. Prospective project creation has a separate key because it searches domain
+scopes. Before/after scopes can be shared only when the relevant principal, grants, custom roles,
+project visibility and client entry agree. Arbitrary Cedar admin rules keep separate scopes and
+exact action classes. Policy preparation is reused only when the validated roles and admin rules
+match. Decision results remain confined to a scope, with refresh invalidation; there is no global
+request-result cache. The Admin browser wait is five seconds. The doubled-matrix dev-server p95 is
+1,040.34 ms; the Admin browser suite's slowest POST, on the conservative arbitrary-rule path,
+is 4,022 ms, leaving about one second for rendering. The browser suite passes with that wait.
+Arbitrary-rule proposals are outside the subsecond grant-removal measurement above.
+
+Cedar can emit simultaneous forbid IDs in different orders. Repeating the original replay at
+`84642cb0` with the last Admin removed produced five rule-array order differences, with identical
+decisions and identical rule sets. A strict whole-answer byte comparison passes for grant addition,
+grant removal, custom-role changes and role deletion, but encounters this existing nondeterminism
+for last-Admin removal. Existing fixtures retain their original contents.
 
 `bun test tests/auth/http-characterization.test.ts` compares the original recorded route cases and audit records; preserve its fixture unchanged.
 The comparison asserts and removes only the additive published identity on project listings. New publication and preview routes have separate parity cases.

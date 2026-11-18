@@ -117,6 +117,7 @@ function preparePolicies(options: { builtinRoles: Role[]; customRoles: Role[]; a
       .filter(([, text]) => /\bforbid\s*\(/.test(text))
       .map(([id]) => id),
   );
+  let replayClasses: ReturnType<typeof actionClasses> | undefined;
   return {
     preparsedSchemaName,
     preparsedPolicySetId,
@@ -125,7 +126,11 @@ function preparePolicies(options: { builtinRoles: Role[]; customRoles: Role[]; a
     forbids,
     // Arbitrary rules can inspect resource ids or paths beyond the compiler's rule classes.
     exactResources: Object.keys(options.adminRules ?? {}).length > 0,
-    actionClasses: actionClasses(staticPolicies, Object.keys(options.adminRules ?? {}).length > 0),
+    // Ordinary requests do not need action equivalence, so build its index on the first replay.
+    actionClasses: (roles: string[], kind: Principal['kind'], type: string) => {
+      replayClasses ??= actionClasses(staticPolicies, Object.keys(options.adminRules ?? {}).length > 0);
+      return replayClasses(roles, kind, type);
+    },
   };
 }
 
