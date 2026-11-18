@@ -1,139 +1,198 @@
-# Batch 1 gate
+# Batch 1 gate after independent review
 
-The full unit suite passes. Browser results retain five failures reproduced on the existing baseline or supplied as known on main; the batch is not a fully green gate. Screenshots, UI regression comparison and architecture review are separate jobs.
+The full unit, check, build, mutation and MCP gates pass. Five browser assertions remain red.
+The comparison found equal responsive height and lower neighborhood graph task times on the batch.
 
-Tested source HEAD: `a62879c4703e193120123f5f39fe74bc586f6061`. The gate-record commit that follows changes documentation only.
+Final tested batch before this gate record is `54f586a223de9df86947bd3f8bf4e792029f8a37`.
+The full unit suite ran at `eedea8715f65087385dd69ff05dbc1143742be2f`. The initial full browser run,
+build, mutation and MCP acceptance ran at `2b99861f112e3ca644d071b369640e1f78c433b9`.
+That revision formats a mutation tuple. The final follow-up changes a browser fixture and its
+documentation. The graph and responsive comparisons used identical application source at
+`1197834d`.
 
-All heavy commands ran serially on the development server with Bun 1.4. Long drivers were detached with logs and status files. Evidence is under `/srv/dev/tmp-batch-1/gate/`: `full/` for all forty browser suites, `followup/` for the corrected fixtures, ownership mutants and autosave, `final/` for main comparisons and the successful full unit/mutation run, and `pristine/` for the final clean-source checks.
+## Gate commands on the development server
 
-## Full gate commands
-
-| Command | Final summary |
+| Command | Summary |
 | --- | --- |
-| `bun test` | 3261 pass; 0 fail; 379726 expect calls. Ran 3261 tests across 456 files. [2508.52s] |
-| `bun --bun run check` | Exit 0; format correct; Oxlint 2742 warnings, 0 errors; comment/theme/brand checks clear |
-| `bun --bun run build` | Exit 0; `✓ built in 3.12s` (existing large-chunk warning) |
-| `bun scripts/ci-validate.ts --step mutation` | `825/825 targeted mutants killed; all unmodified module baselines passed.` `Gate passed in 2677.0 seconds` |
-| `bun run test:mcp` | `Acceptance run passed: 10 steps.` |
+| `bun test` | 3,281 pass and 0 fail. 379,970 expect() calls. Ran 3,281 tests across 457 files. [2501.81s] |
+| `bun --bun run check` | Exit 0. All matched files use the correct format. Oxlint found 2,751 warnings and 0 errors. Comment, theme and brand checks passed. |
+| `bun --bun run build` | Exit 0. Built in 3.04s. The existing large-chunk warning remains. |
+| `bun scripts/ci-validate.ts --step mutation` | 825/825 targeted mutants killed. All unmodified module baselines passed. Gate passed in 2607.2 seconds. |
+| `bun run test:mcp` | Acceptance run passed: 10 steps. |
 
-## Fix commits
-
-- `f65ae02f` — fix: register proposal operations at the shared boundary. Proposal routes lacked the metadata required by the operation boundary; this caused the HTTP 500 before the handler.
-- `9e22d0ea` — fix: include integrated browser suites in the pipeline matrix. The Azure browser matrix omitted the proposals, usage-traffic and Tessera suites.
-- `ba594bd8` — generated: include pinned ontology data in schema outputs. Shared Tessera base selection needed the pinned ontology data inside the generated layer; the generator now emits it reproducibly.
-- `63351998` — fix: keep shared format and usage imports within their layer. Shared Tessera imported a root schema, and browser usage imported a server value; pure data and parsing now respect layer boundaries.
-- `bfce89e5` — fix: supply usage status in the Admin browser fixture. The Admin mock returned an empty object for usage, crashing the new section; it now returns the disabled-counter response.
-- `7660261f` — fix: exercise remote SCM actions on an ordinary branch. The general remote journey used a protected work branch; it now creates an ordinary branch while preserving authoring and remote checks.
-- `e571121c` — docs: clarify the shared schema boundary and agent request flow. Architecture descriptions now identify the shared usage/schema ownership accurately.
-- `2aa5c79a` — test: allow sign-in to settle on the shared development server. A fixed five-second sign-in ceiling was too short on the shared server; only the ceiling changed to twenty seconds.
-- `3bb34bd5` — generated: refresh administration replay for proposal and usage routes. New proposal/usage route decisions changed the deterministic dry-run fixture; existing entries remain unchanged.
-- `d4268b0b` — fix: publish Git setup commits before pushing the default branch. Git setup attempted to push before publication; it now publishes and switches to default before both remote checks.
-- `18f4333e` — test: wait for the workspace after reloading the Git setup tour. The Git setup viewport tour could click before the reloaded workspace rendered; it now waits for that control.
-- `9f7de863` — test: publish local work before checking machine push credentials. The machine-credential fixture pushed personal work; it now publishes then pushes default, preserving credential and host assertions.
-- `7dc32b7a` — test: recognize the isolated proposal mutation harness. The boundary scanner treated the isolated proposal mutation harness as application code; its exact path joins the existing fixture list.
-- `7c9ae4be` — test: cover proposal attribution in the complete audit fixture. The complete audit-input fixture omitted the new proposal field; serializer/storage checks now cover it.
-- `c8c0d688` — test: retarget ownership mutants to contribution-aware branch checks. Contribution-aware branch checks orphaned six mutation anchors; the same faults now target the new predicate shape.
-- `a62879c4` — test: verify publication before pushing autosaved work. Autosave expected a work-branch push to succeed; it now proves refusal, publishes, pushes default and verifies the remote commit.
+The mutation total includes 14 proposal, 11 usage, 24 Tessera and 21 MCP mutants. The initial
+unit run ended with 3,280 passes and one failure because the generated operation reference lacked
+the new usage snapshot effect. The regeneration and the full unit rerun resolved that failure.
+The first check after re-anchoring the Git mutant found a formatting difference. `2b99861f`
+applies the repository format to the anchor. The check passed again on the final tested batch.
+The focused Tessera documentation suite passed all 12 tests after the browser fixture edit.
 
 ## Browser commands
 
-Every row runs `bun scripts/ci-validate.ts --step browser --suite <script>`. Final browser result: 35 passed, 5 red. Each red command ends with `Failed gate steps: browser`; its assertion and baseline evidence are recorded below.
+Each row ran `bun scripts/ci-validate.ts --step browser --suite <script>`.
+**35 passed and 5 failed.**
 
 | Script | Summary |
 | --- | --- |
-| `test:auth` | Gate passed in 137.1 seconds |
-| `test:two-editors` | Gate passed in 112.7 seconds |
-| `test:admin` | Gate passed in 126.5 seconds |
-| `test:ui` | Gate passed in 59.5 seconds |
-| `test:responsive` | RED — see baseline findings below |
-| `test:edges` | Gate passed in 27.8 seconds |
-| `test:grouping-validation` | Gate passed in 42.3 seconds |
-| `test:overview-areas` | Gate passed in 29.2 seconds |
-| `test:published-snapshot` | Gate passed in 32.4 seconds |
-| `test:examples:ui` | Gate passed in 110.5 seconds |
-| `test:projects` | Gate passed in 37.9 seconds |
-| `test:trash` | Gate passed in 43.4 seconds |
-| `test:sidebar` | Gate passed in 194.0 seconds |
-| `test:metrics` | Gate passed in 61.2 seconds |
-| `test:graph` | RED — see baseline findings below |
-| `test:editor` | RED — see baseline findings below |
-| `test:item-edit` | Gate passed in 65.3 seconds |
-| `test:addresses` | Gate passed in 17.8 seconds |
+| `test:auth` | Gate passed in 139.6 seconds |
+| `test:two-editors` | Gate passed in 116.1 seconds |
+| `test:admin` | Gate passed in 128.8 seconds |
+| `test:ui` | Gate passed in 63.8 seconds |
+| `test:responsive` | Failed gate steps: browser |
+| `test:edges` | Gate passed in 29.2 seconds |
+| `test:grouping-validation` | Gate passed in 44.1 seconds |
+| `test:overview-areas` | Gate passed in 27.9 seconds |
+| `test:published-snapshot` | Gate passed in 31.1 seconds |
+| `test:examples:ui` | Gate passed in 111.7 seconds |
+| `test:projects` | Gate passed in 37.8 seconds |
+| `test:trash` | Gate passed in 42.3 seconds |
+| `test:sidebar` | Gate passed in 195.9 seconds |
+| `test:metrics` | Gate passed in 63.0 seconds |
+| `test:graph` | Failed gate steps: browser |
+| `test:editor` | Failed gate steps: browser |
+| `test:item-edit` | Gate passed in 68.0 seconds |
+| `test:addresses` | Gate passed in 17.6 seconds |
 | `test:mcp:browser` | Gate passed in 15.4 seconds |
-| `test:rdf-edit` | Gate passed in 40.7 seconds |
-| `test:validation` | Gate passed in 20.8 seconds |
-| `test:tessera` | Gate passed in 13.4 seconds |
-| `test:scm` | Gate passed in 53.8 seconds |
-| `test:odcs` | Gate passed in 37.5 seconds |
-| `test:lineage` | RED — see baseline findings below |
-| `test:autosave` | Gate passed in 30.7 seconds (follow-up) |
-| `test:sql` | Gate passed in 34.4 seconds |
-| `test:git-setup` | Gate passed in 30.6 seconds |
-| `test:monorepo` | Gate passed in 25.3 seconds |
-| `test:dialogs` | Gate passed in 321.8 seconds |
-| `test:telemetry` | Gate passed in 79.0 seconds |
-| `test:terminology` | Gate passed in 104.4 seconds |
-| `test:mappings-layout` | Gate passed in 75.3 seconds |
-| `test:clipping` | Gate passed in 28.9 seconds |
-| `test:mapping-graph` | Gate passed in 114.2 seconds |
-| `test:back-history` | RED — see baseline findings below |
-| `test:usage-traffic` | Gate passed in 158.4 seconds |
-| `test:proposals` | Gate passed in 39.0 seconds |
-| `test:theme` | Gate passed in 188.1 seconds |
-| `test:brand` | Gate passed in 12.3 seconds |
+| `test:rdf-edit` | Gate passed in 42.6 seconds |
+| `test:validation` | Gate passed in 20.9 seconds |
+| `test:tessera` | Gate passed in 13.7 seconds |
+| `test:scm` | Gate passed in 58.6 seconds |
+| `test:odcs` | Gate passed in 38.6 seconds |
+| `test:lineage` | Failed gate steps: browser |
+| `test:autosave` | Gate passed in 32.2 seconds |
+| `test:sql` | Gate passed in 35.5 seconds |
+| `test:git-setup` | Gate passed in 33.0 seconds |
+| `test:monorepo` | Gate passed in 26.7 seconds |
+| `test:dialogs` | Gate passed in 326.5 seconds |
+| `test:telemetry` | Gate passed in 79.3 seconds |
+| `test:terminology` | Gate passed in 106.2 seconds |
+| `test:mappings-layout` | Gate passed in 79.3 seconds |
+| `test:clipping` | Gate passed in 29.1 seconds |
+| `test:mapping-graph` | Gate passed in 122.7 seconds |
+| `test:back-history` | Failed gate steps: browser |
+| `test:usage-traffic` | Gate passed in 154.0 seconds |
+| `test:proposals` | Gate passed in 40.9 seconds |
+| `test:theme` | Gate passed in 186.1 seconds |
+| `test:brand` | Gate passed in 12.1 seconds |
 
-## Scope and causes
+Authentication took 118–470 ms across 27 sign-ins in `test:auth` and 242–262 ms across four
+in `test:two-editors`. All met the five-second authentication limit. Workspace readiness
+is measured separately.
 
-Proposal creation returned HTTP 500 before its handler because the mandatory operation boundary could not find `POST /api/projects/:slug/proposals` in the inventory. The proposal routes had been merged without their inventory entries. All eleven operations and the promotion publication steps are now registered; the Git queue and project write locks did not need a change.
+## Browser failures
 
-The browser pipeline matrix omitted the three integrated suites. Shared Tessera code imported a pinned schema outside its layer, while the browser usage module imported a server value. The schema generator now supplies the pinned JSON under generated output, and the pure counted-operation table/parser live in shared code with the server import preserved by a re-export.
-
-Admin tests crashed because their mock answered the new usage endpoint with an empty object. Its disabled-counter response now has the real shape. The publication policy also invalidated several test journeys that pushed work branches. Those journeys now preserve refusal checks and publish before pushing the default branch, or use an ordinary branch where they test general remote behavior.
-
-The remaining unit failures were fixture drift: local credential tests pushed personal work, the auth boundary scanner did not recognize the isolated proposal mutation harness, and the complete audit fixture lacked proposal attribution. Ownership mutation anchors also needed retargeting after contribution branches extended the predicates; no mutant was removed.
-
-## Existing browser failures
-
-All four newly observed failures were reproduced against main `84642cb0` from an archive in isolated server scratch space, serially with the same Bun and unchanged dependencies. No performance limit or geometry assertion was relaxed.
-
-| Suite | Batch evidence | Main evidence |
+| Suite | Failure in the full gate | Main evidence |
 | --- | --- | --- |
-| `test:responsive` | Canvas height 481; requires more than 504 | Known baseline failure supplied in the brief; intentionally unchanged |
-| `test:graph` | Longest pierce main-thread task 300 ms, then 222 ms; limit 100 ms | 255 ms at the same assertion |
-| `test:editor` | 57.28 ms/key, then 57.54 ms/key; requires less than 30 ms/key | 58.51 ms/key at the same assertion |
-| `test:lineage` | Walk here on customers intercepted by Resize sidebar | Same customers click intercepted by the sidebar separator |
-| `test:back-history` | Empty graph fingerprint makes collapse look unchanged | Same empty graph fingerprint and unchanged-collapse assertion |
+| `test:responsive` | Canvas height 481 px. The assertion requires more than 504 px. | Same height in all five paired runs. |
+| `test:graph` | Longest pierce task 334 ms. The assertion allows at most 100 ms. | All five main samples missed the limit. The paired batch distribution is lower. |
+| `test:editor` | Typing latency 64.36 ms/key. The assertion requires less than 30 ms/key. | The integration gate measured 58.51 ms/key on main at the same assertion. |
+| `test:lineage` | The sidebar separator intercepts the “Walk here” click on customers. | The integration gate reproduced the same intercepted click on main. |
+| `test:back-history` | An empty graph fingerprint makes the collapse appear unchanged. | The integration gate reproduced the same empty fingerprint on main. |
 
-A diagnostic history readiness wait exposed a later overlapping lineage-button click and was discarded. No history or lineage code change is included. These are reported separately under the brief's instruction to report existing integrity defects rather than expand the integration scope.
+The lineage and back-history failures stop their journeys at the first failed assertion. This
+run gives no evidence for the later steps in either journey.
 
-## Fixture review
+Two other browser commands failed on the initial run. The mapping graph fixture restored a source
+file while the browser still held the previous resolved view. Commit `54f586a2` reloads the restored
+mapping and proves the injected warning clears before testing Customer's center and connected
+assets. The full mapping graph suite then passed in 122.7 seconds.
 
-The dry-run baseline was regenerated with its existing `dryRunBaseline()` builder: only the usage GET and three proposal read cases were added; matrix cases increased from 1035 to 1143. Existing cases and the people/audit fields are unchanged. The HTTP characterization recorder produced no diff. The generated ontology JSON is the pinned schema data, with no schema behavior change.
+The dialog suite timed out before rendering the workspace. A diagnostic attempt with a 20-second
+wait also timed out, so the cause remains unconfirmed. Subsequent full runs passed all nine dialog
+checks, including a clean rerun in 326.5 seconds with the original five-second wait.
+
+## Independent review fixes
+
+- **Outgoing Git refs.** `24291142` pins the exact published source and destination in the repository
+  queue. Bare-remote tests reject ordinary branches with unpublished commits and a checkout interleaved
+  after branch observation. The SCM browser journey sends published ordinary-branch history and still
+  inspects remote commits. `aeece870` aligns the type before the first publication. `ad9d9c6a` retains
+  the authorization-effect mutant after the signature change.
+- **Published usage addresses.** `866a758b` stages address history from the published transition. Two
+  authorized readers see the old name before publication and the new name after publication and
+  compaction. The route also resolves counted addresses in the pinned model before returning them.
+- **Published compile provenance.** `ce5a6f45` pins the workbench commit independently of caller input
+  and identifies standalone Git sources in the manifest and loss report. Source and CLI tests cover
+  linked worktrees, mismatched branches and commits, reserved refs and unrelated repositories with the
+  same basename. `165369ef` covers the fallback from a trash archive to standalone compile.
+- **Proposal Work and Synchronize.** `f900c267` rechecks the branch and head inside the mutation turn.
+  Controlled same-person checkout tests verify all affected branch heads after refusal.
+- **Bundle containment.** `de406361` compares whole path components. The writer test exercises a real
+  parent, an ordinary child, a two-dot-prefixed child and symlinks resolving to each.
+- **Usage trash and restoration.** `e1197dd4` drains pending counts before the move and invalidates old
+  recordings. The test suspends a recording through deletion and slug reuse, then checks that restoration
+  recovers only the archived count.
+- **Close and restore interruption.** `a5285033` reconciles lone proposal refs after startup. Fault
+  injection stops between the Git ref transaction and metadata write in both directions.
+- **Clean-stop flush.** `6d41b00a` refuses admissions, waits for the suspended model lookup and flushes
+  before the workspace closes. The test verifies the stored day.
+- **Sign-in.** `fcee2193` measures navigation through the authentication callback with the five-second
+  budget. The boundary test rejects 5,000 ms and accepts 4,999 ms. Workspace readiness has its own
+  assertions.
+- **MCP authoring and semantic reads.** `16a3521a` documents local authoring reads of stored bytes,
+  including unpublished Tessera notes, and the stripped published semantic projection. Existing MCP tests
+  cover both paths. `5f2cddd2` wraps the documentation.
+- **Mixed-project proposal metadata.** `779bed5f` documents the partial reader contract. The visibility
+  test checks name, creator, contributors and tip with undisclosed project names filtered.
+- **Loss acceptance policy.** `25038bd8` documents how an unchanged policy applies to a changed value.
+  The CLI test accepts by policy and rejects the old digest for the changed note.
+- **Usage limits.** `d87fd14e` bounds recording admission, streaming, stored-day bytes and validated
+  entries. Regression tests exercise a body without Content-Length, an overloaded recorder and a stored
+  day with unknown operations or over-limit input.
+- **Traffic disabled.** `b30badfd` skips bundle iteration and address derivation. A disabled-snapshot
+  test traps a relationship accessor. `3d23b832` moves the subscription to the canvas and a plain-edge
+  test traps store reads. `1197834d` skips hidden-label geometry and reuses unchanged edges. A regression
+  test traps any geometry read on an unlabeled edge.
+- **Proposal ref failure.** `d07e442b` distinguishes ref movement from Git failure. A held Git lock
+  reproduces an operational error with an unmoved tip.
+- **Policy file limit.** `8ddd604c` reads a bounded regular file and caps the allow-list by the registry.
+  CLI tests cover both limits.
+- **Mapping browser fixture restoration.** `54f586a2` reopens the mapping after restoring the fixture.
+  The existing journey now verifies the injected finding clears before testing Customer centering and
+  navigation.
+
+The generated reference drift was caught by the full unit suite. Commit `eedea871` regenerates only the
+`usage.read` snapshot effect row and is covered by the inventory reference equality test.
+
+The three accepted contract decisions retain the original behavior. Their evidence checks the behavior
+and the docs state the visibility and acceptance rules explicitly. The archive and pointer type
+follow-ups came from checking the new code against related repository states.
+
+## Main comparison on the development server
+
+Both revisions ran five times at each failing viewport. The comparison alternated revision order,
+used the same Bun and dependencies, and kept the original assertions. Only the responsive log
+gained a line to print the measured height.
+
+| Assertion and viewport | Main `84642cb0` | Batch `1197834d` |
+| --- | --- | --- |
+| Canvas height at 1280×720, requires >504 px | 481, 481, 481, 481, 481 px. Median 481 px. Range 481–481 px. | 481, 481, 481, 481, 481 px. Median 481 px. Range 481–481 px. |
+| Longest pierce task at 1600×1000, requires ≤100 ms | 319, 198, 413, 317, 266 ms. Median 317 ms. Range 198–413 ms. | 235, 326, 151, 179, 208 ms. Median 208 ms. Range 151–326 ms. |
+
+Every sample on both revisions fails the original limit. The batch matches main’s responsive height
+and has a lower median and observed maximum on the graph test. An intermediate batch measured
+330 ms median against 264 ms on main and was excluded from the full gate. The next commit skips
+unlabeled-edge geometry and reuses edge data between renders with identical inputs.
 
 ## Reviewer and capture handoff
 
-The gate is not entirely green because of the five browser baseline failures above. The architecture review and screenshot/UI regression comparison remain separate jobs. Capture the committed batch revision and retain light/dark, phone, long-text and empty/loading/error coverage for the added proposal, usage and Tessera interfaces. The usage-traffic suite, including counters-off behavior, passed. The proposal and two-editor suites passed their collaborative promotion flows. MCP acceptance passed; its usage counting integration was already present in the starting handoff.
+Authorized local MCP authoring reads stored bytes, including unpublished work and Tessera notes.
+Semantic context, planning and explanation read the stripped published projection. A reader of
+one declared project can see shared proposal metadata, with unreadable project names filtered.
+A Tessera loss policy still applies when an allowed property's value changes. Digest acceptance
+requires the digest for the new loss. The branch and publication record pin in-workbench
+compile input. `standalone-snapshot` indicates Git-object provenance without a workbench
+publication record.
 
-The pre-push check reports one finding: the required architecture review has not been recorded. It reports no attribution, confidential-term or credential findings. The architecture review remains with the later reviewer as specified in the brief; no review marker was created. The repository has no `scripts/commit_cadence.py`, so that requested checker is unavailable.
+The next address-history integration can change `publishedMigrationRecords` to load migrations from
+the published side's committed history file. The usage read still resolves returned items against
+the pinned published model and the reader's grants.
 
-Readability checks passed for all sixteen changed TypeScript files. The three updated project documentation files passed the full leak scan; this internal gate record uses the confidential-only scan.
+Use the committed review revision for the separate screenshot and UI regression work. Cover the
+proposal, usage and Tessera states with light and dark themes, phone width, long text, and empty,
+loading and error states. The established browser failures are listed above. The architecture
+review remains a separate gate.
 
-No merge, origin push, deployment or production access is part of this gate.
-
-## Supporting focused verification
-
-| Command scope | Summary |
-| --- | --- |
-| Proposal tests, inventory and operation parity | 121 pass; 0 fail; 2977 expect calls; 21 files; 456.45 s |
-| Pipeline tests | 239 pass; 0 fail; 665 expect calls; 12 files; 8.78 s |
-| Layout boundaries, schema reproducibility, Tessera derivation/base checks and counted-operation table | 19 pass; 0 fail; 69 expect calls; 5 files; 2.44 s |
-| Admin clipping, geometry, dialogs, presentation and usage settings | 38 pass; 0 fail; 71 expect calls; 5 files; 35.77 s |
-| Remote credentials, boundary scanner and complete audit fixture | 18 pass; 0 fail; 187 expect calls; 3 files; 8.59 s |
-| `bun scripts/mutation-tests.ts --only secrev-worktrees` | 9/9 mutants killed; baselines passed |
-| `bun scripts/mutation-tests.ts --only secrev-hooks` | 5/5 mutants killed; baselines passed |
-
-The first complete unit run ended with 3258 pass, 3 fail, 379709 expect calls across 3261 tests in 456 files (2417.60 s). The three failures were corrected in the fixture commits above. The first mutation attempt stopped in preflight on six stale anchors; none was counted as a killed mutant. The final summaries supersede these initial results.
-
-The complete mutation result includes 14 proposal, 11 usage, 24 Tessera and 21 MCP mutants, all killed. The full unmodified UI browser baseline also passed as `test:ui`.
-
-Final clean-source verification passed `fmt`, `check`, `build` and MCP acceptance with no working-tree changes. The detached drivers exited; no process started for this gate remains running.
+The pre-review integration gate is recorded at `1e98bed9` in this file's Git history. Proposal
+creation initially returned HTTP 500 because its route lacked the required operation inventory
+entry. `f65ae02f` registered the proposal operations and their dependent publication steps.
