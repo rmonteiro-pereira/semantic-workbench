@@ -28,6 +28,67 @@ question", "session update". If verification disagrees with a plan assumption, t
 not the specification, unless item 5 differs (a write that carries a base version would let the
 workbench use it; the conservative rule of FR-024 still stands).
 
+### R1 verified record (2026-11-17)
+
+Sources, all from the protocol's own repository `agentclientprotocol/agent-client-protocol`
+(Apache-2.0) and its published documentation: the release `schema-v1.32.0` (published
+2026-11-14, tag object `3d911e0c126ecc71e5872e38212e4a7345f36aed`) with its `schema.json` and
+`meta.json`; the documentation pages under `docs/protocol/v1/` (`transports`, `file-system`,
+`prompt-turn`, `cancellation`, `session-setup`, `security`).
+
+1. **Revision.** Protocol version `1` is the stable line; its schema release is `1.32.0`. A
+   `schema/v2` line exists as pre-release (`2.0.0-alpha.16`) and is not pinned. Pin: v1, release
+   1.32.0, `schema.json` sha-256 `e747a7be...ae21` (full value in `docs/agent-panel.md`).
+2. **Transport.** One transport is defined: stdio. The client launches the agent as a subprocess,
+   messages are UTF-8 JSON-RPC, one per line, with no embedded newline; the agent must write only
+   protocol messages to stdout. A Streamable HTTP transport is only an RFD. Custom transports are
+   allowed if they keep the message format and lifecycle. So the workbench never launches
+   anything; the person-run relay performs the launch and the stdio piping, and the workbench is
+   the client at the other end of a custom (HTTP) transport carrying the same messages.
+3. **Agent to client requests.** `fs/read_text_file` (`sessionId`, `path` absolute, optional
+   `line` 1-based, optional `limit` in lines; answers `content`), `fs/write_text_file`
+   (`sessionId`, `path` absolute, `content`; the client must create a missing file; answers
+   empty), `session/request_permission` (`sessionId`, `toolCall`, `options` each with
+   `optionId`, `name`, `kind`; answers `outcome` of `cancelled` or `selected` with `optionId`),
+   `terminal/create`, `terminal/output`, `terminal/release`, `terminal/wait_for_exit`,
+   `terminal/kill` and `elicitation/create` (all answered "method not found" here). The file
+   methods exist only when the client advertised `fs.readTextFile` and `fs.writeTextFile`; the
+   terminal only when `terminal` is true (default false).
+4. **Client to agent calls.** `initialize` (`protocolVersion: 1`, `clientCapabilities`,
+   `clientInfo`), `authenticate` (only if the agent lists auth methods; not offered), `session/new`
+   (`cwd` absolute, `mcpServers` required, may be empty), `session/prompt` (`sessionId`, `prompt`
+   as a list of content blocks; answers `stopReason`: `end_turn`, `max_tokens`,
+   `max_turn_requests`, `refusal`, `cancelled`), `session/cancel` (notification). Notifications
+   from the agent: `session/update` with kinds `user_message_chunk`, `agent_message_chunk`,
+   `agent_thought_chunk`, `tool_call`, `tool_call_update`, `plan` (entries with `content`,
+   `priority`, `status`: the agent's task list), `available_commands_update`,
+   `current_mode_update`, `config_option_update`, `session_info_update`, `usage_update`, `notice`,
+   `compaction_update`, `compaction_summary_chunk`. Also `$/cancel_request`.
+5. **Write base version.** `fs/write_text_file` carries no base version. The plan's rule stands:
+   the workbench keeps the version the agent read.
+6. **Content kinds.** `text`, `image`, `audio`, `resource_link`, `resource` (embedded text or
+   blob). Tool call content adds `content`, `diff`, `terminal`. Only text is shown; the others
+   become a notice naming the kind and size.
+7. **Schema file and licence.** One JSON Schema (draft 2020-12) in the release and in the
+   repository at `schema/v1/schema.json`, with `meta.json` listing method names. Licence
+   Apache-2.0. It is one union document with 183 definitions; each frame is validated through a
+   `$ref` to a definition. It uses `x-` keywords, so the validator runs with strict mode off,
+   as `scripts/compile-schemas.ts` already does.
+8. **Cancellation.** When the client sends `session/cancel` it must answer every pending
+   permission request with `cancelled`; the agent then answers the prompt with stop reason
+   `cancelled`. The plan's rule (cancel questions on turn cancel) is therefore required.
+9. **Batches.** The protocol text mentions no JSON-RPC batch. Batches are refused.
+10. **Trust.** The security page says ACP does not sandbox the agent, permission requests are
+    advisory, `agentInfo` is self-reported, and agent text must be treated as untrusted and shown
+    without running scripts or fetching links. This matches the plan.
+11. **Size of the used subset.** Four calls, one notification family and two file requests plus
+    the permission request: well under 15. The hand-written subset stands (R2 gate passes: a
+    schema file exists).
+
+Effect on the plan and contracts: method names are now fixed in the contract; the contract also
+states the cancel rule, the answer for an agent that asks for authentication, and the handling of
+`line` (1-based). No requirement changes.
+
 ## R2. SDK or a small hand-written subset
 
 **Evidence.** The repository has no JSON-RPC or ACP library. The constitution requires new
