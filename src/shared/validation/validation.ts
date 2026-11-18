@@ -6,6 +6,9 @@ import { odcsReferenceIssues } from '../odcs/foreign-keys';
 import { contract, semantic } from '../../generated/validators.js';
 import { type Issue, rejectIssues, InputError, schemaErrorPath } from './diagnostics';
 import { metricLayerIssues, readKpiBindings } from '../metrics/extension';
+import { INCLUDES_PROPERTY } from '../tessera/additions/includes';
+import { IMPORTS_PROPERTY } from '../tessera/additions/imports';
+import { PART_PROPERTY } from '../tessera/additions/part';
 import { TesseraNames } from '../tessera/format';
 import { readMarker } from '../tessera/marker';
 import { tesseraIssues, withoutRepeatedSchemaFindings } from '../tessera/validate';
@@ -115,7 +118,12 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
     rejectIssues(issues);
   }
   // A marked document is judged by the Tessera rules: its derived schema replaces the pinned one and it is never "not validated".
-  const marked = !options.nested && readMarker(data).family !== 'standard';
+  const marker = readMarker(data);
+  const marked = !options.nested && marker.family !== 'standard';
+  const unitRoot = marked && marker.family === 'tessera' && marker.revision === 3 && Array.isArray(data[INCLUDES_PROPERTY]) && data[INCLUDES_PROPERTY].length > 0;
+  const part = marked && marker.family === 'tessera' && marker.revision === 3 && Object.hasOwn(data, PART_PROPERTY);
+  const imported = marked && marker.family === 'tessera' && marker.revision === 3 && Array.isArray(data[IMPORTS_PROPERTY]) && data[IMPORTS_PROPERTY].length > 0;
+  const checkLocalReferences = !part && !unitRoot && !imported;
   if (marked) {
     issues.push(...tesseraIssues(data).issues);
     if (data.ontology !== undefined) applyPinnedSchema = false;
@@ -177,7 +185,7 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
     }
     for (const issue of odcsReferenceIssues(data)) fail(issue.path, issue.message, 'reference');
   } else if (data.ontology !== undefined) {
-    const xs = arr(data.ontology, '/ontology', true);
+    const xs = arr(data.ontology, '/ontology', !unitRoot);
     const names = named(xs, '/ontology', 'concept');
     const parents = new Map<string, string[]>();
     const iris = new Map<string, string>();
@@ -191,7 +199,7 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
       if (!str(value, pointer)) return;
       const iri = expandIri(value as string, prefixes);
       if ('error' in iri) {
-        fail(pointer, iri.error);
+        if (!part || !iri.error.startsWith('Prefix ')) fail(pointer, iri.error);
         return;
       }
       return iri.iri;
@@ -211,7 +219,8 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
       const ps = arr(x.extends, path + '/extends');
       parents.set(x.concept, ps.filter(text));
       ps.forEach((parent, j) => {
-        if (str(parent, `${path}/extends/${j}`) && !names.has(parent) && !OSSIE_BUILTINS.has(parent)) fail(`${path}/extends/${j}`, `Unknown parent concept "${parent}".`, 'reference');
+        if (str(parent, `${path}/extends/${j}`) && checkLocalReferences && !names.has(parent) && !OSSIE_BUILTINS.has(parent))
+          fail(`${path}/extends/${j}`, `Unknown parent concept "${parent}".`, 'reference');
       });
       const rs = arr(x.relationships, path + '/relationships');
       named(rs, path + '/relationships');
@@ -220,7 +229,13 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
         const relationshipPath = `${path}/relationships/${j}`;
         if (relationship.iri !== undefined) identifier(relationship.iri, relationshipPath + '/iri');
         arr(relationship.roles, relationshipPath + '/roles').forEach((role, index) => {
-          if (obj(role, `${relationshipPath}/roles/${index}`) && str(role.concept, `${relationshipPath}/roles/${index}/concept`) && !names.has(role.concept) && !OSSIE_BUILTINS.has(role.concept))
+          if (
+            obj(role, `${relationshipPath}/roles/${index}`) &&
+            str(role.concept, `${relationshipPath}/roles/${index}/concept`) &&
+            checkLocalReferences &&
+            !names.has(role.concept) &&
+            !OSSIE_BUILTINS.has(role.concept)
+          )
             fail(`${relationshipPath}/roles/${index}/concept`, `Unknown concept "${role.concept}". Define it before importing.`, 'reference');
         });
         arr(relationship.verbalizes, relationshipPath + '/verbalizes').forEach((v, k) => str(v, `${relationshipPath}/verbalizes/${k}`));

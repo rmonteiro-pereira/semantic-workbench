@@ -1,4 +1,7 @@
 // Findings for a Tessera document: the marker, the revision, the Ossie base, the registered properties, then the derived schema.
+import type { ValidateFunction } from 'ajv';
+import { tesseraPart } from '../../generated/validators.js';
+import { PART_PROPERTY } from './additions/part';
 import { isObject } from '../edit/source-text';
 import type { Issue } from '../validation/diagnostics';
 import { schemaErrorPath } from '../validation/diagnostics';
@@ -99,8 +102,7 @@ function markerIssue(reading: Extract<MarkerReading, { family: 'invalid' }>, rev
   return error('tessera-marker', MARKER_PATH, message);
 }
 
-function derivedSchemaIssues(data: unknown, base: SupportedBase, revision: number, reported: Set<string>): Issue[] {
-  const validate = base.validators[revision];
+function derivedSchemaIssues(data: unknown, validate: ValidateFunction, reported: Set<string>): Issue[] {
   if (validate(data)) return [];
   const issues: Issue[] = [];
   const seen = new Set<string>();
@@ -127,7 +129,9 @@ export function documentFormat(data: unknown, options: TesseraOptions = {}): Doc
   if (reading.family === 'standard') return { family: 'standard' };
   if (reading.family === 'invalid') return null;
   const document = data as Record<string, unknown>;
-  const base = findBase(options.bases ?? SUPPORTED_BASES, document.version);
+  const bases = options.bases ?? SUPPORTED_BASES;
+  const part = reading.revision === 3 && Object.hasOwn(document, PART_PROPERTY);
+  const base = part ? bases[0] : findBase(bases, document.version);
   const revisions = options.revisions ?? SUPPORTED_REVISIONS;
   if (document.ontology === undefined || !base || !revisions.includes(reading.revision) || !base.validators[reading.revision]) return null;
   return { family: 'tessera', revision: reading.revision, base: base.version, baseLabel: base.label };
@@ -152,6 +156,13 @@ export function tesseraIssues(data: unknown, options: TesseraOptions = {}): Tess
         `This document is ${TesseraNames.product} revision ${declaredRevision}, which this workbench does not support. Supported revisions: ${revisions.join(', ')}.`,
       ),
     );
+  if (declaredRevision === 3 && revisions.includes(declaredRevision) && Object.hasOwn(document, PART_PROPERTY)) {
+    const properties = propertyIssues(document, registry, declaredRevision);
+    issues.push(...properties);
+    const failures = derivedSchemaIssues(document, tesseraPart, new Set(properties.map(issue => issue.path)));
+    issues.push(...failures.map(issue => ({ ...issue, code: issue.path.startsWith('/ontology/') ? issue.code : 'tessera-part-shape' })));
+    return { issues, format: documentFormat(data, options) };
+  }
   const isOntology = document.ontology !== undefined;
   if (!isOntology)
     issues.push(
@@ -174,7 +185,7 @@ export function tesseraIssues(data: unknown, options: TesseraOptions = {}): Tess
     issues.push(error('tessera-base', '/version', `Ossie ${base.version} has no schema for ${TesseraNames.product} revision ${declaredRevision}.`));
     return { issues, format: null };
   }
-  issues.push(...derivedSchemaIssues(document, base, declaredRevision, new Set(properties.map(issue => issue.path))));
+  issues.push(...derivedSchemaIssues(document, base.validators[declaredRevision], new Set(properties.map(issue => issue.path))));
   issues.push(...additionSemanticIssues(document, declaredRevision));
   return { issues, format: documentFormat(data, options) };
 }
