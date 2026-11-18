@@ -107,6 +107,7 @@ describe('read route inventory', () => {
     };
     const { readRouteExamples } = await import('./route-actions');
     const { routeFor } = await import('../../src/server/auth/route-actions');
+    const { routeVerdict } = await import('../../src/server/auth/route-verdict');
     using fixture = await authWorkspace();
     const source = fixtureFiles('sales-metrics')
       .find(file => file.path === 'sales.semantic.yaml')!
@@ -161,7 +162,8 @@ describe('read route inventory', () => {
             url.searchParams.set('commit', 'HEAD');
           }
           const target = routeFor(example.method, url.pathname, 'server')!;
-          const decision = scope.authorize(target.row.action, target.row.resource(target.match, url));
+          const resource = target.row.resource(target.match, url);
+          const decision = routeVerdict(scope, target.row, 'server', { resource }).decision;
           const response = await handler(
             new Request(url, {
               method: example.method,
@@ -170,7 +172,7 @@ describe('read route inventory', () => {
             }),
           );
           if (!principal.grants.length) expect(response.status).toBe(403);
-          else if (!decision.allow) expect(response.status).toBe(decision.status);
+          else if (!decision.allow) expect(response.status, `${name}: ${path}`).toBe(decision.status);
           else await expectAllowedReadResponse(example.method, path, response, name);
           if (path === '/api/events' && response.status === 200) {
             const stream = response.body!.getReader();

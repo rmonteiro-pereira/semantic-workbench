@@ -7,6 +7,7 @@ import { createAccessControl } from '../../src/server/auth/authorize';
 import { createHandler } from '../../src/server/handler';
 import { accessFixture, person } from './access-fixture';
 import { routeExamples } from './route-actions';
+import { operationForRow } from '../../src/server/auth/operation-inventory';
 import { routeFor } from '../../src/server/auth/route-actions';
 import { LOCAL_READER } from '../../src/server/projects/reader';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
@@ -151,6 +152,8 @@ test('every write action is checked for every fixture user and readable or hidde
     for (const example of routeExamples) {
       const route = routeFor(example.method, example.path);
       if (!route || route.row.public || ['GET', 'HEAD'].includes(example.method)) continue;
+      const effects = operationForRow(route.row.path)?.effects ?? [];
+      if (effects.length && effects.every(effect => effect === 'read')) continue;
       for (const project of ['sales-contracts', 'hr-people']) {
         const path = example.path.replace('missing', project);
         const resolved = routeFor(example.method, path)!;
