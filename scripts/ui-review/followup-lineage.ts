@@ -38,14 +38,13 @@ export function lineageStates(view: View): State[] {
       action: async page => {
         await openLineage(page, dataset, file);
         await showLineageColumns(page);
-        await page
-          .getByRole('button', { name: /^Show all \d+ columns of/ })
-          .first()
-          .click();
+        const card = page.locator('.lineage-card.center');
+        await card.getByRole('button', { name: /^Show all \d+ columns of/ }).click();
       },
       check: async page => {
-        await expect(page.locator('.lineage-list').first()).toBeVisible();
-        await expect(page.getByRole('button', { name: 'Show fewer', exact: true }).first()).toBeVisible();
+        const card = page.locator('.lineage-card.center');
+        await expect(card.locator('.lineage-list')).toBeVisible();
+        await expect(card.getByRole('button', { name: 'Show fewer', exact: true })).toBeVisible();
         return lineageCheck(page);
       },
     });
