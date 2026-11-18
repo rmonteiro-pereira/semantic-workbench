@@ -2,6 +2,7 @@
 import { tmpdir } from 'node:os';
 import { operationBoundaryMutants } from './operation-boundary-mutants';
 import { mcpMutants } from './mcp-mutants';
+import { proposalsMutants } from './proposals-mutants';
 import { addressMutants, modelAddressMutants, migrationAddressMutants, serverAddressMutants, addressOperationMutants } from './address-mutants';
 import { adminMutants } from './admin-mutants';
 import { sessionSecurityMutants } from './session-security-mutants';
@@ -573,6 +574,8 @@ mutants.push(...observabilityMutants);
 mutants.push(...operationBoundaryMutants);
 // The local agent endpoint: access checks, cursors, receipts, tool twins, the commit tool and the audit fields.
 mutants.push(...mcpMutants);
+// Shared proposals: scope, authority, the publication path and the push rule.
+mutants.push(...proposalsMutants);
 
 // Split modules import their siblings, so a mutant runs inside a copy of the whole folder: only
 // imports that leave the folder point back at the real sources.

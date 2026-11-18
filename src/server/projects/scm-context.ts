@@ -93,6 +93,8 @@ export type ScmDeps = {
    * the exact commit before it is merged.
    */
   mergeDefault?: (slug: string, author: CommitAuthor | undefined, check: (tip: string) => Promise<void>) => Promise<GitResult>;
+  /** Merges any commit, such as a proposal's tip, into a working copy's branch; absent in local mode. */
+  mergeCommit?: (slug: string, author: CommitAuthor | undefined, source: { tip: string; label: string }, check: (tip: string) => Promise<void>) => Promise<GitResult>;
 };
 /** The helpers every Source Control module shares: Git access, repository paths and refreshes. */
 export type ScmContext = {

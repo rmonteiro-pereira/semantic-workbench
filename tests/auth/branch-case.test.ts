@@ -40,3 +40,13 @@ test('a branch cannot be created or switched to under another spelling of an exi
   expect(gitOutput(copy, ['branch', '--show-current']).text).toBe('work/frank');
   expect((await switchTo('feature/new', true)).status).toBe(200);
 });
+
+test('a contribution branch is shown to its owner and to nobody else, whatever the letter case', () => {
+  expect(branchShownTo('work/alice.rename', 'work/alice')).toBe(true);
+  expect(branchShownTo('Work/Alice.rename', 'work/alice')).toBe(true);
+  expect(branchShownTo('origin/work/alice.rename', 'work/alice', true)).toBe(true);
+  expect(branchShownTo('work/alice.rename', 'work/bob')).toBe(false);
+  expect(branchShownTo('work/alice.rename', 'work/alice-2')).toBe(false);
+  expect(branchShownTo('work/alice.rename', null)).toBe(false);
+  expect(isPersonalBranch('work/alice.rename')).toBe(true);
+});

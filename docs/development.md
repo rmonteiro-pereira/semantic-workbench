@@ -247,6 +247,11 @@ each targeted fault must be caught. Coverage includes parsing, file/journal beha
 exports, access/governance, authentication, working copies, Admin review, examples, theming,
 branding, deployment decisions and observability.
 
+Shared proposals have their own suite, `bun run test:proposals`, with unit and route tests
+(`tests/proposals-*.test.ts`, `tests/work-in-progress-push.test.ts`, `tests/auth/proposal-*.test.ts`),
+browser component tests and `scripts/proposals-browser-check.ts`. The `proposals` mutant category
+(`scripts/proposals-mutants.ts`) runs under `bun run test:mutation`.
+
 Do not remove a failed assertion, increase its budget or exclude an error to make a release pass.
 Use a targeted reproducer, preserve failure evidence and rerun on the corrected frozen state.
 Important current limits include 30 ms mean editor keystroke time, 500 ms finding latency and

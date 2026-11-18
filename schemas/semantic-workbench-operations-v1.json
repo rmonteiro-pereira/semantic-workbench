@@ -60,7 +60,8 @@
               "creationDomain",
               "remoteAddress",
               "trashTarget",
-              "bodyTargets"
+              "bodyTargets",
+              "authorizeProposal"
             ]
           }
         },

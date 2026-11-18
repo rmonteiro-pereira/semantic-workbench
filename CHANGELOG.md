@@ -23,7 +23,18 @@ not configure a production deployment.
 - Reviewed operation inventory and generated reference, trusted in-process operation dispatch,
   connection effect restrictions, audit attribution fields and origin/tool filters.
 - Independent dry-run samples retain write and denial evidence during non-HTTP read floods.
+- Shared proposals: people with branch and edit rights can start a named proposal, work on it in their own
+  copy, and contribute commits to it. Contributions are checked against the declared projects, per-path edit
+  rights and content guards. Stewards and Admins check a proposal against the published state and promote it
+  through the normal publication path, or close and restore it. A Proposals section in Source control
+  (server mode only) lists, creates and shows proposals. Limits: 50 open proposals per repository, names up to
+  80 characters, identifiers up to 40.
+
 ### Changed
+
+- Push and Sync now refuse any `work/` or `proposal/` branch, in local and server mode. Work in progress stays in
+  the workbench: publish it, then use Push default. A commit with push requested keeps the commit and reports
+  that the push was refused.
 
 - Published reads, local Publish, outside adoption and browser previews share the operation boundary
   and its reviewed inventory. MCP callers consume published definitions independently of browser sessions.

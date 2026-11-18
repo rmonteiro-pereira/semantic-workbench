@@ -659,6 +659,7 @@ export type StatusEntry = {
 export function parseStatus(output: string) {
   const parts = output.split('\0');
   let branch = '';
+  let head: string | null = null;
   let upstream = '';
   let hasCommits = true;
   let ahead = 0;
@@ -668,8 +669,10 @@ export function parseStatus(output: string) {
   for (let i = 0; i < parts.length; i++) {
     const entry = parts[i];
     if (!entry) continue;
-    if (entry.startsWith('# branch.oid ')) hasCommits = entry.slice(13) !== '(initial)';
-    else if (entry.startsWith('# branch.head ')) branch = entry.slice(14);
+    if (entry.startsWith('# branch.oid ')) {
+      hasCommits = entry.slice(13) !== '(initial)';
+      head = hasCommits ? entry.slice(13) : null;
+    } else if (entry.startsWith('# branch.head ')) branch = entry.slice(14);
     else if (entry.startsWith('# branch.upstream ')) upstream = entry.slice(18);
     else if (entry.startsWith('# branch.ab ')) {
       const match = entry.match(/\+(\d+) -(\d+)/);
@@ -721,5 +724,5 @@ export function parseStatus(output: string) {
       });
     }
   }
-  return { branch, upstream, hasCommits, ahead, behind, changes: files.size, files, entries };
+  return { branch, head, upstream, hasCommits, ahead, behind, changes: files.size, files, entries };
 }

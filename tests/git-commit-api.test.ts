@@ -1,4 +1,5 @@
 // Tests selected-path commits, push results and journaled reverts.
+import { WORK_IN_PROGRESS_MESSAGE } from '../src/server/projects/work-in-progress-push';
 import { test, expect } from 'bun:test';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -23,10 +24,11 @@ test('commit with paths commits exactly those paths; push reports its outcome', 
       }),
     );
     expect(commitResult.commit).toMatch(/^[0-9a-f]{40}$/);
-    expect(commitResult.pushed).toMatchObject({ ok: true });
+    // The authoring branch is work in progress, so it is committed but never pushed.
+    expect(commitResult.pushed).toEqual({ ok: false, message: WORK_IN_PROGRESS_MESSAGE });
     expect(sh(project.dir, ['show', '--name-only', '--format=', 'HEAD']).trim().split('\n').sort()).toEqual(['extra.yaml', 'shop.yaml']);
     expect(sh(project.dir, ['status', '--porcelain']).trim()).toBe('A  other.yaml');
-    expect(sh(project.bare, ['log', '-1', '--format=%s', 'work/local']).trim()).toBe('Update shop.yaml');
+    expect(sh(project.bare, ['branch', '--list', 'work/local']).trim()).toBe('');
     // Without explicit paths, the commit uses the staged index.
     const idx = await ok(call(project.t, 'POST', project.base + '/git/commit', { message: 'Index' }));
     expect(idx.pushed).toBeUndefined();

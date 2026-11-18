@@ -48,6 +48,7 @@ export const parityCases: ParityCase[] = [
   { id: 'trash.restore', body: () => ({}) },
   { id: 'trash.undo', body: () => ({}) },
   { id: 'suggestions.accept' },
+  { id: 'proposals.create', body: (_path, project) => ({ name: 'Parity proposal', projects: [project] }) },
   { id: 'projects.create', body: (_path, _project, scenario) => ({ name: 'Parity project', domain: scenario === 'denied-target' ? 'hr' : 'sales' }) },
 ];
 
@@ -62,7 +63,7 @@ function normalized(value: unknown): unknown {
   }
   return Object.fromEntries(
     Object.entries(value)
-      .filter(([key]) => !['at', 'prev', 'requestId', 'createdAt', 'updatedAt', 'undoUntil', 'origin', 'tool', 'connection', 'undoUntil'].includes(key))
+      .filter(([key]) => !['at', 'prev', 'requestId', 'createdAt', 'lastMovementAt', 'updatedAt', 'undoUntil', 'origin', 'tool', 'connection', 'undoUntil'].includes(key))
       .map(([key, item]) => {
         if (key === 'op') return [key, '<operation>'];
         if (key === 'rules' && Array.isArray(item)) return [key, [...item].sort()];

@@ -3,6 +3,7 @@ import { type Reader } from './reader';
 import { BadRequestError } from './errors';
 import { GitError, redactCredentials, remoteAddress, remoteName, type Git, type GitResult, type RemoteAddresses, type RemoteCredential } from './git';
 import { sparseFolders } from './sparse-folder';
+import { refuseWorkInProgressPush } from './work-in-progress-push';
 import type { ContentGuard, FileChange } from '../auth/guards';
 import { asText, blockers, type CredentialFor, type FollowRequest, type FollowResult, type RemoteChoice, type RemoteRequest, type ScmContext } from './scm-context';
 
@@ -61,10 +62,11 @@ export function createScmRemote(ctx: ScmContext) {
     return text.binary ? null : text.text;
   }
   // What moving from `base` to `tip` would bring into each project of the repository: every
-  // file changed between them, as `base` has it and as `tip` has it.
-  async function incomingChanges(slug: string, directory: string, base: string | null, tip: string): Promise<FileChange[]> {
+  // file changed between them, as `base` has it and as `tip` has it. A caller that already lists
+  // the changed paths, with renames split into two, names them in `paths`.
+  async function incomingChanges(slug: string, directory: string, base: string | null, tip: string, paths?: string[]): Promise<FileChange[]> {
     const changes: FileChange[] = [];
-    for (const path of await git.changedBetween(directory, base, tip)) {
+    for (const path of paths ?? (await git.changedBetween(directory, base, tip))) {
       const owner = ownerOf(slug, path);
       if (!owner) continue;
       changes.push({
@@ -125,6 +127,17 @@ export function createScmRemote(ctx: ScmContext) {
     const altered = head && head !== before ? await alteredAfter(directory, await git.changedBetween(directory, before, head)) : [];
     return { ok: gitResult.code === 0, conflicted, altered, stderr: gitResult.stderr.trim() };
   }
+  // A merge into the person's branch: the commit is judged as the person's own change before it is
+  // merged, uncommitted work blocks it, and conflicts are reported while the merge stays on the branch.
+  async function mergeFromCommit(slug: string, { guard }: Reader, merge: (check: (tip: string) => Promise<void>) => Promise<GitResult>) {
+    const directory = dir(slug);
+    const check = async (tip: string) => {
+      if (guard) await guardMerge(slug, directory, tip, guard);
+    };
+    const result = await mergeIn(slug, directory, () => merge(check));
+    const gitStatus = await after(slug, result.altered);
+    return { ...result, ahead: gitStatus.ahead, behind: gitStatus.behind };
+  }
   const pullIn = (slug: string, directory: string, { choice, guard }: RemoteRequest) =>
     mergeIn(slug, directory, async gitStatus => {
       const remote = chosenName(choice);
@@ -155,6 +168,11 @@ export function createScmRemote(ctx: ScmContext) {
     const directory = dir(slug);
     const choice = request.choice;
     const credential = choice?.credential;
+    // Refused before anything is pulled or sent, so a sync never half-runs on a work branch.
+    if (kind === 'push' || kind === 'sync') {
+      chosenName(choice);
+      refuseWorkInProgressPush((await git.status(directory)).branch);
+    }
     try {
       let result = { ok: true, conflicted: [] as string[], altered: [] as string[], stderr: '' };
       let follow: FollowResult | null = null;
@@ -252,19 +270,19 @@ export function createScmRemote(ctx: ScmContext) {
      * Merges the default branch into the person's branch, as a pull does: the exact commit
      * merged is the one the guard judged.
      */
-    async pullDefault(slug: string, { guard, copy }: Reader) {
+    async pullDefault(slug: string, reader: Reader) {
       const merge = deps.mergeDefault;
       if (!merge) throw new BadRequestError('Pull from the default branch works on a personal working copy.');
-      const directory = dir(slug);
-      const check = async (tip: string) => {
-        if (guard) await guardMerge(slug, directory, tip, guard);
-      };
-      const result = await mergeIn(slug, directory, () => merge(slug, copy?.author, check));
-      const gitStatus = await after(slug, result.altered);
-      return { ...result, ahead: gitStatus.ahead, behind: gitStatus.behind };
+      return mergeFromCommit(slug, reader, check => merge(slug, reader.copy?.author, check));
+    },
+    /** Merges a commit, such as a proposal's tip, into the person's branch with the guards of a pull. */
+    async mergeCommit(slug: string, reader: Reader, source: { tip: string; label: string }) {
+      const merge = deps.mergeCommit;
+      if (!merge) throw new BadRequestError('Merging a commit works on a personal working copy.');
+      return mergeFromCommit(slug, reader, check => merge(slug, reader.copy?.author, source, check));
     },
     /** What moving the repository from `base` to `tip` changes, file by file, per project. */
-    changesBetween: (slug: string, base: string | null, tip: string) => incomingChanges(slug, dir(slug), base, tip),
+    changesBetween: (slug: string, base: string | null, tip: string, paths?: string[]) => incomingChanges(slug, dir(slug), base, tip, paths),
     // The reader's guard, given in server mode, refuses a pull that brings in a guarded change.
     pull: async (slug: string, reader: Reader, credentialFor?: CredentialFor) => {
       const choice = await chooseRemote(slug, credentialFor);

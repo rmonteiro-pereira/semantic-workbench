@@ -269,6 +269,10 @@
     "status": 200,
     "body": [
       {
+        "published": {
+          "branch": "main",
+          "commit": "d476d6c5c7e50127066042ceaa9163f28cf386a1"
+        },
         "slug": "shared-reference",
         "name": "shared-reference",
         "origin": "import",
@@ -292,6 +296,10 @@
         ]
       },
       {
+        "published": {
+          "branch": "main",
+          "commit": "67b3c0de520df5ad04bb4e343352349f759449f9"
+        },
         "slug": "sales-metrics",
         "name": "sales-metrics",
         "origin": "import",
@@ -315,6 +323,10 @@
         ]
       },
       {
+        "published": {
+          "branch": "main",
+          "commit": "b73207e6e6e29b0373307fe327bf4915b7890311"
+        },
         "slug": "sales-contracts",
         "name": "sales-contracts",
         "origin": "import",
@@ -383,6 +395,10 @@
         ]
       },
       {
+        "published": {
+          "branch": "main",
+          "commit": "7cef44108cea4040cc9ac339bec4f81169338205"
+        },
         "slug": "hr-people",
         "name": "hr-people",
         "origin": "import",
@@ -424,6 +440,10 @@
         ]
       },
       {
+        "published": {
+          "branch": "main",
+          "commit": "ac2367f06d9ee6f66d507bd8ba130c7b315b6ba2"
+        },
         "slug": "lab-notes",
         "name": "lab-notes",
         "origin": "import",
@@ -3456,8 +3476,8 @@
         "action": "read",
         "decision": "allow",
         "rules": [
-          "role:admin:1",
-          "B1-workspace-lists"
+          "B1-workspace-lists",
+          "role:admin:1"
         ],
         "outcome": "ok",
         "type": "audit",
@@ -3504,8 +3524,8 @@
         "action": "read",
         "decision": "allow",
         "rules": [
-          "B1-workspace-lists",
-          "role:admin:1"
+          "role:admin:1",
+          "B1-workspace-lists"
         ],
         "outcome": "failed",
         "type": "audit",
@@ -3552,8 +3572,8 @@
         "action": "read",
         "decision": "allow",
         "rules": [
-          "role:admin:1",
-          "B1-workspace-lists"
+          "B1-workspace-lists",
+          "role:admin:1"
         ],
         "outcome": "failed",
         "type": "audit",
@@ -3600,8 +3620,8 @@
         "action": "read",
         "decision": "allow",
         "rules": [
-          "B1-workspace-lists",
-          "role:admin:1"
+          "role:admin:1",
+          "B1-workspace-lists"
         ],
         "outcome": "failed",
         "type": "audit",
@@ -3664,8 +3684,8 @@
         "action": "viewOwnState",
         "decision": "allow",
         "rules": [
-          "role:admin:1",
-          "B1-workspace-lists"
+          "B1-workspace-lists",
+          "role:admin:1"
         ],
         "outcome": "failed",
         "type": "audit",
@@ -6059,6 +6079,10 @@
     "status": 200,
     "body": [
       {
+        "published": {
+          "branch": "main",
+          "commit": "d476d6c5c7e50127066042ceaa9163f28cf386a1"
+        },
         "slug": "shared-reference",
         "name": "shared-reference",
         "origin": "import",
@@ -6098,6 +6122,10 @@
         }
       },
       {
+        "published": {
+          "branch": "main",
+          "commit": "67b3c0de520df5ad04bb4e343352349f759449f9"
+        },
         "slug": "sales-metrics",
         "name": "sales-metrics",
         "origin": "import",
@@ -6160,6 +6188,10 @@
         }
       },
       {
+        "published": {
+          "branch": "main",
+          "commit": "b73207e6e6e29b0373307fe327bf4915b7890311"
+        },
         "slug": "sales-contracts",
         "name": "sales-contracts",
         "origin": "import",
@@ -9340,8 +9372,8 @@
         "action": "setRemote",
         "decision": "deny",
         "rules": [
-          "F7-remote-admin",
-          "F2-no-domain"
+          "F2-no-domain",
+          "F7-remote-admin"
         ],
         "reason": "not-readable",
         "type": "audit",
@@ -9392,8 +9424,8 @@
         "action": "setRemote",
         "decision": "deny",
         "rules": [
-          "F2-no-domain",
-          "F7-remote-admin"
+          "F7-remote-admin",
+          "F2-no-domain"
         ],
         "reason": "not-readable",
         "type": "audit",
@@ -9444,8 +9476,8 @@
         "action": "setRemote",
         "decision": "deny",
         "rules": [
-          "F7-remote-admin",
-          "F2-no-domain"
+          "F2-no-domain",
+          "F7-remote-admin"
         ],
         "reason": "not-readable",
         "type": "audit",
@@ -11675,6 +11707,10 @@
     "status": 200,
     "body": [
       {
+        "published": {
+          "branch": "main",
+          "commit": "d476d6c5c7e50127066042ceaa9163f28cf386a1"
+        },
         "slug": "shared-reference",
         "name": "shared-reference",
         "origin": "import",
@@ -11714,6 +11750,10 @@
         }
       },
       {
+        "published": {
+          "branch": "main",
+          "commit": "67b3c0de520df5ad04bb4e343352349f759449f9"
+        },
         "slug": "sales-metrics",
         "name": "sales-metrics",
         "origin": "import",
@@ -11783,6 +11823,10 @@
         }
       },
       {
+        "published": {
+          "branch": "main",
+          "commit": "b73207e6e6e29b0373307fe327bf4915b7890311"
+        },
         "slug": "sales-contracts",
         "name": "sales-contracts",
         "origin": "import",
@@ -14930,8 +14974,8 @@
         "action": "setRemote",
         "decision": "deny",
         "rules": [
-          "F2-no-domain",
-          "F7-remote-admin"
+          "F7-remote-admin",
+          "F2-no-domain"
         ],
         "reason": "not-readable",
         "type": "audit",
@@ -17144,6 +17188,10 @@
     "status": 200,
     "body": [
       {
+        "published": {
+          "branch": "main",
+          "commit": "d476d6c5c7e50127066042ceaa9163f28cf386a1"
+        },
         "slug": "shared-reference",
         "name": "shared-reference",
         "origin": "import",
@@ -17183,6 +17231,10 @@
         }
       },
       {
+        "published": {
+          "branch": "main",
+          "commit": "7cef44108cea4040cc9ac339bec4f81169338205"
+        },
         "slug": "hr-people",
         "name": "hr-people",
         "origin": "import",
@@ -17240,6 +17292,10 @@
         }
       },
       {
+        "published": {
+          "branch": "main",
+          "commit": "ac2367f06d9ee6f66d507bd8ba130c7b315b6ba2"
+        },
         "slug": "lab-notes",
         "name": "lab-notes",
         "origin": "import",
@@ -20511,8 +20567,8 @@
         "action": "setRemote",
         "decision": "deny",
         "rules": [
-          "F2-no-domain",
-          "F7-remote-admin"
+          "F7-remote-admin",
+          "F2-no-domain"
         ],
         "reason": "not-readable",
         "type": "audit",
@@ -22841,6 +22897,10 @@
     "status": 200,
     "body": [
       {
+        "published": {
+          "branch": "main",
+          "commit": "d476d6c5c7e50127066042ceaa9163f28cf386a1"
+        },
         "slug": "shared-reference",
         "name": "shared-reference",
         "origin": "import",
@@ -22920,6 +22980,10 @@
         }
       },
       {
+        "published": {
+          "branch": "main",
+          "commit": "67b3c0de520df5ad04bb4e343352349f759449f9"
+        },
         "slug": "sales-metrics",
         "name": "sales-metrics",
         "origin": "import",
@@ -22999,6 +23063,10 @@
         }
       },
       {
+        "published": {
+          "branch": "main",
+          "commit": "b73207e6e6e29b0373307fe327bf4915b7890311"
+        },
         "slug": "sales-contracts",
         "name": "sales-contracts",
         "origin": "import",
@@ -23123,6 +23191,10 @@
         }
       },
       {
+        "published": {
+          "branch": "main",
+          "commit": "7cef44108cea4040cc9ac339bec4f81169338205"
+        },
         "slug": "hr-people",
         "name": "hr-people",
         "origin": "import",
@@ -23220,6 +23292,10 @@
         }
       },
       {
+        "published": {
+          "branch": "main",
+          "commit": "ac2367f06d9ee6f66d507bd8ba130c7b315b6ba2"
+        },
         "slug": "lab-notes",
         "name": "lab-notes",
         "origin": "import",
@@ -26307,8 +26383,8 @@
         "action": "read",
         "decision": "allow",
         "rules": [
-          "B1-workspace-lists",
-          "role:admin:1"
+          "role:admin:1",
+          "B1-workspace-lists"
         ],
         "outcome": "ok",
         "type": "audit",
@@ -26357,8 +26433,8 @@
         "action": "read",
         "decision": "allow",
         "rules": [
-          "B1-workspace-lists",
-          "role:admin:1"
+          "role:admin:1",
+          "B1-workspace-lists"
         ],
         "outcome": "failed",
         "type": "audit",
@@ -33740,6 +33816,10 @@
     "status": 200,
     "body": [
       {
+        "published": {
+          "branch": "main",
+          "commit": "d476d6c5c7e50127066042ceaa9163f28cf386a1"
+        },
         "slug": "shared-reference",
         "name": "shared-reference",
         "origin": "import",
@@ -33779,6 +33859,10 @@
         }
       },
       {
+        "published": {
+          "branch": "main",
+          "commit": "67b3c0de520df5ad04bb4e343352349f759449f9"
+        },
         "slug": "sales-metrics",
         "name": "sales-metrics",
         "origin": "import",
@@ -33841,6 +33925,10 @@
         }
       },
       {
+        "published": {
+          "branch": "main",
+          "commit": "b73207e6e6e29b0373307fe327bf4915b7890311"
+        },
         "slug": "sales-contracts",
         "name": "sales-contracts",
         "origin": "import",
@@ -37263,8 +37351,8 @@
         "action": "setRemote",
         "decision": "deny",
         "rules": [
-          "F2-no-domain",
-          "F7-remote-admin"
+          "F7-remote-admin",
+          "F2-no-domain"
         ],
         "reason": "not-readable",
         "type": "audit",
@@ -44405,6 +44493,10 @@
     "status": 200,
     "body": [
       {
+        "published": {
+          "branch": "main",
+          "commit": "d476d6c5c7e50127066042ceaa9163f28cf386a1"
+        },
         "slug": "shared-reference",
         "name": "shared-reference",
         "origin": "import",
@@ -44444,6 +44536,10 @@
         }
       },
       {
+        "published": {
+          "branch": "main",
+          "commit": "67b3c0de520df5ad04bb4e343352349f759449f9"
+        },
         "slug": "sales-metrics",
         "name": "sales-metrics",
         "origin": "import",
@@ -44483,6 +44579,10 @@
         }
       },
       {
+        "published": {
+          "branch": "main",
+          "commit": "b73207e6e6e29b0373307fe327bf4915b7890311"
+        },
         "slug": "sales-contracts",
         "name": "sales-contracts",
         "origin": "import",
@@ -47627,8 +47727,8 @@
         "action": "setRemote",
         "decision": "deny",
         "rules": [
-          "F7-remote-admin",
-          "F2-no-domain"
+          "F2-no-domain",
+          "F7-remote-admin"
         ],
         "reason": "not-readable",
         "type": "audit",
@@ -47677,8 +47777,8 @@
         "action": "setRemote",
         "decision": "deny",
         "rules": [
-          "F2-no-domain",
-          "F7-remote-admin"
+          "F7-remote-admin",
+          "F2-no-domain"
         ],
         "reason": "not-readable",
         "type": "audit",
@@ -49830,6 +49930,10 @@
     "status": 200,
     "body": [
       {
+        "published": {
+          "branch": "main",
+          "commit": "d476d6c5c7e50127066042ceaa9163f28cf386a1"
+        },
         "slug": "shared-reference",
         "name": "shared-reference",
         "origin": "import",
@@ -49869,6 +49973,10 @@
         }
       },
       {
+        "published": {
+          "branch": "main",
+          "commit": "67b3c0de520df5ad04bb4e343352349f759449f9"
+        },
         "slug": "sales-metrics",
         "name": "sales-metrics",
         "origin": "import",
@@ -49931,6 +50039,10 @@
         }
       },
       {
+        "published": {
+          "branch": "main",
+          "commit": "b73207e6e6e29b0373307fe327bf4915b7890311"
+        },
         "slug": "sales-contracts",
         "name": "sales-contracts",
         "origin": "import",
@@ -53111,8 +53223,8 @@
         "action": "setRemote",
         "decision": "deny",
         "rules": [
-          "F7-remote-admin",
-          "F2-no-domain"
+          "F2-no-domain",
+          "F7-remote-admin"
         ],
         "reason": "not-readable",
         "type": "audit",
@@ -53215,8 +53327,8 @@
         "action": "setRemote",
         "decision": "deny",
         "rules": [
-          "F7-remote-admin",
-          "F2-no-domain"
+          "F2-no-domain",
+          "F7-remote-admin"
         ],
         "reason": "not-readable",
         "type": "audit",

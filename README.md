@@ -539,6 +539,13 @@ state, audit/session records, the Admin repository, trash and migration backups.
 - Local mode supports Git helpers/SSH; server mode uses HTTPS allowed hosts and personal tokens
   retained only in encrypted sessions.
 
+- Server mode also has shared proposals: a named, reviewable line of work that several people can
+  contribute to before a Steward or Admin promotes it. A repository holds at most 50 open proposals;
+  names are up to 80 characters and identifiers up to 40. The guarantee is enforced by the application,
+  not by the operating system, so anyone with shell access to the data root can bypass it.
+- Push and Sync refuse any `work/` or `proposal/` branch in both modes. Publish the work, then use
+  **Push default**.
+
 The [user guide](docs/user-guide.md) documents autosave/conflicts, imports, project export,
 trash/Undo, sparse folders and multi-project repositories. The
 [server guide](docs/server-mode.md#personal-working-copies-and-publishing) explains working copies

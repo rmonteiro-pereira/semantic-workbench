@@ -109,6 +109,7 @@ export function createScm(deps: ScmDeps) {
     }));
     return {
       branch: gitStatus.branch,
+      head: gitStatus.head,
       upstream: gitStatus.upstream,
       ...(await pullSource(slug, directory, gitStatus)),
       ahead: gitStatus.ahead,

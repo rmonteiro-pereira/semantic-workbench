@@ -59,6 +59,23 @@ export const pageRow: RouteAction = {
   action: 'read',
   resource: workspace,
 };
+// The eleven proposal operations, each decided on the project named in the path.
+function proposalRows(): RouteAction[] {
+  const proposal = (method: string, path: string, action: Action): RouteAction => row(method, '/api/projects/:slug/proposals' + path, action, project);
+  return [
+    proposal('GET', '', 'read'),
+    proposal('GET', '/:id', 'read'),
+    proposal('GET', '/:id/diff', 'history'),
+    proposal('POST', '', 'branch'),
+    proposal('POST', '/:id/work', 'branch'),
+    proposal('POST', '/:id/synchronize', 'pull'),
+    proposal('POST', '/:id/contribute', 'commit'),
+    proposal('GET', '/:id/promotion-check', 'publish'),
+    proposal('POST', '/:id/promote', 'publish'),
+    proposal('POST', '/:id/close', 'publish'),
+    proposal('POST', '/:id/restore', 'publish'),
+  ];
+}
 /** Ordered route inventory; explanations precede generic file reads. */
 export const ROUTE_ACTIONS: RouteAction[] = [
   row('GET', '/api/me', 'read', workspace),
@@ -140,6 +157,8 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   row('PUT', '/api/projects/:slug/git/remote', 'setRemote', project),
   row('DELETE', '/api/projects/:slug/git/remote', 'setRemote', project),
   row('PUT', '/api/projects/:slug/git/folder', 'setRemote', project),
+  // Shared proposals exist in server mode only; their routes answer 404 in local mode.
+  ...proposalRows(),
   row('POST', '/api/clone/:operation/cancel', 'clone', workspace),
   row('GET', '/api/repos/:repo/project-candidates', 'registerProjects', workspace),
   row('PUT', '/api/repos/:repo/projects', 'registerProjects', workspace),

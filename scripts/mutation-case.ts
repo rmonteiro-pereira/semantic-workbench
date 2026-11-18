@@ -32,6 +32,7 @@ if (category.startsWith('mcp-')) {
   if (!run) throw new Error(`Unknown agent endpoint case ${category}.`);
   await run(process.argv[2]);
 }
+if (category === 'proposals') await (await import('./proposals-mutation-cases')).proposalsCases(loadedModule);
 if (category === 'operation-boundary') {
   const { operationBoundaryCases } = await import('./operation-boundary-mutation-cases');
   await operationBoundaryCases(process.argv[2]);

@@ -82,7 +82,7 @@ test('a move waits for uncommitted changes and unsaved edits', async () => {
   }
 });
 
-test('a moved project joins a team repository: its first pull merges, its push adds one folder', async () => {
+test('a moved project joins a team repository: its first pull merges, its published branch adds one folder', async () => {
   const team = teamRepository();
   const fixture = await scmProject({ remote: false });
   try {
@@ -93,9 +93,11 @@ test('a moved project joins a team repository: its first pull merges, its push a
     // The team's folders are in the history but not on the disk.
     expect(existsSync(join(fixture.dir, OTHER_FOLDER))).toBe(false);
     expect(existsSync(join(fixture.dir, PROJECT_FOLDER))).toBe(false);
-    const pushed = await ok(call(fixture.t, 'POST', `${fixture.base}/git/push`));
+    // The work is on the authoring branch, which is never pushed: it is published, then the default branch is pushed.
+    await ok(call(fixture.t, 'POST', `${fixture.base}/git/publish`, {}));
+    const pushed = await ok(call(fixture.t, 'POST', `${fixture.base}/git/push-default`));
     expect(pushed.ok).toBe(true);
-    const tree = sh(team.bare, ['ls-tree', '-r', '--name-only', 'work/local']).split('\n').filter(Boolean);
+    const tree = sh(team.bare, ['ls-tree', '-r', '--name-only', 'main']).split('\n').filter(Boolean);
     expect(tree).toEqual(expect.arrayContaining(['README.md', `${PROJECT_FOLDER}/shop.yaml`, `${OTHER_FOLDER}/crm.yaml`, 'semantic/shop/shop.yaml']));
   } finally {
     fixture.dispose();
