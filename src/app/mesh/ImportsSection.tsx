@@ -10,6 +10,7 @@ import { renameUnitAlias } from '../edit/references';
 import type { Saved } from '../edit/ItemEditor';
 import { ImportEditor } from './ImportEditor';
 import { useDependencyState, useProviderChoices, type MeshRead } from './use-mesh';
+import { DependencyUpdate } from './DependencyUpdate';
 import type { DependencyState } from './api';
 
 type ImportsViewProps = { state: MeshRead<DependencyState | undefined>; canEdit: boolean; onOpen: () => void; onEdit?: (entry: UnitImport) => void };
@@ -21,6 +22,7 @@ export function ImportsView({ state, canEdit, onOpen, onEdit }: ImportsViewProps
   const imports = state.value?.imports ?? [];
   return (
     <>
+      {state.value?.state === 'update-available' && <p role="status">Update available</p>}
       {!imports.length && <p>No imports in this ontology.</p>}
       <ul className="mesh-import-list">
         {imports.map(entry => (
@@ -64,7 +66,8 @@ export function ImportsSection({
   const access = useCapabilities(doc.project);
   const [editing, setEditing] = useState<UnitImport | 'new' | null>(null);
   const previous = editing && editing !== 'new' ? editing : undefined;
-  const state = useDependencyState(doc.project, doc.path, doc.hash);
+  const [refresh, setRefresh] = useState(0);
+  const state = useDependencyState(doc.project, doc.path, doc.hash, refresh);
   const providers = useProviderChoices(!!editing);
 
   async function add(entry: UnitImport) {
@@ -85,6 +88,9 @@ export function ImportsSection({
     <section className="mesh-imports" aria-label="Imports">
       <h3>Imports</h3>
       <ImportsView state={state} canEdit={access.can('edit') && !dirty && !editing} onOpen={() => setEditing('new')} onEdit={setEditing} />
+      {access.can('edit') && !dirty && !editing && state.status === 'ready' && state.value && state.value.imports.length > 0 && (
+        <DependencyUpdate project={doc.project} baseHash={state.value.manifestHash ?? null} onUpdated={() => setRefresh(refresh + 1)} />
+      )}
       {editing && providers.status === 'loading' && <p role="status">Loading published providers…</p>}
       {editing && providers.status === 'error' && <p role="alert">{providers.message}</p>}
       {editing && providers.status === 'ready' && (

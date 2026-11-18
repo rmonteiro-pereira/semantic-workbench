@@ -3,6 +3,8 @@ import { expect, test } from 'bun:test';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ImportsView } from '../../src/app/mesh/ImportsSection';
+import { InterfaceChange } from '../../src/app/mesh/DependencyUpdate';
+import { PublicationDependencies } from '../../src/app/scm/DefaultBranchActions';
 import { ImportEditor } from '../../src/app/mesh/ImportEditor';
 
 const onOpen = () => {};
@@ -30,4 +32,14 @@ test('the provider editor offers a wrapping option label and reports an empty pr
   const html = renderToStaticMarkup(<ImportEditor providers={providers} {...options} />);
   expect(html).toContain(name);
   expect(html).toContain('class="mesh-option"');
+});
+
+test('the update view shows availability, an unchanged public interface and a publication review action', () => {
+  const value = { path: 'ontology.yaml', imports: [], state: 'update-available' as const };
+  expect(renderToStaticMarkup(<ImportsView state={{ status: 'ready', value }} canEdit onOpen={onOpen} />)).toContain('Update available');
+  const change = { project: 'finance', ontology: 'ontology.yaml', added: [], removed: [], changed: [], compatibility: 'not judged' as const };
+  const summary = renderToStaticMarkup(<InterfaceChange change={change} />);
+  expect(summary).toContain('No public concepts changed.');
+  expect(summary).toContain('not judged');
+  expect(renderToStaticMarkup(<PublicationDependencies project="retail" onUpdated={onOpen} />)).toContain('Loading dependency status');
 });

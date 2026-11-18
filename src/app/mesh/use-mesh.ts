@@ -28,6 +28,6 @@ export function useProviderChoices(open: boolean): MeshRead<ProviderChoice[]> {
 }
 
 /** Loads the editing status of the active root. */
-export function useDependencyState(project: string, path: string, hash: string): MeshRead<DependencyState | undefined> {
-  return useRead(JSON.stringify([project, path, hash]), signal => readDependencyState(project, path, signal));
+export function useDependencyState(project: string, path: string | undefined, hash: string, refresh = 0): MeshRead<DependencyState | undefined> {
+  return useRead(JSON.stringify([project, path, hash, refresh]), signal => readDependencyState(project, path, signal));
 }

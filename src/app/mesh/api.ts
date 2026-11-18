@@ -7,7 +7,7 @@ import { apiFetch } from '../projects/api';
 export type ProviderChoice = { project: string; name: string; ontology: string; version: string; concepts: string[] };
 
 /** Describes the status the author can read for one importing root. */
-export type DependencyState = { path: string; imports: UnitImport[]; state: 'current' | 'needs-update' };
+export type DependencyState = { path: string; imports: UnitImport[]; state: 'current' | 'needs-update' | 'update-available'; manifestHash?: string | null };
 
 async function read(path: string, signal?: AbortSignal): Promise<unknown> {
   const response = await apiFetch(path, { signal });
@@ -53,11 +53,42 @@ export async function readProviders(signal?: AbortSignal): Promise<ProviderChoic
 }
 
 /** Reads the dependency state of one root in the editing workspace. */
-export async function readDependencyState(project: string, path: string, signal?: AbortSignal): Promise<DependencyState | undefined> {
+export async function readDependencyState(project: string, path: string | undefined, signal?: AbortSignal): Promise<DependencyState | undefined> {
   const result = await read(`/api/projects/${encodeURIComponent(project)}/dependencies`, signal);
   if (!isObject(result) || !Array.isArray(result.roots)) throw new Error('Invalid dependency status.');
-  const root = result.roots.find(item => isObject(item) && item.path === path);
+  const root = result.roots.find(item => isObject(item) && (path === undefined || item.path === path));
   if (!root) return undefined;
-  if (!Array.isArray(root.imports) || (root.state !== 'current' && root.state !== 'needs-update')) throw new Error('Invalid dependency status.');
-  return root;
+  if (!Array.isArray(root.imports) || (root.state !== 'current' && root.state !== 'needs-update' && root.state !== 'update-available')) throw new Error('Invalid dependency status.');
+  if (result.manifestHash !== null && (typeof result.manifestHash !== 'string' || !/^[a-f0-9]{64}$/.test(result.manifestHash))) throw new Error('Invalid dependency manifest hash.');
+  return { ...root, manifestHash: result.manifestHash };
+}
+
+/** Lists interface changes observable in the selected public versions. */
+export type DependencyChange = { project: string; ontology: string; added: string[]; removed: string[]; changed: string[]; compatibility: 'not judged' };
+
+/** Identifies the exact preview subsequently confirmed by the author. */
+export type DependencyPreview = { preview: string; changes: DependencyChange[] };
+
+function isChange(value: unknown): value is DependencyChange {
+  if (!isObject(value) || typeof value.project !== 'string' || typeof value.ontology !== 'string' || value.compatibility !== 'not judged') return false;
+  return [value.added, value.removed, value.changed].every(items => Array.isArray(items) && items.every(name => typeof name === 'string'));
+}
+
+/** Previews or confirms an update using the editing workspace's lock hash. */
+export async function updateDependencies(project: string, baseHash: string | null, confirm?: string): Promise<DependencyPreview | undefined> {
+  const response = await apiFetch(`/api/projects/${encodeURIComponent(project)}/dependencies/update`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ baseHash, confirm }),
+  });
+  const result: unknown = await response.json();
+  if (!response.ok) {
+    if (isObject(result) && typeof result.error === 'string' && response.status === 400) throw new Error(result.error);
+    throw new Error('Could not update dependencies. Reload the current status and review again.');
+  }
+  if (confirm && isObject(result) && typeof result.hash === 'string' && /^[a-f0-9]{64}$/.test(result.hash)) return;
+  if (!isObject(result) || typeof result.preview !== 'string' || !/^[a-f0-9]{64}$/.test(result.preview) || !Array.isArray(result.changes) || !result.changes.every(isChange)) {
+    throw new Error('Invalid dependency update response.');
+  }
+  return { preview: result.preview, changes: result.changes };
 }

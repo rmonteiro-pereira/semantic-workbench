@@ -69,7 +69,7 @@ async function listProviders(ws: Workspace, reader: Reader, url: URL) {
   });
 }
 
-function dependencyStatus(ws: Workspace, reader: Reader, project: string) {
+async function dependencyStatus(ws: Workspace, reader: Reader, project: string) {
   ws.project(project);
   const documents = ws.documentsFor(reader).filter(document => document.project === project);
   const lock = documents.find(document => document.path === DEPENDENCY_MANIFEST_PATH);
@@ -81,6 +81,7 @@ function dependencyStatus(ws: Workspace, reader: Reader, project: string) {
       if (!(error instanceof Error)) throw error;
     }
   }
+  const publication = ws.state.published().repositories;
   const roots = documents.flatMap(document => {
     const model = validateInput(document.source, document.filename).model;
     if (!model || !('document' in model) || !isObject(model.document)) return [];
@@ -90,7 +91,10 @@ function dependencyStatus(ws: Workspace, reader: Reader, project: string) {
     if (!imports.length) return [];
     const providersVisible = !reader.view || imports.every(entry => reader.view!.readableProjects.has(entry.project));
     const current = providersVisible && manifest?.root === document.path && manifestIsCurrent(manifest, imports);
-    return [{ path: document.path, imports: providersVisible ? imports : [], state: current ? 'current' : 'needs-update' }];
+    const available = current && manifest!.providers.some(provider => !provider.sameRepository && provider.choice === 'latest' && publication[provider.repository]?.commit !== provider.commit);
+    let state = 'needs-update';
+    if (current) state = available ? 'update-available' : 'current';
+    return [{ path: document.path, imports: providersVisible ? imports : [], state }];
   });
   return { roots: roots.slice(0, PAGE_SIZE), manifestHash: lock?.hash ?? null };
 }
@@ -105,5 +109,5 @@ export const meshRoutes: Route = async (ws, req, url) => {
   if (url.pathname === '/api/mesh/providers') return Response.json(await listProviders(ws, requestReader(req), url), { headers: { 'Cache-Control': 'no-store' } });
   const match = DEPENDENCIES_ROUTE.exec(url.pathname);
   if (!match) return null;
-  return Response.json(dependencyStatus(ws, requestReader(req), decodeSegment(match[1])), { headers: { 'Cache-Control': 'no-store' } });
+  return Response.json(await dependencyStatus(ws, requestReader(req), decodeSegment(match[1])), { headers: { 'Cache-Control': 'no-store' } });
 };

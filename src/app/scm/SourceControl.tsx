@@ -15,6 +15,7 @@ import { DiffPane } from './DiffPane';
 import { SyncCounters } from './SyncCounters';
 import { useRemoteActions, type Note } from './useRemoteActions';
 import { BranchPicker } from './BranchPicker';
+import { PublicationDependencies } from './DefaultBranchActions';
 import { SyncDialog } from './SyncDialog';
 import { RemoteActions } from './RemoteActions';
 import { changesOfProject, elsewhereLine } from './project-changes';
@@ -482,6 +483,7 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
             onPull={() => void remote('pull')}
           />
         )}
+        {access.can('edit') && error.includes('Use Update dependencies') && <PublicationDependencies project={project} onUpdated={() => setError('')} />}
         {status.merging && !note && (
           <p className="scm-note warning">
             <AlertTriangle size={14} />

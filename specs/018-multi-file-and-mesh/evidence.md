@@ -123,3 +123,7 @@ whole-file move service moves a file and cannot express a concept transfer. The 
 compares the original and candidate definitions before recording a stable address
 migration for an unchanged concept that moves to a different file. The workbench-units
 proof checks the old address through the live workspace resolver after the batch.
+
+The existing local Publish route proves atomic same-repository movement against committed source, including a different unstaged provider edit. The separate-repository route preserves a historical lock when the provider moves forward. The cycle compile proof and the frozen consumer output proof depend on loading the lock in the compiler, agent context and browser. Their tasks stay open until those entry points can exercise them.
+
+The publication check runs as part of the existing content guard in the ordered publication pipeline. The checker gets the publishing reader from that guard, covering Publish, Adopt and remote follow. Tests use real operations for each refusal and verify that the durable pointer stays put.
