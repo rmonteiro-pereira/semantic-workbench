@@ -89,7 +89,7 @@ export function ImportsSection({
     <section className="mesh-imports" aria-label="Imports">
       <h3>Imports</h3>
       <ImportsView state={state} canEdit={access.can('edit') && !dirty && !editing} onOpen={() => setEditing('new')} onEdit={setEditing} />
-      {access.can('edit') && !dirty && !editing && state.status === 'ready' && state.value && state.value.imports.length > 0 && (
+      {access.can('edit') && !dirty && !editing && state.status === 'ready' && state.value && (state.value.imports.length > 0 || state.value.state === 'needs-update') && (
         <DependencyUpdate project={doc.project} baseHash={state.value.manifestHash ?? null} onUpdated={() => setRefresh(refresh + 1)} />
       )}
       {editing && providers.status === 'loading' && <p role="status">Loading published providers…</p>}

@@ -92,9 +92,9 @@ async function dependencyStatus(ws: Workspace, reader: Reader, project: string, 
     const marker = readMarker(model.document);
     if (!(marker.family === 'tessera') || marker.revision !== 3) return [];
     const imports = declaredImports(model.document);
-    if (!imports.length) return [];
-    const providersVisible = !reader.view || imports.every(entry => reader.view!.readableProjects.has(entry.project));
     const rootLock = manifest && dependencyRoot(manifest, document.path);
+    if (!imports.length && !rootLock?.providers.length) return [];
+    const providersVisible = !reader.view || imports.every(entry => reader.view!.readableProjects.has(entry.project));
     const current = providersVisible && rootLock && manifestIsCurrent(rootLock, imports);
     const available = current && rootLock.providers.some(provider => !provider.sameRepository && provider.choice === 'latest' && publication[provider.repository]?.commit !== provider.commit);
     let state = 'needs-update';

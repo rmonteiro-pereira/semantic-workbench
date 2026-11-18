@@ -71,7 +71,7 @@ export async function updateDependencies(ws: Workspace, req: Request, project: s
   if (previous && reader.view && dependencyRoots(previous).some(entry => !reader.view!.canRead(project, entry.root))) {
     throw new BadRequestError('The dependency manifest covers an unavailable ontology.');
   }
-  if (!roots.length) throw new BadRequestError('Expected an importing ontology for this dependency update.');
+  if (!roots.length && !previous) throw new BadRequestError('Expected an importing ontology for this dependency update.');
   return ws.published.withPin(async pin => {
     const registry = new Set(ws.state.registry().projects.map(entry => entry.slug));
     const source = {
@@ -81,7 +81,9 @@ export async function updateDependencies(ws: Workspace, req: Request, project: s
     };
     const updates = await Promise.all(roots.map(({ file, imports }) => planDependencyUpdate(source, pin, reader, repository, file.path, imports)));
     requireOneProviderVersion(updates.flatMap(update => update.manifest.providers));
-    const lock = printDependencyManifest(projectDependencies(updates.map(update => update.manifest)));
+    const manifests = updates.map(update => update.manifest);
+    if (!manifests.length && previous) manifests.push({ root: previous.root, providers: [] });
+    const lock = printDependencyManifest(projectDependencies(manifests));
     const preview = sha256Hex(lock);
     if (!request.confirm) {
       const changes = await Promise.all(updates.map(({ manifest, resolved }) => summarizePrevious(ws.published, pin, previous ? dependencyRoot(previous, manifest.root) : undefined, resolved)));

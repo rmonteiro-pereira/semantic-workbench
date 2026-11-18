@@ -1,7 +1,8 @@
 import { expect, test } from 'bun:test';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { DEPENDENCY_MANIFEST_PATH, parseDependencyManifest } from '../../src/shared/tessera/dependency-manifest';
+import { sha256Hex } from '../../src/shared/tessera/digest';
 import { requireOneProviderVersion } from '../../src/server/mesh/dependency-update';
 import { meshWorkspace, type MeshRepositoryShape } from '../helpers/mesh-workspace';
 
@@ -100,4 +101,22 @@ test('one manifest freezes every importing root of a project', async () => {
     providers: [{ project: 'units' }],
     additionalRoots: [{ root: 'ontology.yaml', providers: [{ project: 'finance' }] }],
   });
+});
+
+test('an explicit update clears the entries after the last importing root is deleted', async () => {
+  using fixture = await meshWorkspace('separate');
+  fixture.addUncommittedImport();
+  await previewAndWrite(fixture);
+  const directory = fixture.projectDirectory('retail');
+  const manifestPath = join(directory, DEPENDENCY_MANIFEST_PATH);
+  const original = readFileSync(manifestPath, 'utf8');
+  unlinkSync(join(directory, 'ontology.yaml'));
+  await fixture.ws.rescan('retail');
+  const baseHash = sha256Hex(original);
+  const preview = await update(fixture, baseHash);
+  expect(preview.status).toBe(200);
+  expect(readFileSync(manifestPath, 'utf8')).toBe(original);
+  const confirmed = await update(fixture, baseHash, (await preview.json()).preview);
+  expect(confirmed.status).toBe(200);
+  expect(parseDependencyManifest(readFileSync(manifestPath, 'utf8')).providers).toEqual([]);
 });
