@@ -477,3 +477,14 @@ export function newItem(kind: ItemKind, values: Record<string, any>): any {
       return clean({ concept: values.concept, object_mappings: [] });
   }
 }
+
+/** Reports the two unit files involved when a concept already has a declaration. */
+export function duplicateUnitConcept(name: string, destination: string, files: readonly { path: string; document: unknown }[]): string | undefined {
+  for (const { path, document } of files) {
+    if (!isObject(document) || !Array.isArray(document.ontology)) continue;
+    if (document.ontology.some(concept => itemName('concept', concept) === name)) {
+      if (path === destination) return `Concept "${name}" already exists in ${path}.`;
+      return `Concept "${name}" already exists in ${path}. It cannot also be added to ${destination}.`;
+    }
+  }
+}

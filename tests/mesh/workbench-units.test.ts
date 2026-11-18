@@ -3,6 +3,7 @@ import { expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { validateInput } from '../../src/shared/validation/input';
 import { editEntity, inspectOntologyUnit } from '../../src/shared/core/model';
+import { duplicateUnitConcept } from '../../src/shared/edit/item-model';
 import { readUnitStructure } from '../../src/shared/tessera/unit-structure';
 import { indexBytes } from '../../src/server/projects/scanner';
 import { activeOntologyUnit } from '../../src/app/workspace/ontologyUnit';
@@ -96,4 +97,13 @@ test('an edit at a composed item location changes only its owning file', async (
   await workspace.ws.saveFile(project, target.file, { baseHash: before[target.file].hash, source }, LOCAL_READER);
   expect(JSON.parse(workspace.ws.readFile(project, target.file, LOCAL_READER).source).ontology[0].description).toBe('A purchase.');
   for (const path of [rootPath, 'returns.yaml', 'customers.json']) expect(workspace.ws.readFile(project, path, LOCAL_READER).hash).toBe(before[path].hash);
+});
+
+test('the add form can report both files when a concept already belongs to another part', () => {
+  const files = [
+    { path: 'orders.yaml', document: { ontology: [{ concept: 'Order' }] } },
+    { path: 'customers.json', document: { ontology: [{ concept: 'Customer' }] } },
+  ];
+  expect(duplicateUnitConcept('Order', 'customers.json', files)).toBe('Concept "Order" already exists in orders.yaml. It cannot also be added to customers.json.');
+  expect(duplicateUnitConcept('Invoice', 'customers.json', files)).toBeUndefined();
 });

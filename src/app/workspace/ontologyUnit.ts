@@ -20,5 +20,5 @@ export function activeOntologyUnit(current: Doc | null, model: ValidatedModel | 
   const files = [{ path: current.path, data: active }, ...projectFiles.map(file => ({ path: file.path, data: parsedDefinition(parsedDoc(file).model) }))];
   const unit = completeOntologyUnit(files, current.path);
   if (!unit) return null;
-  return inspectOntologyUnit(unit, current.project);
+  return { ...inspectOntologyUnit(unit, current.project), unitFiles: [unit.root, ...unit.parts].map(file => file.path) };
 }
