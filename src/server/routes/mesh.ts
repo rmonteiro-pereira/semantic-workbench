@@ -2,11 +2,12 @@
 import { isObject } from '../../shared/edit/source-text';
 import { compareText } from '../../shared/tessera/canonical-json';
 import { DEPENDENCY_MANIFEST_PATH, manifestIsCurrent, parseDependencyManifest, type DependencyManifest } from '../../shared/tessera/dependency-manifest';
+import { sha256Hex } from '../../shared/tessera/digest';
 import { declaredImports } from '../../shared/tessera/imports';
 import { readMarker } from '../../shared/tessera/marker';
 import { validateInput } from '../../shared/validation/input';
-import { requestReader } from '../auth/request-scope';
-import { BadRequestError, SnapshotUnavailableError } from '../projects/errors';
+import { requestReader, requestScope } from '../auth/request-scope';
+import { BadRequestError, HiddenResourceError, SnapshotUnavailableError } from '../projects/errors';
 import { locationOf } from '../projects/paths';
 import type { Reader } from '../projects/reader';
 import type { Workspace } from '../projects/workspace';
@@ -17,6 +18,7 @@ import { updateDependencies } from './dependency-update';
 
 const DEPENDENCIES_ROUTE = /^\/api\/projects\/([^/]+)\/dependencies$/;
 const DEPENDENCY_UPDATE_ROUTE = /^\/api\/projects\/([^/]+)\/dependencies\/update$/;
+const DEPENDENTS_ROUTE = /^\/api\/projects\/([^/]+)\/dependents$/;
 const PAGE_SIZE = 50;
 
 function providerCursor(project: string, ontology: string) {
@@ -99,6 +101,37 @@ async function dependencyStatus(ws: Workspace, reader: Reader, project: string) 
   return { roots: roots.slice(0, PAGE_SIZE), manifestHash: lock?.hash ?? null };
 }
 
+async function listDependents(ws: Workspace, req: Request, url: URL, provider: string) {
+  const scope = requestScope(req);
+  const projects = new Map(ws.state.registry().projects.map(project => [project.slug, project]));
+  const entry = projects.get(provider);
+  const repository = entry ? locationOf(entry).repo : '';
+  const branch = ws.state.published().repositories[repository]?.branch ?? '';
+  const allowed = scope.authorize('publish', { type: 'project', project: provider }, { branch });
+  if (!entry || !allowed.allow) throw new HiddenResourceError();
+  const cursor = readCursor(url.searchParams.get('cursor'));
+  const rows = new Map<string, { consumer: string; version: string; items: Set<string> }>();
+  for (const item of await ws.dependents.read()) {
+    if (item.provider !== provider || !projects.has(item.consumer)) continue;
+    const key = JSON.stringify([item.consumer, item.version]);
+    const previous = rows.get(key) ?? { consumer: item.consumer, version: item.version, items: new Set<string>() };
+    for (const concept of item.concepts) previous.items.add(concept);
+    rows.set(key, previous);
+  }
+  const selected = [...rows.values()]
+    .map(row => ({ ...row, key: sha256Hex(JSON.stringify([row.consumer, row.version])) }))
+    .sort((first, next) => compareText(first.key, next.key))
+    .filter(row => !cursor || compareText(row.key, cursor[0]) > 0)
+    .slice(0, PAGE_SIZE + 1);
+  const more = selected.length > PAGE_SIZE;
+  if (more) selected.pop();
+  const last = selected.at(-1);
+  return {
+    dependents: selected.map(row => ({ name: projects.get(row.consumer)!.name, domain: scope.projectDomain(row.consumer), items: [...row.items].sort(compareText), version: row.version })),
+    cursor: more && last ? providerCursor(last.key, '') : null,
+  };
+}
+
 /** Registers mesh reads for the interactive workbench. */
 export const meshRoutes: Route = async (ws, req, url) => {
   if (req.method === 'POST') {
@@ -106,6 +139,8 @@ export const meshRoutes: Route = async (ws, req, url) => {
     return update ? updateDependencies(ws, req, decodeSegment(update[1])) : null;
   }
   if (req.method !== 'GET') return null;
+  const dependents = DEPENDENTS_ROUTE.exec(url.pathname);
+  if (dependents) return Response.json(await listDependents(ws, req, url, decodeSegment(dependents[1])), { headers: { 'Cache-Control': 'no-store' } });
   if (url.pathname === '/api/mesh/providers') return Response.json(await listProviders(ws, requestReader(req), url), { headers: { 'Cache-Control': 'no-store' } });
   const match = DEPENDENCIES_ROUTE.exec(url.pathname);
   if (!match) return null;

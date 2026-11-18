@@ -342,6 +342,15 @@
       "exposure": { "increment": "local-edit" },
       "steps": ["snapshot.read"]
     },
+    "GET /api/projects/:slug/dependents": {
+      "id": "mesh.dependents.read",
+      "handlerChecks": ["authorizeWrite"],
+      "limits": { "request": "none", "response": "bounded", "work": "scan" },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": { "increment": "later", "reason": "Provider stewards can review published dependency disclosures." },
+      "steps": ["snapshot.read"]
+    },
     "POST /api/projects/:slug/compile/check": {
       "id": "compile.check",
       "handlerChecks": [],
