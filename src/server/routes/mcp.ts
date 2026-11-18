@@ -2,7 +2,7 @@
 import { createMcpHandler } from '@modelcontextprotocol/server';
 import type { AuditLog } from '../auth/audit';
 import { ATTRIBUTED_METHODS } from '../auth/call-attribution';
-import { decideServerRequest } from '../mcp/server-mode-gate';
+import { decideServerRequest, type ServerGateDecision } from '../mcp/server-mode-gate';
 import { bearerChallenge } from '../connections/server-metadata';
 import type { ConnectionService } from '../connections/connection-service';
 import { mintCaller } from '../auth/caller';
@@ -17,7 +17,7 @@ import { createCursorCodec } from '../mcp/cursors';
 import { DEFAULT_TOOL_REQUEST_CAP_BYTES, GLOBAL_REQUEST_CAP_BYTES, readBodyUnderCap } from '../mcp/body-limits';
 import type { LocalCapability } from '../mcp/local-capability';
 import type { ReceiptStore } from '../mcp/receipts';
-import { decideRequest } from '../mcp/request-gate';
+import { decideRequest, type GateRequest } from '../mcp/request-gate';
 import { buildToolServer } from '../mcp/server-factory';
 import type { ToolDefinition } from '../mcp/tool-definition';
 import type { Route } from './http';
@@ -90,6 +90,12 @@ export function createMcpRoute(dependencies: McpRouteDependencies): Route {
     return response;
   }
 
+  async function authenticate(request: GateRequest): Promise<ServerGateDecision> {
+    if (dependencies.server) return decideServerRequest(request, dependencies.server.service);
+    const gate = decideRequest(request, { port: dependencies.port, capabilityMatches: value => dependencies.capability?.matches(value) ?? false });
+    return gate.allow ? { allow: true, caller: localCaller, connection: 'local' } : gate;
+  }
+
   return async (_workspace, request, url) => {
     if (url.pathname !== MCP_PATH) return null;
     const gateRequest = {
@@ -99,11 +105,9 @@ export function createMcpRoute(dependencies: McpRouteDependencies): Route {
       authorization: request.headers.get('authorization'),
       contentType: request.headers.get('content-type'),
     };
-    const gate = dependencies.server
-      ? await decideServerRequest(gateRequest, dependencies.server.service)
-      : decideRequest(gateRequest, { port: dependencies.port, capabilityMatches: value => dependencies.capability?.matches(value) ?? false });
+    const gate = await authenticate(gateRequest);
     if (!gate.allow) return refuseAtGate(request, gate.reason, gate.status);
-    const caller = 'caller' in gate ? gate.caller : localCaller;
+    const caller = gate.caller;
     const audit = createCallAudit(dependencies.audit, caller);
     const signal = dependencies.server && caller.connection ? AbortSignal.any([request.signal, dependencies.server.service.endSignal(caller.connection)]) : request.signal;
     const named = request.headers.get('mcp-name');
