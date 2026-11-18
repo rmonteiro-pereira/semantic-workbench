@@ -308,34 +308,40 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     if (slash < 1) throw new NotFoundError('Document not found.');
     return { project: id.slice(0, slash), path: id.slice(slash + 1) };
   }
-  function documentsFor(reader: Reader) {
-    const { view } = reader;
-    return projects().flatMap(projectEntry => {
-      const place = copies.readPlace(reader, projectEntry.slug);
-      return place.cache
-        .files(projectEntry.slug)
-        .filter(f => f.visible && (!view || view.canRead(projectEntry.slug, f.path)))
-        .flatMap(cachedFile => {
-          let source: string;
-          try {
-            source = decode(readFileSync(indexedFile(place.layout, projectEntry.slug, cachedFile.path)));
-          } catch {
-            return [];
-          }
-          return [
-            {
-              id: `${projectEntry.slug}/${cachedFile.path}`,
-              filename: posix.basename(cachedFile.path),
-              source,
-              revision: revisionOf(cachedFile.hash),
-              hash: cachedFile.hash,
-              project: projectEntry.slug,
-              path: cachedFile.path,
-              updated: cachedFile.indexedAt,
-            },
-          ];
-        });
+  function documentsAtPlace(project: string, place: Place, visible: (path: string) => boolean) {
+    return place.cache
+      .files(project)
+      .filter(file => file.visible && visible(file.path))
+      .flatMap(cachedFile => {
+        let bytes: Buffer;
+        try {
+          bytes = readFileSync(indexedFile(place.layout, project, cachedFile.path));
+        } catch {
+          return [];
+        }
+        return [
+          {
+            id: `${project}/${cachedFile.path}`,
+            filename: posix.basename(cachedFile.path),
+            source: decode(bytes),
+            revision: revisionOf(cachedFile.hash),
+            hash: sha256(bytes),
+            project,
+            path: cachedFile.path,
+            updated: cachedFile.indexedAt,
+          },
+        ];
+      });
+  }
+  function documentsFor(reader: Reader, onlyProject?: string) {
+    return projects().flatMap(project => {
+      if (onlyProject !== undefined && project.slug !== onlyProject) return [];
+      return documentsAtPlace(project.slug, copies.readPlace(reader, project.slug), path => !reader.view || reader.view.canRead(project.slug, path));
     });
+  }
+  function dependencyCandidateDocuments(consumer: string, provider: string, reader: Reader) {
+    if (repoOf(consumer) !== repoOf(provider) || (reader.view && !reader.view.readableProjects.has(provider))) return [];
+    return documentsAtPlace(provider, copies.pendingWritePlace(reader, consumer), path => !reader.view || reader.view.canRead(provider, path));
   }
   // Every project of a repository notices a change under .git; the browser hears of it once.
   const pendingGitEvents = new Set<string>();
@@ -860,6 +866,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     saveFiles: documentSave.saveFiles,
     documents: () => documentsFor(LOCAL_READER),
     documentsFor,
+    dependencyCandidateDocuments,
+    writeDependencyManifest: documentSave.writeDependencyManifest,
     resolveId,
     preflight,
     trash,

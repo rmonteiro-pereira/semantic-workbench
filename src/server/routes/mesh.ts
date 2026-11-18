@@ -13,8 +13,10 @@ import type { Workspace } from '../projects/workspace';
 import { decodeSegment } from '../request';
 import { publishedProviders } from '../mesh/provider-resolution';
 import type { Route } from './http';
+import { updateDependencies } from './dependency-update';
 
 const DEPENDENCIES_ROUTE = /^\/api\/projects\/([^/]+)\/dependencies$/;
+const DEPENDENCY_UPDATE_ROUTE = /^\/api\/projects\/([^/]+)\/dependencies\/update$/;
 const PAGE_SIZE = 50;
 
 function providerCursor(project: string, ontology: string) {
@@ -95,6 +97,10 @@ function dependencyStatus(ws: Workspace, reader: Reader, project: string) {
 
 /** Registers mesh reads for the interactive workbench. */
 export const meshRoutes: Route = async (ws, req, url) => {
+  if (req.method === 'POST') {
+    const update = DEPENDENCY_UPDATE_ROUTE.exec(url.pathname);
+    return update ? updateDependencies(ws, req, decodeSegment(update[1])) : null;
+  }
   if (req.method !== 'GET') return null;
   if (url.pathname === '/api/mesh/providers') return Response.json(await listProviders(ws, requestReader(req), url), { headers: { 'Cache-Control': 'no-store' } });
   const match = DEPENDENCIES_ROUTE.exec(url.pathname);

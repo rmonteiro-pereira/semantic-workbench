@@ -333,6 +333,15 @@
       "dispatch": "twin",
       "exposure": { "increment": "later", "reason": "Dependency status reads the person's workbench copy." }
     },
+    "POST /api/projects/:slug/dependencies/update": {
+      "id": "mesh.dependencies.update",
+      "handlerChecks": ["authorizeWrite"],
+      "limits": { "request": "FILE_SAVE_REQUEST_LIMIT", "response": "bounded", "work": "scan" },
+      "effects": ["read", "localWrite"],
+      "dispatch": "twin",
+      "exposure": { "increment": "local-edit" },
+      "steps": ["snapshot.read"]
+    },
     "POST /api/projects/:slug/compile/check": {
       "id": "compile.check",
       "handlerChecks": [],

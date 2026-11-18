@@ -1,5 +1,6 @@
 // Saves and reverts documents: a stale base is refused, the reader's guard judges the text, and the
 // swap is journaled so a crash leaves either the old or the new bytes.
+import { DEPENDENCY_MANIFEST_PATH } from '../../../shared/tessera/dependency-manifest';
 import { unitEditMigrations } from './unit-edits';
 import type { DeclaredMigration } from '../../../shared/core/address-migration';
 import type { OperationOutcome } from '../../auth/operation-outcome';
@@ -106,13 +107,21 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     path: string,
     body: { baseHash: string | null; source?: string; patches?: Patch[]; declaredMigrations?: DeclaredMigration[]; deletedItems?: string[] },
     reader: Reader,
+    manifestRoots?: ReadonlyMap<string, string>,
   ) {
     const { guard } = reader;
     entry(slug);
     const relativePath = projectPath(path);
+    if (relativePath === DEPENDENCY_MANIFEST_PATH && !manifestRoots) throw new BadRequestError('Use Update dependencies to write the dependency manifest.');
     const declarations = body.declaredMigrations ?? [];
     const deletedItems = body.deletedItems ?? [];
     const check = async (at: Place) => {
+      if (manifestRoots) {
+        for (const [root, expectedHash] of manifestRoots) {
+          const bytes = readFileSync(projectFile(at.layout, slug, root));
+          if (sha256(bytes) !== expectedHash) throw new BadRequestError('The ontology changed. Review the dependency update again.');
+        }
+      }
       const result = await guardedEdit(at, { slug, path: relativePath }, body, guard);
       const after = result.guarded?.changes[0].after ?? result.edited;
       verifyDeletedItems(deletedItems, { project: slug, path: relativePath, before: result.before ?? '', after });
@@ -199,6 +208,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     entry(slug);
     if (!Array.isArray(writes) || !writes.length || writes.length > 50) throw new BadRequestError('Expected 1–50 files.');
     const files = writes.map(w => ({ ...w, path: projectPath(w.path) }));
+    if (files.some(file => file.path === DEPENDENCY_MANIFEST_PATH)) throw new BadRequestError('Use Update dependencies to write the dependency manifest.');
     const declarations = options.declaredMigrations ?? [];
     const deletedItems = options.deletedItems ?? [];
     if (new Set(files.map(f => f.path)).size !== files.length) throw new BadRequestError('Each file may appear once.');
@@ -319,7 +329,11 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     } catch {}
     return reverted;
   }
-  return { saveFile, saveFiles, revertFile };
+  /** Writes a planned lock after rechecking the roots and the previous lock under the save lock. */
+  function writeDependencyManifest(slug: string, body: { baseHash: string | null; source: string }, roots: ReadonlyMap<string, string>, reader: Reader) {
+    return saveFile(slug, DEPENDENCY_MANIFEST_PATH, body, reader, roots);
+  }
+  return { saveFile, saveFiles, revertFile, writeDependencyManifest };
 }
 
 /** Classifies an atomic batch save and any governance demotions it reports. */

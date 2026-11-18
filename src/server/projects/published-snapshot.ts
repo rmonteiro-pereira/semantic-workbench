@@ -123,6 +123,15 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
   async function documents(requestPin: PublishedPin, project: string): Promise<PublishedDocument[]> {
     return (await files(requestPin, project)).filter(file => file.metadata.visible).map(file => file.document);
   }
+  async function commitAt(requestPin: PublishedPin, project: string, revision: string) {
+    const repository = projectRepository(project, requestPin);
+    const published = requestPin.commits.get(repository);
+    if (!published) return null;
+    const directory = deps.directory(repository);
+    const commit = fullId.test(revision) ? await deps.git.revParse(directory, `${revision}^{commit}`) : await deps.git.peelTag(directory, revision);
+    if (!commit || (fullId.test(revision) && commit !== revision)) return null;
+    return (await deps.git.isAncestor(directory, commit, published.commit)) ? commit : null;
+  }
   async function resolveRevision(revision: string, onlyRepository?: string): Promise<string | null> {
     if (!deps.gitAvailable()) return null;
     for (const [repository, pointer] of deps.pointers.entries()) {
@@ -232,6 +241,27 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
     async fileBytes(requestPin: PublishedPin, project: string, path: string) {
       const file = (await files(requestPin, project)).find(file => file.document.path === path);
       return file ? file.bytes.slice() : null;
+    },
+    /** Resolves a pin against the publication selected for this request and reads that commit. */
+    async pinnedDocumentsAt(requestPin: PublishedPin, project: string, revision: string) {
+      assertOperationStep('snapshot.read');
+      const commit = await commitAt(requestPin, project, revision);
+      if (!commit) return null;
+      const repository = projectRepository(project, requestPin);
+      const index = await load(repository, commit, requestPin);
+      const files = index.projects.get(project);
+      if (!files) throw new SnapshotUnavailableError('unavailable');
+      return { commit, documents: files.filter(file => file.metadata.visible).map(file => file.document) };
+    },
+    /** Reads an immutable publication candidate within its registered repository. */
+    async candidateDocuments(candidate: PublicationCandidate, project: string) {
+      const requestPin = pin();
+      const repository = projectRepository(project, requestPin);
+      if (repository !== candidate.repo) throw new SnapshotUnavailableError('unavailable');
+      const index = await load(repository, candidate.next, requestPin);
+      const files = index.projects.get(project);
+      if (!files) throw new SnapshotUnavailableError('unavailable');
+      return files.filter(file => file.metadata.visible).map(file => file.document);
     },
     async documentsAt(commit: string, project: string) {
       if (!deps.gitAvailable()) throw absence();

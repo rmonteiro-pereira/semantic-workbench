@@ -107,4 +107,15 @@ test('provider listing and dependency reads preserve access and output across op
   const dependencies = await read('mesh.dependencies.read', { slug: 'retail' });
   expect(dependencies.status).toBe(200);
   expect(JSON.parse(dependencies.content)).toEqual({ roots: [], manifestHash: null });
+  const update = buildTwinRequest('mesh.dependencies.update', { params: { slug: 'retail' }, body: { baseHash: null } });
+  const updateHttp = await handler(
+    new Request(origin + new URL(update.url).pathname, {
+      method: update.method,
+      headers: { 'Content-Type': 'application/json', Origin: origin, 'X-SW-Request': '1' },
+      body: await update.clone().text(),
+    }),
+  );
+  const updateTwin = (await handler.boundary.operate({ caller: mintCaller({ principal, origin: 'mcp' }), request: update })).response;
+  expect(updateHttp.status).toBe(updateTwin.status);
+  expect(await updateHttp.json()).toEqual(await updateTwin.json());
 });

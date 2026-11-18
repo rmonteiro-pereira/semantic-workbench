@@ -56,7 +56,12 @@ export async function resolveProvider(resolution: ProviderResolution, pin: Publi
   const publication = pin.commits.get(repository);
   if (!publication) throw new SnapshotUnavailableError('no-commit');
   const documents = await resolution.snapshots.documents(pin, project);
-  const choices = exportedOntologies(project, repository, publication.commit, documents).filter(provider => ontology === undefined || provider.ontology === ontology);
+  const choices = exportedOntologies(
+    project,
+    repository,
+    publication.commit,
+    documents.filter(file => !reader.view || reader.view.canRead(project, file.path)),
+  ).filter(provider => ontology === undefined || provider.ontology === ontology);
   if (choices.length !== 1) throw unavailable();
   return choices[0];
 }
@@ -67,5 +72,11 @@ export async function publishedProviders(resolution: ProviderResolution, pin: Pu
   const repository = resolution.repositoryOf(project);
   const publication = repository ? pin.commits.get(repository) : undefined;
   if (!repository || !publication) return [];
-  return exportedOntologies(project, repository, publication.commit, await resolution.snapshots.documents(pin, project));
+  const documents = await resolution.snapshots.documents(pin, project);
+  return exportedOntologies(
+    project,
+    repository,
+    publication.commit,
+    documents.filter(file => !reader.view || reader.view.canRead(project, file.path)),
+  );
 }

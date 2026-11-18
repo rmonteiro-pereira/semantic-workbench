@@ -360,6 +360,7 @@ owns the data root; merely increasing container replicas is not safe scaling.
 | `src/app/metrics/`, `src/app/mappings/`, `src/app/odcs/` | Metric, mapping and contract/lineage views |
 | `src/app/graph/` | Whole-model and neighborhood graphs, layout, traversal and workers |
 | `src/shared/` | Code the browser and server both import: model, parsers, validation, patches, metric bindings |
+| `src/server/mesh/` | Resolves public ontology imports and prepares dependency locks. |
 | `src/shared/tessera/`, `src/server/tessera/`, `scripts/tessera.ts` | The Tessera format, its compiler, snapshot reading and bundle writing, and the command line |
 | `src/app/components/`, `src/app/theme/` | Cross-feature UI and theme palettes |
 | `schemas/`, `src/generated/` | Pinned schema sources and compiled browser validators |
