@@ -1,0 +1,7 @@
+version: 0.2.0.dev0
+name: retail_mapping
+ontology_ref:
+  name: Retail
+semantic_model_ref:
+  name: retail_model
+concept_mappings: []

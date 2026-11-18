@@ -1,0 +1,85 @@
+{
+  "base": {
+    "label": "valid against the bundled Ossie 0.2.0.dev0 draft",
+    "version": "0.2.0.dev0"
+  },
+  "compiler": {
+    "name": "tessera",
+    "version": "1.0.0"
+  },
+  "counts": {
+    "tessera_notes": 3
+  },
+  "digest": "sha256:f68b53aa9e682505359c4b18eec08f697e2e8f120ca20aa3f9bf6a95235db748",
+  "inputs": [
+    {
+      "path": "contract.odcs.yaml",
+      "sha256": "871580fccd4762a5426186f1765bcb412d615f130ef5374c4e2669d07ee543dc",
+      "treatment": "not-included"
+    },
+    {
+      "path": "mapping.yaml",
+      "sha256": "8a52218cbeb06634c33642a79f2e6054d009414abaeb7c733c17e4e84a3637f7",
+      "treatment": "copied"
+    },
+    {
+      "path": "ontology.yaml",
+      "sha256": "6b14b0a5019726391c5afc683cadf7a5290b3a346783cc92df1cbd7ff29a3758",
+      "treatment": "compiled"
+    },
+    {
+      "path": "semantic-model.yaml",
+      "sha256": "652a253bd806b1219aa39bc41465257d78a3c0a402de439b265e099058dc2ec7",
+      "treatment": "copied"
+    },
+    {
+      "path": "vocabulary.ttl",
+      "sha256": "d562861c0652d8fc139dd633ea5d13e886e203dffe4b7d069f5fe26b9e08dbce",
+      "treatment": "not-included"
+    }
+  ],
+  "losses": [
+    {
+      "bytes": 51,
+      "document": "ontology.yaml",
+      "item": "sw1:#ontology:Retail/concept:Order/relationship:placed_by",
+      "pointer": "/ontology/0/relationships/0/tessera_notes",
+      "property": "tessera_notes",
+      "sha256": "b090dddaa91cced67514bb4984558d9059502fa5d7da6d5a785b9f18489bf1ca"
+    },
+    {
+      "bytes": 45,
+      "document": "ontology.yaml",
+      "item": "sw1:#ontology:Retail/concept:Order",
+      "pointer": "/ontology/0/tessera_notes",
+      "property": "tessera_notes",
+      "sha256": "405a6cbcd46e9e53500c194e7df0fea7ab9786e3b0ae37308daf35c3577579b1"
+    },
+    {
+      "bytes": 32,
+      "document": "ontology.yaml",
+      "item": "sw1:#ontology:Retail",
+      "pointer": "/tessera_notes",
+      "property": "tessera_notes",
+      "sha256": "ad874935234d2a9f2246ad41dd61ec1dc93da49acfd8c129783a44afca9c5282"
+    }
+  ],
+  "options": {
+    "lossPolicy": null
+  },
+  "outputs": [
+    {
+      "path": "mapping.yaml",
+      "sha256": "8a52218cbeb06634c33642a79f2e6054d009414abaeb7c733c17e4e84a3637f7"
+    },
+    {
+      "path": "ontology.yaml",
+      "sha256": "d80583e168b596b63d9f1feda35e3d66fdd3c90e17e81a8500a0e8ca098dcd52"
+    },
+    {
+      "path": "semantic-model.yaml",
+      "sha256": "652a253bd806b1219aa39bc41465257d78a3c0a402de439b265e099058dc2ec7"
+    }
+  ],
+  "reportVersion": 1
+}
