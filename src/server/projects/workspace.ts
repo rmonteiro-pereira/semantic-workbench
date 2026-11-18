@@ -1,5 +1,6 @@
 // Coordinates project files, durable state, and workspace services. Project folders are the source
 // of truth; the SQLite cache can be rebuilt.
+import { createDependentsRegistry } from '../mesh/dependents-registry';
 import { upgradePublications } from '../auth/operation-execution';
 import type { PublicationObserver } from './local-publication';
 import { readAddressMigrations } from './address-migrations';
@@ -530,6 +531,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     now: options.now ?? Date.now,
     idleMs: options.copyIdleMs,
   });
+  const dependents = createDependentsRegistry(layout.mesh, snapshots, projects, lock);
   const meshPublishing = {
     snapshots,
     projectsIn,
@@ -538,6 +540,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   };
   const publishing = createPublishing({
     ...meshPublishing,
+    publicationChanged: dependents.invalidate,
     adopt: async (slug, reader, observe) => {
       const repository = repoOf(slug);
       const server = options.reconcilePublished || Boolean(reader.view);
@@ -598,6 +601,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     writeCopy: async (reader, slug) => (await copies.writePlace(reader, slug)).copy,
     archiveCopies: (removed, entryDir) => unpublished.archiveCopies(removed, entryDir),
     removeCopies: entryDir => unpublished.removeCopies(entryDir),
+    projectsRemoved: dependents.invalidate,
     forgetProject: slug => {
       watcher?.remove(slug);
       cache.removeProject(slug);
@@ -767,6 +771,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     migration,
     repositoryStatus,
     published: snapshots,
+    dependents,
     ...gitIdentity,
     revertFile: documentSave.revertFile,
     importBatch: importBatch.importBatch,

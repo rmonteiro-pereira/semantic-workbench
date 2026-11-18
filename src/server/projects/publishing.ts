@@ -20,6 +20,7 @@ export type PublishingDeps = {
   copies: WorkingCopies;
   repoOf: (slug: string) => string;
   projectsIn: (repo: string) => string[];
+  publicationChanged: () => void;
   /** Rescans one project of the published state and announces what changed. */
   rescan: (slug: string) => Promise<unknown>;
   emit: (event: string, data: unknown, tags: EventTags) => void;
@@ -45,6 +46,7 @@ export function judgePublish(deps: Pick<PublishingDeps, 'snapshots' | 'projectsI
 
 // Every reader's view of the repository's projects follows the new tip of the default branch.
 async function announce(deps: PublishingDeps, slug: string, branch: string, commit: string) {
+  deps.publicationChanged();
   const inRepo = deps.projectsIn(deps.repoOf(slug));
   for (const project of inRepo) await deps.rescan(project);
   deps.emit('published', { project: slug, branch, commit }, { projects: inRepo });

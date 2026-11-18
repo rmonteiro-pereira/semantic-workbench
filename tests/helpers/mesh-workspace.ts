@@ -146,3 +146,30 @@ export async function meshWorkspace(shape: MeshRepositoryShape) {
     throw error;
   }
 }
+
+type Fixture = Awaited<ReturnType<typeof meshWorkspace>>;
+
+async function post(fixture: Fixture, operation: string, body: object = {}) {
+  return fixture.fixture.handler(
+    new Request(`http://localhost:4310/api/projects/retail/${operation}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }),
+  );
+}
+
+/** Publishes a consumer through the same route as the workbench. */
+export async function publishDependent(fixture: Fixture) {
+  fixture.addPersonalBranch('retail');
+  fixture.addUncommittedImport();
+  const preview = await post(fixture, 'dependencies/update', { baseHash: null });
+  if (!preview.ok) throw new Error(await preview.text());
+  const confirmed = await post(fixture, 'dependencies/update', { baseHash: null, confirm: (await preview.json()).preview });
+  if (!confirmed.ok) throw new Error(await confirmed.text());
+  fixture.git('retail', ['add', '-A']);
+  fixture.git('retail', ['commit', '-qm', 'Import the public invoice']);
+  if ((await fixture.ws.dependents.read()).length) throw new Error('A personal branch appeared in the dependents registry.');
+  const publication = await post(fixture, 'git/publish');
+  if (!publication.ok) throw new Error(await publication.text());
+}
