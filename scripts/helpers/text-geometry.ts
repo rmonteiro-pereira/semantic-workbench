@@ -182,9 +182,10 @@ async function sampleTextColors(page: Page, within: string, disabledOnly = false
         if (style.visibility === 'hidden' || style.display === 'none') continue;
         const box = element.getBoundingClientRect();
         if (box.width < 1 || box.height < 1) continue;
+        const faded = opacityOf(element);
+        if (faded === 0) continue;
         const background = backgroundOf(element);
         let color = toChannels(style.color);
-        const faded = opacityOf(element);
         if (background && (color.alpha < 1 || faded < 1)) {
           color = over({ ...color, alpha: color.alpha * faded }, background);
         }
