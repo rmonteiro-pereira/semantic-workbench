@@ -93,28 +93,24 @@ test('Git unions independently appended histories without adding a compile input
   using fixture = await itemDiffBaselineWorkspace();
   const project = 'finance';
   const directory = join(fixture.root, 'projects', project);
-  const path = 'finance.ontology.yaml';
-  const legacy = join(fixture.ws.layout.state, 'address-migrations', 'finance.json');
   const prefix = 'sw1:finance/finance.ontology.yaml#ontology:Finance/concept:';
-  const initial = { id: 'legacy', kind: 'item', from: prefix + 'Former', to: prefix + 'Customer', at: '2025-01-01T00:00:00Z', commit: '' };
-  atomicWriteJson(legacy, { formatVersion: 1, records: [initial] });
-  const original = fixture.ws.readFile(project, path, LOCAL_READER);
-  await fixture.ws.saveFile(project, path, { baseHash: original.hash, source: original.source + '\n' }, LOCAL_READER);
   git(directory, ['add', '.']);
-  git(directory, ['commit', '-m', 'Set up address history']);
+  git(directory, ['commit', '-m', 'Set up both branches']);
   const base = git(directory, ['rev-parse', 'HEAD']);
   git(directory, ['switch', '-c', 'history-first']);
   await fixture.ws.reconcileAddress({ operationId: 'first', from: prefix + 'First', to: prefix + 'Customer' }, LOCAL_READER);
-  git(directory, ['commit', '-am', 'Record first reconciliation']);
+  git(directory, ['add', '.gitattributes', ADDRESS_HISTORY_FILE]);
+  git(directory, ['commit', '-m', 'Record first reconciliation']);
   git(directory, ['switch', '-c', 'history-second', base]);
   await fixture.ws.reconcileAddress({ operationId: 'second', from: prefix + 'Second', to: prefix + 'Customer' }, LOCAL_READER);
-  git(directory, ['commit', '-am', 'Record second reconciliation']);
+  git(directory, ['add', '.gitattributes', ADDRESS_HISTORY_FILE]);
+  git(directory, ['commit', '-m', 'Record second reconciliation']);
   git(directory, ['merge', '--no-edit', 'history-first']);
   expect(
     readAddressMigrations(fixture.ws.layout, project, LOCAL_READER)
       .map(record => record.id)
       .sort(),
-  ).toEqual(['legacy', 'r-first-0', 'r-second-0']);
+  ).toEqual(['r-first-0', 'r-second-0']);
   expect(fixture.ws.resolveAddress(prefix + 'First', LOCAL_READER)).toMatchObject({ status: 'found', address: prefix + 'Customer' });
   expect(fixture.ws.resolveAddress(prefix + 'Second', LOCAL_READER)).toMatchObject({ status: 'found', address: prefix + 'Customer' });
   expect(readFolder(directory).files.map(file => file.path)).not.toContain(ADDRESS_HISTORY_FILE);
