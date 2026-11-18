@@ -146,7 +146,9 @@ export const readRouteExamples = routeExamples.filter(
 );
 
 // Panel and relay streams carry conversation events, so they are outside the definition-read matrix.
-routeExamples.push(
+routeExamples.splice(
+  routeExamples.length - 1,
+  0,
   { method: 'POST', path: '/api/acp/sessions' },
   { method: 'GET', path: '/api/acp/sessions/missing/events' },
   { method: 'POST', path: '/api/acp/sessions/missing/prompt' },

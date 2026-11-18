@@ -127,3 +127,8 @@ asserts a single escaped copy and the polite announcement attribute.
 Session-create review found that an invalid JSON body was treated as default options and could
 create a session. The route now rejects malformed, oversized and wrongly typed options before
 calling the service. Its targeted route proof includes no state change for malformed bodies.
+
+Final route-inventory review caught the positional requirement in route-actions.test.ts: the
+conversation examples must precede the final pages row. The single appended block now inserts
+them immediately before that row, after deriving the definition-read matrix.
+Proof: `bun test tests/auth/route-actions.test.ts`: 7 pass, 0 fail, 385 assertions.
