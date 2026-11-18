@@ -266,6 +266,9 @@ racing the loader's own initial-document selection.
 bun run test:mutation
 ```
 
+The mutation runner checks that each target still exists before starting. The Git push mutation
+exercises the remote-effect check alongside the Git dispatch.
+
 Browser mutants require the Vite development server because they intercept source modules.
 The runner mutates temporary source copies and browser pages. Unmodified baselines must pass;
 each targeted fault must be caught. Coverage includes parsing, file/journal behavior, Git safety,

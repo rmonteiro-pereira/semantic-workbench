@@ -7,8 +7,8 @@ export const operationBoundaryMutants: [string, string, string, string][] = [
   [
     'operation-boundary',
     'src/server/auth/git-access.ts',
-    "export async function authorizeGitPush(target: GitTarget): Promise<void> {\n  requireEffect(target.request, 'remote');",
-    'export async function authorizeGitPush(target: GitTarget): Promise<void> {',
+    "  requireEffect(target.request, 'remote');\n  const scm = target.ws.pendingScm",
+    '  const scm = target.ws.pendingScm',
   ],
   ['operation-boundary', 'src/server/auth/authorize.ts', 'snapshot.policy.exactResources || principal.kind', 'false || principal.kind'],
   ['operation-boundary', 'src/server/auth/authorize.ts', 'roles(project).sort()', '[]'],
