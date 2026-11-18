@@ -10,13 +10,13 @@ const ontology = (status: string, owner = 'carol@example.org', context = 'Use th
   tessera: 2,
   version: '0.2.0.dev0',
   name: 'Retail',
-  ontology: [{ concept: 'Order', type: 'EntityType', tessera_governance: { status, owner }, tessera_ai_context: context }],
+  ontology: [{ concept: 'Order', type: 'EntityType', tessera_governance: { status, owner, classification: 'public' }, tessera_ai_context: context }],
 });
 
 function guards(candidate: Record<string, any>) {
   const options = accessFixture();
   options.config.adminRules = {
-    ontology: 'permit(principal is SW::User, action == SW::Action::"approveOntologyItem", resource) when { principal.email == "alice@example.org" };',
+    ontology: 'permit(principal is SW::User, action == SW::Action::"approveOntologyItem", resource) when { principal.email == "alice@example.org" && context.level == 0 };',
   };
   const access = createAccessControl(options);
   const actor = (name: 'alice' | 'bob') => candidate.guardFor(access.forRequest(access.principalFor(person(name))));
@@ -24,6 +24,12 @@ function guards(candidate: Record<string, any>) {
   assert.throws(() => actor('bob')([change('approved')]), /Approve ontology item/);
   assert.throws(() => actor('alice')([change('approved', 'ALICE@example.org')]), /they own/);
   assert.equal(actor('alice')([change('approved')]).refused.length, 0);
+  const classified = (status: string) => {
+    const document = ontology(status);
+    Object.assign(document.ontology[0].tessera_governance, { classification: 'internal' });
+    return JSON.stringify(document);
+  };
+  assert.throws(() => actor('alice')([{ project, path, before: classified('proposed'), after: classified('approved') }]), /Approve ontology item/);
 }
 
 function itemIdentity(candidate: Record<string, any>) {

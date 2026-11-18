@@ -101,7 +101,7 @@ function statusChanges(file: Origin, previous: Map<string, LocatedItem>, next: M
     const status = statusOf(current);
     const oldStatus = statusOf(old);
     const metric: GuardedMetric = { name: current.label, status, owners: ownerKeysOf([current, old, recorded.get(key)]) };
-    const level = higherLevel(itemLevel(old, rules.levelOf), itemLevel(current, rules.levelOf), rules.levelNumber);
+    const level = higherLevel(old ? itemLevel(old, rules.levelOf) : 'public', itemLevel(current, rules.levelOf), rules.levelNumber);
     const base = { ...file, pointer: pointerOf(current.path), level, metric, itemKind: current.kind };
     const approvalSet = (status === 'approved' || status === 'deprecated') && status !== oldStatus;
     const peopleChanged = oldStatus === 'approved' && status === 'approved' && peopleOf(old) !== peopleOf(current);

@@ -54,6 +54,7 @@ export const attributesMutants: Mutant[] = [
   ['attributes-revision', validate, 'declaredRevision !== undefined && entry.since > declaredRevision', 'false'],
   ['attributes-approval', 'src/server/auth/guards.ts', 'const item = { status: metric.status, owner };', 'const item = { status: metric.status };'],
   ['attributes-approval', 'src/server/auth/guards.ts', "if (kind === 'item-status' || kind === 'item-body')", 'if (false)'],
+  ['attributes-approval', 'src/server/auth/guards.ts', 'level: levelNumber(change.level)', 'level: 0'],
   ['attributes-item-identity', 'src/shared/governance/ontology-guards.ts', 'JSON.stringify([concept.concept, relationship.name])', 'label'],
   ['attributes-item-identity', 'src/shared/governance/ontology-guards.ts', "else if (oldStatus === 'approved' && status === '')", 'else if (false)'],
   ['attributes-demotion', 'src/shared/governance/guards.ts', 'if (options.demote && guarded.demotable)', 'if (false)'],
