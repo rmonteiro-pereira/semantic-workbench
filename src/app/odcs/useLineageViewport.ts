@@ -23,12 +23,11 @@ export const FIRST_VIEW_ROW_GAP = 60;
 const MAX_FIT_WAIT_FRAMES = 60;
 // Space kept between a card that was just resized and the edge of the canvas.
 const CARD_EDGE_GAP = 16;
-// Where a resized card's top edge goes on screen: the whole card shows when it fits the canvas,
-// and a card taller than the canvas keeps its top visible.
-function visibleCardTop(top: number, cardPixels: number, canvasPixels: number): number {
-  if (!canvasPixels || !cardPixels) return top;
-  const lowestTop = canvasPixels - CARD_EDGE_GAP - cardPixels;
-  return Math.max(CARD_EDGE_GAP, Math.min(top, lowestTop));
+// A card larger than the canvas keeps its leading edge visible for inspection.
+function visibleCardOffset(offset: number, cardPixels: number, canvasPixels: number): number {
+  if (!canvasPixels || !cardPixels) return offset;
+  const lastOffset = canvasPixels - CARD_EDGE_GAP - cardPixels;
+  return Math.max(CARD_EDGE_GAP, Math.min(offset, lastOffset));
 }
 type FlowRef = RefObject<ReactFlowInstance<any, any> | null>;
 type AnchoredCard = { id: string; layout: string | undefined; screen: { x: number; y: number } };
@@ -243,10 +242,12 @@ export function useLineageViewport({
     anchoredCard.current = null;
     const zoom = flow.current.getZoom();
     const layoutCard = layoutCardsRef.current.find(candidate => candidate.id === anchor.id);
-    const cardPixels = layoutCard ? cardHeight(layoutCard) * zoom : 0;
-    const top = visibleCardTop(anchor.screen.y, cardPixels, stage.current?.clientHeight ?? 0);
+    const cardWidth = layoutCard ? CARD_W * zoom : 0;
+    const cardHeightPixels = layoutCard ? cardHeight(layoutCard) * zoom : 0;
+    const left = visibleCardOffset(anchor.screen.x, cardWidth, stage.current?.clientWidth ?? 0);
+    const top = visibleCardOffset(anchor.screen.y, cardHeightPixels, stage.current?.clientHeight ?? 0);
     void flow.current.setViewport({
-      x: anchor.screen.x - moved.x * zoom,
+      x: left - moved.x * zoom,
       y: top - moved.y * zoom,
       zoom,
     });

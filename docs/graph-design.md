@@ -151,6 +151,8 @@ complete compact reach when its names fit readably, otherwise it centres a whole
 When a layered layout leaves too little space for complete names, Fit packs equal cards to the
 available pane and draws their relationships along row and column gutters.
 The remaining cards appear when the person pans, zooms or presses Fit.
+When zoom reveals detailed cards or a column list changes height, the inspected card stays within
+the horizontal and vertical viewport bounds when it fits.
 Explicit Fit requests the complete compact reach and takes precedence over a pending first view.
 Compact overviews that cannot contain their complete wrapped names at the minimum name size pack cards
 to the pane aspect ratio through ELK. Detailed views and already readable compact layouts retain
