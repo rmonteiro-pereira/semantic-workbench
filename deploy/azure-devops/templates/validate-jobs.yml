@@ -92,6 +92,12 @@ jobs:
           suite: test:mapping-graph
         back_history:
           suite: test:back-history
+        tessera:
+          suite: test:tessera
+        usage_traffic:
+          suite: test:usage-traffic
+        proposals:
+          suite: test:proposals
         theme:
           suite: test:theme
         brand:
