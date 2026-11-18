@@ -9,19 +9,22 @@ const COLLAPSED_CARD_HINT_HEIGHT = 40;
 const METRIC_BADGE_HEIGHT = 16;
 // The title may use two lines of a tile's header, beside its colour dot.
 const TITLE_BOX_HEIGHT = 100;
+type AnnotatedEntity = Entity & { change?: import('../../shared/item-diff/item-change').ChangeState };
+
 /** Reserves the card's internal labels; KPI badges float outside the card. */
-export function reservedNameHeight(entity: Entity): number {
+export function reservedNameHeight(entity: AnnotatedEntity): number {
   let reservedHeight = 0;
   if (entity.definition?.collapsedArea) reservedHeight += COLLAPSED_CARD_HINT_HEIGHT;
   if (entity.kind === 'Metric') reservedHeight += METRIC_BADGE_HEIGHT;
+  if (entity.change) reservedHeight += 26;
   return reservedHeight;
 }
 
 /** The data of an entity card, with the largest name size at which the whole name fits. */
-export function entityCardData(entity: Entity, size: { width: number; height: number }) {
+export function entityCardData(entity: AnnotatedEntity, size: { width: number; height: number }) {
   const reservedHeight = reservedNameHeight(entity);
   const nameCap = cardNameFontSize(entity.name, { ...size, reservedHeight }, LARGEST_ENTITY_NAME_PX);
-  return { nameCap: `${nameCap}px` };
+  return { nameCap: `${nameCap}px`, ...(entity.change ? { change: entity.change } : {}) };
 }
 
 /** The data of an area tile: its title, the largest title size that fits, and its link summary. */

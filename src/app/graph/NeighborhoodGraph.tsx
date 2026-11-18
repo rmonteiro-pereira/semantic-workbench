@@ -292,6 +292,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
                   )}
                 </small>
                 <EntityName name={entity.name} />
+                {(entity as Entity & { changeMark?: React.ReactNode }).changeMark}
                 <span title={entity.description || undefined}>
                   {entity.fields.length ? `${entity.fields.length} ${entity.fields.length === 1 ? 'field' : 'fields'}` : entity.description || 'Select to inspect'}
                 </span>
