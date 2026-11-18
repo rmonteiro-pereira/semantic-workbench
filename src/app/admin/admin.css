@@ -435,3 +435,25 @@
   min-width: min(100%, max-content);
   max-width: 100%;
 }
+
+.agent-programs,
+.agent-program-fields {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.agent-program-fields {
+  display: grid;
+  gap: 1rem;
+}
+.agent-program-fields label {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.agent-program-fields input:not([type='checkbox']),
+.agent-program-fields textarea {
+  width: 100%;
+  min-width: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

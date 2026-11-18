@@ -1,5 +1,7 @@
 /** The areas of the Admin page, in the order the section navigation lists them. */
 export const ADMIN_SECTIONS = [
+  { id: 'agent-programs', label: 'Agent programs', description: 'Register programs that people may connect, and review changes before activation.' },
+  { id: 'agent-connections', label: 'Agent connections', description: 'See and revoke connections acting as signed-in people.' },
   {
     id: 'grants',
     label: 'Access grants',

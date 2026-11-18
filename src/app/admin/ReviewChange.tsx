@@ -14,6 +14,11 @@ export function DryRunResult({ result }: { result: DryRun }) {
   return (
     <section aria-label="Dry-run result">
       <h3>What changes for whom</h3>
+      {result.programs?.endings.map(program => (
+        <p key={program.clientId}>
+          Confirming ends {program.connections} connection(s) for {program.name} ({program.clientId}).
+        </p>
+      ))}
       <p>
         {result.matrixCases} matrix cases · {result.auditCases} audit snapshots
       </p>

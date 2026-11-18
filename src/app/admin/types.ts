@@ -42,6 +42,7 @@ export type RolesResponse = {
 };
 /** A reviewed proposal, including the changed decisions and people. */
 export type DryRun = {
+  programs?: { endings: { clientId: string; name: string; connections: number }[] };
   dryRunId: string;
   changed: { case: string; before: unknown; after: unknown; rules: string[] }[];
   matrixCases: number;
@@ -118,6 +119,16 @@ export type AuditEntry = {
 /** One page of filtered audit records. */
 export type AuditPage = { entries: AuditEntry[]; next: string | null };
 /** Proposal payloads accepted by the shared dry-run route. */
-export type Proposal = { roles: Role[] } | { grants: Grant[] } | ProjectsConfig | AgentsConfig | { rules: Policy[] } | { rollbackTo: string };
+export type Proposal =
+  | import('../../server/connections/programs').ProgramsFile
+  | { roles: Role[] }
+  | { grants: Grant[] }
+  | ProjectsConfig
+  | AgentsConfig
+  | { rules: Policy[] }
+  | { rollbackTo: string };
 /** Administration files that require review before activation. */
-export type AccessArea = 'roles' | 'grants' | 'projects' | 'agents' | 'policies';
+export type AccessArea = 'programs' | 'roles' | 'grants' | 'projects' | 'agents' | 'policies';
+
+/** Registered agent programs and their optional dry-run impact. */
+export type { Program, ProgramsFile } from '../../server/connections/programs';
