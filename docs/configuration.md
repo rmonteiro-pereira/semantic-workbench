@@ -319,3 +319,15 @@ The agent endpoint needs no environment variable. It uses `DATA_DIR` and `SW_POR
 | `bun run mcp:rotate` | Replaces the capability; the old value stops working on the next request. |
 
 Server mode never mounts the endpoint. See [the agent endpoint guide](mcp.md).
+
+
+## Agent panel relay
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `SW_ACP_CREDENTIAL` | absent | Single-use server-mode setup credential consumed by the person-run relay, exchanged at `/oauth/token`. Never a server setting; never forwarded to the agent. Local mode uses the installation capability instead. |
+
+The relay's `--session <id>.<code>`, `--url <origin>` and agent command after `--` come from the
+panel connection instructions. `DATA_DIR` and `SW_PORT` locate the local capability and server.
+Do not put a real credential in an environment file. See [the panel guide](agent-panel.md) for
+scopes, lifetime and the pending server-mode integration.

@@ -489,3 +489,12 @@ history or per-control instructions to this architecture map.
 adapter into the operation boundary. `src/shared/agent-panel/` holds the content statement and
 event contracts. `src/app/agent/` owns the in-memory browser event reduction and panel transport;
 it uses the ordinary browser API wrapper for write intent and ordinary guarded saves for Undo.
+
+
+The person menu dynamically imports `AgentPanelHost` only on selection. The host mounts a sheet
+beside the existing canvas and removes its container on close, leaving closed-screen geometry
+unchanged. `useAgentSession` owns stream retries and the known-session 404 inference;
+`agent-events.ts` deduplicates replay and combines streamed text. Browser storage holds only a
+session id. `ChangeCard` restores text with the ordinary guarded save and its accepted base hash.
+The workbench never launches an agent, calls a model, supplies credentials to an agent or names
+a tool server. Server-mode connection assembly is a separate integration responsibility.

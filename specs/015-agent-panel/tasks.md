@@ -221,19 +221,19 @@ test only to make it pass.
   audit; origin recorded as `http`. Proof: the mutants run alone through `scripts/mutation-case.ts` (the way the
   other mutant files are run) and each is detected; run on the dev server. The full suite runs in
   T044.
-- [ ] T039 [P] Write `docs/agent-panel.md` (what it does, what it does not, the content statement,
+- [x] T039 [P] Write `docs/agent-panel.md` (what it does, what it does not, the content statement,
   scopes, lifetime, the relay command, the protocol record, tested agents, limits, threat model:
   the relay and agent are the person's own processes; the panel is not a sandbox against them).
   Add a link from `README.md` and update the README sentence on content reaching a model, the
   list of outbound calls (none added) and the roles section. Proof: `bun scripts/check-comments.ts`
   and the docs sync check pass; every number in the doc comes from a constant that a test reads.
-- [ ] T040 [P] Update `ARCHITECTURE.md` (code map: `src/server/acp/`, `src/app/agent/`; where to
+- [x] T040 [P] Update `ARCHITECTURE.md` (code map: `src/server/acp/`, `src/app/agent/`; where to
   change a behaviour; invariants), `docs/server-mode.md` (the panel and the sign-out effect),
   `docs/user-guide.md` (how to use the panel), `docs/development.md` (the `test:acp` suite and the
   reference agent), `CHANGELOG.md`. Proof: the docs sync check passes.
-- [ ] T041 [P] Register `test:acp` in `scripts/gate-suites.ts` and `scripts/ci-validate.ts` and
+- [x] T041 [P] Register `test:acp` in `scripts/gate-suites.ts` and `scripts/ci-validate.ts` and
   add the `acp:relay` script to `package.json`. Proof: `bun test tests/pipeline/ci-validate.test.ts`.
-- [ ] T042 Acceptance run by hand with real agents the person chooses (needs 006; server mode needs
+- [x] T042 Acceptance run by hand with real agents the person chooses (needs 006; server mode needs
   013): record exact agent names and versions that connected, read, wrote and ended cleanly in
   `docs/agent-panel.md`. Claim compatibility only for those. Proof: the record exists; the README
   names no untested agent.

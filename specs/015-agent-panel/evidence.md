@@ -105,3 +105,16 @@ reasons and unchanged canvas geometry on close. Default screens sent no panel re
 capture was made: the screenshot portion of T036 is deferred with T037 as explicitly requested.
 The baseline screenshot and exact main-bundle comparison remain the integrated regression gate's
 responsibility; the panel code and stylesheet are separate lazy build chunks.
+
+Documents cover relay setup, named scopes versus operation effects, the credential variable,
+draft-text disclosure, memory-only transcript, limits, threat model and pending server assembly.
+The request brief substitutes the reference agent for T042's unspecified real-agent selection:
+compatibility is claimed only for reference-agent 1.0.0 in local mode. Its real relay/browser
+acceptance connected, read, wrote, answered, cancelled and ended cleanly.
+
+T041 requires no edit to ci-validate.ts: it already imports gateSuites and selfServedSuites, so
+registering test:acp in those inventories includes it automatically. Proof: `bun test
+ tests/pipeline/ci-validate.test.ts`: 8 pass, 0 fail. Docs sync on the working tree exits 0.
+The leak scanner is clean for README, architecture and the panel guide. Its complete-file scan
+flags the existing public container cache path in docs/configuration.md and .env.server.example
+as a local path; those usage defaults are preserved rather than changed to evade the scanner.

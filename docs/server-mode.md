@@ -399,3 +399,17 @@ personal drafts, Admin/session state, grouping state or trash. Stop the applicat
 removing a disposable SQLite cache, and expect it to rescan on startup. Keep the cache on local
 disk when the durable data root is on a share. Scale vertically first; horizontal scale requires
 repository partitioning or coordinated leases/storage and shared session handling.
+
+
+## Agent panel connections
+
+The panel's server-mode adapter expects the connection service to create a single-use setup
+credential for the current browser session, with origin `acp` and named scopes `read` and `edit`.
+An Admin registers `acp-relay` as an allowed program; it is not built in. The relay exchanges the
+credential at `/oauth/token`. Real service assembly and server-mode acceptance remain pending.
+
+The connection service's end notification closes the bound panel session on sign-out, expiry,
+deactivation and revocation before later agent traffic can run. The relay never renews browser
+idle activity. File requests remain ordinary authorized and guarded operations, and permission
+answers grant no extra scope. See [the panel guide](agent-panel.md), including its draft-content
+warning and threat model.

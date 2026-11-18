@@ -76,7 +76,9 @@
     "deploy:check-version": "bun scripts/deploy-version.ts",
     "deploy:azure": "bun scripts/deploy.ts deploy",
     "deploy:rollback": "bun scripts/deploy.ts rollback",
-    "deploy:smoke": "bun scripts/deploy-smoke.ts"
+    "deploy:smoke": "bun scripts/deploy-smoke.ts",
+    "test:acp": "bun scripts/acp-browser-check.ts",
+    "acp:relay": "bun scripts/acp-relay.ts"
   },
   "dependencies": {
     "@azure/monitor-opentelemetry-exporter": "1.0.0-beta.32",

@@ -471,3 +471,20 @@ Published snapshot measurements use `scripts/published-snapshot-performance-fixt
 their own frontend.
 The edge suite budgets 30 seconds for its initial model readiness on a cold frontend; its
 attachment and geometry checks retain their own limits.
+
+
+## Agent panel checks
+
+`bun test tests/acp/` covers protocol parsing, relay authentication, virtual paths, versioned
+file requests, authorization parity, session endings, audit and browser event reduction.
+`bun run build && bun run test:acp` serves the built frontend on loopback port 5418 against an
+isolated temporary workspace and the scripted `reference-agent` version 1.0.0. It checks actual
+conversation, edits, Undo, conflict, permission focus and cancellation in both themes at phone,
+tablet and desktop widths. `bun run test:acp -- --closed-only` checks that default screens make no
+panel requests. The script closes its browser, relay and server before exiting.
+
+`bun scripts/acp-reference-agent.ts <script.json>` runs the deterministic standard-input reference
+agent. Its turns contain message, task-list, read, write, permission, sleep and exit steps.
+`bun scripts/acp-mutants.ts` runs only the panel's fault candidates through the shared mutation
+case dispatcher; the full mutation suite includes the same candidates. Screenshots and the full
+integrated gate are separate from these feature checks.
