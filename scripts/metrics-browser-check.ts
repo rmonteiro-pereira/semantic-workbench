@@ -2,7 +2,7 @@
 import { screenshotPath } from './helpers/screenshots';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { appUrl } from './helpers/base-url';
-import { setShown, showEveryEntity, showToggle, viewOptions } from './helpers/graph-options';
+import { expectShown, setShown, showEveryEntity, viewOptions } from './helpers/graph-options';
 import { chromium, expect, type Page } from '@playwright/test';
 import { parseDocument } from 'yaml';
 import { plainCommerceModel } from './helpers/commerce-fixture';
@@ -246,10 +246,10 @@ try {
     await expect(views.or(options).first()).toBeVisible();
     if (await views.count()) await views.getByRole('button', { name: 'Ontology graph' }).click();
     await showEveryEntity(page);
-    // The Metrics switch sits in the toolbar; its pressed state says whether metrics show.
+    // The Metrics switch sits in the toolbar's Show menu; its checked state says whether metrics show.
     const showMetrics = (shown: boolean) => viewOptions(page, options => setShown(options, 'Metrics', shown));
     await viewOptions(page, async options => {
-      await expect(showToggle(options, 'Metrics')).toHaveAttribute('aria-pressed', 'true');
+      await expectShown(options, 'Metrics', true);
     });
     await expect(page.locator('.full-entity.kpi-node')).toHaveCount(1);
     await expect(

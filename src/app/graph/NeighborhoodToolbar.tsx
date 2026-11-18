@@ -5,7 +5,8 @@ import { ScrollStrip } from '../components/ScrollStrip';
 import { EntityName } from './EntityName';
 import { CompactControls } from './CompactControls';
 import { GraphOptions, OptionGroup, ShowToggle } from './GraphOptions';
-import { TrafficToggle } from '../usage/TrafficToggle';
+import { useTrafficShowItem } from '../usage/traffic-show-item';
+import { ShowMenu } from './ShowMenu';
 import { PierceControls } from './PierceControls';
 import { ZoomButtons } from './ZoomButtons';
 import { FullscreenButton } from './FullGraph';
@@ -160,6 +161,7 @@ function NeighborhoodOptions({
   setHideKpis,
   onRearrange,
 }: OptionsProps) {
+  const trafficItem = useTrafficShowItem();
   return (
     <GraphOptions>
       <OptionGroup title="Neighbors">
@@ -186,20 +188,14 @@ function NeighborhoodOptions({
         ) : null}
       </OptionGroup>
       <OptionGroup title="Show">
-        <ShowToggle on={labels} onToggle={() => setLabels(shown => !shown)}>
-          Labels
-        </ShowToggle>
-        {valueCount > 0 && (
-          <ShowToggle on={!hideValues} onToggle={onToggleValueTypes} title={`${valueCount} value types and built-in concepts`}>
-            Value types
-          </ShowToggle>
-        )}
-        {kpiCount > 0 && (
-          <ShowToggle on={!hideKpis} onToggle={() => setHideKpis(hidden => !hidden)} title={`${kpiCount} metric nodes`}>
-            Metrics
-          </ShowToggle>
-        )}
-        <TrafficToggle />
+        <ShowMenu
+          items={[
+            { name: 'Labels', summary: 'Relationship names on the lines', on: labels, onToggle: () => setLabels(shown => !shown) },
+            valueCount > 0 ? { name: 'Value types', summary: `${valueCount} value types and built-in concepts`, on: !hideValues, onToggle: onToggleValueTypes } : null,
+            kpiCount > 0 ? { name: 'Metrics', summary: `${kpiCount} metric nodes`, on: !hideKpis, onToggle: () => setHideKpis(hidden => !hidden) } : null,
+            trafficItem,
+          ]}
+        />
       </OptionGroup>
       <OptionGroup title="Layout">
         <button onClick={onRearrange} title="Put every node back in its column">

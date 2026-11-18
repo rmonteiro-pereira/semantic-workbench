@@ -133,7 +133,7 @@ as text, so no meaning rests on colour. Card sizes do not change. Components:
 
 - `src/app/usage/use-usage.ts`: loads and refreshes the answer, exposes states (off, loading, error,
   empty, ready, partial).
-- `src/app/usage/TrafficToggle.tsx`: the option; explains the off state.
+- `src/app/usage/traffic-show-item.ts`: the Traffic entry of the graph toolbars' Show menu (`src/app/graph/ShowMenu.tsx`).
 - `src/app/usage/TrafficBadge.tsx`: the one component that renders a count with its label, used by
   graph cards, edges' labels, detail rows and lists.
 - `src/app/usage/TrafficLegend.tsx`: measure, operations, period.
@@ -166,7 +166,7 @@ The first request for counts is made only when the option is switched on.
 src/server/usage/usage-settings.ts, usage-recorder.ts, usage-items.ts, usage-store.ts,
   usage-migration.ts, usage-retention.ts, usage-read.ts, usage-counted-operations.ts
 src/server/routes/usage.ts
-src/app/usage/use-usage.ts, TrafficToggle.tsx, TrafficBadge.tsx, TrafficLegend.tsx, usage.css, usage-intensity.ts
+src/app/usage/use-usage.ts, traffic-show-item.ts, TrafficBadge.tsx, TrafficLegend.tsx, usage.css, usage-intensity.ts
 policies/usage-counted-operations.json
 tests/usage/*.test.ts
 tests/auth/usage-read-parity.test.ts

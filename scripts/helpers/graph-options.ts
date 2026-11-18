@@ -38,17 +38,55 @@ export async function chooseLayout(options: Locator, layout: 'layered' | 'networ
   await expect(choice).toBeChecked();
 }
 
-/** The show/hide switch for one kind of graph content, such as Labels or Metrics. */
-export function showToggle(options: Locator, name: string | RegExp): Locator {
-  return options.getByRole('button', { name, exact: typeof name === 'string' });
+/** The Show menu's button in the toolbar; its name lists the switches that are on. */
+function showMenuTrigger(options: Locator): Locator {
+  return options.getByRole('button', { name: /^Show(:|$)/ });
 }
 
-/** Turns a show/hide switch on or off and waits for its pressed state to follow. */
+/**
+ * The switch for one kind of graph content, such as Labels or Metrics. Most of them sit in the
+ * toolbar's Show menu, which this opens; the others are toolbar buttons with a pressed state.
+ */
+export async function showToggle(options: Locator, name: string | RegExp): Promise<{ toggle: Locator; state: 'aria-checked' | 'aria-pressed' }> {
+  const trigger = showMenuTrigger(options);
+  if ((await trigger.count()) > 0) {
+    if ((await trigger.getAttribute('aria-expanded')) !== 'true') await trigger.click();
+    const item = options.getByRole('menuitemcheckbox', { name, exact: typeof name === 'string' });
+    if ((await item.count()) > 0) return { toggle: item, state: 'aria-checked' };
+    await trigger.click();
+  }
+  return { toggle: options.getByRole('button', { name, exact: typeof name === 'string' }), state: 'aria-pressed' };
+}
+
+/** Closes the Show menu if a step left it open. */
+async function closeShowMenu(options: Locator) {
+  const trigger = showMenuTrigger(options);
+  if ((await trigger.count()) > 0 && (await trigger.getAttribute('aria-expanded')) === 'true') await trigger.click();
+}
+
+/** Checks whether one kind of graph content is shown. */
+export async function expectShown(options: Locator, name: string | RegExp, shown: boolean) {
+  const { toggle, state } = await showToggle(options, name);
+  await expect(toggle).toHaveAttribute(state, String(shown));
+  await closeShowMenu(options);
+}
+
+/** Turns a show/hide switch on or off and waits for its state to follow. */
 export async function setShown(options: Locator, name: string | RegExp, shown: boolean) {
-  const toggle = showToggle(options, name);
-  const pressed = String(shown);
-  if ((await toggle.getAttribute('aria-pressed')) !== pressed) await toggle.click();
-  await expect(toggle).toHaveAttribute('aria-pressed', pressed);
+  const { toggle, state } = await showToggle(options, name);
+  const wanted = String(shown);
+  if ((await toggle.getAttribute(state)) !== wanted) await toggle.click();
+  await expect(toggle).toHaveAttribute(state, wanted);
+  await closeShowMenu(options);
+}
+
+/** Flips a show/hide switch, whatever its state. */
+export async function toggleShown(options: Locator, name: string | RegExp) {
+  const { toggle, state } = await showToggle(options, name);
+  const before = await toggle.getAttribute(state);
+  await toggle.click();
+  await expect(toggle).not.toHaveAttribute(state, before ?? '');
+  await closeShowMenu(options);
 }
 
 /** Opens every area of the whole-model graph, which starts with one card per area when the model is very large. */

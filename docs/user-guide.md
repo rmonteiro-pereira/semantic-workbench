@@ -362,7 +362,8 @@ Links inside an area are drawn; each area says "links to N areas", and those lin
 for the entity you select. Switch to **Layered (ELK)**, which preserves orthogonal routes while
 they match current handles, with the **Layered / Network** control in the graph toolbar. The
 toolbar also holds **Re-layout**, the crosshair select that zooms to an area (**Zoom to group**; a long area name ends in an ellipsis and hovering the select shows the full name),
-**Collapse areas**, **Expand all**, and switches for **Labels**, **Value types**, **Metrics** and **Mini-map**; a check mark shows which
+**Collapse areas**, **Expand all**, and the **Show** menu with switches for **Labels**, **Value types**, **Metrics**,
+**Mini-map** and **Traffic**. The **Show** button names the switches that are on, and in the menu a check mark shows which
 are on. On a phone these controls fold behind **Controls**. The canvas supports grouped areas,
 dragging, area zoom and selection. Resizing the window or the sidebar does not rearrange the
 graph or undo your drags; **Re-layout** plans it again for the current window. Network detail routing uses a shared background worker;
@@ -375,7 +376,7 @@ returns the complete layout to view. A finite viewport cannot show unlimited ful
 
 ### Traffic
 
-When an operator has turned usage counters on, **Traffic** in the graph options (Graph and
+When an operator has turned usage counters on, **Traffic** in the **Show** menu of the graph toolbar (Graph and
 Neighborhood; on a phone, behind **Controls**) shades entities and relationships by how many requests
 through this workbench asked about them in the last 30 days: a heavier outline, a longer bar and a
 relationship line that grows. The legend below the graph names what is counted. Selecting an item shows
@@ -406,8 +407,9 @@ cancels the worker operation. Each run is one trail step, "All connected to <nam
 same run goes back to that step, and a run that adds nothing new adds no step. The Neighborhood, lineage and mapping views share the
 same bounded traversal and the same step wording.
 
-The toolbar filters neighbors by **Relationship** and switches **Links between neighbors**,
-**Technical resources**, **Labels**, **Value types** and **Metrics** on or off. **Re-arrange** puts
+The toolbar filters neighbors by **Relationship** and switches **Links between neighbors** and
+**Technical resources** on or off; its **Show** menu switches **Labels**, **Value types**, **Metrics**
+and **Traffic**. **Re-arrange** puts
 dragged nodes back in their columns. OWL opens with classes only unless technical resources are
 requested. Graph names and labels compensate for zoom; names retain full-name tooltips, and long
 identifiers wrap at natural separators without changing their spelling.

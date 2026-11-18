@@ -33,7 +33,7 @@ to the day's unaddressed `other` total.
 
 Any other value stops the start and names the variable. Both modes read the same variables. While
 counters are off no folder is created, no timer runs and no count is kept in memory, and every screen
-shows what it showed before, apart from the Traffic switch, which says "Not collected" (an Admin is
+shows what it showed before, apart from the Traffic entry of the graph toolbar's Show menu, which says "Not collected" (an Admin is
 told how to turn counters on). Admin Settings shows whether counters are on and the retention, read only.
 
 ## What is counted
@@ -125,7 +125,7 @@ While Traffic is off, its displays skip address lookup and relationship traversa
 graph builds its regular nodes and edges without creating per-item Traffic subscriptions. Edges
 without label text also skip label measurement and viewport tracking.
 
-The graph options of the full graph and the neighborhood have a **Traffic** switch, off by default and
+The **Show** menu of the full graph and the neighborhood toolbars has a **Traffic** switch, off by default and
 remembered for each model in the browser. Switched on, it asks the server once and then at most once a
 minute. Items that were asked about get a heavier outline and a longer bar, in five steps relative to
 the busiest item shown, and the count is also text for screen readers. Intensity never relies on colour

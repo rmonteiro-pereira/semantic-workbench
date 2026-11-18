@@ -2,15 +2,21 @@
 import { describe, expect, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { TrafficLegend } from '../src/app/usage/TrafficLegend';
-import { TrafficToggle } from '../src/app/usage/TrafficToggle';
+import { ShowMenu } from '../src/app/graph/ShowMenu';
+import { useTrafficShowItem } from '../src/app/usage/traffic-show-item';
 import { browserTrafficDeps, createTrafficStore } from '../src/app/usage/traffic-store';
 import { TrafficStoreProvider } from '../src/app/usage/use-usage';
 import { MODEL, PROJECT, DOCUMENT, answerWith, fakeDeps, itemOf, storeWith } from './helpers/traffic-store';
 
+/** The Show menu with only the Traffic entry, as a graph toolbar renders it. */
+function TrafficOnly() {
+  return <ShowMenu items={[useTrafficShowItem()]} />;
+}
+
 const toggleMarkup = (store: ReturnType<typeof createTrafficStore>) =>
   renderToStaticMarkup(
     <TrafficStoreProvider store={store}>
-      <TrafficToggle />
+      <TrafficOnly />
     </TrafficStoreProvider>,
   );
 
@@ -26,18 +32,18 @@ describe('the option', () => {
     expect(toggleMarkup(createTrafficStore(fakeDeps(async () => answerWith([])).deps))).toBe('');
   });
 
-  test('is off by default and is a labelled switch', async () => {
+  test('is off by default: the Show menu names no switch that is on', async () => {
     const { store } = await storeWith(async () => answerWith([]), { on: false });
     const html = toggleMarkup(store);
-    expect(html).toContain('Traffic');
-    expect(html).toContain('aria-pressed="false"');
+    expect(html).toContain('aria-label="Show"');
+    expect(html).not.toContain('Traffic');
   });
 
   test('is on when it was left on for the model, and then asks for counts', async () => {
     const { deps, requests } = fakeDeps(async () => answerWith([itemOf('/metric:a', 1)]), { [MODEL]: true });
     const store = createTrafficStore(deps);
     await store.attach({ project: PROJECT, path: DOCUMENT, modelName: MODEL });
-    expect(toggleMarkup(store)).toContain('aria-pressed="true"');
+    expect(toggleMarkup(store)).toContain('aria-label="Show: Traffic"');
     expect(requests).toEqual([PROJECT]);
   });
 

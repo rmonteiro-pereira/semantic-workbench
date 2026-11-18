@@ -7,6 +7,7 @@ import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { groupTrigger, openGroupMenu } from './helpers/grouping-menu';
+import { toggleShown, viewOptions } from './helpers/graph-options';
 
 const api = await startIsolatedApi();
 const mall = await api.ws.loadExample('mall');
@@ -176,13 +177,13 @@ const journey: Action[] = [
   {
     name: 'toggle Labels',
     run: async () => {
-      await page.getByRole('button', { name: 'Labels', exact: true }).click();
+      await viewOptions(page, options => toggleShown(options, 'Labels'));
     },
   },
   {
     name: 'toggle Value types',
     run: async () => {
-      await page.getByRole('button', { name: /^Value types/ }).click();
+      await viewOptions(page, options => toggleShown(options, /^Value types/));
     },
   },
   openTab('Graph'),

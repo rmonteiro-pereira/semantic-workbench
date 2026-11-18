@@ -2,7 +2,7 @@
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { appUrl } from './helpers/base-url';
 import { expectAreaEntityTotal } from './helpers/overview-areas';
-import { setShown, showToggle, viewOptions } from './helpers/graph-options';
+import { expectShown, setShown, viewOptions } from './helpers/graph-options';
 import { chromium, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { Database } from 'bun:sqlite';
@@ -360,7 +360,7 @@ try {
     await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
     await viewOptions(page, async options => {
       // The hidden choice is remembered across the reload.
-      await expect(showToggle(options, 'Value types')).toHaveAttribute('aria-pressed', 'false');
+      await expectShown(options, 'Value types', false);
       await setShown(options, 'Value types', true);
     });
     await expect(page.locator('.full-graph-status')).toHaveAttribute('data-entity-count', '195');
