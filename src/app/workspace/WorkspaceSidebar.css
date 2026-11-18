@@ -91,6 +91,12 @@
   border-radius: 4px;
   background: var(--color-surface-sunken);
 }
-.workspace-sidebar .documents {
-  mask-image: linear-gradient(to bottom, var(--color-text) calc(100% - 14px), transparent);
+.workspace-sidebar .documents[data-more-above] {
+  --tree-fade-top: 14px;
+}
+.workspace-sidebar .documents[data-more-below] {
+  --tree-fade-bottom: 14px;
+}
+.workspace-sidebar .documents:is([data-more-above], [data-more-below]) {
+  mask-image: linear-gradient(to bottom, transparent, var(--color-text) var(--tree-fade-top, 0px), var(--color-text) calc(100% - var(--tree-fade-bottom, 0px)), transparent);
 }

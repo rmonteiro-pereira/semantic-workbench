@@ -212,6 +212,28 @@ function revealRow(scroller: HTMLElement, row: HTMLElement) {
   scroller.scrollTop += box.top - frame.top - padding;
 }
 
+function trackTreeOverflow(tree: HTMLUListElement | null) {
+  const scroller = tree?.closest<HTMLElement>('.documents');
+  if (!tree || !scroller) return;
+  const update = () => {
+    const { scrollTop, scrollHeight, clientHeight } = scroller;
+    scroller.toggleAttribute('data-more-above', scrollTop > 1);
+    scroller.toggleAttribute('data-more-below', scrollHeight - clientHeight - scrollTop > 1);
+  };
+  // A project can expand without changing the outer pane, so observe the tree as well.
+  const resize = new ResizeObserver(update);
+  resize.observe(tree);
+  resize.observe(scroller);
+  scroller.addEventListener('scroll', update, { passive: true });
+  update();
+  return () => {
+    resize.disconnect();
+    scroller.removeEventListener('scroll', update);
+    scroller.removeAttribute('data-more-above');
+    scroller.removeAttribute('data-more-below');
+  };
+}
+
 /** Renders project files with validation status and file actions. */
 export function ProjectTree({
   projects,
@@ -233,6 +255,8 @@ export function ProjectTree({
 }) {
   const [collapsed, setCollapsed] = useRecordedState<Set<string>>('sidebar.collapsed', () => new Set());
   const tree = useRef<HTMLUListElement>(null);
+  const hasProjects = projects.length > 0;
+  useLayoutEffect(() => trackTreeOverflow(tree.current), [hasProjects]);
   // Reveal the selected row so keyboard and click selection never leave it out of sight.
   useLayoutEffect(() => {
     const row = tree.current?.querySelector<HTMLElement>('[aria-selected="true"]');
@@ -246,7 +270,7 @@ export function ProjectTree({
       else next.add(key);
       return next;
     });
-  if (!projects.length) return <p className="projects-empty">No projects yet. Import definitions or load an example.</p>;
+  if (!hasProjects) return <p className="projects-empty">No projects yet. Import definitions or load an example.</p>;
   const props = {
     currentId,
     selectedProject,

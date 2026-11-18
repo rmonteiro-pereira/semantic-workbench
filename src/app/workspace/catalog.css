@@ -30,6 +30,12 @@
   gap: 4px;
   background: var(--color-surface);
 }
+@media (min-width: 651px) and (hover: hover) and (pointer: fine) {
+  /* Keeping the row in the layout keeps card heights steady when Edit appears. */
+  .catalog-card:not(:hover):not(:focus-within) .catalog-edit {
+    opacity: 0;
+  }
+}
 /* The first line of every card keeps the height of the metric badge, so titles share a baseline
    whether or not a card carries one. */
 .catalog-card small {

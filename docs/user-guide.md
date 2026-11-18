@@ -32,6 +32,7 @@ and **Load an example**. The examples open beside the menu; on a phone they repl
 stays fully visible at any window height. All files remain reachable by scrolling and keyboard
 focus. The selected file is brought into view when it would be hidden.
 
+The project tree fades at an edge while there are more rows in that direction.
 On desktop, drag the sidebar separator or use its arrow keys, Home and End to choose a width
 between 220 and 520 pixels; the browser remembers it. Long project and file names wrap to two
 lines and retain full-name tooltips. Below 1100 pixels the sidebar becomes a drawer. A drawer
@@ -481,8 +482,9 @@ On a phone, open **Legend** to see keys and line kinds. Labels without room rema
 
 ## Editing and validation
 
-Select an entity, relationship or metric and choose **Edit**, or press **E**. Catalog cards and
-metric details also expose editing. Existing items open in a right-hand drawer; new items use a
+Select an entity, relationship or metric and choose **Edit**, or press **E**. Catalog cards show
+**Edit** on hover or keyboard focus on a mouse-driven desktop, and keep it visible on touch layouts.
+Catalog and metric details also expose editing. Existing items open in a right-hand drawer; new items use a
 centered dialog. Fields and Source edit the selected definition, with pinned Save/Cancel actions.
 The whole draft is validated before saving.
 
