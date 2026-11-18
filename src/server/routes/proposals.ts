@@ -41,6 +41,32 @@ async function jsonBody(request: Request, keys: string[]): Promise<Record<string
   return body as Record<string, unknown>;
 }
 
+/** Answers a POST to one proposal: working, synchronizing and contributing. */
+async function postToProposal(proposals: Workspace['proposals'], request: Request, target: { slug: string; id: string; action: string | undefined }, caller: ProposalCaller) {
+  const { slug, id, action } = target;
+  const position = ['expectedBranch', 'expectedHead'];
+  if (action === 'work') {
+    const body = await jsonBody(request, position);
+    const worked = await proposals.work(slug, id, { expectedBranch: body.expectedBranch, expectedHead: body.expectedHead }, caller);
+    recordProposal(request, worked.audit);
+    return Response.json(worked.result);
+  }
+  if (action === 'synchronize') {
+    const body = await jsonBody(request, position);
+    const synchronized = await proposals.synchronize(slug, id, { expectedBranch: body.expectedBranch, expectedHead: body.expectedHead }, caller);
+    recordProposal(request, synchronized.audit);
+    const { merged, head, conflicted } = synchronized.result;
+    return Response.json(merged ? { merged, head } : { merged, conflicted });
+  }
+  if (action === 'contribute') {
+    const body = await jsonBody(request, ['expectedTip', 'branchHead']);
+    const contributed = await proposals.contribute(slug, id, { expectedTip: body.expectedTip, branchHead: body.branchHead }, caller);
+    recordProposal(request, contributed.audit);
+    return Response.json(contributed.result);
+  }
+  return null;
+}
+
 /** Creates the proposal routes; they exist in server mode only. */
 export const createProposalRoutes =
   (options: HandlerOptions = {}): Route =>
@@ -64,5 +90,6 @@ export const createProposalRoutes =
       recordProposal(request, created.audit);
       return Response.json(created.result, { status: 201 });
     }
+    if (request.method === 'POST' && id !== undefined) return postToProposal(proposals, request, { slug, id, action }, caller);
     return null;
   };

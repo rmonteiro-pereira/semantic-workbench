@@ -4,9 +4,7 @@ import { expect, test } from 'bun:test';
 import { routeFor } from '../src/server/auth/route-actions';
 import { call, ontology } from './helpers/scm';
 import { testWorkspace } from './helpers/temp-data-dir';
-import { proposalFixture } from './helpers/proposal-fixture';
-
-const proposalsPath = (slug: string) => `/api/projects/${slug}/proposals`;
+import { proposalFixture, proposalsPath } from './helpers/proposal-fixture';
 
 test('local mode has no proposal routes and answers like any unknown path', async () => {
   using workspace = await testWorkspace();
@@ -53,4 +51,20 @@ test('create answers 400 for a bad request, 403 or 404 without authority and 409
   expect((await alice.call(proposalsPath(sales.slug), 'POST', { name: '', projects: [sales.slug] })).status).toBe(400);
   expect([403, 404]).toContain((await fixture.carol().call(proposalsPath(sales.slug), 'POST', { name: 'Denied', projects: [sales.slug] })).status);
   expect((await alice.call(proposalsPath(sales.slug), 'POST', { name: 'Fine', projects: [sales.slug] })).status).toBe(201);
+});
+
+test('work, synchronize and contribute refuse bodies that are not what they expect', async () => {
+  using fixture = await proposalFixture();
+  const { sales } = fixture.projects;
+  const alice = fixture.alice();
+  await alice.call(proposalsPath(sales.slug), 'POST', { name: 'Bodies', projects: [sales.slug] });
+  for (const [action, wrong] of [
+    ['work', { expectedBranch: 'main', expectedHead: 'abc', surprise: true }],
+    ['synchronize', { expectedBranch: 'main', surprise: true }],
+    ['contribute', { expectedTip: 'abc' }],
+    ['contribute', { expectedTip: 'abc', branchHead: 'abc', surprise: true }],
+  ] as const) {
+    const answer = await alice.call(`${proposalsPath(sales.slug)}/bodies/${action}`, 'POST', wrong);
+    expect(answer.status, `${action} ${JSON.stringify(wrong)}`).toBe(400);
+  }
 });

@@ -376,24 +376,34 @@ async function followRemote(context: WorktreeContext, repo: string, remote: stri
   }
 }
 
-/** Merges the default branch into the person's branch, authored by the person. */
-async function mergeDefault(context: WorktreeContext, repo: string, key: string, author: CommitAuthor | undefined, check: (tip: string) => Promise<void>) {
+/** A commit merged into a person's branch, and the name it is shown under in the merge message. */
+export type MergeSource = { tip: string; label: string };
+
+/**
+ * Merges a commit into the person's branch, authored by the person. The commit judged by `check`
+ * is the one merged, even if someone moves the branch it came from in between.
+ */
+async function mergeCommit(context: WorktreeContext, repo: string, key: string, author: CommitAuthor | undefined, source: MergeSource, check: (tip: string) => Promise<void>) {
   const { git } = context;
-  const branch = await defaultBranch(context, repo);
   const copy = copyDir(context, key, repo);
-  // The commit judged is the one merged, even if someone publishes in between.
-  const tip = (await git.run(copy, ['rev-parse', 'refs/heads/' + branch])).stdout.trim();
-  await check(tip);
+  await check(source.tip);
   const signed = authorship(author);
   const current = (await symbolicBranch(git, copy)) ?? 'HEAD';
-  const message = ['-m', `Merge ${branch} into ${current}`];
+  const message = ['-m', `Merge ${source.label} into ${current}`];
   // A merge cannot take --trailer, so the trailer is the message's last paragraph.
   if (author) message.push('-m', signed.trailer[1]);
   const merge = [...signed.config, 'merge', '--no-ff', '--no-edit', ...message];
-  return git.run(copy, [...merge, tip], {
+  return git.run(copy, [...merge, source.tip], {
     allowFailure: true,
     env: signed.env,
   });
+}
+
+/** Merges the default branch into the person's branch, authored by the person. */
+async function mergeDefault(context: WorktreeContext, repo: string, key: string, author: CommitAuthor | undefined, check: (tip: string) => Promise<void>) {
+  const branch = await defaultBranch(context, repo);
+  const tip = (await context.git.run(copyDir(context, key, repo), ['rev-parse', 'refs/heads/' + branch])).stdout.trim();
+  return mergeCommit(context, repo, key, author, { tip, label: branch }, check);
 }
 
 /**
@@ -446,6 +456,7 @@ export function createWorktrees(options: Omit<WorktreeContext, 'listings'>) {
     followRemote: (repo: string, remote: string, check: (previous: string | null, next: string) => Promise<void>) =>
       context.publication.serialized(repo, advance => followRemote(context, repo, remote, check, advance)),
     mergeDefault: (repo: string, key: string, author: CommitAuthor | undefined, check: (tip: string) => Promise<void>) => mergeDefault(context, repo, key, author, check),
+    mergeCommit: (repo: string, key: string, author: CommitAuthor | undefined, source: MergeSource, check: (tip: string) => Promise<void>) => mergeCommit(context, repo, key, author, source, check),
     remove: (repo: string, key: string) => remove(context, repo, key),
   };
 }

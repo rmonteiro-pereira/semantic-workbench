@@ -126,6 +126,17 @@ export function createScmRemote(ctx: ScmContext) {
     const altered = head && head !== before ? await alteredAfter(directory, await git.changedBetween(directory, before, head)) : [];
     return { ok: gitResult.code === 0, conflicted, altered, stderr: gitResult.stderr.trim() };
   }
+  // A merge into the person's branch: the commit is judged as the person's own change before it is
+  // merged, uncommitted work blocks it, and conflicts are reported while the merge stays on the branch.
+  async function mergeFromCommit(slug: string, { guard }: Reader, merge: (check: (tip: string) => Promise<void>) => Promise<GitResult>) {
+    const directory = dir(slug);
+    const check = async (tip: string) => {
+      if (guard) await guardMerge(slug, directory, tip, guard);
+    };
+    const result = await mergeIn(slug, directory, () => merge(check));
+    const gitStatus = await after(slug, result.altered);
+    return { ...result, ahead: gitStatus.ahead, behind: gitStatus.behind };
+  }
   const pullIn = (slug: string, directory: string, { choice, guard }: RemoteRequest) =>
     mergeIn(slug, directory, async gitStatus => {
       const remote = chosenName(choice);
@@ -253,16 +264,16 @@ export function createScmRemote(ctx: ScmContext) {
      * Merges the default branch into the person's branch, as a pull does: the exact commit
      * merged is the one the guard judged.
      */
-    async pullDefault(slug: string, { guard, copy }: Reader) {
+    async pullDefault(slug: string, reader: Reader) {
       const merge = deps.mergeDefault;
       if (!merge) throw new BadRequestError('Pull from the default branch works on a personal working copy.');
-      const directory = dir(slug);
-      const check = async (tip: string) => {
-        if (guard) await guardMerge(slug, directory, tip, guard);
-      };
-      const result = await mergeIn(slug, directory, () => merge(slug, copy?.author, check));
-      const gitStatus = await after(slug, result.altered);
-      return { ...result, ahead: gitStatus.ahead, behind: gitStatus.behind };
+      return mergeFromCommit(slug, reader, check => merge(slug, reader.copy?.author, check));
+    },
+    /** Merges a commit, such as a proposal's tip, into the person's branch with the guards of a pull. */
+    async mergeCommit(slug: string, reader: Reader, source: { tip: string; label: string }) {
+      const merge = deps.mergeCommit;
+      if (!merge) throw new BadRequestError('Merging a commit works on a personal working copy.');
+      return mergeFromCommit(slug, reader, check => merge(slug, reader.copy?.author, source, check));
     },
     /** What moving the repository from `base` to `tip` changes, file by file, per project. */
     changesBetween: (slug: string, base: string | null, tip: string, paths?: string[]) => incomingChanges(slug, dir(slug), base, tip, paths),

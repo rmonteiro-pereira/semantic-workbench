@@ -1,6 +1,6 @@
 // Builds a server-mode workspace whose one repository holds three projects in two domains, so
 // tests can act as several people with different authority over the projects a proposal declares.
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { createAccessControl } from '../../src/server/auth/authorize';
@@ -10,6 +10,8 @@ import { accessFixture, person } from '../auth/access-fixture';
 import { apiRequest, signedIn } from '../auth/working-copy-fixture';
 import { isolateGit, testWorkspace } from './temp-data-dir';
 import { ontologyText } from './git-fixtures';
+import { TEST_GROUPS, TEST_TENANT_ID } from './auth-identities';
+import { normalizeClaims } from '../../src/server/auth/principal';
 
 /** The three project folders of the shared repository and the access domain of each. */
 const PROJECT_FOLDERS = [
@@ -39,6 +41,9 @@ function threeProjectRemote() {
     mkdirSync(dirname(file), { recursive: true });
     writeFileSync(file, ontologyText(folder.name, ['Customer', 'Order']));
   }
+  // A contract with a classified property, so tests can make a change only a Steward may make.
+  const contract = readFileSync('tests/fixtures/auth-workspace/projects/sales-contracts/orders.odcs.yaml', 'utf8');
+  writeFileSync(join(work, 'domains/sales/orders.odcs.yaml'), contract);
   const manifest = { schema: 'semantic-workbench/repository/v1', projects: PROJECT_FOLDERS.map(({ path, name }) => ({ path, name })) };
   writeFileSync(join(work, '.semantic-workbench.json'), JSON.stringify(manifest, null, 2) + '\n');
   git(work, ['add', '-A']);
@@ -75,7 +80,9 @@ export async function proposalFixture() {
   const options = accessFixture();
   for (const folder of PROJECT_FOLDERS) {
     const { slug } = projects[folder.name.toLowerCase() as keyof typeof projects];
-    options.config.projects.projects[slug] = { domain: folder.domain, stewards: [], restricted: [], protectedBranches: ['main'] };
+    // Files under private/ are visible only to Finance, so tests can touch a file the contributor may not edit.
+    const restricted = folder.name === 'Sales' ? [{ pattern: 'private/**', groups: [TEST_GROUPS.finance.id], emails: [] as string[] }] : [];
+    options.config.projects.projects[slug] = { domain: folder.domain, stewards: [], restricted, protectedBranches: ['main'] };
   }
   const access = createAccessControl({ ...options, knownProjects: () => registered.map(project => project.slug) });
   const as = signedIn(workspace.ws, access);
@@ -125,4 +132,67 @@ export async function commitEdit(caller: Caller, project: SharedProject, text: s
   const committed = await caller.call(`${base}/commit`, 'POST', { message });
   if (committed.status !== 200) throw Error(`Commit answered ${committed.status}: ${JSON.stringify(committed.body)}`);
   return committed.body;
+}
+
+/** The proposals API of a project, as a path. */
+export const proposalsPath = (slug: string, id = '') => `/api/projects/${slug}/proposals${id ? `/${id}` : ''}`;
+
+/** The branch and HEAD of the person's copy, as the interface reads them from Source Control. */
+export async function copyPosition(caller: Caller, slug: string) {
+  const status = await caller.call(`/api/projects/${slug}/git/status`);
+  return { expectedBranch: status.body.branch as string, expectedHead: status.body.head as string };
+}
+
+/** Creates a proposal and returns its view; fails the test setup when it is refused. */
+export async function createProposal(caller: Caller, slug: string, name: string, projects: string[]) {
+  const created = await caller.call(proposalsPath(slug), 'POST', { name, projects });
+  if (created.status !== 201) throw Error(`Create answered ${created.status}: ${JSON.stringify(created.body)}`);
+  return created.body as { id: string; tip: string };
+}
+
+/** Puts the person's copy on their contribution branch for the proposal. */
+export async function workOnProposal(caller: Caller, slug: string, id: string) {
+  return caller.call(proposalsPath(slug, id) + '/work', 'POST', await copyPosition(caller, slug));
+}
+
+/** Contributes the head of the person's contribution branch to the proposal they last saw. */
+export async function contributeToProposal(caller: Caller, slug: string, id: string) {
+  const proposal = await caller.call(proposalsPath(slug, id));
+  const position = await copyPosition(caller, slug);
+  return caller.call(proposalsPath(slug, id) + '/contribute', 'POST', { expectedTip: proposal.body.tip, branchHead: position.expectedHead });
+}
+
+/**
+ * Commits files straight into a person's copy with Git, as a client that skips the workbench's
+ * own checks would; a null text removes the file. Returns the new HEAD.
+ */
+export function commitFilesDirectly(copyFolder: string, files: Record<string, string | null>, message = 'Direct commit') {
+  for (const [path, text] of Object.entries(files)) {
+    const full = join(copyFolder, path);
+    if (text === null) rmSync(full, { force: true });
+    else {
+      mkdirSync(dirname(full), { recursive: true });
+      writeFileSync(full, text);
+    }
+  }
+  git(copyFolder, ['add', '-A']);
+  git(copyFolder, ['commit', '-q', '-m', message]);
+  return git(copyFolder, ['rev-parse', 'HEAD']).trim();
+}
+
+/** A numbered Sales Editor who exists only for tests that need many people at once. */
+export function numberedEditor(number: number) {
+  const oid = `a1100000-0000-4000-8000-${String(900 + number).padStart(12, '0')}`;
+  return normalizeClaims(
+    {
+      tid: TEST_TENANT_ID,
+      oid,
+      name: `Editor ${number}`,
+      preferred_username: `editor${number}@example.org`,
+      email: `editor${number}@example.org`,
+      xms_edov: true,
+      groups: [TEST_GROUPS.salesEditors.id],
+    },
+    { provider: 'entra', tenantId: TEST_TENANT_ID, groupClaim: 'groups' },
+  );
 }

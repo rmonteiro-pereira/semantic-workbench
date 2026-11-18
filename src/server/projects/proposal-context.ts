@@ -7,7 +7,7 @@ import type { ProjectFolder } from '../../shared/proposals/contribution-scope';
 import type { EventTags } from './events';
 import type { Git } from './git';
 import type { PublicationGuard, PublicationResult } from './publication';
-import { HiddenResourceError } from './errors';
+import { HiddenResourceError, ProposalRefusalError } from './errors';
 import type { ProposalRefs } from './proposal-refs';
 import type { ProposalStore } from './proposal-store';
 import type { Reader } from './reader';
@@ -100,6 +100,19 @@ export function createProposalContext(deps: ProposalDeps) {
       const record = deps.store.read(repository).find(candidate => candidate.id === id);
       if (!record || !proposalVisibleTo(caller.reader, record)) throw new HiddenResourceError();
       return { repository, record };
+    },
+    /**
+     * The tip of an open proposal. A closed or promoted one accepts nothing, a missing ref is
+     * damage to report, and a tip already inside the published history means promotion finished.
+     */
+    async openTip(repository: string, record: ProposalRecord) {
+      if (record.status !== 'open') throw new ProposalRefusalError('not-open', 'This proposal is not open.');
+      const tip = await deps.refs.readTip(repository, record.id);
+      if (!tip) throw new ProposalRefusalError('damaged', 'This proposal is damaged: its Git reference is missing. Ask an Admin to check it.');
+      const published = deps.publishedCommit(repository);
+      const inHistory = published && tip !== record.base && (await deps.git.isAncestor(deps.worktrees.baseDir(repository), tip, published));
+      if (inHistory) throw new ProposalRefusalError('not-open', 'This proposal is already published.');
+      return tip;
     },
     actorOf: (reader: Reader) => ({ id: reader.owner ?? 'local', name: reader.copy?.author.name ?? reader.owner ?? 'local' }),
     timestamp: () => deps.now().toISOString(),

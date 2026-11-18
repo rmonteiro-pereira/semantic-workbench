@@ -102,6 +102,7 @@ export function copyScmHooks(
     fetched: deps.followRemote,
     branchesMoved: slug => worktrees.branchesMoved(repoOf(slug)),
     mergeDefault: (slug, author, check) => worktrees.mergeDefault(repoOf(slug), own, author, check),
+    mergeCommit: (slug, author, source, check) => worktrees.mergeCommit(repoOf(slug), own, author, source, check),
     signedCommits: true,
   };
 }

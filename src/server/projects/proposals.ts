@@ -4,6 +4,7 @@
 import { deriveId, MAX_OPEN_PROPOSALS, ProposalInputError, validateName, type ProposalRecord, type ProposalSummary, type ProposalView } from '../../shared/proposals/proposal';
 import { BadRequestError, HiddenResourceError, ProposalRefusalError } from './errors';
 import { createProposalContext, type Mutation, type ProposalCaller, type ProposalDeps } from './proposal-context';
+import { createContributions } from './proposal-contribution';
 import { describeProposal, readRepositoryRefs, summarizeProposal } from './proposal-views';
 import { asText } from './scm-context';
 import { projectPath } from './paths';
@@ -105,7 +106,7 @@ export function createProposals(deps: ProposalDeps) {
     return { path, from: record.base, to: tip, before: before.text, after: after.text, binary: before.binary || after.binary, beforeExists: !!beforeBytes, afterExists: !!afterBytes };
   }
 
-  return { create, list, read, diff, context };
+  return { create, list, read, diff, ...createContributions(context), context };
 }
 
 /** The proposal service of one workspace. */
