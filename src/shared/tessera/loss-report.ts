@@ -113,6 +113,9 @@ export function parseLossPolicy(text: string, registry: Registry): LossPolicy {
   if (unknownKey) throw new LossPolicyError(`The loss policy has an unknown key: ${unknownKey}.`);
   if (entries.policy !== 1) throw new LossPolicyError('The loss policy must say "policy": 1.');
   const allow = entries.allow;
+  if (Array.isArray(allow) && allow.length > registry.additions.length) {
+    throw new LossPolicyError('The allow-list cannot have more entries than there are registered properties.');
+  }
   if (!Array.isArray(allow) || allow.some(name => typeof name !== 'string')) throw new LossPolicyError('The loss policy needs "allow", a list of property names.');
   const unregistered = (allow as string[]).find(name => !registry.byName(name));
   if (unregistered) throw new LossPolicyError(`The loss policy allows ${unregistered}, which is not a registered property.`);

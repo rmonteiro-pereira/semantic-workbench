@@ -1,5 +1,5 @@
 // The tessera command line: `compile` turns a published project folder into a bundle of standard Ossie, and `check` shows what a compile would do without writing anything.
-import { readFileSync } from 'node:fs';
+import { closeSync, constants, fstatSync, openSync, readSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { compileUnit, type CompileResult, type UnitFile } from '../src/shared/tessera/compile-unit';
 import { sha256Hex } from '../src/shared/tessera/digest';
@@ -17,11 +17,31 @@ const encoder = new TextEncoder();
 
 type Policy = { policy: LossPolicy; sha256: string };
 
+const MAX_LOSS_POLICY_BYTES = 65_536;
+
+function readPolicyText(path: string): string {
+  const descriptor = openSync(path, constants.O_RDONLY | constants.O_NONBLOCK);
+  try {
+    if (!fstatSync(descriptor).isFile()) throw new UsageError('The loss policy must be a regular file.');
+    const bytes = Buffer.alloc(MAX_LOSS_POLICY_BYTES + 1);
+    let length = 0;
+    while (length < bytes.length) {
+      const received = readSync(descriptor, bytes, length, bytes.length - length, null);
+      if (received === 0) break;
+      length += received;
+    }
+    if (length > MAX_LOSS_POLICY_BYTES) throw new UsageError(`The loss policy exceeds ${MAX_LOSS_POLICY_BYTES} bytes.`);
+    return bytes.toString('utf8', 0, length);
+  } finally {
+    closeSync(descriptor);
+  }
+}
+
 /** Reads the loss policy file. An unreadable or malformed file is misuse, not a refusal of the project. */
 function readPolicy(path: string): Policy {
   let text: string;
   try {
-    text = readFileSync(path, 'utf8');
+    text = readPolicyText(path);
   } catch (error) {
     throw new UsageError(`The loss policy ${path} cannot be read: ${(error as Error).message}`);
   }

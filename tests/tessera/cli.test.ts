@@ -190,6 +190,20 @@ test('a malformed loss policy file is misuse', () => {
   expect(run(compileArgs(s, ['--loss-policy', join(s.base, 'missing.json')]), s.home).status).toBe(64);
 });
 
+test('loss policy input is bounded by bytes and registered property count', () => {
+  const s = scene();
+  const policy = policyFile(s, ['tessera_notes', 'tessera_notes']);
+  const repeated = run(compileArgs(s, ['--loss-policy', policy]), s.home);
+  expect(repeated.status).toBe(64);
+  expect(repeated.stderr).toContain('registered properties');
+
+  writeFileSync(policy, JSON.stringify({ policy: 1, allow: ['tessera_notes'] }) + ' '.repeat(65_536));
+  const oversized = run(compileArgs(s, ['--loss-policy', policy]), s.home);
+  expect(oversized.status).toBe(64);
+  expect(oversized.stderr).toContain('65536 bytes');
+  expect(existsSync(s.out)).toBe(false);
+});
+
 // The check command.
 function treeOf(folder: string): string[] {
   return readdirSync(folder, { recursive: true, withFileTypes: true })
