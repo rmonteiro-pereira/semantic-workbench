@@ -229,3 +229,27 @@ Screenshot comparison and every-state review are separate capture work.
   `loss-report.test.ts`, `refusals.test.ts`, `registry.test.ts`, `schema-derivation.test.ts`
   and `validation.test.ts`. The shared refusal fixture and its inventory moved the unsupported
   revision sample above revision 3.
+
+### Verification results
+
+| Proof | Result |
+| --- | --- |
+| Mesh, Tessera, compile, authorization matrices, inventory and operation parity on the integration checkpoint | 834 passed, 0 failed across 93 files |
+| Mesh, Tessera, compile, mesh parity and inventory after metadata and compiler fixes | 777 passed, 0 failed across 91 files |
+| Hidden or missing exact wire response and per-reader isolation | 2 passed, 16 assertions |
+| Immutable same-repository and separate-repository publication, reciprocal imports, and depth bound | 4 passed, 31 assertions |
+| Publication error cases, symbolic links and disclosure audit | 9 passed, 43 assertions |
+| Missing provider objects, provider trash and unexported name in compile and agent catalog | 3 passed, 15 assertions |
+| Frozen graph, agent context, catalog, plan and compile output | 1 passed, 17 assertions |
+| Private provider part, source address and renewed project access | 1 passed, 13 assertions |
+| Dependents roles, privacy, continuation and no domain | 5 passed, 76 assertions, 13 ms for the measured 50-row page |
+| Merge order, ownership, item addresses, losses and meaning refusal | 8 passed, 20 assertions |
+| Compile scale | 3,575 ms for 200 parts, 20 imports and 20 MB of source |
+| Focused mutants | 13 killed out of 13 |
+| Browser journey | 1440, 768 and 390 px in light and dark passed |
+| TypeScript, formatter, lint, comments, theme and brand | Exit 0, zero lint errors with 2,724 warnings |
+| Production build | Exit 0, Vite built in 3.13 s |
+| Readability and generated inventory | No findings on changed lines since the merge; regenerated operations reference matched |
+
+The fixture helper `tests/auth/working-copy-fixture.ts` also changed to expose the exact HTTP body
+to the authorization tests. The commit cadence helper is absent from this checkout.
