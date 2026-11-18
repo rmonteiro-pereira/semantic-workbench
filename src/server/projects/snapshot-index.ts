@@ -1,4 +1,5 @@
 // Builds bounded, immutable project indexes from Git objects without consulting a checkout.
+import { isAddressHistoryPath } from '../../shared/core/address-migration';
 import { posix } from 'node:path';
 import { decode, sha256 } from './atomic';
 import type { Git, GitTreeEntry } from './git';
@@ -43,7 +44,7 @@ export function folderDigest(projects: ProjectEntry[]): string {
 function projectEntries(tree: GitTreeEntry[], project: ProjectEntry, limits: SnapshotLimits) {
   const { folder, repo } = locationOf(project);
   const prefix = folder === repo ? '' : folder.slice(repo.length + 1) + '/';
-  const entries = tree.filter(entry => !entry.link && entry.path.startsWith(prefix)).map(entry => ({ ...entry, path: entry.path.slice(prefix.length) }));
+  const entries = tree.filter(entry => !entry.link && entry.path.startsWith(prefix) && !isAddressHistoryPath(entry.path)).map(entry => ({ ...entry, path: entry.path.slice(prefix.length) }));
   if (entries.length > limits.projectFiles) throw new SnapshotUnavailableError('unavailable');
   const spellings = new Map<string, string>();
   for (const entry of entries) {

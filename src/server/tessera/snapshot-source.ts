@@ -1,4 +1,5 @@
 // Reads one project folder as it is in a commit on the default branch, from Git objects only. The working tree, the index and other branches are never read.
+import { isAddressHistoryPath } from '../../shared/core/address-migration';
 import { readFileSync } from 'node:fs';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 import type { UnitFile } from '../../shared/tessera/compile-unit';
@@ -103,7 +104,7 @@ export async function readSnapshot(request: SnapshotRequest, git: Git = gitFor(r
 export async function readCommitFolder(directory: string, commit: string, folder: string, git = gitFor(directory), limits = SNAPSHOT_LIMITS): Promise<UnitFile[]> {
   const prefix = folderPrefix(folder);
 
-  const entries = (await git.lsTree(directory, commit, prefix)).filter(entry => !entry.link);
+  const entries = (await git.lsTree(directory, commit, prefix)).filter(entry => !entry.link && !isAddressHistoryPath(entry.path));
   if (entries.length > limits.projectFiles) throw new TesseraRefusal(`The folder holds ${entries.length} files, and the limit is ${limits.projectFiles}.`);
   const tooLarge = entries.find(entry => entry.size > limits.documentBytes);
   if (tooLarge) throw new TesseraRefusal(`${tooLarge.path} holds ${tooLarge.size} bytes, and the limit is ${limits.documentBytes}.`);

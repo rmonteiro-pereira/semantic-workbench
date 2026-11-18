@@ -1,4 +1,5 @@
 // Compiles one project folder: validates every Ossie document, compiles the Tessera ones, copies the rest of the Ossie files and checks the whole result before anything is released.
+import { isAddressHistoryPath } from '../core/address-migration';
 import { isObject } from '../edit/source-text';
 import type { Issue } from '../validation/diagnostics';
 import { validateInput } from '../validation/input';
@@ -234,7 +235,7 @@ function providerVersionFailures(providers: CompileOptions['providers']): Compil
 
 /** Compiles a project folder. Input order never changes the result. */
 export function compileUnit(files: UnitFile[], options: CompileOptions, steps: UnitSteps = DEFAULT_STEPS): CompileResult {
-  const sorted = [...files].sort((first, second) => compareText(first.path, second.path));
+  const sorted = files.filter(file => !isAddressHistoryPath(file.path)).sort((first, second) => compareText(first.path, second.path));
   const limits = [...limitFailures(sorted), ...providerVersionFailures(options.providers)];
   const base = findBase(SUPPORTED_BASES, OSSIE_SCHEMA_VERSION)!;
   const empty = { outputs: [], losses: [], governanceStatuses: [], failures: [], treatments: new Map() } as Compiled;

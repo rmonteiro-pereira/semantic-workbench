@@ -46,6 +46,6 @@ export async function readMeshUnits(source: FrozenDependencySource, pin: Publish
   }
   const includedParts = new Set(units.flatMap(unit => unit.parts.map(part => part.path)));
   const excluded = new Set(classified.filter(entry => entry.kind === 'tessera-part' && !includedParts.has(entry.file.path)).map(entry => entry.file.path));
-  const compileFiles = files.filter(file => file.path !== DEPENDENCY_MANIFEST_PATH && !excluded.has(file.path) && !file.path.endsWith('.jsonl'));
+  const compileFiles = files.filter(file => file.path !== DEPENDENCY_MANIFEST_PATH && !excluded.has(file.path));
   return { files: compileFiles, units, providers, manifest: lockFile ? parseDependencyManifest(lockFile.source) : undefined };
 }

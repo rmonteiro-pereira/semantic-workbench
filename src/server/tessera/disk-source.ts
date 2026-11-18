@@ -1,4 +1,5 @@
 // Reads a folder as it is on disk, for the check command only. Nothing it reads is a published snapshot.
+import { isAddressHistoryPath } from '../../shared/core/address-migration';
 import { lstatSync, readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import type { UnitFile } from '../../shared/tessera/compile-unit';
@@ -13,7 +14,7 @@ type Listed = { path: string; absolute: string; size: number };
 /** Lists regular files below a folder, skipping Git metadata and every symbolic link. */
 function listFiles(folder: string, prefix: string, found: Listed[]) {
   for (const name of readdirSync(folder).sort()) {
-    if (name === '.git') continue;
+    if (name === '.git' || isAddressHistoryPath(name)) continue;
     const absolute = join(folder, name);
     const status = lstatSync(absolute);
     const path = prefix ? `${prefix}/${name}` : name;

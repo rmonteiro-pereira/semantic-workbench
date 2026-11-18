@@ -1,6 +1,7 @@
 import { expect, test } from 'bun:test';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { ADDRESS_HISTORY_FILE } from '../../src/shared/core/address-migration';
 import { LOCAL_READER } from '../../src/server/projects/reader';
 import { workspaceUnitSource } from '../../src/server/tessera/workspace-unit-source';
 import { meshWorkspace } from '../helpers/mesh-workspace';
@@ -23,7 +24,7 @@ async function publishConsumer(fixture: Fixture) {
   const preview = await post(fixture, 'dependencies/update', { baseHash: null });
   expect(preview.status).toBe(200);
   expect((await post(fixture, 'dependencies/update', { baseHash: null, confirm: (await preview.json()).preview })).status).toBe(200);
-  writeFileSync(join(fixture.projectDirectory('retail'), 'address-history.jsonl'), '{"migration":"fixture"}\n');
+  writeFileSync(join(fixture.projectDirectory('retail'), ADDRESS_HISTORY_FILE), '{"migration":"fixture"}\n'.repeat(90_000));
   fixture.git('retail', ['add', '-A']);
   fixture.git('retail', ['commit', '-qm', 'Publish ontology and lock']);
   const published = await post(fixture, 'git/publish');

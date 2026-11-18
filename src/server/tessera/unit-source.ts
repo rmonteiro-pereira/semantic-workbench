@@ -1,4 +1,5 @@
 // Where a compile reads its unit from: the published snapshot, or the caller's saved working copy. The compile never learns which, except through the label.
+import { isAddressHistoryPath } from '../../shared/core/address-migration';
 import type { MeshUnitRead } from './mesh-unit-source';
 import type { UnitFile } from '../../shared/tessera/compile-unit';
 import { HiddenResourceError } from '../projects/errors';
@@ -56,7 +57,7 @@ function checkLimits(listed: ListedFile[], limits: SnapshotLimits) {
 
 /** Reads every file of the view. A hidden or vanished file refuses the whole unit with the answer for a missing file, naming nothing. */
 async function readUnit(view: FolderView, deps: UnitSourceDeps): Promise<UnitFile[]> {
-  const listed = await view.list();
+  const listed = (await view.list()).filter(file => !isAddressHistoryPath(file.path));
   const sizes = new Map(listed.map(file => [file.path, file.size]));
   const { included, restricted } = selectExportPaths([...sizes.keys()], deps.canRead);
   if (restricted > 0) throw new HiddenResourceError();

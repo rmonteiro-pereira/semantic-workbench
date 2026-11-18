@@ -114,8 +114,9 @@ T007 registers the four unit properties at revision 3. The registry proof has 8 
 tests, and the mesh registry proof has 5 passing tests including rejection by a revision 2
 reader. The schema and runtime selection follow in T008 and T017.
 
-For integration with 017, the committed address history JSON Lines file remains outside
-definition reads and unit membership. Enumerate the root and its declared parts for a unit.
+For integration with 017, the committed `.semantic-workbench-address-migrations.jsonl`
+file remains outside definition reads, unit membership and compiler inputs. The shared
+`ADDRESS_HISTORY_FILE` constant can replace the local duplicate when 017 integrates. Enumerate the root and its declared parts for a unit.
 The dependency manifest is separate metadata and is never a part.
 
 Concept moves between declared parts run through the existing journaled batch save. The

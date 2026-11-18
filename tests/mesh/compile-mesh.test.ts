@@ -154,3 +154,10 @@ test('losses retain the individual path of every contributing part', () => {
   expect(result.failures).toEqual([]);
   expect(result.report.losses.filter(loss => loss.property === 'tessera_notes').map(loss => loss.document)).toEqual(includes);
 });
+
+test('committed address history does not enter the compile even for a standalone ontology', () => {
+  const regular = definition('root.json', { version: base, name: 'Retail', ontology: [{ concept: 'Order', type: 'EntityType' }] });
+  const history = definition('.semantic-workbench-address-migrations.jsonl', { from: 'before', to: 'after' });
+  const options = { lossPolicySha256: null };
+  expect(compileUnit([regular, history], options)).toEqual(compileUnit([regular], options));
+});
