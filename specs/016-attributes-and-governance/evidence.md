@@ -101,7 +101,9 @@ attribute per concept and only the revision marker changed. Across 50 warm, alte
 validation runs per revision, median validation time was **0.822 ms** at revision 1 and
 **1.175 ms** at revision 2. Parsing was outside the timed region.
 
-## Batch handoff
+## Pull request handoff
+
+The batch gate and ownership below are ready to include in the pull request description.
 
 - The integrated batch owner runs the full unit suite, `bun run test:mutation`,
   `test:attributes`, `test:tessera`, `test:validation`, `test:editor`, `test:item-edit`,
