@@ -159,14 +159,16 @@ export function openAdminRepository(options: {
       }),
     );
   }
-  function validate(files: Record<string, string>): AccessConfig {
+  function validate(files: Record<string, string>, validatePolicy?: (config: AccessConfig) => void): AccessConfig {
     const config = decodeFiles(files);
     try {
-      loadPolicySet({
-        builtinRoles: builtin.roles as Role[],
-        customRoles: config.roles,
-        adminRules: config.adminRules,
-      });
+      if (validatePolicy) validatePolicy(config);
+      else
+        loadPolicySet({
+          builtinRoles: builtin.roles as Role[],
+          customRoles: config.roles,
+          adminRules: config.adminRules,
+        });
       options.validate?.(config);
     } catch (error) {
       // A validation that already names its own area keeps that name.
@@ -307,7 +309,7 @@ export function openAdminRepository(options: {
       return serialized(() => replace(files, change));
     },
     ensure,
-    load: () => validate(readFiles()),
+    load: (validatePolicy?: (config: AccessConfig) => void) => validate(readFiles(), validatePolicy),
     version,
     write,
     history,

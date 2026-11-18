@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 import * as cedar from '@cedar-policy/cedar-wasm/nodejs';
 import { compileRoles } from './role-compiler';
 import { holdersOfGrant, type GrantOptions } from './grants';
-import { levelNumber, type Action } from '../../shared/auth/actions';
+import { ACTIONS, levelNumber, type Action } from '../../shared/auth/actions';
 import { matchesSegmentGlob } from './path-rules';
 import type { AccessConfig, Role } from './access-config';
 import type { Principal } from './principal';
@@ -33,6 +33,62 @@ function baselinePolicies(): Record<string, string> {
     policies[id] = text;
   }
   return policies;
+}
+
+function actionClasses(policies: Record<string, string>, exact: boolean) {
+  const distinct = new Map(ACTIONS.map(action => [action, action as string]));
+  if (exact) return (_roles: string[], _kind: Principal['kind'], _type: string) => distinct;
+  const parsed = Object.entries(policies).map(([id, text]) => {
+    const result = cedar.policyToJson(text);
+    if (result.type === 'failure') throw new PolicyLoadError(JSON.stringify(result.errors));
+    const role = id.startsWith('role:') ? id.split(':')[1] : null;
+    const principalType = result.json.principal.op === 'is' ? result.json.principal.entity_type : null;
+    const resourceType = result.json.resource.op === 'is' ? result.json.resource.entity_type : null;
+    return { role, principalType, resourceType, signatures: new Map(ACTIONS.map(action => [action, actionSignature(result.json, action)])) };
+  });
+  const indexes = new Map<string, Map<Action, string>>();
+  return (roles: string[], kind: Principal['kind'], type: string) => {
+    const principalType = kind === 'client' ? 'SW::Client' : 'SW::User';
+    const resourceType = `SW::${type[0].toUpperCase()}${type.slice(1)}`;
+    const key = JSON.stringify([[...new Set(roles)].sort(), principalType, resourceType]);
+    const previous = indexes.get(key);
+    if (previous) return previous;
+    const applicable = parsed.filter(
+      policy =>
+        (policy.role === null || roles.includes(policy.role)) &&
+        (policy.principalType === null || policy.principalType === principalType) &&
+        (policy.resourceType === null || policy.resourceType === resourceType),
+    );
+    const representatives = new Map<string, Action>();
+    const index = new Map<Action, string>();
+    for (const action of ACTIONS) {
+      const signature = JSON.stringify(applicable.map(policy => policy.signatures.get(action)));
+      const representative = representatives.get(signature) ?? action;
+      representatives.set(signature, representative);
+      index.set(action, representative);
+    }
+    indexes.set(key, index);
+    return index;
+  };
+}
+
+function actionSignature(policy: cedar.PolicyJson, action: Action) {
+  const head = policy.action;
+  const target = JSON.stringify(uid('Action', action));
+  if (head.op !== 'All') {
+    const entities = 'entities' in head ? head.entities : ['entity' in head ? head.entity : null];
+    if (!entities.some(entity => JSON.stringify(entity) === target)) return false;
+  }
+  // Unknown uses of action remain in the signature, keeping those actions distinct.
+  const conditions = JSON.stringify(policy.conditions, (_key, value) => {
+    const equality = value?.['=='];
+    if (equality?.left?.Var === 'action' && equality.right?.Value?.__entity) {
+      return JSON.stringify(equality.right.Value.__entity) === target;
+    }
+    if (value?.Var === 'action') return { Value: { __entity: uid('Action', action) } };
+    return value;
+  });
+  return conditions;
 }
 
 function preparePolicies(options: { builtinRoles: Role[]; customRoles: Role[]; adminRules?: Record<string, string> }) {
@@ -69,6 +125,7 @@ function preparePolicies(options: { builtinRoles: Role[]; customRoles: Role[]; a
     forbids,
     // Arbitrary rules can inspect resource ids or paths beyond the compiler's rule classes.
     exactResources: Object.keys(options.adminRules ?? {}).length > 0,
+    actionClasses: actionClasses(staticPolicies, Object.keys(options.adminRules ?? {}).length > 0),
   };
 }
 

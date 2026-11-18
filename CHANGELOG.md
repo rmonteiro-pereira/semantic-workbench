@@ -25,6 +25,9 @@ not configure a production deployment.
 - Independent dry-run samples retain write and denial evidence during non-HTTP read floods.
 ### Changed
 
+- Admin permission dry runs reuse policy preparation and equivalent authorization work, reducing
+  the measured dev-server median below one second for the current access matrix.
+
 - Published reads, local Publish, outside adoption and browser previews share the operation boundary
   and its reviewed inventory. MCP callers consume published definitions independently of browser sessions.
 

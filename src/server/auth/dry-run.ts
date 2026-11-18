@@ -29,20 +29,33 @@ type RequestScope = ReturnType<AccessControl['forRequest']>;
 type ScopePair = { before: RequestScope; after: RequestScope };
 
 /** Builds request scopes once per identity, since each one resolves grants and entities. */
-function scopeCache(before: AccessControl, after: AccessControl) {
+function scopeCache(before: AccessControl, after: AccessControl, current: AccessConfig, next: AccessConfig) {
   const scopes = new Map<string, ScopePair>();
+  // Arbitrary Cedar rules can inspect other identities and otherwise unused role holders.
+  const comparable = !Object.keys(current.adminRules ?? {}).length && !Object.keys(next.adminRules ?? {}).length;
+  const sameProjects = JSON.stringify(current.projects) === JSON.stringify(next.projects);
   return (identity: NormalizedPrincipal): ScopePair => {
     const key = JSON.stringify(identity);
     let pair = scopes.get(key);
     if (!pair) {
-      pair = {
-        before: before.forRequest(before.principalFor(identity)),
-        after: after.forRequest(after.principalFor(identity)),
-      };
+      const previous = before.principalFor(identity);
+      const proposed = after.principalFor(identity);
+      const unchanged = comparable && sameProjects && principalPolicy(current, previous) === principalPolicy(next, proposed);
+      const previousScope = before.forRequest(previous);
+      pair = { before: previousScope, after: unchanged ? previousScope : after.forRequest(proposed) };
       scopes.set(key, pair);
     }
     return pair;
   };
+}
+
+function principalPolicy(config: AccessConfig, principal: RequestScope['principal']) {
+  const roles = new Set(principal.grants.map(grant => grant.roleId));
+  return JSON.stringify({
+    principal,
+    roles: config.roles.filter(role => roles.has(role.id)),
+    client: config.agents.clients.find(client => client.clientId === principal.clientId),
+  });
 }
 
 /** Rebuilds the identity an audit snapshot was decided for, with its groups and address. */
@@ -172,11 +185,14 @@ export interface DryRunEvidence {
   audit: AuditEntry[];
   /** Display names the panel shows, by identity; unknown identities keep their id. */
   names?: Map<string, string>;
+  /** The active boundary, when comparison starts at the Admin service. */
+  access?: AccessControl;
 }
 
 /** Replays matrix and audit cases and compares every known person's and client's project actions. */
-export function compareAccess(options: AccessOptions, next: AccessConfig, { users, audit, names = new Map() }: DryRunEvidence) {
-  const scopeFor = scopeCache(createAccessControl(options), createAccessControl({ ...options, config: next }));
+export function compareAccess(options: AccessOptions, next: AccessConfig, { users, audit, names = new Map(), access }: DryRunEvidence) {
+  const before = access ?? createAccessControl(options);
+  const scopeFor = scopeCache(before, before.fork(next), options.config, next);
   const identities = new Map(users.map(user => [user.id, user]));
   for (const client of [...options.config.agents.clients, ...next.agents.clients]) {
     identities.set(`client:${client.clientId}`, clientPrincipal(client.clientId, client.name));

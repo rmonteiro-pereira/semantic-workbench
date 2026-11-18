@@ -9,8 +9,8 @@ import { signIn, type SignInTarget } from './helpers/sign-in';
 import { ADMIN_AREAS, adminGeometry, adminArea, leaveAdmin, screenshotName, withinAdministrationTime } from './helpers/admin-browser';
 import { openSettings } from './helpers/sidebar-menus';
 
-/** The dry run replays every case of the access matrix, which takes about five seconds on a slow build machine, so the result gets longer than the default wait. */
-const DRY_RUN_RESULT_TIMEOUT_MS = 30_000;
+/** Five seconds allows rendering headroom over the dev-server POST p95 of 1,005 ms with twice the matrix; see docs/development.md. */
+const DRY_RUN_RESULT_TIMEOUT_MS = 5_000;
 
 /**
  * Runs the dry run in `scope`, checks the result and confirms. The result is in a dialog for a
