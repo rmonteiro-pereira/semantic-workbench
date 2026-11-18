@@ -3,7 +3,7 @@
 // default branch and holds the published state; only publishing moves it.
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { type Publication, type PublicationAdvance, type PublicationGuard } from './publication';
+import { type Publication, type PublicationAdvance, type PublicationGuard, type PublicationResult } from './publication';
 import type { PublicationObserver } from './local-publication';
 import { BranchInUseError, NotFastForwardError, PublicationRefChangedError, PublicationAdoptionError } from './errors';
 import { authorship, commitOf, GitError, isBranchName, symbolicBranch, type CommitAuthor, type Git } from './git';
@@ -321,6 +321,24 @@ async function publish(context: WorktreeContext, repo: string, key: string, chec
   return moveDefault(context, repo, { branch, previous, next }, check, advance);
 }
 
+/** What a promotion does inside the repository queue, before and after the default branch moves. */
+export type PromotionHooks = { before?: (previous: string | null) => Promise<void>; after?: (result: PublicationResult) => Promise<void> };
+
+/**
+ * Moves the default branch to a commit that is not in anyone's copy, the tip of a proposal, through
+ * the same move a publish makes. `before` runs first in the queue and may refuse; `after` runs in
+ * the queue once the branch has moved, so nothing else can interleave with the bookkeeping.
+ */
+async function promote(context: WorktreeContext, repo: string, tip: string, check: PublicationGuard, advance: PublicationAdvance, hooks: PromotionHooks) {
+  const { git } = context;
+  const branch = await defaultBranch(context, repo);
+  const previous = await commitOf(git, baseDir(context, repo), 'refs/heads/' + branch);
+  await hooks.before?.(previous);
+  const result = await moveDefault(context, repo, { branch, previous, next: tip }, check, advance);
+  await hooks.after?.(result);
+  return result;
+}
+
 /**
  * The move a fetch could make: the default branch to the remote's, when that is a fast-forward.
  * Null when the remote is not ahead or has diverged.
@@ -422,6 +440,7 @@ export function createWorktrees(options: Omit<WorktreeContext, 'listings'>) {
     assertFree: (repo: string, key: string, branch: string) => assertFree(context, repo, key, branch),
     publish: (repo: string, key: string, check: (previous: string | null, next: string) => Promise<void>) =>
       context.publication.serialized(repo, advance => publish(context, repo, key, check, advance)),
+    promote: (repo: string, tip: string, check: PublicationGuard, hooks: PromotionHooks) => context.publication.serialized(repo, advance => promote(context, repo, tip, check, advance, hooks)),
     adopt: (repo: string, guard: PublicationGuard, observe?: PublicationObserver) => context.publication.serialized(repo, advance => adopt(context, repo, guard, advance, observe)),
     remoteAhead: (repo: string, remote: string) => remoteAhead(context, repo, remote),
     followRemote: (repo: string, remote: string, check: (previous: string | null, next: string) => Promise<void>) =>

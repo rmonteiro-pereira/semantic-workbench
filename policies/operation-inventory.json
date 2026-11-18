@@ -1029,6 +1029,172 @@
         "increment": "workspace-scm"
       }
     },
+    "GET /api/projects/:slug/proposals": {
+      "id": "proposals.list",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "workspace-scm",
+        "reason": "Branch operations are offered to agents by the later workspace operations increment."
+      }
+    },
+    "GET /api/projects/:slug/proposals/:id": {
+      "id": "proposals.read",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "workspace-scm",
+        "reason": "Branch operations are offered to agents by the later workspace operations increment."
+      }
+    },
+    "GET /api/projects/:slug/proposals/:id/diff": {
+      "id": "proposals.diff",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "workspace-scm",
+        "reason": "Branch operations are offered to agents by the later workspace operations increment."
+      }
+    },
+    "POST /api/projects/:slug/proposals": {
+      "id": "proposals.create",
+      "handlerChecks": ["authorizeProposal"],
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": ["localWrite"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "workspace-scm",
+        "reason": "Branch operations are offered to agents by the later workspace operations increment."
+      }
+    },
+    "POST /api/projects/:slug/proposals/:id/work": {
+      "id": "proposals.work",
+      "handlerChecks": ["authorizeProposal", "authorizeCheckout"],
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": ["localWrite"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "workspace-scm",
+        "reason": "Branch operations are offered to agents by the later workspace operations increment."
+      }
+    },
+    "POST /api/projects/:slug/proposals/:id/synchronize": {
+      "id": "proposals.synchronize",
+      "handlerChecks": ["authorizeProposal"],
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": ["localWrite"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "workspace-scm",
+        "reason": "Branch operations are offered to agents by the later workspace operations increment."
+      }
+    },
+    "POST /api/projects/:slug/proposals/:id/contribute": {
+      "id": "proposals.contribute",
+      "handlerChecks": ["authorizeProposal"],
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": ["localWrite"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "workspace-scm",
+        "reason": "Branch operations are offered to agents by the later workspace operations increment."
+      }
+    },
+    "GET /api/projects/:slug/proposals/:id/promotion-check": {
+      "id": "proposals.check",
+      "handlerChecks": ["authorizeProposal"],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "workspace-scm",
+        "reason": "Branch operations are offered to agents by the later workspace operations increment."
+      }
+    },
+    "POST /api/projects/:slug/proposals/:id/promote": {
+      "id": "proposals.promote",
+      "handlerChecks": ["authorizeProposal"],
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": ["publish"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "workspace-scm",
+        "reason": "Branch operations are offered to agents by the later workspace operations increment."
+      },
+      "steps": ["publication.advance", "publication.abandon"]
+    },
+    "POST /api/projects/:slug/proposals/:id/close": {
+      "id": "proposals.close",
+      "handlerChecks": ["authorizeProposal"],
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": ["localWrite"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "workspace-scm",
+        "reason": "Branch operations are offered to agents by the later workspace operations increment."
+      }
+    },
+    "POST /api/projects/:slug/proposals/:id/restore": {
+      "id": "proposals.restore",
+      "handlerChecks": ["authorizeProposal"],
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": ["localWrite"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "workspace-scm",
+        "reason": "Branch operations are offered to agents by the later workspace operations increment."
+      }
+    },
     "POST /api/clone/:operation/cancel": {
       "id": "repositories.cancelClone",
       "handlerChecks": [],

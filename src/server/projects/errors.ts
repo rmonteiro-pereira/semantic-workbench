@@ -176,3 +176,31 @@ export class PublicationAdoptionError extends Error {
     this.name = 'PublicationAdoptionError';
   }
 }
+
+/** The reasons a proposal operation is refused with a stable code the interface can word. */
+export type ProposalRefusalCode =
+  | 'stale-tip'
+  | 'not-descendant'
+  | 'outside-declared-projects'
+  | 'nothing-to-contribute'
+  | 'not-open'
+  | 'not-closed'
+  | 'limit'
+  | 'name-taken'
+  | 'no-published-commit'
+  | 'missing-project'
+  | 'work-first'
+  | 'wrong-branch'
+  | 'damaged';
+
+/** Refuses a proposal operation and says why; nothing has changed when it is thrown. */
+export class ProposalRefusalError extends Error {
+  constructor(
+    public code: ProposalRefusalCode,
+    message: string,
+    public status: 403 | 409 = 409,
+  ) {
+    super(message);
+    this.name = 'ProposalRefusalError';
+  }
+}

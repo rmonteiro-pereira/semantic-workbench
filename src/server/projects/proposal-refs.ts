@@ -2,6 +2,7 @@
 // a closed one at `refs/workbench/closed-proposals/<id>`. They are not branches, so no branch list
 // shows them and no ordinary push sends them. Every move names the value it expects, so two
 // writers racing for one proposal cannot both win. The caller holds the repository's queue.
+import type { ChangedPath } from '../../shared/proposals/proposal';
 import type { Git } from './git';
 
 const OPEN_PREFIX = 'refs/workbench/proposals/';
@@ -9,9 +10,6 @@ const CLOSED_PREFIX = 'refs/workbench/closed-proposals/';
 
 /** The open and closed tips of each proposal found in a repository. */
 export type ProposalTips = { open: Map<string, string>; closed: Map<string, string> };
-
-/** A file changed between two commits; a rename is a removal and an addition. */
-export type ChangedPath = { path: string; status: 'added' | 'changed' | 'removed' };
 
 const openRef = (id: string) => OPEN_PREFIX + id;
 const closedRef = (id: string) => CLOSED_PREFIX + id;
@@ -65,6 +63,21 @@ export function createProposalRefs(git: Git, directory: (repository: string) => 
       const ref = which === 'open' ? openRef(id) : closedRef(id);
       const result = await git.run(directory(repository), ['rev-parse', '-q', '--verify', ref], { readOnly: true, allowFailure: true });
       return result.code === 0 ? result.stdout.trim() : null;
+    },
+    /** The identifiers of open proposals whose tip is already part of `commit`'s history. */
+    async mergedInto(repository: string, commit: string) {
+      const listed = await git.run(directory(repository), ['for-each-ref', '--merged', commit, '--format=%(refname)', OPEN_PREFIX], { readOnly: true });
+      return new Set(
+        listed.stdout
+          .split('\n')
+          .filter(Boolean)
+          .map(name => name.slice(OPEN_PREFIX.length)),
+      );
+    },
+    /** How many commits of `published` the tip lacks. */
+    async behind(repository: string, tip: string, published: string) {
+      const counted = await git.run(directory(repository), ['rev-list', '--count', `${tip}..${published}`], { readOnly: true });
+      return Number(counted.stdout.trim()) || 0;
     },
     /** Every open and closed proposal tip of a repository, keyed by identifier. */
     async listTips(repository: string): Promise<ProposalTips> {

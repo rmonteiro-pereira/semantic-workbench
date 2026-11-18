@@ -30,6 +30,8 @@ export type AuditInput = {
   version?: string;
   /** The settled and candidate commits of a publication or adoption attempt. */
   publication?: { previous: string | null; commit: string | null };
+  /** The proposal a record is about, its declared projects and the commits involved. */
+  proposal?: { proposal: string; projects: string[]; commits: string[] };
   /** How many refusals of this kind from this source were left out since the last record. */
   suppressed?: number;
   [key: string]: unknown;
@@ -60,6 +62,7 @@ function record(input: AuditInput, at: string, prev: string): AuditEntry {
   if (input.origin && input.origin !== 'http') entry.origin = input.origin;
   if (input.suppressed) entry.suppressed = input.suppressed;
   if (input.publication) entry.publication = { previous: input.publication.previous, commit: input.publication.commit };
+  if (input.proposal) entry.proposal = { proposal: input.proposal.proposal, projects: [...input.proposal.projects], commits: [...input.proposal.commits] };
   if (input.snapshot) {
     entry.snapshot = {
       grants: [...input.snapshot.grants],

@@ -27,6 +27,7 @@ import { suggestionRoutes } from './routes/suggestions';
 import { metricRoutes } from './routes/metrics';
 import { kpiRoutes } from './routes/kpis';
 import { createGitRoutes } from './routes/git';
+import { createProposalRoutes } from './routes/proposals';
 import { cloneRoutes } from './routes/clone';
 import { repoRoutes } from './routes/repos';
 import { peopleRoutes } from './routes/people';
@@ -152,6 +153,7 @@ function workspaceRoutes(administration: AdminRepository, access: AccessControl,
     peopleRoutes(access),
     kpiRoutes,
     createGitRoutes(options),
+    createProposalRoutes(options),
     cloneRoutes(administration),
     repoRoutes,
     exportRoutes,

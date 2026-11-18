@@ -105,8 +105,14 @@ export function deriveStatus(record: ProposalRecord | null, refs: ProposalRefSta
   return 'open';
 }
 
+/** How one file differs between two commits. */
+export type ChangeStatus = 'added' | 'changed' | 'removed';
+
+/** A file changed between two commits; a rename is a removal and an addition. */
+export type ChangedPath = { path: string; status: ChangeStatus };
+
 /** The changed files of one declared project, as a reader may see them. */
-export type ProposalChange = { project: string; files: { path: string; status: 'added' | 'changed' | 'removed' }[] };
+export type ProposalChange = { project: string; files: { path: string; status: ChangeStatus }[] };
 
 /** The actions the reader's authority allows on a proposal. */
 export type ProposalPermissions = { contribute: boolean; promote: boolean; close: boolean; restore: boolean };
@@ -117,20 +123,26 @@ export type ProposalProject = { slug: string; name: string };
 /** The reader's own contribution branch for a proposal, and whether it lags the proposal. */
 export type MyContribution = { branch: string; behind: boolean };
 
-/** What one reader receives about one proposal. */
-export type ProposalView = {
+/** What a list shows about one proposal; the detail adds the changes and the reader's own branch. */
+export type ProposalSummary = {
   id: string;
   name: string;
   status: DerivedStatus;
   createdByName: string;
   createdAt: string;
+  /** The latest of creation, a contribution and the outcome. */
+  lastMovementAt: string;
   projects: ProposalProject[];
   tip: string | null;
-  behindPublished: number;
   contributors: string[];
+  may: ProposalPermissions;
+};
+
+/** What one reader receives about one proposal. */
+export type ProposalView = ProposalSummary & {
+  behindPublished: number;
   changes: ProposalChange[];
   mine: MyContribution | null;
-  may: ProposalPermissions;
 };
 
 /** Reasons a promotion would be refused; a closed list so each has plain wording in the interface. */

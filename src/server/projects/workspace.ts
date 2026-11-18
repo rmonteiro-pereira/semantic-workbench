@@ -43,6 +43,7 @@ import { createImportBatch, freeReadableName, preflight } from './workspace/impo
 import { createDocumentSave, applyPatches } from './workspace/document-save';
 import { createFileMove } from './workspace/file-move';
 import { createGitIdentity } from './workspace/git-identity';
+import { createWorkspaceProposals } from './workspace/proposals';
 import { MANIFEST_FILE } from './repositories';
 import { LOCAL_READER, type Reader } from './reader';
 import { BadRequestError, HiddenResourceError, SnapshotUnavailableError } from './errors';
@@ -509,11 +510,13 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     localPublish: async (slug, reader) => localPublication.publishLocal(repoOf(slug), await worktrees.defaultBranch(repoOf(slug)), judgePublish(published, slug, reader.guard)),
     worktrees,
     copies,
+    published,
     repoOf,
     projectsIn,
     rescan,
     emit: (e, d, tags) => events.emit(e, d, tags),
   });
+  const proposals = createWorkspaceProposals({ layout, git, worktrees, publication, publishing, published, copies, events, entry, repoOf, projectsIn, now: options.now ?? Date.now });
   const unpublished = createUnpublishedWork({
     git,
     gitAvailable,
@@ -817,6 +820,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     /** Releases copies idle longer than the idle period; their files and drafts stay. */
     releaseIdleCopies: () => copies.releaseIdle(),
     worktrees,
+    /** Shared proposals: what several people prepare together before it is published. */
+    proposals,
     /** The repository folder of a registered project. */
     repoOf,
     project: entry,

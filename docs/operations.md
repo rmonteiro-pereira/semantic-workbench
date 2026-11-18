@@ -76,6 +76,17 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 | git.remote.set | PUT /api/projects/:slug/git/remote | setRemote | project | administration | GIT_REQUEST_LIMIT | workspace-scm |
 | git.remote.delete | DELETE /api/projects/:slug/git/remote | setRemote | project | administration | GIT_REQUEST_LIMIT | workspace-scm |
 | git.folder.set | PUT /api/projects/:slug/git/folder | setRemote | project | administration | GIT_REQUEST_LIMIT | workspace-scm |
+| proposals.list | GET /api/projects/:slug/proposals | read | project | read | none | workspace-scm |
+| proposals.read | GET /api/projects/:slug/proposals/:id | read | project | read | none | workspace-scm |
+| proposals.diff | GET /api/projects/:slug/proposals/:id/diff | history | project | read | none | workspace-scm |
+| proposals.create | POST /api/projects/:slug/proposals | branch | project | localWrite | GIT_REQUEST_LIMIT | workspace-scm |
+| proposals.work | POST /api/projects/:slug/proposals/:id/work | branch | project | localWrite | GIT_REQUEST_LIMIT | workspace-scm |
+| proposals.synchronize | POST /api/projects/:slug/proposals/:id/synchronize | pull | project | localWrite | GIT_REQUEST_LIMIT | workspace-scm |
+| proposals.contribute | POST /api/projects/:slug/proposals/:id/contribute | commit | project | localWrite | GIT_REQUEST_LIMIT | workspace-scm |
+| proposals.check | GET /api/projects/:slug/proposals/:id/promotion-check | publish | project | read | none | workspace-scm |
+| proposals.promote | POST /api/projects/:slug/proposals/:id/promote | publish | project | publish | GIT_REQUEST_LIMIT | workspace-scm |
+| proposals.close | POST /api/projects/:slug/proposals/:id/close | publish | project | localWrite | GIT_REQUEST_LIMIT | workspace-scm |
+| proposals.restore | POST /api/projects/:slug/proposals/:id/restore | publish | project | localWrite | GIT_REQUEST_LIMIT | workspace-scm |
 | repositories.cancelClone | POST /api/clone/:operation/cancel | clone | workspace | localWrite | none | local-edit |
 | repositories.projectCandidates | GET /api/repos/:repo/project-candidates | registerProjects | workspace | administration | none | workspace-scm |
 | repositories.registerProjects | PUT /api/repos/:repo/projects | registerProjects | workspace | administration, localWrite, publish | METRIC_REQUEST_LIMIT | workspace-scm |
@@ -146,6 +157,7 @@ These steps run inside the admitted route and share its authorization and audit 
 | metrics.explain | snapshot.read |
 | git.fetch | publication.advance, publication.abandon |
 | git.publish | publication.advance, publication.abandon |
+| proposals.promote | publication.advance, publication.abandon |
 | repositories.registerProjects | publication.upgrade |
 | agent.catalog.read | snapshot.read |
 | agent.context.read | snapshot.read |
