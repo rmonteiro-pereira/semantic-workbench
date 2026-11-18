@@ -1,7 +1,7 @@
 // Checks each state of the compile dialog with a fake client: unavailable, nothing to do, refused, loss needs acceptance, ready, released, error, and that the digest sent is the one on screen.
 import { expect, test } from 'bun:test';
-import { CHANGED_NOTICE, NOT_PUBLISHED_REASON, SNAPSHOT_CHANGED_MESSAGE, acceptShownReport, startCheck, type CompileView } from '../../src/app/compile/use-compile';
-import type { CompileApi, CompileFailure } from '../../src/app/compile/api';
+import { CHANGED_NOTICE, NOT_PUBLISHED_REASON, SNAPSHOT_CHANGED_MESSAGE, acceptShownReport, startCheck, type CompileClient, type CompileView } from '../../src/app/compile/use-compile';
+import type { CompileFailure } from '../../src/app/compile/api';
 import { checkUnit, runCompile, type RunAnswer } from '../../src/server/tessera/compile-service';
 import type { UnitSource } from '../../src/server/tessera/unit-source';
 import { ONTOLOGY_TEXT, SEMANTIC_MODEL_TEXT } from '../helpers/tessera-repository';
@@ -33,9 +33,9 @@ function failure(status: number, error: string): CompileFailure {
 
 type Calls = { run: { digest?: string; commit?: string }[] };
 
-function clientOver(unit: UnitSource, options: { checkError?: Error; runAnswer?: () => Promise<RunAnswer> } = {}): { client: CompileApi; calls: Calls } {
+function clientOver(unit: UnitSource, options: { checkError?: Error; runAnswer?: () => Promise<RunAnswer> } = {}): { client: CompileClient; calls: Calls } {
   const calls: Calls = { run: [] };
-  const client: CompileApi = {
+  const client: CompileClient = {
     check: async (_project, source) => {
       if (options.checkError) throw options.checkError;
       return checkUnit(unit, { source });

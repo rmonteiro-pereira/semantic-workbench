@@ -1,15 +1,25 @@
-// Browser client for the compile routes: check, compile and download. Failures carry the HTTP status and the body the server sent.
+// Browser client for the compile routes: check, compile, download and convert. Failures carry the HTTP status and the body the server sent.
 import type { CheckAnswer, RunAnswer } from '../../server/tessera/compile-service';
+import type { ConvertAnswer } from '../../server/tessera/convert-service';
+import type { CompileFinding } from '../../shared/tessera/compile-findings';
 import { apiFetch } from '../projects/api';
 
 /** Where a check reads from: the published snapshot, or the person's saved working copy. */
 export type CompileSource = 'published' | 'working';
 
 /** A request the server refused. The status and the answer's own error name tell the interface what to show. */
-export type CompileFailure = Error & { status: number; body: { error?: string; current?: string; findings?: unknown; report?: unknown } };
+export type CompileFailure = Error & { status: number; body: { error?: string; message?: string; current?: string; findings?: CompileFinding[]; report?: unknown } };
+
+/** What the person confirmed in the conversion dialog: the file version and input hashes the review saw, and the digest accepted. */
+export type ConvertBody = { path: string; baseHash: string; inputs: { path: string; sha256: string }[]; accept: { digest: string } };
 
 /** A downloaded bundle: the zip and the name the server gave it. */
 export type BundleDownload = { blob: Blob; fileName: string };
+
+/** Tells a refusal from the server from any other error. */
+export function isCompileFailure(error: unknown): error is CompileFailure {
+  return error instanceof Error && typeof (error as CompileFailure).status === 'number';
+}
 
 function failureOf(response: Response, body: CompileFailure['body']): CompileFailure {
   const message = body.error ?? `Request failed (${response.status}).`;
@@ -41,6 +51,7 @@ export const compileApi = {
     const disposition = response.headers.get('Content-Disposition') ?? '';
     return { blob: await response.blob(), fileName: /filename="([^"]+)"/.exec(disposition)?.[1] ?? `${project}-standard-ossie.zip` };
   },
+  convert: (project: string, body: ConvertBody) => post(`${compilePath(project)}/convert`, body).then(response => answerOf<ConvertAnswer>(response)),
 };
 
 /** The shape the dialogs depend on, so a test can pass a fake. */

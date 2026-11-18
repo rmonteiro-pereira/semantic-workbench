@@ -18,6 +18,7 @@ import { Modal } from '../projects/Modal';
 import type { Deleted, Doc, ProjectInfo } from '../projects/api';
 import type { AutosaveState } from '../projects/autosave';
 import { CompileDialog } from '../compile/CompileDialog';
+import { ConvertDialog } from '../compile/ConvertDialog';
 import { FileDialogs } from './FileDialogs';
 import { RdfItemDialogs } from './RdfItemDialogs';
 import { SaveDialogs } from './SaveDialogs';
@@ -234,6 +235,7 @@ export function AppDialogs({
 }: Props) {
   const openGitSetup = useGitSetup();
   const [checkingStandard, setCheckingStandard] = React.useState(false);
+  const [convertingStandard, setConvertingStandard] = React.useState(false);
   function handleValidationPanelLocate(issue: import('../../shared/validation/diagnostics').Issue) {
     setShowValidation(false);
     setTab('source');
@@ -250,6 +252,15 @@ export function AppDialogs({
 
   const creatingProject = projects.find(project => project.slug === creatingFile);
   const currentProject = current ? projects.find(project => project.slug === current.project) : undefined;
+  const mayEditCurrent = !currentProject?.actions || currentProject.actions.includes('edit');
+  function handleConverted() {
+    void refresh().then(docs => {
+      const converted = docs.find(doc => doc.project === current?.project && doc.path === current?.path);
+      if (!converted) return;
+      setCurrent(converted);
+      setSource(converted.source);
+    });
+  }
 
   return (
     <>
@@ -363,11 +374,22 @@ export function AppDialogs({
             onLocate={handleValidationPanelLocate}
             onValidateAsShippedVersion={validateAsShippedVersion}
             onCheckStandard={currentProject ? () => setCheckingStandard(true) : undefined}
+            onConvertToStandard={currentProject && mayEditCurrent ? () => setConvertingStandard(true) : undefined}
           />
           {validation.model?.kind === 'SHACL' && current && <ShaclCheck shapes={current} shapesSource={source} projectDocs={docs} />}
         </Modal>
       )}
       {checkingStandard && currentProject && <CompileDialog project={currentProject} initialSource="working" onClose={() => setCheckingStandard(false)} />}
+      {convertingStandard && currentProject && current && (
+        <ConvertDialog
+          project={currentProject}
+          target={{ path: current.path, source: current.source, hash: current.hash }}
+          gitState={currentProject.files.find(file => file.path === current.path)?.gitState ?? 'unknown'}
+          unsaved={source !== current.source}
+          onClose={() => setConvertingStandard(false)}
+          onConverted={handleConverted}
+        />
+      )}
       {definition && (
         <Modal
           title={definition.title}

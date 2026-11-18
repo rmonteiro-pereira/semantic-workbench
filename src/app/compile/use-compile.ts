@@ -3,7 +3,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CheckAnswer, SourceDescription } from '../../server/tessera/compile-service';
 import type { CompileFinding } from '../../shared/tessera/compile-findings';
 import type { LossReport } from '../../shared/tessera/loss-report';
-import { compileApi, type CompileApi, type CompileFailure, type CompileSource } from './api';
+import { compileApi, isCompileFailure, type CompileApi, type CompileFailure, type CompileSource } from './api';
+
+/** The calls the compile dialog makes. */
+export type CompileClient = Pick<CompileApi, 'check' | 'run' | 'download'>;
 
 /** What the dialog shows. The status says which part of the screen is on. */
 export type CompileView =
@@ -26,10 +29,6 @@ export const SNAPSHOT_CHANGED_MESSAGE = 'The published project changed. Check it
 /** The words shown when the report changed between the review and the acceptance. */
 export const CHANGED_NOTICE = 'The project changed after you reviewed the report. Review the new report before you accept it.';
 
-function isFailure(error: unknown): error is CompileFailure {
-  return error instanceof Error && typeof (error as CompileFailure).status === 'number';
-}
-
 function unavailableReason(error: CompileFailure): string | null {
   if (error.status === 409 && error.body.error === 'not-published') return NOT_PUBLISHED_REASON;
   if (error.status === 403) return 'You do not have permission to export this project.';
@@ -39,7 +38,7 @@ function unavailableReason(error: CompileFailure): string | null {
 
 /** Turns a failed call into the state that explains it. A failure the interface cannot explain is an error with a retry. */
 export function viewOfFailure(error: unknown): CompileView {
-  if (isFailure(error)) {
+  if (isCompileFailure(error)) {
     const reason = unavailableReason(error);
     if (reason) return { status: 'unavailable', reason };
     if (error.status === 409 && error.body.error === 'snapshot-changed') return { status: 'error', message: SNAPSHOT_CHANGED_MESSAGE };
@@ -69,7 +68,7 @@ export function viewOfWorkingCheck(answer: CheckAnswer): CompileView {
 }
 
 /** Checks the project from the chosen source. */
-export async function startCheck(client: CompileApi, project: string, source: CompileSource): Promise<CompileView> {
+export async function startCheck(client: CompileClient, project: string, source: CompileSource): Promise<CompileView> {
   try {
     const answer = await client.check(project, source);
     return source === 'published' ? viewOfPublishedCheck(answer) : viewOfWorkingCheck(answer);
@@ -82,14 +81,14 @@ export async function startCheck(client: CompileApi, project: string, source: Co
  * Accepts the report that is on screen. The digest sent is the one displayed, never a newer one: when the project changed, the server answers
  * with a different report and the person is shown that one instead of being asked again blindly.
  */
-export async function acceptShownReport(client: CompileApi, project: string, shown: Extract<CompileView, { status: 'needs-acceptance' }>): Promise<CompileView> {
+export async function acceptShownReport(client: CompileClient, project: string, shown: Extract<CompileView, { status: 'needs-acceptance' }>): Promise<CompileView> {
   try {
     const answer = await client.run(project, shown.report.digest, shown.commit);
     if (answer.result === 'released') return { status: 'released', commit: shown.commit, digest: shown.report.digest };
     if (answer.result === 'refused') return { status: 'refused', source: answer.source, findings: answer.findings };
     return { status: 'needs-acceptance', commit: shown.commit, report: answer.report, notice: CHANGED_NOTICE };
   } catch (error) {
-    if (isFailure(error) && error.status === 409 && error.body.error === 'snapshot-changed') {
+    if (isCompileFailure(error) && error.status === 409 && error.body.error === 'snapshot-changed') {
       const fresh = await startCheck(client, project, 'published');
       return fresh.status === 'needs-acceptance' ? { ...fresh, notice: CHANGED_NOTICE } : fresh;
     }
@@ -110,7 +109,7 @@ function saveBlob(blob: Blob, fileName: string) {
 }
 
 /** Runs the check when the dialog opens or the source changes, and exposes the accept, retry and download actions. */
-export function useCompile(project: string, source: CompileSource, unavailableBecause: string | null, client: CompileApi = compileApi): CompileControl {
+export function useCompile(project: string, source: CompileSource, unavailableBecause: string | null, client: CompileClient = compileApi): CompileControl {
   const [view, setView] = useState<CompileView>({ status: 'loading', step: 'checking' });
   const generation = useRef(0);
   const run = useCallback(async (step: 'checking' | 'accepting' | 'downloading', work: () => Promise<CompileView>) => {

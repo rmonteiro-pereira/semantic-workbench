@@ -22,7 +22,8 @@ export function publishedUnavailableReason(project: ProjectInfo): string | null 
   return null;
 }
 
-function Findings({ findings }: { findings: CompileFinding[] }) {
+/** The findings that refused a compile or a conversion, each with its document and place. */
+export function Findings({ findings }: { findings: CompileFinding[] }) {
   return (
     <ul className="compile-findings">
       {findings.map((finding, index) => (

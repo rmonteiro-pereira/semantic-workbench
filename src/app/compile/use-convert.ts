@@ -1,0 +1,109 @@
+// The states of the conversion dialog and the steps between them: review what the conversion would do, then confirm it. The steps are plain async functions over an injected client.
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { compileDocument } from '../../shared/tessera/compile-document';
+import type { CompileFinding } from '../../shared/tessera/compile-findings';
+import type { LossReport } from '../../shared/tessera/loss-report';
+import { REGISTRY } from '../../shared/tessera/registry';
+import { compileApi, isCompileFailure, type CompileApi, type ConvertBody } from './api';
+
+/** The calls the conversion dialog makes. */
+export type ConvertClient = Pick<CompileApi, 'check' | 'convert'>;
+
+/** The saved file the person wants to convert: its path, text and version. */
+export type ConvertTarget = { path: string; source: string; hash: string };
+
+/** Everything the review showed, kept so the confirmation sends exactly that. */
+export type ConvertReview = {
+  /** The unit's report. Its digest binds the confirmation to the files the review saw. */
+  report: LossReport;
+  /** The values this file would lose, a part of the unit's report. */
+  fileLosses: LossReport['losses'];
+  inputs: ConvertBody['inputs'];
+  before: string;
+  after: string;
+};
+
+/** What the dialog shows. */
+export type ConvertView =
+  | { status: 'loading' }
+  | { status: 'refused'; findings: CompileFinding[] }
+  | { status: 'review'; review: ConvertReview }
+  | { status: 'converting'; review: ConvertReview }
+  | { status: 'done'; path: string }
+  | { status: 'changed'; message: string }
+  | { status: 'error'; message: string };
+
+/** The words shown when the file or a sibling changed between the review and the confirmation. */
+export const CHANGED_MESSAGE = 'The file or the project changed after you opened this review. Review the conversion again before you convert.';
+
+function viewOfConversionFailure(error: unknown): ConvertView {
+  const failure = isCompileFailure(error) ? error : null;
+  if (failure?.status === 422) return { status: 'refused', findings: failure.body.findings ?? [] };
+  if (failure?.status === 409 && ['version-changed', 'digest-mismatch'].includes(failure.body.error ?? '')) return { status: 'changed', message: CHANGED_MESSAGE };
+  return { status: 'error', message: failure?.body.message ?? (error as Error).message ?? 'The request failed.' };
+}
+
+/** Compiles the one file here, so the person sees the standard text before anything is saved. The server compiles again before it writes. */
+function afterText(target: ConvertTarget): { text: string } | { findings: CompileFinding[] } {
+  const compiled = compileDocument({ path: target.path, source: target.source }, REGISTRY);
+  if (compiled.ok) return { text: compiled.text };
+  return { findings: compiled.failures.map(failure => ({ document: failure.document ?? target.path, severity: 'error', code: failure.code, path: '/', message: failure.message })) };
+}
+
+/** Checks the working copy, then shows what converting this file would change and drop. */
+export async function startReview(client: ConvertClient, project: string, target: ConvertTarget): Promise<ConvertView> {
+  try {
+    const answer = await client.check(project, 'working');
+    if (answer.result === 'refused') return { status: 'refused', findings: answer.findings };
+    const seen = answer.report.inputs.find(input => input.path === target.path);
+    if (!seen || seen.sha256 !== target.hash) return { status: 'changed', message: CHANGED_MESSAGE };
+    const after = afterText(target);
+    if ('findings' in after) return { status: 'refused', findings: after.findings };
+    const inputs = answer.report.inputs.map(input => ({ path: input.path, sha256: input.sha256 }));
+    const fileLosses = answer.report.losses.filter(loss => loss.document === target.path);
+    return { status: 'review', review: { report: answer.report, fileLosses, inputs, before: target.source, after: after.text } };
+  } catch (error) {
+    return viewOfConversionFailure(error);
+  }
+}
+
+/** Sends the confirmation with the file version, the input hashes and the digest of the review that is on screen. */
+export async function confirmConversion(client: ConvertClient, project: string, target: ConvertTarget, review: ConvertReview): Promise<ConvertView> {
+  try {
+    await client.convert(project, { path: target.path, baseHash: target.hash, inputs: review.inputs, accept: { digest: review.report.digest } });
+    return { status: 'done', path: target.path };
+  } catch (error) {
+    return viewOfConversionFailure(error);
+  }
+}
+
+/** The control the dialog gets from the hook. */
+export type ConvertControl = { view: ConvertView; convert: () => void; reload: () => void };
+
+/** Reviews when the dialog opens and exposes the confirmation. */
+export function useConvert(project: string, target: ConvertTarget, onConverted: () => void, client: ConvertClient = compileApi): ConvertControl {
+  const [view, setView] = useState<ConvertView>({ status: 'loading' });
+  const generation = useRef(0);
+  const review = useCallback(async () => {
+    const mine = ++generation.current;
+    setView({ status: 'loading' });
+    const next = await startReview(client, project, target);
+    if (mine === generation.current) setView(next);
+  }, [client, project, target]);
+  useEffect(() => {
+    void review();
+    return () => {
+      generation.current += 1;
+    };
+  }, [review]);
+  const convert = useCallback(() => {
+    if (view.status !== 'review') return;
+    const shown = view.review;
+    setView({ status: 'converting', review: shown });
+    void confirmConversion(client, project, target, shown).then(next => {
+      setView(next);
+      if (next.status === 'done') onConverted();
+    });
+  }, [client, onConverted, project, target, view]);
+  return { view, convert, reload: review };
+}
