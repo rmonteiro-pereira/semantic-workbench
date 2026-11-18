@@ -9,7 +9,7 @@ This page grows with the feature. The sections below are filled in as each part 
 
 ## Protocol record
 
-What the workbench relies on, checked on 2026-11-17 against the protocol's own published
+The workbench relies on the following parts of the protocol's published
 specification and schema, not against memory.
 
 | Item | Answer |
@@ -25,7 +25,7 @@ specification and schema, not against memory.
 | Who starts the agent | the client, in the protocol. Here the person-run relay does it, and the workbench starts nothing |
 | Calls to the agent | `initialize`, `session/new`, `session/prompt`, `session/cancel` |
 | Requests from the agent | `fs/read_text_file`, `fs/write_text_file`, `session/request_permission`; `terminal/*` and `elicitation/create` are answered "method not found" |
-| Updates from the agent | `session/update`: message, thought, tool call, tool call update, `plan` (the agent's task list) |
+| Updates from the agent | `session/update`: message, thought, tool activity, tool activity update, `plan` (the agent's task list) |
 | File paths | absolute; `line` is 1-based; a write must create a missing file |
 | Write base version | not carried; the workbench keeps the version the agent read |
 | Cancel | the client must answer pending permission requests `cancelled` when it sends `session/cancel` |
@@ -41,3 +41,7 @@ authenticated hello, frame post, stream and goodbye then enters the operation bo
 invalid credentials, invalid session codes and replayed codes receive the same empty 404 response.
 Anonymous refusals use the shared audit rate gate. Unsupported methods are recorded by bounded
 class, without method parameters or conversation content.
+
+The browser keeps its transcript in memory. Only the session id survives a page reload; opening
+the panel can catch up from the bounded server buffer. A missing known session ends locally as
+server-restarted. Duplicate event numbers are ignored.

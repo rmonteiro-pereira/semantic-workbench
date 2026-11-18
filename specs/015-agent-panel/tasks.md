@@ -170,7 +170,7 @@ test only to make it pass.
 
 ## Phase 6: The panel (User Stories 1, 2, 3, 4, 5)
 
-- [ ] T030 [US1] Create `src/app/agent/agent-api.ts` and `src/app/agent/agent-events.ts` (the pure
+- [x] T030 [US1] Create `src/app/agent/agent-api.ts` and `src/app/agent/agent-events.ts` (the pure
   reducer from events to panel state). Add `tests/agent-events.test.ts`. Proof: the test passes,
   including overflow notice, reconnect catch-up and a message arriving after cancel.
 - [ ] T031 [US1] Create `src/app/agent/useAgentSession.ts`, `AgentPanel.tsx`, `ConnectStep.tsx`,

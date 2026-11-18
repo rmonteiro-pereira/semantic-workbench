@@ -482,3 +482,10 @@ concatenating project, document or item names.
 Use [the development guide](docs/development.md) for command syntax, fixture rules and validation.
 Keep configuration/API/operation details in their canonical guides instead of appending release
 history or per-control instructions to this architecture map.
+
+## Agent panel
+
+`src/server/acp/` owns relay authentication, protocol framing, session lifetime and the file
+adapter into the operation boundary. `src/shared/agent-panel/` holds the content statement and
+event contracts. `src/app/agent/` owns the in-memory browser event reduction and panel transport;
+it uses the ordinary browser API wrapper for write intent and ordinary guarded saves for Undo.
