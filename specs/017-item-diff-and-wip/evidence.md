@@ -174,3 +174,87 @@ No full unit suite, mutation suite, other browser suite, deployment, project-rem
 was run. The browser frontend used port 5447 and an isolated API. Process inspection after the
 checks showed no remaining frontend, baseline recorder or planner-check process from this run.
 The missing commit-cadence script could not run; all changes are committed in coherent steps.
+
+
+## Git-backed address provenance
+
+The owner adopted Git-backed history after accepting the branch reproduction above. The earlier
+blocking decision is superseded. The side comparison may proceed once the provenance gate passes.
+
+- `bda7bdfd` replaced project state writes with journaled Git working-copy history for single and
+  batch saves, file moves, deletions and reconciliation. Legacy rows import on the first write.
+- `bb3daef7` excluded the history from scanning and compile inputs. Two branches with independent
+  records merged with Git's union driver, and both old addresses resolved. Commit `a28fb6f5`
+  proves this when both branches first create the file independently.
+- `4872a2b2` resolved consumer addresses against the published pin and browser editor addresses
+  against saved files. A browser saw an alias before publication, while a consumer saw it after.
+- `bce97f93` included matching records in selective commits and journaled record changes on file
+  revert and undo. The selective test preserved a different staged definition. Commit
+  `9e1b853d` then covers committing that staged definition and its remaining record.
+- `e9c5f11b` placed reconciliations in the actual editor working copy and verified that a fresh Git
+  clone resolves an old address without a legacy state file.
+
+Existing tests changed for location only:
+
+- `tests/address-migration-store.test.ts` writes JSON Lines fixtures and looks inside the archived
+  project payload for committed bookkeeping.
+- `tests/address-reconciliation.test.ts` inspects the signed-in editor's working-copy history.
+- `tests/item-address-operations.test.ts` inspects the reconciler's working-copy history and resolves
+  the alias in that same editor view during the HTTP/twin replay proof.
+- `tests/address-operation-parity.test.ts` reads the editor copy when comparing the record sequences
+  produced by the HTTP and twin save, move and delete cases.
+
+Targeted proofs include 17 address-store tests (150 assertions), 4 declared-save tests
+(30 assertions), 2 reconciliation tests (14 assertions), 3 address-operation tests (22 assertions),
+7 Git tests (22 assertions), 2 address parity tests (34 assertions), and 12 branch provenance tests
+(64 assertions), all passing.
+
+The first server-wide pass caught two parity fixtures that still inspected the shared checkout.
+Both passed after correcting the test location (34 assertions). The existing trash suite also
+caught a clean-worktree regression after undoing the first history write. Commit `52235ecd`
+removes the new file and its union rule when the undo leaves no committed history.
+All eight existing trash tests then passed (65 assertions).
+The shared-module boundary check flagged the unchanged Tessera schema import in
+`src/shared/tessera/bases.ts`, introduced before this feature in `d9962218`.
+
+The pipeline's existing browser matrix is missing `test:attributes` and `test:tessera` from the
+gate suite list. Those files match the base. The integrated browser gate needs both rows.
+The new project trash recovery test interrupts the legacy import, recovers the journal, and
+checks that the record is in the archived project with the old state file gone.
+
+Project export is part of the provenance access boundary. The file export excludes the metadata
+from both the archive and the omission count. Scoped Git bundles check historical endpoints
+and verify that the bundle advertises the authorized commit. The existing export authorization
+suite passed all six cases (29 assertions).
+
+### Provenance verification
+
+- Detached full development-server run on the first integrated provenance snapshot: 3,063 pass,
+  36 fail, 347,374 assertions across 411 files in 2,021.25 seconds. Check and build exited 0.
+- Focused development-server rerun on the corrected provenance implementation: 105 pass, 0 fail
+  across 23 files in 75.48 seconds. The side-difference and definition exclusion mutants both
+  failed their tests. Check and build exited 0. Vite built in 3.02 seconds.
+- The full run found six phase regressions in operation-parity fixtures and trash, startup and undo
+  behavior. The fixes passed the focused rerun. The remaining full-run failures concern the
+  unchanged Tessera schema lookup, the Azure browser suite list, authorization-boundary scanning
+  of the attribute mutation fixture, and the older expected session capability response.
+- MCP file, usage-counter and shared-proposal proofs wait for the features that supply those
+  surfaces. The available file routes, the agent API and Tessera are covered here.
+
+### HTTP operation and browser integration
+
+- The separate working case for a server caller without a personal copy uses the published
+  pin as its editing baseline. This keeps shared repository checkouts from masquerading as the
+  person's saved files. Comparison never creates a copy.
+- Project history is inventoried as a browser-only read. Direct operation and HTTP parity match
+  the body, status and audited decision for four caller cases. Removing the per-file predicate
+  exposed a restricted pathname and failed the test. Removing the browser surface check
+  returned 200 to the unmarked application request and failed its proof.
+- The publication confirmation in this codebase is in SyncDialog.tsx.
+  DefaultBranchActions.tsx offers the launcher. The review belongs with the confirmation,
+  where it compares the committed tip that the button publishes.
+- The uncommitted branch fixture's first browser pass found that full-model cards were arranging
+  the mark and title in a row. Marked cards now stack the title and annotation inside the same
+  outer dimensions. The subsequent run passed at 1,440 and 390 pixels in both themes and found
+  a test-only Git identity issue in the branch-commit step. The test now supplies an identity on
+  the single Git command.

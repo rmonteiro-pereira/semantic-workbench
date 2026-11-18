@@ -186,7 +186,7 @@ tests/fixtures/item-diff/   # two-state projects, migration records, expected an
 
 The provenance phase also owns the existing address history store and its callers in document
 save, file move, reconciliation, trash and restore, and the SCM paths that settle records with
-definition changes. See [the provenance decision](research.md).
+definition changes, and the export check for hidden endpoints. See [the provenance decision](research.md).
 
 Every path in the block above, plus `docs/item-diff.md`.
 
