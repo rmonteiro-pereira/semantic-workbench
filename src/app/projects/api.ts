@@ -145,6 +145,8 @@ export type GitChange = {
 export type GitStatus = {
   published?: PublishedStatus;
   branch: string;
+  /** The commit the copy's branch is at, or null before the first commit. */
+  head?: string | null;
   upstream: string;
   /** Server mode: where Pull takes from on a personal branch, such as `origin/main`. */
   pullSource?: string;
