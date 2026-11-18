@@ -183,7 +183,7 @@ test only to make it pass.
   Add `tests/agent-panel-transcript.test.tsx` with a 1,000,000-character message, a 5,000-character
   task entry, a 600-character path, markup and script text. Proof: the test passes; no element
   has `text-overflow`, `line-clamp` or a fixed-width label (a scan in the test).
-- [ ] T033 [US3] Create `ChangeCard.tsx` using `src/app/scm/DiffView.tsx` for the diff, with
+- [x] T033 [US3] Create `ChangeCard.tsx` using `src/app/scm/DiffView.tsx` for the diff, with
   accepted and refused variants and **Undo** as the ordinary save from the card's version. Add
   `tests/agent-panel-change.test.tsx`. Proof: undo reports a conflict when the file changed since;
   the saved text equals the earlier text otherwise.
