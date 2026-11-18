@@ -4,7 +4,8 @@ import { FILE_SAVE_REQUEST_LIMIT } from '../request';
 import { requestReader } from '../auth/request-scope';
 import { decodeSegment, decodePath, readJson } from '../request';
 import type { Route } from './http';
-import { BadRequestError } from '../projects/errors';
+import { readOntologySet } from '../mesh/unit-reader';
+import { BadRequestError, HiddenResourceError, NotFoundError } from '../projects/errors';
 const HASH = /^[0-9a-f]{64}$/;
 /** Handles file reads and saves with base hashes to detect stale edits. */
 export const fileRoutes: Route = async (ws, req, url) => {
@@ -13,7 +14,26 @@ export const fileRoutes: Route = async (ws, req, url) => {
   const slug = decodeSegment(match[1]);
   const path = decodePath(match[2]);
   const reader = requestReader(req);
-  if (req.method === 'GET') return Response.json(ws.readFile(slug, path, reader));
+  if (req.method === 'GET') {
+    const file = ws.readFile(slug, path, reader);
+    const validation = readOntologySet(file, {
+      read: name => {
+        if (reader.view && !reader.view.canRead(slug, name)) return null;
+        try {
+          return ws.readFile(slug, name, reader).source;
+        } catch (error) {
+          if (error instanceof HiddenResourceError || error instanceof NotFoundError) return null;
+          throw error;
+        }
+      },
+      rootPaths: () =>
+        ws
+          .documentsFor(reader)
+          .filter(file => file.project === slug)
+          .map(file => file.path),
+    });
+    return Response.json(validation ? { ...file, unitValidation: validation } : file);
+  }
   if (req.method === 'PUT') {
     const body = await readJson(req, FILE_SAVE_REQUEST_LIMIT);
     if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(k => !['baseHash', 'source', 'patches', 'declaredMigrations', 'deletedItems'].includes(k)))

@@ -1,13 +1,11 @@
 /** Checks structural findings and tracks concept moves across files in an atomic edit. */
 import { readFileSync } from 'node:fs';
-import { posix } from 'node:path';
 import type { DeclaredMigration } from '../../../shared/core/address-migration';
 import { formatAddress } from '../../../shared/core/item-address';
 import { inspectOntologyUnit, isStructuredEntity } from '../../../shared/core/model';
 import { deepEqual } from '../../../shared/edit/source-text';
 import { InputError } from '../../../shared/validation/diagnostics';
-import { validateInput } from '../../../shared/validation/input';
-import { readMarker } from '../../../shared/tessera/marker';
+import { unitDocument } from '../../mesh/unit-reader';
 import { readUnitStructure, type OntologyUnit, type UnitDocument } from '../../../shared/tessera/unit-structure';
 import { decode } from '../atomic';
 import { PathError, projectFile } from '../paths';
@@ -15,15 +13,6 @@ import type { Reader } from '../reader';
 import type { Place } from '../working-copies';
 
 type Edit = { path: string; before: string | null; after: string };
-
-function unitDocument(path: string, source: string | null): UnitDocument | undefined {
-  if (source === null) return undefined;
-  const parsed = validateInput(source, posix.basename(path)).model;
-  if (!parsed || !('document' in parsed)) return undefined;
-  const data = parsed.document;
-  const marker = readMarker(data);
-  if (marker.family === 'tessera' && marker.revision === 3 && Array.isArray(data.ontology)) return { path, data };
-}
 
 function readOtherUnits(place: Place, project: string, reader: Reader, changed: ReadonlySet<string>): UnitDocument[] {
   const documents: UnitDocument[] = [];

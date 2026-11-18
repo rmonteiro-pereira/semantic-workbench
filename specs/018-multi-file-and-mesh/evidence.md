@@ -129,3 +129,5 @@ The existing local Publish route proves atomic same-repository movement against 
 The publication check runs as part of the existing content guard in the ordered publication pipeline. The checker gets the publishing reader from that guard, covering Publish, Adopt and remote follow. Tests use real operations for each refusal and verify that the durable pointer stays put.
 
 CLI compilation without a data root locates same-repository providers by project-named folder. A registration whose folder differs from its slug requires the data root to recover the registry mapping.
+
+Set findings are recomputed per read instead of stored. No authorized set findings are put in a shared cache. Existing file read, save and batch operations are the entry points for set inspection and preflight, so the feature does not add a new validation route. A private draft survives set refusal.

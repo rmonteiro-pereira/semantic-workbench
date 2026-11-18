@@ -5,7 +5,7 @@ import { setFindings, requiredUnitFiles } from '../../shared/tessera/set-validat
 import { readUnitStructure, type OntologyUnit } from '../../shared/tessera/unit-structure';
 import { InputError } from '../../shared/validation/diagnostics';
 import { validateInput } from '../../shared/validation/input';
-import { SnapshotUnavailableError } from '../projects/errors';
+import { MissingOntologySetError, SnapshotUnavailableError } from '../projects/errors';
 import type { PublicationCandidate } from '../projects/publication-checks';
 import type { PublishedPin, PublishedSnapshots } from '../projects/published-snapshot';
 import type { Reader } from '../projects/reader';
@@ -115,7 +115,7 @@ export async function checkPublicationDependencies(
       const paths = new Set(documents.filter(file => visible(file.path)).map(file => file.path));
       const hasUnavailableFile = units.some(unit => !requiredUnitFiles(unit).every(path => paths.has(path)));
       const errors = findings.filter(finding => finding.severity === 'error');
-      if (hasUnavailableFile || errors.some(finding => !finding.files.every(visible))) refuse('The ontology set could not be checked.');
+      if (hasUnavailableFile || errors.some(finding => !finding.files.every(visible))) throw new MissingOntologySetError();
       for (const unit of units) errors.push(...(await checkImports(frozen, pin, candidate, reader, unit, lock)).filter(finding => finding.severity === 'error'));
       if (errors.length) throw new InputError(errors.map(({ code, path, severity, message }) => ({ code, path, severity, message })));
     }

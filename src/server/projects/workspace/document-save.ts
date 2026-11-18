@@ -1,6 +1,7 @@
 // Saves and reverts documents: a stale base is refused, the reader's guard judges the text, and the
 // swap is journaled so a crash leaves either the old or the new bytes.
 import { DEPENDENCY_MANIFEST_PATH } from '../../../shared/tessera/dependency-manifest';
+import { requireWritableOntologySet } from '../../mesh/unit-reader';
 import { unitEditMigrations } from './unit-edits';
 import type { DeclaredMigration } from '../../../shared/core/address-migration';
 import type { OperationOutcome } from '../../auth/operation-outcome';
@@ -13,7 +14,7 @@ import { InputError, MAX_INPUT_BYTES } from '../../../shared/validation/diagnost
 import { atomicWrite, decode, encode, sha256 } from '../atomic';
 import type { Git } from '../git';
 import { JournalCrash, type Journal } from '../journal';
-import { projectFile, projectPath, projectPrefix, repoDir, type DataLayout } from '../paths';
+import { PathError, projectFile, projectPath, projectPrefix, repoDir, type DataLayout } from '../paths';
 import { clearPersonalDrafts } from '../personal-state';
 import type { Reader } from '../reader';
 import { indexBytes } from '../scanner';
@@ -102,6 +103,25 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     const change = { project: slug, path, before, after: edited, committed };
     return { edited, before, guarded: guard?.([change]) };
   }
+  function requireCompleteSet(place: Place, project: string, reader: Reader, path: string) {
+    const read = (name: string) => {
+      if (reader.view && !reader.view.canRead(project, name)) return null;
+      try {
+        return decode(readFileSync(projectFile(place.layout, project, name)));
+      } catch (error) {
+        if (error instanceof PathError || (error as NodeJS.ErrnoException).code === 'ENOENT') return null;
+        throw error;
+      }
+    };
+    const source = read(path);
+    if (source === null) return;
+    const rootPaths = () =>
+      place.cache
+        .files(project)
+        .filter(file => file.docType === 'Ossie ontology')
+        .map(file => file.path);
+    requireWritableOntologySet({ path, source }, { read, rootPaths });
+  }
   async function saveFile(
     slug: string,
     path: string,
@@ -122,6 +142,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
           if (sha256(bytes) !== expectedHash) throw new BadRequestError('The ontology changed. Review the dependency update again.');
         }
       }
+      if (!manifestRoots) requireCompleteSet(at, slug, reader, relativePath);
       const result = await guardedEdit(at, { slug, path: relativePath }, body, guard);
       const after = result.guarded?.changes[0].after ?? result.edited;
       verifyDeletedItems(deletedItems, { project: slug, path: relativePath, before: result.before ?? '', after });
@@ -216,6 +237,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
       throw new OccupiedError('The target is unavailable.', {});
     }
     const check = async (at: Place) => {
+      for (const file of files) requireCompleteSet(at, slug, reader, file.path);
       const result = await guardedEdits(at, slug, files, guard);
       result.edited.forEach((edit, index) => {
         const ownDeleted = deletedItems.filter(address => addressDocument(address) === edit.path);

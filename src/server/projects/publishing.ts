@@ -1,6 +1,6 @@
 // Publishes in server mode: moves the default branch to a person's working copy, or to what a
 // fetch brought from the remote, and then refreshes the published state every reader sees.
-import { BadRequestError, NothingToPublishError } from './errors';
+import { BadRequestError, MissingOntologySetError, NothingToPublishError } from './errors';
 import type { EventTags } from './events';
 import { InputError } from '../../shared/validation/diagnostics';
 import { WriteAccessError } from '../auth/write-access-error';
@@ -95,7 +95,7 @@ async function followRemote(deps: PublishingDeps, slug: string, remote: string, 
     await announce(deps, slug, moved.published, moved.commit);
     return { ...stays, followed: true };
   } catch (error) {
-    if (error instanceof WriteAccessError || error instanceof InputError) return { ...stays, reason: 'guard' };
+    if (error instanceof WriteAccessError || error instanceof InputError || error instanceof MissingOntologySetError) return { ...stays, reason: 'guard' };
     throw error;
   }
 }

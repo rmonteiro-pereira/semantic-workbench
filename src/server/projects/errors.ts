@@ -176,3 +176,11 @@ export class PublicationAdoptionError extends Error {
     this.name = 'PublicationAdoptionError';
   }
 }
+
+/** Conceals which required file made the ontology set unavailable. */
+export class MissingOntologySetError extends BadRequestError {
+  constructor() {
+    super('The ontology set could not be checked.');
+    this.name = 'MissingOntologySetError';
+  }
+}
