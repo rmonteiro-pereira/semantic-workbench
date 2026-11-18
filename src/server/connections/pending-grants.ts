@@ -64,6 +64,7 @@ export function presentationOf(stored: Pick<StoredGrant, 'spent' | 'expiresAt'> 
 export function createPendingGrants(options: { key: Uint8Array; now?: () => number }) {
   const now = options.now ?? Date.now;
   const requests = new Map<string, PendingRequest>();
+  const setups = new Map<string, { reference: string; expiresAt: number }>();
   const grants = new Map<string, StoredGrant>();
 
   function dropExpired<Value extends { expiresAt: number }>(store: Map<string, Value>) {
@@ -75,6 +76,20 @@ export function createPendingGrants(options: { key: Uint8Array; now?: () => numb
   }
 
   return {
+    /** Binds one setup form submission to the session that opened it. */
+    createSetupForm(reference: string): string {
+      dropExpired(setups);
+      const id = newConnectionId();
+      setups.set(id, { reference, expiresAt: now() + PENDING_REQUEST_LIFETIME_MS });
+      dropOldest(setups, MAX_PENDING_REQUESTS);
+      return id;
+    },
+    /** A browser reload must never mint another credential from the same form. */
+    takeSetupForm(id: string, reference: string): boolean {
+      const form = setups.get(id);
+      if (!form || form.reference !== reference || form.expiresAt <= now()) return false;
+      return setups.delete(id);
+    },
     /** Holds a validated request and returns its id, which the consent form carries. */
     createRequest(request: Omit<PendingRequest, 'id' | 'expiresAt'>): PendingRequest {
       dropExpired(requests);

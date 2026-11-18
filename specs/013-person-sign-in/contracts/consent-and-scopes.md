@@ -48,7 +48,7 @@ names the cause beyond that list, and it does not echo request parameters.
 
 ## Headers (all pages)
 
-`Cache-Control: no-store`, `Referrer-Policy: no-referrer`, `X-Frame-Options: DENY`,
+`Cache-Control: no-store`, `Referrer-Policy: same-origin`, `X-Frame-Options: DENY`,
 `Content-Security-Policy: default-src 'none'; style-src 'self'; form-action 'self' <registered
 redirect origin>; frame-ancestors 'none'`. No script.
 

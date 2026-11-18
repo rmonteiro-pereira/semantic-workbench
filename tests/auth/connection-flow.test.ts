@@ -235,8 +235,10 @@ test('a consent post from another origin is refused before anything is read', as
   const cookie = await server.signIn('alice');
   const page = await server.get('/oauth/authorize?' + server.authorizeQuery(server.pkcePair()), { Cookie: cookie });
   const fields = await server.consentFields(page);
-  const response = await server.postForm('/oauth/consent', { pending: fields.pending, csrf: fields.csrf, decision: 'allow', scope: 'read' }, { Cookie: cookie, Origin: 'https://attacker.example' });
-  expect(response.status).toBe(403);
+  for (const origin of ['https://attacker.example', 'null']) {
+    const response = await server.postForm('/oauth/consent', { pending: fields.pending, csrf: fields.csrf, decision: 'allow', scope: 'read' }, { Cookie: cookie, Origin: origin });
+    expect(response.status).toBe(403);
+  }
 });
 
 test('a scope the person did not see cannot be added to the form', async () => {
@@ -274,6 +276,7 @@ test('a setup credential is shown once, never in an address, and trades for the 
     '/oauth/setup',
     new URLSearchParams([
       ['csrf', fields.csrf],
+      ['pending', fields.pending],
       ['client', referenceProgram.clientId],
       ['scope', 'read'],
       ['scope', 'edit'],
@@ -301,9 +304,12 @@ test('a setup credential is shown once, never in an address, and trades for the 
 test('setup credentials fail the same way when wrong, for another program, or after sign-out', async () => {
   const server = await open();
   const cookie = await server.signIn('alice');
-  const fields = await server.consentFields(await server.get('/oauth/setup', { Cookie: cookie }));
-  const create = async () =>
-    /swsetup_[A-Za-z0-9_-]+/.exec(await (await server.postForm('/oauth/setup', { csrf: fields.csrf, client: 'reference-client', scope: 'read' }, { Cookie: cookie })).text())![0];
+  const create = async () => {
+    const fields = await server.consentFields(await server.get('/oauth/setup', { Cookie: cookie }));
+    return /swsetup_[A-Za-z0-9_-]+/.exec(
+      await (await server.postForm('/oauth/setup', { csrf: fields.csrf, pending: fields.pending, client: 'reference-client', scope: 'read' }, { Cookie: cookie })).text(),
+    )![0];
+  };
   const attempt = (value: string, change: Record<string, string> = {}) =>
     server.token({ grant_type: 'urn:semantic-workbench:grant-type:setup', setup_credential: value, client_id: 'reference-client', resource: server.resource, ...change });
   const foreign = await create();

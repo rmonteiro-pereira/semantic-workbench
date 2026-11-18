@@ -55,7 +55,7 @@ test('after a complete flow no durable or logged value holds a credential, a ver
     expect((await refresh(first.refresh_token)).status).toBe(400);
     expect((await server.token(server.tradeForm(code, pkce.verifier))).status).toBe(400);
     const setupFields = await server.consentFields(await server.get('/oauth/setup', { Cookie: cookie }));
-    const setupPage = await (await server.postForm('/oauth/setup', { csrf: setupFields.csrf, client: 'reference-client', scope: 'read' }, { Cookie: cookie })).text();
+    const setupPage = await (await server.postForm('/oauth/setup', { csrf: setupFields.csrf, pending: setupFields.pending, client: 'reference-client', scope: 'read' }, { Cookie: cookie })).text();
     const credential = /swsetup_[A-Za-z0-9_-]+/.exec(setupPage)![0];
     secrets.push(credential);
     const setup = await (await server.token({ grant_type: 'urn:semantic-workbench:grant-type:setup', setup_credential: credential, client_id: 'reference-client', resource: server.resource })).json();

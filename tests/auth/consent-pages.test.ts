@@ -73,7 +73,7 @@ test('the form carries the pending request and the session token', async () => {
 test('the headers forbid caching, framing and referrers, and allow the redirect origin to receive the form', async () => {
   const { response } = await consent();
   expect(response.headers.get('cache-control')).toBe('no-store');
-  expect(response.headers.get('referrer-policy')).toBe('no-referrer');
+  expect(response.headers.get('referrer-policy')).toBe('same-origin');
   expect(response.headers.get('x-frame-options')).toBe('DENY');
   const policy = response.headers.get('content-security-policy')!;
   expect(policy).toContain("default-src 'none'");

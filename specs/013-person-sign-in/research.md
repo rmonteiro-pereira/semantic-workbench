@@ -115,7 +115,8 @@ compares it with the specification and records differences before tests are fixe
 **Decision.** The consent page is rendered by a new server module in the same way, with the session
 token in a hidden field and a pending-request id. Headers: `Cache-Control: no-store`,
 `Content-Security-Policy: default-src 'none'; style-src 'self'; form-action 'self'` plus the
-redirect origin when needed, `Referrer-Policy: no-referrer`, `X-Frame-Options: DENY`.
+redirect origin when needed, `Referrer-Policy: same-origin`, `X-Frame-Options: DENY`.
+The form needs its normal root origin for the CSRF gate. The redirect carries `no-referrer`.
 
 **Note.** `form-action` and redirects: the consent post answers with a 303 to the program's redirect
 address. Some browsers apply `form-action` to redirects after a post; the plan therefore lists the

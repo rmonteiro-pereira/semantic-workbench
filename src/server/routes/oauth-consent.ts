@@ -118,7 +118,8 @@ export function createOAuthPageRoutes(dependencies: OAuthPageDependencies): Rout
     const programs = dependencies.programs().programs;
     if (!session || programs.length === 0) return failure('setup', 'unavailable');
     recordConnectionEvent('setup', 'none', 'ok');
-    return setupFormPage({ programs, personName: session.principal.name, rows: scopeRows(offeredScopes(), availabilityOf(session)), csrf: session.csrf });
+    const pendingId = grants.createSetupForm(sessionReferenceOf(session.id));
+    return setupFormPage({ programs, pendingId, personName: session.principal.name, rows: scopeRows(offeredScopes(), availabilityOf(session)), csrf: session.csrf });
   }
 
   async function createSetup(request: Request): Promise<Response> {
@@ -130,10 +131,11 @@ export function createOAuthPageRoutes(dependencies: OAuthPageDependencies): Rout
     const availability = availabilityOf(session);
     const allowed = program !== undefined && chosen.length > 0 && chosen.every(name => isOfferedScope(name) && program.scopes.includes(name) && availability[name]);
     if (!allowed) return failure('setup', 'unavailable');
+    if (!grants.takeSetupForm(form.fields.single.get('pending') ?? '', sessionReferenceOf(session.id))) return failure('setup', 'finished');
     const created = service.createConnectionForSession({ session, clientId: program.clientId, scopes: chosen as OfferedScope[] });
     if (!created.ok) return failure('setup', created.reason === 'connection-limit' ? 'limit' : 'unavailable');
     recordConnectionEvent('setup', 'none', 'ok');
-    return setupResultPage({ credential: created.credential, expiresAtIso: new Date(created.expiresAt).toISOString(), serverUrl: publicUrl });
+    return setupResultPage({ credential: created.credential, expiresAtIso: new Date(created.expiresAt).toISOString(), serverUrl: publicUrl, clientId: program.clientId });
   }
 
   return async (_workspace, request, url) => {
