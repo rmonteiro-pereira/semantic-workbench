@@ -282,7 +282,7 @@ fields with the stored fields.
 **Interface**
 
 - **FR-031**: The interface MUST offer a **Traffic** option in the graph options of the full graph and
-  the neighbourhood graph, off by default, remembered per person like other view options, and
+  the neighbourhood graph, off by default, remembered in the browser like the other graph options, and
   absent from print and export views.
 - **FR-032**: With Traffic off, every screen MUST be unchanged by this feature, byte for byte in its
   rendered structure and pixel for pixel in the recorded comparison.
@@ -318,7 +318,7 @@ fields with the stored fields.
   counting an unpublished item, counting when off, storing an identity field, skipping the read
   filter, skipping migration, keeping expired days, and double counting an item in one request.
 - **FR-044**: A test MUST show that with counters on and off the HTTP answers of every counted
-  operation are identical (status, headers except none, body).
+  operation are identical (status, headers and body).
 
 ### Key Entities
 
@@ -423,7 +423,7 @@ Each entry: choice, reason, the decision it follows.
 ## Dependencies
 
 - **Feature 006 (MCP server)**: not required. MCP calls are counted when 006 is present because every
-  tool dispatches through the operation boundary with origin `mcp`. Nothing here imports `src/server/mcp/`.
+  tool dispatches through the operation boundary with origin `mcp`. Nothing here imports the MCP server code.
 - **Tessera format types**: none. Counts are keyed by item addresses of the existing grammar. New
   address kinds from the format are counted without change.
 - **Feature 010 and 009 (merged)**: the operation boundary and item addresses.

@@ -209,7 +209,7 @@ docs/usage-counters.md
 - **012 (shared proposals)**: adds routes and `DataLayout` entries. Proposal branches are
   unpublished and never counted; nothing to reconcile except the contiguous-block rule for rows.
 - **006 (MCP server)**: counting its tools needs no change here; its `docs/mcp-contract.md` should
-  list the three counted tools after both merge (note for 006's documentation, done in T047).
+  list the three counted tools after both merge (note for 006's documentation, done in T042).
 - **Tessera format (011)**: none.
 
 ## Project Structure
