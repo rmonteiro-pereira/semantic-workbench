@@ -659,6 +659,16 @@ arrows still present. Both repeat rows were opened for the frozen first views at
   `6 pass`, `0 fail`, `5540 expect() calls` in 4.92 s. The candidate build and first three comparisons returned 0.
 - `bash .data/gate/pull-review-007.sh` and `python3 .data/gate/pixel-difference-007.py`: native revisions changed 160,385 of 329,160 pixels at 390 px
   (48.725544%) and 438,704 of 1,296,000 at 1440 px (33.850617%). The main and release first views show the same assets with smaller names.
+- The same driver repeated the light 2560 px first view and the dark 390 and 1440 px first views. Both dark repeats matched the light name and
+  coverage measurements. In the wide light repeats, the force layout varied (14.78 and 10.60 px), while all 45 names and cards remained whole.
+  Both repeat strips for each model and width were opened.
+
+The `local/light/1280/dataset-chrome/mall-properties-lineage-chrome/first-view` comparison shows the same frozen Properties table in all three
+versions. The candidate's table header is 44 px high. Hops, path text, Foreign keys, the trail and viewport controls share one row. The lineage
+region starts at y=214 px and its left and right edges are each one pixel from the header. The two records have identical candidate coordinates.
+The opened repeats show the compact first view and carry M17 and M1. The older refused-import trial used a locator inside the repair dialog. It
+therefore reported the intended lack of a repair dialog as a missing state. The next run uses the standard file chooser and records the visible
+refusal or review dialog for each version.
 
 ## Differences for owner acceptance
 
