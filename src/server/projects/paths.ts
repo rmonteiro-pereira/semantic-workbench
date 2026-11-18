@@ -20,6 +20,8 @@ export type DataLayout = {
   legacyDb: string;
   registry: string;
   legacyIds: string;
+  /** One proposal record file per repository: `state/proposals/<repository>.json`. */
+  proposals: string;
   locate?: (slug: string) => ProjectLocation | undefined;
 };
 /** Resolves storage paths from a root, defaulting to DATA_DIR or the data directory. */
@@ -40,6 +42,7 @@ export function dataLayout(root = process.env.DATA_DIR || 'data', cacheDir: stri
     legacyDb: join(rootDir, 'workbench.sqlite'),
     registry: join(state, 'projects.json'),
     legacyIds: join(state, 'legacy-ids.json'),
+    proposals: join(state, 'proposals'),
   };
 }
 /** A person's working-copy folder name: `u` and 20 hex digits, so it holds no personal data. */
