@@ -78,12 +78,11 @@ async function editImport(page: Page) {
   await expect(editor.getByRole('button', { name: 'Save dependency manifest' })).toHaveCount(0);
 }
 
-async function publish(api: IsolatedApi, project: string) {
+async function publish(page: Page, api: IsolatedApi, project: string) {
   const source = `${api.url}/api/projects/${project}/git/`;
   for (const [action, payload] of [
     ['stage', { all: true }],
     ['commit', { message: 'Publish the import' }],
-    ['publish', { disclosureShown: true }],
   ] as const) {
     const response = await fetch(source + action, {
       method: 'POST',
@@ -92,6 +91,16 @@ async function publish(api: IsolatedApi, project: string) {
     });
     if (!response.ok) throw new Error(await response.text());
   }
+  await page.getByRole('button', { name: /^Source control/ }).click();
+  const panel = page.getByRole('region', { name: 'Source Control' });
+  await panel.getByRole('button', { name: 'Publish', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: /^Publish to / });
+  await expect(dialog.getByText(/people who can publish the provider/)).toBeVisible();
+  const response = page.waitForResponse(result => result.url().endsWith('/git/publish') && result.request().method() === 'POST');
+  await dialog.getByRole('button', { name: /^Publish to / }).click();
+  const published = await response;
+  expect(published.ok()).toBe(true);
+  expect(published.request().postDataJSON()).toMatchObject({ disclosureShown: true });
 }
 
 async function checkMesh(page: Page, theme: 'light' | 'dark') {
@@ -121,7 +130,7 @@ try {
     await routeApi(page, api);
     await page.goto(appUrl());
     await editImport(page);
-    await publish(api, retail);
+    await publish(page, api, retail);
     await page.locator('.tabs').getByRole('button', { name: 'Mesh', exact: true }).click();
     for (const width of [1440, 768, 390]) {
       await page.setViewportSize({ width, height: 900 });
