@@ -361,8 +361,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
       }),
     [nodes, center, previous, selected, kpiBadges, groupColorOf, view, canvasState, pierceSet, minHeights],
   );
-  // Relationship labels grow as the canvas zooms out so they stay readable; the cards do not
-  // change with zoom.
+  // Labels and the center description compensate for zoom so framing more neighbors keeps them legible.
   const zoomWatch = useFarZoom();
   const labelScale = zoomWatch.labelScale;
   const labelText = (g: (typeof groups)[number]) => (g.data.relationships.length > 1 ? `${g.data.relationships.length} relationships` : g.label);
@@ -549,8 +548,10 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
         />
       )}
       <div
-        className="neighborhood-canvas"
+        className={['neighborhood-canvas', zoomWatch.className].filter(Boolean).join(' ')}
+        style={zoomWatch.style}
         ref={canvas}
+        data-initial-center={!previous}
         data-viewport-ready={measured && fitted === membership}
         data-canvas-nodes={canvasState.nodes.length}
         data-canvas-ids={canvasState.nodes.join(' ')}

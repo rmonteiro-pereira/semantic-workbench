@@ -1,7 +1,7 @@
 /** Owns first-view, expansion and resize viewports for the neighborhood canvas. */
 import { useEffect, useRef, useState } from 'react';
 import { getViewportForBounds, useReactFlow, type Node } from '@xyflow/react';
-import { DETAIL_ZOOM } from './FarZoom';
+import { DETAIL_ZOOM, LOWEST_FIT_ZOOM } from './FarZoom';
 import { useViewRestore, type Fullscreen } from './fullscreen';
 import { expansionViewport } from './expansion-viewport';
 import { NEIGHBOR_COLUMN } from './layout';
@@ -51,13 +51,14 @@ export function useNeighborhoodViewport({ nodes, center, boxes, routes, separate
     const halfH = Math.max(...all.map(b => Math.max(cy - b.y, b.y + b.height - cy))) + Math.min(160, 30 + lanes * 16);
     const pane = canvas.current;
     if (!pane) return;
-    const viewport = expansionViewport({ x: cx - halfW, y: cy - halfH, width: 2 * halfW, height: 2 * halfH }, { x: cx, y: cy }, { width: pane.clientWidth, height: pane.clientHeight }, 0.8, 1);
+    const bounds = { x: cx - halfW, y: cy - halfH, width: 2 * halfW, height: 2 * halfH };
+    const paneSize = { width: pane.clientWidth, height: pane.clientHeight };
     if (fitAll) {
-      const bounds = { x: cx - halfW, y: cy - halfH, width: 2 * halfW, height: 2 * halfH };
-      void setViewport(getViewportForBounds(bounds, pane.clientWidth, pane.clientHeight, 0.05, 1, 0.08), { duration: 0 });
-      setFitPrompt(0);
+      void setViewport(getViewportForBounds(bounds, paneSize.width, paneSize.height, 0.05, 1, 0.08), { duration: 0 });
       return;
     }
+    // Ordinary walks keep the measured targets in reach at the zoom where names compensate.
+    const viewport = expansionViewport(bounds, { x: cx, y: cy }, paneSize, LOWEST_FIT_ZOOM, 1);
     void setViewport(viewport, { duration: 0 });
   };
   // After an expansion or pierce, show what it added around its origin at the unscaled card size;

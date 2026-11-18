@@ -89,8 +89,10 @@ content from content already drawn. Large additions are revealed over multiple f
 remains responsive. `expansion-viewport.ts` chooses a readable target viewport before publishing
 an expanded canvas instead of briefly mounting it at fit-all scale.
 
-The opening viewport centers the current card at readable zoom instead of shrinking descriptions
-to fit distant neighbors. **Other files** groups cross-file navigation in one menu at every width.
+The opening viewport centers the current card and frames nearby Walk targets. The initial center
+description grows at lower zoom to stay readable. Later Walk steps use the regular card size to
+keep their relationship paths apart. **Other files** groups cross-file navigation in one menu at
+every width.
 A Full pierce result fits when readable; otherwise **N entities, Fit** offers the complete extent.
 
 Names use identifier-boundary breaks without changing text. Relationship labels compensate for

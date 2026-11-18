@@ -83,7 +83,7 @@ and protect release tags. Existing tags inside published history remain usable a
   header.
 
 - Keep the selected entity readable and fold graph controls before the toolbar wraps.
-- Open neighborhoods at readable scale and group cross-file links under Other files.
+- Keep neighborhood Walk targets in view and the center description readable; group cross-file links under Other files.
 - Offer Fit for a Full pierce result that cannot fit at readable scale.
 - Preserve identifier word boundaries, humanize area labels and correct singular entity counts.
 - Keep area titles above relationship strokes, space metric badges, frame the mini-map and bound minimum zoom relative to Fit.

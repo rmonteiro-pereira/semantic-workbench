@@ -2838,6 +2838,9 @@ button.danger:hover {
   background: var(--color-surface-hover);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent) 13%, transparent);
 }
+.neighborhood-canvas.zoom-far[data-initial-center='true'] .neighborhood-node.center .node > span {
+  font-size: max(var(--text-small), calc(var(--far-name-size) * 0.75));
+}
 .react-flow__node.neighborhood-node.origin {
   border: 1px dashed var(--color-violet);
 }

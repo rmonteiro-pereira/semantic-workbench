@@ -71,6 +71,7 @@ async function expectState(entityModel: typeof ubl, center: string, keep: string
 // The view fits once nodes are measured (and again when the canvas resizes): poll until it
 // settles.
 async function expectCentered() {
+  await expect(page.locator('.neighborhood-canvas')).toHaveAttribute('data-viewport-ready', 'true');
   await expect
     .poll(async () => {
       const box = (await page.locator('.react-flow__node.center').boundingBox())!;
