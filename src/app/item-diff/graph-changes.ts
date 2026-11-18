@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { formatAddress, parseAddress } from '../../shared/core/item-address';
+import { documentAddress, formatAddress, parseAddress, type ItemSegment } from '../../shared/core/item-address';
 import { inspect, type Entity, type Relationship, type StructuredEntity, type StructuredRelationship } from '../../shared/core/model';
 import type { ItemChange } from '../../shared/item-diff/item-change';
 import { scm, type Doc } from '../projects/api';
@@ -25,7 +25,7 @@ function itemsByAddress(items: GraphItem[], scope: Scope) {
   );
 }
 
-function addRemovedEntities(current: Entity[], published: Entity[], changes: Map<string, ItemChange>, scope: Scope) {
+function addRemovedEntities(current: Entity[], published: Entity[], changes: Map<string, ItemChange>, removed: Map<string, ItemChange>, scope: Scope) {
   const entities = current.slice();
   const destinationIds = itemsByAddress(current, scope);
   const endpoints = new Map<string, string>();
@@ -38,7 +38,7 @@ function addRemovedEntities(current: Entity[], published: Entity[], changes: Map
     if (!address) continue;
     const destination = destinationIds.get(address);
     if (destination) endpoints.set(entity.id, destination);
-    if (changes.get(address)?.state !== 'removed') continue;
+    if (!removed.has(address)) continue;
     const id = 'removed:' + address;
     endpoints.set(entity.id, id);
     entities.push({ ...entity, id, readOnlyForm: true });
@@ -58,18 +58,48 @@ function addRemovedEdges(current: Relationship[], published: Relationship[], cha
   return edges;
 }
 
+function leafKey(leaf: ItemSegment | undefined): string | undefined {
+  if (!leaf) return undefined;
+  return 'name' in leaf ? leaf.name : '#' + leaf.position;
+}
+
+function changesForDocument(changes: readonly ItemChange[], scope: Scope) {
+  const prefix = documentAddress(scope.project, scope.path) + '#';
+  const current = new Map<string, ItemChange>();
+  const removed = new Map<string, ItemChange>();
+  const leaves = new Set<string | undefined>();
+  for (const change of changes) {
+    if (!change.address.startsWith(prefix)) continue;
+    const parsed = parseAddress(change.address);
+    if (!parsed.ok) continue;
+    leaves.add(leafKey(parsed.address.chain.at(-1)));
+    (change.state === 'removed' ? removed : current).set(change.address, change);
+  }
+  return { current, removed, leaves };
+}
+
 /** Annotates current graph items and restores removed nodes and links using published addresses. */
 export function graphChanges(working: GraphModel, changes: readonly ItemChange[], scope: Scope, published?: GraphModel): GraphModel {
   if (!changes.length) return working;
-  const index = new Map(changes.map(change => [change.address, change]));
-  const restored = published ? addRemovedEntities(working.entities, published.entities, index, scope) : undefined;
-  const currentEdges = restored && published ? addRemovedEdges(working.edges, published.edges, index, restored.endpoints, scope) : working.edges;
+  const { current, removed, leaves } = changesForDocument(changes, scope);
+  if (!leaves.size) return working;
+  const restored = published && removed.size ? addRemovedEntities(working.entities, published.entities, current, removed, scope) : undefined;
+  const currentEdges = restored && published ? addRemovedEdges(working.edges, published.edges, removed, restored.endpoints, scope) : working.edges;
+
+  function mark(item: GraphItem) {
+    if (!('address' in item)) return undefined;
+    const { address } = item as AddressedGraphItem;
+    if (!leaves.has(leafKey(address.chain.at(-1)))) return undefined;
+    const absolute = addressOf(item, scope) ?? '';
+    return item.id.startsWith('removed:') ? removed.get(absolute)?.state : current.get(absolute)?.state;
+  }
+
   const entities = (restored?.entities ?? working.entities).map(entity => {
-    const change = index.get(addressOf(entity, scope) ?? '')?.state;
+    const change = mark(entity);
     return change ? { ...entity, change } : entity;
   });
   const edges = currentEdges.map(edge => {
-    const change = index.get(addressOf(edge, scope) ?? '')?.state;
+    const change = mark(edge);
     return change ? { ...edge, data: { ...edge.data, change } } : edge;
   });
   return { entities, edges };
