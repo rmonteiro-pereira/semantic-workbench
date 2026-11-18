@@ -23,7 +23,23 @@ const AUTH_LAYOUT =
   'gap:8px;padding:9px 13px;border:1px solid var(--color-border);border-radius:7px;' +
   'background:var(--color-surface);' +
   'color:inherit;text-decoration:none;cursor:pointer}' +
-  'button:hover,a:hover{background:var(--color-surface-hover)}';
+  'button:hover,a:hover{background:var(--color-surface-hover)}' +
+  // The agent connection pages: scope rows, the credential box and buttons that stack on a narrow screen.
+  '.lead{font-size:1rem}.address,.command,.credential{overflow-wrap:anywhere;word-break:break-word;font-family:ui-monospace,monospace}' +
+  '.scopes{border:1px solid var(--color-border);border-radius:8px;margin:0 0 0.75rem;padding:0.5rem 0.75rem}' +
+  '.scopes legend{font-weight:600;padding:0 0.25rem}.scopes ul{list-style:none;margin:0;padding:0}' +
+  '.scope label{display:flex;align-items:flex-start;gap:10px;padding:0.5rem 0;cursor:pointer}' +
+  '.scope input{margin:0.3rem 0 0;flex:none}.scope-text{display:flex;flex-direction:column;gap:2px;min-width:0}' +
+  '.scope-name{font-weight:600}.scope-allows,.program-description,.note{color:var(--color-text-muted)}' +
+  '.scope-warning{color:var(--color-danger-text)}.scope-reason{color:var(--color-text-muted);font-style:italic}' +
+  '.scope-unavailable label{cursor:default}.scope-unavailable .scope-name,.scope-unavailable .scope-allows{color:var(--color-text-muted)}' +
+  '.credential{border:1px solid var(--color-border-strong);border-radius:8px;background:var(--color-surface-sunken);' +
+  'padding:0.75rem;font-size:0.9375rem;user-select:all}' +
+  '.command{background:var(--color-surface-sunken);border-radius:8px;padding:0.75rem}' +
+  '.actions{display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:1rem}' +
+  'button.primary{background:var(--color-accent);border-color:var(--color-accent);color:var(--color-on-accent)}' +
+  'button.primary:hover{background:var(--color-accent-hover)}' +
+  '@media (max-width:30rem){main{padding:1.25rem}.actions{flex-direction:column}.actions>*{width:100%;box-sizing:border-box}}';
 
 let cached: string | undefined;
 
