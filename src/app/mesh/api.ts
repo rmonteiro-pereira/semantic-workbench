@@ -129,3 +129,36 @@ export async function readDependents(project: string, signal?: AbortSignal): Pro
   } while (cursor !== null);
   return dependents;
 }
+
+/** One project shown in the ontology mesh. */
+export type MeshProjectView = { project: string; name: string; domain: string | null };
+
+/** One scoped published link in the ontology mesh. */
+export type MeshLinkView = { consumer: string; provider: string | null; items: string[] };
+
+/** The readable projects and visible links of one published view. */
+export type MeshGraphView = { projects: MeshProjectView[]; links: MeshLinkView[] };
+
+function isMeshProject(value: unknown): value is MeshProjectView {
+  return isObject(value) && typeof value.project === 'string' && !!value.project && typeof value.name === 'string' && !!value.name && (typeof value.domain === 'string' || value.domain === null);
+}
+
+function isMeshLink(value: unknown): value is MeshLinkView {
+  return (
+    isObject(value) &&
+    typeof value.consumer === 'string' &&
+    !!value.consumer &&
+    (typeof value.provider === 'string' || value.provider === null) &&
+    Array.isArray(value.items) &&
+    value.items.every(item => typeof item === 'string')
+  );
+}
+
+/** Reads the ontology mesh as one caller-scoped publication snapshot. */
+export async function readMeshGraph(signal?: AbortSignal): Promise<MeshGraphView> {
+  const result = await read('/api/mesh', signal);
+  if (!isObject(result) || !Array.isArray(result.projects) || !result.projects.every(isMeshProject) || !Array.isArray(result.links) || !result.links.every(isMeshLink)) {
+    throw new Error('Invalid ontology mesh response.');
+  }
+  return { projects: result.projects, links: result.links };
+}

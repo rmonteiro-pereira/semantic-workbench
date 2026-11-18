@@ -68,3 +68,39 @@
 .mesh-imported-details {
   overflow-wrap: anywhere;
 }
+
+.mesh-view,
+.mesh-domains {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.mesh-domains {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+}
+
+.mesh-tiles {
+  display: grid;
+  gap: 0.35rem;
+  list-style: none;
+  padding: 0;
+}
+
+.mesh-project-tile {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: start;
+}
+
+.mesh-project-tile[aria-pressed='true'] {
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.mesh-unavailable {
+  border: 1px dashed currentColor;
+  padding: 0.5rem;
+}
