@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Modal } from './Modal';
 import { api, type ProjectInfo } from './api';
+import { CompileDialog } from '../compile/CompileDialog';
 import './export-dialog.css';
 
 // Only saved files are exported. Edits that are still unsaved, in the open file or kept as
@@ -87,7 +88,8 @@ function usePublicationOption(project: string) {
 /** Asks what to include, then downloads the zip the server streams. */
 export function ExportDialog({ project, dirty, saveOpenFile, onClose, onDone }: Props) {
   const [includeHistory, setIncludeHistory] = useState(false);
-  const [source, setSource] = useState<'editing' | 'published'>('editing');
+  const [source, setSource] = useState<'editing' | 'published' | 'standard'>('editing');
+  const [reviewingStandard, setReviewingStandard] = useState(false);
   const publication = usePublicationOption(project.slug);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -95,9 +97,9 @@ export function ExportDialog({ project, dirty, saveOpenFile, onClose, onDone }: 
 
   const savesFirst = source === 'editing' && openFileIsUnsaved;
   function chooseSource(event: React.ChangeEvent<HTMLSelectElement>) {
-    const next = event.target.value === 'published' ? 'published' : 'editing';
+    const next = event.target.value === 'published' || event.target.value === 'standard' ? event.target.value : 'editing';
     setSource(next);
-    if (next === 'published') setIncludeHistory(false);
+    if (next !== 'editing') setIncludeHistory(false);
   }
 
   async function exportNow(saveFirst: boolean) {
@@ -105,7 +107,7 @@ export function ExportDialog({ project, dirty, saveOpenFile, onClose, onDone }: 
     setError('');
     try {
       if (saveFirst) await saveOpenFile();
-      const result = await api.exportProject(project.slug, includeHistory, source);
+      const result = await api.exportProject(project.slug, includeHistory, source === 'published' ? 'published' : 'editing');
       downloadBlob(result.blob, result.fileName);
       onDone(doneMessage(project.name, result.files, result.omitted));
     } catch (error) {
@@ -124,11 +126,19 @@ export function ExportDialog({ project, dirty, saveOpenFile, onClose, onDone }: 
           Export without them
         </button>
       )}
-      <button type="button" className="primary" disabled={busy} onClick={() => void exportNow(savesFirst)}>
-        {exportLabel(busy, savesFirst)}
-      </button>
+      {source === 'standard' ? (
+        <button type="button" className="primary" onClick={() => setReviewingStandard(true)}>
+          Review standard Ossie
+        </button>
+      ) : (
+        <button type="button" className="primary" disabled={busy} onClick={() => void exportNow(savesFirst)}>
+          {exportLabel(busy, savesFirst)}
+        </button>
+      )}
     </>
   );
+
+  if (reviewingStandard) return <CompileDialog project={project} onClose={onClose} />;
 
   return (
     <Modal title={`Export ${project.name}`} onCancel={onClose} footer={footer} size="narrow">
@@ -138,13 +148,17 @@ export function ExportDialog({ project, dirty, saveOpenFile, onClose, onDone }: 
         <select aria-label="Files to export" value={source} onChange={chooseSource} disabled={busy}>
           <option value="editing">Working copy (saved files)</option>
           {publication.available && <option value="published">Published</option>}
+          <option value="standard">Standard Ossie (compiled)</option>
         </select>
       </label>
       {source === 'published' && <p className="export-note">Only committed files in the published snapshot are included. Drafts and Git history are excluded.</p>}
+      {source === 'standard' && (
+        <p className="export-note">Compiles the published snapshot to standard Ossie. You review what would be dropped before anything is downloaded. Your files are not changed.</p>
+      )}
       {publication.error && <p className="export-note">{publication.error}</p>}
       <fieldset className="export-choice">
         <label className="check-row">
-          <input type="checkbox" disabled={source === 'published'} checked={includeHistory} onChange={event => setIncludeHistory(event.target.checked)} />
+          <input type="checkbox" disabled={source !== 'editing'} checked={includeHistory} onChange={event => setIncludeHistory(event.target.checked)} />
           <span className="choice-text">
             <span className="choice-title">Include Git history</span>
             <span className="choice-hint">Includes the full change history in a file you can reopen with Git.</span>

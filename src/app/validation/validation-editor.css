@@ -47,3 +47,11 @@
   background: var(--color-surface-sunken);
   color: var(--color-text-secondary);
 }
+
+/* The two controls a Tessera document adds to the panel. They wrap on a narrow screen, so both stay reachable without sideways scrolling. */
+.validation-report .validation-standard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0;
+}

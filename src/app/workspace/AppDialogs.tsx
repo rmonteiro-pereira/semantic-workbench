@@ -17,6 +17,7 @@ import { NewFileDialog } from '../projects/NewFileDialog';
 import { Modal } from '../projects/Modal';
 import type { Deleted, Doc, ProjectInfo } from '../projects/api';
 import type { AutosaveState } from '../projects/autosave';
+import { CompileDialog } from '../compile/CompileDialog';
 import { FileDialogs } from './FileDialogs';
 import { RdfItemDialogs } from './RdfItemDialogs';
 import { SaveDialogs } from './SaveDialogs';
@@ -232,6 +233,7 @@ export function AppDialogs({
   commitImports,
 }: Props) {
   const openGitSetup = useGitSetup();
+  const [checkingStandard, setCheckingStandard] = React.useState(false);
   function handleValidationPanelLocate(issue: import('../../shared/validation/diagnostics').Issue) {
     setShowValidation(false);
     setTab('source');
@@ -247,6 +249,7 @@ export function AppDialogs({
   }
 
   const creatingProject = projects.find(project => project.slug === creatingFile);
+  const currentProject = current ? projects.find(project => project.slug === current.project) : undefined;
 
   return (
     <>
@@ -359,10 +362,12 @@ export function AppDialogs({
             format={formatOfInspection(validation.model)}
             onLocate={handleValidationPanelLocate}
             onValidateAsShippedVersion={validateAsShippedVersion}
+            onCheckStandard={currentProject ? () => setCheckingStandard(true) : undefined}
           />
           {validation.model?.kind === 'SHACL' && current && <ShaclCheck shapes={current} shapesSource={source} projectDocs={docs} />}
         </Modal>
       )}
+      {checkingStandard && currentProject && <CompileDialog project={currentProject} initialSource="working" onClose={() => setCheckingStandard(false)} />}
       {definition && (
         <Modal
           title={definition.title}

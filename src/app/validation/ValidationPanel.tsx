@@ -12,6 +12,8 @@ export function ValidationPanel({
   issues: allIssues,
   onLocate,
   onValidateAsShippedVersion,
+  onCheckStandard,
+  onConvertToStandard,
   source,
   format,
 }: {
@@ -19,6 +21,10 @@ export function ValidationPanel({
   format?: DocumentFormat;
   onLocate?: (issue: Issue) => void;
   onValidateAsShippedVersion?: () => void;
+  /** Offered for a Tessera document: opens the check against standard Ossie. */
+  onCheckStandard?: () => void;
+  /** Offered for a Tessera document to a person who may edit it: opens the reviewed conversion. */
+  onConvertToStandard?: () => void;
   source?: string;
 }) {
   const notValidated = allIssues.find(isNotValidated);
@@ -43,6 +49,7 @@ export function ValidationPanel({
     'tessera-reserved': 'Remove the property; its name is kept for a later feature.',
     'tessera-location': 'Move the property to one of the places the message lists.',
   };
+  const showStandardControls = format?.family === 'tessera';
   const formatLabel = format?.family === 'tessera' ? `${TesseraNames.product} ${format.revision} on Ossie ${format.base} · ` : '';
   return (
     <div className="validation-report" aria-label="Validation report">
@@ -56,6 +63,20 @@ export function ValidationPanel({
             </button>
           )}
           <span>Structure and reference checks still run; only the schema check is skipped.</span>
+        </div>
+      )}
+      {showStandardControls && (onCheckStandard || onConvertToStandard) && (
+        <div className="validation-standard-actions">
+          {onCheckStandard && (
+            <button type="button" onClick={onCheckStandard}>
+              Check as standard Ossie
+            </button>
+          )}
+          {onConvertToStandard && (
+            <button type="button" onClick={onConvertToStandard}>
+              Convert to standard
+            </button>
+          )}
         </div>
       )}
       {!notValidated && (
