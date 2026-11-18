@@ -1,4 +1,5 @@
 // Findings for a Tessera document: the marker, the revision, the Ossie base, the registered properties, then the derived schema.
+import { isObject } from '../edit/source-text';
 import type { Issue } from '../validation/diagnostics';
 import { schemaErrorPath } from '../validation/diagnostics';
 import { findBase, SUPPORTED_BASES, type SupportedBase } from './bases';
@@ -32,10 +33,6 @@ function error(code: string, path: string, message: string): Issue {
 
 function escapePointerSegment(segment: string): string {
   return segment.replace(/~/g, '~0').replace(/\//g, '~1');
-}
-
-function isObject(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
 function describeValue(value: unknown): string {
