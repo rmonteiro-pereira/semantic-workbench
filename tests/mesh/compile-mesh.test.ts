@@ -1,4 +1,6 @@
 import { expect, test } from 'bun:test';
+import { buildManifest } from '../../src/shared/tessera/manifest';
+import { compileDocument } from '../../src/shared/tessera/compile-document';
 import { compileUnit, type UnitFile } from '../../src/shared/tessera/compile-unit';
 import type { ResolvedImportInterface } from '../../src/shared/tessera/imports';
 
@@ -17,6 +19,8 @@ const provider: ResolvedImportInterface = {
   ontology: 'finance.yaml',
   exports: new Set(['Invoice', 'Record']),
   scope: base,
+  ontologyName: 'Finance',
+  interfaceHash: 'sha256:' + 'c'.repeat(64),
   version: 'a'.repeat(40),
   concepts: new Map([
     ['Invoice', invoice],
@@ -36,7 +40,7 @@ const part = { tessera: 3, tessera_part: true, ontology: [{ concept: 'Customer',
 
 test('compiles declared parts and provider prerequisites into one regular Ossie ontology', () => {
   const files = [definition('root.json', root), definition('part.json', part)];
-  const result = compileUnit(files, { lossPolicySha256: null, providers: new Map([['root.json', [provider]]]) });
+  const result = compileUnit(files, { lossPolicySha256: null, providers: new Map([['root.json', [provider]]]), project: 'retail' });
   expect(result.failures).toEqual([]);
   expect(result.outputs.map(output => output.path)).toEqual(['root.json']);
   const compiled = JSON.parse(decoder.decode(result.outputs[0].bytes));
@@ -61,4 +65,41 @@ test('a folder without a published provider interface refuses compilation', () =
   const result = compileUnit([definition('root.json', root), definition('part.json', part)], { lossPolicySha256: null });
   expect(result.outputs).toEqual([]);
   expect(result.failures).toMatchObject([{ code: 'translation', message: expect.stringContaining('locked public interface') }]);
+});
+
+test('the bundle gives the compiled addresses of both part and imported concepts', () => {
+  const result = compileUnit([definition('root.json', root), definition('part.json', part)], {
+    lossPolicySha256: null,
+    project: 'retail',
+    providers: new Map([['root.json', [provider]]]),
+  });
+  const manifest = buildManifest(result, { kind: 'snapshot' }, 'none');
+  expect(manifest).toMatchObject({
+    manifestVersion: 2,
+    units: [{ root: 'root.json', parts: ['part.json'] }],
+    providers: [{ project: 'finance', commit: provider.version, interfaceHash: provider.interfaceHash }],
+    addressMap: expect.arrayContaining([
+      { from: 'sw1:retail/part.json#ontology:Retail/concept:Customer', to: 'sw1:retail/root.json#ontology:Retail/concept:Customer' },
+      { from: 'sw1:finance/finance.yaml#ontology:Finance/concept:Invoice', to: 'sw1:retail/root.json#ontology:Retail/concept:finance~finance%252Eyaml~Invoice' },
+    ]),
+  });
+});
+
+test('a compiler that changes part content cannot release a merged ontology', () => {
+  const result = compileUnit(
+    [definition('root.json', root), definition('part.json', part)],
+    {
+      lossPolicySha256: null,
+      providers: new Map([['root.json', [provider]]]),
+    },
+    {
+      compileDocument: (...args) => {
+        const result = compileDocument(...args);
+        if (!result.ok || args[0].path !== 'part.json') return result;
+        return { ...result, text: result.text.replace('Customer', 'Invented') };
+      },
+    },
+  );
+  expect(result.outputs).toEqual([]);
+  expect(result.failures).toMatchObject([{ code: 'meaning', document: 'part.json' }]);
 });

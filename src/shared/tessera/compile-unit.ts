@@ -11,6 +11,7 @@ import { COMPILER_NAME, COMPILER_VERSION } from './format';
 import { buildLossReport, type GovernanceStatusKey, type LossEntry, type LossReport, type ReportInput, type ReportOutput } from './loss-report';
 import { documentMeaningFailures, summarizeItems, unitMeaningFailures, type DocumentReading } from './meaning-check';
 import { SUPPORTED_BASES, findBase } from './bases';
+import { meshAddressMap, type CompiledAddress } from './mesh-address-map';
 import { compileMeshRoot } from './compile-mesh';
 import { declaredImports, type ResolvedImportInterface } from './imports';
 import { INCLUDES_PROPERTY } from './additions/includes';
@@ -23,7 +24,7 @@ export type { UnitFile } from './document-kind';
 export const UNIT_LIMITS: Readonly<{ files: number; totalBytes: number; documentBytes: number }> = { files: 10_000, totalBytes: 64_000_000, documentBytes: 2_000_000 };
 
 /** Options that become part of the report, because they change what may be released. */
-export type CompileOptions = { lossPolicySha256: string | null; providers?: ReadonlyMap<string, ResolvedImportInterface[]> };
+export type CompileOptions = { lossPolicySha256: string | null; providers?: ReadonlyMap<string, ResolvedImportInterface[]>; project?: string };
 
 /** The findings of one document. */
 export type FileFindings = { document: string; issues: Issue[] };
@@ -35,6 +36,14 @@ export type CompileResult = {
   failures: CompileFailure[];
   findings: FileFindings[];
   tesseraRevisions: number[];
+  mesh?: MeshManifestFields;
+};
+
+/** Adds source-unit and provider provenance to a mesh bundle. */
+export type MeshManifestFields = {
+  units: { root: string; parts: string[] }[];
+  providers: { project: string; ontology: string; commit: string; interfaceHash: string }[];
+  addressMap: CompiledAddress[];
 };
 
 const encoder = new TextEncoder();
@@ -98,7 +107,14 @@ function checkOutput(path: string, text: string): OutputCheck {
   return { failures, reading: model ? { path, source: text, data: model.document, summary: summarizeItems(model) } : null };
 }
 
-type Compiled = { outputs: UnitFile[]; losses: LossEntry[]; governanceStatuses: GovernanceStatusKey[]; failures: CompileFailure[]; treatments: Map<string, ReportInput['treatment']> };
+type Compiled = {
+  outputs: UnitFile[];
+  losses: LossEntry[];
+  governanceStatuses: GovernanceStatusKey[];
+  failures: CompileFailure[];
+  treatments: Map<string, ReportInput['treatment']>;
+  mesh?: MeshManifestFields;
+};
 
 /** Compiles a Tessera ontology and checks its output against its source. */
 function compileOntology(entry: Extract<ClassifiedFile, { kind: 'tessera-ontology' }>, steps: UnitSteps, result: Compiled, readings: { sources: DocumentReading[]; outputs: DocumentReading[] }) {
@@ -125,6 +141,7 @@ function compileMesh(
   steps: UnitSteps,
   result: Compiled,
   readings: { sources: DocumentReading[]; outputs: DocumentReading[] },
+  project?: string,
 ) {
   const source = files.find(entry => entry.kind === 'tessera-ontology' && entry.file.path === unit.root.path);
   if (source?.kind !== 'tessera-ontology') return;
@@ -139,6 +156,13 @@ function compileMesh(
   if (!checked.reading) return;
   if (!deepEqual(compiled.expected, checked.reading.data)) {
     result.failures.push({ code: 'meaning', document: source.file.path, message: 'Compiled data differs from the merged ontology.' });
+  }
+  const fields = (result.mesh ??= { units: [], providers: [], addressMap: [] });
+  fields.units.push({ root: unit.root.path, parts: unit.parts.map(part => part.path) });
+  fields.addressMap.push(...meshAddressMap(unit, checked.reading.data, project, compiled.origins));
+  for (const provider of providers) {
+    if (!provider.interfaceHash || fields.providers.some(prior => prior.project === provider.project && prior.ontology === provider.ontology && prior.commit === provider.version)) continue;
+    fields.providers.push({ project: provider.project, ontology: provider.ontology, commit: provider.version, interfaceHash: provider.interfaceHash });
   }
   result.outputs.push({ path: source.file.path, bytes: encoder.encode(compiled.text) });
   result.losses.push(...compiled.losses);
@@ -178,7 +202,7 @@ function compileFiles(classified: ClassifiedFile[], steps: UnitSteps, options: C
     if (entry.kind === 'tessera-ontology') {
       const unit = unitByRoot.get(entry.file.path);
       if (unit && isObject(unit.root.data) && (INCLUDES_PROPERTY in unit.root.data || declaredImports(unit.root.data).length)) {
-        compileMesh(unit, classified, options.providers?.get(unit.root.path) ?? [], steps, result, readings);
+        compileMesh(unit, classified, options.providers?.get(unit.root.path) ?? [], steps, result, readings, options.project);
       } else {
         compileOntology(entry, steps, result, readings);
       }
@@ -215,5 +239,5 @@ export function compileUnit(files: UnitFile[], options: CompileOptions, steps: U
   });
   const revisions = [...new Set(classified.flatMap(entry => (entry.kind === 'tessera-ontology' ? [entry.revision] : [])))].sort((first, second) => first - second);
   const findings = classified.filter(entry => entry.kind !== 'other').map(entry => ({ document: entry.file.path, issues: 'issues' in entry ? entry.issues : [] }));
-  return { outputs: failures.length ? [] : compiled.outputs, report, failures, findings, tesseraRevisions: revisions };
+  return { outputs: failures.length ? [] : compiled.outputs, report, failures, findings, tesseraRevisions: revisions, ...(compiled.mesh ? { mesh: compiled.mesh } : {}) };
 }

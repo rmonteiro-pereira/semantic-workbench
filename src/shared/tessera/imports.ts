@@ -14,7 +14,14 @@ export type ProviderInterface = { project: string; ontology: string; exports: Re
 export type ImportedConcept = { project: string; ontology: string; version: string; alias: string; concept: string };
 
 /** Supplies the public definitions an import is allowed to use. */
-export type ResolvedImportInterface = ProviderInterface & { version: string; scope?: string; concepts: ReadonlyMap<string, Record<string, unknown>> };
+export type ResolvedImportInterface = ProviderInterface & {
+  version: string;
+  scope?: string;
+  interfaceHash?: string;
+  sourceItems?: ReadonlyMap<string, string>;
+  ontologyName?: string;
+  concepts: ReadonlyMap<string, Record<string, unknown>>;
+};
 
 /** Finds a provider only when the import resolves to one exporting ontology. */
 export function providerOf<T extends ProviderInterface>(entry: UnitImport, providers: readonly T[]): T | undefined {

@@ -19,7 +19,16 @@ import type { OntologyUnit } from './unit-structure';
 
 type DefinitionFile = Extract<ClassifiedFile, { kind: 'tessera-ontology' | 'tessera-part' }>;
 type Concept = Record<string, unknown>;
-type CompiledMesh = { expected: Record<string, unknown>; text: string; losses: LossEntry[]; governanceStatuses: GovernanceStatusKey[] } | { failures: CompileFailure[] };
+type ImportedOrigin = ConceptOwner & { provider: ResolvedImportInterface };
+type CompiledMesh =
+  | {
+      expected: Record<string, unknown>;
+      text: string;
+      losses: LossEntry[];
+      governanceStatuses: GovernanceStatusKey[];
+      origins: ReadonlyMap<string, ImportedOrigin>;
+    }
+  | { failures: CompileFailure[] };
 
 function selectedConcepts(entry: ResolvedImportInterface, names: readonly string[]) {
   const selected = new Map<string, Concept>();
@@ -38,6 +47,7 @@ function selectedConcepts(entry: ResolvedImportInterface, names: readonly string
 function importedConcepts(unit: OntologyUnit, providers: readonly ResolvedImportInterface[], localNames: ReadonlySet<string>) {
   const aliases = new Map<string, ConceptOwner>();
   const imported = new Map<string, Concept>();
+  const origins = new Map<string, ImportedOrigin>();
   for (const entry of declaredImports(unit.root.data)) {
     const provider = providerOf(entry, providers);
     if (!provider) throw new Error(`The locked public interface for "${entry.alias}" is unavailable.`);
@@ -50,9 +60,10 @@ function importedConcepts(unit: OntologyUnit, providers: readonly ResolvedImport
       const standard = withoutAdditions({ ontology: [definition] }, additionSites({ ontology: [definition] })) as { ontology: Concept[] };
       const rewritten = rewriteConceptReferences(standard.ontology[0], ref => (provider.concepts.has(ref) ? qualifiedConcept(owner(ref)) : ref));
       imported.set(qualified, { ...rewritten, concept: qualified });
+      origins.set(qualified, { ...owner(name), provider });
     }
   }
-  return { rewrite: qualifyReferences(aliases, localNames), concepts: [...imported].sort(([first], [second]) => compareText(first, second)).map(([, definition]) => definition) };
+  return { origins, rewrite: qualifyReferences(aliases, localNames), concepts: [...imported].sort(([first], [second]) => compareText(first, second)).map(([, definition]) => definition) };
 }
 
 const translated = new Set([INCLUDES_PROPERTY, IMPORTS_PROPERTY, PART_PROPERTY]);
@@ -93,7 +104,7 @@ export function compileMeshRoot(unit: OntologyUnit, files: readonly DefinitionFi
     const ontology = [...local.map(concept => rewriteConceptReferences(concept, imported.rewrite)), ...imported.concepts];
     const expected = { ...root, ontology };
     const text = syntaxOf(unit.root.path) === 'json' ? printJson(expected) : printYaml(new Document(expected));
-    return { text, expected, losses, governanceStatuses };
+    return { text, expected, losses, governanceStatuses, origins: imported.origins };
   } catch (error) {
     if (!(error instanceof Error)) throw error;
     return { failures: [{ code: 'translation', document: unit.root.path, message: error.message }] };

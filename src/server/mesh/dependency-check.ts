@@ -49,7 +49,18 @@ async function checkProvider(source: FrozenDependencySource, pin: PublishedPin, 
   if (!selected) refuse('A locked provider version is unavailable.');
   const match = exportedOntologies(project, repository, selected.commit, selected.documents).find(entry => entry.ontology === ontology);
   if (!match || match.closure.interfaceHash !== provider.interfaceHash) refuse('A locked provider interface differs from the candidate or pinned version.');
-  return { project, ontology, exports: new Set(match.closure.concepts.keys()), sameRepository, concepts: match.closure.concepts, version: match.commit, scope: match.base };
+  return {
+    project,
+    ontology,
+    exports: new Set(match.closure.concepts.keys()),
+    sameRepository,
+    concepts: match.closure.concepts,
+    version: match.commit,
+    scope: match.base,
+    interfaceHash: match.closure.interfaceHash,
+    sourceItems: new Map([...match.sourceItems].filter(([, path]) => !reader.view || reader.view.canRead(project, path))),
+    ontologyName: match.ontologyName,
+  };
 }
 
 /** Resolves exactly the public interface entries selected by the lock, using only the given snapshots. */

@@ -15,7 +15,7 @@ export type SourceLabel = { kind: 'published-snapshot'; commit: string; unpublis
 export type PublishedPlace = { commit: string; branch: string; projectFolder: string };
 
 /** The files of one unit, with the label that every answer built from them must carry. A published read also says where it sits. */
-export type UnitRead = { files: UnitFile[]; label: SourceLabel; commit?: string; place?: PublishedPlace; mesh?: MeshUnitRead };
+export type UnitRead = { files: UnitFile[]; label: SourceLabel; commit?: string; place?: PublishedPlace; project?: string; mesh?: MeshUnitRead };
 
 /** Reads one unit. The compile service holds this and nothing that knows about Git or folders. */
 export type UnitSource = { read(kind: UnitSourceKind): Promise<UnitRead> };
@@ -30,6 +30,7 @@ export type FolderView = { place?: PublishedPlace; list(): Promise<ListedFile[]>
 export type UnitSourceDeps = {
   /** Whether the caller may read the file. A false answer for any file of the unit refuses the whole unit. */
   canRead(path: string): boolean;
+  project?: string;
   /** Runs `use` on the pinned published snapshot of the project. Throws when nothing is published. */
   openPublished<T>(use: (view: FolderView) => Promise<T>): Promise<T>;
   /** Opens the caller's saved working copy of the project. */
@@ -84,14 +85,20 @@ export function createUnitSource(deps: UnitSourceDeps): UnitSource {
       const place = publishedPlace(view.place);
       const files = await readUnit(view, deps);
       const mesh = await view.mesh?.(files);
-      return { files: mesh?.files ?? files, ...(mesh ? { mesh } : {}), label: { kind: 'published-snapshot', commit: place.commit, unpublished: false }, commit: place.commit, place };
+      return {
+        files: mesh?.files ?? files,
+        ...(mesh ? { mesh, project: deps.project } : {}),
+        label: { kind: 'published-snapshot', commit: place.commit, unpublished: false },
+        commit: place.commit,
+        place,
+      };
     });
   }
   async function readWorking(): Promise<UnitRead> {
     const view = await deps.openWorking();
     const files = await readUnit(view, deps);
     const mesh = await view.mesh?.(files);
-    return { files: mesh?.files ?? files, ...(mesh ? { mesh } : {}), label: { kind: 'working-copy', unpublished: true } };
+    return { files: mesh?.files ?? files, ...(mesh ? { mesh, project: deps.project } : {}), label: { kind: 'working-copy', unpublished: true } };
   }
   return { read: kind => (kind === 'published' ? readPublished() : readWorking()) };
 }

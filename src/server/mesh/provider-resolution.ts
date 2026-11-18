@@ -18,6 +18,8 @@ export type PublicProvider = {
   commit: string;
   base: string;
   closure: ExportClosure;
+  ontologyName: string;
+  sourceItems: ReadonlyMap<string, string>;
 };
 
 /** Supplies the pinned snapshot reader and the workbench registry's stable repository identity. */
@@ -42,9 +44,10 @@ export function exportedOntologies(project: string, repository: string, commit: 
     if (!isObject(data) || !Array.isArray(data[EXPORTS_PROPERTY]) || !data[EXPORTS_PROPERTY].length || typeof data.version !== 'string') return [];
     const files = new Set([unit.root, ...unit.parts].map(file => file.path));
     if (structure.findings.some(finding => finding.severity === 'error' && finding.files.some(file => files.has(file)))) return [];
-    const closure = exportClosure(combineUnit(unit), unit.root.path);
+    const combined = combineUnit(unit);
+    const closure = exportClosure(combined, unit.root.path);
     if (closure.findings.some(finding => finding.severity === 'error')) return [];
-    return [{ project, ontology: unit.root.path, repository, commit, base: data.version, closure }];
+    return [{ project, ontology: unit.root.path, repository, commit, base: data.version, closure, ontologyName: String(data.name), sourceItems: combined.itemFiles }];
   });
 }
 

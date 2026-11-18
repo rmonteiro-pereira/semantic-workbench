@@ -68,6 +68,7 @@ export function workspaceUnitSource(workspace: UnitWorkspace, slug: string, read
     return readMeshUnits({ snapshots, repositoryOf, candidateDocuments: project => snapshots.documents(pin, project) }, pin, reader, repository, files);
   }
   return createUnitSource({
+    project: slug,
     canRead: path => !reader.view || reader.view.canRead(slug, path),
     openPublished: use =>
       snapshots.withPin(async pin => {

@@ -85,7 +85,7 @@ function validRun(answer: RunAnswer): boolean {
   if (answer.result === 'loss-needs-acceptance') return validReport(answer.report);
   if (answer.result !== 'released' || !validReport(answer.report)) return false;
   return (
-    answer.manifest?.manifestVersion === 1 &&
+    (answer.manifest?.manifestVersion === 1 || answer.manifest?.manifestVersion === 2) &&
     answer.manifest.source?.commit === answer.source.commit &&
     answer.manifest.loss?.digest === answer.report.digest &&
     ['none', 'digest', 'policy'].includes(answer.manifest.loss.accepted) &&
