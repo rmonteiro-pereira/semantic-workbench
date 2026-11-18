@@ -553,6 +553,9 @@ Revision 2 adds three sections to the item details:
 
 When a change needs revision 2, the editor asks you to confirm the upgrade before saving.
 
+The Source view lists the visible files of a split ontology. Use the unit file buttons to open
+another part. Definition details show the current file’s role in the unit.
+
 Each mistake gives one finding with a code and a place. `tessera-marker`: the marker is not a whole
 number of at least 1; write `tessera: 1`. `tessera-revision`: the document is newer than this
 workbench, or uses a property that needs a higher revision; use a supported revision. `tessera-base`:

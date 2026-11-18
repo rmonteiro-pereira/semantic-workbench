@@ -57,6 +57,8 @@ type Props = {
   relatedDocuments: Doc[];
   openDocument: (doc: Doc) => boolean;
 };
+import { PartPicker } from '../mesh/PartPicker';
+import { ontologyPartSelection } from './ontologyUnit';
 import { ItemSectionSupportContext, type SectionSupport } from '../edit/section-context';
 
 /** Renders details and makes the workspace's editing support available to its sections. */
@@ -95,6 +97,8 @@ function DetailsPanelContent({
   relatedDocuments,
   openDocument,
 }: Props) {
+  const unitFiles = model && 'unitFiles' in model && Array.isArray(model.unitFiles) ? model.unitFiles : undefined;
+  const partSelection = ontologyPartSelection(current, model, unitFiles);
   function renderDetails() {
     if (relationship) {
       return (
@@ -169,6 +173,7 @@ function DetailsPanelContent({
               </button>
             )}
           </div>
+          {partSelection && <PartPicker selection={partSelection} />}
           {renderDetails()}
         </aside>
       )}

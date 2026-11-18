@@ -1,0 +1,32 @@
+.mesh-unit-files {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.mesh-unit-note {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.mesh-unit-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mesh-unit-picker li {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.mesh-unit-picker button {
+  max-width: 100%;
+  text-align: start;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

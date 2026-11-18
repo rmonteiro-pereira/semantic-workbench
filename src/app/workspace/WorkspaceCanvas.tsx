@@ -24,6 +24,7 @@ import { ContractView } from './ContractView';
 import { GraphViews } from './GraphViews';
 import { MetricsPanel } from './MetricsPanel';
 import { SourceControlView } from './SourceControlView';
+import { activeOntologyUnit, ontologyPartSelection } from './ontologyUnit';
 import { SourceView } from './SourceView';
 import type { ItemTarget, RdfTarget, ValidatedModel } from './types';
 
@@ -296,10 +297,18 @@ export function WorkspaceCanvas({
       );
     }
     if (tab === 'source') {
+      const unit = activeOntologyUnit(current, model, docs);
+      const partSelection = ontologyPartSelection(current, model, unit?.unitFiles);
+      function openPart(path: string) {
+        const target = docs.find(file => file.project === current?.project && file.path === path);
+        if (target) openDocument(target);
+      }
       return (
         <SourceView
           sourceEditor={sourceEditor}
           current={current}
+          partSelection={partSelection}
+          openPart={openPart}
           source={source}
           setSource={setSource}
           setEditorIssues={setEditorIssues}
