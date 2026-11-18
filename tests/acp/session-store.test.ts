@@ -65,14 +65,12 @@ test('the code works once, in any letter case, and only while waiting', () => {
   expect(session.code).toBeUndefined();
 });
 
-test('ending clears the code and the pending questions and ends only once', () => {
+test('ending clears the code and ends only once', () => {
   const { instance, ended } = store();
   const session = created(instance, 'ana');
-  session.pending.set('q', { id: 'q', agentRequestId: 1, options: ['a'], askedAt: 0 });
   instance.end(session, 'closed');
   instance.end(session, 'flood');
   expect(session.code).toBeUndefined();
-  expect(session.pending.size).toBe(0);
   expect(session.timing.endReason).toBe('closed');
   expect(ended).toHaveLength(1);
 });

@@ -11,8 +11,6 @@ const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const CODE_LENGTH = 8;
 const CONNECTION_ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
-/** A question the agent asked that the person has not answered yet. */
-export type PendingQuestion = { id: string; agentRequestId: string | number; options: readonly string[]; askedAt: number };
 /** The turn that is running, if any. */
 export type RunningTurn = { id: string; startedAt: number; cancelled: boolean };
 
@@ -25,7 +23,6 @@ export type PanelSession = {
   readonly buffer: EventBuffer;
   readonly link: FrameLink;
   readonly versions: VersionRecords;
-  readonly pending: Map<string, PendingQuestion>;
   timing: PanelSessionState;
   /** The single-use code the relay presents; removed when used. */
   code?: string;
@@ -73,7 +70,6 @@ export function createSessionStore(options: SessionStoreOptions) {
     if (session.timing.state === 'ended') return;
     session.timing = applyEvent(session.timing, { type: 'end', reason }, options.now());
     session.code = undefined;
-    session.pending.clear();
     options.onEnded?.(session, reason);
   }
 
@@ -97,7 +93,6 @@ export function createSessionStore(options: SessionStoreOptions) {
         buffer: createEventBuffer(),
         link: createFrameLink({ now: options.now }),
         versions: createVersionRecords(),
-        pending: new Map(),
         timing: newPanelSession(now),
         code: pick(CODE_ALPHABET, CODE_LENGTH, random),
       };

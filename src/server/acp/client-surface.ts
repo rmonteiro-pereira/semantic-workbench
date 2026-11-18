@@ -3,6 +3,7 @@ import { JsonRpcError, RPC_ERROR } from './jsonrpc-connection';
 import type { FrameDefinition } from './protocol-schema';
 import type { FailureReason, FileFailure, FileRequests } from './file-requests';
 import type { PanelEventBody } from './panel-events';
+import type { PermissionQuestions } from './permission-questions';
 import { eventsForUpdate, newMessageCursor, finishMessage } from './update-events';
 
 /** Code used for a request the workbench understood and refused by rule. The protocol assigns -32000 and -32002 to other meanings. */
@@ -20,6 +21,7 @@ export const INCOMING_PARAM_SCHEMAS: Readonly<Record<string, FrameDefinition>> =
 /** What the surface needs from the session around it. */
 export type ClientSurfaceDependencies = {
   files: FileRequests;
+  questions: PermissionQuestions;
   /** Delivers one panel event: stored in the buffer and sent to every open tab. */
   emit: (event: PanelEventBody) => void;
   /** The protocol session id the agent was given, once there is one. */
@@ -60,11 +62,17 @@ export function createClientSurface(dependencies: ClientSurfaceDependencies) {
     throw failureError(outcome.failure);
   }
 
+  async function askPermission(params: unknown): Promise<unknown> {
+    const outcome = await dependencies.questions.ask(requireSession(params) as Parameters<PermissionQuestions['ask']>[0]);
+    return { outcome };
+  }
+
   return {
     /** Answers one request from the agent. An unknown or unsupported method throws "method not found" and does nothing else. */
     async handleRequest(method: string, params: unknown): Promise<unknown> {
       if (method === 'fs/read_text_file') return readTextFile(params);
       if (method === 'fs/write_text_file') return writeTextFile(params);
+      if (method === 'session/request_permission') return askPermission(params);
       throw new JsonRpcError(RPC_ERROR.methodNotFound, 'Method not found.');
     },
     /** Takes one notification from the agent. Only session updates are shown; every other notification is ignored. */

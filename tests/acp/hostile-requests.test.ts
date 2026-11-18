@@ -10,6 +10,7 @@ import { createAuditLog } from '../../src/server/auth/audit';
 import { INCOMING_PARAM_SCHEMAS, createClientSurface } from '../../src/server/acp/client-surface';
 import { mintAcpCaller } from '../../src/server/acp/connection-auth';
 import { createFileRequests } from '../../src/server/acp/file-requests';
+import { createPermissionQuestions } from '../../src/server/acp/permission-questions';
 import { createFloodGuard } from '../../src/server/acp/flood-guard';
 import { createJsonRpcConnection, type Violation } from '../../src/server/acp/jsonrpc-connection';
 import type { PanelEventBody } from '../../src/server/acp/panel-events';
@@ -63,7 +64,7 @@ async function harness() {
     },
   });
   const events: PanelEventBody[] = [];
-  const surface = createClientSurface({ files, emit: event => events.push(event), agentSessionId: () => SESSION });
+  const surface = createClientSurface({ files, questions: createPermissionQuestions({ emit: event => events.push(event) }), emit: event => events.push(event), agentSessionId: () => SESSION });
   const sent: Record<string, unknown>[] = [];
   const violations: Violation[] = [];
   const connection = createJsonRpcConnection({

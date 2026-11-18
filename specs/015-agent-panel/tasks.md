@@ -115,7 +115,7 @@ test only to make it pass.
   (server paths, traversal, terminal, unknown methods, oversize, flood, plan or context requests,
   commit-like requests) and a before and after comparison of the data root, Git state and audit
   log. Proof: the test passes (SC-002).
-- [ ] T020 [P] [US4] Add the question handling to `client-surface.ts`: forward to the panel, one
+- [x] T020 [P] [US4] Add the question handling to `client-surface.ts`: forward to the panel, one
   answer from the offered ids, cancel on timeout, on turn cancel and on end; at most 5 pending.
   Add `tests/acp/questions.test.ts`. Proof: the test passes; an "always allow" answer does not
   change what the boundary decides afterwards (a refused write stays refused).
