@@ -640,6 +640,12 @@ keyboard focus ring on the metric grouping control. The empty Trash dialog keeps
   `matrix(0.5635, 0, 0, 0.5635, -41.03, 13.035)`. The isolated fullscreen check on both revisions remains queued.
   The theme retry reached Light Catalog and counted the hidden Edit action at `1.00:1`. At rest its measured opacity is zero,
   as required by the catalog reveal. The updated sampler will exclude fully transparent controls and keep testing visible text.
+  Auth returned 0 in 143.7 s. Session expiry, grant refresh, read-only export and Git history refusal passed.
+- The first resumed matrix action, `local/light/390/import`, ended with status 0 before a planned pause (75).
+  `bash .data/gate/pull-review-007.sh .data/gate/import-phone-final local/light/390/import` returned 19 strips.
+  All 114 action records passed. All seven sheets and the repeats were opened. The Import dialog keeps both destinations and its
+  actions. The full UBL center name fits. The first candidate Flights frame catches the routes drawing; they appear in its repeat.
+  The first-run Manrope heading and new Import action remain whole.
 - `bun -` checked the mapping capture matcher against four valid singular and plural summaries and one invalid singular.
   `36f93f35` accepts the candidate's corrected grammar during the next replay. In the previous replay the grammar assertion
   incorrectly reported a diagnostic against the settled empty mapping.
