@@ -75,6 +75,16 @@ test('opening measures the published fit rather than the earlier unscaled names'
   expect(await measureGraphOpening(45, () => nameHeight, afterPaint)).toEqual({ minimumName: 8.9, collapsed: true });
 });
 
+test('opening respects the fitted name limit when visible nodes omit virtualized names', async () => {
+  const decision = await measureGraphOpening(
+    45,
+    () => 9.5,
+    async () => {},
+    8.9,
+  );
+  expect(decision).toEqual({ minimumName: 8.9, collapsed: true });
+});
+
 test('counted Network cards compensate names while titles keep their header scale', () => {
   const sizes = textSizesAt(0.5, 'network', true);
   expect(sizes.entityName).toBe(24);

@@ -3,7 +3,7 @@ import { useRef, useState, type RefObject } from 'react';
 import type { ReactFlowInstance } from '@xyflow/react';
 import type { modelOverview } from './overview';
 import { fitFullGraph, fitGraphArea } from './full-graph-viewport';
-import { NAME_MIN_PX, LARGEST_ENTITY_NAME_PX, startsCollapsed } from './overview-capacity';
+import { NAME_MIN_PX, LARGEST_ENTITY_NAME_PX, startsCollapsed, textSizesAt } from './overview-capacity';
 
 type Overview = ReturnType<typeof modelOverview>;
 type Inputs = {
@@ -30,9 +30,9 @@ export function afterGraphPaint(): Promise<void> {
 }
 
 /** Decides representation only after fitted text has painted at the completed layout's scale. */
-export async function measureGraphOpening(entityCount: number, measure: () => number | Promise<number>, afterPaint = afterGraphPaint) {
+export async function measureGraphOpening(entityCount: number, measure: () => number | Promise<number>, afterPaint = afterGraphPaint, fitNameLimit = Number.POSITIVE_INFINITY) {
   await afterPaint();
-  const minimumName = await measure();
+  const minimumName = Math.min(await measure(), fitNameLimit);
   return { minimumName, collapsed: startsCollapsed(entityCount, minimumName) };
 }
 
@@ -66,7 +66,10 @@ export function useFullGraphOpening({ overview, algorithm, collapseChoice, flow,
         onArea(area);
       }
     }
-    const measured = await measureGraphOpening(overview.entities.length, () => renderedNameMinimum(canvas, instance.getViewport().zoom));
+    // The fit also includes names outside the mounted viewport, so rendered nodes alone can overstate legibility.
+    const fitNameLimit = algorithm === 'network' ? Math.min(nameCap, textSizesAt(zoom, algorithm, counted).entityName) * zoom : undefined;
+    const measure = () => renderedNameMinimum(canvas, algorithm === 'network' ? zoom : instance.getViewport().zoom);
+    const measured = await measureGraphOpening(overview.entities.length, measure, afterGraphPaint, fitNameLimit);
     if (current.current.overview !== overview || current.current.algorithm !== algorithm || current.current.collapseChoice !== collapseChoice) return;
     if (matches || collapseChoice !== null || safetyCollapse) return;
     const { minimumName } = measured;

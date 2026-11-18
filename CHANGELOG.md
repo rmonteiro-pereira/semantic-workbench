@@ -88,7 +88,8 @@ and protect release tags. Existing tags inside published history remain usable a
 - Preserve identifier word boundaries, humanize area labels and correct singular entity counts.
 - Keep area titles clear of cards and relationship strokes, space metric badges, frame the mini-map and bound minimum zoom relative to Fit.
 - Keep the full-screen Exit visible on phones and limit the details pane height.
-- Open Network as counted area cards when names at Fit would be too small. Open Layered on the first area at readable scale while preserving its routes.
+- Open Network as counted area cards when names at Fit would be too small, including when returning with browser Back.
+- Open Layered on the first area at readable scale while preserving its routes.
 - Compact table headers on the Lineage tab and align embedded canvases with the table content width.
 - Keep lineage hop controls on one row and group viewport actions beside the walk trail.
 - Keep walk targets usable at reduced zoom, hiding them when their card cannot hold the target.
