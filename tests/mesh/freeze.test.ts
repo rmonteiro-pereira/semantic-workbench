@@ -39,6 +39,7 @@ async function consumers(fixture: Fixture) {
       body: JSON.stringify({ project: 'retail', mappingId: 'retail/mapping.yaml', metrics: ['revenue'], dimensions: [] }),
     }),
   );
+  if (!plan.ok) throw new Error(await plan.text());
   expect([bundle.status, context.status, catalog.status, graph.status, plan.status]).toEqual([200, 200, 200, 200, 200]);
   const graphResult = await graph.json();
   return {
@@ -54,11 +55,17 @@ async function consumers(fixture: Fixture) {
 test('published consumers preserve their locked interface across provider edits and publications', async () => {
   using fixture = await meshWorkspace('separate');
   const retail = fixture.projectDirectory('retail');
-  writeFileSync(join(retail, 'mapping.yaml'), MAPPING_TEXT.replace('name: Retail', 'name: retail'));
+  const root = join(retail, 'ontology.yaml');
+  const ontology = JSON.parse(readFileSync(root, 'utf8'));
+  ontology.ontology.push({ concept: 'Revenue', type: 'ValueType' });
+  writeFileSync(root, JSON.stringify(ontology));
+  const metricMapping = 'concept_mappings:\n  - concept: Revenue\n    object_mappings:\n      - expression: revenue';
+  writeFileSync(join(retail, 'mapping.yaml'), MAPPING_TEXT.replace('name: Retail', 'name: retail').replace('concept_mappings: []', metricMapping));
   writeFileSync(join(retail, 'model.yaml'), SEMANTIC_MODEL_TEXT);
   await publishDependent(fixture);
   const before = await consumers(fixture);
   expect(before.context).toContain('fin.Invoice');
+  expect(before.plan).toContain('SUM');
   expect(before.graph[0].providers[0].concepts.map(([name]: [string, object]) => name)).toEqual(['Invoice']);
   expect(before.state).toBe('current');
   fixture.addPersonalBranch('finance');
