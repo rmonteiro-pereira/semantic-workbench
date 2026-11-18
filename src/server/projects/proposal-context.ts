@@ -6,7 +6,7 @@ import type { ProposalEventKind, ProposalRecord } from '../../shared/proposals/p
 import type { ProjectFolder } from '../../shared/proposals/contribution-scope';
 import type { EventTags } from './events';
 import type { Git } from './git';
-import type { PublicationGuard, PublicationResult } from './publication';
+import type { PublicationResult } from './publication';
 import { HiddenResourceError, ProposalRefusalError } from './errors';
 import type { ProposalRefs } from './proposal-refs';
 import type { ProposalStore } from './proposal-store';
@@ -35,6 +35,9 @@ export type ProposalAudit = { proposal: string; projects: string[]; commits: str
 /** The result of a mutating call and the audit facts that go with it. */
 export type Mutation<T> = { result: T; audit: ProposalAudit };
 
+/** A candidate default-branch move to judge: from the published commit to a proposal tip. */
+export type CandidateMove = { previous: string | null; next: string; paths: (previous: string | null, next: string) => Promise<string[]> };
+
 /** The move a promotion asks the publication path to make. */
 export type PromotionMove = {
   tip: string;
@@ -62,8 +65,8 @@ export type ProposalDeps = {
   ownerOf: (reader: Reader) => CopyOwner | null;
   /** The commit the durable published pointer names for a repository. */
   publishedCommit: (repository: string) => string | null;
-  /** Runs the publication checks without moving anything. */
-  checkCandidate: (repository: string, branch: string, move: { previous: string | null; next: string }, guard: PublicationGuard) => Promise<void>;
+  /** Runs the publication checks on a candidate tip as the reader's own change, moving nothing. */
+  checkCandidate: (slug: string, reader: Reader, move: CandidateMove) => Promise<void>;
   /** Moves the default branch to the proposal tip through the publication path. */
   promote: (slug: string, reader: Reader, move: PromotionMove) => Promise<PublicationResult>;
   /** Runs one operation inside the repository's serialized queue. */

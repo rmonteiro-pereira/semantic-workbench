@@ -67,11 +67,11 @@ under `src/`.
 
 **Independent Test**: `bun test tests/proposals-promotion.test.ts tests/proposals-recovery.test.ts`.
 
-- [ ] T020 [US4] Add `worktrees.promote(repository, tip, guard)` in `src/server/projects/worktrees.ts` and a `promote` entry in `src/server/projects/publishing.ts` that calls `moveDefault` and `announce`; no second writer of the default ref. Proof: `tests/proposals-promotion.test.ts` shows the publication tests' guards (ancestry, candidate readable, content guard) apply to a proposal tip.
-- [ ] T021 [US4] Add `check` and `promote` to the service: authority over every project sharing the repository first, then stale-tip and descendant checks, then promotion; mark promoted, remove the proposal ref, rescan all projects, emit events (FR-018 to FR-025). Proof: partial authority never moves the ref; three projects move together (SC-003).
-- [ ] T022 [US4] Guard and validation failures: a metric approval by an Editor, an invalid candidate and an over-limit tree each move nothing and name only readable files. Proof: cases in `tests/proposals-promotion.test.ts`.
-- [ ] T023 [US4] Recovery: reconcile at start so a proposal whose tip is contained in the published history becomes promoted, and an interrupted promotion follows the existing intent recovery (FR-022, FR-036). Interrupt at each stage with the `stage` hook of `createPublication`. Proof: `tests/proposals-recovery.test.ts` (SC-005); damaged proposals are listed only to people who may promote.
-- [ ] T024 [US4] Add the `check` and `promote` routes and rows. Proof: `tests/proposals-routes.test.ts`; two concurrent promotions, or a promotion racing a publication, produce one winner.
+- [x] T020 [US4] Add `worktrees.promote(repository, tip, guard)` in `src/server/projects/worktrees.ts` and a `promote` entry in `src/server/projects/publishing.ts` that calls `moveDefault` and `announce`; no second writer of the default ref. Proof: `tests/proposals-promotion.test.ts` shows the publication tests' guards (ancestry, candidate readable, content guard) apply to a proposal tip.
+- [x] T021 [US4] Add `check` and `promote` to the service: authority over every project sharing the repository first, then stale-tip and descendant checks, then promotion; mark promoted, remove the proposal ref, rescan all projects, emit events (FR-018 to FR-025). Proof: partial authority never moves the ref; three projects move together (SC-003).
+- [x] T022 [US4] Guard and validation failures: a metric approval by an Editor, an invalid candidate and an over-limit tree each move nothing and name only readable files. Proof: cases in `tests/proposals-promotion.test.ts`.
+- [x] T023 [US4] Recovery: reconcile at start so a proposal whose tip is contained in the published history becomes promoted, and an interrupted promotion follows the existing intent recovery (FR-022, FR-036). Interrupt at each stage with the `stage` hook of `createPublication`. Proof: `tests/proposals-recovery.test.ts` (SC-005); damaged proposals are listed only to people who may promote.
+- [x] T024 [US4] Add the `check` and `promote` routes and rows. Proof: `tests/proposals-routes.test.ts`; two concurrent promotions, or a promotion racing a publication, produce one winner.
 
 ## Phase 6: User Story 6 and 3 - close, restore, and confinement (P2, P1)
 

@@ -66,9 +66,9 @@ async function waitForClone(ws: Awaited<ReturnType<typeof testWorkspace>>['ws'],
 }
 
 /** Opens the workspace with the shared repository cloned and the access rules for its projects. */
-export async function proposalFixture() {
+export async function proposalFixture(customize?: (options: ReturnType<typeof accessFixture>) => void, workspaceOptions: Parameters<typeof testWorkspace>[0] = {}) {
   const remote = threeProjectRemote();
-  const workspace = await testWorkspace();
+  const workspace = await testWorkspace(workspaceOptions);
   await waitForClone(workspace.ws, remote.bare);
   const registered = workspace.ws.state.registry().projects;
   const projects = Object.fromEntries(
@@ -84,6 +84,7 @@ export async function proposalFixture() {
     const restricted = folder.name === 'Sales' ? [{ pattern: 'private/**', groups: [TEST_GROUPS.finance.id], emails: [] as string[] }] : [];
     options.config.projects.projects[slug] = { domain: folder.domain, stewards: [], restricted, protectedBranches: ['main'] };
   }
+  customize?.(options);
   const access = createAccessControl({ ...options, knownProjects: () => registered.map(project => project.slug) });
   const as = signedIn(workspace.ws, access);
   return {
@@ -195,4 +196,27 @@ export function numberedEditor(number: number) {
     },
     { provider: 'entra', tenantId: TEST_TENANT_ID, groupClaim: 'groups' },
   );
+}
+
+/**
+ * Gives Erin a workspace-wide role that may publish but not make the guarded changes a Steward
+ * may, so a promotion can be refused on content while its authority check passes.
+ */
+export function grantErinPublishingWithoutGuardedChanges(options: ReturnType<typeof accessFixture>) {
+  options.config.roles.push({
+    id: 'r_publisher',
+    name: 'Publisher',
+    description: 'Publishes and edits, but makes no guarded change.',
+    permissions: [{ actions: ['read', 'export', 'history', 'viewOwnState', 'edit', 'stage', 'commit', 'branch', 'fetch', 'pull', 'push', 'publish'] }],
+    createdBy: 'bootstrap',
+    createdAt: '2026-10-21T09:00:00Z',
+  } as never);
+  options.config.grants.push({
+    id: 'g-erin-publisher',
+    roleId: 'r_publisher',
+    member: { kind: 'email', email: 'erin@example.org' },
+    scope: { kind: 'workspace' },
+    addedBy: 'bootstrap',
+    addedAt: '2026-10-21T09:00:00Z',
+  } as never);
 }

@@ -69,6 +69,8 @@ export type WorkspaceOptions = {
   copyIdleMs?: number;
   migrationHooks?: Parameters<typeof migrateLegacy>[1];
   journalHooks?: JournalHooks;
+  /** Tests stop a publication after one of its durable steps to prove restart recovery. */
+  publicationStage?: (stage: 'intent' | 'ref' | 'pointer') => void;
   /**
    * Server mode: at start-up, restores files that local-mode deletions left deleted in the
    * published checkout, and refuses to start on any other change there.
@@ -365,6 +367,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     directory: repository => join(layout.projects, repository),
     readable: candidate => snapshots.validate(candidate),
     supersede: () => snapshots.supersede(),
+    stage: options.publicationStage,
   });
   const localPublication = createLocalPublication({
     git,
@@ -517,6 +520,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     emit: (e, d, tags) => events.emit(e, d, tags),
   });
   const proposals = createWorkspaceProposals({ layout, git, worktrees, publication, publishing, published, copies, events, entry, repoOf, projectsIn, now: options.now ?? Date.now });
+  // A promotion that stopped before its bookkeeping finished is completed here.
+  if (gitAvailable) await proposals.recover([...new Set(projects().map(project => locationOf(project).repo))].filter(repo => existsSync(join(layout.projects, repo, '.git'))));
   const unpublished = createUnpublishedWork({
     git,
     gitAvailable,

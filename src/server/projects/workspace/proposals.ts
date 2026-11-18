@@ -7,7 +7,7 @@ import type { Publication } from '../publication';
 import { createProposalRefs } from '../proposal-refs';
 import { createProposalStore } from '../proposal-store';
 import { createProposals } from '../proposals';
-import type { Publishing } from '../publishing';
+import { judgePublish, type Publishing } from '../publishing';
 import type { Place, WorkingCopies } from '../working-copies';
 import type { Worktrees } from '../worktrees';
 import type { ProjectEntry } from '../state';
@@ -45,7 +45,11 @@ export function createWorkspaceProposals(context: WorkspaceProposalsContext) {
     prefixOf: slug => projectPrefix(layout, slug),
     ownerOf: reader => (reader.copy ? (copies.owners().find(owner => owner.key === reader.copy!.key) ?? null) : null),
     publishedCommit: repository => publication.recorded(repository) ?? null,
-    checkCandidate: (repository, branch, move, guard) => publication.check(repository, branch, move, guard),
+    checkCandidate: async (slug, reader, move) => {
+      const repository = context.repoOf(slug);
+      const branch = await worktrees.defaultBranch(repository);
+      await publication.check(repository, branch, { previous: move.previous, next: move.next }, judgePublish(published, slug, reader.guard, move.paths));
+    },
     promote: (slug, reader, move) => publishing.promote(slug, reader, move),
     serialized: (repository, use) => publication.serialized(repository, () => use()),
     emit: (event, data, tags) => events.emit(event, data, tags),

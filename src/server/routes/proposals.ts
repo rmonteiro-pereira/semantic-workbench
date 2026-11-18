@@ -41,7 +41,7 @@ async function jsonBody(request: Request, keys: string[]): Promise<Record<string
   return body as Record<string, unknown>;
 }
 
-/** Answers a POST to one proposal: working, synchronizing and contributing. */
+/** Answers a POST to one proposal: working, synchronizing, contributing, promoting, closing and restoring. */
 async function postToProposal(proposals: Workspace['proposals'], request: Request, target: { slug: string; id: string; action: string | undefined }, caller: ProposalCaller) {
   const { slug, id, action } = target;
   const position = ['expectedBranch', 'expectedHead'];
@@ -64,6 +64,18 @@ async function postToProposal(proposals: Workspace['proposals'], request: Reques
     recordProposal(request, contributed.audit);
     return Response.json(contributed.result);
   }
+  if (action === 'close' || action === 'restore') {
+    await jsonBody(request, []);
+    const changed = action === 'close' ? await proposals.close(slug, id, caller) : await proposals.restore(slug, id, caller);
+    recordProposal(request, changed.audit);
+    return Response.json(changed.result);
+  }
+  if (action === 'promote') {
+    const body = await jsonBody(request, ['expectedTip']);
+    const promoted = await proposals.promote(slug, id, { expectedTip: body.expectedTip }, caller);
+    recordProposal(request, promoted.audit);
+    return Response.json(promoted.result);
+  }
   return null;
 }
 
@@ -81,6 +93,7 @@ export const createProposalRoutes =
     if (request.method === 'GET') {
       if (id === undefined) return Response.json(await proposals.list(slug, caller));
       if (action === undefined) return Response.json(await proposals.read(slug, id, caller));
+      if (action === 'promotion-check') return Response.json(await proposals.check(slug, id, { expectedTip: url.searchParams.get('expectedTip') ?? undefined }, caller));
       if (action === 'diff') return Response.json(await proposals.diff(slug, id, { path: url.searchParams.get('path'), project: url.searchParams.get('project') ?? undefined }, caller));
       return null;
     }

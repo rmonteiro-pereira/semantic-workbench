@@ -68,3 +68,15 @@ test('work, synchronize and contribute refuse bodies that are not what they expe
     expect(answer.status, `${action} ${JSON.stringify(wrong)}`).toBe(400);
   }
 });
+
+test('promote needs the tip the promoter reviewed and the check needs no body', async () => {
+  using fixture = await proposalFixture();
+  const { sales } = fixture.projects;
+  const dave = fixture.dave();
+  await dave.call(proposalsPath(sales.slug), 'POST', { name: 'Promote me', projects: [sales.slug] });
+  expect((await dave.call(`${proposalsPath(sales.slug)}/promote-me/promote`, 'POST', {})).status).toBe(400);
+  expect((await dave.call(`${proposalsPath(sales.slug)}/promote-me/promote`, 'POST', { expectedTip: 'x', other: 1 })).status).toBe(400);
+  const check = await dave.call(`${proposalsPath(sales.slug)}/promote-me/promotion-check`);
+  expect(check.status).toBe(200);
+  expect(Object.keys(check.body).sort()).toEqual(['files', 'ok', 'reasons']);
+});
