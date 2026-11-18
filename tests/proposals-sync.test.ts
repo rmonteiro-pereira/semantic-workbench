@@ -59,3 +59,46 @@ test('synchronizing needs the person to be working on the proposal first', async
   expect(refused.status).toBe(409);
   expect(refused.body.error).toBe('work-first');
 });
+
+for (const action of ['work', 'synchronize'] as const) {
+  test(`${action} refuses a same-person checkout after reading the expected position`, async () => {
+    using fixture = await proposalFixture();
+    const { sales } = fixture.projects;
+    const alice = fixture.alice();
+    const proposal = await createProposal(alice, sales.slug, 'Shared', [sales.slug]);
+    await workOnProposal(alice, sales.slug, proposal.id);
+    await commitEdit(alice, sales, '# contribution\n');
+    await contributeToProposal(alice, sales.slug, proposal.id);
+
+    const target = action === 'work' ? alice : fixture.bob();
+    if (action === 'synchronize') await workOnProposal(target, sales.slug, proposal.id);
+    const copy = fixture.ws.worktrees.copyDir(target.principal.key, fixture.repository);
+    if (action === 'work') expect(gitOutput(copy, ['switch', '-qc', 'ordinary']).code).toBe(0);
+    const position = await copyPosition(target, sales.slug);
+    expect(gitOutput(copy, ['branch', 'other', 'refs/heads/main']).code).toBe(0);
+    const heads = () => gitOutput(copy, ['for-each-ref', '--format=%(refname) %(objectname)', 'refs/heads']).text;
+    const before = heads();
+    const git = fixture.ws.git;
+    const originalHead = git.head;
+    let interleaved = false;
+    git.head = async directory => {
+      const head = await originalHead(directory);
+      if (!interleaved && directory === copy) {
+        interleaved = true;
+        await git.run(copy, ['switch', 'other']);
+      }
+      return head;
+    };
+
+    try {
+      const response = await target.call(proposalsPath(sales.slug, proposal.id) + '/' + action, 'POST', position);
+      expect(interleaved).toBe(true);
+      expect(response.status, JSON.stringify(response.body)).toBe(409);
+      expect(response.body.error).toBe('wrong-branch');
+      expect(gitOutput(copy, ['branch', '--show-current']).text).toBe('other');
+      expect(heads()).toBe(before);
+    } finally {
+      git.head = originalHead;
+    }
+  });
+}

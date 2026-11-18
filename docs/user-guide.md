@@ -265,7 +265,9 @@ Git's own output is under **Show details**. Server-mode credentials work differe
 
 In server mode, **Source control** has a **Proposals** section. **New proposal** asks for a name and the
 projects it touches. **Work on it** moves your copy onto your own branch for that proposal, **Synchronize**
-brings in what others contributed, and **Contribute** sends your commits to the shared proposal. Stewards
+brings in what others contributed, and **Contribute** sends your commits to the shared proposal.
+If another tab changes your branch or its last commit while you choose Work or Synchronize, reload
+the copy and try again. Stewards
 and Admins use **Check**, **Promote**, **Close proposal** and **Restore**. A repository holds up to 50
 open proposals; a name has up to 80 characters. Push and Sync refuse work and proposal branches: publish
 first, then use **Push default**. Local mode has no proposals.

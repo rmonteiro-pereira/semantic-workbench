@@ -59,7 +59,15 @@ export function createContributions(context: ProposalContext) {
       return true;
     });
     try {
-      if (current.branch !== branch) await scm.switchBranch(slug, branch, false, caller.reader, local => caller.authority.checkout(local));
+      await scm.switchBranch(
+        slug,
+        branch,
+        false,
+        caller.reader,
+        local => caller.authority.checkout(local),
+        undefined,
+        () => assertPosition(copyDirectory, { expectedBranch: current.branch, expectedHead: current.head }),
+      );
     } catch (error) {
       // A refused switch leaves no new branch behind.
       if (created) await git.run(baseDirectory, ['branch', '-D', '--', branch]);
@@ -78,7 +86,7 @@ export function createContributions(context: ProposalContext) {
     const current = await assertPosition(copyDirectory, position);
     if (current.branch !== branch) throw new ProposalRefusalError('work-first', 'Work on this proposal first, then synchronize it.');
     const scm = await deps.scmFor(slug, caller.reader);
-    const merged = await scm.mergeCommit(slug, caller.reader, { tip, label: `proposal ${id}` });
+    const merged = await scm.mergeCommit(slug, caller.reader, { tip, label: `proposal ${id}` }, () => assertPosition(copyDirectory, position));
     return { result: { merged: merged.ok, head: await git.head(copyDirectory), conflicted: merged.conflicted }, audit: context.audit(record, [tip]) };
   }
 

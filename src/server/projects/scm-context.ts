@@ -108,6 +108,8 @@ export type ScmContext = {
   sparseProjectFolder: (slug: string, directory: string) => Promise<{ folder?: string }>;
   fetchFolderContents: (directory: string, tip: string, chooseRemote: () => Promise<RemoteChoice | null>) => Promise<void>;
   after: (slug: string, altered?: string[]) => Promise<Awaited<ReturnType<Git['status']>>>;
+  /** Holds the project write lock before taking a repository queue turn, as a commit does. */
+  inWriteTurn: <T>(slug: string, work: () => Promise<T>) => Promise<T>;
   alteredAfter: (directory: string, changed: string[]) => Promise<string[]>;
 };
 
@@ -198,5 +200,9 @@ export function createScmContext(deps: ScmDeps): ScmContext {
     const [disk, tree] = await Promise.all([git.worktreeIds(directory, candidates), git.treeIds(directory, 'HEAD', candidates)]);
     return candidates.filter(p => tree.has(p) && disk.get(p) !== tree.get(p));
   }
-  return { deps, layout, git, dir, prefix, ownerOf, sparseProjectFolder, fetchFolderContents, after, alteredAfter };
+  function inWriteTurn<T>(slug: string, work: () => Promise<T>) {
+    const inQueue = () => git.exclusive(dir(slug), work);
+    return deps.withProjectLock ? deps.withProjectLock(slug, inQueue) : inQueue();
+  }
+  return { deps, layout, git, dir, prefix, ownerOf, sparseProjectFolder, fetchFolderContents, after, alteredAfter, inWriteTurn };
 }

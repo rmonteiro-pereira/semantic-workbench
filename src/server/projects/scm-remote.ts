@@ -276,10 +276,14 @@ export function createScmRemote(ctx: ScmContext) {
       return mergeFromCommit(slug, reader, check => merge(slug, reader.copy?.author, check));
     },
     /** Merges a commit, such as a proposal's tip, into the person's branch with the guards of a pull. */
-    async mergeCommit(slug: string, reader: Reader, source: { tip: string; label: string }) {
+    async mergeCommit(slug: string, reader: Reader, source: { tip: string; label: string }, verifyPosition?: () => Promise<unknown>) {
       const merge = deps.mergeCommit;
       if (!merge) throw new BadRequestError('Merging a commit works on a personal working copy.');
-      return mergeFromCommit(slug, reader, check => merge(slug, reader.copy?.author, source, check));
+      const mergeHere = async () => {
+        await verifyPosition?.();
+        return mergeFromCommit(slug, reader, check => merge(slug, reader.copy?.author, source, check));
+      };
+      return verifyPosition ? ctx.inWriteTurn(slug, mergeHere) : mergeHere();
     },
     /** What moving the repository from `base` to `tip` changes, file by file, per project. */
     changesBetween: (slug: string, base: string | null, tip: string, paths?: string[]) => incomingChanges(slug, dir(slug), base, tip, paths),
