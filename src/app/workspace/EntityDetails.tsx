@@ -57,8 +57,10 @@ export function EntityDetails({
   setSelected,
   setDefinition,
 }: Props) {
+  const editTarget = entityTarget(entity);
+  const inlineTarget = editTarget?.docId === current?.id ? editTarget : null;
   function handleTextareaChange(event: React.ChangeEvent<HTMLTextAreaElement, HTMLTextAreaElement>) {
-    return setSource(editEntity(source, entity.path, event.target.value, current?.filename));
+    if (inlineTarget) setSource(editEntity(source, inlineTarget.path, event.target.value, current?.filename));
   }
 
   function handleViewDefinitionClick() {
@@ -163,7 +165,7 @@ export function EntityDetails({
       ) : (
         <label>
           Description
-          <textarea value={entity.description} onChange={handleTextareaChange} />
+          <textarea value={entity.description} readOnly={!inlineTarget} onChange={handleTextareaChange} />
         </label>
       )}
       {relatedDocuments.length > 0 && (

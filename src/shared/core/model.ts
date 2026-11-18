@@ -150,7 +150,7 @@ export function inspectOntologyUnit(unit: OntologyUnit, project?: string) {
     for (const entity of model.entities) if (isStructuredEntity(entity)) entity.address = sourceAddress(entity.address);
     for (const edge of model.edges) edge.address = sourceAddress(edge.address);
   }
-  return { ...model, itemFiles: combined.itemFiles };
+  return { ...model, itemFiles: combined.itemFiles, itemSources: combined.itemSources };
 }
 
 function inspectStructuredModel(data: any, issues: Issue[]) {

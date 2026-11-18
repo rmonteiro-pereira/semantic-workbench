@@ -224,6 +224,8 @@ export function useWorkbench({ setMessage }: Options) {
     current,
     source,
     model,
+    fileModel: singleFileModel,
+    unitItemSources: unitModel?.itemSources,
     docsRef,
     projectModels,
     parsedDoc,

@@ -20,9 +20,5 @@ export function activeOntologyUnit(current: Doc | null, model: ValidatedModel | 
   const files = [{ path: current.path, data: active }, ...projectFiles.map(file => ({ path: file.path, data: parsedDefinition(parsedDoc(file).model) }))];
   const unit = completeOntologyUnit(files, current.path);
   if (!unit) return null;
-  const inspected = inspectOntologyUnit(unit, current.project);
-  // A combined path can differ from the same item's source path until it has an owning-file edit target.
-  const entities = inspected.entities.map(entity => ({ ...entity, readOnlyForm: true }));
-  const edges = inspected.edges.map(edge => ({ ...edge, data: { ...edge.data, readOnlyForm: true } }));
-  return { ...inspected, entities, edges };
+  return inspectOntologyUnit(unit, current.project);
 }

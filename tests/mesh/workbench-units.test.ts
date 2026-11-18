@@ -2,11 +2,13 @@
 import { expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { validateInput } from '../../src/shared/validation/input';
-import { inspectOntologyUnit } from '../../src/shared/core/model';
+import { editEntity, inspectOntologyUnit } from '../../src/shared/core/model';
 import { readUnitStructure } from '../../src/shared/tessera/unit-structure';
 import { indexBytes } from '../../src/server/projects/scanner';
 import { activeOntologyUnit } from '../../src/app/workspace/ontologyUnit';
 import { selectionAddress, selectionId } from '../../src/app/graph/selection-addresses';
+import { LOCAL_READER } from '../../src/server/projects/reader';
+import { testWorkspace } from '../helpers/temp-data-dir';
 
 function validateFixture(folder: string, path: string) {
   return validateInput(readFileSync(`tests/fixtures/tessera/mesh/units/${folder}/${path}`, 'utf8'), path);
@@ -68,8 +70,30 @@ test('the workspace chooses the combined model only when every declared file is 
   const address = selectionAddress(selection, order.id);
   expect(address).toContain('sw1:retail/orders.yaml#');
   expect(selectionId(selection, address)).toBe(order.id);
+  expect(composed.itemSources.get(order.path.join('/'))).toEqual({ file: 'orders.yaml', path: ['ontology', 0] });
   expect(activeOntologyUnit(root, model, documents.slice(0, -1))).toBeNull();
   const partModel = validateInput(part.source, part.filename).model;
   expect(activeOntologyUnit(part, partModel, documents)?.itemFiles.size).toBeGreaterThan(4);
   expect(activeOntologyUnit(part, partModel, documents.slice(1))).toBeNull();
+});
+
+test('an edit at a composed item location changes only its owning file', async () => {
+  using workspace = await testWorkspace();
+  const paths = ['ontology.yaml', 'orders.yaml', 'returns.yaml', 'customers.json'];
+  const rootPath = paths[0];
+  const files = paths.map(path => ({
+    path,
+    source: readFileSync(`tests/fixtures/tessera/mesh/units/three-parts/${path}`, 'utf8'),
+  }));
+  const imported = await workspace.seed(files, 'Retail');
+  const project = imported.slug;
+  const before = Object.fromEntries(paths.map(path => [path, workspace.ws.readFile(project, path, LOCAL_READER)]));
+  const { units } = readUnitStructure(files.map(({ path, source }) => ({ path, data: JSON.parse(source) })));
+  const model = inspectOntologyUnit(units[0], project);
+  const order = model.entities.find(entity => entity.name === 'Order')!;
+  const target = model.itemSources.get(order.path.join('/'))!;
+  const source = editEntity(before[target.file].source, target.path, 'A purchase.', target.file);
+  await workspace.ws.saveFile(project, target.file, { baseHash: before[target.file].hash, source }, LOCAL_READER);
+  expect(JSON.parse(workspace.ws.readFile(project, target.file, LOCAL_READER).source).ontology[0].description).toBe('A purchase.');
+  for (const path of [rootPath, 'returns.yaml', 'customers.json']) expect(workspace.ws.readFile(project, path, LOCAL_READER).hash).toBe(before[path].hash);
 });

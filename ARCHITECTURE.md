@@ -343,7 +343,7 @@ command line.
   The inspector can build a composed graph with a source-file index. The scanner indexes the
   dependency manifest as project metadata and keeps parse findings per file.
   The workspace graph, catalog and grouping compose the active ontology from the reader’s files.
-  A selected concept keeps the address of its original file.
+  A selected concept keeps the address of its original file. Form edits patch that file at its source path.
 - `src/shared/tessera/marker.ts` reads the marker (top level only). `validate.ts` gives the Tessera
   findings and picks the derived schema by marker and base. `src/shared/validation/validation.ts`
   calls it at the top of `validateStructured`, and `src/shared/core/model.ts` returns the document
