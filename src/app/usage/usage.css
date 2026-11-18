@@ -1,0 +1,99 @@
+/* Styles for the Traffic display. Colours come from theme tokens, and text wraps instead of being cut. */
+
+/* The ring and bar sit over a card without changing its size. Weight carries the meaning, so it reads without colour. */
+.node:has(> .traffic-marks),
+.full-entity:has(> .traffic-marks) {
+  position: relative;
+}
+/* The wrapper takes no box of its own, so it cannot change how the card lays out its content. */
+.traffic-marks {
+  display: contents;
+  font-style: normal;
+}
+.traffic-ring {
+  font-style: normal;
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  border: calc(var(--traffic-level) * 1px) solid var(--color-accent);
+  border-radius: inherit;
+  pointer-events: none;
+}
+.traffic-bar {
+  font-style: normal;
+  position: absolute;
+  inset-inline-start: 12px;
+  bottom: 4px;
+  width: calc(var(--traffic-level) * 14%);
+  max-width: calc(100% - 24px);
+  height: 3px;
+  border-radius: 2px;
+  background: var(--color-accent);
+  pointer-events: none;
+}
+
+/* Text for screen readers only; the visible meaning is the ring and the bar. */
+.traffic-sr {
+  font-style: normal;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* A count in a details panel: the number with its unit and period, and the split below it. */
+.traffic-badge {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 10px 0;
+  padding: 7px 10px;
+  border: 1px solid var(--color-accent-border);
+  border-radius: 7px;
+  background: var(--color-accent-soft);
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+  overflow-wrap: anywhere;
+}
+.traffic-badge.compact {
+  display: inline-flex;
+  margin: 2px 0;
+  padding: 2px 8px;
+}
+.traffic-split {
+  color: var(--color-text-muted);
+}
+
+/* The legend below a graph names the measure, the operations and the period. */
+.traffic-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 6px 0;
+  padding: 0 12px;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  overflow-wrap: anywhere;
+}
+.traffic-legend p {
+  margin: 4px 0 0;
+}
+.traffic-legend summary {
+  cursor: pointer;
+}
+/* A fixed height while loading keeps the graph from jumping when the answer arrives. */
+.traffic-loading {
+  min-height: 2.6em;
+}
+
+/* The sort switch sits above a list, with room to wrap on a narrow window. */
+.traffic-sort {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0;
+}

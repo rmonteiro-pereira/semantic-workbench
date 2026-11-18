@@ -403,6 +403,14 @@ assertions, explicit Git/GitHub/Azure DevOps operations, and enabled telemetry e
 refresh and telemetry are background-capable; remote repository synchronization is not automatic.
 No database source is contacted and no previewed SQL is executed.
 
+Usage counters are a separate, opt-in store: `SW_USAGE_COUNTERS=on` counts requests through the
+workbench per published item and UTC day under `state/usage/`, and `SW_USAGE_RETENTION_DAYS` (default
+30) sets how long counts are kept. They hold no identity and are never derived from the audit log or
+telemetry. Counts are written every 30 seconds and at a clean stop, so a crash loses at most 30 seconds.
+Browser views are not counted, and a small team may infer who asked from a low count, so they are not
+anonymous. People read counts only for files they may read; Admin Settings shows whether counters are
+on. See [usage counters](usage-counters.md).
+
 ## Operating limits and recovery
 
 Run exactly one active application replica per data root. Git ownership, administration locks,

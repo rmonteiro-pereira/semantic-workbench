@@ -38,6 +38,8 @@ import { createReceiptStore } from './mcp/receipts';
 import { TOOLS } from './mcp/tool-registry';
 import type { OperationBoundary } from './auth/operation-boundary';
 import { join } from 'node:path';
+import { createWorkspaceUsage } from './usage/usage-workspace';
+import { usageRoutes } from './routes/usage';
 /** Local browser origins allowed to call the API. */
 export const ALLOWED_ORIGINS = allowedOrigins(4310);
 /** Includes the configured API origin and the Vite development server. */
@@ -160,6 +162,7 @@ function workspaceRoutes(administration: AdminRepository, access: AccessControl,
     suggestionRoutes,
     projectRoutes(administration),
     metricRoutes,
+    usageRoutes(options.usage!, options.usageSettings, options.now),
     peopleRoutes(access),
     kpiRoutes,
     createGitRoutes(options),
@@ -194,6 +197,7 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
     access,
     administration,
     audit: options.audit ?? defaultAudit(ws, options.mode ?? 'local', administration),
+    usage: options.usage ?? createWorkspaceUsage(ws, options.usageSettings),
   };
   let accessAdmin: Promise<AccessAdmin> | undefined;
   // The service shares the process's one administration repository, whose commits reload the
@@ -315,5 +319,5 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
     if (!response.headers.has('Cache-Control')) response.headers.set('Cache-Control', 'no-store');
     return response;
   };
-  return Object.assign(httpHandler, { boundary: boundary.boundary });
+  return Object.assign(httpHandler, { boundary: boundary.boundary, usage: boundary.usage });
 }

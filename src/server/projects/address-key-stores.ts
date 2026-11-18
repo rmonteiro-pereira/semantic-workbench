@@ -57,7 +57,11 @@ function archivedStores(layout: DataLayout): AddressKeyStore[] {
   return stores;
 }
 
-/** Enumerates known stores without interpreting document paths as item locators. */
+/**
+ * Enumerates known stores without interpreting document paths as item locators. The usage counters in
+ * `state/usage` are not listed: their keys are converted by replaying address migration records
+ * (see usage-migration.ts), and losing them loses only counts.
+ */
 export function addressKeyStores(layout: DataLayout): AddressKeyStore[] {
   const source = (project: string, document: string) => projectFile(layout, project, document);
   const stores = viewStores(layout.views, source);

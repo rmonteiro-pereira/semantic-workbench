@@ -16,6 +16,7 @@ import { exampleMetricMutants } from './example-metric-mutants';
 import { themeMutants } from './theme-mutants';
 import { brandMutants } from './brand-mutants';
 import { observabilityMutants } from './observability-mutants';
+import { usageMutants } from './usage-mutants';
 import { chmod, mkdtemp, readdir, rm, symlink } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 const root = process.cwd();
@@ -576,6 +577,11 @@ mutants.push(...operationBoundaryMutants);
 mutants.push(...mcpMutants);
 // Shared proposals: scope, authority, the publication path and the push rule.
 mutants.push(...proposalsMutants);
+// Usage counters: what is counted, what is stored, who reads it, how it moves and when it expires.
+mutants.push(...usageMutants);
+// `--only <prefix>` runs the mutants of the categories that start with the prefix and nothing else.
+const only = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1] : undefined;
+if (only) mutants.splice(0, mutants.length, ...mutants.filter(mutant => mutant[0].startsWith(only)));
 
 // Split modules import their siblings, so a mutant runs inside a copy of the whole folder: only
 // imports that leave the folder point back at the real sources.
@@ -694,6 +700,11 @@ try {
     if (/Cannot find|SyntaxError|ModuleNotFound/.test(result.error)) throw Error(`Invalid mutation ${i}: ${result.error}`);
     killed++;
     console.log(`KILLED ${category}: ${before} → ${after}`);
+  }
+  if (only) {
+    await rm(temp, { recursive: true, force: true });
+    console.log(`${killed}/${mutants.length} ${only} mutants killed; their baselines passed.`);
+    process.exit(0);
   }
   await askpassCases();
   const ui = Bun.spawn([process.execPath, resolve(root, 'scripts/ui-tests.ts')], {

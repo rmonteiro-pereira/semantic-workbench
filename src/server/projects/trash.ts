@@ -2,6 +2,7 @@
 // Restoration refuses occupied paths and suggests a free alternative.
 import { documentAddress } from '../../shared/core/item-address';
 import { archiveAddressMigrations, operationMigrations, stageAddressMigrations } from './address-migrations';
+import { archiveUsage } from '../usage/usage-trash';
 import { archivePersonalState, clearPersonalDrafts } from './personal-state';
 import type { EventTags } from './events';
 import type { Reader } from './reader';
@@ -387,6 +388,7 @@ export function createTrash(ctx: TrashContext) {
     const steps: { from: string; to: string }[] = [];
     const keepState = (slug: string, viewTo: string, draftsTo: string) => {
       steps.push(...archiveAddressMigrations(layout, slug, dir));
+      steps.push(...archiveUsage(layout, slug, dir));
       if (existsSync(state.viewFile(slug))) steps.push({ from: state.viewFile(slug), to: viewTo });
       if (existsSync(state.draftDir(slug))) steps.push({ from: state.draftDir(slug), to: draftsTo });
     };

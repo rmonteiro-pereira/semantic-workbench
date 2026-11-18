@@ -311,6 +311,24 @@ concatenating project, document or item names.
   `runtime.ts` re-exports both as the public entry point. They never execute a plan or
   call an LLM. Synthetic example execution belongs only to verification scripts/tests.
 
+### Usage counters
+
+- `src/server/usage/` owns counts of requests through the workbench, off unless `SW_USAGE_COUNTERS=on`.
+  `usage-settings.ts` reads the two variables, `usage-counted-operations.ts` parses
+  `policies/usage-counted-operations.json`, and `usage-items.ts` is the pure rule that finds the
+  addresses a counted answer names. `usage-recorder.ts` counts in memory (a no-op object when off) and
+  flushes every 30 seconds through `usage-flush.ts` to day files that only `usage-store.ts` touches;
+  `usage-migration.ts`, `usage-retention.ts` and `usage-compaction.ts` move counts with item addresses and
+  expire them, `usage-read.ts` builds the answer of `usage.read` for one reader, `usage-trash.ts` moves
+  counts with a trashed project and `usage-workspace.ts` is the one module that knows the workspace.
+- The operation boundary calls the recorder once after a counted answer exists. It never waits for the
+  disk, changes an answer or reads the audit log; no usage module imports audit or telemetry code, and a
+  test scans the imports. `state/usage/` is a durable store that is registered in the persisted-key
+  inventory and holds counts only.
+- `src/app/usage/` is the Traffic display: `traffic-store.ts` asks the server only when the option is on,
+  `use-usage.ts` connects it to React, and the badge, mark, legend, toggle and sort components render
+  from it. With the option off they render nothing.
+
 ### Browser shell and graph rendering
 
 - `src/app/main.tsx` composes the application. `src/app/workspace/` is the workbench shell. Its about 18
@@ -489,6 +507,7 @@ concatenating project, document or item names.
 | Definition syntax | `src/shared/core/model.ts`, `src/shared/validation/`, `src/shared/odcs/` and pinned schemas |
 | Byte-preserving item edit | `src/shared/edit/`, `src/app/edit/` and `src/shared/editor/patch.ts` |
 | Metrics/bindings/plans | `src/shared/metrics/`, `src/app/metrics/`, `src/server/agent/` |
+| Usage counts and the Traffic display | `src/server/usage/`, `policies/usage-counted-operations.json`, `src/app/usage/`, `docs/usage-counters.md` |
 | Graph layout/routing | `FullGraph.tsx`, `src/app/graph/`, `src/app/odcs/` |
 | Git/repository behavior | `src/server/projects/git.ts`, `scm.ts`, working-copy modules |
 | Theme/brand | Tokens and `public/brand/`; server sanitation under `src/server/brand/` |

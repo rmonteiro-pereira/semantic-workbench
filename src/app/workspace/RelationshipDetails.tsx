@@ -7,6 +7,8 @@ import type { Relationship } from '../../shared/core/model';
 import { editEntity } from '../../shared/core/model';
 import type { Doc } from '../projects/api';
 import type { ItemTarget, RdfTarget, ValidatedModel } from './types';
+import { TrafficBadge } from '../usage/TrafficBadge';
+import { relationshipAddressText } from '../usage/usage-addresses';
 
 type Props = {
   activeGroup:
@@ -85,6 +87,7 @@ export function RelationshipDetails({
       )}
       <h2>{relationship.label}</h2>
       <div className="badge">{relationship.data.kind}</div>
+      <TrafficBadge address={relationshipAddressText(relationship)} />
       {(() => {
         const targetValue = relationshipTarget(relationship);
         const rdfItem = targetValue ? null : rdfEdgeTarget(relationship);

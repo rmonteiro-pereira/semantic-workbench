@@ -24,6 +24,9 @@ import { useViewRestore, type Fullscreen } from './fullscreen';
 import { NeighborhoodLinks, NeighborhoodTools } from './NeighborhoodToolbar';
 import { NODE, useNeighborhoodNodes } from './useNeighborhoodNodes';
 import { useNeighborhoodView } from './useNeighborhoodView';
+import { TrafficMark } from '../usage/TrafficMark';
+import { TrafficLegend } from '../usage/TrafficLegend';
+import { entityAddressText } from '../usage/usage-addresses';
 // Incoming neighbors appear left of the center and outgoing neighbors right. Navigation history
 // also records steps into other project files.
 /** Identifies a navigation target in another project document. */
@@ -355,6 +358,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
                     </button>
                   )}
                 </div>
+                <TrafficMark address={entityAddressText(entity)} />
               </div>
             ),
           },
@@ -697,6 +701,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
           </ReactFlow>
         )}
       </div>
+      <TrafficLegend />
     </div>
   );
 }

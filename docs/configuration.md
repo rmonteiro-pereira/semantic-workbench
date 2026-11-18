@@ -56,6 +56,8 @@ out of the repository and use the deployment's secret store.
 | `SW_COMMIT` | Unset; optional build revision reported by health |
 | `CONTAINER_APP_REVISION` | Platform-provided revision identity, if present |
 | `SW_LOG_LEVEL` | `info`; debug/info/warn/error/silent, case-insensitive |
+| `SW_USAGE_COUNTERS` | Unset (off); `on` counts requests through the workbench, see [usage counters](usage-counters.md) |
+| `SW_USAGE_RETENTION_DAYS` | `30`; whole number of days from 1 to 365 that counts are kept |
 
 Server mode always serves `dist/`, regardless of `SW_SERVE_STATIC`. Development Vite remains a
 separate frontend and serves its own public assets. Local mode rejects a non-loopback bind;

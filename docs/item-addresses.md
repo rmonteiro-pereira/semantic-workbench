@@ -144,6 +144,7 @@ reconciliation.
 | Project and personal trash views | Archived `view.json` and `views/<project>.json` use the same view shape; archived definitions supply conversion context. |
 | Browser mapping/lineage center preferences | Uniquely matched stable card keys convert with a backup; unconvertible values stay unchanged. Other navigation preferences contain no item keys. |
 | Browser action history | Selection/centers use addresses in memory; serialized history holds a session/cursor. Reload does not restore a recording. |
+| Usage counters `state/usage/<project>/<day>.json` | `counts` keys are absolute item addresses. They are converted by replay: reads and compaction apply the address migration records after `migratedThrough`, so no backup is needed. The file holds counts only. |
 
 Shared views live at `state/views/<project>.json`; personal views live at
 `state/users/<owner>/views/<project>.json`. Browser center keys are `workbench:mapping-center:*`

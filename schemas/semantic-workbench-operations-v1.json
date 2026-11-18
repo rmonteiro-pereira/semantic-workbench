@@ -194,6 +194,9 @@
             }
           ]
         },
+        "usage": {
+          "const": true
+        },
         "outcomeClassifier": {
           "enum": [
             "commit",

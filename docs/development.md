@@ -404,6 +404,16 @@ unimplemented or superseded detail.
 
 `bun test tests/mcp` runs the endpoint's tests: the tool contract and route inventory comparisons, the request gate, the capability file, protocol conformance for the current and earlier protocol eras, body caps, the read, write, commit and receipt tools, the authorization matrix for every test identity, audit records and the outbound-call check. `bun run test:mcp` is the scripted acceptance run with the reference client; it runs in the verify step after `bun test`. `docs/mcp-acceptance.md` records its result and the client versions. Agent endpoint mutants live in `scripts/mcp-mutants.ts` with their assertions in `scripts/mcp-mutation-cases.ts`.
 
+## Usage counters
+
+`bun test tests/usage/ tests/auth/usage-read-parity.test.ts` covers counting, the store, migration, retention,
+the read operation and privacy; `tests/usage-*.test.ts*` and `tests/admin-settings-usage.test.tsx` cover the Traffic
+display. `bun run test:usage-traffic` drives the display in a browser against a mocked usage answer. Its
+`--record` option rewrites `tests/fixtures/usage/dom-baseline.json`, the structure of every view with
+Traffic off; record it only from source without the Traffic option. Usage mutants run with
+`bun scripts/mutation-tests.ts --only usage`.
+`bun scripts/usage-benchmark.ts` measures what counting adds to 5,000 counted requests, with counters off and on.
+
 ## Operation boundary
 
 Connection effects narrow allowed decisions; they preserve existence-hiding refusals and the

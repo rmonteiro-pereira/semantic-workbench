@@ -13,6 +13,8 @@ export type DataLayout = {
   state: string;
   views: string;
   drafts: string;
+  /** Identity-free usage counts, one folder per project; created only when counters are on. */
+  usage: string;
   journal: string;
   trash: string;
   backup: string;
@@ -35,6 +37,7 @@ export function dataLayout(root = process.env.DATA_DIR || 'data', cacheDir: stri
     state,
     views: join(state, 'views'),
     drafts: join(state, 'drafts'),
+    usage: join(state, 'usage'),
     journal: join(state, 'journal'),
     trash: join(rootDir, 'trash'),
     backup: join(rootDir, 'backup'),

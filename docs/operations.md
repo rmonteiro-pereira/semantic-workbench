@@ -31,6 +31,7 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 | files.ignore | POST /api/projects/:slug/gitignore | edit | project | localWrite | GIT_REQUEST_LIMIT | local-edit |
 | metrics.list | GET /api/projects/:slug/metrics | read | project | read | none | local-edit |
 | projects.deleteImpact | GET /api/projects/:slug/delete-impact | read | project | read | none | local-edit |
+| usage.read | GET /api/projects/:slug/usage | read | project | read | none | never |
 | metrics.save | POST /api/projects/:slug/metrics | edit | project | localWrite | METRIC_REQUEST_LIMIT | local-edit |
 | people.list | GET /api/projects/:slug/people | edit | project | read | none | local-edit |
 | metrics.preview | POST /api/projects/:slug/metrics/preview | read | project | read | METRIC_REQUEST_LIMIT | local-edit |

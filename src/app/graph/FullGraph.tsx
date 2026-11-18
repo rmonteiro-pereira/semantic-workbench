@@ -21,6 +21,8 @@ import { VALUE_KINDS, kpisKey, readFlag, readHideValues, writeFlag, writeHideVal
 import type { Entity, Relationship } from '../../shared/core/model';
 import { edgeTypes, nodeTypes } from './FullGraphNodes';
 import { useFullGraphLayout } from './useFullGraphLayout';
+import { TrafficToggle } from '../usage/TrafficToggle';
+import { TrafficLegend } from '../usage/TrafficLegend';
 
 function entityAddress(entity: import('../../shared/core/model').Entity | undefined) {
   return entity && isStructuredEntity(entity) ? formatAddress(entity.address) : undefined;
@@ -456,6 +458,7 @@ export function FullGraph(props: Props) {
               <ShowToggle on={miniMap} onToggle={toggleMiniMap} title="Mini-map of the whole model">
                 Mini-map
               </ShowToggle>
+              <TrafficToggle />
             </OptionGroup>
           </GraphOptions>
           {props.fullscreen && <FullscreenButton fullscreen={props.fullscreen} />}
@@ -530,6 +533,7 @@ export function FullGraph(props: Props) {
           Arranging {display.entities.length} graph nodes…
         </div>
       )}
+      <TrafficLegend />
       <div className="full-graph-status" data-entity-count={overview.entities.length} data-relationship-count={overview.links.length} data-routing={routeMetrics?.executedOn ?? 'pending'}>
         {hideValues && <span>{valueIds.size} value types hidden</span>}
         {hideKpis && <span>{kpiIds.size} metrics hidden</span>}

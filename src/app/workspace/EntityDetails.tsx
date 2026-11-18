@@ -6,6 +6,8 @@ import { type ItemKind } from '../../shared/edit/item-model';
 import type { Entity } from '../../shared/core/model';
 import { editEntity } from '../../shared/core/model';
 import type { Doc } from '../projects/api';
+import { TrafficBadge } from '../usage/TrafficBadge';
+import { childAddressText, entityAddressText, relationshipAddressText } from '../usage/usage-addresses';
 import type { ItemTarget, RdfTarget, ValidatedModel } from './types';
 
 type Props = {
@@ -78,6 +80,7 @@ export function EntityDetails({
         Explore neighborhood
       </button>
       <div className="badge">{entity.kind}</div>
+      <TrafficBadge address={entityAddressText(entity)} />
       {(() => {
         const rdfItem = rdfTarget(entity);
         if (rdfItem)
@@ -186,10 +189,13 @@ export function EntityDetails({
               setSelected('');
             }
             return (
-              <button key={edge.id} onClick={handleAddChildClick2}>
-                <span>{edge.label}</span>
-                <small>{model.entities.find(n => n.id === (edge.source === entity.id ? edge.target : edge.source))?.name}</small>
-              </button>
+              <React.Fragment key={edge.id}>
+                <button onClick={handleAddChildClick2}>
+                  <span>{edge.label}</span>
+                  <small>{model.entities.find(n => n.id === (edge.source === entity.id ? edge.target : edge.source))?.name}</small>
+                </button>
+                <TrafficBadge compact address={edge.source === entity.id ? relationshipAddressText(edge) : undefined} />
+              </React.Fragment>
             );
           })}
       </div>
@@ -203,9 +209,10 @@ export function EntityDetails({
         <>
           <div className="section-label">FIELDS</div>
           {entity.fields.map((field, i) => (
-            <div className="field" key={i}>
-              {field}
-            </div>
+            <React.Fragment key={i}>
+              <div className="field">{field}</div>
+              <TrafficBadge compact address={entity.kind === 'Dataset' ? childAddressText(entity, 'field', field) : undefined} />
+            </React.Fragment>
           ))}
         </>
       )}

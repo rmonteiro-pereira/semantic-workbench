@@ -5,6 +5,7 @@ import { ScrollStrip } from '../components/ScrollStrip';
 import { EntityName } from './EntityName';
 import { CompactControls } from './CompactControls';
 import { GraphOptions, OptionGroup, ShowToggle } from './GraphOptions';
+import { TrafficToggle } from '../usage/TrafficToggle';
 import { PierceControls } from './PierceControls';
 import { ZoomButtons } from './ZoomButtons';
 import { FullscreenButton } from './FullGraph';
@@ -198,6 +199,7 @@ function NeighborhoodOptions({
             Metrics
           </ShowToggle>
         )}
+        <TrafficToggle />
       </OptionGroup>
       <OptionGroup title="Layout">
         <button onClick={onRearrange} title="Put every node back in its column">

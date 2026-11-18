@@ -55,6 +55,7 @@
     "test:clipping": "bun scripts/clipping-browser-check.ts",
     "test:mapping-graph": "bun scripts/mapping-graph-browser-check.ts",
     "test:back-history": "bun scripts/back-history-browser-check.ts",
+    "test:usage-traffic": "bun scripts/usage-traffic-browser-check.ts",
     "audit:verify": "bun scripts/audit-verify.ts",
     "mcp:rotate": "bun scripts/mcp-rotate.ts",
     "test:mcp": "bun scripts/mcp-acceptance.ts",

@@ -29,6 +29,13 @@ not configure a production deployment.
   through the normal publication path, or close and restore it. A Proposals section in Source control
   (server mode only) lists, creates and shows proposals. Limits: 50 open proposals per repository, names up to
   80 characters, identifiers up to 40.
+- Opt-in usage counters (`SW_USAGE_COUNTERS=on`, `SW_USAGE_RETENTION_DAYS`, default 30) count requests through
+  the workbench per published item, day, operation and origin. They hold no identity, never read the audit log,
+  exclude browser views, follow address migrations, expire with the retention and follow a project through the
+  trash. The project operation `usage.read` serves them within each reader's file access.
+- A **Traffic** option on the graphs shades entities and relationships by request count with weight rather than
+  colour alone, shows counts with their period in details, sorts the catalog and metrics lists by traffic, and
+  Admin Settings shows whether counters are on. The option is off by default.
 
 ### Changed
 

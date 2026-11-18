@@ -7,6 +7,7 @@ import type { Entity, Relationship } from '../../shared/core/model';
 import type { Doc } from '../projects/api';
 import { EntityDetails } from './EntityDetails';
 import { RelationshipDetails } from './RelationshipDetails';
+import { useTrafficScope } from '../usage/use-usage';
 import type { ItemTarget, RdfTarget, ValidatedModel } from './types';
 
 type Props = {
@@ -85,6 +86,7 @@ export function DetailsPanel({
   relatedDocuments,
   openDocument,
 }: Props) {
+  useTrafficScope(current?.project, current?.path, model?.name);
   function renderDetails() {
     if (relationship) {
       return (

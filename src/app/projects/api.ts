@@ -1,4 +1,5 @@
 import type { PublishedStatus } from '../../shared/scm/published-status';
+import type { UsageAnswer } from '../../server/usage/usage-read';
 /** Defines browser requests and response types for project files, metrics and source control. */
 import { fileSaveReply, batchSaveReply } from './save-reply';
 import type { DeclaredMigration } from '../../shared/core/address-migration';
@@ -306,6 +307,8 @@ export const api = {
   agentPlan: (request: Pick<PlanRequest, 'mappingId' | 'concepts' | 'metrics' | 'dimensions'> & { project: string }) =>
     apiFetch('/api/preview/plan', send('POST', request)).then(r => json<AgentPlan>(r)),
   metrics: (project: string) => apiFetch(`/api/projects/${encodeURIComponent(project)}/metrics`).then(r => json<KpiSummary[]>(r)),
+  /** Counts of requests through the workbench for a project's items, limited to what the caller may read. */
+  usage: (project: string) => apiFetch(`/api/projects/${encodeURIComponent(project)}/usage`).then(r => json<UsageAnswer>(r)),
   explain: (project: string, path: string, metric: string, query: ExplainQuery = {}, signal?: AbortSignal) =>
     apiFetch(`${fileUrl(project, path)}/explain/${encodeURIComponent(metric)}${explainQuery(query)}`, {
       signal,

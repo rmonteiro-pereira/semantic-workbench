@@ -363,6 +363,19 @@ one counted card per area. Expand an area or choose **Expand all** to
 show every entity. Internal relationships remain available when the area opens. **Fit model**
 returns the complete layout to view. A finite viewport cannot show unlimited full-size labels.
 
+### Traffic
+
+When an operator has turned usage counters on, **Traffic** in the graph options (Graph and
+Neighborhood; on a phone, behind **Controls**) shades entities and relationships by how many requests
+through this workbench asked about them in the last 30 days: a heavier outline, a longer bar and a
+relationship line that grows. The legend below the graph names what is counted. Selecting an item shows
+its count with the period and the split by operation, for example "1,200 requests through this workbench
+in the last 30 days", and on **Catalog** and **Metrics** a **Sort by traffic** switch lists the busiest
+first. Browser views are not counted, so opening an item here never raises its count. Traffic is off by
+default and remembered for each model in this browser. If counters are off it says "Not collected" (an
+Admin is told how to turn them on); it also says when nothing was counted yet, when counts are loading,
+failed (with **Retry**) or unavailable for some days. See [usage counters](usage-counters.md).
+
 ### Neighborhood and expansion
 
 Incoming neighbors appear left of the center; outgoing neighbors appear right. The initial view
