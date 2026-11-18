@@ -3,6 +3,7 @@ import { conceptKindLookup, isAttribute, type ConceptShape } from '../attributes
 import { addressKinds } from '../core/address-kinds';
 import { formatAddress } from '../core/item-address';
 import { addressesOfModel } from '../core/model-addresses';
+import { InputError } from '../validation/diagnostics';
 import type { DiffItem } from './item-change';
 
 const childFields: Record<string, string[]> = {
@@ -24,6 +25,9 @@ export function itemsOfModel(model: Record<string, unknown>, project: string, pa
   return addressesOfModel(model, { project, document: path.split('/') }).map(item => {
     let value: any = model;
     for (const segment of item.path) value = value[segment];
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      throw new InputError([{ severity: 'error', code: 'structure', path: '/' + item.path.join('/'), message: 'Expected an item object.' }]);
+    }
     const data: Record<string, unknown> = { ...value };
     for (const key of childFields[item.kind] ?? []) delete data[key];
     // A format marker chooses validation; it is not an item property.

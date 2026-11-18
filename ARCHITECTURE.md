@@ -82,6 +82,7 @@ The integration view shows what the application reads and contacts, and what it 
 - `src/server/projects/item-diff-sides.ts` takes comparison definitions and provenance from the same
   published commit, saved working copy, visible branch tip or readable commit, using the snapshot size limits.
   `src/server/auth/item-diff-access.ts` applies the project, file and branch visibility rules.
+  `src/server/projects/item-diff.ts` compares structured items with destination-only migrations and reports files it could not compare.
 - `src/shared/item-diff/` owns comparison side parsing, parsed model item extraction, field comparison and
   address-based pairing independently of files, Git and browser state. Child item collections do not
   cascade changes to their containers; relationship roles remain a named relationship field.
