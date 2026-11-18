@@ -271,8 +271,18 @@ The application revision includes `481d012b`. The retry of the browser history s
 
 - The graph worker's Network area frames preserve space above cards. Counted areas can use larger, compensated titles while ordinary Network uses 20 px.
 - At 390×844 four UBL semantic area heading plates overlap a counted card, reproducibly in both captures after the Mall counted-fit correction.
-- Use the existing grouped-layout header reserve for counted-area interiors. Leave normal Network widths and entity header spacing in place.
+- Reserve two compensated title lines for counted-area interiors. Leave normal Network widths and entity header spacing in place.
 - Replay UBL semantic and Mall counted areas in both themes and verify the title and card bounds, including that Fit still keeps all tiles inside.
+- The first candidate with the 160 px Layered reserve kept all 11 Mall cards in the pane, but the smallest name was 8.97 px. Use 128 px for two heading
+  lines without allocating a link-summary row on counted Network areas.
+
+- The 128 px header by itself still produced a four-column Mall layout with 8.97 px counts. Reducing the gap between counted tiles from 70 to 60 graph
+  units kept clearance and brought the smallest fitted count above 9 px.
+- `sw-midgard-run -- bash scripts/ui-review/gate-007/counted-headings-launch.sh` returned 0. Both light and dark replays passed twice. The UBL ten
+  title plates clear their cards and Mall keeps all 11 count cards inside the pane with the smallest count at 9.21054 px. The unit group
+  `bun test tests/overview-capacity.test.ts tests/graph-tiles.test.ts tests/full-layout.test.ts` reported 25 pass, 0 fail, 3272 assertions.
+- The opened pair `before/fixes/ubl-counted-headings-390.png` and `after/fixes/ubl-counted-headings-390.png` has a 30.750091% pixel difference.
+  The four wrapped titles now have clearance above the card border. Fixed by `eaf4d1ea` for m9.
 
 ### Counted Mall graph on a phone
 
@@ -496,6 +506,10 @@ The confidential-only scanner passed for the task and evidence documents. Neithe
 The original review archive contains 3,559 PNGs. A read-only count by folder measured 72 in `auth-pages`, 175 in `followup`, 220 each in `local-dark` and `local-light`, 228 each in `server-dark` and `server-light`, 51 in `server-personas` and 2,365 in `states`. The superseded comparison bundle contained exact copies of all 3,559, verified byte by byte before removal. The source archive remains intact. The current comparison uses newly captured release, main and candidate frames.
 
 Status: in progress. No visual pair is classified before both images have been opened.
+
+The current gallery has 621 rows. Of these, 189 are intended fixes, 27 are merged-feature differences, 197 are neutral, 32 record verified
+regression corrections, 10 are unchanged and 166 are unreviewed. The counted Network heading and compact mapping pairs were opened at 390×844.
+The gallery and CSV passed the local path and content scan. Every changed row references a present strip. The gallery folder uses 53 MB on disk.
 
 ## Differences for owner acceptance
 
