@@ -97,6 +97,14 @@ async function openFile(path: string) {
   await expectFileOpen(page);
 }
 const tabs = () => page.locator('.tabs');
+
+async function openCatalogConcept(name: string) {
+  await tabs().getByRole('button', { name: 'Catalog', exact: true }).click();
+  const concept = page.getByText(name, { exact: true });
+  const card = page.locator('.catalog-card').filter({ has: concept });
+  await card.getByRole('button', { name: /View details/ }).click();
+}
+
 const editor = (name: string | RegExp) => page.getByRole('dialog', { name: typeof name === 'string' ? `Edit ${name}` : name });
 async function saveDialog(dialog: ReturnType<typeof editor>) {
   await expect(dialog.getByRole('button', { name: 'Save to file', exact: true })).toBeEnabled({
@@ -127,8 +135,7 @@ try {
     await commit(commerce.slug, 'concept edit');
   });
   await check('graph inspector → E opens the editor; Source tab shows only the item; an invalid edit is flagged and Save stays off', async () => {
-    await tabs().getByRole('button', { name: 'Catalog' }).click();
-    await page.locator('.catalog-card').filter({ hasText: 'Order' }).first().locator('button').first().click();
+    await openCatalogConcept('Order');
     await expect(page.getByRole('complementary', { name: 'Definition details' })).toBeVisible();
     await page.keyboard.press('e');
     const dialog = editor('Order');
@@ -156,14 +163,7 @@ try {
     await commit(commerce.slug, 'source fragment edit');
   });
   await check('relationship → Edit: the related concept and reading change in place', async () => {
-    await tabs().getByRole('button', { name: 'Catalog' }).click();
-    await page
-      .locator('.catalog-card')
-      // A concept that metrics measure carries a count of them between its type and its name.
-      .filter({ hasText: /^EntityType(\d+ metrics?)?Customer/ })
-      .locator('button')
-      .first()
-      .click();
+    await openCatalogConcept('Customer');
     await page.locator('.related-edges button').filter({ hasText: 'places' }).click();
     await page.getByRole('complementary', { name: 'Definition details' }).getByRole('button', { name: 'Edit places', exact: true }).click();
     const dialog = editor('places');
@@ -222,14 +222,7 @@ try {
     await page.screenshot({ path: screenshotPath('/tmp/workbench-item-add.png') });
     await dialog.getByRole('button', { name: 'Save to file' }).click();
     await expect(dialog).toHaveCount(0);
-    await tabs().getByRole('button', { name: 'Catalog' }).click();
-    await page
-      .locator('.catalog-card')
-      // A concept that metrics measure carries a count of them between its type and its name.
-      .filter({ hasText: /^EntityType(\d+ metrics?)?Product/ })
-      .locator('button')
-      .first()
-      .click();
+    await openCatalogConcept('Product');
     await page.getByRole('complementary', { name: 'Definition details' }).getByRole('button', { name: 'Add relationship' }).click();
     const relationshipDialog = page.getByRole('dialog', { name: /^Add relationship/ });
     await relationshipDialog.getByRole('textbox', { name: 'Name', exact: true }).fill('supplied_by');
@@ -239,13 +232,7 @@ try {
     await expect(relationshipDialog).toHaveCount(0);
     expect(read(commerce.slug, 'commerce-business.ossie.yaml')).toContain('    relationships:\n      - name: supplied_by\n        roles:\n          - concept: Supplier\n');
     // Deleting Supplier lists the relationship that names it and removes it too.
-    await tabs().getByRole('button', { name: 'Catalog' }).click();
-    await page
-      .locator('.catalog-card')
-      .filter({ hasText: /^EntityTypeSupplier/ })
-      .locator('button')
-      .first()
-      .click();
+    await openCatalogConcept('Supplier');
     await page.getByRole('complementary', { name: 'Definition details' }).getByRole('button', { name: 'Delete Supplier' }).click();
     const del = page.getByRole('dialog', { name: 'Delete Supplier?' });
     await expect(del.locator('.delete-list')).toContainText('relationship supplied_by of Product');
