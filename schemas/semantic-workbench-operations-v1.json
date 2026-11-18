@@ -88,7 +88,8 @@
                 "TRASH_REQUEST_LIMIT",
                 "ADMIN_REQUEST_LIMIT",
                 "BROWSER_REPORT_REQUEST_LIMIT",
-                "OAUTH_REQUEST_LIMIT"
+                "OAUTH_REQUEST_LIMIT",
+                "AGENT_PANEL_REQUEST_LIMIT"
               ]
             },
             "response": {

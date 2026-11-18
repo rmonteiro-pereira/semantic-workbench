@@ -459,6 +459,18 @@ acceptance are distinct from loopback mock-provider tests.
 
 ## Connect an agent
 
+Open **Person menu → Agent panel** to talk to an ACP agent you run yourself. The panel is closed
+by default. A person-run relay hosts your agent; the workbench offers text-file reads and guarded
+writes, with diffs, Undo, cancellation and permission questions. It launches no agent, calls no
+model and adds no outbound service. Its scopes narrow your roles and never grant commit, push,
+publish, terminal or raw filesystem access. The agent may read draft text it opens and forward it
+to its model provider. See [the panel guide and threat model](docs/agent-panel.md).
+
+| Relay variable | Meaning |
+| --- | --- |
+| `SW_ACP_CREDENTIAL` | Single-use server-mode setup credential, set only for the person-run relay; never store a real value in an environment file. Local mode reads the installation capability instead. Server-mode integration awaits the connection service. |
+
+
 Local mode offers an endpoint, `POST /api/mcp`, for agents that speak the Model Context Protocol. A connected agent can read definitions, findings, Git history and the published mapping context, check proposed text, change files and commit exactly the files it names. It uses 21 tools, each the twin of an existing route, so access control, content guards, version checks and the audit record are the browser's own. The workbench only answers requests: it never runs a query plan, contacts a warehouse or calls a model.
 
 Semantic Workbench does not call a language model. When you connect an external agent, that agent can receive definitions you authorize and may send them to its model provider; its configuration and policies govern that onward use.

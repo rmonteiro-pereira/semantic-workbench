@@ -1,6 +1,6 @@
 // Shared label vocabulary keeps instrumentation independent of authorization modules.
 /** Transport origins supported by operation calls and audit records. */
-export const CALLER_ORIGINS = ['http', 'mcp'] as const;
+export const CALLER_ORIGINS = ['http', 'mcp', 'acp'] as const;
 /** Transport that authenticated one operation's caller. */
 export type CallerOrigin = (typeof CALLER_ORIGINS)[number];
 /** Closed outcomes accepted by audit classification and operation metrics. */

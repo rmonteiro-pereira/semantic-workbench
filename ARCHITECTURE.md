@@ -425,7 +425,7 @@ concatenating project, document or item names.
 5. All worktrees of a repository share its serialized Git queue. Sparse paths, multi-project
    ownership and protected content apply to both direct changes and incoming Git content.
 
-### Agent request
+### Agent operation
 
 1. The route gates the request, streams its body under the cap of the named tool and gives it to the protocol library, which checks the headers, the envelope and the revision.
 2. The tool checks its arguments against its JSON Schema, takes a place under the call limits and builds the request of its twin route.
@@ -493,3 +493,19 @@ concatenating project, document or item names.
 Use [the development guide](docs/development.md) for command syntax, fixture rules and validation.
 Keep configuration/API/operation details in their canonical guides instead of appending release
 history or per-control instructions to this architecture map.
+
+## Agent panel
+
+`src/server/acp/` owns relay authentication, protocol framing, session lifetime and the file
+adapter into the operation boundary. `src/shared/agent-panel/` holds the content statement and
+event contracts. `src/app/agent/` owns the in-memory browser event reduction and panel transport;
+it uses the ordinary browser API wrapper for write intent and ordinary guarded saves for Undo.
+
+
+The person menu dynamically imports `AgentPanelHost` only on selection. The host mounts a sheet
+beside the existing canvas and removes its container on close, leaving closed-screen geometry
+unchanged. `useAgentSession` owns stream retries and the known-session 404 inference;
+`agent-events.ts` deduplicates replay and combines streamed text. Browser storage holds only a
+session id. `ChangeCard` restores text with the ordinary guarded save and its accepted base hash.
+The workbench never launches an agent, calls a model, supplies credentials to an agent or names
+a tool server. Server-mode connection assembly is a separate integration responsibility.

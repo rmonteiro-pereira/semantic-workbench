@@ -301,7 +301,7 @@ where a vocabulary or a route table must learn `acp`.
 013 keeps its connection record transport-neutral: it carries an origin, `mcp` or `acp`, set by the
 creator. The relay is an ordinary registered program (013, M3); the Admin registers it from the
 configuration this feature documents, and no program is built in. 015 calls `createConnectionForSession`
-with the relay program, the effects `read` and `localWrite` and the origin `acp`, resolves the relay's
+with the relay program, the named scopes `read` and `edit` (effects `read` and `localWrite`) and the origin `acp`, resolves the relay's
 credential through 013's `resolve`, and subscribes with `onConnectionEnded`. If 013's names differ at
 implementation, the contract in `contracts/relay-connection.md` is what 013 must provide.
 

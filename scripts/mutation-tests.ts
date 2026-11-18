@@ -574,6 +574,7 @@ mutants.push(...observabilityMutants);
 mutants.push(...operationBoundaryMutants);
 // The local agent endpoint: access checks, cursors, receipts, tool twins, the commit tool and the audit fields.
 mutants.push(...mcpMutants);
+mutants.push(...(await import('./acp-mutants')).acpMutants);
 mutants.push(...connectionsMutants);
 const connectionsOnly = process.argv.includes('connections');
 if (connectionsOnly) mutants.splice(0, mutants.length, ...connectionsMutants);

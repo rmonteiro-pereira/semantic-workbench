@@ -43,6 +43,10 @@ export const gateSuites: string[] = [
 /** Suites that serve their own built frontend and require server container coverage. */
 export const selfServedSuites = ['test:connections', 'test:auth', 'test:two-editors', 'test:admin', 'test:brand'];
 
+// The panel browser check serves the built app from its own isolated workspace.
+gateSuites.push('test:acp');
+selfServedSuites.push('test:acp');
+
 /** Explicit reasons why other test scripts are not browser gate suites. */
 export const exclusions = [
   { script: 'test:mutation', reason: 'Runs in the mutation step' },

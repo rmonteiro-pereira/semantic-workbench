@@ -2,7 +2,7 @@
 import type { AuditEntry } from '../../src/server/auth/audit';
 
 /** Minimal replayable record with a distinct identity and target. */
-export function replayEntry(index: number, origin?: 'mcp'): AuditEntry {
+export function replayEntry(index: number, origin?: 'mcp' | 'acp'): AuditEntry {
   return {
     type: 'audit',
     at: '2026-10-01T00:00:00Z',

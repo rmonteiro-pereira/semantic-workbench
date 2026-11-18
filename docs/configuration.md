@@ -337,3 +337,14 @@ The stdio bridge uses `SW_SERVER_URL` for the server origin, `SW_CLIENT_ID` for 
 registered agent program and `SW_SETUP_CREDENTIAL` or `--setup-credential-file` for
 first use. See the [server stdio bridge guide](mcp.md#server-stdio-bridge) for permissions
 and sign-out.
+
+## Agent panel relay
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `SW_ACP_CREDENTIAL` | absent | Single-use server-mode setup credential consumed by the person-run relay, exchanged at `/oauth/token`. Never a server setting; never forwarded to the agent. Local mode uses the installation capability instead. |
+
+The relay's `--session <id>.<code>`, `--url <origin>` and agent command after `--` come from the
+panel connection instructions. `DATA_DIR` and `SW_PORT` locate the local capability and server.
+Do not put a real credential in an environment file. See [the panel guide](agent-panel.md) for
+scopes, lifetime and the pending server-mode integration.

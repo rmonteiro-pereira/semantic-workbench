@@ -1057,6 +1057,48 @@
       }
     },
     {
+      "case": "POST /api/acp/sessions",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/acp/sessions/:id/events",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/acp/sessions/:id/prompt",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/acp/sessions/:id/cancel",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/acp/sessions/:id/questions/:question",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "DELETE /api/acp/sessions/:id",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
       "case": "GET/HEAD pages",
       "action": "read",
       "resource": {

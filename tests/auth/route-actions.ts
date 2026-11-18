@@ -159,3 +159,19 @@ export const readRouteExamples = routeExamples.filter(
     !/^\/api\/(admin|audit)(\/|$)/.test(example.path) &&
     (example.method === 'GET' || example.path.endsWith('/preview') || ['/api/agent/plan', '/api/preview/plan'].includes(example.path) || example.path.endsWith('/item-addresses/resolve')),
 );
+
+// Panel and relay streams carry conversation events, so they are outside the definition-read matrix.
+routeExamples.splice(
+  routeExamples.length - 1,
+  0,
+  { method: 'POST', path: '/api/acp/sessions' },
+  { method: 'GET', path: '/api/acp/sessions/missing/events' },
+  { method: 'POST', path: '/api/acp/sessions/missing/prompt' },
+  { method: 'POST', path: '/api/acp/sessions/missing/cancel' },
+  { method: 'POST', path: '/api/acp/sessions/missing/questions/q1' },
+  { method: 'DELETE', path: '/api/acp/sessions/missing' },
+  { method: 'POST', path: '/api/acp/relay/missing/hello' },
+  { method: 'POST', path: '/api/acp/relay/missing/frames' },
+  { method: 'GET', path: '/api/acp/relay/missing/stream' },
+  { method: 'POST', path: '/api/acp/relay/missing/bye' },
+);

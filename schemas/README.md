@@ -29,6 +29,11 @@ Remote `$ref` identifiers resolve to these local files. The earlier core semanti
 upstream paths contain identical schema bytes. Versioned ontologies use the pinned ontology
 schema; unversioned compatibility layouts retain their documented structural profile.
 
+The Agent Client Protocol schema `acp-1.32.0.json` is the unmodified `schema/v1/schema.json` of the
+protocol's release `schema-v1.32.0` (Apache-2.0), retrieved on 2026-11-17. It is an external
+protocol, not a definition standard. The server uses it to validate every frame of the agent panel;
+the browser does not load it. See [the agent panel guide](../docs/agent-panel.md#protocol-record).
+
 ## Application schemas
 
 These schemas describe workbench storage conventions, not additions to the upstream standards:

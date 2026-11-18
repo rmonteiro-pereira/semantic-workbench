@@ -115,6 +115,8 @@ export function createRequestAuthentication(options: RequestAuthenticationOption
     return validCsrf(request, options.publicOrigin, logoutToken);
   }
   async function authenticate(request: AccessRequest, requestId: string): Promise<Principal | Response | undefined> {
+    // Relay routes authenticate their own bearer, then invoke the operation boundary.
+    if (/^\/api\/acp\/relay\/[A-Za-z0-9_-]{1,64}\/(hello|frames|stream|bye)$/.test(new URL(request.url).pathname)) return undefined;
     if (mode === 'server') {
       const limited = await limitedResponse(request);
       if (limited) return limited;

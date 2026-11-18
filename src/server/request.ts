@@ -33,6 +33,8 @@ export const ADMIN_REQUEST_LIMIT = 1_000_000;
 export const BROWSER_REPORT_REQUEST_LIMIT = MAX_REPORT_BODY_BYTES;
 /** Maximum body for the token endpoint and the connection forms, which hold a few short fields. Assumed. */
 export const OAUTH_REQUEST_LIMIT = 4096;
+/** Maximum body of one agent panel request: a protocol frame of 1 MiB and the envelope around it. */
+export const AGENT_PANEL_REQUEST_LIMIT = 1_048_576 + 16_384;
 /** Named byte limits consumed by route parsers and the operation inventory. */
 export const REQUEST_LIMITS = {
   FILE_SAVE_REQUEST_LIMIT,
@@ -48,6 +50,7 @@ export const REQUEST_LIMITS = {
   ADMIN_REQUEST_LIMIT,
   BROWSER_REPORT_REQUEST_LIMIT,
   OAUTH_REQUEST_LIMIT,
+  AGENT_PANEL_REQUEST_LIMIT,
 } as const;
 
 /** Parses a body within maxBytes, using empty for an absent or empty optional body. */

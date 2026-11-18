@@ -2137,6 +2137,176 @@
         "increment": "never",
         "reason": "The authenticated protocol transport hands each tool call to the twin of an ordinary route; it is not itself an operation."
       }
+    },
+    "POST /api/acp/sessions": {
+      "id": "agentPanel.start",
+      "handlerChecks": [],
+      "limits": {
+        "request": "AGENT_PANEL_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["localWrite"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The browser-only route belongs to the agent panel, which acts for the signed-in person; the agent's own file requests run as twins of ordinary routes."
+      }
+    },
+    "GET /api/acp/sessions/:id/events": {
+      "id": "agentPanel.events",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "stream",
+        "work": "light"
+      },
+      "effects": ["read"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The browser-only route belongs to the agent panel, which acts for the signed-in person; the agent's own file requests run as twins of ordinary routes."
+      }
+    },
+    "POST /api/acp/sessions/:id/prompt": {
+      "id": "agentPanel.prompt",
+      "handlerChecks": [],
+      "limits": {
+        "request": "AGENT_PANEL_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["localWrite"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The browser-only route belongs to the agent panel, which acts for the signed-in person; the agent's own file requests run as twins of ordinary routes."
+      }
+    },
+    "POST /api/acp/sessions/:id/cancel": {
+      "id": "agentPanel.cancel",
+      "handlerChecks": [],
+      "limits": {
+        "request": "AGENT_PANEL_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["localWrite"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The browser-only route belongs to the agent panel, which acts for the signed-in person; the agent's own file requests run as twins of ordinary routes."
+      }
+    },
+    "POST /api/acp/sessions/:id/questions/:question": {
+      "id": "agentPanel.answer",
+      "handlerChecks": [],
+      "limits": {
+        "request": "AGENT_PANEL_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["localWrite"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The browser-only route belongs to the agent panel, which acts for the signed-in person; the agent's own file requests run as twins of ordinary routes."
+      }
+    },
+    "DELETE /api/acp/sessions/:id": {
+      "id": "agentPanel.end",
+      "handlerChecks": [],
+      "limits": {
+        "request": "AGENT_PANEL_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["localWrite"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The browser-only route belongs to the agent panel, which acts for the signed-in person; the agent's own file requests run as twins of ordinary routes."
+      }
+    },
+    "POST /api/acp/relay/:session/hello": {
+      "id": "agentRelay.hello",
+      "handlerChecks": [],
+      "limits": {
+        "request": "AGENT_PANEL_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["localWrite"],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The relay authenticates with its own credential and carries the agent's protocol messages; each file request inside them runs as the twin of an ordinary route."
+      }
+    },
+    "POST /api/acp/relay/:session/frames": {
+      "id": "agentRelay.frames",
+      "handlerChecks": [],
+      "limits": {
+        "request": "AGENT_PANEL_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["localWrite"],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The relay authenticates with its own credential and carries the agent's protocol messages; each file request inside them runs as the twin of an ordinary route."
+      }
+    },
+    "GET /api/acp/relay/:session/stream": {
+      "id": "agentRelay.stream",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "stream",
+        "work": "light"
+      },
+      "effects": ["read"],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The relay authenticates with its own credential and carries the agent's protocol messages; each file request inside them runs as the twin of an ordinary route."
+      }
+    },
+    "POST /api/acp/relay/:session/bye": {
+      "id": "agentRelay.bye",
+      "handlerChecks": [],
+      "limits": {
+        "request": "AGENT_PANEL_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["localWrite"],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The relay authenticates with its own credential and carries the agent's protocol messages; each file request inside them runs as the twin of an ordinary route."
+      }
     }
   },
   "browserCapabilities": [

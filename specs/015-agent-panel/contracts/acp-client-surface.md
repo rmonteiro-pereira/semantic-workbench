@@ -1,15 +1,17 @@
 # Contract: what the workbench offers an agent as a protocol client
 
-Method names are those to be verified in task T001; the contract is stated by behaviour.
+Protocol revision 1 (schema release 1.32.0, verified 2026-11-17, see research R1). Method names:
+`initialize`, `session/new`, `session/prompt`, `session/cancel`, `session/update`,
+`session/request_permission`, `fs/read_text_file`, `fs/write_text_file`.
 
 ## Capabilities advertised
 
 | Ability | Offered | Notes |
 | --- | --- | --- |
-| Read a text file | yes | virtual path, optional line window |
-| Write a text file | yes | guarded; see below |
-| Terminal | **no** | any terminal request answers "unsupported" |
-| Anything else | no | unsupported, nothing runs |
+| Read a text file (`fs.readTextFile`) | yes | virtual path (absolute, as the protocol requires), optional `line` (1-based) and `limit` (lines) |
+| Write a text file (`fs.writeTextFile`) | yes | guarded; see below; the protocol's write carries no base version |
+| Terminal (`terminal`: false) | **no** | any `terminal/*` request answers method not found (-32601) |
+| Anything else, including `elicitation/create` and `authenticate` | no | method not found, nothing runs; an agent that cannot start without authentication ends the session with `protocol-error` and a sentence saying so |
 
 ## Virtual paths
 
@@ -50,17 +52,20 @@ No answer contains a server path.
 
 ## Questions
 
-A permission question is forwarded to the panel. The reply sent to the agent is one offered option
-id or "cancelled". It is sent exactly once.
+A `session/request_permission` is forwarded to the panel. The reply is outcome `selected` with one
+offered `optionId`, or outcome `cancelled`. It is sent exactly once. When the person cancels the
+turn (`session/cancel`), every pending question is answered `cancelled` at once, as the protocol
+requires.
 
 ## Agent to client notifications
 
-Message pieces, reasoning pieces, tool activity, the agent's task list: forwarded to the panel as
+`agent_message_chunk`, `agent_thought_chunk`, `tool_call`, `tool_call_update` and `plan` (the agent's
+task list): forwarded to the panel as
 plain text events. Unknown kinds become a `notice` naming the kind and size.
 
 ## What the workbench sends the agent when creating a session
 
-The virtual root as working directory; no tool servers; no credentials. The session creation
+`session/new` with the virtual root as `cwd` and `mcpServers: []`; no credentials. The session creation
 request is the only place the workbench could name tool servers and it names none.
 
 ## Not offered

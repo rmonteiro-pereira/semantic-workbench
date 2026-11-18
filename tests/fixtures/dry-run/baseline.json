@@ -281,6 +281,54 @@
       ]
     },
     {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /oauth/authorize",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:POST /oauth/consent",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /oauth/setup",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:POST /oauth/setup",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/connections",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:DELETE /api/connections/:id",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
       "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET/HEAD pages",
       "before": true,
       "after": false,
@@ -297,7 +345,7 @@
       ]
     }
   ],
-  "matrixCases": 1035,
+  "matrixCases": 1134,
   "auditCases": 6,
   "people": [
     {

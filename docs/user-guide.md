@@ -599,3 +599,16 @@ blocked by the origin-policy limitation documented in [agent connections](agent-
 Admins register programs through **Admin → Agent programs**, review the dry run and confirm the
 change. Removing a program, redirect or scope ends affected connections; the review shows the
 count. **Admin → Agent connections** lists owners and allows revocation without showing tokens.
+
+## Talk to your own agent
+
+Choose **Agent panel** in the person menu, read the content statement and select **Start session**.
+Run the shown relay command on your own machine with the ACP agent you choose. The workbench
+never starts the agent or calls its model. Definitions the agent reads, including draft text it
+opens, may reach its model provider under that agent's configuration.
+
+Messages and file-path links go from the prompt box to your agent. The panel shows its replies,
+tool activity and task list, permission questions and diffs of saved changes. **Undo** uses an
+ordinary version-checked save; it reports a conflict if another edit intervened. **Cancel turn**
+cancels pending questions too. **End session** or closing the panel ends the connection. A new
+session starts a new conversation. See [the panel guide](agent-panel.md) for scopes and limits.

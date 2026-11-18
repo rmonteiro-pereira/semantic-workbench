@@ -36,6 +36,7 @@ export async function meResponse(request: Request, options: HandlerOptions): Pro
     creationDomains: scope.creationDomains(),
     // Browsers send error and timing reports only when the server forwards them to telemetry.
     telemetry: { browserReports: options.browserReports === true },
+    agentPanel: options.agentPanel === true,
     ...(await remoteAccounts(request, options)),
     can: {
       ...Object.fromEntries(ACTIONS.map(action => [action, scope.authorize(action, { type: 'workspace' }).allow])),

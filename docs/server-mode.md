@@ -413,3 +413,15 @@ bridge keeps rotating client tokens under the person's configuration directory i
 Sign out or revoke the connection in the workbench, then stop the bridge and use
 `--sign-out` with the same `SW_SERVER_URL` to erase the local file immediately.
 See the [MCP bridge guide](mcp.md#server-stdio-bridge).
+## Agent panel connections
+
+The panel's server-mode adapter expects the connection service to create a single-use setup
+credential for the current browser session, with origin `acp` and named scopes `read` and `edit`.
+An Admin registers `acp-relay` as an allowed program; it is not built in. The relay exchanges the
+credential at `/oauth/token`. Real service assembly and server-mode acceptance remain pending.
+
+The connection service's end notification closes the bound panel session on sign-out, expiry,
+deactivation and revocation before later agent traffic can run. The relay never renews browser
+idle activity. File requests remain ordinary authorized and guarded operations, and permission
+answers grant no extra scope. See [the panel guide](agent-panel.md), including its draft-content
+warning and threat model.
