@@ -123,7 +123,7 @@ test('promotion recovery preserves both refs if writing the recovered records fa
         },
       },
     },
-  } as ProposalContext;
+  } as unknown as ProposalContext;
   const recovery = createPromotions(context);
   await expect(recovery.recover(['repo'])).rejects.toThrow('Storage unavailable');
   expect([...tips.keys()]).toEqual(['first', 'second']);

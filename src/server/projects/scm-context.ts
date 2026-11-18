@@ -108,7 +108,7 @@ export type ScmContext = {
   prefix: (slug: string) => string;
   ownerOf: (slug: string, path: string) => { project: string; prefix: string } | undefined;
   sparseProjectFolder: (slug: string, directory: string) => Promise<{ folder?: string }>;
-  fetchFolderContents: (directory: string, tip: string, chooseRemote: () => Promise<RemoteChoice | null>) => Promise<void>;
+  fetchFolderContents: (directory: string, tip: string, chooseRemote: () => Promise<Pick<RemoteChoice, 'name' | 'credential'> | null>) => Promise<void>;
   after: (slug: string, altered?: string[]) => Promise<Awaited<ReturnType<Git['status']>>>;
   /** Holds the project write lock before taking a repository queue turn, as a commit does. */
   inWriteTurn: <T>(slug: string, work: () => Promise<T>) => Promise<T>;
@@ -159,7 +159,7 @@ export function createScmContext(deps: ScmDeps): ScmContext {
   }
   // Downloads what a judged change brings before it is read, when the repository holds only a
   // folder; a full clone has every file already.
-  async function fetchFolderContents(directory: string, tip: string, chooseRemote: () => Promise<RemoteChoice | null>) {
+  async function fetchFolderContents(directory: string, tip: string, chooseRemote: () => Promise<Pick<RemoteChoice, 'name' | 'credential'> | null>) {
     const folders = await sparseFolders(git, directory);
     if (!folders.length) return;
     const choice = await chooseRemote();
