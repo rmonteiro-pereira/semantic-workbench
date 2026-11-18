@@ -174,7 +174,7 @@ The serial Import driver verified each response file hash and closed Chromium an
 
 `bunx --bun oxfmt --check` passed on all 196 changed TypeScript, JSX and CSS files. The formatter configuration excludes Markdown.
 The confidential-only scanner passed for the task and evidence documents. Neither the repository nor the installed skills includes the named cadence checker.
-The superseded output bundle contained 3,559 exact copies of the previous review PNGs. Byte comparison confirmed every copy before removal, leaving the source archive intact and the output folder at 28 MB.
+The original review archive contains 3,559 PNGs. A read-only count by folder measured 72 in `auth-pages`, 175 in `followup`, 220 each in `local-dark` and `local-light`, 228 each in `server-dark` and `server-light`, 51 in `server-personas` and 2,365 in `states`. The superseded comparison bundle contained exact copies of all 3,559, verified byte by byte before removal. The source archive remains intact. The current comparison uses newly captured release, main and candidate frames.
 
 Status: in progress. No visual pair is classified before both images have been opened.
 
