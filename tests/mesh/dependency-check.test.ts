@@ -123,3 +123,16 @@ test('fetch stops before following a remote candidate with a set error', async (
   expect(fixture.git('retail', ['rev-parse', 'refs/heads/main'])).toBe(previous);
   expect(fixture.ws.state.published().repositories.retail.commit).toBe(previous);
 });
+
+test('publication rejects a lock that still lists a root whose imports were removed', async () => {
+  using fixture = await meshWorkspace('separate');
+  fixture.addPersonalBranch('retail');
+  fixture.addUncommittedImport();
+  await writeLock(fixture);
+  editJson(fixture, 'retail', 'ontology.yaml', data => delete data.tessera_imports);
+  const original = fixture.ws.state.published().repositories.retail.commit;
+  const refused = await publish(fixture);
+  expect(refused.status).toBe(400);
+  expect(JSON.stringify(await refused.json())).toContain('manifest is stale');
+  expect(fixture.ws.state.published().repositories.retail.commit).toBe(original);
+});
