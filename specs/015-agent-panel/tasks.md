@@ -31,7 +31,7 @@ test only to make it pass.
   the file hash and that the validators for the frames the plan uses compile. Proof: `bun test
   tests/acp/protocol-schema.test.ts`. If no schema file exists, stop and write the SDK
   justification in `plan.md` (research R2 gate).
-- [ ] T003 [P] Write `scripts/acp-reference-agent.ts`: a scripted agent that speaks the verified
+- [x] T003 [P] Write `scripts/acp-reference-agent.ts`: a scripted agent that speaks the verified
   subset over standard input and output and follows a JSON script (read, write, write stale, ask,
   send a task list, send a huge message, flood, exit). Add `tests/acp/reference-agent.test.ts`
   that drives it over pipes. Proof: the test passes; the agent uses only the advertised abilities.
