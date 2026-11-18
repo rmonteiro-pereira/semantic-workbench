@@ -3,7 +3,7 @@ import React, { useRef, useState } from 'react';
 import type { KpiSummary } from '../../../server/agent/explain';
 import type { Issue } from '../../../shared/validation/diagnostics';
 import { openFragment } from '../../edit/fragment';
-import { itemKindAt, type Choices, type ItemKind, type Path } from '../../../shared/edit/item-model';
+import { itemKindAt, relationshipTargetChoices, type Choices, type ItemKind, type Path } from '../../../shared/edit/item-model';
 import { type Saved } from '../../edit/ItemEditor';
 import { isIri } from '../../edit/rdf-patch/index';
 import { itemValue } from '../../../shared/edit/yaml-patch';
@@ -140,8 +140,10 @@ export function useItemEditing({
       .map(d => modelOf(d.id))
       .filter(Boolean) as NonNullable<typeof model>[];
     const names = (m: typeof model, kinds: string[]) => (m?.entities ?? []).filter(e => kinds.includes(e.kind)).map(e => e.name);
+    const concepts = [...new Set(models.flatMap(m => names(m, ['EntityType', 'ValueType', 'Concept'])))].sort();
     return {
-      concepts: [...new Set(models.flatMap(m => names(m, ['EntityType', 'ValueType', 'Concept'])))].sort(),
+      concepts,
+      relationshipTargets: relationshipTargetChoices(concepts),
       datasets: names(own, ['Dataset']),
       metrics: names(own, ['Metric']),
     };
