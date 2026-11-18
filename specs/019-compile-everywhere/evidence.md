@@ -81,3 +81,16 @@ route-actions, matrix and compile-parity (130.50 s). The generated operation tab
 `bun scripts/operation-inventory-table.ts && git diff --exit-code docs/operations.md` exited 0.
 T036 remains unchecked because its MCP contract/registry portion is unavailable on this base;
 that portion is skipped for integration, rather than running Bun with a nonexistent test directory.
+
+## Feature checks
+
+- Development server `bun test tests/compile/`: 111 pass, 0 fail, 375 assertions, 17 files, 121.69 s.
+- Scale: 200 documents, 19,551,550 input bytes, 44,400 losses; compile and ZIP 23.20 s;
+  archive 29,883,348 bytes. The 30-second assertion passed with the shared digest implementation.
+- Development server `bun --bun run check`: exit 0. TypeScript and formatter passed; Oxlint reported
+  2,675 warnings, 0 errors. Comments, theme and brand checks passed.
+- Development server `bun --bun run build`: exit 0, 2,336 modules, built in 3.07 s. Existing module
+  directive and large-chunk warnings remain; no Node crypto alias is present.
+- Readable-code checker: exit 0 on every TypeScript file changed in this continuation, including the
+  full-file scan as well as the requested --changed mode. Repository commit_cadence.py is absent;
+  commits were made after each coherent proof, with none exceeding the requested size limit.
