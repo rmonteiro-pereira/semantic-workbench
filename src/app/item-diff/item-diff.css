@@ -1,0 +1,24 @@
+.item-change-mark {
+  box-sizing: border-box;
+  display: inline-block;
+  max-width: 100%;
+  padding: 2px 5px;
+  background: var(--color-surface-sunken);
+  color: var(--color-text);
+  font-size: var(--text-small);
+  line-height: 1.2;
+  text-align: start;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.item-change-dashed {
+  border: 1px dashed var(--color-text-muted);
+  border-radius: 4px;
+}
+
+:where(.full-entity, .node, .item-change-surface):has(> .item-change-mark) {
+  outline: 2px dashed var(--color-text-muted);
+  outline-offset: 2px;
+  background: var(--color-surface-sunken);
+}
