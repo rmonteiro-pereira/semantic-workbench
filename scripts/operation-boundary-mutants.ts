@@ -4,12 +4,7 @@ export const operationBoundaryMutants: [string, string, string, string][] = [
   ['operation-boundary', 'src/server/auth/operation-boundary.ts', 'await executeOperation(entry, () => run(input.request))', 'await run(input.request)'],
   ['operation-boundary', 'src/server/auth/operation-execution.ts', 'operation && !operation.steps.includes(id)', 'false'],
   ['operation-boundary', 'src/server/auth/route-verdict.ts', "(row.targets !== 'body' && !client)", 'false'],
-  [
-    'operation-boundary',
-    'src/server/auth/git-access.ts',
-    "  requireEffect(target.request, 'remote');\n  const scm = target.ws.pendingScm",
-    '  const scm = target.ws.pendingScm',
-  ],
+  ['operation-boundary', 'src/server/auth/git-access.ts', "  requireEffect(target.request, 'remote');\n  const scm = target.ws.pendingScm", '  const scm = target.ws.pendingScm'],
   ['operation-boundary', 'src/server/auth/authorize.ts', 'snapshot.policy.exactResources || principal.kind', 'false || principal.kind'],
   ['operation-boundary', 'src/server/auth/authorize.ts', 'roles(project).sort()', '[]'],
   ['operation-boundary', 'src/server/auth/route-verdict.ts', "mode === 'server' && (scope.principal.deactivated || (!client && !scope.principal.grants.length))", 'false'],
