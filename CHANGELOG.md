@@ -84,6 +84,7 @@ and protect release tags. Existing tags inside published history remain usable a
 
 - Keep the selected entity readable and fold graph controls before the toolbar wraps.
 - Keep neighborhood Walk targets in view and the center description readable; group cross-file links under Other files.
+- Let phone Neighborhood controls wrap when the center name needs a wider search field.
 - Offer Fit for a Full pierce result that cannot fit at readable scale.
 - Preserve identifier word boundaries, humanize area labels and correct singular entity counts.
 - Keep area titles clear of cards and relationship strokes, space metric badges, frame the mini-map and bound minimum zoom relative to Fit.

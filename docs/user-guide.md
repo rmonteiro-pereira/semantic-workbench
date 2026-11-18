@@ -403,7 +403,8 @@ The toolbar filters neighbors by **Relationship** and switches **Links between n
 **Technical resources**, **Labels**, **Value types** and **Metrics** on or off. **Re-arrange** puts
 dragged nodes back in their columns. OWL opens with classes only unless technical resources are
 requested. Graph names and labels compensate for zoom; names retain full-name tooltips, and long
-identifiers wrap at natural separators without changing their spelling.
+identifiers wrap at natural separators without changing their spelling. On phones, a long center name can move the
+other toolbar actions to the next row.
 
 ### Full screen and grouping
 

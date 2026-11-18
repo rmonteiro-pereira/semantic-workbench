@@ -92,8 +92,9 @@
     overflow: visible;
   }
   .neighborhood-graph .neighborhood-tools .center-picker {
-    flex: 1 1 140px;
+    flex: 1 1 max-content;
     width: auto;
+    max-width: 100%;
   }
 }
 
