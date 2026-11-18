@@ -574,8 +574,8 @@ The original review archive contains 3,559 PNGs. A read-only count by folder mea
 
 Status: in progress. No visual pair is classified before both images have been opened.
 
-The gallery checkpoint of 736 rows includes 308 intended fixes, 33 expected merged-feature differences, 302 neutral changes and 11
-unchanged steps. It retains 42 frames of fixed regressions and 40 frames flagged as possible or unresolved regressions. A frame count
+The gallery checkpoint of 739 rows includes 310 intended fixes, 32 expected merged-feature differences, 303 neutral changes and 11
+unchanged steps. It retains 42 frames of fixed regressions and 41 frames flagged as possible or unresolved regressions. A frame count
 can include multiple actions that carry the same underlying issue. The manifest records actions without matched captures.
 The counted Network heading and compact mapping correction pairs were opened at 390×844 in both themes.
 The 75-state phone replay (local, light, 390×844) was opened across 25 contact sheets. Both repetitions on all three versions
@@ -595,7 +595,7 @@ keyboard focus ring on the metric grouping control. The empty Trash dialog keeps
   Both 390×844 touch repetitions leave Edit visible. The sidebar fades down at the top and up at the bottom. The last ODCS row and badge
   remain whole. Desktop main/candidate differences were 14.532022% at Catalog rest, 13.926080% on hover and focus, and 1.376157%/1.763349%
   at the top and bottom sidebar positions.
-- `bash .data/gate/publish-current-review.sh` returned 736 rows with the counts above.
+- `bash .data/gate/publish-current-review.sh` returned 739 rows with the counts above.
 
 The Full Graph replay scored 43 steps, from two repetitions per version. The candidate Network first view and Fit show four named counted areas.
 Both full-screen selection paths open Order and keep it readable. After changing area visibility with Order selected, Layered can leave Order
@@ -684,6 +684,24 @@ The opened repeats show the compact first view and carry M17 and M1. The older r
 therefore reported the intended lack of a repair dialog as a missing state. The next run uses the standard file chooser and records the visible
 refusal or review dialog for each version.
 
+The 2560×1440 Properties comparison confirms M23 in both opened repeats. The reference header ends at x=2052 and its
+lineage extends to x=2207. The candidate header keeps x=652–2052 and the lineage region spans x=653–2051. Its 44 px header and
+single control row leave the lineage region y=214–1402. The main/candidate score is 20.756538%. The matched strip is
+`local/light/2560/dataset-chrome/mall-properties-lineage-chrome/first-view`.
+
+The extra frozen lineage fixture imports one ODCS table and one semantic dataset. Each file has one entity and zero in-file relationships.
+The pair resolves nine lineage reads across files. All six Imports verified the same hashes:
+
+| File | SHA-256 |
+| --- | --- |
+| `wide/wide.odcs.yaml` | `eb129c1913684711753e77d45b12d587f6a7878e40df7b758e9525160f3f85fa` |
+| `wide/wide.semantic.yaml` | `5da5d53c4a4238164996490f0046b4d2fdf5a8f062e5c57cc3573ffc337d00af` |
+
+`bash .data/gate/pull-review-007.sh` exported the 2560 px Properties strip and the two 1440 px wide-fixture strips. Each was opened
+including the repeat frames. The split produced nine read elements in all six browser records. In the candidate the compact
+cards share their ports, so the nine lines coincide in both repeats. The references separate those lines at their column rows.
+Main/candidate difference was 19.558488%. The earlier candidate screenshot is preserved at `before/fixes/lineage-bundle-1440.png`.
+
 ## Differences for owner acceptance
 
 - The release has no published working-copy notice. Main adds it to Mappings, with both older release and candidate data otherwise kept under the
@@ -727,6 +745,7 @@ replays. The outstanding findings still require a matched screenshot or a record
 | M12 | `local/light/390/source-control/source-control/modified-diff` | The changed file opens in a unified diff with Back to changes. |
 | M18 | `local/light/390/states/metric-wizard/primary-hover` | The phone wizard retains its heading, active step and visible footer actions. |
 | M20 | `local/light/390/trash/trash/another-project` | A deleted file shows its project and Switch to project alongside the outlined empty-trash action. |
+| M23 | `local/light/2560/dataset-chrome/mall-properties-lineage-chrome/first-view` | The header and graph edges match within a pixel, compared with 155 px overshoot in both references. |
 | M24 | `local/light/390/followup/mapped-commerce-mappings/ai-context-open` | The details view has a Back to concepts action within the phone layout. |
 | m13 | `before/fixes/ubl-center-picker-390.png` and its after frame | The center picker accommodates the full label without dropping an action. |
 | m16 | `local/light/390/followup/add-concept/duplicate-name-refusal` | The duplicate-name refusal appears under Name and disables Save. |
