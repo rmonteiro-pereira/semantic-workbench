@@ -531,19 +531,24 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     now: options.now ?? Date.now,
     idleMs: options.copyIdleMs,
   });
+  const meshPublishing = {
+    snapshots,
+    projectsIn,
+    repoOf,
+    repositoryOf: (project: string) => (projects().some(entry => entry.slug === project) ? repoOf(project) : null),
+  };
   const publishing = createPublishing({
+    ...meshPublishing,
     adopt: async (slug, reader, observe) => {
       const repository = repoOf(slug);
       const server = options.reconcilePublished || Boolean(reader.view);
-      const guard = judgePublish(published, slug, reader.guard);
+      const guard = judgePublish(meshPublishing, published, slug, reader);
       if (server) return worktrees.adopt(repository, guard, observe);
       return localPublication.adopt(repository, await worktrees.defaultBranch(repository), guard, observe);
     },
-    localPublish: async (slug, reader) => localPublication.publishLocal(repoOf(slug), await worktrees.defaultBranch(repoOf(slug)), judgePublish(published, slug, reader.guard)),
+    localPublish: async (slug, reader) => localPublication.publishLocal(repoOf(slug), await worktrees.defaultBranch(repoOf(slug)), judgePublish(meshPublishing, published, slug, reader)),
     worktrees,
     copies,
-    repoOf,
-    projectsIn,
     rescan,
     emit: (e, d, tags) => events.emit(e, d, tags),
   });

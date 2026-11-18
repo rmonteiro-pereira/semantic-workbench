@@ -254,7 +254,7 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
       return { commit, documents: files.filter(file => file.metadata.visible).map(file => file.document) };
     },
     /** Reads an immutable publication candidate within its registered repository. */
-    async candidateDocuments(candidate: PublicationCandidate, project: string) {
+    async candidateDocuments(candidate: Pick<PublicationCandidate, 'repo' | 'next'>, project: string) {
       const requestPin = pin();
       const repository = projectRepository(project, requestPin);
       if (repository !== candidate.repo) throw new SnapshotUnavailableError('unavailable');

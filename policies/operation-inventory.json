@@ -974,7 +974,7 @@
         "increment": "workspace-scm"
       },
       "outcomeClassifier": "remote",
-      "steps": ["publication.advance", "publication.abandon"]
+      "steps": ["publication.advance", "publication.abandon", "snapshot.read"]
     },
     "POST /api/projects/:slug/git/pull": {
       "id": "git.pull",
@@ -1048,7 +1048,7 @@
       "exposure": {
         "increment": "workspace-scm"
       },
-      "steps": ["publication.advance", "publication.abandon"]
+      "steps": ["publication.advance", "publication.abandon", "snapshot.read"]
     },
     "POST /api/projects/:slug/git/pull-default": {
       "id": "git.pullDefault",
@@ -1875,7 +1875,7 @@
       "exposure": {
         "increment": "workspace-scm"
       },
-      "steps": ["publication.advance", "publication.abandon"]
+      "steps": ["publication.advance", "publication.abandon", "snapshot.read"]
     },
     "POST /api/projects/:slug/git/acknowledge-publication": {
       "id": "git.acknowledgePublication",

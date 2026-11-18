@@ -2,9 +2,11 @@
 // fetch brought from the remote, and then refreshes the published state every reader sees.
 import { BadRequestError, NothingToPublishError } from './errors';
 import type { EventTags } from './events';
-import type { ContentGuard } from '../auth/guards';
+import { InputError } from '../../shared/validation/diagnostics';
 import { WriteAccessError } from '../auth/write-access-error';
 import type { Reader } from './reader';
+import type { PublishedSnapshots } from './published-snapshot';
+import { checkPublicationDependencies } from '../mesh/dependency-check';
 import type { PublicationObserver } from './local-publication';
 import type { FollowRequest, FollowResult } from './scm';
 import type { Place, WorkingCopies } from './working-copies';
@@ -13,6 +15,8 @@ import type { Worktrees } from './worktrees';
 /** What publishing needs from the workspace that composes it. */
 export type PublishingDeps = {
   worktrees: Worktrees;
+  snapshots: PublishedSnapshots;
+  repositoryOf: (project: string) => string | null;
   copies: WorkingCopies;
   repoOf: (slug: string) => string;
   projectsIn: (repo: string) => string[];
@@ -29,11 +33,13 @@ export type PublishingDeps = {
  * an approval reaches the default branch only through someone allowed to make it, whether it
  * comes from a copy or from the remote.
  */
-export function judgePublish(place: Place, slug: string, guard: ContentGuard | undefined) {
+export function judgePublish(deps: Pick<PublishingDeps, 'snapshots' | 'projectsIn' | 'repositoryOf' | 'repoOf'>, place: Place, slug: string, reader: Reader) {
   return async (previous: string | null, next: string) => {
-    if (!guard) return;
-    const changes = await place.scm.changesBetween(slug, previous, next);
-    guard(changes, { operation: 'publish' });
+    if (reader.guard) {
+      const changes = await place.scm.changesBetween(slug, previous, next);
+      reader.guard(changes, { operation: 'publish' });
+    }
+    await checkPublicationDependencies(deps, { repo: deps.repoOf(slug), next }, reader);
   };
 }
 
@@ -60,7 +66,7 @@ async function publish(deps: PublishingDeps, slug: string, reader: Reader) {
   }
   if (!deps.worktrees.exists(key, repo)) throw new NothingToPublishError();
   const place = await deps.copies.writePlace(reader, slug);
-  const result = await deps.worktrees.publish(repo, key, judgePublish(place, slug, reader.guard));
+  const result = await deps.worktrees.publish(repo, key, judgePublish(deps, place, slug, reader));
   await announce(deps, slug, result.published, result.commit);
   await place.scm.refresh(slug);
   return { published: result.published, previous: result.previous, commit: result.commit };
@@ -80,14 +86,14 @@ async function followRemote(deps: PublishingDeps, slug: string, remote: string, 
   if (!(await mayPublish())) return { ...stays, reason: 'publish' };
   const place = await deps.copies.writePlace(reader, slug);
   try {
-    const check = judgePublish(place, slug, reader.guard);
+    const check = judgePublish(deps, place, slug, reader);
     const moved = await deps.worktrees.followRemote(repo, remote, check);
     if (!moved) return stays;
     onPublished?.(moved);
     await announce(deps, slug, moved.published, moved.commit);
     return { ...stays, followed: true };
   } catch (error) {
-    if (error instanceof WriteAccessError) return { ...stays, reason: 'guard' };
+    if (error instanceof WriteAccessError || error instanceof InputError) return { ...stays, reason: 'guard' };
     throw error;
   }
 }

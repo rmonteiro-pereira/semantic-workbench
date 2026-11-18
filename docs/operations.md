@@ -156,13 +156,13 @@ These steps run inside the admitted route and share its authorization and audit 
 | metrics.save | snapshot.read |
 | metrics.preview | snapshot.read |
 | metrics.explain | snapshot.read |
-| git.fetch | publication.advance, publication.abandon |
-| git.publish | publication.advance, publication.abandon |
+| git.fetch | publication.advance, publication.abandon, snapshot.read |
+| git.publish | publication.advance, publication.abandon, snapshot.read |
 | repositories.registerProjects | publication.upgrade |
 | agent.catalog.read | snapshot.read |
 | agent.context.read | snapshot.read |
 | agent.plan | snapshot.read |
-| git.adopt | publication.advance, publication.abandon |
+| git.adopt | publication.advance, publication.abandon, snapshot.read |
 
 ## Content guards
 
