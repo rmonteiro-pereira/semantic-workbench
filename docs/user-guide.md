@@ -591,10 +591,10 @@ model. See [agent runtime and protocol](agent-runtime.md).
 
 ## Agent connections on a shared server
 
-The person menu's **Agent connections** lists connections acting as you, their scopes and their
+The person menu's **Agent connections** lists connections acting as you, their origin, scopes and
 current status. **Revoke** asks for confirmation and ends that connection's current work.
-**Create a setup credential** opens the script-free setup page. Browser consent/setup is currently
-blocked by the origin-policy limitation documented in [agent connections](agent-connections.md).
+**Create a setup credential** opens the script-free setup page for registered programs.
+See [agent connections](agent-connections.md) for the consent flow and client status.
 
 Admins register programs through **Admin → Agent programs**, review the dry run and confirm the
 change. Removing a program, redirect or scope ends affected connections; the review shows the
@@ -610,5 +610,5 @@ opens, may reach its model provider under that agent's configuration.
 Messages and file-path links go from the prompt box to your agent. The panel shows its replies,
 tool activity and task list, permission questions and diffs of saved changes. **Undo** uses an
 ordinary version-checked save; it reports a conflict if another edit intervened. **Cancel turn**
-cancels pending questions too. **End session** or closing the panel ends the connection. A new
+cancels pending questions too. **End session** or closing the panel ends the conversation. A new
 session starts a new conversation. See [the panel guide](agent-panel.md) for scopes and limits.
