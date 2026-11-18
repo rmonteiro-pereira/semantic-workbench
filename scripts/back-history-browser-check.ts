@@ -7,6 +7,7 @@ import { chromium, expect } from '@playwright/test';
 import { startIsolatedApi, routeApi } from './helpers/isolated-api';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { groupTrigger, openGroupMenu } from './helpers/grouping-menu';
+import { hideGraphControls, revealGraphControls, showEveryEntity } from './helpers/graph-options';
 
 const api = await startIsolatedApi();
 const mall = await api.ws.loadExample('mall');
@@ -82,6 +83,7 @@ const fingerprint = (): Promise<Fingerprint> =>
       file: clean(document.querySelector('.project-tree [aria-selected="true"]')?.textContent),
       tab: clean(document.querySelector('.tabs [aria-current="page"]')?.textContent),
       switches,
+      relationshipLabels: texts('.neighborhood-canvas .relationship-label').sort(),
       // Steps ahead of the current one stay on the trail after Back, and a centre that is not
       // on the trail has its own entry, so only the steps up to the current one count.
       trail: (() => {
@@ -92,8 +94,10 @@ const fingerprint = (): Promise<Fingerprint> =>
       })(),
       trailNow: texts('.walk-trail [aria-current="step"], .lineage-trail [aria-current="step"]'),
       details: clean(document.querySelector('.inspector h2, .inspector h3')?.textContent),
-      flowNodes: ids('.react-flow__node', 'data-id'),
-      flowEdges: document.querySelectorAll('.react-flow__edge').length,
+      // Full Graph renders only nodes in the current camera. Its status reports every counted area.
+      fullGraphAreas: clean(document.querySelector('.full-graph-status strong')?.textContent),
+      flowNodes: ids('.react-flow__node:not(.full-graph *)', 'data-id'),
+      flowEdges: document.querySelectorAll('.react-flow__edge:not(.full-graph *)').length,
       lineageLines: ids('g.lineage-edge', 'data-count'),
       areas: texts('.area-grid > *').length,
       bindings: document.querySelectorAll('.mapping-binding').length,
@@ -106,18 +110,19 @@ const fingerprint = (): Promise<Fingerprint> =>
 // Graph layouts finish a moment after the click, so the fingerprint is read until it stops
 // changing.
 // A lineage canvas draws only the cards in view, so it is fitted before each reading.
-async function readFitted(): Promise<string> {
-  const fit = lineage().getByRole('button', { name: 'Fit' });
-  if (await fit.count()) await fit.click();
-  return JSON.stringify(await fingerprint());
-}
 async function settledFingerprint(): Promise<Fingerprint> {
+  await expect(page.locator('.full-graph-loading')).toHaveCount(0, { timeout: SETTLE_TIMEOUT_MS });
+  const fit = lineage().getByRole('button', { name: 'Fit', exact: true });
+  if (await fit.count()) {
+    await fit.click();
+    await page.waitForTimeout(POLL_MS);
+  }
   const deadline = Date.now() + SETTLE_TIMEOUT_MS;
-  let previous = await readFitted();
+  let previous = JSON.stringify(await fingerprint());
   let stable = 1;
   while (Date.now() < deadline) {
     await page.waitForTimeout(POLL_MS);
-    const next = await readFitted();
+    const next = JSON.stringify(await fingerprint());
     stable = next === previous ? stable + 1 : 1;
     if (stable >= STABLE_READS) return JSON.parse(next);
     previous = next;
@@ -154,9 +159,22 @@ const clickWalkHereOnReachableCard = async () => {
         return box.width > 0 && Boolean(topmost && candidate.contains(topmost));
       }),
     );
+  const zoom = lineage().getByRole('button', { name: 'Zoom in', exact: true });
+  // The history fingerprint fits the graph. Zoom restores the detailed cards without recording a history step.
+  for (let attempt = 0; attempt < 6 && (await reachableIndex()) < 0; attempt++) {
+    await zoom.click();
+    await expect(lineage().locator('.lineage-toolbar')).toBeEnabled();
+    await page.waitForTimeout(200);
+  }
   await expect.poll(reachableIndex).toBeGreaterThanOrEqual(0);
   await buttons.nth(await reachableIndex()).click();
 };
+
+async function clickGraphOption(name: string | RegExp) {
+  await revealGraphControls(page);
+  await page.getByRole('button', { name, exact: typeof name === 'string' }).click();
+  await hideGraphControls(page);
+}
 
 const journey: Action[] = [
   openFile('mall.ontology.yaml'),
@@ -176,20 +194,21 @@ const journey: Action[] = [
   {
     name: 'toggle Labels',
     run: async () => {
-      await page.getByRole('button', { name: 'Labels', exact: true }).click();
+      await clickGraphOption('Labels');
     },
   },
   {
     name: 'toggle Value types',
     run: async () => {
-      await page.getByRole('button', { name: /^Value types/ }).click();
+      await clickGraphOption(/^Value types/);
     },
   },
   openTab('Graph'),
+  { name: 'expand the graph areas', run: () => showEveryEntity(page) },
   {
     name: 'collapse the graph areas',
     run: async () => {
-      await page.getByRole('button', { name: 'Collapse areas' }).click();
+      await clickGraphOption('Collapse areas');
     },
   },
   {
@@ -311,6 +330,8 @@ async function checkBackDoesNotSave() {
   });
   await openFile('mall.ontology.yaml').run();
   await openTab('Graph').run();
+  await expect(page.locator('.full-graph-loading')).toHaveCount(0);
+  await revealGraphControls(page);
   const trigger = groupTrigger(page);
   const before = await trigger.innerText();
   const menu = await openGroupMenu(page);
