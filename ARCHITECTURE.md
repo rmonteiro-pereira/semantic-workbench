@@ -80,7 +80,7 @@ The integration view shows what the application reads and contacts, and what it 
 ## Code map
 
 - `src/server/projects/item-diff-sides.ts` takes comparison definitions and provenance from the same
-  published commit or saved working copy, using the snapshot size limits.
+  published commit, saved working copy, visible branch tip or readable commit, using the snapshot size limits.
 - `src/shared/item-diff/` owns comparison side parsing, parsed model item extraction, field comparison and
   address-based pairing independently of files, Git and browser state. Child item collections do not
   cascade changes to their containers; relationship roles remain a named relationship field.

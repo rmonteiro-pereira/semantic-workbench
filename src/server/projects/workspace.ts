@@ -31,7 +31,7 @@ import { createPublishedPointers } from './published-pointer';
 import { createItemDiffSides } from './item-diff-sides';
 import { createPublishedSnapshots } from './published-snapshot';
 import { initializePublishedPointers } from './published-initialization';
-import { createWorktrees } from './worktrees';
+import { createWorktrees, personalBranch } from './worktrees';
 import { copyScmHooks, createWorkingCopies, projectLockKey, type Place, type RepositoryFacts } from './working-copies';
 import { createPublishing } from './publishing';
 import { createLocalPublication, LOCAL_AUTHORING_BRANCH, prepareLocalCommit } from './local-publication';
@@ -848,7 +848,17 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     registrySteps,
     readFile,
     saveFile,
-    itemDiffSides: createItemDiffSides({ git, gitAvailable: () => gitAvailable, layout, snapshots, workingLayout: (project, reader) => copies.readPlace(reader, project).layout }),
+    itemDiffSides: createItemDiffSides({
+      git,
+      gitAvailable: () => gitAvailable,
+      layout,
+      snapshots,
+      workingLayout: (project, reader) => copies.readPlace(reader, project).layout,
+      ownBranch: reader => {
+        const owner = copies.owners().find(candidate => candidate.key === reader.copy?.key);
+        return owner ? personalBranch(owner.handle) : null;
+      },
+    }),
     resolveAddress: (address: string, reader: Reader) =>
       resolveForCaller({ ...addressReads, readMigrations: (project, caller) => readAddressMigrations(copies.readPlace(caller, project).layout, project, caller) }, address, reader),
     resolvePublishedAddress: (address: string, reader: Reader) =>
