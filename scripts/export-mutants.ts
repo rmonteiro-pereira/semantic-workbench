@@ -12,7 +12,7 @@ export const exportMutants: [string, string, string, string][] = [
   ['export-plan', 'src/server/projects/project-export.ts', '!facts.historyAllowed ||', 'false ||'],
   ['export-plan', 'src/server/projects/project-export.ts', "projectPrefix(deps.layout, slug) !== ''", 'false'],
   ['export-plan', 'src/server/projects/project-export.ts', 'touched.some(path => !view.canRead(slug, path))', 'false'],
-  ['export-plan', 'src/server/projects/project-export.ts', "const ref = reader.view ? ((await deps.git.currentRef(repo)) ?? 'HEAD') : '--all';", "const ref = '--all';"],
+  ['export-plan', 'src/server/projects/project-export.ts', "const ref = selection?.ref ?? '--all';", "const ref = '--all';"],
   [
     'export-plan',
     'src/server/projects/project-export.ts',
