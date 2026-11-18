@@ -1,4 +1,101 @@
-# Batch 1 gate after independent review
+# Batch 1 gate after the second review
+
+Tested source and gate scripts are at `1bebf7ecfc682fab3c3f36a1371cf087ee3c73bb`.
+This includes the merge of `origin/main` at `d36159ff`. The preceding gate and five-run browser
+comparison remain below. The earlier measurements describe their tested revisions and viewports.
+
+## Second review gate commands
+
+| Command | Summary |
+| --- | --- |
+| `bun test` | 3,306 pass, 0 fail, 379,982 expect() calls. Ran 3,306 tests across 461 files. [2431.85s] |
+| `bun --bun run check` | Exit 0. All matched files use the correct format. 2,754 lint warnings and 0 errors. Comment, theme and brand checks passed. |
+| `bun --bun run build` | Exit 0. Built in 3.06s. The existing large-chunk warning remains. |
+| `bun scripts/ci-validate.ts --step mutation` | 850/850 targeted mutants killed. All unmodified module baselines passed. Gate passed in 2375.7 seconds. |
+| `bun run test:mcp` | Acceptance run passed: 10 steps. |
+
+## Second review browser commands
+
+Each row ran `bun scripts/ci-validate.ts --step browser --suite <script>`.
+
+**34 passed and 6 failed.**
+
+| Script | Summary |
+| --- | --- |
+| `test:auth` | Gate passed in 140.2 seconds |
+| `test:two-editors` | Gate passed in 115.3 seconds |
+| `test:admin` | Gate passed in 88.9 seconds |
+| `test:ui` | Gate passed in 61.0 seconds |
+| `test:responsive` | Failed gate steps: browser |
+| `test:edges` | Gate passed in 26.8 seconds |
+| `test:grouping-validation` | Gate passed in 43.9 seconds |
+| `test:overview-areas` | Gate passed in 28.6 seconds |
+| `test:published-snapshot` | Gate passed in 31.0 seconds |
+| `test:examples:ui` | Gate passed in 116.4 seconds |
+| `test:projects` | Gate passed in 39.0 seconds |
+| `test:trash` | Gate passed in 43.5 seconds |
+| `test:sidebar` | Gate passed in 200.9 seconds |
+| `test:metrics` | Gate passed in 63.6 seconds |
+| `test:graph` | Failed gate steps: browser |
+| `test:editor` | Failed gate steps: browser |
+| `test:item-edit` | Gate passed in 64.0 seconds |
+| `test:addresses` | Gate passed in 18.2 seconds |
+| `test:mcp:browser` | Gate passed in 15.4 seconds |
+| `test:rdf-edit` | Gate passed in 41.2 seconds |
+| `test:validation` | Gate passed in 21.0 seconds |
+| `test:tessera` | Gate passed in 13.6 seconds |
+| `test:scm` | Gate passed in 56.0 seconds |
+| `test:odcs` | Gate passed in 37.8 seconds |
+| `test:lineage` | Failed gate steps: browser |
+| `test:autosave` | Gate passed in 31.3 seconds |
+| `test:sql` | Gate passed in 36.5 seconds |
+| `test:git-setup` | Gate passed in 32.5 seconds |
+| `test:monorepo` | Gate passed in 27.1 seconds |
+| `test:dialogs` | Failed gate steps: browser. The same command also failed on retry. |
+| `test:telemetry` | Gate passed in 79.2 seconds |
+| `test:terminology` | Gate passed in 105.6 seconds |
+| `test:mappings-layout` | Gate passed in 83.9 seconds |
+| `test:clipping` | Gate passed in 28.9 seconds |
+| `test:mapping-graph` | Gate passed in 125.3 seconds |
+| `test:back-history` | Failed gate steps: browser |
+| `test:usage-traffic` | Gate passed in 157.5 seconds |
+| `test:proposals` | Gate passed in 42.5 seconds |
+| `test:theme` | Gate passed in 192.8 seconds |
+| `test:brand` | Gate passed in 12.6 seconds |
+
+## Second review browser observations
+
+| Suite | First failing assertion |
+| --- | --- |
+| `test:responsive` | The canvas at 1280×720 measured 481 px against a requirement above 504 px. All five samples on each revision in the earlier comparison also measured 481 px. |
+| `test:graph` | The longest neighborhood main-thread task took 151 ms against a budget of 100 ms. The earlier main and batch comparison exceeded the budget in every sample. |
+| `test:editor` | Typing took 58.26 ms per key against a limit below 30 ms. Main also failed this threshold in the earlier comparison. |
+| `test:lineage` | The sidebar separator intercepted the “Walk here” click, as it did on main. The remaining steps were unassessed. |
+| `test:back-history` | Before and after collapse produced the same empty graph fingerprint, as on main. The remaining steps were unassessed. |
+| `test:dialogs` | The workspace tree or empty state did not attach within five seconds. The initial run stopped after Validation details. A clean retry passed eight dialog groups and timed out in the menus check. The earlier gate also saw this intermittent timeout. Its cause remains unconfirmed. |
+
+The authentication-only measurements in `test:auth` were 109–551 ms and in `test:two-editors`
+were 234–250 ms, both within the five-second limit.
+
+## Second review fixes
+
+| Item | Commit and regression test |
+| --- | --- |
+| Main integration | `691959e0` merges `d36159ff`. The changelog keeps both sets of changes. The regenerated operation reference, dry-run baseline and HTTP characterization are byte-identical. |
+| Promotion recovery | `cd31b96a`. A failed store write leaves two refs intact. An interruption cleaning up the second ref leaves durable outcomes, and the next recovery removes the matching leftover. |
+| Stored day byte budget | `988e5e57`. A day with 23,000 long valid addresses reads back, preserves overflow as an aggregate, and survives a second flush. |
+| Trash isolation | `ef605a2c`. An undecoded response for B survives trashing A. The slug-reuse test still discards recordings from the removed instance. Snapshot reads stay in the resolved project's repository. |
+| Remote destination | `7d7b14a4`. Each of Push, Sync and Push default refuses a remote repointed during credential selection. Both bare remotes are checked. Remote edits share the repository queue. |
+| Publication independence | `a5ee6dda`. Publication advances its durable pointer despite a malformed authoring journal or unusable usage-side path. The provenance fix removes the optional staging path. |
+| Usage migration provenance | `87b395cb`. Two-reader tests verify that a private declaration cannot attach counts to an independent author's same-name item, and compaction retains the original counts through a two-rename publication. A day already rekeyed by unverified history is reported unavailable. |
+| Mutation anchor after main merge | `f1b4121c`. Preflight rejected the old position. The replacement omits custom admin rules at policy preparation, and all three targeted authorization mutants were killed. |
+| Strict type check | `1bebf7ec`. Sparse guarded fetch takes the existing name and credential pair. The recovery fixture deliberately supplies only the recovery dependencies. `tsc --noEmit` passed. |
+
+`publishedMigrationRecords` is the pinned published-side lookup for a future committed history
+source. Counts at an address that no longer resolves stay on disk through compaction and are omitted
+from the response. A day already rewritten by an unverified marker is reported unavailable.
+
+## Earlier gate and main comparison
 
 The full unit, check, build, mutation and MCP gates pass. Five browser assertions remain red.
 The comparison found equal responsive height and lower neighborhood graph task times on the batch.
@@ -10,7 +107,7 @@ That revision formats a mutation tuple. The final follow-up changes a browser fi
 documentation. The graph and responsive comparisons used identical application source at
 `1197834d`.
 
-## Gate commands on the development server
+### Gate commands on the development server
 
 | Command | Summary |
 | --- | --- |
@@ -27,7 +124,7 @@ The first check after re-anchoring the Git mutant found a formatting difference.
 applies the repository format to the anchor. The check passed again on the final tested batch.
 The focused Tessera documentation suite passed all 12 tests after the browser fixture edit.
 
-## Browser commands
+### Browser commands
 
 Each row ran `bun scripts/ci-validate.ts --step browser --suite <script>`.
 **35 passed and 5 failed.**
@@ -79,7 +176,7 @@ Authentication took 118–470 ms across 27 sign-ins in `test:auth` and 242–262
 in `test:two-editors`. All met the five-second authentication limit. Workspace readiness
 is measured separately.
 
-## Browser failures
+### Browser failures
 
 | Suite | Failure in the full gate | Main evidence |
 | --- | --- | --- |
@@ -101,7 +198,7 @@ The dialog suite timed out before rendering the workspace. A diagnostic attempt 
 wait also timed out, so the cause remains unconfirmed. Subsequent full runs passed all nine dialog
 checks, including a clean rerun in 326.5 seconds with the original five-second wait.
 
-## Independent review fixes
+### Independent review fixes
 
 - **Outgoing Git refs.** `24291142` pins the exact published source and destination in the repository
   queue. Bare-remote tests reject ordinary branches with unpublished commits and a checkout interleaved
@@ -158,7 +255,7 @@ The three accepted contract decisions retain the original behavior. Their eviden
 and the docs state the visibility and acceptance rules explicitly. The archive and pointer type
 follow-ups came from checking the new code against related repository states.
 
-## Main comparison on the development server
+### Main comparison on the development server
 
 Both revisions ran five times at each failing viewport. The comparison alternated revision order,
 used the same Bun and dependencies, and kept the original assertions. Only the responsive log
@@ -174,7 +271,7 @@ and has a lower median and observed maximum on the graph test. An intermediate b
 330 ms median against 264 ms on main and was excluded from the full gate. The next commit skips
 unlabeled-edge geometry and reuses edge data between renders with identical inputs.
 
-## Reviewer and capture handoff
+### Reviewer and capture handoff
 
 Authorized local MCP authoring reads stored bytes, including unpublished work and Tessera notes.
 Semantic context, planning and explanation read the stripped published projection. A reader of
