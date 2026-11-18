@@ -76,7 +76,7 @@ test only to make it pass.
   (requests, replies, notifications, id matching, size cap, schema refusal). Add
   `tests/acp/jsonrpc-connection.test.ts`: unmatched replies, duplicate ids, oversize frames, frames
   that fail the schema, batches (refused unless the record says allowed). Proof: the test passes.
-- [ ] T013 [US5] Create `src/server/acp/frame-link.ts`: sequence numbers, acknowledgement, replay
+- [x] T013 [US5] Create `src/server/acp/frame-link.ts`: sequence numbers, acknowledgement, replay
   buffer (256 frames or 4 MiB), duplicate drop, heartbeat clock. Add `tests/acp/frame-link.test.ts`
   including a property run of 100 random drops and reconnects with no loss and no repeat (SC-006,
   link part). Proof: the test passes.
