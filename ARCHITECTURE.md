@@ -298,6 +298,10 @@ concatenating project, document or item names.
 
 ### The Tessera format and compiler
 
+The shared `src/shared/tessera/digest.ts` implements synchronous SHA-256 for both runtimes.
+The compiler and browser conversion preview use that same function without a bundler alias or
+Node imports. Native Bun hashes and browser Web Crypto verify its output at block boundaries.
+
 Tessera is an authoring format that compiles to standard Ossie. Its definitions are pure code in
 `src/shared/tessera/`; Git and the file system are touched only in `src/server/tessera/` and the
 command line.

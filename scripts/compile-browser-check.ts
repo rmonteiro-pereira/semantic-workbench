@@ -76,6 +76,31 @@ async function expectNoSidewaysScroll(label: string) {
   expect(await clippedTextProblems(page, 'dialog[open]'), `${label}: clipped text`).toEqual([]);
 }
 
+async function expectRuntimeDigests() {
+  const vectors = [0, 1, 55, 56, 63, 64, 65, 120, 1000].map(length => Array.from({ length }, (_, index) => (index * 31 + 7) % 256));
+  const browserDigests = await page.evaluate(async inputs => {
+    const modulePath = '/src/shared/tessera/digest.ts';
+    const { sha256Hex } = await import(modulePath);
+    const answers = [];
+    for (const input of inputs) {
+      const bytes = new Uint8Array(input);
+      const native = await crypto.subtle.digest('SHA-256', bytes);
+      const webHex = Array.from(new Uint8Array(native), byte => byte.toString(16).padStart(2, '0')).join('');
+      answers.push({ shared: sha256Hex(bytes), native: webHex });
+    }
+    return answers;
+  }, vectors);
+  const expected = vectors.map(input => createHash('sha256').update(new Uint8Array(input)).digest('hex'));
+  expect(
+    browserDigests.map(answer => answer.shared),
+    'shared digest in Chromium equals Bun',
+  ).toEqual(expected);
+  expect(
+    browserDigests.map(answer => answer.native),
+    'Web Crypto equals Bun',
+  ).toEqual(expected);
+}
+
 async function openStandardReview(target: Page) {
   await openProjectMenuItem(target, ONTOLOGY, 'Export project…');
   const exportDialog = target.getByRole('dialog', { name: /^Export / });
@@ -128,6 +153,7 @@ function repositoryFolder(): string {
 try {
   const before = projectHashes();
   await page.goto(appUrl());
+  await expectRuntimeDigests();
 
   // The review shows what is dropped before anything can be accepted or downloaded.
   await openStandardReview(page);
