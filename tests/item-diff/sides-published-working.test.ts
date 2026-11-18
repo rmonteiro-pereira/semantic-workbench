@@ -29,11 +29,11 @@ test('published sides are absent until a commit is published', async () => {
 test('the published side names the commit whose documents it read', async () => {
   using fixture = await itemDiffBaselineWorkspace();
   const initial = await fixture.ws.itemDiffSides.published(project, LOCAL_READER);
-  expect(initial.version.version).toBe(fixture.ws.state.published().repositories[project].commit);
+  expect(initial.version.version).toBe(fixture.ws.state.published().repositories[project].commit ?? 'no fixture commit');
   expect(initial.documents.find(document => document.path === path)?.source).toContain('A buyer.');
   await publishFixture(fixture);
   const updated = await fixture.ws.itemDiffSides.published(project, LOCAL_READER);
-  expect(updated.version.version).toBe(fixture.ws.state.published().repositories[project].commit);
+  expect(updated.version.version).toBe(fixture.ws.state.published().repositories[project].commit ?? 'no fixture commit');
   expect(updated.version.version).not.toBe(initial.version.version);
   expect(updated.documents.find(document => document.path === path)?.source).toContain('An unpublished buyer.');
 });

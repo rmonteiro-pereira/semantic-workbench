@@ -29,7 +29,7 @@ export function OverlayControl() {
   const overlay = useItemDiffContext();
   const [open, setOpen] = useState(false);
   const [notice, setNotice] = useState('');
-  const previous = useRef<{ project: string; branch: string }>();
+  const previous = useRef<{ project: string; branch: string }>(undefined);
   const project = overlay?.project.slug ?? '';
   const branch = overlay?.branch ?? '';
   useEffect(() => {

@@ -15,7 +15,6 @@ type GroupLook = { name: string; color: string };
 
 // Each entity's group name and colour under the current Group by choice.
 function groupLooks(overview: ReturnType<typeof modelOverview> | null) {
-  const graph = useGraphChanges(model, current);
   const looks = new Map<string, GroupLook>();
   for (const group of overview?.groups ?? []) for (const entity of group.entities) looks.set(entity.id, group);
   return looks;
@@ -123,6 +122,7 @@ export function GraphViews({
   crossFile,
   crossTo,
 }: Props) {
+  const graph = useGraphChanges(model, current);
   const looks = useMemo(() => groupLooks(groupingOverview), [groupingOverview]);
   // The Group menu sits in the graph's own tool row, beside Fit and the layout controls.
   const groupMenu = groupingOverview ? <GroupingControls overview={groupingOverview} value={grouping.value} onChange={grouping.change} error={grouping.error} /> : null;

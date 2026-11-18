@@ -9,14 +9,15 @@ test('the item branch journey only switches and rereads saved work', async () =>
   await publishFixture(fixture);
   const requests: string[] = [];
   const fetch = spyOn(globalThis, 'fetch');
-  fetch.mockImplementation((input, options) => {
+  const forwarded: (...args: Parameters<typeof globalThis.fetch>) => Promise<Response> = (input, options) => {
     const url = new URL(String(input), 'http://localhost:5173');
     requests.push(url.pathname);
     const headers = new Headers(options?.headers);
     headers.set('Origin', 'http://localhost:5173');
     headers.set('Sec-Fetch-Site', 'same-origin');
     return fixture.handler(new Request(url, { ...options, headers }));
-  });
+  };
+  fetch.mockImplementation(Object.assign(forwarded, { preconnect: globalThis.fetch.preconnect }));
   try {
     const project = 'finance';
     const original = fixture.ws.state.published().repositories[project].branch;

@@ -33,9 +33,9 @@ test.each(cases)('compares the saved %s state with its published definitions', a
     );
   } else writeFileSync(join(directory, path), source);
   const answer = await compareProjectItems(fixture.ws.itemDiffSides, project, parseSide('published'), parseSide('working'), LOCAL_READER);
-  expect(answer.from.version).toBe(fixture.ws.state.published().repositories[project].commit);
+  expect(answer.from.version).toBe(fixture.ws.state.published().repositories[project].commit ?? 'no fixture commit');
   expect(answer.to.version).toMatch(/^[a-f0-9]{64}$/);
-  expect({
+  expect<unknown>({
     changes: answer.changes.map(({ kind, state, name, previousAddress, ambiguous }) => ({ kind, state, name, ...(previousAddress ? { previousAddress } : {}), ambiguous })),
     notCompared: answer.notCompared,
   }).toEqual(expected[change]);
