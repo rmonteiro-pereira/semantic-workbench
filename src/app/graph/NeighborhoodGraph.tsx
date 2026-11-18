@@ -663,7 +663,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
         ) : (
           <ReactFlow
             nodes={rendered.map(node => {
-              const imported = (node.data.entity as Entity).imported;
+              const imported = view.entities.find(entity => entity.id === node.id)?.imported;
               if (!imported) return node;
               return {
                 ...node,

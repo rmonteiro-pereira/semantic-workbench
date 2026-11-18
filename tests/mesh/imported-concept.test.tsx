@@ -22,7 +22,7 @@ const entity: Entity = {
 };
 
 test('the graph card gives imported provenance in text', () => {
-  const props = { data: { name: entity.name, ...entityCardData(entity, { width: 184, height: 68 }) } } as ComponentProps<typeof EntityNode>;
+  const props = { id: entity.name, data: { name: entity.name, ...entityCardData(entity, { width: 184, height: 68 }) } } as unknown as ComponentProps<typeof EntityNode>;
   const html = renderToStaticMarkup(
     <ReactFlowProvider>
       <EntityNode {...props} />
