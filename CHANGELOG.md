@@ -8,6 +8,17 @@ not configure a production deployment.
 
 ### Added
 
+- Tessera revision 3 combines a root and its declared parts and preserves concept addresses across
+  part moves. See `tests/mesh/workbench-units.test.ts`.
+- Projects can freeze published provider interfaces using explicit imports and dependency
+  updates. Publication checks the lock against the candidate snapshot. See
+  `tests/mesh/atomic-publication.test.ts` and `tests/mesh/freeze.test.ts`.
+- Standard Ossie bundles qualify imported concept names and include an address map. See
+  `tests/mesh/compile-mesh.test.ts`.
+- Mesh shows the published connections visible to the reader. Provider publishers can see
+  the published importers and their selected items. See `tests/mesh/mesh-graph.test.ts` and
+  `tests/mesh/dependents-read.test.ts`.
+
 - Tessera revision 2 adds attribute display order, item context for agents and ontology governance.
   Agent context and governance flags come from published snapshots. Standard ontology output drops
   the additions and loss report version 2 counts dropped governance entries by status.
