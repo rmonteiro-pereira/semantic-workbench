@@ -224,6 +224,8 @@ Conditional (after the release): `schemas/ossie-ontology-<version>.json`, `schem
 - **018 (multi-file and mesh)**: widens `UnitSource` and `compileUnit`'s input. 019 builds its seam to
   take that without change; the compile of a project with imports needs the dependency snapshots that
   018 resolves. Until 018 lands, a project with parts or imports is refused by 011's rules.
+  018 also raises the bundle manifest to version 2 (address map). The bundle byte-equality test of this feature
+  compares against the command line of the same build, so it needs no change when the version rises.
 - **012 (shared proposals)**: no overlap in behaviour; shared rows in route actions and inventory.
   Proposals are never compiled (compile reads the published snapshot only).
 - **013 (person sign-in)**: adds connection scopes. The tools are read-only; the compile tool needs the

@@ -268,6 +268,8 @@ tests/fixtures/tessera/mesh/ (units, providers, manifests, refusals, golden bund
   rule: the later merge renumbers). Governance and agent context of an imported concept are shown from the provider
   read-only. When compiled, the provider's Tessera additions on a copied concept are dropped with a loss entry that
   names the provider document. The attribute row component from 016 is reused for imported concepts without edit.
+  016 also raises the loss report to version 2 (status counts) and regenerates the golden files that this feature
+  extends with the bundle manifest version 2; whichever merges second regenerates them again.
 - **017 (item diff and overlay)**: units change what a document is, so the diff reads a unit as the combined model.
   A concept moved between parts is a recorded migration (changed, not removed and added). Imports and exports are
   shown by the diff as document-level changes (a later improvement can add item kinds). The unpublished mark on an
