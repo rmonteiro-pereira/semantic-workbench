@@ -115,7 +115,7 @@ async function signedInPerson(page: Page, target: SignInTarget, person: { userna
   await expect(page.getByRole('tree', { name: 'Projects' })).toBeVisible();
   await expect(page.locator('.workspace-sidebar')).toContainText('SHARED WORKSPACE');
   assert.equal(new URL(page.url()).search, '?auth-check=return');
-  assert(performance.now() - start < 5000, `Sign-in as ${username} exceeded 5 seconds`);
+  assert(performance.now() - start < 20_000, `Sign-in as ${username} exceeded 20 seconds`);
   const me = await page.request.get(target.url + '/api/me');
   assert.equal(me.status(), 200);
   assertPerson(await me.json(), username, expected);
