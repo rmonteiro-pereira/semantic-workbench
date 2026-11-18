@@ -573,15 +573,29 @@ The original review archive contains 3,559 PNGs. A read-only count by folder mea
 
 Status: in progress. No visual pair is classified before both images have been opened.
 
-The current gallery includes 626 rows. Of those, 249 are intended fixes, 28 are expected merged-feature differences, 273 are neutral, and 11
-are unchanged. The gallery retains 30 frames of fixed regressions and 35 frames flagged as possible or unresolved regressions. A frame count
+The current gallery includes 675 rows. Of those, 270 are intended fixes, 28 are expected merged-feature differences, 294 are neutral, and 11
+are unchanged. The gallery retains 30 frames of fixed regressions and 42 frames flagged as possible or unresolved regressions. A frame count
 can include multiple actions that carry the same underlying issue. The manifest explains which actions could not be compared at a matched state.
 The counted Network heading and compact mapping correction pairs were opened at 390×844 in both themes.
 The 75-state phone replay (local, light, 390×844) was opened across 25 contact sheets. Both repetitions on all three versions
 opened the named mapping and its Source tab. The Source view preserves the empty concept list. The transient empty-bindings frame
 is timing noise, confirmed by the settled Identifier replay. The candidate also shows the full line-23 SQL warning and a green
 keyboard focus ring on the metric grouping control. The empty Trash dialog keeps its explanation and Close action.
-The local gallery publisher returned 626 rows with the counts above.
+The local gallery publisher returned 675 rows with the counts above.
+
+The Full Graph replay scored 43 steps, from two repetitions per version. The candidate Network first view and Fit show four named counted areas.
+Both full-screen selection paths open Order and keep it readable. After changing area visibility with Order selected, Layered can leave Order
+in the inspector while the canvas moves to Address. Network's expanded and collapsed frames use only the left portion of the pane after the
+mini-map toggle has been enabled. The phone stylesheet hides the map in all three versions. The desktop framing and the independent selection
+and area controls require separate replays. Full Graph has no Legend control in any build.
+
+The phone Admin replay scored six steps, each with six successful action records. The valid grant review opened in all three versions with the
+isolated frozen-workspace fixture. The candidate puts confirmation on the right and gives a plain-language count. Both Access check outcomes
+scroll into view, with the allowed and denied text inside the phone viewport. The invalid-address check stays under the email field and exposes
+no schema details. This targeted comparison is separate from the canonical suite's inherited timeout at Dry-run result.
+
+- `bash .data/gate/pull-review-007.sh` for phone Full Graph and Admin exported 43 and six captured strips respectively.
+- `python3 .data/gate/contact-sheet-007.py` produced 15 Full Graph sheets and two Admin sheets. All were opened.
 The gallery and CSV passed the local path and content scan. The gallery folder uses 54 MB on disk.
 
 ## Differences for owner acceptance
@@ -608,7 +622,7 @@ replays. The outstanding findings still require a matched screenshot or a record
 | M2, M13 | `local/light/1280/geometry/mall.ontology.yaml/canvas-dimensions` | Counted areas replace undersized names and the toolbar leaves 30 px more graph height. |
 | M4 | `local/light/1440/mapping-fit/mall-mapping/fitted-names` | The follow-up correction keeps the Mall mapping labels inside cards at Fit. |
 | M9 | `server/light/1440/admin/grant-form/validation-error` | A short email error appears next to its input. |
-| M11 | `server/light/1440/admin/access-check/allowed` | The allowed result gives its reason in the banner. Phone placement awaits comparison. |
+| M11 | `server/light/1440/admin/access-check/allowed` | The allowed result gives its reason in the banner. The matched 390 px replay also shows both banners inside the viewport. |
 | M15, m10 | `local/light/1440/files/commerce.mapping.yaml/neighborhood` | One normal-size card, no empty neighbor count and cross-file links in Other files. |
 | M22 | `server/light/1440/reader/reader/admin-refusal` | A reader who opens Admin sees the role refusal. |
 | m6 | Documentation only | The graph guide names one to three foreign-key hops and one to five mapping steps. There is no requested screen change. |
