@@ -1,6 +1,6 @@
 // The reviewed rewrite: turns one clean, committed Tessera ontology of the caller's working copy into standard Ossie through the ordinary save. Nothing is committed, pushed or published.
 import { compileFindings, type CompileFinding } from '../../shared/tessera/compile-findings';
-import { compileUnit, type CompileResult, type UnitFile } from '../../shared/tessera/compile-unit';
+import { compileUnit, type CompileOptions, type CompileResult, type UnitFile } from '../../shared/tessera/compile-unit';
 import { classifyFile } from '../../shared/tessera/document-kind';
 import { NotFoundError } from '../projects/errors';
 import { decideAcceptance } from './accept-loss';
@@ -75,8 +75,8 @@ function convertedText(compile: CompileResult, path: string): string {
 }
 
 /** Refuses a conversion that would leave the project unable to compile, naming the findings. */
-function refuseUnlessStillCompiles(compile: UnitCompiler, files: UnitFile[], path: string, text: string) {
-  const after = compile(replacing(files, path, text), { lossPolicySha256: null });
+function refuseUnlessStillCompiles(compile: UnitCompiler, files: UnitFile[], path: string, text: string, options: CompileOptions) {
+  const after = compile(replacing(files, path, text), options);
   if (after.failures.length) throw new ConvertRefusal('refused', 'The project would not compile with this file converted.', compileFindings(after));
 }
 
@@ -91,10 +91,11 @@ export async function convertToStandard(deps: ConvertDeps, request: ConvertReque
   if (current.hash !== request.baseHash) throw new ConvertRefusal('version-changed', 'The file changed after the review. Review the conversion again.');
   await refuseUnlessCommitted(deps, request.path);
   const unit = await deps.units.read('working');
-  const result = compile(unit.files, { lossPolicySha256: null });
+  const options = { lossPolicySha256: null, providers: unit.mesh?.providers, project: unit.project };
+  const result = compile(unit.files, options);
   refuseUnlessReviewed(result, request);
   const text = convertedText(result, request.path);
-  refuseUnlessStillCompiles(compile, unit.files, request.path, text);
+  refuseUnlessStillCompiles(compile, unit.files, request.path, text, options);
   const saved = await deps.save(request.path, request.baseHash, text);
   return { path: request.path, version: saved.hash, lossDigest: result.report.digest };
 }

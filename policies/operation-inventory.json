@@ -422,7 +422,8 @@
       "exposure": {
         "increment": "later",
         "reason": "Rewrites a source file; not an agent operation yet."
-      }
+      },
+      "steps": ["snapshot.read"]
     },
     "POST /api/projects/:slug/item-addresses/resolve": {
       "id": "itemAddresses.resolve",

@@ -99,3 +99,9 @@ bun run tessera compile --repository <dir> --project-folder retail --out <outsid
 This build has no MCP server or compile tools. The planned `check_standard` and `compile_standard`
 twins await MCP integration; no agent conversion tool is exposed. Their eventual adapters must
 reuse the operation boundary, export authority, exact acceptance and commit-bound part reads.
+
+
+Reviewing a revision 3 root compiles its declared parts and its frozen, published provider
+interfaces. Converting that root saves the merged standard ontology at the root's path. The
+source part files are retained and the dependency manifest can be cleared with an explicit
+dependency update if the converted root was the last consumer.

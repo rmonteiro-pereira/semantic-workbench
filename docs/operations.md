@@ -157,6 +157,7 @@ These steps run inside the admitted route and share its authorization and audit 
 | compile.check | snapshot.read |
 | compile.run | snapshot.read |
 | compile.bundle | snapshot.read |
+| compile.convert | snapshot.read |
 | metrics.list | snapshot.read |
 | metrics.save | snapshot.read |
 | metrics.preview | snapshot.read |
