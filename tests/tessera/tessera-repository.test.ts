@@ -3,7 +3,7 @@ import { afterEach, expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { validateInput } from '../../src/shared/validation/input';
-import { COMMITTED_FILES, ONTOLOGY_TEXT, PROJECT_FOLDER, createTesseraRepository, type TesseraRepository } from '../helpers/tessera-repository';
+import { ADDITIONS_PROJECT_FILES, COMMITTED_FILES, ONTOLOGY_TEXT, PROJECT_FOLDER, createTesseraRepository, type TesseraRepository } from '../helpers/tessera-repository';
 
 let repository: TesseraRepository | undefined;
 afterEach(() => repository?.dispose());
@@ -44,4 +44,17 @@ test('every standard document of the project passes the standard validator', () 
     expect(result.valid).toBe(true);
     expect(result.issues.filter(issue => issue.severity !== 'info')).toEqual([]);
   }
+});
+
+test('a repository made from the additions project commits exactly its bytes', () => {
+  repository = createTesseraRepository(ADDITIONS_PROJECT_FILES);
+  const listed = Bun.spawnSync(['git', 'ls-tree', '-r', '--name-only', repository.firstCommit], { cwd: repository.directory }).stdout.toString().trim().split('\n');
+  expect(listed.sort()).toEqual(Object.keys(ADDITIONS_PROJECT_FILES).sort());
+  for (const [path, text] of Object.entries(ADDITIONS_PROJECT_FILES)) expect(show(repository.directory, `${repository.firstCommit}:${path}`)).toBe(text);
+});
+
+test('the ontology of the additions project is valid and uses every addition', () => {
+  const text = ADDITIONS_PROJECT_FILES[`${PROJECT_FOLDER}/ontology.yaml`];
+  expect(validateInput(text, 'ontology.yaml').valid).toBe(true);
+  for (const name of ['tessera_attributes', 'tessera_ai_context', 'tessera_governance']) expect(text).toContain(name);
 });

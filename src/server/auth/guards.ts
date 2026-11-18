@@ -16,6 +16,8 @@ export type GuardedItem = { file: string; pointer: string; kind: GuardKind };
 const GUARD_TEXT: Record<GuardKind, string> = {
   'metric-status': 'approving or deprecating a metric',
   'metric-body': 'changing or removing an approved metric',
+  'item-status': 'approving or deprecating a concept or relationship, or changing the owner or steward of an approved one',
+  'item-body': 'changing or removing an approved concept or relationship',
   classification: 'changing a classification',
   'critical-data-element': 'changing a critical data element',
   team: 'changing the contract team',
@@ -48,7 +50,8 @@ function refusalText(change: GuardedChange, decision: Decision, operation?: Guar
   const next = operation ? ' ' + OPERATION_TEXT[operation] : '';
   if (decision.rules.includes('F1-no-self-approval')) {
     const metric = change.metric?.name;
-    return `Refused: nobody approves or deprecates a metric they own (${metric}).${next}`;
+    const subject = change.itemKind ? 'an item' : 'a metric';
+    return `Refused: nobody approves or deprecates ${subject} they own (${metric}).${next}`;
   }
   const what = GUARD_TEXT[change.kind];
   return `Refused: this would include ${what}, which ${WHO_MAY_CHANGE}.${next}`;

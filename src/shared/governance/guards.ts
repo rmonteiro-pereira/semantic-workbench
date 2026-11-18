@@ -6,6 +6,7 @@ import { parseSource } from '../edit/yaml-patch';
 import { withMetricAttributes } from '../metrics/metric-save';
 import { extensionOf, semanticModelPaths, type Path } from '../edit/item-model';
 import { deepEqual, isObject } from '../edit/source-text';
+import { demoteOntologyItem, ontologyItemChanges } from './ontology-guards';
 
 /** Classification levels from least to most sensitive; their index is the level number. */
 export const LEVELS = ['public', 'internal', 'confidential', 'restricted'] as const;
@@ -17,7 +18,7 @@ export type Level = (typeof LEVELS)[number];
 export const levelNumber = (level: Level) => LEVELS.indexOf(level);
 
 /** What a guarded change touches, which decides the permission it needs. */
-export type GuardKind = 'metric-status' | 'metric-body' | 'classification' | 'critical-data-element' | 'team' | 'roles' | 'protected-property';
+export type GuardKind = 'metric-status' | 'metric-body' | 'item-status' | 'item-body' | 'classification' | 'critical-data-element' | 'team' | 'roles' | 'protected-property';
 
 /** One file a write would change, with its text before and after; null means absent. */
 export type FileChange = {
@@ -47,7 +48,10 @@ export type GuardedChange = {
   kind: GuardKind;
   /** The highest classification level the changed part had before or after the write. */
   level: Level;
+  /** The metric a metric guard is about. An ontology item guard describes its item the same way, so one decision serves both. */
   metric?: GuardedMetric;
+  /** Set when the guarded part is a concept or relationship of an ontology and not a metric. */
+  itemKind?: 'concept' | 'relationship';
   /** Where the metric sits after the write, when lowering it to proposed can replace a refusal. */
   demotable?: Path;
 };
@@ -286,12 +290,20 @@ export function guardedChanges(change: FileChange, settings: ClassificationSetti
   const after = parsed(change.after);
   const file = { project: change.project, file: change.path };
   const committed = parsed(change.committed ?? null);
-  return [...metricChanges(file, before, after, committed), ...contractChanges(file, before, after, settings)];
+  const rules = { levelOf: (classification: unknown) => classificationLevel(classification, settings.aliases), protectedLevel: settings.protectedLevel, levelNumber };
+  const itemChanges = ontologyItemChanges(file, { before, after, committed }, rules);
+  return [...metricChanges(file, before, after, committed), ...contractChanges(file, before, after, settings), ...itemChanges];
 }
 
 /** Sets an approved metric back to proposed through the item editor's attribute write. */
 export function demoteMetric(source: string, filename: string, metricPath: Path): string {
   return withMetricAttributes(source, filename, metricPath, { status: 'proposed' });
+}
+
+/** Sets the guarded item back to proposed, the way its kind is written. */
+function demoteGuarded(source: string, filename: string, guarded: GuardedChange): string {
+  if (guarded.itemKind) return demoteOntologyItem(source, filename, guarded.demotable!);
+  return demoteMetric(source, filename, guarded.demotable!);
 }
 
 /**
@@ -313,7 +325,7 @@ export function applyGuards(changes: FileChange[], settingsFor: (project: string
   const written = changes.map(change => {
     const own = demoted.filter(guarded => guarded.project === change.project && guarded.file === change.path);
     if (!own.length || change.after === null) return change;
-    const after = own.reduce((text, guarded) => demoteMetric(text, change.path, guarded.demotable!), change.after);
+    const after = own.reduce((text, guarded) => demoteGuarded(text, change.path, guarded), change.after);
     return { ...change, after };
   });
   return { changes: written, refused, demoted };
