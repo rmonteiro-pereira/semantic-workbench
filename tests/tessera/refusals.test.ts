@@ -6,6 +6,8 @@ import { InputError } from '../../src/shared/validation/diagnostics';
 import { validateInput } from '../../src/shared/validation/input';
 import { isNotValidated } from '../../src/shared/validation/validation';
 import { compileUnit } from '../../src/shared/tessera/compile-unit';
+import { createRegistry, REGISTRY } from '../../src/shared/tessera/registry';
+import { tesseraIssues } from '../../src/shared/tessera/validate';
 import { LOCAL_READER } from '../../src/server/projects/reader';
 import { indexBytes } from '../../src/server/projects/scanner';
 import { testWorkspace } from '../helpers/temp-data-dir';
@@ -69,6 +71,12 @@ test('a JSON document that declares the marker twice gives the syntax finding', 
 
 test('the one registry check for each refusal class is what stops the document', () => {
   const classes = new Set(REFUSED_FILES.flatMap(name => EXPECTED_FINDINGS[name].map(finding => finding.split(' ')[0])));
-  for (const code of ['tessera-marker', 'tessera-revision', 'tessera-base', 'tessera-kind', 'tessera-property', 'tessera-reserved', 'tessera-location', 'schema'])
-    expect(classes.has(code), code).toBe(true);
+  for (const code of ['tessera-marker', 'tessera-revision', 'tessera-base', 'tessera-kind', 'tessera-property', 'tessera-location', 'schema']) expect(classes.has(code), code).toBe(true);
+});
+
+test('the registry refuses a property reserved for a later revision', () => {
+  const name = 'tessera_future';
+  const registry = createRegistry(REGISTRY.additions, [{ name, owner: 'fixture' }]);
+  const document = { tessera: 3, version: '0.2.0.dev0', name: 'Retail', ontology: [{ concept: 'Order', type: 'EntityType' }], [name]: true };
+  expect(tesseraIssues(document, { registry }).issues).toMatchObject([{ code: 'tessera-reserved', path: '/' + name }]);
 });

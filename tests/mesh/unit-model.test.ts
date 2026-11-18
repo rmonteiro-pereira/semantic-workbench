@@ -3,7 +3,7 @@ import { expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { formatAddress } from '../../src/shared/core/item-address';
 import { addressAtModelPath } from '../../src/shared/core/model-addresses';
-import { inspect, isStructuredEntity } from '../../src/shared/core/model';
+import { inspect } from '../../src/shared/core/model';
 import { combineUnit } from '../../src/shared/tessera/unit-model';
 import { readUnitStructure } from '../../src/shared/tessera/unit-structure';
 
@@ -29,10 +29,10 @@ test('split and unsplit ontologies have the same concepts, edges and item identi
 
 test('cross-part references resolve and nested items keep their source file', () => {
   const split = model('three-parts', ['ontology.yaml', 'orders.yaml', 'returns.yaml', 'customers.json']);
-  const order = split.inspected.entities.filter(isStructuredEntity).find(entity => entity.name === 'Order')!;
-  const customer = split.inspected.entities.filter(isStructuredEntity).find(entity => entity.name === 'Customer')!;
+  const order = split.inspected.entities.find(entity => entity.name === 'Order')!;
+  const customer = split.inspected.entities.find(entity => entity.name === 'Customer')!;
   const relationship = split.inspected.edges.find(edge => edge.source === order.id && edge.target === customer.id)!;
   expect(split.itemFiles.get(formatAddress(addressAtModelPath(split.ontology, relationship.data.path)))).toBe('orders.yaml');
-  expect(split.itemFiles.get(formatAddress(order.address))).toBe('orders.yaml');
-  expect(split.itemFiles.get(formatAddress(customer.address))).toBe('customers.json');
+  expect(split.itemFiles.get(formatAddress(addressAtModelPath(split.ontology, order.path)))).toBe('orders.yaml');
+  expect(split.itemFiles.get(formatAddress(addressAtModelPath(split.ontology, customer.path)))).toBe('customers.json');
 });

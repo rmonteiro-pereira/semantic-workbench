@@ -441,9 +441,9 @@ ontology:
 In the workbench a Tessera ontology opens, edits, saves and appears in the graph like any other
 Ossie ontology. The validation panel names the format ("Tessera 1 on Ossie 0.2.0.dev0 · 0 errors ·
 0 warnings"). A document is never "Not validated": a wrong marker, an unknown or misplaced
-`tessera_` property, a reserved name, a marker on a file that is not an ontology or an unsupported
+`tessera_` property, a marker on a file that is not an ontology or an unsupported
 Ossie `version` each give a finding with its own code (`tessera-marker`, `tessera-revision`,
-`tessera-base`, `tessera-kind`, `tessera-property`, `tessera-reserved`, `tessera-location`).
+`tessera-base`, `tessera-kind`, `tessera-property`, `tessera-location`).
 Agents get item context and limited governance flags from the published snapshot. Notes,
 attribute order, owner, steward and classification stay in the workbench. Tests: `tests/tessera/validation.test.ts`,
 `tests/tessera/workbench-documents.test.ts`, `tests/tessera/agent-and-access.test.ts`.

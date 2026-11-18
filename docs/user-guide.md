@@ -559,7 +559,7 @@ workbench, or uses a property that needs a higher revision; use a supported revi
 `version` is missing or not a supported Ossie base; set it to `0.2.0.dev0`. `tessera-kind`: the marker
 is on a file that is not an ontology; remove it. `tessera-property`: a `tessera_` property that does
 not exist, often a misspelling such as `tessera_note`; fix the spelling or remove it.
-`tessera-reserved`: the name is kept for a later feature; remove it. `tessera-location`: a known
+`tessera-location`: a known
 property in a place that does not take it, such as a dataset; move it to the ontology root, a concept
 or a relationship. An empty or too long note is a `schema` finding on the note.
 
