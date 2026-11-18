@@ -7,7 +7,12 @@
       "description": "Reads the projects of its grant: files, graphs, lineage, metrics, history and exports, plus its own view settings.",
       "permissions": [
         {
-          "actions": ["read", "export", "history", "viewOwnState"]
+          "actions": [
+            "read",
+            "export",
+            "history",
+            "viewOwnState"
+          ]
         }
       ]
     },
@@ -17,10 +22,30 @@
       "description": "Everything a Viewer does, plus editing files and metrics as draft or proposed, imports, moves, deletes to trash, and Git work in its own working copy.",
       "permissions": [
         {
-          "actions": ["read", "export", "history", "viewOwnState"]
+          "actions": [
+            "read",
+            "export",
+            "history",
+            "viewOwnState"
+          ]
         },
         {
-          "actions": ["edit", "createMetric", "import", "move", "delete", "revert", "restoreOwn", "stage", "commit", "branch", "fetch", "pull", "push", "cancelOwn"]
+          "actions": [
+            "edit",
+            "createMetric",
+            "import",
+            "move",
+            "delete",
+            "revert",
+            "restoreOwn",
+            "stage",
+            "commit",
+            "branch",
+            "fetch",
+            "pull",
+            "push",
+            "cancelOwn"
+          ]
         }
       ]
     },
@@ -30,13 +55,41 @@
       "description": "Everything an Editor does, plus approving metrics it does not own, guarded classification changes, restoring others' trash, publishing to protected branches, creating and renaming projects, and reading the audit log of its projects.",
       "permissions": [
         {
-          "actions": ["read", "export", "history", "viewOwnState"]
+          "actions": [
+            "read",
+            "export",
+            "history",
+            "viewOwnState"
+          ]
         },
         {
-          "actions": ["edit", "createMetric", "import", "move", "delete", "revert", "restoreOwn", "stage", "commit", "branch", "fetch", "pull", "push", "cancelOwn"]
+          "actions": [
+            "edit",
+            "createMetric",
+            "import",
+            "move",
+            "delete",
+            "revert",
+            "restoreOwn",
+            "stage",
+            "commit",
+            "branch",
+            "fetch",
+            "pull",
+            "push",
+            "cancelOwn"
+          ]
         },
         {
-          "actions": ["approveMetric", "editGuarded", "restoreOthers", "publish", "createProject", "renameProject", "readAudit"]
+          "actions": [
+            "approveMetric",
+            "editGuarded",
+            "restoreOthers",
+            "publish",
+            "createProject",
+            "renameProject",
+            "readAudit"
+          ]
         }
       ]
     },
