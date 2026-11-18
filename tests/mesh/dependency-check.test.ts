@@ -2,7 +2,10 @@ import { expect, test } from 'bun:test';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { DEPENDENCY_MANIFEST_PATH, parseDependencyManifest, printDependencyManifest } from '../../src/shared/tessera/dependency-manifest';
-import { meshWorkspace } from '../helpers/mesh-workspace';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { accessFixture, person } from '../auth/access-fixture';
+import { gitOutput, openCopy, signedIn } from '../auth/working-copy-fixture';
+import { meshWorkspace, MESH_PROJECTS } from '../helpers/mesh-workspace';
 
 type Fixture = Awaited<ReturnType<typeof meshWorkspace>>;
 
@@ -68,4 +71,54 @@ test('a provider interface from a different same-repository candidate cannot be 
   expect(rejected.status).toBe(400);
   expect(JSON.stringify(await rejected.json())).toContain('differs from the candidate');
   expect(fixture.ws.state.published().repositories[fixture.ws.repoOf('retail')].commit).toBe(original);
+});
+
+function publisher(fixture: Fixture, projects: string[]) {
+  const options = accessFixture();
+  const rules = JSON.parse(readFileSync('tests/fixtures/tessera/mesh/access/projects.json', 'utf8'));
+  const configured = JSON.parse(readFileSync('tests/fixtures/tessera/mesh/access/grants.json', 'utf8')).grants;
+  const grants = configured
+    .filter((grant: { id: string }) => grant.id === 'retail-steward')
+    .map((grant: object) => ({
+      ...grant,
+      scope: { kind: 'projects', projects },
+    }));
+  const access = createAccessControl({ ...options, knownProjects: () => [...MESH_PROJECTS], config: { ...options.config, grants, projects: rules } });
+  return signedIn(fixture.ws, access)(person('bob'));
+}
+
+test('publication rechecks the publishing person’s current access to a provider', async () => {
+  using fixture = await meshWorkspace('separate');
+  fixture.addUncommittedImport();
+  await writeLock(fixture);
+  const original = fixture.ws.state.published().repositories.retail.commit;
+  fixture.git('retail', ['add', '-A']);
+  fixture.git('retail', ['commit', '-qm', 'Import finance']);
+  const actor = publisher(fixture, ['retail']);
+  const response = await actor.call('/api/projects/retail/git/adopt', 'POST', {});
+  expect(response.status).toBe(400);
+  expect(JSON.stringify(response.body)).toContain('A locked provider is unavailable');
+  expect(fixture.ws.state.published().repositories.retail.commit).toBe(original);
+});
+
+test('fetch stops before following a remote candidate with a set error', async () => {
+  using fixture = await meshWorkspace('separate');
+  const previous = fixture.ws.state.published().repositories.retail.commit;
+  const repository = fixture.projectDirectory('retail');
+  const remote = join(fixture.fixture.root, 'retail-remote');
+  expect(gitOutput(fixture.fixture.root, ['clone', '-q', repository, remote]).code).toBe(0);
+  fixture.git('retail', ['remote', 'add', 'origin', remote]);
+  const actor = publisher(fixture, [...MESH_PROJECTS]);
+  expect((await openCopy(actor.call, 'retail')).status).toBe(200);
+  const part = 'private/customer.yaml';
+  const source = JSON.parse(readFileSync(join(remote, part), 'utf8'));
+  source.ontology[0].concept = 'Order';
+  writeFileSync(join(remote, part), JSON.stringify(source));
+  expect(gitOutput(remote, ['add', '--', part]).code).toBe(0);
+  expect(gitOutput(remote, ['commit', '-qm', 'Duplicate a concept across files']).code).toBe(0);
+  const fetched = await actor.call('/api/projects/retail/git/fetch', 'POST', {});
+  expect(fetched.status).toBe(200);
+  expect(fetched.body).toMatchObject({ ok: true, follow: { followed: false, reason: 'guard' } });
+  expect(fixture.git('retail', ['rev-parse', 'refs/heads/main'])).toBe(previous);
+  expect(fixture.ws.state.published().repositories.retail.commit).toBe(previous);
 });
