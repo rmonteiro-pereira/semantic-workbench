@@ -119,7 +119,7 @@ test only to make it pass.
   answer from the offered ids, cancel on timeout, on turn cancel and on end; at most 5 pending.
   Add `tests/acp/questions.test.ts`. Proof: the test passes; an "always allow" answer does not
   change what the boundary decides afterwards (a refused write stays refused).
-- [ ] T021 [US7] Extend `tests/auth/boundary-scan.test.ts` to fail when `src/server/acp/` imports a
+- [x] T021 [US7] Extend `tests/auth/boundary-scan.test.ts` to fail when `src/server/acp/` imports a
   `src/server/mcp/` module other than the capability reader and call-limit settings, or builds a
   scope. Proof: the test passes and a deliberately added import makes it fail locally.
 
