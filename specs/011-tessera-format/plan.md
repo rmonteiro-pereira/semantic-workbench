@@ -57,7 +57,7 @@ never takes an unvalidated path); output is a pure function of input, options an
 bounded input (2,000,000 bytes per document, snapshot limits, alias limit); no network; no write
 inside the repository; files of about 400 lines, functions of about 40, no spec IDs in comments.
 
-**Scale/Scope**: one pinned base, one revision, one addition. About 12 new source files, 14 test
+**Scale/Scope**: one pinned base, one revision, one addition. About 22 new source and script files, 26 test
 files, 3 contracts.
 
 ## Constitution Check
@@ -196,14 +196,18 @@ src/app/validation/ValidationPanel.tsx       # format label and fix hints
 src/app/workspace/hooks/useValidation.tsx    # passes the format to the panel
 scripts/
 ├── tessera.ts  tessera-arguments.ts  derive-tessera-schema.ts                # new
+├── record-standard-baseline.ts                                               # new, run once on unchanged code
 ├── tessera-browser-check.ts  tessera-mutants.ts  tessera-mutation-cases.ts   # new
 ├── compile-schemas.ts  mutation-tests.ts  mutation-case.ts  gate-suites.ts   # wired
 tests/tessera/
-├── standard-unchanged.test.ts  validation.test.ts  schema-derivation.test.ts
-├── bases.test.ts  workbench-documents.test.ts  operation-parity.test.ts
-├── compile.test.ts  meaning-check.test.ts  loss-report.test.ts  determinism.test.ts
-├── snapshot-source.test.ts  bundle-writer.test.ts  cli.test.ts
-├── compile-scale.test.ts  mutant-anchors.test.ts
+├── standard-unchanged.test.ts  superset.test.ts  next-base-fixture.test.ts  tessera-repository.test.ts
+├── registry.test.ts  bases.test.ts  marker.test.ts  schema-derivation.test.ts  validation.test.ts
+├── workbench-documents.test.ts  validation-panel.test.tsx  operation-parity.test.ts
+├── serialize.test.ts  compile.test.ts  meaning-check.test.ts  loss-report.test.ts  determinism.test.ts
+├── snapshot-source.test.ts  bundle-writer.test.ts  cli-arguments.test.ts  cli.test.ts
+├── agent-and-access.test.ts  refusals.test.ts  extension.test.ts
+├── compile-scale.test.ts  mutant-anchors.test.ts  docs-paths.test.ts
+tests/helpers/tessera-repository.ts          # temporary Git repository builder
 tests/fixtures/tessera/                      # documents, repositories, golden bundles
 tests/fixtures/ossie-next-base/              # pinned development schema of the next base, or synthetic
 docs/user-guide.md, docs/development.md, docs/item-addresses.md, docs/agent-runtime.md
