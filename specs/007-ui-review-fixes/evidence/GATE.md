@@ -574,8 +574,8 @@ The original review archive contains 3,559 PNGs. A read-only count by folder mea
 
 Status: in progress. No visual pair is classified before both images have been opened.
 
-The gallery checkpoint of 752 rows includes 328 intended fixes, 32 expected merged-feature differences, 300 neutral changes and 11
-unchanged steps. It retains 48 frames of fixed regressions and 33 frames flagged as possible or unresolved regressions. A frame count
+The gallery checkpoint of 752 rows includes 330 intended fixes, 32 expected merged-feature differences, 300 neutral changes and 11
+unchanged steps. It retains 48 frames of fixed regressions and 31 frames flagged as possible or unresolved regressions. A frame count
 can include multiple actions that carry the same underlying issue. The manifest records actions without matched captures.
 The counted Network heading and compact mapping correction pairs were opened at 390×844 in both themes.
 The 75-state phone replay (local, light, 390×844) was opened across 25 contact sheets. Both repetitions on all three versions
@@ -622,6 +622,10 @@ keyboard focus ring on the metric grouping control. The empty Trash dialog keeps
   In both candidate repeats, the title has 18.22 px on the left and 430.36 px below it. It protrudes 27.72 px below the pane in all
   four reference frames. The main/candidate score is 9.567080%. Back after Find assets still returns to one hop but leaves
   the searched center, in both repeats of all three versions. Fit and Forward pass throughout.
+- `bash .data/gate/pull-review-007.sh .data/gate/minimap-desktop-final` for both `local/{light,dark}/1440/mini-map-framing`
+  prefixes returned four strips. Both repeats were opened and all 24 actions passed. The candidate shows the whole named UBL Network
+  in four areas. Its zoom is 0.72067 with the mini-map off and 0.581006 on, stable in both repeats and themes. Both references
+  rearrange the areas between repeats. The new named framing resolves the earlier mini-map-off concerns in both themes.
 - `bash .data/gate/publish-current-review.sh` returned 752 rows with the counts above.
 
 The Full Graph replay scored 43 steps, from two repetitions per version. The candidate Network first view and Fit show four named counted areas.
