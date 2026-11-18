@@ -354,6 +354,7 @@ export function createTrash(ctx: TrashContext) {
         for (const slug of slugs) ctx.forgetProject(slug);
         journal.run(batchId ? 'clear' : 'delete', steps, [stateStaging], opId);
       } catch (err) {
+        if (err instanceof JournalCrash) throw err;
         for (const entry of entries) rmSync(dirOf(entry.entryId), { recursive: true, force: true });
         rmSync(stateStaging, { recursive: true, force: true });
         for (const slug of slugs) if (existsSync(projectDir(layout, slug))) await ctx.adoptProject(slug);

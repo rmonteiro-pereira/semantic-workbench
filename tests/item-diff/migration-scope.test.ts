@@ -12,6 +12,7 @@ import { compileUnit } from '../../src/shared/tessera/compile-unit';
 import { boundaryReader } from '../auth/access-fixture';
 import { LOCAL_READER } from '../../src/server/projects/reader';
 import { testWorkspace } from '../helpers/temp-data-dir';
+import { createJournal, JournalCrash } from '../../src/server/projects/journal';
 import { createGit } from '../../src/server/projects/git';
 import { dataLayout } from '../../src/server/projects/paths';
 import { resolvePublishedForCaller } from '../../src/server/projects/address-resolution';
@@ -283,5 +284,21 @@ test('project trash carries a legacy import inside the archived project', async 
   expect(existsSync(join(fixture.ws.layout.trash, entry.entryId, 'payload', project, ADDRESS_HISTORY_FILE))).toBe(true);
   await fixture.ws.trash.restore(entry.entryId, {}, LOCAL_READER);
   expect(readAddressMigrations(fixture.ws.layout, project, LOCAL_READER)).toEqual([record]);
+  expect(existsSync(legacy)).toBe(false);
+});
+
+test('interrupted project trash recovers legacy import and the archived project together', async () => {
+  using fixture = await testWorkspace({ watch: false, journalHooks: { crashAfter: (kind, index) => kind === 'delete' && index === 1 } });
+  const { slug } = await fixture.seed([{ path: 'project.ontology.yaml', source: 'name: Project\nontology: [{concept: New}]' }], 'Project');
+  const legacy = join(fixture.ws.layout.state, 'address-migrations', slug + '.json');
+  const prefix = `sw1:${slug}/project.ontology.yaml#ontology:Project/concept:`;
+  const record = { id: 'legacy-crash', kind: 'item', from: prefix + 'Old', to: prefix + 'New', at: '2025-01-01T00:00:00Z', commit: '' };
+  atomicWriteJson(legacy, { formatVersion: 1, records: [record] });
+  await expect(fixture.ws.trash.deleteProject(slug)).rejects.toBeInstanceOf(JournalCrash);
+  const recovery = createJournal(fixture.ws.layout).recover();
+  expect(recovery).toMatchObject([{ outcome: 'completed' }]);
+  const [archived] = fixture.ws.trash.list();
+  expect(archived.project).toBe(slug);
+  expect(existsSync(join(fixture.ws.layout.trash, archived.entryId, 'payload', slug, ADDRESS_HISTORY_FILE))).toBe(true);
   expect(existsSync(legacy)).toBe(false);
 });
