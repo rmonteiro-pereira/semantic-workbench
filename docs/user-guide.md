@@ -447,7 +447,7 @@ computes or adds a field keeps its own card.
 
 The Lineage tab fits the complete reach when its card names stay readable. Larger reaches use
 compact name-only cards with compensated names; otherwise the table and its nearest chosen cards
-open whole. Pan or zoom to reveal the remaining cards. **Fit** shows the complete compact reach. Zoom in to restore columns and card actions.
+open whole. Pan or zoom to reveal the remaining cards. Zoom in to restore columns and card actions.
 At far zoom, select a card and choose **Walk here** in Selected path.
 
 Click a line to see what it stands for. A single line selects its relationship, highlighting
@@ -460,8 +460,9 @@ Select a column to highlight its upstream/downstream path. **Selected path** app
 canvas or in a phone dialog. **Find assets**, Walk here, Back/Forward and expansion retain context.
 The Lineage caption names the current and original table, wrapping when space is limited.
 The first view fits the complete reach when the wrapped names fit inside their cards. A denser
-reach opens around a smaller set of whole cards. **Fit** shows every card in the shared name-only
-representation used by lineage and mappings.
+reach opens around a smaller set of whole cards. **Fit** uses the name-only representation in
+lineage and mappings. If the reach is too dense to fit without overlapping names, Fit centers on
+the current card and leaves the other cards available by panning.
 
 A wide table shows relevant columns and **+ N more columns**, which opens one scrolling list,
 not pagination. Lists above thirty columns offer filtering. Edges for offscreen connected rows

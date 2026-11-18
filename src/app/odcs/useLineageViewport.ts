@@ -136,9 +136,10 @@ export function useLineageViewport({
   );
   const readableFit = useCallback(
     async (focus: string, group: string[]) => {
-      await fitCards([...new Set([focus, ...group])]);
+      const fittedGroup = await fitCards([...new Set([focus, ...group])], overview);
+      if (!fittedGroup && group.length) await fitCards([focus], overview);
     },
-    [fitCards],
+    [fitCards, overview],
   );
   const viewKey = [center, steps].join('|');
   const firstView = useCallback(async () => {
@@ -155,10 +156,12 @@ export function useLineageViewport({
       return layoutCard ? [{ ...node.position, width: CARD_W, height: cardHeight(layoutCard) }] : [];
     });
     const mayFit = fitRequested.current || overview || fitsReadableView(cards, stageSize, READABLE, FIRST_VIEW_MARGIN);
-    const fittedAll = mayFit && (await fitCards(undefined, overview && !fitRequested.current));
+    const fittedAll = mayFit && (await fitCards(undefined, overview));
     if (generation !== fitGeneration.current || activeLayout.current !== layoutKey) return;
     if (fittedAll) {
       setFramedOnly(null);
+    } else if (fitRequested.current) {
+      await readableFit(center, []);
     } else if (!overview) {
       onOverview(true);
       return;
@@ -221,7 +224,7 @@ export function useLineageViewport({
     };
   }, [result, layoutKey, viewKey, nodes, stageSize, overview, firstView, viewHeld, fitRevision]);
   useEffect(() => () => clearTimeout(firstViewTimer.current), []);
-  // An explicit Fit wins over a first view that is still waiting to run, and shows every card.
+  // An explicit Fit wins over a pending first view and leaves every card available to pan into view.
   function fitAll() {
     fitGeneration.current += 1;
     setFramedOnly(null);
@@ -279,11 +282,13 @@ export function useLineageViewport({
       return;
     }
     if (result.key !== layoutKey) return;
-    const timer = setTimeout(() => {
+    const timer = setTimeout(async () => {
       pendingPanelFit.current = false;
-      void fitCards();
+      const generation = fitGeneration.current;
+      if (await fitCards(undefined, true)) return;
+      if (generation === fitGeneration.current && activeLayout.current === layoutKey) await readableFit(center, []);
     }, 120);
     return () => clearTimeout(timer);
-  }, [panelOpen, overview, result?.key, fitCards]);
+  }, [panelOpen, overview, result?.key, fitCards, readableFit, center]);
   return { fitAll, framedOnly, releaseFrame: () => setFramedOnly(null) };
 }

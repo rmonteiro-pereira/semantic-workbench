@@ -21,7 +21,7 @@ import { SelectedPath } from './SelectedPath';
 import { useNarrowScreen } from '../workspace/hooks/useNarrowScreen';
 import { closure, findAssets, foreignKeyPath, cardRows, COLLAPSED_MAX, selectionNodes, cardOfNode, type ColumnWhy, type LineageGraph, type LineageCard } from './lineage';
 import { LineageCardNode, type CardData } from './LineageCard';
-import { cardHeight, cardGeometry, CARD_W, HEADER_H, ROW_H, MORE_H, FILTER_H, FOOT_H, LIST_ROWS, type LayoutCard, type LayoutEdge } from './lineage-layout';
+import { cardHeight, cardGeometry, compactOverviewZoomFloor, CARD_W, HEADER_H, ROW_H, MORE_H, FILTER_H, FOOT_H, LIST_ROWS, type LayoutCard, type LayoutEdge } from './lineage-layout';
 import { buildLineLabels, type LineLabel } from './edge-labels';
 import { kindOrder, planFirstView, CARD_NAME_PX, NAME_MIN_PX } from './lineage-view';
 import { edgeTypes } from './LineageEdge';
@@ -245,6 +245,7 @@ export function LineageCanvas({
       }),
     [reach, rowsByCard, openColumns, why, listRows, overview],
   );
+  const minimumZoom = useMemo(() => (overview ? compactOverviewZoomFloor(allLayoutCards) : MIN_ZOOM), [allLayoutCards, overview]);
   const cardHeights = useMemo(() => new Map(allLayoutCards.map(c => [c.id, cardHeight(c)])), [allLayoutCards]);
   // The first view frames the centre and the nearest cards that fit whole at a readable size.
   // Every card of the reach is still laid out, so the rest are a pan away and Fit shows them all.
@@ -689,7 +690,7 @@ export function LineageCanvas({
             onMoveEnd={finishViewportMove}
             onPaneClick={() => setSelected('')}
             onEdgeClick={openLine}
-            minZoom={MIN_ZOOM}
+            minZoom={minimumZoom}
             maxZoom={1.6}
             nodesConnectable={false}
             proOptions={{ hideAttribution: false }}

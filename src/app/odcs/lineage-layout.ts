@@ -149,6 +149,18 @@ export function compactOverviewNamesFit(cards: readonly Pick<LayoutCard, 'label'
   return (OVERVIEW_H - 16) * zoom >= minimumNameHeight;
 }
 
+/** Finds a compact zoom floor that keeps wrapped names within their cards. */
+export function compactOverviewZoomFloor(cards: readonly Pick<LayoutCard, 'label'>[]): number {
+  let lower = 0;
+  let upper = 1;
+  for (let step = 0; step < 12; step++) {
+    const zoom = (lower + upper) / 2;
+    if (compactOverviewNamesFit(cards, zoom)) upper = zoom;
+    else lower = zoom;
+  }
+  return upper;
+}
+
 /** Detects compact fits that cannot contain complete names at the minimum name size. */
 export function compactOverviewNeedsPacking(cards: LayoutCard[], pane: ViewSize | undefined, bounds: { width: number; height: number }): boolean {
   if (!pane?.width || !pane.height || !cards.length || !cards.every(card => card.overview)) return false;
