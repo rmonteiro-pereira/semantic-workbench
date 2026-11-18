@@ -216,15 +216,21 @@ const gitCommit: ToolDefinition = {
   operation: 'git.commit',
   retryClass: 'receipt-backed',
   requestCapBytes: GLOBAL_REQUEST_CAP_BYTES,
-  run: (args: CommitArguments, context) =>
-    context.receipts.run({
+  run: (args: CommitArguments, context) => {
+    const body = { message: args.message, files: args.files, expectedBranch: args.expectedBranch, expectedHead: args.expectedHead };
+    const target = { params: { slug: args.project }, body };
+    return context.receipts.run({
       principalId: context.principalId,
+      connectionId: context.connectionId,
       tool: 'git_commit',
       idempotencyKey: args.idempotencyKey,
       args,
+      async authorizeReplay() {
+        const called = await context.twin('git.commit', { ...target, replay: {} });
+        return called.ok ? undefined : called.failure;
+      },
       async effect() {
-        const body = { message: args.message, files: args.files, expectedBranch: args.expectedBranch, expectedHead: args.expectedHead };
-        const called = await context.twin('git.commit', { params: { slug: args.project }, body });
+        const called = await context.twin('git.commit', target);
         if (!called.ok) return called.failure;
         const committed = called.answer.body as { commit: string; branch?: string; movedFrom?: string; altered?: string[] };
         return succeed({
@@ -237,7 +243,8 @@ const gitCommit: ToolDefinition = {
         });
       },
       verify: () => commitHappened(args, context),
-    }),
+    });
+  },
 };
 
 export const sourceControlTools: ToolDefinition[] = [gitStatus, gitDiff, gitLog, gitBranches, gitFileVersions, gitShow, gitCommit];

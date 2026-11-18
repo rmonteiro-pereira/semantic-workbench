@@ -77,7 +77,14 @@ async function runTool(tool: ToolDefinition, args: unknown, dependencies: ToolSe
     const outcome = await withDeadline(limits.settings.deadlineMs, signal => {
       const signals = AbortSignal.any([dependencies.signal, signal]);
       const twin: TwinCall = (operationId, input) => counted.twin(operationId, { ...input, signal: signals });
-      return tool.run(args, { twin, cursors: dependencies.cursors, receipts: dependencies.receipts, principalId: dependencies.caller.principal.id, signal: signals });
+      return tool.run(args, {
+        twin,
+        cursors: dependencies.cursors,
+        receipts: dependencies.receipts,
+        principalId: dependencies.caller.principal.id,
+        connectionId: dependencies.caller.principal.kind === 'local' ? undefined : dependencies.caller.connection,
+        signal: signals,
+      });
     });
     const result = outcome.finished ? withinCap(outcome.value) : fail('limit_exceeded', 'The call took longer than the deadline.', { limit: 'deadline' });
     // A failure the tool decided itself, such as a changed version or an expired cursor, was not seen by any twin, so it is recorded here with the code the caller was told.

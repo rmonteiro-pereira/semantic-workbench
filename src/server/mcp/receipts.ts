@@ -10,11 +10,25 @@ import { fail, type ToolResult } from './tool-results';
 export const RECEIPT_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
 
 type ReceiptState = 'pending' | 'done' | 'uncertain';
-type Receipt = { note?: Record<string, unknown>; id: string; principalId: string; tool: string; argumentsHash: string; state: ReceiptState; result?: ToolResult; createdAt: string; expiresAt: string };
+type Receipt = {
+  note?: Record<string, unknown>;
+  id: string;
+  principalId: string;
+  connectionId?: string;
+  tool: string;
+  argumentsHash: string;
+  state: ReceiptState;
+  result?: ToolResult;
+  createdAt: string;
+  expiresAt: string;
+};
 
 /** What to do with one call, given what the store already knows about its key. */
 export type ReceiptRequest = {
   principalId: string;
+  connectionId?: string;
+  /** Runs the current operation authorization before a prior receipt can answer. */
+  authorizeReplay?: (note: Record<string, unknown>) => Promise<ToolResult | undefined>;
   tool: string;
   idempotencyKey: string;
   /** The tool's arguments. The key itself is left out of the comparison. */
@@ -120,12 +134,17 @@ export function createReceiptStore(directory: string, now: () => Date = () => ne
     return verified ?? fail('uncertain', 'The earlier attempt may or may not have completed. Read the current state before trying again.');
   }
   async function runOnce(request: ReceiptRequest, id: string, hash: string): Promise<ToolResult> {
-    const existing = find(id);
+    const found = find(id);
+    const existing = found === 'corrupt' || (found?.principalId === request.principalId && found.connectionId === request.connectionId) ? found : undefined;
     if (existing === 'corrupt')
       return fail(
         'uncertain',
         'The record of earlier attempts could not be read, so this key may have been used. Read the current state before trying again. A person can lift this by checking the trash and the Git log, then deleting the corrupt file in data/state/mcp-receipts/.',
       );
+    if (existing && request.authorizeReplay) {
+      const refusal = await request.authorizeReplay(existing.note ?? {});
+      if (refusal) return refusal;
+    }
     if (existing && existing.argumentsHash !== hash) return fail('key_reused', 'This idempotency key was already used with different arguments. Use a new key for a new request.');
     if (existing?.state === 'done' && existing.result) return existing.result;
     if (existing?.state === 'uncertain') return fail('uncertain', 'The earlier attempt may or may not have completed. Read the current state before trying again.');
@@ -137,6 +156,7 @@ export function createReceiptStore(directory: string, now: () => Date = () => ne
       note: prepared,
       id,
       principalId: request.principalId,
+      ...(request.connectionId ? { connectionId: request.connectionId } : {}),
       tool: request.tool,
       argumentsHash: hash,
       state: 'pending',
@@ -154,7 +174,8 @@ export function createReceiptStore(directory: string, now: () => Date = () => ne
   return {
     prune,
     async run(request) {
-      const id = sha256(`${request.principalId}\n${request.tool}\n${request.idempotencyKey}`);
+      const owner = request.connectionId ? JSON.stringify([request.principalId, request.connectionId]) : request.principalId;
+      const id = sha256(`${owner}\n${request.tool}\n${request.idempotencyKey}`);
       const hash = argumentsHash(request.args);
       const running = inFlight.get(id);
       if (running !== undefined) {

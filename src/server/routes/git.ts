@@ -3,6 +3,7 @@ import { GIT_REQUEST_LIMIT } from '../request';
 import { requestReader, recordPublication, recordPublicationAttempt, recordPublicationRefusal } from '../auth/request-scope';
 import { authorizeCheckout, authorizeGitPaths, authorizeGitPush, authorizePublish, authorizeRepository, mayPublish } from '../auth/git-access';
 import { checkRemoteAddress, delegatedCredentials } from '../auth/remote-credentials';
+import { receiptReplay, type ReceiptReplayRequest } from '../auth/receipt-replay';
 import { authorizeWrite } from '../auth/write-access';
 import { existsSync, readFileSync } from 'node:fs';
 import { decodeSegment, readJson } from '../request';
@@ -124,6 +125,7 @@ export const createGitRoutes =
           repository: requestBody.repoPaths !== undefined,
         });
         if (requestBody.push === true) await authorizeGitPush(gitTarget);
+        if ((req as ReceiptReplayRequest)[receiptReplay]) return new Response(null, { status: 204 });
         const chosen = requestBody.paths === undefined && requestBody.repoPaths === undefined ? null : chosenPaths(requestBody);
         const scm = await sourceControl();
         return Response.json(

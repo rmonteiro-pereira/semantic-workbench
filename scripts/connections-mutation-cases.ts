@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { dirname, join } from 'node:path';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { createAuditLog } from '../src/server/auth/audit';
 import { mintCaller } from '../src/server/auth/caller';
@@ -24,10 +24,46 @@ export const connectionsMutants: [string, string, string, string][] = [
     "if (!match) return { allow: false, status: 401, reason: 'credential' };",
     "if (!match) return { allow: true, caller: {} as Caller, connection: 'cookie' };",
   ],
+  ['connections-receipts', 'src/server/mcp/receipts.ts', '(found?.principalId === request.principalId && found.connectionId === request.connectionId)', 'found'],
+  ['connections-receipts', 'src/server/mcp/receipts.ts', 'if (refusal) return refusal;', ''],
 ];
+
+async function verifyReceipts(path: string) {
+  const { createReceiptStore } = await import(path);
+  const root = mkdtempSync(join(tmpdir(), 'receipt-mutant-'));
+  try {
+    const store = createReceiptStore(root);
+    let denied = false;
+    let effects = 0;
+    const request = {
+      principalId: 'person',
+      connectionId: 'connection',
+      tool: 'git_commit',
+      idempotencyKey: 'receipt-verification',
+      args: {},
+      effect: async () => ({ ok: true, data: { attempt: ++effects } }),
+      authorizeReplay: async () => (denied ? { ok: false, error: { code: 'refused', message: 'Refused' } } : undefined),
+      verify: async () => null,
+    };
+    assert.equal((await store.run(request)).ok, true);
+    assert.equal((await store.run(request)).data.attempt, 1);
+    denied = true;
+    assert.equal((await store.run(request)).ok, false);
+    denied = false;
+    const file = join(root, readdirSync(root)[0]);
+    const records = JSON.parse(readFileSync(file, 'utf8'));
+    const id = Object.keys(records)[0];
+    records[id].connectionId = 'another-connection';
+    writeFileSync(file, JSON.stringify(records));
+    assert.equal((await store.run(request)).data.attempt, 2);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+}
 
 /** Exercises the composed candidate modules through grants, exchanges, resolution and transport admission. */
 export async function connectionsCase(path: string, category: string): Promise<void> {
+  if (category === 'connections-receipts') return verifyReceipts(path);
   const tree = dirname(path);
   if (category === 'connections-gate') {
     const { decideServerRequest } = await import(join(tree, 'server-mode-gate.ts'));

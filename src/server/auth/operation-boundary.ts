@@ -1,4 +1,5 @@
 // Decides and executes operations through the same handler and durable audit path.
+import { receiptReplay, type ReceiptReplayRequest } from './receipt-replay';
 import { executeOperation } from './operation-execution';
 import { operationClassifiers } from './operation-classifiers';
 import { recordOperation } from '../observability/metrics';
@@ -134,7 +135,8 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
     const projects = target.row.action === 'readAudit' ? auditScope(scope, ws) : undefined;
     attachIdentity(request, caller, { scope, requestId, remote: options.remoteCredentials ?? 'local', auditProjects: projects });
     setRequestActor(actorPseudonym(scope.principal));
-    const trash = mode === 'server' ? trashLookup(ws, request) : undefined;
+    const saved = (request as ReceiptReplayRequest)[receiptReplay]?.trash;
+    const trash = mode === 'server' ? (saved ? { entry: saved } : trashLookup(ws, request)) : undefined;
     const verdict = routeVerdict(scope, target.row, mode, {
       resource: trash?.entry ? trashResource(trash.entry) : target.resource,
       trash: trash?.entry,

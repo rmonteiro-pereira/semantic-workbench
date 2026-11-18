@@ -1,5 +1,6 @@
 // Handles deletion, undo, restoration, and permanent removal with explicit confirmation for
 // destructive calls.
+import { receiptReplay, type ReceiptReplayRequest } from '../auth/receipt-replay';
 import { TRASH_REQUEST_LIMIT } from '../request';
 import type { AdminRepository } from '../auth/admin-repo';
 import { creationDomain, assignProjectDomain } from '../auth/project-creation';
@@ -16,7 +17,7 @@ export function requireConfirm(body: any) {
   if (!body || body.confirm !== true) throw new BadRequestError('This removes data; send {"confirm": true} after the user confirmed.');
 }
 /** The places a restoration writes: the original target, or the destination the body names. */
-function restoreResources(entry: TrashEntry, project = entry.project, path = entry.path): ResourceRef[] {
+function restoreResources(entry: Pick<TrashEntry, 'kind' | 'project' | 'path' | 'projects'>, project = entry.project, path = entry.path): ResourceRef[] {
   if (entry.kind === 'file' && path) return [{ type: 'file', project, path }];
   return (entry.projects ?? [{ slug: project }]).map(item => ({
     type: 'project',
@@ -27,7 +28,7 @@ function restoreResources(entry: TrashEntry, project = entry.project, path = ent
 const ENTRY = /^[0-9A-HJKMNP-TV-Z]{26}$/;
 
 // Restoring a file whose project is gone makes a new project for it.
-function makesProject(ws: Workspace, entry: TrashEntry, toProject: string | undefined) {
+function makesProject(ws: Workspace, entry: Pick<TrashEntry, 'kind' | 'project'>, toProject: string | undefined) {
   return entry.kind === 'file' && toProject === undefined && !ws.state.registry().projects.some(project => project.slug === entry.project);
 }
 
@@ -85,6 +86,7 @@ const handleTrash = async (ws: Workspace, req: Request, url: URL, administration
     requireConfirm(body);
     if (body.baseHash !== undefined && (typeof body.baseHash !== 'string' || !/^[0-9a-f]{64}$/.test(body.baseHash)))
       throw new BadRequestError('baseHash must be the SHA-256 of the file version being deleted.');
+    if ((req as ReceiptReplayRequest)[receiptReplay]) return new Response(null, { status: 204 });
     return Response.json(await ws.deleteFile(decodeSegment(file[1]), decodePath(file[2]), reader, body.baseHash));
   }
   const project = pathname.match(/^\/api\/projects\/([^/]+)$/);
@@ -125,9 +127,18 @@ const handleTrash = async (ws: Workspace, req: Request, url: URL, administration
       const body = await readJson(req, TRASH_REQUEST_LIMIT, {});
       if (!body || typeof body !== 'object' || Object.keys(body).some(k => !['toProject', 'toPath', 'domain'].includes(k))) throw new BadRequestError('Expected {toProject?, toPath?, domain?}.');
       for (const key of ['toProject', 'toPath']) if (body[key] !== undefined && typeof body[key] !== 'string') throw new BadRequestError(`${key} must be text.`);
+      const replay = (req as ReceiptReplayRequest)[receiptReplay];
+      if (replay && !view) return new Response(null, { status: 204 });
+      if (replay?.trash) {
+        const target = replay.trash;
+        authorizeWrite(req, restoreAction(target, scope), restoreResources(target));
+        if (makesProject(ws, target, body.toProject)) creationDomain(req, body.domain);
+        return new Response(null, { status: 204 });
+      }
       const target = ws.trash.entry(id);
       authorizeWrite(req, restoreAction(target, scope), [...restoreResources(target), ...restoreResources(target, body.toProject ?? target.project, body.toPath ?? target.path)]);
       const context = { ws, req, administration };
+      if (replay) return new Response(null, { status: 204 });
       return Response.json(await restoring(context, target, body, () => ws.trash.restore(id, body, reader)));
     }
     if (!entry[2] && req.method === 'DELETE') {

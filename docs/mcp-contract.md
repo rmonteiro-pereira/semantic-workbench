@@ -36,6 +36,12 @@ nothing reaches outside the workbench.
 | `restore_file` | `POST /api/trash/:entry/restore` | restoreOwn | false | false | true | false | receipt-backed |
 | `git_commit` | `POST .../git/commit` | commit | false | false | true | false | receipt-backed |
 
+Receipt keys are scoped to the person and connection, or to the single local capability
+caller. Older receipts are local only. An unrelated caller's key is equivalent to an
+unknown key. For the owner, the operation boundary rechecks current grants and scopes
+on the original targets before returning a recorded result. Ended connections receive
+the normal bearer refusal.
+
 A `git_commit` answer is `{ commit, branch, files }`, plus `movedFrom` when the commit left the default branch and `altered` (the paths whose committed bytes differ from the listed versions) when a hook or filter rewrote them. An altered commit is a success, so its receipt is kept.
 
 ## Route dispositions

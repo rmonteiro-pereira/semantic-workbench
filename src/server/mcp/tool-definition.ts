@@ -20,6 +20,7 @@ export type ToolContext = {
   cursors: CursorCodec;
   receipts: ReceiptStore;
   principalId: string;
+  connectionId?: string;
   signal: AbortSignal;
 };
 

@@ -1,3 +1,4 @@
+import type { ReceiptTrashTarget } from '../../auth/receipt-replay';
 // Tools that change definitions: save by patch or text, create, delete to the trash and restore. Saving and creating rely on the save route's version check and byte preservation; delete and restore are safe to retry through receipts.
 import { DEFAULT_TOOL_REQUEST_CAP_BYTES, GLOBAL_REQUEST_CAP_BYTES } from '../body-limits';
 import type { ToolContext, ToolDefinition } from '../tool-definition';
@@ -79,14 +80,20 @@ const deleteFile: ToolDefinition = {
   operation: 'files.delete',
   retryClass: 'receipt-backed',
   requestCapBytes: DEFAULT_TOOL_REQUEST_CAP_BYTES,
-  run: (args, context) =>
-    context.receipts.run({
+  run: (args, context) => {
+    const receiptTarget = { params: { slug: args.project, '*': args.path }, body: { confirm: true, baseHash: args.baseVersion } };
+    return context.receipts.run({
       principalId: context.principalId,
+      connectionId: context.connectionId,
       tool: 'delete_file',
       idempotencyKey: args.idempotencyKey,
       args,
+      async authorizeReplay(note) {
+        const called = await context.twin('files.delete', { ...receiptTarget, replay: {} });
+        return called.ok ? undefined : called.failure;
+      },
       async effect() {
-        const called = await context.twin('files.delete', { params: { slug: args.project, '*': args.path }, body: { confirm: true, baseHash: args.baseVersion } });
+        const called = await context.twin('files.delete', receiptTarget);
         return called.ok ? succeed({ entry: (called.answer.body as { entryId: string }).entryId }) : called.failure;
       },
       // A delete is done when the trash holds an entry for the path with the version that was named.
@@ -96,7 +103,8 @@ const deleteFile: ToolDefinition = {
         const found = entries.find(entry => entry.project === args.project && entry.path === args.path && entry.hash === args.baseVersion);
         return found ? succeed({ entry: found.entryId }) : null;
       },
-    }),
+    });
+  },
 };
 
 const restoreFile: ToolDefinition = {
@@ -112,21 +120,29 @@ const restoreFile: ToolDefinition = {
   operation: 'trash.restore',
   retryClass: 'receipt-backed',
   requestCapBytes: DEFAULT_TOOL_REQUEST_CAP_BYTES,
-  run: (args, context) =>
-    context.receipts.run({
+  run: (args, context) => {
+    const receiptTarget = { params: { entry: args.entry }, body: {} };
+    return context.receipts.run({
       principalId: context.principalId,
+      connectionId: context.connectionId,
       tool: 'restore_file',
       idempotencyKey: args.idempotencyKey,
       args,
+      async authorizeReplay(note) {
+        const called = await context.twin('trash.restore', { ...receiptTarget, replay: { trash: note.trash as ReceiptTrashTarget | undefined } });
+        return called.ok ? undefined : called.failure;
+      },
       // What the trash entry named, kept so a restart can tell whether the restore happened.
       async prepare() {
         const entries = await trashEntries(context);
         if (!Array.isArray(entries)) return entries;
-        const found = entries.find(entry => entry.entryId === args.entry && entry.path);
-        return found ? { project: found.project, path: found.path, hash: found.hash } : fail('not_found', 'The trash entry does not exist or is not available to you.');
+        const found = (entries as (TrashEntry & ReceiptTrashTarget)[]).find(entry => entry.entryId === args.entry && entry.kind === 'file' && entry.path);
+        if (!found) return fail('not_found', 'The trash entry does not exist or is not available to you.');
+        const { kind, project, path, deletedBy, copy, hash } = found;
+        return { project, path, hash, trash: { kind, project, path, deletedBy, copy } };
       },
       async effect() {
-        const called = await context.twin('trash.restore', { params: { entry: args.entry }, body: {} });
+        const called = await context.twin('trash.restore', receiptTarget);
         if (!called.ok) return called.failure;
         const restored = called.answer.body as { project: string; path: string };
         const read = await context.twin('files.read', { params: { slug: restored.project, '*': restored.path } });
@@ -140,7 +156,8 @@ const restoreFile: ToolDefinition = {
         if (!Array.isArray(entries) || entries.some(entry => entry.entryId === args.entry)) return null;
         return succeed({ project: note.project, path: note.path, version: note.hash });
       },
-    }),
+    });
+  },
 };
 
 export const editingTools: ToolDefinition[] = [saveFile, createFile, deleteFile, restoreFile];

@@ -1,6 +1,7 @@
 // Runs a tool's request as the in-process twin of an ordinary route through the operation boundary, and turns the route's HTTP answer into a tool result. Nothing here reads project files or decides access.
 //
 // The boundary entry point is `handler.boundary.operate({ caller, request })`. The caller is minted with the `mcp` origin, and the request is built by `buildTwinRequest` from the inventory id, so a tool can only reach the route its inventory entry names. `availableOperations(caller)` lists the ids the caller may use.
+import { receiptReplay, type ReceiptReplay, type ReceiptReplayRequest } from '../auth/receipt-replay';
 import type { Caller } from '../auth/caller';
 import type { OperationBoundary } from '../auth/operation-boundary';
 import { classifyCallFailure } from '../auth/operation-outcome';
@@ -12,7 +13,10 @@ import { fail, type ToolResult } from './tool-results';
 export type TwinAnswer = { status: number; body: unknown; headers: Headers };
 
 /** Calls the twin of an inventory operation. A failed call is already a tool result. */
-export type TwinCall = (operationId: string, input: TwinRequestInput) => Promise<{ ok: true; answer: TwinAnswer } | { ok: false; failure: ToolResult; answer?: TwinAnswer }>;
+export type TwinCall = (
+  operationId: string,
+  input: TwinRequestInput & { replay?: ReceiptReplay },
+) => Promise<{ ok: true; answer: TwinAnswer } | { ok: false; failure: ToolResult; answer?: TwinAnswer }>;
 
 function plainSentence(body: unknown, fallback: string): string {
   if (body && typeof body === 'object' && 'error' in body && typeof body.error === 'string' && body.error.length < 400) return body.error;
@@ -76,7 +80,12 @@ export function createTwinCall(boundary: OperationBoundary, caller: Caller, sign
       if (!(error instanceof BadRequestError)) throw error;
       return { ok: false, failure: fail('invalid_input', error.message) };
     }
+    if (input.replay) {
+      if (signal?.aborted) return { ok: false, failure: fail('refused', 'The connection ended.') };
+      (request as ReceiptReplayRequest)[receiptReplay] = input.replay;
+    }
     const { response } = await boundary.operate({ caller, request, operationId });
+    if (input.replay && signal?.aborted) return { ok: false, failure: fail('refused', 'The connection ended.') };
     const answer: TwinAnswer = { status: response.status, body: await readBody(response), headers: response.headers };
     if (answer.status >= 200 && answer.status < 300) return { ok: true, answer };
     return { ok: false, failure: mapTwinFailure(operationId, answer), answer };
