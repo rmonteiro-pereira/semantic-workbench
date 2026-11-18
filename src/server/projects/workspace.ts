@@ -333,9 +333,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
         ];
       });
   }
-  function documentsFor(reader: Reader, onlyProject?: string) {
+  function documentsFor(reader: Reader) {
     return projects().flatMap(project => {
-      if (onlyProject !== undefined && project.slug !== onlyProject) return [];
       return documentsAtPlace(project.slug, copies.readPlace(reader, project.slug), path => !reader.view || reader.view.canRead(project.slug, path));
     });
   }

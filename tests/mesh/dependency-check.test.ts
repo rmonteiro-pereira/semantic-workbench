@@ -104,6 +104,7 @@ test('publication rechecks the publishing person’s current access to a provide
 test('fetch stops before following a remote candidate with a set error', async () => {
   using fixture = await meshWorkspace('separate');
   const previous = fixture.ws.state.published().repositories.retail.commit;
+  if (!previous) throw new Error('Expected a published fixture commit.');
   const repository = fixture.projectDirectory('retail');
   const remote = join(fixture.fixture.root, 'retail-remote');
   expect(gitOutput(fixture.fixture.root, ['clone', '-q', repository, remote]).code).toBe(0);
