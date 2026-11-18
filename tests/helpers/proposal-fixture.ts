@@ -94,6 +94,7 @@ export async function proposalFixture(customize?: (options: ReturnType<typeof ac
     projects,
     repository: workspace.ws.repoOf(projects.sales.slug),
     as,
+    access,
     alice: () => as(person('alice')),
     bob: () => as(person('bob')),
     carol: () => as(person('carol')),

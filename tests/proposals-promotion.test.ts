@@ -1,7 +1,7 @@
 // Promotion moves the default branch to a proposal's tip through the publication path: every
 // project of the repository moves together or none does, and publication's own guards apply.
 import { expect, test } from 'bun:test';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { person } from './auth/access-fixture';
 import { gitOutput } from './auth/working-copy-fixture';
@@ -171,4 +171,24 @@ test('a candidate that cannot be read within the limits moves nothing and the ch
   expect(refused.status).toBeGreaterThanOrEqual(400);
   expect(mainOf(fixture)).toBe(before);
   expect(refOf(fixture, proposal.id)).toBe(contributed.body.tip);
+});
+
+test('each mutating call writes one audit record naming the proposal, its projects and commits, never its name', async () => {
+  using fixture = await proposalFixture();
+  const { sales, billing, people } = fixture.projects;
+  const { proposal, tip } = await contributedProposal(fixture);
+  await promote(fixture, fixture.dave(), proposal.id, tip);
+  const directory = join(fixture.ws.layout.state, 'audit');
+  const lines = readdirSync(directory)
+    .filter(name => name.endsWith('.jsonl'))
+    .flatMap(name => readFileSync(join(directory, name), 'utf8').trim().split('\n'));
+  const records = lines.map(line => JSON.parse(line)).filter(record => record.proposal);
+  expect(records.map(record => record.proposal.proposal)).toEqual([proposal.id, proposal.id, proposal.id, proposal.id]);
+  const promotion = records.at(-1);
+  expect(promotion.action).toBe('publish');
+  expect(promotion.proposal.projects.sort()).toEqual([billing.slug, people.slug, sales.slug].sort());
+  expect(promotion.proposal.commits).toHaveLength(2);
+  expect(promotion.proposal.commits.at(-1)).toBe(tip);
+  expect(promotion.outcome).toBe('ok');
+  expect(lines.join('\n')).not.toContain('Together');
 });
