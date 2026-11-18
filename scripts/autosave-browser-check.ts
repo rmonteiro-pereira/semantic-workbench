@@ -1,5 +1,6 @@
 // Checks automatic saves, stale drafts and commits using an isolated workspace and local remote.
 import { LOCAL_READER } from '../src/server/projects/reader';
+import { runSyncAction } from './helpers/sync-dialog';
 import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -161,7 +162,7 @@ try {
       timeout: 5000,
     });
   });
-  await check('Commit & push without a remote commits and explains; with a remote it pushes', async () => {
+  await check('Commit & push explains failures; publishing then pushing default sends the commit', async () => {
     await page.getByRole('button', { name: 'Commit', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Commit' });
     await dialog.getByRole('button', { name: 'Commit & push' }).click();
@@ -174,7 +175,16 @@ try {
     await expect(dialog.getByRole('textbox', { name: 'Commit message' })).toHaveValue('Update notes.ossie.yaml');
     await dialog.getByRole('button', { name: 'Commit & push' }).click();
     await expect(dialog).toHaveCount(0);
-    await expect(page.locator('main > .status')).toContainText('and pushed', { timeout: 20000 });
+    await expect(page.locator('main > .status')).toContainText('push failed: Work in progress stays in the workbench.', { timeout: 20_000 });
+    expect(sh(bare, ['branch', '--list', 'work/*']).trim()).toBe('');
+    await page.getByRole('button', { name: /^Source control/ }).click();
+    const panel = page.getByRole('region', { name: 'Source Control' });
+    await panel.getByLabel('Published snapshot').getByRole('button', { name: 'Publish', exact: true }).click();
+    await expect(panel.getByRole('status').filter({ hasText: 'Published to main.' })).toBeVisible();
+    await panel.getByLabel('Branch', { exact: true }).selectOption('main');
+    await runSyncAction(page, 'Publish branch');
+    await expect(panel.getByRole('status').filter({ hasText: 'Push finished' })).toBeVisible({ timeout: 20_000 });
+    await page.getByRole('button', { name: /^Source editor/ }).click();
     expect(sh(bare, ['log', '-1', '--format=%s', 'main']).trim()).toBe('Update notes.ossie.yaml');
   });
   await check('Revert to last commit restores the committed bytes; the replaced version is in the trash', async () => {
