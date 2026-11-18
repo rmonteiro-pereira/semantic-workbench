@@ -45,7 +45,7 @@ export async function itemDiffRepository() {
     copyFileSync(new URL(name, fixtureDirectory), join(root, name));
   }
   async function git(...args: string[]) {
-    const result = Bun.spawn(['git', ...args], { cwd: root, stdout: 'pipe', stderr: 'pipe' });
+    const result = Bun.spawn(['git', ...args], { cwd: root, env: process.env, stdout: 'pipe', stderr: 'pipe' });
     const output = await new Response(result.stdout).text();
     const error = await new Response(result.stderr).text();
     if ((await result.exited) !== 0) throw new Error(`Fixture Git failed: ${error}`);
