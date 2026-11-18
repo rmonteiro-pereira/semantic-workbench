@@ -156,6 +156,7 @@ These steps run inside the admitted route and share its authorization and audit 
 | repositories.clone | publication.upgrade |
 | projects.export | snapshot.read |
 | metrics.list | snapshot.read |
+| usage.read | snapshot.read |
 | metrics.save | snapshot.read |
 | metrics.preview | snapshot.read |
 | metrics.explain | snapshot.read |
