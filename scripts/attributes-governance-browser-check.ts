@@ -72,7 +72,7 @@ async function openConcept(page: Page, file: string, concept: string) {
     .locator('.catalog-card', { hasText: concept })
     .getByRole('button', { name: /View details/ })
     .click();
-  await page.getByRole('complementary', { name: 'Definition details' }).waitFor();
+  await page.locator('aside[aria-label="Definition details"]').waitFor();
 }
 
 async function expectCleanLayout(page: Page, label: string) {
@@ -83,7 +83,7 @@ async function expectCleanLayout(page: Page, label: string) {
 
 async function attributeFlow(page: Page, label: string) {
   await openConcept(page, FILE, 'Customer');
-  const details = page.getByRole('complementary', { name: 'Definition details' });
+  const details = page.locator('aside[aria-label="Definition details"]');
   const attributes = details.getByRole('region', { name: 'Attributes' });
   await attributes.getByText('tier').first().waitFor();
   await attributes.getByRole('button', { name: 'Add attribute' }).click();
@@ -110,7 +110,7 @@ function fieldOf(region: ReturnType<Page['locator']>, label: string) {
 
 async function governanceAndContextFlow(page: Page, label: string) {
   await openConcept(page, FILE, 'Customer');
-  const details = page.getByRole('complementary', { name: 'Definition details' });
+  const details = page.locator('aside[aria-label="Definition details"]');
   const governance = details.getByRole('region', { name: 'Governance' });
   await governance.waitFor({ timeout: 5000 }).catch(async problem => {
     console.log(await details.innerText());
@@ -130,7 +130,7 @@ async function governanceAndContextFlow(page: Page, label: string) {
 
 async function revisionFlow(page: Page) {
   await openConcept(page, OLDER_FILE, 'Customer');
-  const attributes = page.getByRole('complementary', { name: 'Definition details' }).getByRole('region', { name: 'Attributes' });
+  const attributes = page.locator('aside[aria-label="Definition details"]').getByRole('region', { name: 'Attributes' });
   await attributes.getByRole('button', { name: 'Move tier up' }).click();
   const question = page.getByRole('dialog', { name: 'Move this file to Tessera 2?' });
   await question.waitFor();
@@ -150,7 +150,7 @@ async function largeDocumentTiming(page: Page): Promise<number> {
     .first()
     .getByRole('button', { name: /View details/ })
     .click();
-  await page.getByRole('complementary', { name: 'Definition details' }).getByRole('region', { name: 'Attributes' }).getByText('size').waitFor();
+  await page.locator('aside[aria-label="Definition details"]').getByRole('region', { name: 'Attributes' }).getByText('size').waitFor();
   return Date.now() - started;
 }
 
