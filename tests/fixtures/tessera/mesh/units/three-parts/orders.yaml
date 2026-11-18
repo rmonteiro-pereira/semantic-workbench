@@ -1,0 +1,23 @@
+{
+  "tessera": 3,
+  "tessera_part": true,
+  "ontology": [
+    {
+      "concept": "Order",
+      "type": "EntityType",
+      "relationships": [
+        {
+          "name": "customer",
+          "roles": [
+            {
+              "concept": "Customer"
+            }
+          ],
+          "verbalizes": [
+            "{Order} belongs to {customer}"
+          ]
+        }
+      ]
+    }
+  ]
+}

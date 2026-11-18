@@ -42,3 +42,9 @@ T002: direct inspect/validateStructured callers and indirect model consumers are
 callers.md. The source search contains no direct caller absent from the table.
 The owner qualification decision is recorded in research.md and contracts/unit-and-parts.md;
 its executable qualification proof belongs to T015, which remains open.
+
+T003: fixtures.test.ts: 3 pass, 0 fail, 31 assertions. Every unit file parses, the three-part
+unit equals the one-file twin in concept/relationship order, and the empty root gets the same
+concepts from its part. JSON syntax in .yaml files is intentional: JSON is a YAML subset and the
+fixture values remain readable without introducing another serializer. This proof checks fixture
+content, not unit validation, which is still pending.
