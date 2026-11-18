@@ -30,7 +30,13 @@ export function usageRoutes(usage: UsageRecorder, settings: UsageSettings = USAG
     const answer = await ws.published.withPin(async pin => {
       const dayReads = new Map<string, DayRead>();
       const commit = ws.published.commitOf(pin, project);
-      if (effective.enabled && commit) for (const day of periodDays(today, days)) dayReads.set(day, store.readDay(project, day));
+      const unverifiedDays = new Set<string>();
+      if (effective.enabled && commit) {
+        for (const day of periodDays(today, days)) {
+          dayReads.set(day, store.readDay(project, day));
+          if (store.hasUnverifiedDay(project, day)) unverifiedDays.add(day);
+        }
+      }
       const pending = usage.pending(project);
       const records = effective.enabled ? publishedMigrationRecords(ws.layout, project, commit) : [];
       const [paths, documents] = effective.enabled && commit ? await Promise.all([ws.published.filePaths(pin, project), ws.published.documents(pin, project)]) : [[], []];
@@ -41,6 +47,7 @@ export function usageRoutes(usage: UsageRecorder, settings: UsageSettings = USAG
         days,
         today,
         dayReads,
+        unverifiedDays,
         pending,
         records,
         canRead,

@@ -1,6 +1,6 @@
 // Reads and writes the day files under state/usage. This is the only usage module that touches the
 // disk. A damaged file is reported to the caller and never repaired or deleted by a read.
-import { closeSync, constants, existsSync, fstatSync, openSync, readdirSync, readSync, rmSync } from 'node:fs';
+import { closeSync, constants, existsSync, fstatSync, openSync, readdirSync, readSync, renameSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { atomicWrite, type AtomicHooks } from '../projects/atomic';
 import { assertSlug, type DataLayout } from '../projects/paths';
@@ -89,6 +89,19 @@ export function createUsageStore(layout: DataLayout) {
   const projectFolder = (project: string) => join(layout.usage, assertSlug(project));
   const dayPath = (project: string, day: string) => join(projectFolder(project), `${day}.json`);
 
+  const unverifiedPath = (project: string, day: string) => join(projectFolder(project), `${day}.unverified.json`);
+
+  /** Keeps an unverified day whole before a new day is written at its original path. */
+  function preserveUnverifiedDay(project: string, day: string): void {
+    const destination = unverifiedPath(project, day);
+    if (existsSync(destination)) throw new Error('An unverified usage day is already preserved.');
+    renameSync(dayPath(project, day), destination);
+  }
+
+  function hasUnverifiedDay(project: string, day: string): boolean {
+    return existsSync(unverifiedPath(project, day));
+  }
+
   function readDay(project: string, day: string): DayRead {
     try {
       const file = parseDayFile(readDayJson(dayPath(project, day)), project, day);
@@ -106,10 +119,11 @@ export function createUsageStore(layout: DataLayout) {
   function listDays(project: string): string[] {
     const folder = projectFolder(project);
     if (!existsSync(folder)) return [];
-    return readdirSync(folder)
-      .filter(name => name.endsWith('.json') && isDay(name.slice(0, -5)))
-      .map(name => name.slice(0, -5))
-      .sort();
+    const days = readdirSync(folder)
+      .filter(name => name.endsWith('.json'))
+      .map(name => name.replace(/(?:\.unverified)?\.json$/, ''))
+      .filter(isDay);
+    return [...new Set(days)].sort();
   }
 
   function listProjects(): string[] {
@@ -119,9 +133,10 @@ export function createUsageStore(layout: DataLayout) {
 
   function deleteDay(project: string, day: string): void {
     rmSync(dayPath(project, day), { force: true });
+    rmSync(unverifiedPath(project, day), { force: true });
   }
 
-  return { readDay, writeDay, listDays, listProjects, deleteDay, dayPath, projectFolder };
+  return { readDay, writeDay, listDays, listProjects, deleteDay, dayPath, projectFolder, preserveUnverifiedDay, hasUnverifiedDay };
 }
 
 /** The disk side of the counters. */

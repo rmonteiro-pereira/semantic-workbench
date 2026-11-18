@@ -44,6 +44,7 @@ export type UsageReadInput = {
   /** UTC day today. */
   today: string;
   /** What reading each day of the period found. */
+  unverifiedDays?: ReadonlySet<string>;
   dayReads: ReadonlyMap<string, DayRead>;
   /** Counts memory holds that are not yet on disk. */
   pending: readonly CounterDayFile[];
@@ -95,8 +96,9 @@ function collect(input: UsageReadInput, period: string[], records: readonly Migr
   };
   for (const day of period) {
     const read = input.dayReads.get(day);
-    if (read?.status === 'damaged' || (read?.status === 'ok' && !hasPublishedDayHistory(read.file, records))) unavailable.push(day);
-    else if (read?.status === 'ok') take(rekey(read.file, records));
+    const verified = read?.status === 'ok' && hasPublishedDayHistory(read.file, records);
+    if (input.unverifiedDays?.has(day) || read?.status === 'damaged' || (read?.status === 'ok' && !verified)) unavailable.push(day);
+    if (read?.status === 'ok' && verified) take(rekey(read.file, records));
   }
   for (const file of input.pending) if (period.includes(file.day) && hasPublishedDayHistory(file, records)) take(rekey(file, records));
   return { merged, unavailable, other };

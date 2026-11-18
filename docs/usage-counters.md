@@ -101,7 +101,8 @@ authoring journal identifies the commit before each save, so neither a shared an
 old and new names proves that a declaration was published. A renamed or removed item drops out of
 the response when its old address no longer resolves in the pinned published model. Compaction
 preserves the original counts. A day already rewritten with an unverified marker is reported
-unavailable and retained until normal expiry. Publication does not read or write usage history.
+unavailable and retained separately until normal expiry. Fresh counts for that day remain readable
+and are archived alongside the unverified counts when the project is trashed. Publication does not read or write usage history.
 
 ## Who sees counts
 

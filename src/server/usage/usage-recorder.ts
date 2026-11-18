@@ -10,6 +10,7 @@ import { addCount, emptyDayFile, MAX_ADDRESSES_PER_DAY, MAX_COUNT, type CounterD
 import { compactUsage } from './usage-compaction';
 import { decideFlush } from './usage-flush';
 import { itemAddresses, answerProject, type PublishedModels, type RouteTarget } from './usage-items';
+import { hasPublishedDayHistory } from './usage-migration';
 import { utcDay } from './usage-retention';
 import type { UsageStore } from './usage-store';
 import type { UsageSettings } from './usage-settings';
@@ -185,7 +186,13 @@ export function createUsageRecorder(deps: UsageRecorderDeps): UsageRecorder {
 
   function flushDay(project: string, key: string, days: Map<string, PendingDay>) {
     const { file } = days.get(key)!;
-    const decision = decideFlush(deps.store.readDay(project, file.day), file, deps.migrationRecords(project));
+    const records = deps.migrationRecords(project);
+    let existing = deps.store.readDay(project, file.day);
+    if (records && existing.status === 'ok' && !hasPublishedDayHistory(existing.file, records)) {
+      deps.store.preserveUnverifiedDay(project, file.day);
+      existing = { status: 'missing' };
+    }
+    const decision = decideFlush(existing, file, records);
     if (decision.action === 'keep-memory') return warnOncePerHour('usage.flush-deferred', { reason: decision.reason });
     deps.store.writeDay(decision.file);
     days.delete(key);

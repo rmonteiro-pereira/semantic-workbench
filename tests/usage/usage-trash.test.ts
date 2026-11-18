@@ -185,3 +185,44 @@ test('trashing one project preserves an undecoded count belonging to another pro
     workspace.dispose();
   }
 });
+
+test('fresh counts survive shutdown and trash alongside an unverified day', async () => {
+  const { workspace, slug, store, file } = await projectWithCounts();
+  const settings = { enabled: true, retentionDays: 30 };
+  await publishFixture(workspace);
+  const handler = createHandler(workspace.ws, { usageSettings: settings });
+  try {
+    const day = utcDay(new Date());
+    const legacy = { ...file, day, migratedThrough: 'unverified' };
+    store.writeDay(legacy);
+    const commit = workspace.ws.published.pin().commits.get(slug)!.commit;
+    handler.usage.record({
+      operationId: 'agent.context.read',
+      origin: 'http',
+      surface: 'agent',
+      outcome: 'ok',
+      target: {},
+      response: Response.json({ mappingId: slug + '/mapping.yaml', documents: [{ documentId: slug + '/a.yaml', path: ['ontology', 0] }] }, { headers: { 'X-Workbench-Snapshot': commit } }),
+    });
+    await handler.usage.settled();
+    expect(handler.usage.pending(slug)).toHaveLength(1);
+    await handler.usage.close();
+    const reopened = createHandler(workspace.ws, { usageSettings: settings });
+    try {
+      const fresh = emptyDayFile(slug, day);
+      addCount(fresh.counts, { address: address(slug), measure: 'workbench-requests', operation: 'agent.context.read', origin: 'http' });
+      expect(store.readDay(slug, day)).toEqual({ status: 'ok', file: fresh });
+      const removed = await workspace.ws.trash.deleteProject(slug);
+      const archived = join(workspace.ws.layout.trash, removed.entryId, 'usage', slug, day + '.unverified.json');
+      expect(JSON.parse(readFileSync(archived, 'utf8'))).toEqual(legacy);
+      await workspace.ws.trash.restore(removed.entryId, {}, LOCAL_READER);
+      expect(store.readDay(slug, day)).toEqual({ status: 'ok', file: fresh });
+      expect(JSON.parse(readFileSync(join(store.projectFolder(slug), day + '.unverified.json'), 'utf8'))).toEqual(legacy);
+    } finally {
+      await reopened.usage.close();
+    }
+  } finally {
+    await handler.usage.close();
+    workspace.dispose();
+  }
+});
