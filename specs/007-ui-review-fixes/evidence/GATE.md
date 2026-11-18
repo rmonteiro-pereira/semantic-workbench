@@ -284,6 +284,36 @@ The application revision includes `481d012b`. The retry of the browser history s
 - The opened pair `before/fixes/ubl-counted-headings-390.png` and `after/fixes/ubl-counted-headings-390.png` has a 30.750091% pixel difference.
   The four wrapped titles now have clearance above the card border. Fixed by `eaf4d1ea` for m9.
 
+### Matched phone empty mapping and desktop framing
+
+- The repeatable file opener follows the named project before choosing its tab. The earlier phone run opened the drawer and lost it after switching
+  to Model explorer, which prevented the empty-mapping action from reaching the intended file. The rescue uses the visible workspace controls.
+- `sw-midgard-run -- bash scripts/ui-review/gate-007/lineage-phone-launch.sh` recorded `MATRIX_ACTION_COMPLETE` for local light 390 empty mapping and
+  local light 1440 file framing. All six runs per step completed with the expected file and tab. The following targeted operator changes were made
+  with 105 GB available. The prior runner exited 143 after a checkpoint, and ports 5401 and 5402 were idle before its replacement.
+- The three `local/light/390/empty-mapping/zero-mapping-graph/after-*` strips show the candidate's “No linked assets for Identifier” explanation
+  (m5). At 5 s and 15 s all three builds show the isolated Identifier. The candidate still shows a card beside the explanation. The proof is
+  partial for the requirement to use just the explanatory line.
+- The six `local/light/1440/file-framing` strips keep the same named UBL or Commerce asset in view. Candidate Commerce ODCS shows six whole
+  assets including linked metrics, while release and main show two detailed tables. UBL Neighborhood uses the Other files disclosure where
+  release and main expose separate links.
+- All 47 contact sheets of the first phone graph action batch were opened. The capture showed selected cards outside the visible portion,
+  unrelated loading states in matched positions, and different cameras after changing the same zoom. Those frames remain marked for replay
+  where the captured state does not establish a match.
+
+### Compact mapping relationship labels
+
+- `sw-midgard-run -- bash scripts/ui-review/gate-007/compact-mapping-launch.sh` ran `bun test tests/lineage-view.test.ts tests/edge-labels.test.ts`.
+  Exit 0, 20 pass, 0 fail, 61 assertions. Vite built in 3.10 s with the usual chunk-size advisory. Available memory was 105–106 GB.
+- Both repetitions of UBL Mapping Graph Fit at 390×844 showed 43 raw labels before the fix, with one visible overlap beneath Party.
+  With `b4e87d7a`, both light and both dark runs recorded zero overlapping labels and retained 43 relationship labels in the edge hover markup.
+  Party, Address and the routed lines kept their positions. This step measures the text presented before hover and its retained markup.
+- Opened both light and both dark pairs. Light scored 0.257018% on both repeats. Dark scored 0.439604% and 0.434135%.
+  The gallery links `before/fixes/ubl-mapping-labels-390-{light,dark}.png` and their after frames (m8).
+  The UBL mapping filename is visibly shortened by the workspace title in release, main and candidate at this width.
+- `bun scripts/ci-validate.ts --step browser --suite test:mapping-graph` exited 0 after the fix. All 12 checks passed in 132.9 s,
+  including the detailed Order.customer → Customer relationship label, the 9 px first-view threshold and no browser errors.
+
 ### Phone Lineage Fit and walked captions
 
 - Compact card heights and related link ports use the layout's existing shared geometry. Names
