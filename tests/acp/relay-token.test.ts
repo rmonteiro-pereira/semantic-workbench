@@ -6,10 +6,10 @@ const valid = { access_token: 'access-token', refresh_token: 'refresh-token', ex
 
 test('a complete supported token response is accepted without exposing the setup credential', async () => {
   const requests: RequestInit[] = [];
-  const request = (async (_input: unknown, init: RequestInit) => {
+  const request = async (_input: unknown, init: RequestInit) => {
     requests.push(init);
     return Response.json(valid);
-  }) as typeof fetch;
+  };
   const token = await exchangeCredential('https://workbench.test', 'setup-credential', request);
   expect(token?.current()).toBe('access-token');
   expect((requests[0].body as URLSearchParams).get('setup_credential')).toBe('setup-credential');
@@ -24,7 +24,7 @@ test('missing identifiers, unknown token types and unsupported success statuses 
     { ...valid, expires_in: '600' },
     { ...valid, expires_in: 0 },
   ]) {
-    expect(await exchangeCredential('https://workbench.test', 'setup', (async () => Response.json(body)) as typeof fetch)).toBeUndefined();
+    expect(await exchangeCredential('https://workbench.test', 'setup', async () => Response.json(body))).toBeUndefined();
   }
-  expect(await exchangeCredential('https://workbench.test', 'setup', (async () => Response.json(valid, { status: 202 })) as typeof fetch)).toBeUndefined();
+  expect(await exchangeCredential('https://workbench.test', 'setup', async () => Response.json(valid, { status: 202 }))).toBeUndefined();
 });

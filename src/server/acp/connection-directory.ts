@@ -5,7 +5,7 @@ import type { Session } from '../auth/sessions';
 /** A request for a single-use credential for the relay, made on behalf of a signed-in person. */
 export type RelayCredentialRequest = { session: Session; clientId: string; scopes: ('read' | 'validate' | 'edit' | 'commit' | 'remote' | 'publish' | 'administration')[]; origin?: 'mcp' | 'acp' };
 /** The credential is shown to the person once and expires. */
-export type RelayCredentialResult = { ok: true; credential: string; expiresAt: number } | { ok: false; reason: string };
+export type RelayCredentialResult = { ok: true; credential: string; expiresAt: number } | { ok: false; reason: 'program-not-registered' | 'scope-not-allowed' | 'no-access' | 'connection-limit' };
 /** A connection that ended, with the closed word for why. */
 export type ConnectionEndNotice = {
   connectionId: string;

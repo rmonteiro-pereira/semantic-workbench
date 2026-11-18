@@ -19,7 +19,7 @@ async function tokenReply(response: Response | undefined): Promise<TokenReply | 
 }
 
 /** Trades the credential once. Returns undefined when the workbench refuses it. */
-export async function exchangeCredential(baseUrl: string, credential: string, request: typeof fetch = fetch): Promise<RelayToken | undefined> {
+export async function exchangeCredential(baseUrl: string, credential: string, request: (url: string, options: RequestInit) => Promise<Response> = fetch): Promise<RelayToken | undefined> {
   const form = (fields: Record<string, string>) => ({
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
