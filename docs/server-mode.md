@@ -276,7 +276,8 @@ Ontology concepts and relationships, including attributes, use the dedicated
 `approveOntologyItem` action for approval, deprecation, changing an approved item's owner or
 steward, and changing or removing its approved definition. The same owner check applies. An author
 without approval permission can save an eligible definition change as a proposal. Classification is
-a declaration and uses `editGuarded` for changes and protected content.
+a declaration and uses `editGuarded` for changes and protected content. If an ontology approval
+grant limits classification, the guard uses the higher of the previous and proposed levels.
 
 To grant ontology approval, an Admin opens **Admin → Roles**, creates or edits a custom role, and
 selects **Approve ontology item** in the Steward group. Under **Grants**, assign the role to the

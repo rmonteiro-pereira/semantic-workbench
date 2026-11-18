@@ -78,6 +78,19 @@ test('ontology approval and metric approval are independent permissions', async 
   expect((await sendCase(metricApprover, metric)).status).toBe(200);
 });
 
+test('ontology approval uses the classification limit on the role', async () => {
+  using fixture = await authWorkspace();
+  const proposed = ontology('proposed') + '      classification: internal\n';
+  const saved = await seed(fixture, proposed);
+  const [item] = approvalCases(saved.hash, proposed, proposed.replace('status: proposed', 'status: approved'));
+  const limited = ontologyApprover('alice');
+  const role = limited.config.roles.find(candidate => candidate.id === 'r_ontology_approver')!;
+  role.permissions[0].conditions = { maxLevel: 'public' };
+  await expectGuardRefusal(await sendCase(guardHandler(fixture.ws, 'alice', limited), item), item, fixture.root);
+  const authorized = guardHandler(fixture.ws, 'alice', ontologyApprover('alice'));
+  expect((await sendCase(authorized, item)).status).toBe(200);
+});
+
 test('removing the status of an approved concept needs ontology approval permission', async () => {
   using fixture = await authWorkspace();
   const approved = ontology('approved');

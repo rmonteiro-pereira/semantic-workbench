@@ -25,6 +25,8 @@ export type LevelReader = (classification: unknown) => Level;
 /** The file a change belongs to, as the guard module describes it. */
 type Origin = Pick<GuardedChange, 'project' | 'file'>;
 
+type ItemGuardRules = { levelOf: LevelReader; protectedLevel: Level; levelNumber: (level: Level) => number };
+
 const list = (value: unknown): any[] => (Array.isArray(value) ? value : []);
 const pointerOf = (path: Path) => path.map(key => '/' + String(key).replace(/~/g, '~0').replace(/\//g, '~1')).join('');
 
@@ -84,14 +86,23 @@ function ownerKeysOf(versions: (LocatedItem | undefined)[]): string[] {
   return [...new Set(owners)].filter(Boolean);
 }
 
-function statusChanges(file: Origin, previous: Map<string, LocatedItem>, next: Map<string, LocatedItem>, recorded: Map<string, LocatedItem>): GuardedChange[] {
+function itemLevel(item: LocatedItem | undefined, levelOf: LevelReader): Level {
+  return levelOf(item ? governanceEntry(item.value).classification : undefined);
+}
+
+function higherLevel(first: Level, second: Level, levelNumber: ItemGuardRules['levelNumber']): Level {
+  return levelNumber(first) >= levelNumber(second) ? first : second;
+}
+
+function statusChanges(file: Origin, previous: Map<string, LocatedItem>, next: Map<string, LocatedItem>, recorded: Map<string, LocatedItem>, rules: ItemGuardRules): GuardedChange[] {
   const changes: GuardedChange[] = [];
   for (const [key, current] of next) {
     const old = previous.get(key);
     const status = statusOf(current);
     const oldStatus = statusOf(old);
     const metric: GuardedMetric = { name: current.label, status, owners: ownerKeysOf([current, old, recorded.get(key)]) };
-    const base = { ...file, pointer: pointerOf(current.path), level: 'public' as Level, metric, itemKind: current.kind };
+    const level = higherLevel(itemLevel(old, rules.levelOf), itemLevel(current, rules.levelOf), rules.levelNumber);
+    const base = { ...file, pointer: pointerOf(current.path), level, metric, itemKind: current.kind };
     const approvalSet = (status === 'approved' || status === 'deprecated') && status !== oldStatus;
     const peopleChanged = oldStatus === 'approved' && status === 'approved' && peopleOf(old) !== peopleOf(current);
     if (approvalSet || peopleChanged) changes.push({ ...base, kind: 'item-status' });
@@ -105,12 +116,12 @@ function statusChanges(file: Origin, previous: Map<string, LocatedItem>, next: M
 }
 
 /** Removing an approved item is a change to it that no demotion can express. */
-function removalChanges(file: Origin, previous: Map<string, LocatedItem>, next: Map<string, LocatedItem>): GuardedChange[] {
+function removalChanges(file: Origin, previous: Map<string, LocatedItem>, next: Map<string, LocatedItem>, levelOf: LevelReader): GuardedChange[] {
   const changes: GuardedChange[] = [];
   for (const [key, old] of previous) {
     if (next.has(key) || statusOf(old) !== 'approved') continue;
     const metric: GuardedMetric = { name: old.label, status: 'approved', owners: ownerKeysOf([old]) };
-    changes.push({ ...file, pointer: pointerOf(old.path), kind: 'item-body', level: 'public', metric, itemKind: old.kind });
+    changes.push({ ...file, pointer: pointerOf(old.path), kind: 'item-body', level: itemLevel(old, levelOf), metric, itemKind: old.kind });
   }
   return changes;
 }
@@ -128,9 +139,9 @@ function classificationChanges(
   for (const key of new Set([...previous.keys(), ...next.keys()])) {
     const old = previous.get(key);
     const current = next.get(key);
-    const oldLevel = levelOf(old ? governanceEntry(old.value).classification : undefined);
-    const newLevel = levelOf(current ? governanceEntry(current.value).classification : undefined);
-    const level = levelNumber(oldLevel) >= levelNumber(newLevel) ? oldLevel : newLevel;
+    const oldLevel = itemLevel(old, levelOf);
+    const newLevel = itemLevel(current, levelOf);
+    const level = higherLevel(oldLevel, newLevel, levelNumber);
     const located = current ?? old!;
     const base = { ...file, pointer: pointerOf(located.path), level };
     if (current && !deepEqual(governanceEntry(old?.value ?? {}).classification, governanceEntry(current.value).classification)) changes.push({ ...base, kind: 'classification' });
@@ -150,17 +161,17 @@ function comparedWhole(item: LocatedItem | undefined): unknown {
 }
 
 /** Every governed change a write makes to ontology concepts and relationships. Documents that are not ontologies give none. */
-export function ontologyItemChanges(
-  file: Origin,
-  documents: { before: any; after: any; committed: any },
-  rules: { levelOf: LevelReader; protectedLevel: Level; levelNumber: (level: Level) => number },
-): GuardedChange[] {
+export function ontologyItemChanges(file: Origin, documents: { before: any; after: any; committed: any }, rules: ItemGuardRules): GuardedChange[] {
   const previous = itemsOf(documents.before);
   const next = itemsOf(documents.after);
   if (!previous.size && !next.size) return [];
   const recorded = itemsOf(documents.committed);
   const protectedAt = rules.levelNumber(rules.protectedLevel);
-  return [...statusChanges(file, previous, next, recorded), ...removalChanges(file, previous, next), ...classificationChanges(file, previous, next, rules.levelOf, protectedAt, rules.levelNumber)];
+  return [
+    ...statusChanges(file, previous, next, recorded, rules),
+    ...removalChanges(file, previous, next, rules.levelOf),
+    ...classificationChanges(file, previous, next, rules.levelOf, protectedAt, rules.levelNumber),
+  ];
 }
 
 /** The name a guard gives an ontology item: the concept's name, or the concept's name and the relationship's name joined by a dot. */

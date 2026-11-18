@@ -104,7 +104,8 @@ function approvalDecision(binding: GuardBinding, change: GuardedChange): Decisio
     const file = guardedFile(binding, change);
     const action = approvalAction(change.kind);
     const item = { status: metric.status, owner };
-    const resource: ResourceRef = action === 'approveOntologyItem' ? { ...file, docType: 'ontology', ontologyItem: item } : { ...file, docType: 'metric', metric: { ...item, name: metric.name } };
+    const resource: ResourceRef =
+      action === 'approveOntologyItem' ? { ...file, docType: 'ontology', level: change.level, ontologyItem: item } : { ...file, docType: 'metric', metric: { ...item, name: metric.name } };
     decision = binding.scope.authorize(action, resource, context);
     if (!decision.allow) return decision;
   }
