@@ -54,3 +54,39 @@ test('connection effects narrow current roles across every offered scope combina
   expect(resolved.caller.scope).toEqual(['read', 'localWrite']);
   expect(referenceProgram.scopes).not.toContain('administration');
 }, 30000);
+
+import { operationInventory } from '../../src/server/auth/operation-inventory';
+import { ROUTE_ACTIONS, routeResourceKind } from '../../src/server/auth/route-actions';
+import { routeVerdict } from '../../src/server/auth/route-verdict';
+import { createAccessControl } from '../../src/server/auth/authorize';
+import { localPrincipal } from '../../src/server/auth/principal';
+import { accessFixture } from './access-fixture';
+
+const requiredScopes: Record<string, string[]> = {
+  read: ['read', 'validate'],
+  localWrite: ['edit'],
+  commit: ['commit'],
+  remote: ['remote'],
+  credential: ['remote'],
+  publish: ['publish'],
+  administration: [],
+  destroy: [],
+};
+
+test('the inventory refuses every operation with a missing effect, including destruction under every offered combination', () => {
+  const access = createAccessControl(accessFixture());
+  const scope = access.forRequest(localPrincipal());
+  const offered = offeredScopes();
+  for (const [path, entry] of Object.entries(operationInventory.operations)) {
+    const row = ROUTE_ACTIONS.find(candidate => candidate.path === path)!;
+    const kind = routeResourceKind(row);
+    const resource = { type: kind, project: 'sales-contracts', path: 'orders.odcs.yaml' } as never;
+    const baseline = routeVerdict(scope, row, 'server', { resource, origin: 'mcp' });
+    for (let mask = 0; mask < 2 ** offered.length; mask++) {
+      const chosen = offered.filter((_, index) => (mask & (1 << index)) !== 0);
+      const expected = entry.effects.every(effect => requiredScopes[effect].some(required => chosen.includes(required as OfferedScope)));
+      const verdict = routeVerdict(scope, row, 'server', { resource, origin: 'mcp', connectionScope: effectsOf(chosen) });
+      expect(verdict.decision.allow, `${entry.id}: ${chosen.join(' ')}`).toBe(baseline.decision.allow && expected);
+    }
+  }
+});
