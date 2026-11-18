@@ -28909,7 +28909,17 @@ const generatedMappings = (() => {
     required: ['manifestVersion', 'root', 'providers'],
     properties: {
       manifestVersion: { const: 1 },
-      root: { type: 'string', minLength: 1 },
+      root: { $ref: '#/$defs/rootPath' },
+      providers: { $ref: '#/$defs/providers' },
+      additionalRoots: {
+        type: 'array',
+        minItems: 1,
+        uniqueItems: true,
+        items: { type: 'object', additionalProperties: false, required: ['root', 'providers'], properties: { root: { $ref: '#/$defs/rootPath' }, providers: { $ref: '#/$defs/providers' } } },
+      },
+    },
+    $defs: {
+      rootPath: { type: 'string', minLength: 1 },
       providers: {
         type: 'array',
         maxItems: 50,
@@ -28948,6 +28958,45 @@ const generatedMappings = (() => {
           else: { required: ['commit'] },
         },
       },
+    },
+  };
+  const tesseraDependenciesRootPathSchema = { type: 'string', minLength: 1 };
+  const tesseraDependenciesProvidersSchema = {
+    type: 'array',
+    maxItems: 50,
+    uniqueItems: true,
+    items: {
+      type: 'object',
+      additionalProperties: false,
+      required: ['project', 'ontology', 'repository', 'sameRepository', 'tag', 'choice', 'interfaceHash', 'concepts', 'dependsOn'],
+      properties: {
+        project: { type: 'string', minLength: 1 },
+        ontology: { type: 'string', minLength: 1 },
+        repository: { type: 'string', minLength: 1 },
+        sameRepository: { type: 'boolean' },
+        commit: { type: 'string', minLength: 1, pattern: '^(?:[0-9a-f]{40}|[0-9a-f]{64})$' },
+        tag: { type: ['string', 'null'] },
+        choice: { enum: ['latest', 'pin'] },
+        interfaceHash: { type: 'string', minLength: 1, pattern: '^sha256:[0-9a-f]{64}$' },
+        concepts: { type: 'array', minItems: 1, uniqueItems: true, items: { type: 'string', minLength: 1 } },
+        dependsOn: {
+          type: 'array',
+          uniqueItems: true,
+          items: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['project', 'commit', 'interfaceHash'],
+            properties: {
+              project: { type: 'string', minLength: 1 },
+              commit: { type: 'string', minLength: 1, pattern: '^(?:[0-9a-f]{40}|[0-9a-f]{64})$' },
+              interfaceHash: { type: 'string', minLength: 1, pattern: '^sha256:[0-9a-f]{64}$' },
+            },
+          },
+        },
+      },
+      if: { properties: { sameRepository: { const: true } } },
+      then: { not: { required: ['commit'] }, properties: { choice: { const: 'latest' }, tag: { const: null } } },
+      else: { required: ['commit'] },
     },
   };
   const func0 = mappingsRuntime1.default;
@@ -29000,7 +29049,7 @@ const generatedMappings = (() => {
         errors++;
       }
       for (const key0 in data) {
-        if (!(key0 === 'manifestVersion' || key0 === 'root' || key0 === 'providers')) {
+        if (!(key0 === 'manifestVersion' || key0 === 'root' || key0 === 'providers' || key0 === 'additionalRoots')) {
           const err3 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
           if (vErrors === null) {
             vErrors = [err3];
@@ -29033,7 +29082,7 @@ const generatedMappings = (() => {
           if (func1(data1) < 1) {
             const err5 = {
               instancePath: instancePath + '/root',
-              schemaPath: '#/properties/root/minLength',
+              schemaPath: '#/$defs/rootPath/minLength',
               keyword: 'minLength',
               params: { limit: 1 },
               message: 'must NOT have fewer than 1 characters',
@@ -29046,7 +29095,7 @@ const generatedMappings = (() => {
             errors++;
           }
         } else {
-          const err6 = { instancePath: instancePath + '/root', schemaPath: '#/properties/root/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          const err6 = { instancePath: instancePath + '/root', schemaPath: '#/$defs/rootPath/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
           if (vErrors === null) {
             vErrors = [err6];
           } else {
@@ -29061,7 +29110,7 @@ const generatedMappings = (() => {
           if (data2.length > 50) {
             const err7 = {
               instancePath: instancePath + '/providers',
-              schemaPath: '#/properties/providers/maxItems',
+              schemaPath: '#/$defs/providers/maxItems',
               keyword: 'maxItems',
               params: { limit: 50 },
               message: 'must NOT have more than 50 items',
@@ -29076,9 +29125,9 @@ const generatedMappings = (() => {
           const len0 = data2.length;
           for (let i0 = 0; i0 < len0; i0++) {
             let data3 = data2[i0];
-            const _errs9 = errors;
-            let valid3 = true;
-            const _errs10 = errors;
+            const _errs11 = errors;
+            let valid5 = true;
+            const _errs12 = errors;
             if (data3 && typeof data3 == 'object' && !Array.isArray(data3)) {
               if (data3.sameRepository !== undefined) {
                 if (true !== data3.sameRepository) {
@@ -29092,20 +29141,20 @@ const generatedMappings = (() => {
                 }
               }
             }
-            var _valid0 = _errs10 === errors;
-            errors = _errs9;
+            var _valid0 = _errs12 === errors;
+            errors = _errs11;
             if (vErrors !== null) {
-              if (_errs9) {
-                vErrors.length = _errs9;
+              if (_errs11) {
+                vErrors.length = _errs11;
               } else {
                 vErrors = null;
               }
             }
             let ifClause0;
             if (_valid0) {
-              const _errs12 = errors;
-              const _errs13 = errors;
               const _errs14 = errors;
+              const _errs15 = errors;
+              const _errs16 = errors;
               if (data3 && typeof data3 == 'object' && !Array.isArray(data3)) {
                 let missing0;
                 if (data3.commit === undefined && (missing0 = 'commit')) {
@@ -29118,9 +29167,9 @@ const generatedMappings = (() => {
                   errors++;
                 }
               }
-              var valid5 = _errs14 === errors;
-              if (valid5) {
-                const err10 = { instancePath: instancePath + '/providers/' + i0, schemaPath: '#/properties/providers/items/then/not', keyword: 'not', params: {}, message: 'must NOT be valid' };
+              var valid7 = _errs16 === errors;
+              if (valid7) {
+                const err10 = { instancePath: instancePath + '/providers/' + i0, schemaPath: '#/$defs/providers/items/then/not', keyword: 'not', params: {}, message: 'must NOT be valid' };
                 if (vErrors === null) {
                   vErrors = [err10];
                 } else {
@@ -29128,10 +29177,10 @@ const generatedMappings = (() => {
                 }
                 errors++;
               } else {
-                errors = _errs13;
+                errors = _errs15;
                 if (vErrors !== null) {
-                  if (_errs13) {
-                    vErrors.length = _errs13;
+                  if (_errs15) {
+                    vErrors.length = _errs15;
                   } else {
                     vErrors = null;
                   }
@@ -29142,7 +29191,7 @@ const generatedMappings = (() => {
                   if ('latest' !== data3.choice) {
                     const err11 = {
                       instancePath: instancePath + '/providers/' + i0 + '/choice',
-                      schemaPath: '#/properties/providers/items/then/properties/choice/const',
+                      schemaPath: '#/$defs/providers/items/then/properties/choice/const',
                       keyword: 'const',
                       params: { allowedValue: 'latest' },
                       message: 'must be equal to constant',
@@ -29159,9 +29208,9 @@ const generatedMappings = (() => {
                   if (null !== data3.tag) {
                     const err12 = {
                       instancePath: instancePath + '/providers/' + i0 + '/tag',
-                      schemaPath: '#/properties/providers/items/then/properties/tag/const',
+                      schemaPath: '#/$defs/providers/items/then/properties/tag/const',
                       keyword: 'const',
-                      params: { allowedValue: tesseraDependenciesSchema.properties.providers.items.then.properties.tag.const },
+                      params: { allowedValue: tesseraDependenciesProvidersSchema.items.then.properties.tag.const },
                       message: 'must be equal to constant',
                     };
                     if (vErrors === null) {
@@ -29173,9 +29222,9 @@ const generatedMappings = (() => {
                   }
                 }
               }
-              var _valid0 = _errs12 === errors;
-              valid3 = _valid0;
-              if (valid3) {
+              var _valid0 = _errs14 === errors;
+              valid5 = _valid0;
+              if (valid5) {
                 var props0 = {};
                 props0.choice = true;
                 props0.tag = true;
@@ -29183,12 +29232,12 @@ const generatedMappings = (() => {
               }
               ifClause0 = 'then';
             } else {
-              const _errs17 = errors;
+              const _errs19 = errors;
               if (data3 && typeof data3 == 'object' && !Array.isArray(data3)) {
                 if (data3.commit === undefined) {
                   const err13 = {
                     instancePath: instancePath + '/providers/' + i0,
-                    schemaPath: '#/properties/providers/items/else/required',
+                    schemaPath: '#/$defs/providers/items/else/required',
                     keyword: 'required',
                     params: { missingProperty: 'commit' },
                     message: "must have required property '" + 'commit' + "'",
@@ -29201,14 +29250,14 @@ const generatedMappings = (() => {
                   errors++;
                 }
               }
-              var _valid0 = _errs17 === errors;
-              valid3 = _valid0;
+              var _valid0 = _errs19 === errors;
+              valid5 = _valid0;
               ifClause0 = 'else';
             }
-            if (!valid3) {
+            if (!valid5) {
               const err14 = {
                 instancePath: instancePath + '/providers/' + i0,
-                schemaPath: '#/properties/providers/items/if',
+                schemaPath: '#/$defs/providers/items/if',
                 keyword: 'if',
                 params: { failingKeyword: ifClause0 },
                 message: 'must match "' + ifClause0 + '" schema',
@@ -29224,7 +29273,7 @@ const generatedMappings = (() => {
               if (data3.project === undefined) {
                 const err15 = {
                   instancePath: instancePath + '/providers/' + i0,
-                  schemaPath: '#/properties/providers/items/required',
+                  schemaPath: '#/$defs/providers/items/required',
                   keyword: 'required',
                   params: { missingProperty: 'project' },
                   message: "must have required property '" + 'project' + "'",
@@ -29239,7 +29288,7 @@ const generatedMappings = (() => {
               if (data3.ontology === undefined) {
                 const err16 = {
                   instancePath: instancePath + '/providers/' + i0,
-                  schemaPath: '#/properties/providers/items/required',
+                  schemaPath: '#/$defs/providers/items/required',
                   keyword: 'required',
                   params: { missingProperty: 'ontology' },
                   message: "must have required property '" + 'ontology' + "'",
@@ -29254,7 +29303,7 @@ const generatedMappings = (() => {
               if (data3.repository === undefined) {
                 const err17 = {
                   instancePath: instancePath + '/providers/' + i0,
-                  schemaPath: '#/properties/providers/items/required',
+                  schemaPath: '#/$defs/providers/items/required',
                   keyword: 'required',
                   params: { missingProperty: 'repository' },
                   message: "must have required property '" + 'repository' + "'",
@@ -29269,7 +29318,7 @@ const generatedMappings = (() => {
               if (data3.sameRepository === undefined) {
                 const err18 = {
                   instancePath: instancePath + '/providers/' + i0,
-                  schemaPath: '#/properties/providers/items/required',
+                  schemaPath: '#/$defs/providers/items/required',
                   keyword: 'required',
                   params: { missingProperty: 'sameRepository' },
                   message: "must have required property '" + 'sameRepository' + "'",
@@ -29284,7 +29333,7 @@ const generatedMappings = (() => {
               if (data3.tag === undefined) {
                 const err19 = {
                   instancePath: instancePath + '/providers/' + i0,
-                  schemaPath: '#/properties/providers/items/required',
+                  schemaPath: '#/$defs/providers/items/required',
                   keyword: 'required',
                   params: { missingProperty: 'tag' },
                   message: "must have required property '" + 'tag' + "'",
@@ -29299,7 +29348,7 @@ const generatedMappings = (() => {
               if (data3.choice === undefined) {
                 const err20 = {
                   instancePath: instancePath + '/providers/' + i0,
-                  schemaPath: '#/properties/providers/items/required',
+                  schemaPath: '#/$defs/providers/items/required',
                   keyword: 'required',
                   params: { missingProperty: 'choice' },
                   message: "must have required property '" + 'choice' + "'",
@@ -29314,7 +29363,7 @@ const generatedMappings = (() => {
               if (data3.interfaceHash === undefined) {
                 const err21 = {
                   instancePath: instancePath + '/providers/' + i0,
-                  schemaPath: '#/properties/providers/items/required',
+                  schemaPath: '#/$defs/providers/items/required',
                   keyword: 'required',
                   params: { missingProperty: 'interfaceHash' },
                   message: "must have required property '" + 'interfaceHash' + "'",
@@ -29329,7 +29378,7 @@ const generatedMappings = (() => {
               if (data3.concepts === undefined) {
                 const err22 = {
                   instancePath: instancePath + '/providers/' + i0,
-                  schemaPath: '#/properties/providers/items/required',
+                  schemaPath: '#/$defs/providers/items/required',
                   keyword: 'required',
                   params: { missingProperty: 'concepts' },
                   message: "must have required property '" + 'concepts' + "'",
@@ -29344,7 +29393,7 @@ const generatedMappings = (() => {
               if (data3.dependsOn === undefined) {
                 const err23 = {
                   instancePath: instancePath + '/providers/' + i0,
-                  schemaPath: '#/properties/providers/items/required',
+                  schemaPath: '#/$defs/providers/items/required',
                   keyword: 'required',
                   params: { missingProperty: 'dependsOn' },
                   message: "must have required property '" + 'dependsOn' + "'",
@@ -29357,10 +29406,10 @@ const generatedMappings = (() => {
                 errors++;
               }
               for (const key1 in data3) {
-                if (!func14.call(tesseraDependenciesSchema.properties.providers.items.properties, key1)) {
+                if (!func14.call(tesseraDependenciesProvidersSchema.items.properties, key1)) {
                   const err24 = {
                     instancePath: instancePath + '/providers/' + i0,
-                    schemaPath: '#/properties/providers/items/additionalProperties',
+                    schemaPath: '#/$defs/providers/items/additionalProperties',
                     keyword: 'additionalProperties',
                     params: { additionalProperty: key1 },
                     message: 'must NOT have additional properties',
@@ -29379,7 +29428,7 @@ const generatedMappings = (() => {
                   if (func1(data7) < 1) {
                     const err25 = {
                       instancePath: instancePath + '/providers/' + i0 + '/project',
-                      schemaPath: '#/properties/providers/items/properties/project/minLength',
+                      schemaPath: '#/$defs/providers/items/properties/project/minLength',
                       keyword: 'minLength',
                       params: { limit: 1 },
                       message: 'must NOT have fewer than 1 characters',
@@ -29394,7 +29443,7 @@ const generatedMappings = (() => {
                 } else {
                   const err26 = {
                     instancePath: instancePath + '/providers/' + i0 + '/project',
-                    schemaPath: '#/properties/providers/items/properties/project/type',
+                    schemaPath: '#/$defs/providers/items/properties/project/type',
                     keyword: 'type',
                     params: { type: 'string' },
                     message: 'must be string',
@@ -29413,7 +29462,7 @@ const generatedMappings = (() => {
                   if (func1(data8) < 1) {
                     const err27 = {
                       instancePath: instancePath + '/providers/' + i0 + '/ontology',
-                      schemaPath: '#/properties/providers/items/properties/ontology/minLength',
+                      schemaPath: '#/$defs/providers/items/properties/ontology/minLength',
                       keyword: 'minLength',
                       params: { limit: 1 },
                       message: 'must NOT have fewer than 1 characters',
@@ -29428,7 +29477,7 @@ const generatedMappings = (() => {
                 } else {
                   const err28 = {
                     instancePath: instancePath + '/providers/' + i0 + '/ontology',
-                    schemaPath: '#/properties/providers/items/properties/ontology/type',
+                    schemaPath: '#/$defs/providers/items/properties/ontology/type',
                     keyword: 'type',
                     params: { type: 'string' },
                     message: 'must be string',
@@ -29447,7 +29496,7 @@ const generatedMappings = (() => {
                   if (func1(data9) < 1) {
                     const err29 = {
                       instancePath: instancePath + '/providers/' + i0 + '/repository',
-                      schemaPath: '#/properties/providers/items/properties/repository/minLength',
+                      schemaPath: '#/$defs/providers/items/properties/repository/minLength',
                       keyword: 'minLength',
                       params: { limit: 1 },
                       message: 'must NOT have fewer than 1 characters',
@@ -29462,7 +29511,7 @@ const generatedMappings = (() => {
                 } else {
                   const err30 = {
                     instancePath: instancePath + '/providers/' + i0 + '/repository',
-                    schemaPath: '#/properties/providers/items/properties/repository/type',
+                    schemaPath: '#/$defs/providers/items/properties/repository/type',
                     keyword: 'type',
                     params: { type: 'string' },
                     message: 'must be string',
@@ -29479,7 +29528,7 @@ const generatedMappings = (() => {
                 if (typeof data3.sameRepository !== 'boolean') {
                   const err31 = {
                     instancePath: instancePath + '/providers/' + i0 + '/sameRepository',
-                    schemaPath: '#/properties/providers/items/properties/sameRepository/type',
+                    schemaPath: '#/$defs/providers/items/properties/sameRepository/type',
                     keyword: 'type',
                     params: { type: 'boolean' },
                     message: 'must be boolean',
@@ -29498,7 +29547,7 @@ const generatedMappings = (() => {
                   if (func1(data11) < 1) {
                     const err32 = {
                       instancePath: instancePath + '/providers/' + i0 + '/commit',
-                      schemaPath: '#/properties/providers/items/properties/commit/minLength',
+                      schemaPath: '#/$defs/providers/items/properties/commit/minLength',
                       keyword: 'minLength',
                       params: { limit: 1 },
                       message: 'must NOT have fewer than 1 characters',
@@ -29513,7 +29562,7 @@ const generatedMappings = (() => {
                   if (!pattern4.test(data11)) {
                     const err33 = {
                       instancePath: instancePath + '/providers/' + i0 + '/commit',
-                      schemaPath: '#/properties/providers/items/properties/commit/pattern',
+                      schemaPath: '#/$defs/providers/items/properties/commit/pattern',
                       keyword: 'pattern',
                       params: { pattern: '^(?:[0-9a-f]{40}|[0-9a-f]{64})$' },
                       message: 'must match pattern "' + '^(?:[0-9a-f]{40}|[0-9a-f]{64})$' + '"',
@@ -29528,7 +29577,7 @@ const generatedMappings = (() => {
                 } else {
                   const err34 = {
                     instancePath: instancePath + '/providers/' + i0 + '/commit',
-                    schemaPath: '#/properties/providers/items/properties/commit/type',
+                    schemaPath: '#/$defs/providers/items/properties/commit/type',
                     keyword: 'type',
                     params: { type: 'string' },
                     message: 'must be string',
@@ -29546,9 +29595,9 @@ const generatedMappings = (() => {
                 if (typeof data12 !== 'string' && data12 !== null) {
                   const err35 = {
                     instancePath: instancePath + '/providers/' + i0 + '/tag',
-                    schemaPath: '#/properties/providers/items/properties/tag/type',
+                    schemaPath: '#/$defs/providers/items/properties/tag/type',
                     keyword: 'type',
-                    params: { type: tesseraDependenciesSchema.properties.providers.items.properties.tag.type },
+                    params: { type: tesseraDependenciesProvidersSchema.items.properties.tag.type },
                     message: 'must be string,null',
                   };
                   if (vErrors === null) {
@@ -29564,9 +29613,9 @@ const generatedMappings = (() => {
                 if (!(data13 === 'latest' || data13 === 'pin')) {
                   const err36 = {
                     instancePath: instancePath + '/providers/' + i0 + '/choice',
-                    schemaPath: '#/properties/providers/items/properties/choice/enum',
+                    schemaPath: '#/$defs/providers/items/properties/choice/enum',
                     keyword: 'enum',
-                    params: { allowedValues: tesseraDependenciesSchema.properties.providers.items.properties.choice.enum },
+                    params: { allowedValues: tesseraDependenciesProvidersSchema.items.properties.choice.enum },
                     message: 'must be equal to one of the allowed values',
                   };
                   if (vErrors === null) {
@@ -29583,7 +29632,7 @@ const generatedMappings = (() => {
                   if (func1(data14) < 1) {
                     const err37 = {
                       instancePath: instancePath + '/providers/' + i0 + '/interfaceHash',
-                      schemaPath: '#/properties/providers/items/properties/interfaceHash/minLength',
+                      schemaPath: '#/$defs/providers/items/properties/interfaceHash/minLength',
                       keyword: 'minLength',
                       params: { limit: 1 },
                       message: 'must NOT have fewer than 1 characters',
@@ -29598,7 +29647,7 @@ const generatedMappings = (() => {
                   if (!pattern5.test(data14)) {
                     const err38 = {
                       instancePath: instancePath + '/providers/' + i0 + '/interfaceHash',
-                      schemaPath: '#/properties/providers/items/properties/interfaceHash/pattern',
+                      schemaPath: '#/$defs/providers/items/properties/interfaceHash/pattern',
                       keyword: 'pattern',
                       params: { pattern: '^sha256:[0-9a-f]{64}$' },
                       message: 'must match pattern "' + '^sha256:[0-9a-f]{64}$' + '"',
@@ -29613,7 +29662,7 @@ const generatedMappings = (() => {
                 } else {
                   const err39 = {
                     instancePath: instancePath + '/providers/' + i0 + '/interfaceHash',
-                    schemaPath: '#/properties/providers/items/properties/interfaceHash/type',
+                    schemaPath: '#/$defs/providers/items/properties/interfaceHash/type',
                     keyword: 'type',
                     params: { type: 'string' },
                     message: 'must be string',
@@ -29632,7 +29681,7 @@ const generatedMappings = (() => {
                   if (data15.length < 1) {
                     const err40 = {
                       instancePath: instancePath + '/providers/' + i0 + '/concepts',
-                      schemaPath: '#/properties/providers/items/properties/concepts/minItems',
+                      schemaPath: '#/$defs/providers/items/properties/concepts/minItems',
                       keyword: 'minItems',
                       params: { limit: 1 },
                       message: 'must NOT have fewer than 1 items',
@@ -29651,7 +29700,7 @@ const generatedMappings = (() => {
                       if (func1(data16) < 1) {
                         const err41 = {
                           instancePath: instancePath + '/providers/' + i0 + '/concepts/' + i1,
-                          schemaPath: '#/properties/providers/items/properties/concepts/items/minLength',
+                          schemaPath: '#/$defs/providers/items/properties/concepts/items/minLength',
                           keyword: 'minLength',
                           params: { limit: 1 },
                           message: 'must NOT have fewer than 1 characters',
@@ -29666,7 +29715,7 @@ const generatedMappings = (() => {
                     } else {
                       const err42 = {
                         instancePath: instancePath + '/providers/' + i0 + '/concepts/' + i1,
-                        schemaPath: '#/properties/providers/items/properties/concepts/items/type',
+                        schemaPath: '#/$defs/providers/items/properties/concepts/items/type',
                         keyword: 'type',
                         params: { type: 'string' },
                         message: 'must be string',
@@ -29692,7 +29741,7 @@ const generatedMappings = (() => {
                         j0 = indices0[item0];
                         const err43 = {
                           instancePath: instancePath + '/providers/' + i0 + '/concepts',
-                          schemaPath: '#/properties/providers/items/properties/concepts/uniqueItems',
+                          schemaPath: '#/$defs/providers/items/properties/concepts/uniqueItems',
                           keyword: 'uniqueItems',
                           params: { i: i2, j: j0 },
                           message: 'must NOT have duplicate items (items ## ' + j0 + ' and ' + i2 + ' are identical)',
@@ -29711,7 +29760,7 @@ const generatedMappings = (() => {
                 } else {
                   const err44 = {
                     instancePath: instancePath + '/providers/' + i0 + '/concepts',
-                    schemaPath: '#/properties/providers/items/properties/concepts/type',
+                    schemaPath: '#/$defs/providers/items/properties/concepts/type',
                     keyword: 'type',
                     params: { type: 'array' },
                     message: 'must be array',
@@ -29734,7 +29783,7 @@ const generatedMappings = (() => {
                       if (data18.project === undefined) {
                         const err45 = {
                           instancePath: instancePath + '/providers/' + i0 + '/dependsOn/' + i3,
-                          schemaPath: '#/properties/providers/items/properties/dependsOn/items/required',
+                          schemaPath: '#/$defs/providers/items/properties/dependsOn/items/required',
                           keyword: 'required',
                           params: { missingProperty: 'project' },
                           message: "must have required property '" + 'project' + "'",
@@ -29749,7 +29798,7 @@ const generatedMappings = (() => {
                       if (data18.commit === undefined) {
                         const err46 = {
                           instancePath: instancePath + '/providers/' + i0 + '/dependsOn/' + i3,
-                          schemaPath: '#/properties/providers/items/properties/dependsOn/items/required',
+                          schemaPath: '#/$defs/providers/items/properties/dependsOn/items/required',
                           keyword: 'required',
                           params: { missingProperty: 'commit' },
                           message: "must have required property '" + 'commit' + "'",
@@ -29764,7 +29813,7 @@ const generatedMappings = (() => {
                       if (data18.interfaceHash === undefined) {
                         const err47 = {
                           instancePath: instancePath + '/providers/' + i0 + '/dependsOn/' + i3,
-                          schemaPath: '#/properties/providers/items/properties/dependsOn/items/required',
+                          schemaPath: '#/$defs/providers/items/properties/dependsOn/items/required',
                           keyword: 'required',
                           params: { missingProperty: 'interfaceHash' },
                           message: "must have required property '" + 'interfaceHash' + "'",
@@ -29780,7 +29829,7 @@ const generatedMappings = (() => {
                         if (!(key2 === 'project' || key2 === 'commit' || key2 === 'interfaceHash')) {
                           const err48 = {
                             instancePath: instancePath + '/providers/' + i0 + '/dependsOn/' + i3,
-                            schemaPath: '#/properties/providers/items/properties/dependsOn/items/additionalProperties',
+                            schemaPath: '#/$defs/providers/items/properties/dependsOn/items/additionalProperties',
                             keyword: 'additionalProperties',
                             params: { additionalProperty: key2 },
                             message: 'must NOT have additional properties',
@@ -29799,7 +29848,7 @@ const generatedMappings = (() => {
                           if (func1(data19) < 1) {
                             const err49 = {
                               instancePath: instancePath + '/providers/' + i0 + '/dependsOn/' + i3 + '/project',
-                              schemaPath: '#/properties/providers/items/properties/dependsOn/items/properties/project/minLength',
+                              schemaPath: '#/$defs/providers/items/properties/dependsOn/items/properties/project/minLength',
                               keyword: 'minLength',
                               params: { limit: 1 },
                               message: 'must NOT have fewer than 1 characters',
@@ -29814,7 +29863,7 @@ const generatedMappings = (() => {
                         } else {
                           const err50 = {
                             instancePath: instancePath + '/providers/' + i0 + '/dependsOn/' + i3 + '/project',
-                            schemaPath: '#/properties/providers/items/properties/dependsOn/items/properties/project/type',
+                            schemaPath: '#/$defs/providers/items/properties/dependsOn/items/properties/project/type',
                             keyword: 'type',
                             params: { type: 'string' },
                             message: 'must be string',
@@ -29833,7 +29882,7 @@ const generatedMappings = (() => {
                           if (func1(data20) < 1) {
                             const err51 = {
                               instancePath: instancePath + '/providers/' + i0 + '/dependsOn/' + i3 + '/commit',
-                              schemaPath: '#/properties/providers/items/properties/dependsOn/items/properties/commit/minLength',
+                              schemaPath: '#/$defs/providers/items/properties/dependsOn/items/properties/commit/minLength',
                               keyword: 'minLength',
                               params: { limit: 1 },
                               message: 'must NOT have fewer than 1 characters',
@@ -29848,7 +29897,7 @@ const generatedMappings = (() => {
                           if (!pattern4.test(data20)) {
                             const err52 = {
                               instancePath: instancePath + '/providers/' + i0 + '/dependsOn/' + i3 + '/commit',
-                              schemaPath: '#/properties/providers/items/properties/dependsOn/items/properties/commit/pattern',
+                              schemaPath: '#/$defs/providers/items/properties/dependsOn/items/properties/commit/pattern',
                               keyword: 'pattern',
                               params: { pattern: '^(?:[0-9a-f]{40}|[0-9a-f]{64})$' },
                               message: 'must match pattern "' + '^(?:[0-9a-f]{40}|[0-9a-f]{64})$' + '"',
@@ -29863,7 +29912,7 @@ const generatedMappings = (() => {
                         } else {
                           const err53 = {
                             instancePath: instancePath + '/providers/' + i0 + '/dependsOn/' + i3 + '/commit',
-                            schemaPath: '#/properties/providers/items/properties/dependsOn/items/properties/commit/type',
+                            schemaPath: '#/$defs/providers/items/properties/dependsOn/items/properties/commit/type',
                             keyword: 'type',
                             params: { type: 'string' },
                             message: 'must be string',
@@ -29882,7 +29931,7 @@ const generatedMappings = (() => {
                           if (func1(data21) < 1) {
                             const err54 = {
                               instancePath: instancePath + '/providers/' + i0 + '/dependsOn/' + i3 + '/interfaceHash',
-                              schemaPath: '#/properties/providers/items/properties/dependsOn/items/properties/interfaceHash/minLength',
+                              schemaPath: '#/$defs/providers/items/properties/dependsOn/items/properties/interfaceHash/minLength',
                               keyword: 'minLength',
                               params: { limit: 1 },
                               message: 'must NOT have fewer than 1 characters',
@@ -29897,7 +29946,7 @@ const generatedMappings = (() => {
                           if (!pattern5.test(data21)) {
                             const err55 = {
                               instancePath: instancePath + '/providers/' + i0 + '/dependsOn/' + i3 + '/interfaceHash',
-                              schemaPath: '#/properties/providers/items/properties/dependsOn/items/properties/interfaceHash/pattern',
+                              schemaPath: '#/$defs/providers/items/properties/dependsOn/items/properties/interfaceHash/pattern',
                               keyword: 'pattern',
                               params: { pattern: '^sha256:[0-9a-f]{64}$' },
                               message: 'must match pattern "' + '^sha256:[0-9a-f]{64}$' + '"',
@@ -29912,7 +29961,7 @@ const generatedMappings = (() => {
                         } else {
                           const err56 = {
                             instancePath: instancePath + '/providers/' + i0 + '/dependsOn/' + i3 + '/interfaceHash',
-                            schemaPath: '#/properties/providers/items/properties/dependsOn/items/properties/interfaceHash/type',
+                            schemaPath: '#/$defs/providers/items/properties/dependsOn/items/properties/interfaceHash/type',
                             keyword: 'type',
                             params: { type: 'string' },
                             message: 'must be string',
@@ -29928,7 +29977,7 @@ const generatedMappings = (() => {
                     } else {
                       const err57 = {
                         instancePath: instancePath + '/providers/' + i0 + '/dependsOn/' + i3,
-                        schemaPath: '#/properties/providers/items/properties/dependsOn/items/type',
+                        schemaPath: '#/$defs/providers/items/properties/dependsOn/items/type',
                         keyword: 'type',
                         params: { type: 'object' },
                         message: 'must be object',
@@ -29949,7 +29998,7 @@ const generatedMappings = (() => {
                         if (func0(data17[i4], data17[j1])) {
                           const err58 = {
                             instancePath: instancePath + '/providers/' + i0 + '/dependsOn',
-                            schemaPath: '#/properties/providers/items/properties/dependsOn/uniqueItems',
+                            schemaPath: '#/$defs/providers/items/properties/dependsOn/uniqueItems',
                             keyword: 'uniqueItems',
                             params: { i: i4, j: j1 },
                             message: 'must NOT have duplicate items (items ## ' + j1 + ' and ' + i4 + ' are identical)',
@@ -29968,7 +30017,7 @@ const generatedMappings = (() => {
                 } else {
                   const err59 = {
                     instancePath: instancePath + '/providers/' + i0 + '/dependsOn',
-                    schemaPath: '#/properties/providers/items/properties/dependsOn/type',
+                    schemaPath: '#/$defs/providers/items/properties/dependsOn/type',
                     keyword: 'type',
                     params: { type: 'array' },
                     message: 'must be array',
@@ -29982,13 +30031,7 @@ const generatedMappings = (() => {
                 }
               }
             } else {
-              const err60 = {
-                instancePath: instancePath + '/providers/' + i0,
-                schemaPath: '#/properties/providers/items/type',
-                keyword: 'type',
-                params: { type: 'object' },
-                message: 'must be object',
-              };
+              const err60 = { instancePath: instancePath + '/providers/' + i0, schemaPath: '#/$defs/providers/items/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
               if (vErrors === null) {
                 vErrors = [err60];
               } else {
@@ -30005,7 +30048,7 @@ const generatedMappings = (() => {
                 if (func0(data2[i5], data2[j2])) {
                   const err61 = {
                     instancePath: instancePath + '/providers',
-                    schemaPath: '#/properties/providers/uniqueItems',
+                    schemaPath: '#/$defs/providers/uniqueItems',
                     keyword: 'uniqueItems',
                     params: { i: i5, j: j2 },
                     message: 'must NOT have duplicate items (items ## ' + j2 + ' and ' + i5 + ' are identical)',
@@ -30022,7 +30065,7 @@ const generatedMappings = (() => {
             }
           }
         } else {
-          const err62 = { instancePath: instancePath + '/providers', schemaPath: '#/properties/providers/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          const err62 = { instancePath: instancePath + '/providers', schemaPath: '#/$defs/providers/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
           if (vErrors === null) {
             vErrors = [err62];
           } else {
@@ -30031,12 +30074,1153 @@ const generatedMappings = (() => {
           errors++;
         }
       }
+      if (data.additionalRoots !== undefined) {
+        let data22 = data.additionalRoots;
+        if (Array.isArray(data22)) {
+          if (data22.length < 1) {
+            const err63 = {
+              instancePath: instancePath + '/additionalRoots',
+              schemaPath: '#/properties/additionalRoots/minItems',
+              keyword: 'minItems',
+              params: { limit: 1 },
+              message: 'must NOT have fewer than 1 items',
+            };
+            if (vErrors === null) {
+              vErrors = [err63];
+            } else {
+              vErrors.push(err63);
+            }
+            errors++;
+          }
+          const len3 = data22.length;
+          for (let i6 = 0; i6 < len3; i6++) {
+            let data23 = data22[i6];
+            if (data23 && typeof data23 == 'object' && !Array.isArray(data23)) {
+              if (data23.root === undefined) {
+                const err64 = {
+                  instancePath: instancePath + '/additionalRoots/' + i6,
+                  schemaPath: '#/properties/additionalRoots/items/required',
+                  keyword: 'required',
+                  params: { missingProperty: 'root' },
+                  message: "must have required property '" + 'root' + "'",
+                };
+                if (vErrors === null) {
+                  vErrors = [err64];
+                } else {
+                  vErrors.push(err64);
+                }
+                errors++;
+              }
+              if (data23.providers === undefined) {
+                const err65 = {
+                  instancePath: instancePath + '/additionalRoots/' + i6,
+                  schemaPath: '#/properties/additionalRoots/items/required',
+                  keyword: 'required',
+                  params: { missingProperty: 'providers' },
+                  message: "must have required property '" + 'providers' + "'",
+                };
+                if (vErrors === null) {
+                  vErrors = [err65];
+                } else {
+                  vErrors.push(err65);
+                }
+                errors++;
+              }
+              for (const key3 in data23) {
+                if (!(key3 === 'root' || key3 === 'providers')) {
+                  const err66 = {
+                    instancePath: instancePath + '/additionalRoots/' + i6,
+                    schemaPath: '#/properties/additionalRoots/items/additionalProperties',
+                    keyword: 'additionalProperties',
+                    params: { additionalProperty: key3 },
+                    message: 'must NOT have additional properties',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err66];
+                  } else {
+                    vErrors.push(err66);
+                  }
+                  errors++;
+                }
+              }
+              if (data23.root !== undefined) {
+                let data24 = data23.root;
+                if (typeof data24 === 'string') {
+                  if (func1(data24) < 1) {
+                    const err67 = {
+                      instancePath: instancePath + '/additionalRoots/' + i6 + '/root',
+                      schemaPath: '#/$defs/rootPath/minLength',
+                      keyword: 'minLength',
+                      params: { limit: 1 },
+                      message: 'must NOT have fewer than 1 characters',
+                    };
+                    if (vErrors === null) {
+                      vErrors = [err67];
+                    } else {
+                      vErrors.push(err67);
+                    }
+                    errors++;
+                  }
+                } else {
+                  const err68 = {
+                    instancePath: instancePath + '/additionalRoots/' + i6 + '/root',
+                    schemaPath: '#/$defs/rootPath/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err68];
+                  } else {
+                    vErrors.push(err68);
+                  }
+                  errors++;
+                }
+              }
+              if (data23.providers !== undefined) {
+                let data25 = data23.providers;
+                if (Array.isArray(data25)) {
+                  if (data25.length > 50) {
+                    const err69 = {
+                      instancePath: instancePath + '/additionalRoots/' + i6 + '/providers',
+                      schemaPath: '#/$defs/providers/maxItems',
+                      keyword: 'maxItems',
+                      params: { limit: 50 },
+                      message: 'must NOT have more than 50 items',
+                    };
+                    if (vErrors === null) {
+                      vErrors = [err69];
+                    } else {
+                      vErrors.push(err69);
+                    }
+                    errors++;
+                  }
+                  const len4 = data25.length;
+                  for (let i7 = 0; i7 < len4; i7++) {
+                    let data26 = data25[i7];
+                    const _errs64 = errors;
+                    let valid25 = true;
+                    const _errs65 = errors;
+                    if (data26 && typeof data26 == 'object' && !Array.isArray(data26)) {
+                      if (data26.sameRepository !== undefined) {
+                        if (true !== data26.sameRepository) {
+                          const err70 = {};
+                          if (vErrors === null) {
+                            vErrors = [err70];
+                          } else {
+                            vErrors.push(err70);
+                          }
+                          errors++;
+                        }
+                      }
+                    }
+                    var _valid1 = _errs65 === errors;
+                    errors = _errs64;
+                    if (vErrors !== null) {
+                      if (_errs64) {
+                        vErrors.length = _errs64;
+                      } else {
+                        vErrors = null;
+                      }
+                    }
+                    let ifClause1;
+                    if (_valid1) {
+                      const _errs67 = errors;
+                      const _errs68 = errors;
+                      const _errs69 = errors;
+                      if (data26 && typeof data26 == 'object' && !Array.isArray(data26)) {
+                        let missing1;
+                        if (data26.commit === undefined && (missing1 = 'commit')) {
+                          const err71 = {};
+                          if (vErrors === null) {
+                            vErrors = [err71];
+                          } else {
+                            vErrors.push(err71);
+                          }
+                          errors++;
+                        }
+                      }
+                      var valid27 = _errs69 === errors;
+                      if (valid27) {
+                        const err72 = {
+                          instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7,
+                          schemaPath: '#/$defs/providers/items/then/not',
+                          keyword: 'not',
+                          params: {},
+                          message: 'must NOT be valid',
+                        };
+                        if (vErrors === null) {
+                          vErrors = [err72];
+                        } else {
+                          vErrors.push(err72);
+                        }
+                        errors++;
+                      } else {
+                        errors = _errs68;
+                        if (vErrors !== null) {
+                          if (_errs68) {
+                            vErrors.length = _errs68;
+                          } else {
+                            vErrors = null;
+                          }
+                        }
+                      }
+                      if (data26 && typeof data26 == 'object' && !Array.isArray(data26)) {
+                        if (data26.choice !== undefined) {
+                          if ('latest' !== data26.choice) {
+                            const err73 = {
+                              instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/choice',
+                              schemaPath: '#/$defs/providers/items/then/properties/choice/const',
+                              keyword: 'const',
+                              params: { allowedValue: 'latest' },
+                              message: 'must be equal to constant',
+                            };
+                            if (vErrors === null) {
+                              vErrors = [err73];
+                            } else {
+                              vErrors.push(err73);
+                            }
+                            errors++;
+                          }
+                        }
+                        if (data26.tag !== undefined) {
+                          if (null !== data26.tag) {
+                            const err74 = {
+                              instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/tag',
+                              schemaPath: '#/$defs/providers/items/then/properties/tag/const',
+                              keyword: 'const',
+                              params: { allowedValue: tesseraDependenciesProvidersSchema.items.then.properties.tag.const },
+                              message: 'must be equal to constant',
+                            };
+                            if (vErrors === null) {
+                              vErrors = [err74];
+                            } else {
+                              vErrors.push(err74);
+                            }
+                            errors++;
+                          }
+                        }
+                      }
+                      var _valid1 = _errs67 === errors;
+                      valid25 = _valid1;
+                      if (valid25) {
+                        var props1 = {};
+                        props1.choice = true;
+                        props1.tag = true;
+                        props1.sameRepository = true;
+                      }
+                      ifClause1 = 'then';
+                    } else {
+                      const _errs72 = errors;
+                      if (data26 && typeof data26 == 'object' && !Array.isArray(data26)) {
+                        if (data26.commit === undefined) {
+                          const err75 = {
+                            instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7,
+                            schemaPath: '#/$defs/providers/items/else/required',
+                            keyword: 'required',
+                            params: { missingProperty: 'commit' },
+                            message: "must have required property '" + 'commit' + "'",
+                          };
+                          if (vErrors === null) {
+                            vErrors = [err75];
+                          } else {
+                            vErrors.push(err75);
+                          }
+                          errors++;
+                        }
+                      }
+                      var _valid1 = _errs72 === errors;
+                      valid25 = _valid1;
+                      ifClause1 = 'else';
+                    }
+                    if (!valid25) {
+                      const err76 = {
+                        instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7,
+                        schemaPath: '#/$defs/providers/items/if',
+                        keyword: 'if',
+                        params: { failingKeyword: ifClause1 },
+                        message: 'must match "' + ifClause1 + '" schema',
+                      };
+                      if (vErrors === null) {
+                        vErrors = [err76];
+                      } else {
+                        vErrors.push(err76);
+                      }
+                      errors++;
+                    }
+                    if (data26 && typeof data26 == 'object' && !Array.isArray(data26)) {
+                      if (data26.project === undefined) {
+                        const err77 = {
+                          instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7,
+                          schemaPath: '#/$defs/providers/items/required',
+                          keyword: 'required',
+                          params: { missingProperty: 'project' },
+                          message: "must have required property '" + 'project' + "'",
+                        };
+                        if (vErrors === null) {
+                          vErrors = [err77];
+                        } else {
+                          vErrors.push(err77);
+                        }
+                        errors++;
+                      }
+                      if (data26.ontology === undefined) {
+                        const err78 = {
+                          instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7,
+                          schemaPath: '#/$defs/providers/items/required',
+                          keyword: 'required',
+                          params: { missingProperty: 'ontology' },
+                          message: "must have required property '" + 'ontology' + "'",
+                        };
+                        if (vErrors === null) {
+                          vErrors = [err78];
+                        } else {
+                          vErrors.push(err78);
+                        }
+                        errors++;
+                      }
+                      if (data26.repository === undefined) {
+                        const err79 = {
+                          instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7,
+                          schemaPath: '#/$defs/providers/items/required',
+                          keyword: 'required',
+                          params: { missingProperty: 'repository' },
+                          message: "must have required property '" + 'repository' + "'",
+                        };
+                        if (vErrors === null) {
+                          vErrors = [err79];
+                        } else {
+                          vErrors.push(err79);
+                        }
+                        errors++;
+                      }
+                      if (data26.sameRepository === undefined) {
+                        const err80 = {
+                          instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7,
+                          schemaPath: '#/$defs/providers/items/required',
+                          keyword: 'required',
+                          params: { missingProperty: 'sameRepository' },
+                          message: "must have required property '" + 'sameRepository' + "'",
+                        };
+                        if (vErrors === null) {
+                          vErrors = [err80];
+                        } else {
+                          vErrors.push(err80);
+                        }
+                        errors++;
+                      }
+                      if (data26.tag === undefined) {
+                        const err81 = {
+                          instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7,
+                          schemaPath: '#/$defs/providers/items/required',
+                          keyword: 'required',
+                          params: { missingProperty: 'tag' },
+                          message: "must have required property '" + 'tag' + "'",
+                        };
+                        if (vErrors === null) {
+                          vErrors = [err81];
+                        } else {
+                          vErrors.push(err81);
+                        }
+                        errors++;
+                      }
+                      if (data26.choice === undefined) {
+                        const err82 = {
+                          instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7,
+                          schemaPath: '#/$defs/providers/items/required',
+                          keyword: 'required',
+                          params: { missingProperty: 'choice' },
+                          message: "must have required property '" + 'choice' + "'",
+                        };
+                        if (vErrors === null) {
+                          vErrors = [err82];
+                        } else {
+                          vErrors.push(err82);
+                        }
+                        errors++;
+                      }
+                      if (data26.interfaceHash === undefined) {
+                        const err83 = {
+                          instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7,
+                          schemaPath: '#/$defs/providers/items/required',
+                          keyword: 'required',
+                          params: { missingProperty: 'interfaceHash' },
+                          message: "must have required property '" + 'interfaceHash' + "'",
+                        };
+                        if (vErrors === null) {
+                          vErrors = [err83];
+                        } else {
+                          vErrors.push(err83);
+                        }
+                        errors++;
+                      }
+                      if (data26.concepts === undefined) {
+                        const err84 = {
+                          instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7,
+                          schemaPath: '#/$defs/providers/items/required',
+                          keyword: 'required',
+                          params: { missingProperty: 'concepts' },
+                          message: "must have required property '" + 'concepts' + "'",
+                        };
+                        if (vErrors === null) {
+                          vErrors = [err84];
+                        } else {
+                          vErrors.push(err84);
+                        }
+                        errors++;
+                      }
+                      if (data26.dependsOn === undefined) {
+                        const err85 = {
+                          instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7,
+                          schemaPath: '#/$defs/providers/items/required',
+                          keyword: 'required',
+                          params: { missingProperty: 'dependsOn' },
+                          message: "must have required property '" + 'dependsOn' + "'",
+                        };
+                        if (vErrors === null) {
+                          vErrors = [err85];
+                        } else {
+                          vErrors.push(err85);
+                        }
+                        errors++;
+                      }
+                      for (const key4 in data26) {
+                        if (!func14.call(tesseraDependenciesProvidersSchema.items.properties, key4)) {
+                          const err86 = {
+                            instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7,
+                            schemaPath: '#/$defs/providers/items/additionalProperties',
+                            keyword: 'additionalProperties',
+                            params: { additionalProperty: key4 },
+                            message: 'must NOT have additional properties',
+                          };
+                          if (vErrors === null) {
+                            vErrors = [err86];
+                          } else {
+                            vErrors.push(err86);
+                          }
+                          errors++;
+                        }
+                      }
+                      if (data26.project !== undefined) {
+                        let data30 = data26.project;
+                        if (typeof data30 === 'string') {
+                          if (func1(data30) < 1) {
+                            const err87 = {
+                              instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/project',
+                              schemaPath: '#/$defs/providers/items/properties/project/minLength',
+                              keyword: 'minLength',
+                              params: { limit: 1 },
+                              message: 'must NOT have fewer than 1 characters',
+                            };
+                            if (vErrors === null) {
+                              vErrors = [err87];
+                            } else {
+                              vErrors.push(err87);
+                            }
+                            errors++;
+                          }
+                        } else {
+                          const err88 = {
+                            instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/project',
+                            schemaPath: '#/$defs/providers/items/properties/project/type',
+                            keyword: 'type',
+                            params: { type: 'string' },
+                            message: 'must be string',
+                          };
+                          if (vErrors === null) {
+                            vErrors = [err88];
+                          } else {
+                            vErrors.push(err88);
+                          }
+                          errors++;
+                        }
+                      }
+                      if (data26.ontology !== undefined) {
+                        let data31 = data26.ontology;
+                        if (typeof data31 === 'string') {
+                          if (func1(data31) < 1) {
+                            const err89 = {
+                              instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/ontology',
+                              schemaPath: '#/$defs/providers/items/properties/ontology/minLength',
+                              keyword: 'minLength',
+                              params: { limit: 1 },
+                              message: 'must NOT have fewer than 1 characters',
+                            };
+                            if (vErrors === null) {
+                              vErrors = [err89];
+                            } else {
+                              vErrors.push(err89);
+                            }
+                            errors++;
+                          }
+                        } else {
+                          const err90 = {
+                            instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/ontology',
+                            schemaPath: '#/$defs/providers/items/properties/ontology/type',
+                            keyword: 'type',
+                            params: { type: 'string' },
+                            message: 'must be string',
+                          };
+                          if (vErrors === null) {
+                            vErrors = [err90];
+                          } else {
+                            vErrors.push(err90);
+                          }
+                          errors++;
+                        }
+                      }
+                      if (data26.repository !== undefined) {
+                        let data32 = data26.repository;
+                        if (typeof data32 === 'string') {
+                          if (func1(data32) < 1) {
+                            const err91 = {
+                              instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/repository',
+                              schemaPath: '#/$defs/providers/items/properties/repository/minLength',
+                              keyword: 'minLength',
+                              params: { limit: 1 },
+                              message: 'must NOT have fewer than 1 characters',
+                            };
+                            if (vErrors === null) {
+                              vErrors = [err91];
+                            } else {
+                              vErrors.push(err91);
+                            }
+                            errors++;
+                          }
+                        } else {
+                          const err92 = {
+                            instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/repository',
+                            schemaPath: '#/$defs/providers/items/properties/repository/type',
+                            keyword: 'type',
+                            params: { type: 'string' },
+                            message: 'must be string',
+                          };
+                          if (vErrors === null) {
+                            vErrors = [err92];
+                          } else {
+                            vErrors.push(err92);
+                          }
+                          errors++;
+                        }
+                      }
+                      if (data26.sameRepository !== undefined) {
+                        if (typeof data26.sameRepository !== 'boolean') {
+                          const err93 = {
+                            instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/sameRepository',
+                            schemaPath: '#/$defs/providers/items/properties/sameRepository/type',
+                            keyword: 'type',
+                            params: { type: 'boolean' },
+                            message: 'must be boolean',
+                          };
+                          if (vErrors === null) {
+                            vErrors = [err93];
+                          } else {
+                            vErrors.push(err93);
+                          }
+                          errors++;
+                        }
+                      }
+                      if (data26.commit !== undefined) {
+                        let data34 = data26.commit;
+                        if (typeof data34 === 'string') {
+                          if (func1(data34) < 1) {
+                            const err94 = {
+                              instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/commit',
+                              schemaPath: '#/$defs/providers/items/properties/commit/minLength',
+                              keyword: 'minLength',
+                              params: { limit: 1 },
+                              message: 'must NOT have fewer than 1 characters',
+                            };
+                            if (vErrors === null) {
+                              vErrors = [err94];
+                            } else {
+                              vErrors.push(err94);
+                            }
+                            errors++;
+                          }
+                          if (!pattern4.test(data34)) {
+                            const err95 = {
+                              instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/commit',
+                              schemaPath: '#/$defs/providers/items/properties/commit/pattern',
+                              keyword: 'pattern',
+                              params: { pattern: '^(?:[0-9a-f]{40}|[0-9a-f]{64})$' },
+                              message: 'must match pattern "' + '^(?:[0-9a-f]{40}|[0-9a-f]{64})$' + '"',
+                            };
+                            if (vErrors === null) {
+                              vErrors = [err95];
+                            } else {
+                              vErrors.push(err95);
+                            }
+                            errors++;
+                          }
+                        } else {
+                          const err96 = {
+                            instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/commit',
+                            schemaPath: '#/$defs/providers/items/properties/commit/type',
+                            keyword: 'type',
+                            params: { type: 'string' },
+                            message: 'must be string',
+                          };
+                          if (vErrors === null) {
+                            vErrors = [err96];
+                          } else {
+                            vErrors.push(err96);
+                          }
+                          errors++;
+                        }
+                      }
+                      if (data26.tag !== undefined) {
+                        let data35 = data26.tag;
+                        if (typeof data35 !== 'string' && data35 !== null) {
+                          const err97 = {
+                            instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/tag',
+                            schemaPath: '#/$defs/providers/items/properties/tag/type',
+                            keyword: 'type',
+                            params: { type: tesseraDependenciesProvidersSchema.items.properties.tag.type },
+                            message: 'must be string,null',
+                          };
+                          if (vErrors === null) {
+                            vErrors = [err97];
+                          } else {
+                            vErrors.push(err97);
+                          }
+                          errors++;
+                        }
+                      }
+                      if (data26.choice !== undefined) {
+                        let data36 = data26.choice;
+                        if (!(data36 === 'latest' || data36 === 'pin')) {
+                          const err98 = {
+                            instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/choice',
+                            schemaPath: '#/$defs/providers/items/properties/choice/enum',
+                            keyword: 'enum',
+                            params: { allowedValues: tesseraDependenciesProvidersSchema.items.properties.choice.enum },
+                            message: 'must be equal to one of the allowed values',
+                          };
+                          if (vErrors === null) {
+                            vErrors = [err98];
+                          } else {
+                            vErrors.push(err98);
+                          }
+                          errors++;
+                        }
+                      }
+                      if (data26.interfaceHash !== undefined) {
+                        let data37 = data26.interfaceHash;
+                        if (typeof data37 === 'string') {
+                          if (func1(data37) < 1) {
+                            const err99 = {
+                              instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/interfaceHash',
+                              schemaPath: '#/$defs/providers/items/properties/interfaceHash/minLength',
+                              keyword: 'minLength',
+                              params: { limit: 1 },
+                              message: 'must NOT have fewer than 1 characters',
+                            };
+                            if (vErrors === null) {
+                              vErrors = [err99];
+                            } else {
+                              vErrors.push(err99);
+                            }
+                            errors++;
+                          }
+                          if (!pattern5.test(data37)) {
+                            const err100 = {
+                              instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/interfaceHash',
+                              schemaPath: '#/$defs/providers/items/properties/interfaceHash/pattern',
+                              keyword: 'pattern',
+                              params: { pattern: '^sha256:[0-9a-f]{64}$' },
+                              message: 'must match pattern "' + '^sha256:[0-9a-f]{64}$' + '"',
+                            };
+                            if (vErrors === null) {
+                              vErrors = [err100];
+                            } else {
+                              vErrors.push(err100);
+                            }
+                            errors++;
+                          }
+                        } else {
+                          const err101 = {
+                            instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/interfaceHash',
+                            schemaPath: '#/$defs/providers/items/properties/interfaceHash/type',
+                            keyword: 'type',
+                            params: { type: 'string' },
+                            message: 'must be string',
+                          };
+                          if (vErrors === null) {
+                            vErrors = [err101];
+                          } else {
+                            vErrors.push(err101);
+                          }
+                          errors++;
+                        }
+                      }
+                      if (data26.concepts !== undefined) {
+                        let data38 = data26.concepts;
+                        if (Array.isArray(data38)) {
+                          if (data38.length < 1) {
+                            const err102 = {
+                              instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/concepts',
+                              schemaPath: '#/$defs/providers/items/properties/concepts/minItems',
+                              keyword: 'minItems',
+                              params: { limit: 1 },
+                              message: 'must NOT have fewer than 1 items',
+                            };
+                            if (vErrors === null) {
+                              vErrors = [err102];
+                            } else {
+                              vErrors.push(err102);
+                            }
+                            errors++;
+                          }
+                          const len5 = data38.length;
+                          for (let i8 = 0; i8 < len5; i8++) {
+                            let data39 = data38[i8];
+                            if (typeof data39 === 'string') {
+                              if (func1(data39) < 1) {
+                                const err103 = {
+                                  instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/concepts/' + i8,
+                                  schemaPath: '#/$defs/providers/items/properties/concepts/items/minLength',
+                                  keyword: 'minLength',
+                                  params: { limit: 1 },
+                                  message: 'must NOT have fewer than 1 characters',
+                                };
+                                if (vErrors === null) {
+                                  vErrors = [err103];
+                                } else {
+                                  vErrors.push(err103);
+                                }
+                                errors++;
+                              }
+                            } else {
+                              const err104 = {
+                                instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/concepts/' + i8,
+                                schemaPath: '#/$defs/providers/items/properties/concepts/items/type',
+                                keyword: 'type',
+                                params: { type: 'string' },
+                                message: 'must be string',
+                              };
+                              if (vErrors === null) {
+                                vErrors = [err104];
+                              } else {
+                                vErrors.push(err104);
+                              }
+                              errors++;
+                            }
+                          }
+                          let i9 = data38.length;
+                          let j3;
+                          if (i9 > 1) {
+                            const indices1 = {};
+                            for (; i9--;) {
+                              let item1 = data38[i9];
+                              if (typeof item1 !== 'string') {
+                                continue;
+                              }
+                              if (typeof indices1[item1] == 'number') {
+                                j3 = indices1[item1];
+                                const err105 = {
+                                  instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/concepts',
+                                  schemaPath: '#/$defs/providers/items/properties/concepts/uniqueItems',
+                                  keyword: 'uniqueItems',
+                                  params: { i: i9, j: j3 },
+                                  message: 'must NOT have duplicate items (items ## ' + j3 + ' and ' + i9 + ' are identical)',
+                                };
+                                if (vErrors === null) {
+                                  vErrors = [err105];
+                                } else {
+                                  vErrors.push(err105);
+                                }
+                                errors++;
+                                break;
+                              }
+                              indices1[item1] = i9;
+                            }
+                          }
+                        } else {
+                          const err106 = {
+                            instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/concepts',
+                            schemaPath: '#/$defs/providers/items/properties/concepts/type',
+                            keyword: 'type',
+                            params: { type: 'array' },
+                            message: 'must be array',
+                          };
+                          if (vErrors === null) {
+                            vErrors = [err106];
+                          } else {
+                            vErrors.push(err106);
+                          }
+                          errors++;
+                        }
+                      }
+                      if (data26.dependsOn !== undefined) {
+                        let data40 = data26.dependsOn;
+                        if (Array.isArray(data40)) {
+                          const len6 = data40.length;
+                          for (let i10 = 0; i10 < len6; i10++) {
+                            let data41 = data40[i10];
+                            if (data41 && typeof data41 == 'object' && !Array.isArray(data41)) {
+                              if (data41.project === undefined) {
+                                const err107 = {
+                                  instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/dependsOn/' + i10,
+                                  schemaPath: '#/$defs/providers/items/properties/dependsOn/items/required',
+                                  keyword: 'required',
+                                  params: { missingProperty: 'project' },
+                                  message: "must have required property '" + 'project' + "'",
+                                };
+                                if (vErrors === null) {
+                                  vErrors = [err107];
+                                } else {
+                                  vErrors.push(err107);
+                                }
+                                errors++;
+                              }
+                              if (data41.commit === undefined) {
+                                const err108 = {
+                                  instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/dependsOn/' + i10,
+                                  schemaPath: '#/$defs/providers/items/properties/dependsOn/items/required',
+                                  keyword: 'required',
+                                  params: { missingProperty: 'commit' },
+                                  message: "must have required property '" + 'commit' + "'",
+                                };
+                                if (vErrors === null) {
+                                  vErrors = [err108];
+                                } else {
+                                  vErrors.push(err108);
+                                }
+                                errors++;
+                              }
+                              if (data41.interfaceHash === undefined) {
+                                const err109 = {
+                                  instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/dependsOn/' + i10,
+                                  schemaPath: '#/$defs/providers/items/properties/dependsOn/items/required',
+                                  keyword: 'required',
+                                  params: { missingProperty: 'interfaceHash' },
+                                  message: "must have required property '" + 'interfaceHash' + "'",
+                                };
+                                if (vErrors === null) {
+                                  vErrors = [err109];
+                                } else {
+                                  vErrors.push(err109);
+                                }
+                                errors++;
+                              }
+                              for (const key5 in data41) {
+                                if (!(key5 === 'project' || key5 === 'commit' || key5 === 'interfaceHash')) {
+                                  const err110 = {
+                                    instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/dependsOn/' + i10,
+                                    schemaPath: '#/$defs/providers/items/properties/dependsOn/items/additionalProperties',
+                                    keyword: 'additionalProperties',
+                                    params: { additionalProperty: key5 },
+                                    message: 'must NOT have additional properties',
+                                  };
+                                  if (vErrors === null) {
+                                    vErrors = [err110];
+                                  } else {
+                                    vErrors.push(err110);
+                                  }
+                                  errors++;
+                                }
+                              }
+                              if (data41.project !== undefined) {
+                                let data42 = data41.project;
+                                if (typeof data42 === 'string') {
+                                  if (func1(data42) < 1) {
+                                    const err111 = {
+                                      instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/dependsOn/' + i10 + '/project',
+                                      schemaPath: '#/$defs/providers/items/properties/dependsOn/items/properties/project/minLength',
+                                      keyword: 'minLength',
+                                      params: { limit: 1 },
+                                      message: 'must NOT have fewer than 1 characters',
+                                    };
+                                    if (vErrors === null) {
+                                      vErrors = [err111];
+                                    } else {
+                                      vErrors.push(err111);
+                                    }
+                                    errors++;
+                                  }
+                                } else {
+                                  const err112 = {
+                                    instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/dependsOn/' + i10 + '/project',
+                                    schemaPath: '#/$defs/providers/items/properties/dependsOn/items/properties/project/type',
+                                    keyword: 'type',
+                                    params: { type: 'string' },
+                                    message: 'must be string',
+                                  };
+                                  if (vErrors === null) {
+                                    vErrors = [err112];
+                                  } else {
+                                    vErrors.push(err112);
+                                  }
+                                  errors++;
+                                }
+                              }
+                              if (data41.commit !== undefined) {
+                                let data43 = data41.commit;
+                                if (typeof data43 === 'string') {
+                                  if (func1(data43) < 1) {
+                                    const err113 = {
+                                      instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/dependsOn/' + i10 + '/commit',
+                                      schemaPath: '#/$defs/providers/items/properties/dependsOn/items/properties/commit/minLength',
+                                      keyword: 'minLength',
+                                      params: { limit: 1 },
+                                      message: 'must NOT have fewer than 1 characters',
+                                    };
+                                    if (vErrors === null) {
+                                      vErrors = [err113];
+                                    } else {
+                                      vErrors.push(err113);
+                                    }
+                                    errors++;
+                                  }
+                                  if (!pattern4.test(data43)) {
+                                    const err114 = {
+                                      instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/dependsOn/' + i10 + '/commit',
+                                      schemaPath: '#/$defs/providers/items/properties/dependsOn/items/properties/commit/pattern',
+                                      keyword: 'pattern',
+                                      params: { pattern: '^(?:[0-9a-f]{40}|[0-9a-f]{64})$' },
+                                      message: 'must match pattern "' + '^(?:[0-9a-f]{40}|[0-9a-f]{64})$' + '"',
+                                    };
+                                    if (vErrors === null) {
+                                      vErrors = [err114];
+                                    } else {
+                                      vErrors.push(err114);
+                                    }
+                                    errors++;
+                                  }
+                                } else {
+                                  const err115 = {
+                                    instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/dependsOn/' + i10 + '/commit',
+                                    schemaPath: '#/$defs/providers/items/properties/dependsOn/items/properties/commit/type',
+                                    keyword: 'type',
+                                    params: { type: 'string' },
+                                    message: 'must be string',
+                                  };
+                                  if (vErrors === null) {
+                                    vErrors = [err115];
+                                  } else {
+                                    vErrors.push(err115);
+                                  }
+                                  errors++;
+                                }
+                              }
+                              if (data41.interfaceHash !== undefined) {
+                                let data44 = data41.interfaceHash;
+                                if (typeof data44 === 'string') {
+                                  if (func1(data44) < 1) {
+                                    const err116 = {
+                                      instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/dependsOn/' + i10 + '/interfaceHash',
+                                      schemaPath: '#/$defs/providers/items/properties/dependsOn/items/properties/interfaceHash/minLength',
+                                      keyword: 'minLength',
+                                      params: { limit: 1 },
+                                      message: 'must NOT have fewer than 1 characters',
+                                    };
+                                    if (vErrors === null) {
+                                      vErrors = [err116];
+                                    } else {
+                                      vErrors.push(err116);
+                                    }
+                                    errors++;
+                                  }
+                                  if (!pattern5.test(data44)) {
+                                    const err117 = {
+                                      instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/dependsOn/' + i10 + '/interfaceHash',
+                                      schemaPath: '#/$defs/providers/items/properties/dependsOn/items/properties/interfaceHash/pattern',
+                                      keyword: 'pattern',
+                                      params: { pattern: '^sha256:[0-9a-f]{64}$' },
+                                      message: 'must match pattern "' + '^sha256:[0-9a-f]{64}$' + '"',
+                                    };
+                                    if (vErrors === null) {
+                                      vErrors = [err117];
+                                    } else {
+                                      vErrors.push(err117);
+                                    }
+                                    errors++;
+                                  }
+                                } else {
+                                  const err118 = {
+                                    instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/dependsOn/' + i10 + '/interfaceHash',
+                                    schemaPath: '#/$defs/providers/items/properties/dependsOn/items/properties/interfaceHash/type',
+                                    keyword: 'type',
+                                    params: { type: 'string' },
+                                    message: 'must be string',
+                                  };
+                                  if (vErrors === null) {
+                                    vErrors = [err118];
+                                  } else {
+                                    vErrors.push(err118);
+                                  }
+                                  errors++;
+                                }
+                              }
+                            } else {
+                              const err119 = {
+                                instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/dependsOn/' + i10,
+                                schemaPath: '#/$defs/providers/items/properties/dependsOn/items/type',
+                                keyword: 'type',
+                                params: { type: 'object' },
+                                message: 'must be object',
+                              };
+                              if (vErrors === null) {
+                                vErrors = [err119];
+                              } else {
+                                vErrors.push(err119);
+                              }
+                              errors++;
+                            }
+                          }
+                          let i11 = data40.length;
+                          let j4;
+                          if (i11 > 1) {
+                            outer2: for (; i11--;) {
+                              for (j4 = i11; j4--;) {
+                                if (func0(data40[i11], data40[j4])) {
+                                  const err120 = {
+                                    instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/dependsOn',
+                                    schemaPath: '#/$defs/providers/items/properties/dependsOn/uniqueItems',
+                                    keyword: 'uniqueItems',
+                                    params: { i: i11, j: j4 },
+                                    message: 'must NOT have duplicate items (items ## ' + j4 + ' and ' + i11 + ' are identical)',
+                                  };
+                                  if (vErrors === null) {
+                                    vErrors = [err120];
+                                  } else {
+                                    vErrors.push(err120);
+                                  }
+                                  errors++;
+                                  break outer2;
+                                }
+                              }
+                            }
+                          }
+                        } else {
+                          const err121 = {
+                            instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7 + '/dependsOn',
+                            schemaPath: '#/$defs/providers/items/properties/dependsOn/type',
+                            keyword: 'type',
+                            params: { type: 'array' },
+                            message: 'must be array',
+                          };
+                          if (vErrors === null) {
+                            vErrors = [err121];
+                          } else {
+                            vErrors.push(err121);
+                          }
+                          errors++;
+                        }
+                      }
+                    } else {
+                      const err122 = {
+                        instancePath: instancePath + '/additionalRoots/' + i6 + '/providers/' + i7,
+                        schemaPath: '#/$defs/providers/items/type',
+                        keyword: 'type',
+                        params: { type: 'object' },
+                        message: 'must be object',
+                      };
+                      if (vErrors === null) {
+                        vErrors = [err122];
+                      } else {
+                        vErrors.push(err122);
+                      }
+                      errors++;
+                    }
+                  }
+                  let i12 = data25.length;
+                  let j5;
+                  if (i12 > 1) {
+                    outer3: for (; i12--;) {
+                      for (j5 = i12; j5--;) {
+                        if (func0(data25[i12], data25[j5])) {
+                          const err123 = {
+                            instancePath: instancePath + '/additionalRoots/' + i6 + '/providers',
+                            schemaPath: '#/$defs/providers/uniqueItems',
+                            keyword: 'uniqueItems',
+                            params: { i: i12, j: j5 },
+                            message: 'must NOT have duplicate items (items ## ' + j5 + ' and ' + i12 + ' are identical)',
+                          };
+                          if (vErrors === null) {
+                            vErrors = [err123];
+                          } else {
+                            vErrors.push(err123);
+                          }
+                          errors++;
+                          break outer3;
+                        }
+                      }
+                    }
+                  }
+                } else {
+                  const err124 = {
+                    instancePath: instancePath + '/additionalRoots/' + i6 + '/providers',
+                    schemaPath: '#/$defs/providers/type',
+                    keyword: 'type',
+                    params: { type: 'array' },
+                    message: 'must be array',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err124];
+                  } else {
+                    vErrors.push(err124);
+                  }
+                  errors++;
+                }
+              }
+            } else {
+              const err125 = {
+                instancePath: instancePath + '/additionalRoots/' + i6,
+                schemaPath: '#/properties/additionalRoots/items/type',
+                keyword: 'type',
+                params: { type: 'object' },
+                message: 'must be object',
+              };
+              if (vErrors === null) {
+                vErrors = [err125];
+              } else {
+                vErrors.push(err125);
+              }
+              errors++;
+            }
+          }
+          let i13 = data22.length;
+          let j6;
+          if (i13 > 1) {
+            outer4: for (; i13--;) {
+              for (j6 = i13; j6--;) {
+                if (func0(data22[i13], data22[j6])) {
+                  const err126 = {
+                    instancePath: instancePath + '/additionalRoots',
+                    schemaPath: '#/properties/additionalRoots/uniqueItems',
+                    keyword: 'uniqueItems',
+                    params: { i: i13, j: j6 },
+                    message: 'must NOT have duplicate items (items ## ' + j6 + ' and ' + i13 + ' are identical)',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err126];
+                  } else {
+                    vErrors.push(err126);
+                  }
+                  errors++;
+                  break outer4;
+                }
+              }
+            }
+          }
+        } else {
+          const err127 = { instancePath: instancePath + '/additionalRoots', schemaPath: '#/properties/additionalRoots/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err127];
+          } else {
+            vErrors.push(err127);
+          }
+          errors++;
+        }
+      }
     } else {
-      const err63 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
+      const err128 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
       if (vErrors === null) {
-        vErrors = [err63];
+        vErrors = [err128];
       } else {
-        vErrors.push(err63);
+        vErrors.push(err128);
       }
       errors++;
     }
@@ -34774,7 +35958,7 @@ const generatedMappings = (() => {
   }
   validate123.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  const pattern8 = new RegExp('^[A-Za-z0-9_]+$', 'u');
+  const pattern12 = new RegExp('^[A-Za-z0-9_]+$', 'u');
 
   function validate118(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
     /*# sourceURL="urn:semantic-workbench:tessera-ontology:3:ossie-0.2.0.dev0" */
@@ -35667,7 +36851,7 @@ const generatedMappings = (() => {
               if (data25.alias !== undefined) {
                 let data28 = data25.alias;
                 if (typeof data28 === 'string') {
-                  if (!pattern8.test(data28)) {
+                  if (!pattern12.test(data28)) {
                     const err53 = {
                       instancePath: instancePath + '/tessera_imports/' + i9 + '/alias',
                       schemaPath: '#/properties/tessera_imports/items/properties/alias/pattern',
