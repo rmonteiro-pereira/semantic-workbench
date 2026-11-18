@@ -6,7 +6,11 @@ import type { DiffItem, ItemChange } from './item-change';
 
 function byAddress(items: readonly DiffItem[]): Map<string, DiffItem[]> {
   const index = new Map<string, DiffItem[]>();
-  for (const item of items) index.set(item.address, [...(index.get(item.address) ?? []), item]);
+  for (const item of items) {
+    const candidates = index.get(item.address);
+    if (candidates) candidates.push(item);
+    else index.set(item.address, [item]);
+  }
   return index;
 }
 
