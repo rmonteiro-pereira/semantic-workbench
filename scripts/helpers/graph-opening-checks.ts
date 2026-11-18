@@ -13,6 +13,28 @@ async function minimumName(page: Page) {
   });
 }
 
+async function checkNetworkRepresentation(page: Page, filename: string) {
+  const named = page.locator('.full-entity:not(.collapsed)');
+  const counted = page.locator('.full-entity.collapsed');
+  if (filename === 'ubl.ontology.yaml') {
+    await expect(named).toHaveCount(45);
+    await expect(counted).toHaveCount(0);
+    const fill = await page.locator('.full-graph .react-flow').evaluate(canvas => {
+      const pane = canvas.getBoundingClientRect();
+      const areas = [...canvas.querySelectorAll('.react-flow__node-businessArea')].map(area => area.getBoundingClientRect());
+      const width = Math.max(...areas.map(area => area.right)) - Math.min(...areas.map(area => area.left));
+      const height = Math.max(...areas.map(area => area.bottom)) - Math.min(...areas.map(area => area.top));
+      return Math.max(width / pane.width, height / pane.height);
+    });
+    expect(fill).toBeGreaterThanOrEqual(0.8);
+  }
+  const width = page.viewportSize()!.width;
+  if (filename === 'mall.ontology.yaml' && (width === 1280 || width === 1440)) {
+    await expect(named).toHaveCount(0);
+    expect(await counted.count()).toBeGreaterThan(0);
+  }
+}
+
 async function checkOpening(page: Page, filename: string, layout: 'network' | 'layered') {
   const started = Date.now();
   await fileTab(filename, 'Graph')(page);
@@ -27,6 +49,7 @@ async function checkOpening(page: Page, filename: string, layout: 'network' | 'l
   const measured = Number(await graph.getAttribute('data-opening-name-px'));
   const passes = Number(await graph.getAttribute('data-layout-passes'));
   const extraMs = Number(await graph.getAttribute('data-layout-ms'));
+  if (layout === 'network') await checkNetworkRepresentation(page, filename);
   if (layout === 'network' && measured < 9) {
     expect(await page.locator('.full-entity.collapsed').count()).toBeGreaterThan(0);
     expect(passes).toBeGreaterThanOrEqual(2);
@@ -42,7 +65,8 @@ async function checkOpening(page: Page, filename: string, layout: 'network' | 'l
     });
   }
   console.log(
-    `PASS opening ${filename} ${layout} ${page.viewportSize()!.width}: names=${openingName}, measured=${measured}, passes=${passes}, extra-layout=${extraMs.toFixed(1)}ms, total=${Date.now() - started}ms`,
+    `PASS opening ${filename} ${layout} ${page.viewportSize()!.width}: names=${openingName}, measured=${measured}, passes=${passes}, ` +
+      `extra-layout=${extraMs.toFixed(1)}ms, total=${Date.now() - started}ms`,
   );
 }
 

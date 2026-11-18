@@ -178,7 +178,7 @@ suites use `SW_BASE_URL`. The full runner supplies fresh frontend processes as n
 | `test:sidebar` | Sidebar footer visibility and project list fill at short heights, resize and delete |
 | `test:metrics` | Metric list, definitions, explanations and graph navigation |
 | `test:addresses` | Canonical selection, reload, unchanged source bytes and declared rename with ticked references |
-| `test:graph` | Whole graph, neighborhood walk, expansion, scale and response budget |
+| `test:graph` | Named UBL and counted Mall first views, neighborhood walk, expansion, scale and response budget |
 | `test:editor` | Serialization colors, located findings, byte preservation and typing |
 | `test:item-edit` | Forms, new items, rename/delete and metric wizard |
 | `test:rdf-edit` | Resource-local RDF edits, graph difference and refusal behavior |
