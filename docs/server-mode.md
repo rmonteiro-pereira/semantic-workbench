@@ -224,6 +224,9 @@ are serialized across its worktrees.
 | Fetch/Pull/Sync/Push | Explicit remote action from your copy with your credential |
 | Push default | Sends already published state to the remote; does not publish first |
 
+The push turn verifies the configured remote still has the addresses used for credential selection
+and exactly one push destination. Sync verifies the addresses before pulling.
+
 Publishing checks the exact proposed commits, requires a fast-forward and uses compare-and-swap.
 An outside default-branch move remains pending until someone with the same publication right
 uses **Adopt** (`POST /api/projects/:slug/git/adopt`). Adoption validates the entire candidate

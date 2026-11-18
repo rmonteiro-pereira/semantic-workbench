@@ -285,3 +285,29 @@ test('push refuses a checkout that changes the copy after its branch is observed
     project.dispose();
   }
 });
+
+for (const action of ['push', 'sync', 'pushDefault'] as const) {
+  test(`${action} refuses a remote repointed after credential selection`, async () => {
+    const project = await scmProject();
+    try {
+      const replacement = join(project.t.root, 'replacement.git');
+      sh(project.t.root, ['init', '-q', '--bare', replacement]);
+      const scm = await project.t.ws.scmFor(project.slug, LOCAL_READER);
+      const original = sh(project.bare, ['for-each-ref', '--format=%(refname) %(objectname)']);
+      let selected = false;
+      const credentialFor = async (remote: { pushUrl: string }) => {
+        expect(remote.pushUrl).toBe(project.bare);
+        selected = true;
+        sh(project.dir, ['remote', 'set-url', 'origin', replacement]);
+        return { kind: 'none' } as const;
+      };
+      const call = action === 'sync' ? scm.sync(project.slug, LOCAL_READER, credentialFor) : scm[action](project.slug, credentialFor);
+      await expect(call).rejects.toThrow('remote addresses changed');
+      expect(selected).toBe(true);
+      expect(sh(project.bare, ['for-each-ref', '--format=%(refname) %(objectname)'])).toBe(original);
+      expect(sh(replacement, ['for-each-ref'])).toBe('');
+    } finally {
+      project.dispose();
+    }
+  });
+}

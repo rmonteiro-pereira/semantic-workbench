@@ -32,7 +32,7 @@ export type PathBase = 'project' | 'repository';
 /** Picks the credential for the remote a command reaches; server mode only. */
 export type CredentialFor = (remote: RemoteAddresses) => Promise<RemoteCredential>;
 // The remote a request uses, chosen once, with the credential for it.
-export type RemoteChoice = { name: string; credential?: RemoteCredential };
+export type RemoteChoice = RemoteAddresses & { credential?: RemoteCredential };
 // A remote command's chosen remote, and the content guard that checks what a pull brings in.
 export type RemoteRequest = {
   choice: RemoteChoice | null;

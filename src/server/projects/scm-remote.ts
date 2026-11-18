@@ -46,12 +46,21 @@ export function createScmRemote(ctx: ScmContext) {
   async function chooseRemote(slug: string, credentialFor?: CredentialFor): Promise<RemoteChoice | null> {
     const chosen = await chosenRemoteAddresses(slug);
     if (!chosen) return null;
-    const choice: RemoteChoice = { name: chosen.name, credential: await credentialFor?.(chosen) };
+    const choice: RemoteChoice = { ...chosen, credential: await credentialFor?.(chosen) };
     return choice;
   }
   function chosenName(choice: RemoteChoice | null) {
     if (!choice) throw new GitError('This project has no remote. Add one under Remote first.');
     return choice.name;
+  }
+  async function verifyOutgoingRemote(directory: string, choice: RemoteChoice | null) {
+    const name = chosenName(choice);
+    const addresses = await git.remoteAddresses(directory);
+    const current = addresses.find(remote => remote.name === name);
+    const destinations = await git.run(directory, ['remote', 'get-url', '--push', '--all', name], { readOnly: true, allowFailure: true });
+    if (!current || current.fetchUrl !== choice?.fetchUrl || destinations.code !== 0 || destinations.stdout.trim() !== choice?.pushUrl) {
+      throw new BadRequestError('The remote addresses changed or there is more than one push destination. Review the remote and try again.');
+    }
   }
   // Text of a document at a revision, or null when it is absent or not directory.
   async function textAt(directory: string, rev: string | null, path: string) {
@@ -188,7 +197,7 @@ export function createScmRemote(ctx: ScmContext) {
       const head = expectedHead ?? (await git.head(directory));
       return ctx
         .inWriteTurn(slug, async () => {
-          chosenName(choice);
+          await verifyOutgoingRemote(directory, choice);
           const current = await git.status(directory);
           if (current.branch !== branch || (await git.head(directory)) !== head) throw new BadRequestError('The checked-out branch or commit changed. Reload it and try again.');
           let refspec = await approvedRefspec(slug, head, branch);
@@ -245,22 +254,26 @@ export function createScmRemote(ctx: ScmContext) {
     async setRemote(slug: string, requestedName: unknown, url: unknown) {
       const name = remoteName(requestedName);
       const directory = dir(slug);
-      const remotes = await git.remotes(directory);
-      const current = remotes.get(name);
-      // The panel shows addresses with credentials masked; saving one unchanged keeps the original.
-      if (current !== undefined && typeof url === 'string' && url.trim() === redactCredentials(current)) return { name, url: url.trim() };
-      const address = remoteAddress(url);
-      await git.run(directory, remotes.has(name) ? ['remote', 'set-url', name, address] : ['remote', 'add', name, address]);
-      await after(slug);
-      return { name, url: address };
+      return ctx.inWriteTurn(slug, async () => {
+        const remotes = await git.remotes(directory);
+        const current = remotes.get(name);
+        // The panel shows addresses with credentials masked, so a saved match keeps the original.
+        if (current !== undefined && typeof url === 'string' && url.trim() === redactCredentials(current)) return { name, url: url.trim() };
+        const address = remoteAddress(url);
+        await git.run(directory, remotes.has(name) ? ['remote', 'set-url', name, address] : ['remote', 'add', name, address]);
+        await after(slug);
+        return { name, url: address };
+      });
     },
     async removeRemote(slug: string, requestedName: unknown) {
       const name = remoteName(requestedName);
       const directory = dir(slug);
-      if (!(await git.remotes(directory)).has(name)) throw new BadRequestError(`There is no remote named ${name}.`);
-      await git.run(directory, ['remote', 'remove', name]);
-      await after(slug);
-      return { removed: name };
+      return ctx.inWriteTurn(slug, async () => {
+        if (!(await git.remotes(directory)).has(name)) throw new BadRequestError(`There is no remote named ${name}.`);
+        await git.run(directory, ['remote', 'remove', name]);
+        await after(slug);
+        return { removed: name };
+      });
     },
     chosenRemoteAddresses,
     /** Every remote of the project's repository with its fetch and push addresses. */
@@ -277,6 +290,7 @@ export function createScmRemote(ctx: ScmContext) {
           const pointer = deps.publishedPosition?.(slug);
           const branch = await deps.defaultBranch!(slug);
           if (expectedBranch !== undefined && branch !== expectedBranch) throw new BadRequestError('The default branch changed. Reload it and try again.');
+          await verifyOutgoingRemote(dir(slug), choice);
           const refspec = await approvedRefspec(slug, pointer?.commit ?? null, branch);
           const pushed = await pushRef(dir(slug), choice, refspec);
           const gitStatus = await after(slug);
