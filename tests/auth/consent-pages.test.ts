@@ -1,6 +1,7 @@
 // Checks the agent connection pages: escaping, headers, the fixed sentence, scope rows and that nothing from a request is echoed.
+import { activeBrand, setActiveBrand } from '../../src/server/brand/bundle';
 import { beforeAll, expect, test } from 'bun:test';
-import { ONWARD_USE_SENTENCE, consentPage, errorPage, setupFormPage, setupResultPage, type ScopeRow } from '../../src/server/connections/consent-pages';
+import { onwardUseSentence, consentPage, errorPage, setupFormPage, setupResultPage, type ScopeRow } from '../../src/server/connections/consent-pages';
 import type { Program } from '../../src/server/connections/programs';
 import { offeredScopes } from '../../src/server/connections/scopes';
 import { useDefaultBrand } from '../helpers/brand-fixture';
@@ -35,10 +36,10 @@ test('every dynamic value is escaped and the page has no script', async () => {
 
 test('the sentence about onward use is present word for word', async () => {
   const { body } = await consent();
-  expect(ONWARD_USE_SENTENCE).toBe(
+  expect(onwardUseSentence()).toBe(
     'Semantic Workbench does not call a language model. When you connect an external agent, that agent can receive definitions you authorize and may send them to its model provider; its configuration and policies govern that onward use.',
   );
-  expect(body).toContain(ONWARD_USE_SENTENCE);
+  expect(body).toContain(onwardUseSentence());
 });
 
 test('the page says what the connection can do, who it acts as, how long it lasts and where it returns', async () => {
@@ -88,7 +89,7 @@ test('the setup form lists programs and scopes and posts to the setup address', 
   expect(body).toContain('method="post" action="/oauth/setup"');
   expect(body.match(/name="client"/g)).toHaveLength(2);
   expect(body).toMatch(/value="reference-client" checked/);
-  expect(body).toContain(ONWARD_USE_SENTENCE);
+  expect(body).toContain(onwardUseSentence());
   expect(response.headers.get('content-security-policy')).toContain("form-action 'self';");
 });
 
@@ -113,4 +114,16 @@ test('the error page says one sentence from a closed list and echoes nothing', a
     expect(body).toContain('href="/"');
   }
   expect(await errorPage('limit').text()).toContain('list of agent connections');
+});
+
+test('the onward-use statement uses and escapes the active product name', async () => {
+  const original = activeBrand();
+  setActiveBrand({ ...original, manifest: { ...original.manifest, productName: 'Acme <Models>' } });
+  try {
+    const { body } = await consent();
+    expect(body).toContain('Acme &lt;Models&gt; does not call a language model.');
+    expect(body).not.toContain('Acme <Models> does not');
+  } finally {
+    setActiveBrand(original);
+  }
 });

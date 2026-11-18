@@ -53,3 +53,5 @@ Where the plan named files or shapes that differ from the code that landed, the 
 
 - T031: dev-server `bun scripts/mcp-acceptance.ts --server-mode`: server MCP reference acceptance passed (client/server 2.4.0; 21 tools, authenticated project read, revoked-token 401). This is real HTTP transport with fixture consent, not a browser compatibility claim; server-mode programs remain not tested end to end. Listener and fixture close in finally.
 - Consolidated feature proof on the dev server: 131 pass, 0 fail, 15,412 assertions across 16 files (412.57 seconds). Later constant-time verification edits have separate store/grant/service proofs; final static/build checks remain to run.
+
+- Final check first reached the brand rule and refused the pre-existing hard-coded product name in the onward-use sentence. The sentence now uses the active brand at render time and escapes it; default-brand wording remains identical. Consent page proof: 10 pass, 0 fail, including a custom product name with HTML characters.

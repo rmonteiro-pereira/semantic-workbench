@@ -1,11 +1,17 @@
 // The pages a person sees while connecting an agent: consent, the setup credential form, the page that shows the credential once, and one error page. They are server-rendered without script, escape every dynamic value, and never repeat a request parameter.
+import { activeBrand } from '../brand/bundle';
 import { authDocument, escapeHtml } from '../routes/auth';
 import type { Program } from './programs';
 import { SCOPE_WORDING, type OfferedScope } from './scopes';
 
-/** The statement about onward use, in the words the decisions file fixes. It is also in the guide. */
-export const ONWARD_USE_SENTENCE =
-  'Semantic Workbench does not call a language model. When you connect an external agent, that agent can receive definitions you authorize and may send them to its model provider; its configuration and policies govern that onward use.';
+/** The onward-use statement keeps its approved wording and names the active product. */
+export function onwardUseSentence(): string {
+  return (
+    `${activeBrand().manifest.productName} does not call a language model. ` +
+    'When you connect an external agent, that agent can receive definitions you authorize and may send them to its model provider; ' +
+    'its configuration and policies govern that onward use.'
+  );
+}
 const SESSION_SENTENCE = 'This connection ends when you sign out or your session expires, which can be as soon as the end of the day.';
 const ROLES_SENTENCE = 'The agent acts as you, with your roles, and can read whatever you can read.';
 const REMOTE_WARNING = 'The agent can push with your Git credential.';
@@ -55,7 +61,7 @@ function hiddenField(name: string, value: string): string {
 }
 
 function reminderHtml(): string {
-  return `<p>${SESSION_SENTENCE}</p><p class="onward">${ONWARD_USE_SENTENCE}</p>`;
+  return `<p>${SESSION_SENTENCE}</p><p class="onward">${escapeHtml(onwardUseSentence())}</p>`;
 }
 
 /** The program's registered redirect address is shown in full, so a person sees where the answer goes. */
