@@ -1,15 +1,7 @@
 // Measures the Admin POST over a loopback socket with disposable fixture data.
 // Usage: bun [--cpu-prof --cpu-prof-dir=out/dry-run] scripts/dry-run-latency.ts [--profile] [runs] [multiplier ...]
-import { createHandler } from '../src/server/handler';
-import { createAccessControl } from '../src/server/auth/authorize';
-import { openAdminRepository } from '../src/server/auth/admin-repo';
-import { accessFixture, person } from '../tests/auth/access-fixture';
-import { authWorkspace } from '../tests/helpers/auth-workspace';
-import { allowEveryRemote } from '../tests/helpers/remote-credentials-fixture';
-import { configureLogging } from '../src/server/observability/log';
 import matrix from '../policies/matrix-cases.json';
 
-configureLogging({ level: 'silent', format: 'json' });
 const args = process.argv.slice(2).filter(argument => argument !== '--profile');
 const profile = process.argv.includes('--profile');
 const runs = Number(args[0] ?? 20);
@@ -30,6 +22,14 @@ if (profile) {
   };
 }
 if (!Number.isInteger(runs) || runs < 1) throw new Error('Runs must be a positive integer.');
+const { createHandler } = await import('../src/server/handler');
+const { createAccessControl } = await import('../src/server/auth/authorize');
+const { openAdminRepository } = await import('../src/server/auth/admin-repo');
+const { accessFixture, person } = await import('../tests/auth/access-fixture');
+const { authWorkspace } = await import('../tests/helpers/auth-workspace');
+const { allowEveryRemote } = await import('../tests/helpers/remote-credentials-fixture');
+const { configureLogging } = await import('../src/server/observability/log');
+configureLogging({ level: 'silent', format: 'json' });
 const original = [...matrix.cases];
 
 function summary(samples: number[]) {
