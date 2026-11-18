@@ -219,3 +219,26 @@ the same document.
 the setup exchange and the refresh grant, and exposes standard input and output as in 006. It never
 opens a browser. For a person with a browser the program's own flow is used instead; the bridge is
 for programs that speak stdio.
+
+## Verified (T038), read 2026-11-17
+
+Source: the published Model Context Protocol specification, revision 2026-07-28, pages `basic/authorization`, `basic/authorization/authorization-server-discovery`, `basic/authorization/client-registration` and `basic/authorization/security-considerations` at modelcontextprotocol.io. The pages cite OAuth 2.1 draft 13, RFC 6750, 8414, 8707, 9207 and 9728; those documents were not read in full, only as the MCP pages quote them.
+
+Confirmed, no change needed:
+
+- The resource server must publish protected resource metadata with `authorization_servers`, and must either send `resource_metadata` in the 401 `WWW-Authenticate` header or serve the well-known document. Clients must try the path-aware address `/.well-known/oauth-protected-resource/<path>` and then the root address. The contract serves both and names the path-aware one in the challenge.
+- The authorization server metadata address is `/.well-known/oauth-authorization-server`, and its `issuer` must equal the issuer used to build that address. The metadata must carry `code_challenge_methods_supported`, and a client refuses to continue without it. The contract lists `S256`.
+- Pre-registered clients are a named mechanism and come first in a client's priority order; dynamic registration is deprecated and client ID metadata documents are optional (SHOULD). The server need not support either, so the absence of a registration endpoint and of `client_id_metadata_document_supported` is allowed.
+- `resource` must be sent in authorization and token requests and must be the canonical address of the MCP server; the server must accept only tokens issued for itself. Exact comparison against `SW_PUBLIC_URL` plus `/api/mcp` is what the contract does.
+- Exact redirect comparison against pre-registered values is required. PKCE with S256 is required, and public clients must get rotated refresh tokens.
+- Invalid or expired tokens get 401. Other refusals use 400 for malformed authorization requests and 403 for insufficient scope.
+
+Differences found and what was done:
+
+1. **Redirect schemes (contradicts FR-011).** The security considerations say "All redirect URIs MUST be either `localhost` or use HTTPS". FR-011 and the registration contract also allow custom schemes registered by name. That part was not implemented: a redirect address is `https`, or `http` on a loopback host with an explicit port. The schema keeps no custom-scheme list. Reported to the owner as an open requirement question.
+2. **Issuer in the authorization response (new, additive).** Servers SHOULD return `iss` in authorization responses, including error responses, and then advertise `authorization_response_iss_parameter_supported: true`; a client rejects a response without `iss` when that flag is true. Added to the contract and the code: the redirect carries `iss` (the issuer, which is `SW_PUBLIC_URL`) and the metadata sets the flag.
+3. **Redirect host on the consent page.** Authorization servers must clearly display the redirect URI host during authorization (stated under loopback risks). The consent page shows the program's registered redirect address in full.
+4. **Scope in the challenge.** Servers SHOULD put `scope` in the 401 challenge, and SHOULD answer a runtime shortfall with 403 `insufficient_scope`. Not done: FR-007 forbids a challenge that distinguishes causes, and a scope hint is not needed because the program is pre-registered with its scopes. A scope refusal reaches the program as the tool's own refusal. Recorded as a deliberate omission.
+5. **Mix-up and token passthrough.** Nothing to change: the workbench makes no upstream call with a connection token and never accepts an identity-provider token on the MCP endpoint.
+
+Not verified: whether Codex CLI performs this flow with a fixed callback port and a pre-registered client id (T039).
