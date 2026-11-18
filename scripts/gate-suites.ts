@@ -37,6 +37,7 @@ export const gateSuites: string[] = [
   'test:mapping-graph',
   'test:back-history',
   'test:usage-traffic',
+  'test:proposals',
   'test:theme',
   'test:brand',
 ];

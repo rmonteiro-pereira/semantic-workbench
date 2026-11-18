@@ -73,10 +73,7 @@ export const isProposalId = (value: unknown): value is string => typeof value ==
 
 /** Lower case ASCII words joined by dashes, shortened to leave room for a clash suffix. */
 function slugOf(name: string) {
-  const plain = name
-    .normalize('NFKD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase();
+  const plain = name.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase();
   const words = plain.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
   return words.slice(0, MAX_ID_LENGTH - 4).replace(/-+$/g, '') || 'proposal';
 }
