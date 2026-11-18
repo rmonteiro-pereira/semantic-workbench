@@ -5,6 +5,7 @@
 import { statSync } from 'node:fs';
 
 import { readObservability, type ObservabilitySettings } from './observability/settings';
+import { readUsageSettings, type UsageSettings } from './usage/usage-settings';
 
 type Env = Record<string, string | undefined>;
 
@@ -37,6 +38,8 @@ type CommonConfig = {
   revision: string | null;
   /** Log level and format, and whether operational telemetry is exported. */
   observability: ObservabilitySettings;
+  /** Whether usage counters run and how many days of counts are kept. */
+  usage: UsageSettings;
 };
 
 /** Configuration of the single-user mode on the loopback interface. */
@@ -152,6 +155,7 @@ function readCommon(env: Env, serverMode: boolean, problems: ConfigProblem[]): C
     commit: env.SW_COMMIT || null,
     revision: env.CONTAINER_APP_REVISION || null,
     observability: readObservability(env, serverMode, problems),
+    usage: readUsageSettings(env, problems),
   };
 }
 
