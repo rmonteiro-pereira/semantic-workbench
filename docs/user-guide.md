@@ -261,6 +261,15 @@ Git rejects because the remote has newer commits shows a plain summary and **Pul
 Git's own output is under **Show details**. Server-mode credentials work differently; see
 [remote Git on a shared server](server-mode.md#remote-git).
 
+### Shared proposals
+
+In server mode, **Source control** has a **Proposals** section. **New proposal** asks for a name and the
+projects it touches. **Work on it** moves your copy onto your own branch for that proposal, **Synchronize**
+brings in what others contributed, and **Contribute** sends your commits to the shared proposal. Stewards
+and Admins use **Check**, **Promote**, **Close proposal** and **Restore**. A repository holds up to 50
+open proposals; a name has up to 80 characters. Push and Sync refuse work and proposal branches: publish
+first, then use **Push default**. Local mode has no proposals.
+
 ### Clone a repository
 
 Choose **Add project → Clone a repository** (the Import dialog also links to it). Supply a URL or local path, an optional name and,

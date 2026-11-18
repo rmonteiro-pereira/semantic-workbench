@@ -253,6 +253,33 @@ Deleting a project can archive each person's unpublished work and drafts in the 
 Copy-local file deletions restore to the same owner's copy. Admin repository manifests are also
 written into the Admin's copy and need publication to reach readers.
 
+## Shared proposals
+
+A proposal lets several people build one change before it is published. It is an open Git ref at
+`refs/workbench/proposals/<id>`; closed ones move to `refs/workbench/closed-proposals/<id>`. The
+record at `state/proposals/<repo>.json` stores the name, declared projects and base but never the tip,
+so the status (open, closed, promoted, or damaged and unregistered when the ref and record disagree)
+is derived from Git. A tip already inside published history counts as promoted.
+
+| Action | Needs | Effect |
+| --- | --- | --- |
+| Create | `branch` and `edit` on every declared project | Registers the proposal at the published commit |
+| Work on it | `branch` and `pull` | Selects your branch `work/<handle>.<id>` |
+| Synchronize | `pull` | Merges the proposal tip into your branch |
+| Contribute | `commit` on `proposal/<id>` | Moves the tip to your branch if it descends from the tip |
+| Check | `publish` on every project in the repository | Dry run of publication |
+| Promote | `publish` on every project in the repository | Fast-forwards the default branch through the publication path |
+| Close, restore | `publish` on every project in the repository | Moves the ref between the open and closed namespaces |
+
+Contributing is a compare-and-swap: a stale tip or a branch that does not descend from it is refused.
+Changed paths must belong to the declared projects, the person needs `edit` on each path, and content
+guards run with the operation `contribute`. Contribution branches are shown only to their owner. Limits are
+50 open proposals per repository, names of 80 characters and identifiers of 40. Hidden proposals
+answer 404 like missing ones. Local mode answers 404 for every proposal route. Audit records carry a
+`proposal` object with the identifier, projects and commits, and a `proposal` event refreshes Source
+control. The guarantee is the application's: it does not stop someone with shell access to the data
+root. Push and Sync refuse `work/` and `proposal/` branches in both modes.
+
 ## Governed content
 
 Content guards apply to direct saves, item edits, imports, multi-file operations, pull/revert,

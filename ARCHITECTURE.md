@@ -197,6 +197,14 @@ concatenating project, document or item names.
 - `project-export.ts` selects permitted files/history and checks limits before streaming;
   `zip.ts` writes the archive. Export logic must not bypass a Reader's permissions.
 
+- Shared proposals: `shared/proposals/` holds the pure model (names, identifiers, derived status, contribution
+  branch names and scope judging). `proposal-store.ts` writes `state/proposals/<repo>.json` atomically and
+  `proposal-refs.ts` owns the Git refs. `proposals.ts` creates, lists and views; `proposal-contribution.ts`,
+  `proposal-promotion.ts` (also startup recovery) and `proposal-closing.ts` do the rest, all inside the
+  repository publication queue. Promotion reuses `moveDefault` through `worktrees.promote`.
+  `work-in-progress-push.ts` refuses pushing work and proposal branches. `routes/proposals.ts` exposes the
+  routes and `auth/proposal-access.ts` decides authority. The browser side is `app/proposals/`.
+
 ### Identity, authorization, governance and administration
 
 - `src/server/auth/request-surface.ts` records the authenticated caller’s browser or consumer surface through
@@ -406,6 +414,14 @@ concatenating project, document or item names.
    Publication is separate from remote Push.
 5. All worktrees of a repository share its serialized Git queue. Sparse paths, multi-project
    ownership and protected content apply to both direct changes and incoming Git content.
+
+### Proposal contribution and promotion
+
+1. Create registers a proposal ref at the published commit; Work on it gives the caller `work/<handle>.<id>`.
+2. Contribute checks the tip is not stale, the branch descends from it, the declared-project scope,
+   per-path `edit` and the content guards, then moves the ref by compare-and-swap.
+3. Promote dry-runs publication, then fast-forwards the default branch through the shared publication
+   path. A tip inside published history reads as promoted.
 
 ### Access administration
 
