@@ -29,6 +29,12 @@
 - Deferring this compact request until the pane is measured preserves geometry, row budgeting and result sequencing. The detailed layout path has no pane dependency.
 - Check the first view through the UBL file switch in the lineage suite and the frozen three-version capture. Compare mapping Fit and resize behavior after the change.
 
+### Full Graph area headings
+
+- The Network layout reserves a fixed header above each area's entity cards. The title background covers relationship strokes.
+- The background's block padding consumes space reserved for a second title line. Removing that padding preserves the label, horizontal inset and background.
+- Recheck the theme and responsive tours and capture the same area headings at the same viewport in both themes.
+
 ## Gate after rebase
 
 `git fetch origin` resolved `origin/main` to `5597ae52c55cb76a864aa242873dbbe7083a000e`. `git rebase origin/main` replayed the prior integration branch `a8cf837e` through `6e301fd4`. The release baseline `v0.6.1` resolves to commit `3b1c2c10bc6ae96c6c603301764bde4cfdc4dcd4`. All results in the historical sections below precede this rebase.
