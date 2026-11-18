@@ -16,7 +16,7 @@ import { graphCanvasProblems } from './helpers/graph-canvas-geometry';
 import { neighborhoodCardProblems } from './helpers/card-geometry';
 import { setShown, viewOptions } from './helpers/graph-options';
 import { tokenContrast } from './helpers/theme-tour';
-import { cardSizes, countedItems, domSignature, usageInterceptor, type UsageMock } from './helpers/usage-traffic';
+import { cardSizes, countedItems, domSignature, usageInterceptor, withoutPart, type UsageMock } from './helpers/usage-traffic';
 
 const BASELINE = 'tests/fixtures/usage/dom-baseline.json';
 const record = process.argv.includes('--record');
@@ -65,18 +65,21 @@ async function setTraffic(page: Page, on: boolean) {
   await viewOptions(page, async options => setShown(options, 'Traffic', on));
 }
 
-/** The structure of the graph, the neighborhood and the details of the first entity, with Traffic never switched on. */
+/** The only element Traffic adds to a screen while it is off: its own switch. */
+const SWITCH = 'button.show-toggle[title^="Shade items"]';
+
+/** The structure of the graph, the neighborhood and the details of the first entity, with Traffic never switched on and its switch left out. */
 async function offStructure(page: Page) {
   const signatures: Record<string, Record<string, number>> = {};
   await openTab(page, 'Graph');
   await page.waitForTimeout(1200);
-  signatures.graph = await domSignature(page, '.full-graph');
+  signatures.graph = withoutPart(await domSignature(page, '.full-graph'), await domSignature(page, `.full-graph ${SWITCH}`));
   await page.locator('.full-entity').first().click();
   await expect(page.locator('.inspector h2')).toBeVisible();
   signatures.details = await domSignature(page, '.inspector');
   await openTab(page, 'Neighborhood');
   await page.waitForTimeout(1200);
-  signatures.neighborhood = await domSignature(page, '.neighborhood-graph');
+  signatures.neighborhood = withoutPart(await domSignature(page, '.neighborhood-graph'), await domSignature(page, `.neighborhood-graph ${SWITCH}`));
   return signatures;
 }
 
@@ -111,7 +114,7 @@ async function checkOn(width: number, height: number, scheme: 'light' | 'dark') 
     expect(await clippedTextProblems(page, '.full-graph')).toEqual([]);
   });
   await check(`${label}: the legend names the measure, the operations and the period`, async () => {
-    const legend = page.locator('.full-graph .traffic-legend');
+    const legend = page.locator('.full-graph details.traffic-legend');
     await expect(legend).toContainText('requests through this workbench in the last 30 days');
     await expect(legend).toContainText('context requests, query plan requests, metric explanation requests');
     expect(await clippedTextProblems(page, '.full-graph')).toEqual([]);
@@ -151,7 +154,7 @@ async function checkOn(width: number, height: number, scheme: 'light' | 'dark') 
 async function checkStates(scheme: 'light' | 'dark') {
   const page = await openApp(1280, 800, scheme);
   await openTab(page, 'Graph');
-  const legend = page.locator('.full-graph .traffic-legend');
+  const legend = page.locator('.full-graph');
   const expected: [typeof mock.mode, string | RegExp][] = [
     ['empty', 'No requests through this workbench counted yet in the last 30 days.'],
     ['off', 'Counters are off. An operator turns them on with SW_USAGE_COUNTERS.'],

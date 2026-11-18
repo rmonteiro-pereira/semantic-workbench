@@ -35,16 +35,20 @@ export function TrafficLegend({ admin }: { admin?: boolean }) {
   const period = periodWords(traffic.days);
   if (traffic.status === 'empty') return sentence(`No ${TRAFFIC_UNIT} counted yet in ${period}.`);
   const operations = COUNTED_OPERATIONS.map(operationWords).join(', ');
+  // The summary is the whole legend on a phone; what it counts opens below it, so the graph keeps its height.
   return (
-    <div className="traffic-legend">
-      <p>
-        {`Shading shows ${TRAFFIC_UNIT} in ${period}: ${operations}. A heavier outline and a longer bar mean more requests; ${INTENSITY_LEVELS} steps, relative to the busiest item shown. Browser views are not counted.`}
-      </p>
+    <>
+      <details className="traffic-legend">
+        <summary>{`Traffic: ${TRAFFIC_UNIT} in ${period}`}</summary>
+        <p>
+          {`Shading shows ${TRAFFIC_UNIT} in ${period}: ${operations}. A heavier outline and a longer bar mean more requests; ${INTENSITY_LEVELS} steps, relative to the busiest item shown. Browser views are not counted.`}
+        </p>
+      </details>
       {traffic.status === 'partial' && (
-        <p role="status">
+        <p className="traffic-legend" role="status">
           {`Counts are unavailable for ${traffic.unavailableDays.length === 1 ? 'one day' : `${traffic.unavailableDays.length} days`} (${traffic.unavailableDays.join(', ')}) because their file could not be read.`}
         </p>
       )}
-    </div>
+    </>
   );
 }

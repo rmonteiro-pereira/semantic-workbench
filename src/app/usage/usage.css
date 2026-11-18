@@ -73,7 +73,10 @@
   overflow-wrap: anywhere;
 }
 .traffic-legend p {
-  margin: 0;
+  margin: 4px 0 0;
+}
+.traffic-legend summary {
+  cursor: pointer;
 }
 /* A fixed height while loading keeps the graph from jumping when the answer arrives. */
 .traffic-loading {
