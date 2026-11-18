@@ -97,7 +97,7 @@ function compareRecordSequence(left: MigrationRecord, right: MigrationRecord): n
 /** Reads the working history file for a commit, without inventing a file from legacy state. */
 export function workingAddressHistoryFile(layout: DataLayout, project: string): MigrationRecord[] | null {
   const file = addressMigrationFile(layout, project);
-  if (!existsSync(file)) return legacyRecords(layout, project);
+  if (!existsSync(file)) return null;
   return parseAddressHistory(readFileSync(file, 'utf8'));
 }
 

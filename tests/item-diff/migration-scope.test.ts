@@ -88,6 +88,22 @@ test('legacy history is consumed once on the first journaled save', async () => 
   await expect(fixture.ws.saveFile('finance', ADDRESS_HISTORY_FILE, { baseHash: null, source: '{}' }, LOCAL_READER)).rejects.toThrow('managed by the workbench');
 });
 
+test('selective Git commits do not turn an unread legacy fallback into a history file', async () => {
+  using fixture = await itemDiffBaselineWorkspace();
+  const project = 'finance';
+  const directory = join(fixture.root, 'projects', project);
+  const path = 'finance.ontology.yaml';
+  const legacy = join(fixture.ws.layout.state, 'address-migrations', project + '.json');
+  const prefix = 'sw1:finance/finance.ontology.yaml#ontology:Finance/concept:';
+  const record = { id: 'legacy-only', kind: 'item', from: prefix + 'Former', to: prefix + 'Customer', at: '2025-01-01T00:00:00Z', commit: '' };
+  atomicWriteJson(legacy, { formatVersion: 1, records: [record] });
+  const scm = await fixture.ws.scmFor(project, LOCAL_READER);
+  await scm.commit(project, 'Commit the externally changed ontology', { paths: [path] });
+  expect(git(directory, ['ls-tree', '--name-only', 'HEAD'])).not.toContain(ADDRESS_HISTORY_FILE);
+  expect(existsSync(legacy)).toBe(true);
+  expect(readAddressMigrations(fixture.ws.layout, project, LOCAL_READER).map(item => item.id)).toEqual([record.id]);
+});
+
 test('history replay sorts union lines by record sequence and keeps the first duplicate', () => {
   const prefix = 'sw1:finance/finance.ontology.yaml#ontology:Finance/concept:';
   const record = { kind: 'item' as const, at: '2025-01-01T00:00:00Z', from: prefix + 'Old', to: prefix + 'New', commit: '' };
