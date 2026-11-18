@@ -438,7 +438,8 @@ Validated policies own role-, principal-type- and resource-type-aware action cla
 the first replay. Replay scopes reuse equivalent decisions and their readability checks;
 ordinary request scopes retain exact action keys. Prospective project creation has a separate
 key because it searches domain scopes. Before/after scopes can be shared only when the relevant
-principal, grants, custom roles, project visibility and client entry agree. Arbitrary Cedar
+principal, grants, custom roles, project visibility and client entry agree. Deactivated principals
+use separate replay scopes because Cedar still evaluates group ancestry. Arbitrary Cedar
 admin rules keep separate scopes and exact action classes. Policy preparation is reused only
 when the validated roles and admin rules match. Decision results remain confined to a scope,
 with refresh invalidation; there is no global request-result cache.

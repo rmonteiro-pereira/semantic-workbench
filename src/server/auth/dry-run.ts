@@ -29,7 +29,7 @@ type RequestScope = ReturnType<AccessControl['forRequest']>;
 type ScopePair = { before: RequestScope; after: RequestScope };
 
 /** Builds request scopes once per identity, since each one resolves grants and entities. */
-function scopeCache(before: AccessControl, after: AccessControl, current: AccessConfig, next: AccessConfig) {
+export function scopeCache(before: AccessControl, after: AccessControl, current: AccessConfig, next: AccessConfig) {
   const scopes = new Map<string, ScopePair>();
   // Arbitrary Cedar rules can inspect other identities and otherwise unused role holders.
   const comparable = !Object.keys(current.adminRules ?? {}).length && !Object.keys(next.adminRules ?? {}).length;
@@ -40,7 +40,9 @@ function scopeCache(before: AccessControl, after: AccessControl, current: Access
     if (!pair) {
       const previous = before.principalFor(identity);
       const proposed = after.principalFor(identity);
-      const unchanged = comparable && sameProjects && principalPolicy(current, previous) === principalPolicy(next, proposed);
+      // Cedar group ancestry can still differ when deactivation hides resolved grants.
+      const activePerson = !previous.deactivated && !proposed.deactivated;
+      const unchanged = comparable && sameProjects && activePerson && principalPolicy(current, previous) === principalPolicy(next, proposed);
       const previousScope = before.forReplay(previous);
       pair = { before: previousScope, after: unchanged ? previousScope : after.forReplay(proposed) };
       scopes.set(key, pair);
