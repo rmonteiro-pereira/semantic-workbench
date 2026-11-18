@@ -58,7 +58,8 @@ function routePass(scope: AccessScope, row: RouteAction, target: RouteTarget) {
 /** Decides one route with no request, workspace, audit, clock or response I/O. */
 export function routeVerdict(scope: AccessScope, original: RouteAction, mode: 'local' | 'server', target: RouteTarget): RouteVerdict {
   const entry = operationForRow(original.path);
-  if (target.origin && target.origin !== 'http' && (original.public || entry?.dispatch !== 'twin')) {
+  const relay = target.origin === 'acp' && /^agentRelay\.(hello|frames|stream|bye)$/.test(entry?.id ?? '');
+  if (target.origin && target.origin !== 'http' && !relay && (original.public || entry?.dispatch !== 'twin')) {
     return { row: original, resource: target.resource, decision: refusal(404, 'unmapped-route'), noAccess: false };
   }
   const client = scope.principal.kind === 'client';

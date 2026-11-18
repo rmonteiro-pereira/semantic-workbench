@@ -34,3 +34,10 @@ specification and schema, not against memory.
 | Sandbox | none in the protocol; permission requests are advisory |
 
 The full reasoning is in `specs/015-agent-panel/research.md` (R1).
+
+Relay requests authenticate using the local capability or a server-mode connection token. Every
+authenticated hello, frame post, stream and goodbye then enters the operation boundary with origin
+`acp`; the credential grants no workspace access of its own. Foreign Origin or Host headers,
+invalid credentials, invalid session codes and replayed codes receive the same empty 404 response.
+Anonymous refusals use the shared audit rate gate. Unsupported methods are recorded by bounded
+class, without method parameters or conversation content.

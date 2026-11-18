@@ -15,8 +15,6 @@ const RELAY_REQUEST_LIMIT = { burst: 300, perSecond: 60 } as const;
 /** The only reasons a relay may give when it says goodbye. */
 const BYE_REASONS = ['agent-exited', 'closed'] as const;
 
-const missing = () => new Response(null, { status: 404 });
-
 function framesOf(value: unknown): { frames: NumberedFrame[]; acknowledged: number } | null {
   const body = (value ?? {}) as { frames?: unknown; ack?: unknown };
   const list = body.frames === undefined ? [] : body.frames;
@@ -34,22 +32,34 @@ function framesOf(value: unknown): { frames: NumberedFrame[]; acknowledged: numb
 /** Creates the routes. `now` only feeds the request limit. */
 export function createAcpRelayRoutes(service: PanelService, options: { now?: () => number; keepOpen?: (request: Request) => void } = {}): Route {
   const limiter = createRateLimiter(RELAY_REQUEST_LIMIT, options.now);
+  const authorized = new WeakMap<Request, NonNullable<Awaited<ReturnType<PanelService['relayFor']>>>>();
 
-  return async (_workspace, request, url) => {
+  const route: Route = async (_workspace, request, url) => {
     const match = RELAY_PATH.exec(url.pathname);
     if (!match) return null;
     const [, sessionId, action] = match;
-    // A relay is not a browser, so any Origin header at all marks the request as foreign.
-    if (request.headers.get('origin') !== null) return missing();
-    const source = (request as AuditRequest)[requestSourceIp] ?? 'unknown';
-    if (!limiter.take(source).allowed) return new Response(null, { status: 429, headers: { 'Retry-After': '1' } });
-    const expectedMethod = action === 'stream' ? 'GET' : 'POST';
-    if (request.method !== expectedMethod) return missing();
-    const found = await service.relayFor(request, sessionId);
-    if (!found) return missing();
+
+    let found = authorized.get(request);
+    if (!found) {
+      const source = (request as AuditRequest)[requestSourceIp] ?? 'unknown';
+      if (!limiter.take(source).allowed) {
+        service.refuseRelay(request);
+        return new Response(null, { status: 429, headers: { 'Retry-After': '1' } });
+      }
+      const expectedMethod = action === 'stream' ? 'GET' : 'POST';
+      if (request.method !== expectedMethod) return service.refuseRelay(request);
+      found = await service.relayFor(request, sessionId);
+      if (!found) return service.refuseRelay(request);
+      authorized.set(request, found);
+      try {
+        return (await service.operateRelay(request, found.caller)).response;
+      } finally {
+        authorized.delete(request);
+      }
+    }
 
     // Until the relay has presented its code, nothing but the hello is served.
-    if (action !== 'hello' && found.session.code !== undefined) return missing();
+    if (action !== 'hello' && found.session.code !== undefined) return service.refuseRelay(request);
 
     if (action === 'stream') {
       options.keepOpen?.(request);
@@ -67,7 +77,7 @@ export function createAcpRelayRoutes(service: PanelService, options: { now?: () 
     if (!body.ok) return new Response(null, { status: body.status });
     if (action === 'hello') {
       const code = (body.value as { code?: unknown } | null)?.code;
-      if (typeof code !== 'string' || !service.hello(found, code)) return missing();
+      if (typeof code !== 'string' || !service.hello(found, code)) return service.refuseRelay(request);
       found.live.ping();
       return Response.json({ received: found.session.link.lastReceived });
     }
@@ -82,4 +92,5 @@ export function createAcpRelayRoutes(service: PanelService, options: { now?: () 
     const delivery = found.live.deliver(posted.frames, posted.acknowledged);
     return Response.json({ received: delivery.received }, { status: delivery.ok ? 200 : 409 });
   };
+  return route;
 }

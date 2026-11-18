@@ -51,9 +51,9 @@ test('an unknown session, a missing or wrong capability and a browser Origin all
   await expectMissing(await hello(body.id, body.code, { bearer: null }));
   await expectMissing(await hello(body.id, body.code, { bearer: 'wrong' }));
   await expectMissing(await hello(body.id, body.code, { headers: { origin: server.url } }));
-  // Another origin or another Host name never reaches the route: the handler's own local check refuses it first.
-  expect((await hello(body.id, body.code, { headers: { origin: 'null' } })).status).toBe(403);
-  expect((await hello(body.id, body.code, { headers: { origin: 'https://evil.example' } })).status).toBe(403);
+  // Relay authentication refuses every browser origin before policy execution.
+  expect((await hello(body.id, body.code, { headers: { origin: 'null' } })).status).toBe(404);
+  expect((await hello(body.id, body.code, { headers: { origin: 'https://evil.example' } })).status).toBe(404);
   expect((await hello(body.id, body.code)).status).toBe(200);
   await server.browser(`/api/acp/sessions/${body.id}`, { method: 'DELETE' });
 });

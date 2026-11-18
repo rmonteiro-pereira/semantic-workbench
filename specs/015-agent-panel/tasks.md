@@ -163,7 +163,7 @@ test only to make it pass.
   traffic never calls the session touch. Add `tests/acp/server-mode.test.ts`. Proof: the test
   passes for sign-out, expiry, deactivation and revoke; a recorded count of session "touch" calls
   during a run of 1,000 agent requests is zero.
-- [ ] T029 [US6] Write session start and end audit records and the refused-attempt records through
+- [x] T029 [US6] Write session start and end audit records and the refused-attempt records through
   the anonymous gate. Add `tests/acp/audit-records.test.ts`: one record per operation, none
   containing message or file text (a canary string in prompts and files is searched for in the audit
   log, logs and metrics output). Proof: the test passes (SC-007, SC-011).

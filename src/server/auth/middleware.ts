@@ -153,6 +153,8 @@ export function createAccessMiddleware(
   const authentication = createRequestAuthentication(options, audit, localCheck);
   const boundary = createOperationBoundary(ws, { mode, access, audit, remoteCredentials: options.remoteCredentials }, run);
   async function dispatch(request: AccessRequest, requestId: string): Promise<Response> {
+    // Relay authentication uses its own bearer and audits failures before entering the boundary.
+    if (/^\/api\/acp\/relay\/[A-Za-z0-9_-]{1,64}\/(hello|frames|stream|bye)$/.test(new URL(request.url).pathname)) return run(request);
     const client = await authentication.authenticate(request, requestId);
     if (client instanceof Response) return client;
     const url = new URL(request.url);

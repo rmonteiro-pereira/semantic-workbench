@@ -40,6 +40,8 @@ export type ConversationDependencies = {
   /** Sends one line toward the agent, through the relay link. Returns false when the link cannot take it. */
   sendToAgent: (line: string) => boolean;
   clientName: string;
+  /** Records bounded refusal classes without retaining agent-supplied text. */
+  recordRefusal?: (reason: string) => void;
 };
 
 function sentence(text: unknown, fallback: string): string {
@@ -89,7 +91,14 @@ export function createConversation(dependencies: ConversationDependencies) {
     },
     handleRequest: async (method, params) => {
       store.apply(session, { type: 'activity' });
-      return surface.handleRequest(method, params);
+      try {
+        return await surface.handleRequest(method, params);
+      } catch (error) {
+        const known = Object.hasOwn(INCOMING_PARAM_SCHEMAS, method);
+        const category = method.startsWith('terminal/') ? 'terminal' : 'other';
+        dependencies.recordRefusal?.(known ? 'file-or-question-refused' : `unsupported-${category}`);
+        throw error;
+      }
     },
     handleNotification: (method, params) => {
       store.apply(session, { type: 'activity' });

@@ -1,7 +1,7 @@
 // The agent panel as one service: it starts sessions for people, recognises a session's relay, keeps each session's live side, writes the session audit records and sweeps what the clock has ended.
 import { randomUUID } from 'node:crypto';
 import { activeBrand } from '../brand/bundle';
-import type { AuditLog } from '../auth/audit';
+import { reportAuditFailure, type AuditLog } from '../auth/audit';
 import type { OperationBoundary } from '../auth/operation-boundary';
 import type { Principal } from '../auth/principal';
 import type { Session } from '../auth/sessions';
@@ -13,6 +13,9 @@ import { WAITING_LIMIT_MS, type EndReason } from './panel-session';
 import type { RelayAuthenticator } from './relay-authentication';
 import { createSessionStore, type PanelSession } from './session-store';
 import type { Caller } from '../auth/caller';
+import { createAnonymousAuditGate } from '../auth/rate-limit';
+import { auditDenial } from '../auth/refusal';
+import { requestSourceIp } from '../request';
 
 /** The product name of this deployment, or a neutral word when no brand is loaded. */
 function productName(): string {
@@ -56,6 +59,29 @@ export function createPanelService(options: PanelServiceOptions) {
   const now = options.now ?? Date.now;
   const lives = new Map<string, LiveSession>();
   const relayCallers = new Map<string, Caller>();
+  const anonymousGate = createAnonymousAuditGate(now);
+
+  function refuseRelay(request: Request): Response {
+    const source = (request as Request & { [requestSourceIp]?: string })[requestSourceIp];
+    const admission = anonymousGate(source, 'relay-refused');
+    const action = new URL(request.url).pathname.split('/').at(-1);
+    const tools: Record<string, string> = { frames: 'agentRelay.frames', stream: 'agentRelay.stream', bye: 'agentRelay.bye' };
+    const failure = admission.record
+      ? auditDenial(options.audit, {
+          requestId: randomUUID(),
+          origin: 'acp',
+          tool: tools[action ?? ''] ?? 'agentRelay.hello',
+          principal: { id: 'anonymous', kind: 'anonymous' },
+          action: 'read',
+          resource: { type: 'workspace' },
+          decision: 'deny',
+          rules: [],
+          reason: 'relay-refused',
+          suppressed: admission.suppressed,
+        })
+      : null;
+    return failure ?? new Response(null, { status: 404 });
+  }
 
   function recordSession(session: PanelSession, tool: 'agentPanel.start' | 'agentPanel.end', reason: string): void {
     // A failed audit write must not change what the person sees; the boundary reports its own failures the same way.
@@ -73,8 +99,8 @@ export function createPanelService(options: PanelServiceOptions) {
         outcome: 'ok',
         reason,
       } as Parameters<AuditLog['append']>[0]);
-    } catch {
-      /* The record is best effort. */
+    } catch (error) {
+      reportAuditFailure({ requestId: session.id, action: 'protocol', error });
     }
   }
 
@@ -114,6 +140,21 @@ export function createPanelService(options: PanelServiceOptions) {
       caller: () => relayCallers.get(session.id)!,
       now,
       clientName: 'semantic-workbench',
+      recordRefusal: reason => {
+        const failure = auditDenial(options.audit, {
+          requestId: randomUUID(),
+          origin: 'acp',
+          connection: session.connection,
+          tool: 'agentRelay.frames',
+          principal: session.principal!,
+          action: 'read',
+          resource: { type: 'workspace' },
+          decision: 'deny',
+          rules: [],
+          reason,
+        });
+        if (failure) throw new Error('Audit unavailable for agent refusal.');
+      },
     });
     lives.set(session.id, live);
     session.buffer.append({ type: 'session', state: 'waiting', scopes: session.scope });
@@ -133,7 +174,7 @@ export function createPanelService(options: PanelServiceOptions) {
   }
 
   /** Recognises a relay request for a session. Every failure, including an ended session and another person's, gives the same undefined. */
-  async function relayFor(request: Request, sessionId: string): Promise<{ session: PanelSession; live: LiveSession } | undefined> {
+  async function relayFor(request: Request, sessionId: string): Promise<{ session: PanelSession; live: LiveSession; caller: Caller } | undefined> {
     const identity = await options.authenticateRelay(request);
     const session = store.findForRelay(sessionId);
     const live = lives.get(sessionId);
@@ -141,7 +182,7 @@ export function createPanelService(options: PanelServiceOptions) {
     if (identity.connection && identity.connection !== session.connection && !store.bindConnection(session, identity.connection)) return undefined;
     const effects = narrowToPanelEffects(identity.scope ?? session.scope).filter(effect => session.scope.includes(effect));
     relayCallers.set(session.id, mintAcpCaller({ principal: identity.principal, connection: session.connection, scope: effects, session: identity.session }));
-    return { session, live };
+    return { session, live, caller: relayCallers.get(session.id)! };
   }
 
   /** Accepts the relay's first request: the code is used once, then the handshake with the agent begins. */
@@ -162,6 +203,9 @@ export function createPanelService(options: PanelServiceOptions) {
   let timer: ReturnType<typeof setInterval> | undefined;
   return {
     store,
+    refuseRelay,
+    /** Authorizes a relay transport call with the same policy and audit boundary as file calls. */
+    operateRelay: (request: Request, caller: Caller) => options.boundary().operate({ request, caller }),
     start,
     relayFor,
     hello,
