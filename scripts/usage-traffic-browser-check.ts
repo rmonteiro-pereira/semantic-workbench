@@ -132,6 +132,8 @@ async function checkOn(width: number, height: number, scheme: 'light' | 'dark') 
     expect(await sidewaysOverflowProblems(page, '.inspector')).toEqual([]);
   });
   await check(`${label}: the neighborhood shades the same items and fits`, async () => {
+    const close = page.getByRole('button', { name: 'Close details', exact: true });
+    if (await close.isVisible()) await close.click();
     await openTab(page, 'Neighborhood');
     await expect(page.locator('.neighborhood-graph .traffic-ring').first()).toBeAttached();
     expect(await neighborhoodCardProblems(page)).toEqual([]);

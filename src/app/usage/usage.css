@@ -8,14 +8,10 @@
 /* The wrapper takes no box of its own, so it cannot change how the card lays out its content. */
 .traffic-marks {
   display: contents;
-}
-.traffic-marks,
-.traffic-ring,
-.traffic-bar,
-.traffic-sr {
   font-style: normal;
 }
 .traffic-ring {
+  font-style: normal;
   position: absolute;
   inset: 0;
   box-sizing: border-box;
@@ -24,6 +20,7 @@
   pointer-events: none;
 }
 .traffic-bar {
+  font-style: normal;
   position: absolute;
   inset-inline-start: 12px;
   bottom: 4px;
@@ -37,6 +34,7 @@
 
 /* Text for screen readers only; the visible meaning is the ring and the bar. */
 .traffic-sr {
+  font-style: normal;
   position: absolute;
   top: 0;
   left: 0;
