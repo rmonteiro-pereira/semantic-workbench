@@ -574,7 +574,7 @@ The original review archive contains 3,559 PNGs. A read-only count by folder mea
 
 Status: in progress. No visual pair is classified before both images have been opened.
 
-The gallery checkpoint of 739 rows includes 310 intended fixes, 32 expected merged-feature differences, 303 neutral changes and 11
+The gallery checkpoint of 744 rows includes 314 intended fixes, 32 expected merged-feature differences, 304 neutral changes and 11
 unchanged steps. It retains 42 frames of fixed regressions and 41 frames flagged as possible or unresolved regressions. A frame count
 can include multiple actions that carry the same underlying issue. The manifest records actions without matched captures.
 The counted Network heading and compact mapping correction pairs were opened at 390×844 in both themes.
@@ -595,7 +595,7 @@ keyboard focus ring on the metric grouping control. The empty Trash dialog keeps
   Both 390×844 touch repetitions leave Edit visible. The sidebar fades down at the top and up at the bottom. The last ODCS row and badge
   remain whole. Desktop main/candidate differences were 14.532022% at Catalog rest, 13.926080% on hover and focus, and 1.376157%/1.763349%
   at the top and bottom sidebar positions.
-- `bash .data/gate/publish-current-review.sh` returned 739 rows with the counts above.
+- `bash .data/gate/publish-current-review.sh` returned 744 rows with the counts above.
 
 The Full Graph replay scored 43 steps, from two repetitions per version. The candidate Network first view and Fit show four named counted areas.
 Both full-screen selection paths open Order and keep it readable. After changing area visibility with Order selected, Layered can leave Order
@@ -701,6 +701,19 @@ The pair resolves nine lineage reads across files. All six Imports verified the 
 including the repeat frames. The split produced nine read elements in all six browser records. In the candidate the compact
 cards share their ports, so the nine lines coincide in both repeats. The references separate those lines at their column rows.
 Main/candidate difference was 19.558488%. The earlier candidate screenshot is preserved at `before/fixes/lineage-bundle-1440.png`.
+
+The 390×844 three-hop Mall contract replay returned five strips, all opened at both repetitions. The candidate's
+`powers_of_attorney` name stayed whole after Find assets, Fit, Forward and full screen, with at least 19.88 px clearance on
+its closest horizontal edge. The caption wraps and retains the original centre. Fit keeps readable names and leaves the
+dense reach pannable. The reference Fit reduces names to small marks. Main/candidate scores were 44.532142% after selecting
+the asset, 36.489853% at Fit, 44.633005% at Forward and 45.575100% in full screen. The separate Back step restored one hop
+and left the same centre in all six records. The search result uses a mouse-down handler, while the history starts a
+group on click. The pre-existing Back behavior is visible in the 44.160591% Back strip; the separate canonical Back test
+uses the actual Walk here button.
+
+- `bash .data/gate/pull-review-007.sh .data/gate/walked-fit-confirmed local/light/390/walked-lineage-fit` exported five strips.
+- The confidential scanner returned clean on the evidence, tasks, gallery page and manifest. The readability checker
+  passed on the six changed TypeScript files after `bun --bun node_modules/.bin/oxfmt`. `git diff --check` returned 0.
 
 ## Differences for owner acceptance
 
