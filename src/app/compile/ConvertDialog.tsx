@@ -116,7 +116,8 @@ function ConvertReviewDialog({ project, target, onClose, onConverted }: Pick<Pro
 
 /** The dialog. A file that is not saved and committed is explained instead of reviewed. */
 export function ConvertDialog({ project, target, gitState, unsaved, onClose, onConverted }: Props) {
-  const blocker = conversionBlocker({ gitState, unsaved });
+  // A successful save makes the file dirty; keep the opening eligibility so its acknowledgement stays visible.
+  const [blocker] = useState(() => conversionBlocker({ gitState, unsaved }));
   if (!blocker) return <ConvertReviewDialog project={project} target={target} onClose={onClose} onConverted={onConverted} />;
   return (
     <Modal

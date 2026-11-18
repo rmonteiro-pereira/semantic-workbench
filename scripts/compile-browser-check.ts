@@ -26,11 +26,19 @@ const files = [
 ];
 const { slug } = await api.ws.importBatch({ name: 'Retail', files }, LOCAL_READER);
 await api.ws.publish(slug, LOCAL_READER);
+// Matching recovery drafts are removed on open, avoiding expected missing-draft HTTP errors in this journey.
+for (const file of files) {
+  const saved = api.ws.readFile(slug, file.path, LOCAL_READER);
+  api.ws.state.writeDraft(slug, file.path, { baseHash: saved.hash, text: file.source, patches: [] });
+}
 const downloads = mkdtempSync(join(tmpdir(), 'compile-downloads-'));
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: DESKTOP, acceptDownloads: true });
 const errors: string[] = [];
 page.on('pageerror', error => errors.push(error.message));
+page.on('response', response => {
+  if (response.status() >= 400) console.error(`HTTP ${response.status()}: ${response.url()}`);
+});
 page.on('console', message => {
   if (message.type() === 'error') errors.push(message.text());
 });
@@ -100,12 +108,16 @@ async function convertOneFile(before: Map<string, string>) {
   const convert = dialog.getByRole('button', { name: 'Convert to standard' });
   await expect(convert).toBeDisabled();
   await dialog.getByLabel('I have reviewed what is dropped and what changes.').check();
+  const responsePending = page.waitForResponse(response => response.url().endsWith('/compile/convert') && response.request().method() === 'POST');
   await convert.click();
+  const response = await responsePending;
+  const answer = await response.text();
+  expect(response.ok(), `conversion HTTP ${response.status()}: ${answer}`).toBe(true);
   await expect(dialog.getByText(`Converted. ${ONTOLOGY} is now standard Ossie in your working copy.`)).toBeVisible();
   await dialog.getByRole('button', { name: 'Done' }).click();
   const after = projectHashes();
   const changed = [...after].filter(([path, hash]) => before.get(path) !== hash).map(([path]) => path);
-  expect(changed, 'only the converted file changed').toEqual([ONTOLOGY]);
+  expect(changed, 'only the converted file changed').toEqual([`${repositoryFolder()}/${ONTOLOGY}`]);
   expect(readFileSync(join(api.root, 'projects', repositoryFolder(), ONTOLOGY), 'utf8')).not.toContain('tessera');
 }
 
@@ -164,6 +176,7 @@ try {
   console.log('PASS a project is reviewed, accepted and downloaded as standard Ossie in the browser');
 } catch (error) {
   // The page's own errors usually explain a failed locator, so they are printed with it.
+  console.error('Open dialog:', await page.getByRole('dialog').allTextContents());
   if (errors.length) console.error('Page errors:\n' + errors.join('\n'));
   throw error;
 } finally {
