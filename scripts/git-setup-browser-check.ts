@@ -390,6 +390,7 @@ try {
     ] as const) {
       await page.setViewportSize({ width, height });
       await page.goto(appUrl());
+      await expect(page.locator('.workspace-toggle')).toBeVisible({ timeout: 20_000 });
       if (width < 1100) await page.getByRole('button', { name: 'Open workspace', exact: true }).click();
       await (await addProjectItem(page, 'Clone a repository')).click();
       const dialog = page.getByRole('dialog', { name: 'Clone repository' });
