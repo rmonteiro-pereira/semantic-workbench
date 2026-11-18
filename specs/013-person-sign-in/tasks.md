@@ -57,7 +57,7 @@ architecture review run once on the integrated batch (last task). Heavy runs: `s
 
 **Independent Test**: `bun test tests/auth/programs-admin.test.ts` and the Admin browser check.
 
-- [ ] T021 [US3] `GET`, `PUT` and `POST .../preview` for programs in `src/server/routes/admin-connections.ts` using the existing receipt and one-commit flow of `src/server/auth/access-admin.ts`; effects of confirmed removals call `connection-service.end`. Proof: `tests/auth/programs-admin.test.ts` scenarios 1 to 5 of Story 3, including the byte-identical unknown and invalid client answers.
+- [x] T021 [US3] `GET`, `PUT` and `POST .../preview` for programs in `src/server/routes/admin-connections.ts` using the existing receipt and one-commit flow of `src/server/auth/access-admin.ts`; effects of confirmed removals call `connection-service.end`. Proof: `tests/auth/programs-admin.test.ts` scenarios 1 to 5 of Story 3, including the byte-identical unknown and invalid client answers.
 - [ ] T022 [P] [US3] Documented configurations: `docs/agent-connections.md` section per program from the registration contract, with "not tested" for programs without a run. Proof: `tests/docs-agent-connections.test.ts` checks that every program named has a status line and that no program is called supported without an acceptance record.
 
 ## Phase 6: User Story 4 - Headless setup (P2)
