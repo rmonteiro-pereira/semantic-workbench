@@ -2,6 +2,7 @@
 import { fullFormats as formats } from 'ajv-formats/dist/formats.js';
 import * as semanticRuntime0Module from 'ajv/dist/runtime/ucs2length.js';
 import * as mappingsRuntime0Module from 'ajv/dist/runtime/ucs2length.js';
+import * as mappingsRuntime1Module from 'ajv/dist/runtime/equal.js';
 import * as extensionsRuntime0Module from 'ajv/dist/runtime/ucs2length.js';
 import * as extensionsRuntime1Module from 'ajv/dist/runtime/equal.js';
 const generatedContract = (() => {
@@ -18355,6 +18356,7 @@ const generatedSemantic = (() => {
 })();
 const generatedMappings = (() => {
   const mappingsRuntime0 = mappingsRuntime0Module.default?.__esModule ? mappingsRuntime0Module.default : mappingsRuntime0Module;
+  const mappingsRuntime1 = mappingsRuntime1Module.default?.__esModule ? mappingsRuntime1Module.default : mappingsRuntime1Module;
 
   const ossieMappingSchema = {
     $schema: 'https://json-schema.org/draft/2020-12/schema',
@@ -28899,7 +28901,7095 @@ const generatedMappings = (() => {
   }
   validate95.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  return { standalone: validate20, embedded: validate73, ontology: validate21, tessera: validate78, tesseraRevisionTwo: validate95 };
+  const tesseraDependenciesSchema = {
+    $schema: 'https://json-schema.org/draft/2020-12/schema',
+    $id: 'urn:semantic-workbench:tessera-dependencies:1',
+    type: 'object',
+    additionalProperties: false,
+    required: ['manifestVersion', 'root', 'providers'],
+    properties: {
+      manifestVersion: { const: 1 },
+      root: { type: 'string', minLength: 1 },
+      providers: {
+        type: 'array',
+        maxItems: 50,
+        uniqueItems: true,
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['project', 'ontology', 'repository', 'sameRepository', 'tag', 'choice', 'interfaceHash', 'concepts', 'dependsOn'],
+          properties: {
+            project: { type: 'string', minLength: 1 },
+            ontology: { type: 'string', minLength: 1 },
+            repository: { type: 'string', minLength: 1 },
+            sameRepository: { type: 'boolean' },
+            commit: { type: 'string', minLength: 1, pattern: '^(?:[0-9a-f]{40}|[0-9a-f]{64})$' },
+            tag: { type: ['string', 'null'] },
+            choice: { enum: ['latest', 'pin'] },
+            interfaceHash: { type: 'string', minLength: 1, pattern: '^sha256:[0-9a-f]{64}$' },
+            concepts: { type: 'array', minItems: 1, uniqueItems: true, items: { type: 'string', minLength: 1 } },
+            dependsOn: {
+              type: 'array',
+              uniqueItems: true,
+              items: {
+                type: 'object',
+                additionalProperties: false,
+                required: ['project', 'commit', 'interfaceHash'],
+                properties: {
+                  project: { type: 'string', minLength: 1 },
+                  commit: { type: 'string', minLength: 1, pattern: '^(?:[0-9a-f]{40}|[0-9a-f]{64})$' },
+                  interfaceHash: { type: 'string', minLength: 1, pattern: '^sha256:[0-9a-f]{64}$' },
+                },
+              },
+            },
+          },
+          if: { properties: { sameRepository: { const: true } } },
+          then: { not: { required: ['commit'] }, properties: { choice: { const: 'latest' }, tag: { const: null } } },
+          else: { required: ['commit'] },
+        },
+      },
+    },
+  };
+  const func0 = mappingsRuntime1.default;
+  const pattern4 = new RegExp('^(?:[0-9a-f]{40}|[0-9a-f]{64})$', 'u');
+  const pattern5 = new RegExp('^sha256:[0-9a-f]{64}$', 'u');
+
+  function validate112(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
+    /*# sourceURL="urn:semantic-workbench:tessera-dependencies:1" */
+    let vErrors = null;
+    let errors = 0;
+    const evaluated0 = validate112.evaluated;
+    if (evaluated0.dynamicProps) {
+      evaluated0.props = undefined;
+    }
+    if (evaluated0.dynamicItems) {
+      evaluated0.items = undefined;
+    }
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.manifestVersion === undefined) {
+        const err0 = {
+          instancePath,
+          schemaPath: '#/required',
+          keyword: 'required',
+          params: { missingProperty: 'manifestVersion' },
+          message: "must have required property '" + 'manifestVersion' + "'",
+        };
+        if (vErrors === null) {
+          vErrors = [err0];
+        } else {
+          vErrors.push(err0);
+        }
+        errors++;
+      }
+      if (data.root === undefined) {
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'root' }, message: "must have required property '" + 'root' + "'" };
+        if (vErrors === null) {
+          vErrors = [err1];
+        } else {
+          vErrors.push(err1);
+        }
+        errors++;
+      }
+      if (data.providers === undefined) {
+        const err2 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'providers' }, message: "must have required property '" + 'providers' + "'" };
+        if (vErrors === null) {
+          vErrors = [err2];
+        } else {
+          vErrors.push(err2);
+        }
+        errors++;
+      }
+      for (const key0 in data) {
+        if (!(key0 === 'manifestVersion' || key0 === 'root' || key0 === 'providers')) {
+          const err3 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
+          if (vErrors === null) {
+            vErrors = [err3];
+          } else {
+            vErrors.push(err3);
+          }
+          errors++;
+        }
+      }
+      if (data.manifestVersion !== undefined) {
+        if (1 !== data.manifestVersion) {
+          const err4 = {
+            instancePath: instancePath + '/manifestVersion',
+            schemaPath: '#/properties/manifestVersion/const',
+            keyword: 'const',
+            params: { allowedValue: 1 },
+            message: 'must be equal to constant',
+          };
+          if (vErrors === null) {
+            vErrors = [err4];
+          } else {
+            vErrors.push(err4);
+          }
+          errors++;
+        }
+      }
+      if (data.root !== undefined) {
+        let data1 = data.root;
+        if (typeof data1 === 'string') {
+          if (func1(data1) < 1) {
+            const err5 = {
+              instancePath: instancePath + '/root',
+              schemaPath: '#/properties/root/minLength',
+              keyword: 'minLength',
+              params: { limit: 1 },
+              message: 'must NOT have fewer than 1 characters',
+            };
+            if (vErrors === null) {
+              vErrors = [err5];
+            } else {
+              vErrors.push(err5);
+            }
+            errors++;
+          }
+        } else {
+          const err6 = { instancePath: instancePath + '/root', schemaPath: '#/properties/root/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err6];
+          } else {
+            vErrors.push(err6);
+          }
+          errors++;
+        }
+      }
+      if (data.providers !== undefined) {
+        let data2 = data.providers;
+        if (Array.isArray(data2)) {
+          if (data2.length > 50) {
+            const err7 = {
+              instancePath: instancePath + '/providers',
+              schemaPath: '#/properties/providers/maxItems',
+              keyword: 'maxItems',
+              params: { limit: 50 },
+              message: 'must NOT have more than 50 items',
+            };
+            if (vErrors === null) {
+              vErrors = [err7];
+            } else {
+              vErrors.push(err7);
+            }
+            errors++;
+          }
+          const len0 = data2.length;
+          for (let i0 = 0; i0 < len0; i0++) {
+            let data3 = data2[i0];
+            const _errs9 = errors;
+            let valid3 = true;
+            const _errs10 = errors;
+            if (data3 && typeof data3 == 'object' && !Array.isArray(data3)) {
+              if (data3.sameRepository !== undefined) {
+                if (true !== data3.sameRepository) {
+                  const err8 = {};
+                  if (vErrors === null) {
+                    vErrors = [err8];
+                  } else {
+                    vErrors.push(err8);
+                  }
+                  errors++;
+                }
+              }
+            }
+            var _valid0 = _errs10 === errors;
+            errors = _errs9;
+            if (vErrors !== null) {
+              if (_errs9) {
+                vErrors.length = _errs9;
+              } else {
+                vErrors = null;
+              }
+            }
+            let ifClause0;
+            if (_valid0) {
+              const _errs12 = errors;
+              const _errs13 = errors;
+              const _errs14 = errors;
+              if (data3 && typeof data3 == 'object' && !Array.isArray(data3)) {
+                let missing0;
+                if (data3.commit === undefined && (missing0 = 'commit')) {
+                  const err9 = {};
+                  if (vErrors === null) {
+                    vErrors = [err9];
+                  } else {
+                    vErrors.push(err9);
+                  }
+                  errors++;
+                }
+              }
+              var valid5 = _errs14 === errors;
+              if (valid5) {
+                const err10 = { instancePath: instancePath + '/providers/' + i0, schemaPath: '#/properties/providers/items/then/not', keyword: 'not', params: {}, message: 'must NOT be valid' };
+                if (vErrors === null) {
+                  vErrors = [err10];
+                } else {
+                  vErrors.push(err10);
+                }
+                errors++;
+              } else {
+                errors = _errs13;
+                if (vErrors !== null) {
+                  if (_errs13) {
+                    vErrors.length = _errs13;
+                  } else {
+                    vErrors = null;
+                  }
+                }
+              }
+              if (data3 && typeof data3 == 'object' && !Array.isArray(data3)) {
+                if (data3.choice !== undefined) {
+                  if ('latest' !== data3.choice) {
+                    const err11 = {
+                      instancePath: instancePath + '/providers/' + i0 + '/choice',
+                      schemaPath: '#/properties/providers/items/then/properties/choice/const',
+                      keyword: 'const',
+                      params: { allowedValue: 'latest' },
+                      message: 'must be equal to constant',
+                    };
+                    if (vErrors === null) {
+                      vErrors = [err11];
+                    } else {
+                      vErrors.push(err11);
+                    }
+                    errors++;
+                  }
+                }
+                if (data3.tag !== undefined) {
+                  if (null !== data3.tag) {
+                    const err12 = {
+                      instancePath: instancePath + '/providers/' + i0 + '/tag',
+                      schemaPath: '#/properties/providers/items/then/properties/tag/const',
+                      keyword: 'const',
+                      params: { allowedValue: tesseraDependenciesSchema.properties.providers.items.then.properties.tag.const },
+                      message: 'must be equal to constant',
+                    };
+                    if (vErrors === null) {
+                      vErrors = [err12];
+                    } else {
+                      vErrors.push(err12);
+                    }
+                    errors++;
+                  }
+                }
+              }
+              var _valid0 = _errs12 === errors;
+              valid3 = _valid0;
+              if (valid3) {
+                var props0 = {};
+                props0.choice = true;
+                props0.tag = true;
+                props0.sameRepository = true;
+              }
+              ifClause0 = 'then';
+            } else {
+              const _errs17 = errors;
+              if (data3 && typeof data3 == 'object' && !Array.isArray(data3)) {
+                if (data3.commit === undefined) {
+                  const err13 = {
+                    instancePath: instancePath + '/providers/' + i0,
+                    schemaPath: '#/properties/providers/items/else/required',
+                    keyword: 'required',
+                    params: { missingProperty: 'commit' },
+                    message: "must have required property '" + 'commit' + "'",
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err13];
+                  } else {
+                    vErrors.push(err13);
+                  }
+                  errors++;
+                }
+              }
+              var _valid0 = _errs17 === errors;
+              valid3 = _valid0;
+              ifClause0 = 'else';
+            }
+            if (!valid3) {
+              const err14 = {
+                instancePath: instancePath + '/providers/' + i0,
+                schemaPath: '#/properties/providers/items/if',
+                keyword: 'if',
+                params: { failingKeyword: ifClause0 },
+                message: 'must match "' + ifClause0 + '" schema',
+              };
+              if (vErrors === null) {
+                vErrors = [err14];
+              } else {
+                vErrors.push(err14);
+              }
+              errors++;
+            }
+            if (data3 && typeof data3 == 'object' && !Array.isArray(data3)) {
+              if (data3.project === undefined) {
+                const err15 = {
+                  instancePath: instancePath + '/providers/' + i0,
+                  schemaPath: '#/properties/providers/items/required',
+                  keyword: 'required',
+                  params: { missingProperty: 'project' },
+                  message: "must have required property '" + 'project' + "'",
+                };
+                if (vErrors === null) {
+                  vErrors = [err15];
+                } else {
+                  vErrors.push(err15);
+                }
+                errors++;
+              }
+              if (data3.ontology === undefined) {
+                const err16 = {
+                  instancePath: instancePath + '/providers/' + i0,
+                  schemaPath: '#/properties/providers/items/required',
+                  keyword: 'required',
+                  params: { missingProperty: 'ontology' },
+                  message: "must have required property '" + 'ontology' + "'",
+                };
+                if (vErrors === null) {
+                  vErrors = [err16];
+                } else {
+                  vErrors.push(err16);
+                }
+                errors++;
+              }
+              if (data3.repository === undefined) {
+                const err17 = {
+                  instancePath: instancePath + '/providers/' + i0,
+                  schemaPath: '#/properties/providers/items/required',
+                  keyword: 'required',
+                  params: { missingProperty: 'repository' },
+                  message: "must have required property '" + 'repository' + "'",
+                };
+                if (vErrors === null) {
+                  vErrors = [err17];
+                } else {
+                  vErrors.push(err17);
+                }
+                errors++;
+              }
+              if (data3.sameRepository === undefined) {
+                const err18 = {
+                  instancePath: instancePath + '/providers/' + i0,
+                  schemaPath: '#/properties/providers/items/required',
+                  keyword: 'required',
+                  params: { missingProperty: 'sameRepository' },
+                  message: "must have required property '" + 'sameRepository' + "'",
+                };
+                if (vErrors === null) {
+                  vErrors = [err18];
+                } else {
+                  vErrors.push(err18);
+                }
+                errors++;
+              }
+              if (data3.tag === undefined) {
+                const err19 = {
+                  instancePath: instancePath + '/providers/' + i0,
+                  schemaPath: '#/properties/providers/items/required',
+                  keyword: 'required',
+                  params: { missingProperty: 'tag' },
+                  message: "must have required property '" + 'tag' + "'",
+                };
+                if (vErrors === null) {
+                  vErrors = [err19];
+                } else {
+                  vErrors.push(err19);
+                }
+                errors++;
+              }
+              if (data3.choice === undefined) {
+                const err20 = {
+                  instancePath: instancePath + '/providers/' + i0,
+                  schemaPath: '#/properties/providers/items/required',
+                  keyword: 'required',
+                  params: { missingProperty: 'choice' },
+                  message: "must have required property '" + 'choice' + "'",
+                };
+                if (vErrors === null) {
+                  vErrors = [err20];
+                } else {
+                  vErrors.push(err20);
+                }
+                errors++;
+              }
+              if (data3.interfaceHash === undefined) {
+                const err21 = {
+                  instancePath: instancePath + '/providers/' + i0,
+                  schemaPath: '#/properties/providers/items/required',
+                  keyword: 'required',
+                  params: { missingProperty: 'interfaceHash' },
+                  message: "must have required property '" + 'interfaceHash' + "'",
+                };
+                if (vErrors === null) {
+                  vErrors = [err21];
+                } else {
+                  vErrors.push(err21);
+                }
+                errors++;
+              }
+              if (data3.concepts === undefined) {
+                const err22 = {
+                  instancePath: instancePath + '/providers/' + i0,
+                  schemaPath: '#/properties/providers/items/required',
+                  keyword: 'required',
+                  params: { missingProperty: 'concepts' },
+                  message: "must have required property '" + 'concepts' + "'",
+                };
+                if (vErrors === null) {
+                  vErrors = [err22];
+                } else {
+                  vErrors.push(err22);
+                }
+                errors++;
+              }
+              if (data3.dependsOn === undefined) {
+                const err23 = {
+                  instancePath: instancePath + '/providers/' + i0,
+                  schemaPath: '#/properties/providers/items/required',
+                  keyword: 'required',
+                  params: { missingProperty: 'dependsOn' },
+                  message: "must have required property '" + 'dependsOn' + "'",
+                };
+                if (vErrors === null) {
+                  vErrors = [err23];
+                } else {
+                  vErrors.push(err23);
+                }
+                errors++;
+              }
+              for (const key1 in data3) {
+                if (!func14.call(tesseraDependenciesSchema.properties.providers.items.properties, key1)) {
+                  const err24 = {
+                    instancePath: instancePath + '/providers/' + i0,
+                    schemaPath: '#/properties/providers/items/additionalProperties',
+                    keyword: 'additionalProperties',
+                    params: { additionalProperty: key1 },
+                    message: 'must NOT have additional properties',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err24];
+                  } else {
+                    vErrors.push(err24);
+                  }
+                  errors++;
+                }
+              }
+              if (data3.project !== undefined) {
+                let data7 = data3.project;
+                if (typeof data7 === 'string') {
+                  if (func1(data7) < 1) {
+                    const err25 = {
+                      instancePath: instancePath + '/providers/' + i0 + '/project',
+                      schemaPath: '#/properties/providers/items/properties/project/minLength',
+                      keyword: 'minLength',
+                      params: { limit: 1 },
+                      message: 'must NOT have fewer than 1 characters',
+                    };
+                    if (vErrors === null) {
+                      vErrors = [err25];
+                    } else {
+                      vErrors.push(err25);
+                    }
+                    errors++;
+                  }
+                } else {
+                  const err26 = {
+                    instancePath: instancePath + '/providers/' + i0 + '/project',
+                    schemaPath: '#/properties/providers/items/properties/project/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err26];
+                  } else {
+                    vErrors.push(err26);
+                  }
+                  errors++;
+                }
+              }
+              if (data3.ontology !== undefined) {
+                let data8 = data3.ontology;
+                if (typeof data8 === 'string') {
+                  if (func1(data8) < 1) {
+                    const err27 = {
+                      instancePath: instancePath + '/providers/' + i0 + '/ontology',
+                      schemaPath: '#/properties/providers/items/properties/ontology/minLength',
+                      keyword: 'minLength',
+                      params: { limit: 1 },
+                      message: 'must NOT have fewer than 1 characters',
+                    };
+                    if (vErrors === null) {
+                      vErrors = [err27];
+                    } else {
+                      vErrors.push(err27);
+                    }
+                    errors++;
+                  }
+                } else {
+                  const err28 = {
+                    instancePath: instancePath + '/providers/' + i0 + '/ontology',
+                    schemaPath: '#/properties/providers/items/properties/ontology/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err28];
+                  } else {
+                    vErrors.push(err28);
+                  }
+                  errors++;
+                }
+              }
+              if (data3.repository !== undefined) {
+                let data9 = data3.repository;
+                if (typeof data9 === 'string') {
+                  if (func1(data9) < 1) {
+                    const err29 = {
+                      instancePath: instancePath + '/providers/' + i0 + '/repository',
+                      schemaPath: '#/properties/providers/items/properties/repository/minLength',
+                      keyword: 'minLength',
+                      params: { limit: 1 },
+                      message: 'must NOT have fewer than 1 characters',
+                    };
+                    if (vErrors === null) {
+                      vErrors = [err29];
+                    } else {
+                      vErrors.push(err29);
+                    }
+                    errors++;
+                  }
+                } else {
+                  const err30 = {
+                    instancePath: instancePath + '/providers/' + i0 + '/repository',
+                    schemaPath: '#/properties/providers/items/properties/repository/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err30];
+                  } else {
+                    vErrors.push(err30);
+                  }
+                  errors++;
+                }
+              }
+              if (data3.sameRepository !== undefined) {
+                if (typeof data3.sameRepository !== 'boolean') {
+                  const err31 = {
+                    instancePath: instancePath + '/providers/' + i0 + '/sameRepository',
+                    schemaPath: '#/properties/providers/items/properties/sameRepository/type',
+                    keyword: 'type',
+                    params: { type: 'boolean' },
+                    message: 'must be boolean',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err31];
+                  } else {
+                    vErrors.push(err31);
+                  }
+                  errors++;
+                }
+              }
+              if (data3.commit !== undefined) {
+                let data11 = data3.commit;
+                if (typeof data11 === 'string') {
+                  if (func1(data11) < 1) {
+                    const err32 = {
+                      instancePath: instancePath + '/providers/' + i0 + '/commit',
+                      schemaPath: '#/properties/providers/items/properties/commit/minLength',
+                      keyword: 'minLength',
+                      params: { limit: 1 },
+                      message: 'must NOT have fewer than 1 characters',
+                    };
+                    if (vErrors === null) {
+                      vErrors = [err32];
+                    } else {
+                      vErrors.push(err32);
+                    }
+                    errors++;
+                  }
+                  if (!pattern4.test(data11)) {
+                    const err33 = {
+                      instancePath: instancePath + '/providers/' + i0 + '/commit',
+                      schemaPath: '#/properties/providers/items/properties/commit/pattern',
+                      keyword: 'pattern',
+                      params: { pattern: '^(?:[0-9a-f]{40}|[0-9a-f]{64})$' },
+                      message: 'must match pattern "' + '^(?:[0-9a-f]{40}|[0-9a-f]{64})$' + '"',
+                    };
+                    if (vErrors === null) {
+                      vErrors = [err33];
+                    } else {
+                      vErrors.push(err33);
+                    }
+                    errors++;
+                  }
+                } else {
+                  const err34 = {
+                    instancePath: instancePath + '/providers/' + i0 + '/commit',
+                    schemaPath: '#/properties/providers/items/properties/commit/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err34];
+                  } else {
+                    vErrors.push(err34);
+                  }
+                  errors++;
+                }
+              }
+              if (data3.tag !== undefined) {
+                let data12 = data3.tag;
+                if (typeof data12 !== 'string' && data12 !== null) {
+                  const err35 = {
+                    instancePath: instancePath + '/providers/' + i0 + '/tag',
+                    schemaPath: '#/properties/providers/items/properties/tag/type',
+                    keyword: 'type',
+                    params: { type: tesseraDependenciesSchema.properties.providers.items.properties.tag.type },
+                    message: 'must be string,null',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err35];
+                  } else {
+                    vErrors.push(err35);
+                  }
+                  errors++;
+                }
+              }
+              if (data3.choice !== undefined) {
+                let data13 = data3.choice;
+                if (!(data13 === 'latest' || data13 === 'pin')) {
+                  const err36 = {
+                    instancePath: instancePath + '/providers/' + i0 + '/choice',
+                    schemaPath: '#/properties/providers/items/properties/choice/enum',
+                    keyword: 'enum',
+                    params: { allowedValues: tesseraDependenciesSchema.properties.providers.items.properties.choice.enum },
+                    message: 'must be equal to one of the allowed values',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err36];
+                  } else {
+                    vErrors.push(err36);
+                  }
+                  errors++;
+                }
+              }
+              if (data3.interfaceHash !== undefined) {
+                let data14 = data3.interfaceHash;
+                if (typeof data14 === 'string') {
+                  if (func1(data14) < 1) {
+                    const err37 = {
+                      instancePath: instancePath + '/providers/' + i0 + '/interfaceHash',
+                      schemaPath: '#/properties/providers/items/properties/interfaceHash/minLength',
+                      keyword: 'minLength',
+                      params: { limit: 1 },
+                      message: 'must NOT have fewer than 1 characters',
+                    };
+                    if (vErrors === null) {
+                      vErrors = [err37];
+                    } else {
+                      vErrors.push(err37);
+                    }
+                    errors++;
+                  }
+                  if (!pattern5.test(data14)) {
+                    const err38 = {
+                      instancePath: instancePath + '/providers/' + i0 + '/interfaceHash',
+                      schemaPath: '#/properties/providers/items/properties/interfaceHash/pattern',
+                      keyword: 'pattern',
+                      params: { pattern: '^sha256:[0-9a-f]{64}$' },
+                      message: 'must match pattern "' + '^sha256:[0-9a-f]{64}$' + '"',
+                    };
+                    if (vErrors === null) {
+                      vErrors = [err38];
+                    } else {
+                      vErrors.push(err38);
+                    }
+                    errors++;
+                  }
+                } else {
+                  const err39 = {
+                    instancePath: instancePath + '/providers/' + i0 + '/interfaceHash',
+                    schemaPath: '#/properties/providers/items/properties/interfaceHash/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err39];
+                  } else {
+                    vErrors.push(err39);
+                  }
+                  errors++;
+                }
+              }
+              if (data3.concepts !== undefined) {
+                let data15 = data3.concepts;
+                if (Array.isArray(data15)) {
+                  if (data15.length < 1) {
+                    const err40 = {
+                      instancePath: instancePath + '/providers/' + i0 + '/concepts',
+                      schemaPath: '#/properties/providers/items/properties/concepts/minItems',
+                      keyword: 'minItems',
+                      params: { limit: 1 },
+                      message: 'must NOT have fewer than 1 items',
+                    };
+                    if (vErrors === null) {
+                      vErrors = [err40];
+                    } else {
+                      vErrors.push(err40);
+                    }
+                    errors++;
+                  }
+                  const len1 = data15.length;
+                  for (let i1 = 0; i1 < len1; i1++) {
+                    let data16 = data15[i1];
+                    if (typeof data16 === 'string') {
+                      if (func1(data16) < 1) {
+                        const err41 = {
+                          instancePath: instancePath + '/providers/' + i0 + '/concepts/' + i1,
+                          schemaPath: '#/properties/providers/items/properties/concepts/items/minLength',
+                          keyword: 'minLength',
+                          params: { limit: 1 },
+                          message: 'must NOT have fewer than 1 characters',
+                        };
+                        if (vErrors === null) {
+                          vErrors = [err41];
+                        } else {
+                          vErrors.push(err41);
+                        }
+                        errors++;
+                      }
+                    } else {
+                      const err42 = {
+                        instancePath: instancePath + '/providers/' + i0 + '/concepts/' + i1,
+                        schemaPath: '#/properties/providers/items/properties/concepts/items/type',
+                        keyword: 'type',
+                        params: { type: 'string' },
+                        message: 'must be string',
+                      };
+                      if (vErrors === null) {
+                        vErrors = [err42];
+                      } else {
+                        vErrors.push(err42);
+                      }
+                      errors++;
+                    }
+                  }
+                  let i2 = data15.length;
+                  let j0;
+                  if (i2 > 1) {
+                    const indices0 = {};
+                    for (; i2--;) {
+                      let item0 = data15[i2];
+                      if (typeof item0 !== 'string') {
+                        continue;
+                      }
+                      if (typeof indices0[item0] == 'number') {
+                        j0 = indices0[item0];
+                        const err43 = {
+                          instancePath: instancePath + '/providers/' + i0 + '/concepts',
+                          schemaPath: '#/properties/providers/items/properties/concepts/uniqueItems',
+                          keyword: 'uniqueItems',
+                          params: { i: i2, j: j0 },
+                          message: 'must NOT have duplicate items (items ## ' + j0 + ' and ' + i2 + ' are identical)',
+                        };
+                        if (vErrors === null) {
+                          vErrors = [err43];
+                        } else {
+                          vErrors.push(err43);
+                        }
+                        errors++;
+                        break;
+                      }
+                      indices0[item0] = i2;
+                    }
+                  }
+                } else {
+                  const err44 = {
+                    instancePath: instancePath + '/providers/' + i0 + '/concepts',
+                    schemaPath: '#/properties/providers/items/properties/concepts/type',
+                    keyword: 'type',
+                    params: { type: 'array' },
+                    message: 'must be array',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err44];
+                  } else {
+                    vErrors.push(err44);
+                  }
+                  errors++;
+                }
+              }
+              if (data3.dependsOn !== undefined) {
+                let data17 = data3.dependsOn;
+                if (Array.isArray(data17)) {
+                  const len2 = data17.length;
+                  for (let i3 = 0; i3 < len2; i3++) {
+                    let data18 = data17[i3];
+                    if (data18 && typeof data18 == 'object' && !Array.isArray(data18)) {
+                      if (data18.project === undefined) {
+                        const err45 = {
+                          instancePath: instancePath + '/providers/' + i0 + '/dependsOn/' + i3,
+                          schemaPath: '#/properties/providers/items/properties/dependsOn/items/required',
+                          keyword: 'required',
+                          params: { missingProperty: 'project' },
+                          message: "must have required property '" + 'project' + "'",
+                        };
+                        if (vErrors === null) {
+                          vErrors = [err45];
+                        } else {
+                          vErrors.push(err45);
+                        }
+                        errors++;
+                      }
+                      if (data18.commit === undefined) {
+                        const err46 = {
+                          instancePath: instancePath + '/providers/' + i0 + '/dependsOn/' + i3,
+                          schemaPath: '#/properties/providers/items/properties/dependsOn/items/required',
+                          keyword: 'required',
+                          params: { missingProperty: 'commit' },
+                          message: "must have required property '" + 'commit' + "'",
+                        };
+                        if (vErrors === null) {
+                          vErrors = [err46];
+                        } else {
+                          vErrors.push(err46);
+                        }
+                        errors++;
+                      }
+                      if (data18.interfaceHash === undefined) {
+                        const err47 = {
+                          instancePath: instancePath + '/providers/' + i0 + '/dependsOn/' + i3,
+                          schemaPath: '#/properties/providers/items/properties/dependsOn/items/required',
+                          keyword: 'required',
+                          params: { missingProperty: 'interfaceHash' },
+                          message: "must have required property '" + 'interfaceHash' + "'",
+                        };
+                        if (vErrors === null) {
+                          vErrors = [err47];
+                        } else {
+                          vErrors.push(err47);
+                        }
+                        errors++;
+                      }
+                      for (const key2 in data18) {
+                        if (!(key2 === 'project' || key2 === 'commit' || key2 === 'interfaceHash')) {
+                          const err48 = {
+                            instancePath: instancePath + '/providers/' + i0 + '/dependsOn/' + i3,
+                            schemaPath: '#/properties/providers/items/properties/dependsOn/items/additionalProperties',
+                            keyword: 'additionalProperties',
+                            params: { additionalProperty: key2 },
+                            message: 'must NOT have additional properties',
+                          };
+                          if (vErrors === null) {
+                            vErrors = [err48];
+                          } else {
+                            vErrors.push(err48);
+                          }
+                          errors++;
+                        }
+                      }
+                      if (data18.project !== undefined) {
+                        let data19 = data18.project;
+                        if (typeof data19 === 'string') {
+                          if (func1(data19) < 1) {
+                            const err49 = {
+                              instancePath: instancePath + '/providers/' + i0 + '/dependsOn/' + i3 + '/project',
+                              schemaPath: '#/properties/providers/items/properties/dependsOn/items/properties/project/minLength',
+                              keyword: 'minLength',
+                              params: { limit: 1 },
+                              message: 'must NOT have fewer than 1 characters',
+                            };
+                            if (vErrors === null) {
+                              vErrors = [err49];
+                            } else {
+                              vErrors.push(err49);
+                            }
+                            errors++;
+                          }
+                        } else {
+                          const err50 = {
+                            instancePath: instancePath + '/providers/' + i0 + '/dependsOn/' + i3 + '/project',
+                            schemaPath: '#/properties/providers/items/properties/dependsOn/items/properties/project/type',
+                            keyword: 'type',
+                            params: { type: 'string' },
+                            message: 'must be string',
+                          };
+                          if (vErrors === null) {
+                            vErrors = [err50];
+                          } else {
+                            vErrors.push(err50);
+                          }
+                          errors++;
+                        }
+                      }
+                      if (data18.commit !== undefined) {
+                        let data20 = data18.commit;
+                        if (typeof data20 === 'string') {
+                          if (func1(data20) < 1) {
+                            const err51 = {
+                              instancePath: instancePath + '/providers/' + i0 + '/dependsOn/' + i3 + '/commit',
+                              schemaPath: '#/properties/providers/items/properties/dependsOn/items/properties/commit/minLength',
+                              keyword: 'minLength',
+                              params: { limit: 1 },
+                              message: 'must NOT have fewer than 1 characters',
+                            };
+                            if (vErrors === null) {
+                              vErrors = [err51];
+                            } else {
+                              vErrors.push(err51);
+                            }
+                            errors++;
+                          }
+                          if (!pattern4.test(data20)) {
+                            const err52 = {
+                              instancePath: instancePath + '/providers/' + i0 + '/dependsOn/' + i3 + '/commit',
+                              schemaPath: '#/properties/providers/items/properties/dependsOn/items/properties/commit/pattern',
+                              keyword: 'pattern',
+                              params: { pattern: '^(?:[0-9a-f]{40}|[0-9a-f]{64})$' },
+                              message: 'must match pattern "' + '^(?:[0-9a-f]{40}|[0-9a-f]{64})$' + '"',
+                            };
+                            if (vErrors === null) {
+                              vErrors = [err52];
+                            } else {
+                              vErrors.push(err52);
+                            }
+                            errors++;
+                          }
+                        } else {
+                          const err53 = {
+                            instancePath: instancePath + '/providers/' + i0 + '/dependsOn/' + i3 + '/commit',
+                            schemaPath: '#/properties/providers/items/properties/dependsOn/items/properties/commit/type',
+                            keyword: 'type',
+                            params: { type: 'string' },
+                            message: 'must be string',
+                          };
+                          if (vErrors === null) {
+                            vErrors = [err53];
+                          } else {
+                            vErrors.push(err53);
+                          }
+                          errors++;
+                        }
+                      }
+                      if (data18.interfaceHash !== undefined) {
+                        let data21 = data18.interfaceHash;
+                        if (typeof data21 === 'string') {
+                          if (func1(data21) < 1) {
+                            const err54 = {
+                              instancePath: instancePath + '/providers/' + i0 + '/dependsOn/' + i3 + '/interfaceHash',
+                              schemaPath: '#/properties/providers/items/properties/dependsOn/items/properties/interfaceHash/minLength',
+                              keyword: 'minLength',
+                              params: { limit: 1 },
+                              message: 'must NOT have fewer than 1 characters',
+                            };
+                            if (vErrors === null) {
+                              vErrors = [err54];
+                            } else {
+                              vErrors.push(err54);
+                            }
+                            errors++;
+                          }
+                          if (!pattern5.test(data21)) {
+                            const err55 = {
+                              instancePath: instancePath + '/providers/' + i0 + '/dependsOn/' + i3 + '/interfaceHash',
+                              schemaPath: '#/properties/providers/items/properties/dependsOn/items/properties/interfaceHash/pattern',
+                              keyword: 'pattern',
+                              params: { pattern: '^sha256:[0-9a-f]{64}$' },
+                              message: 'must match pattern "' + '^sha256:[0-9a-f]{64}$' + '"',
+                            };
+                            if (vErrors === null) {
+                              vErrors = [err55];
+                            } else {
+                              vErrors.push(err55);
+                            }
+                            errors++;
+                          }
+                        } else {
+                          const err56 = {
+                            instancePath: instancePath + '/providers/' + i0 + '/dependsOn/' + i3 + '/interfaceHash',
+                            schemaPath: '#/properties/providers/items/properties/dependsOn/items/properties/interfaceHash/type',
+                            keyword: 'type',
+                            params: { type: 'string' },
+                            message: 'must be string',
+                          };
+                          if (vErrors === null) {
+                            vErrors = [err56];
+                          } else {
+                            vErrors.push(err56);
+                          }
+                          errors++;
+                        }
+                      }
+                    } else {
+                      const err57 = {
+                        instancePath: instancePath + '/providers/' + i0 + '/dependsOn/' + i3,
+                        schemaPath: '#/properties/providers/items/properties/dependsOn/items/type',
+                        keyword: 'type',
+                        params: { type: 'object' },
+                        message: 'must be object',
+                      };
+                      if (vErrors === null) {
+                        vErrors = [err57];
+                      } else {
+                        vErrors.push(err57);
+                      }
+                      errors++;
+                    }
+                  }
+                  let i4 = data17.length;
+                  let j1;
+                  if (i4 > 1) {
+                    outer0: for (; i4--;) {
+                      for (j1 = i4; j1--;) {
+                        if (func0(data17[i4], data17[j1])) {
+                          const err58 = {
+                            instancePath: instancePath + '/providers/' + i0 + '/dependsOn',
+                            schemaPath: '#/properties/providers/items/properties/dependsOn/uniqueItems',
+                            keyword: 'uniqueItems',
+                            params: { i: i4, j: j1 },
+                            message: 'must NOT have duplicate items (items ## ' + j1 + ' and ' + i4 + ' are identical)',
+                          };
+                          if (vErrors === null) {
+                            vErrors = [err58];
+                          } else {
+                            vErrors.push(err58);
+                          }
+                          errors++;
+                          break outer0;
+                        }
+                      }
+                    }
+                  }
+                } else {
+                  const err59 = {
+                    instancePath: instancePath + '/providers/' + i0 + '/dependsOn',
+                    schemaPath: '#/properties/providers/items/properties/dependsOn/type',
+                    keyword: 'type',
+                    params: { type: 'array' },
+                    message: 'must be array',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err59];
+                  } else {
+                    vErrors.push(err59);
+                  }
+                  errors++;
+                }
+              }
+            } else {
+              const err60 = {
+                instancePath: instancePath + '/providers/' + i0,
+                schemaPath: '#/properties/providers/items/type',
+                keyword: 'type',
+                params: { type: 'object' },
+                message: 'must be object',
+              };
+              if (vErrors === null) {
+                vErrors = [err60];
+              } else {
+                vErrors.push(err60);
+              }
+              errors++;
+            }
+          }
+          let i5 = data2.length;
+          let j2;
+          if (i5 > 1) {
+            outer1: for (; i5--;) {
+              for (j2 = i5; j2--;) {
+                if (func0(data2[i5], data2[j2])) {
+                  const err61 = {
+                    instancePath: instancePath + '/providers',
+                    schemaPath: '#/properties/providers/uniqueItems',
+                    keyword: 'uniqueItems',
+                    params: { i: i5, j: j2 },
+                    message: 'must NOT have duplicate items (items ## ' + j2 + ' and ' + i5 + ' are identical)',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err61];
+                  } else {
+                    vErrors.push(err61);
+                  }
+                  errors++;
+                  break outer1;
+                }
+              }
+            }
+          }
+        } else {
+          const err62 = { instancePath: instancePath + '/providers', schemaPath: '#/properties/providers/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err62];
+          } else {
+            vErrors.push(err62);
+          }
+          errors++;
+        }
+      }
+    } else {
+      const err63 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
+      if (vErrors === null) {
+        vErrors = [err63];
+      } else {
+        vErrors.push(err63);
+      }
+      errors++;
+    }
+    validate112.errors = vErrors;
+    return errors === 0;
+  }
+  validate112.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
+  const tesseraPartSchema = {
+    $schema: 'https://json-schema.org/draft/2020-12/schema',
+    $id: 'urn:semantic-workbench:tessera-part:3:ossie-0.2.0.dev0',
+    $comment: 'Workbench ontology fragment schema derived from the pinned Ossie ontology schema.',
+    type: 'object',
+    additionalProperties: false,
+    required: ['tessera', 'tessera_part', 'ontology'],
+    properties: {
+      tessera: { type: 'integer', const: 3, description: 'Marks the document as Tessera revision 3.' },
+      tessera_part: { const: true, description: 'Tessera addition since revision 3: the part marker.' },
+      ontology: { type: 'array', items: { $ref: '#/$defs/OntologyComponent' }, minItems: 0, description: 'Components that define the concepts and relationships in this ontology' },
+    },
+    $defs: {
+      OntologyComponent: {
+        type: 'object',
+        description: 'Ontology component that defines a single concept and any relationships that are keyed primarily by that concept',
+        properties: {
+          concept: { type: 'string', description: 'Unique name of the concept defined by this component' },
+          type: { $ref: '#/$defs/ConceptType' },
+          description: { type: 'string', description: 'Human-readable description of the concept' },
+          extends: { type: 'array', items: { type: 'string' }, description: 'Indicates that this concept extends one or more other concepts' },
+          derived_by: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that define how this concept is derived' },
+          identify_by: { type: 'array', items: { type: 'string' }, description: 'Names of relationships to use as the preferred identifier of this concept' },
+          requires: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that constrain the population of this concept' },
+          relationships: { type: 'array', items: { $ref: '#/$defs/Relationship' }, description: 'Defines relationships that pertain primarily to the concept defined in this component' },
+          iri: { type: 'string', description: "Optional global identifier for this concept, expressed as a full IRI or as a QName (prefix:local) resolved against the ontology-level 'prefixes' map." },
+          tessera_notes: { type: 'string', minLength: 1, maxLength: 10000, description: 'Tessera addition since revision 1: a non-empty string of at most 10,000 characters.' },
+          tessera_attributes: {
+            type: 'array',
+            maxItems: 200,
+            items: { type: 'string', minLength: 1 },
+            description: 'Tessera addition since revision 2: a list of at most 200 relationship names of the concept, in the order they are shown.',
+          },
+          tessera_ai_context: {
+            type: ['string', 'object'],
+            maxLength: 10000,
+            properties: {
+              instructions: { type: 'string', maxLength: 10000 },
+              synonyms: { type: 'array', items: { type: 'string', maxLength: 10000 } },
+              examples: { type: 'array', items: { type: 'string', maxLength: 10000 } },
+            },
+            additionalProperties: false,
+            description: 'Tessera addition since revision 2: a text, or an object with instructions, synonyms and examples, each text at most 10,000 characters.',
+          },
+          tessera_governance: {
+            type: 'object',
+            properties: {
+              status: { type: 'string' },
+              owner: { type: 'string', minLength: 1, maxLength: 200 },
+              steward: { type: 'string', minLength: 1, maxLength: 200 },
+              classification: { type: 'string', minLength: 1, maxLength: 200 },
+              replaced_by: { type: 'string', minLength: 1 },
+              deprecation_reason: { type: 'string', minLength: 1, maxLength: 2000 },
+            },
+            description: 'Tessera addition since revision 2: an object with at least one of status, owner, steward, classification, replaced_by, deprecation_reason.',
+          },
+        },
+        required: ['concept', 'type'],
+        additionalProperties: false,
+      },
+      Expression: { type: 'string', description: 'ANSI SQL expression' },
+      Relationship: {
+        type: 'object',
+        description: 'Relationship between concepts in the ontology',
+        properties: {
+          name: { type: 'string', description: 'Name of the relationship' },
+          description: { type: 'string', description: 'Human-readable description of the relationship' },
+          roles: { type: 'array', items: { $ref: '#/$defs/Role' }, description: 'Additional roles in this relationship' },
+          multiplicity: { $ref: '#/$defs/Multiplicity' },
+          derived_by: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that define how this concept is derived' },
+          requires: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that constrain the population of this relationship' },
+          verbalizes: { type: 'array', items: { type: 'string' }, description: 'Natural language expressions that verbalize this relationship' },
+          iri: {
+            type: 'string',
+            description: "Optional global identifier for this relationship, expressed as a full IRI or as a QName (prefix:local) resolved against the ontology-level 'prefixes' map.",
+          },
+          tessera_notes: { type: 'string', minLength: 1, maxLength: 10000, description: 'Tessera addition since revision 1: a non-empty string of at most 10,000 characters.' },
+          tessera_ai_context: {
+            type: ['string', 'object'],
+            maxLength: 10000,
+            properties: {
+              instructions: { type: 'string', maxLength: 10000 },
+              synonyms: { type: 'array', items: { type: 'string', maxLength: 10000 } },
+              examples: { type: 'array', items: { type: 'string', maxLength: 10000 } },
+            },
+            additionalProperties: false,
+            description: 'Tessera addition since revision 2: a text, or an object with instructions, synonyms and examples, each text at most 10,000 characters.',
+          },
+          tessera_governance: {
+            type: 'object',
+            properties: {
+              status: { type: 'string' },
+              owner: { type: 'string', minLength: 1, maxLength: 200 },
+              steward: { type: 'string', minLength: 1, maxLength: 200 },
+              classification: { type: 'string', minLength: 1, maxLength: 200 },
+              replaced_by: { type: 'string', minLength: 1 },
+              deprecation_reason: { type: 'string', minLength: 1, maxLength: 2000 },
+            },
+            description: 'Tessera addition since revision 2: an object with at least one of status, owner, steward, classification, replaced_by, deprecation_reason.',
+          },
+        },
+        required: ['name', 'verbalizes'],
+        additionalProperties: false,
+      },
+      ConceptMapping: {
+        type: 'object',
+        description: 'Mappings from logical model constructs to some ontology component',
+        properties: {
+          concept: { type: 'string', description: 'Name of the concept whose part of the ontology we are mapping to' },
+          object_mappings: {
+            type: 'array',
+            minItems: 1,
+            items: { $ref: '#/$defs/ObjectMapping' },
+            description: 'Mappings from logical constructs that populate the concept in this component. Valid only when the concept is an entity type',
+          },
+          link_mappings: {
+            type: 'array',
+            minItems: 1,
+            items: { $ref: '#/$defs/LinkMapping' },
+            description: 'Mappings from logical model relationships to ontology relationships pertaining to the mapped concept',
+          },
+        },
+        required: ['concept'],
+        anyOf: [{ required: ['object_mappings'] }, { required: ['link_mappings'] }],
+        additionalProperties: false,
+      },
+      ConceptType: { type: 'string', enum: ['EntityType', 'ValueType'], description: 'A concept is either an entity type or a value type' },
+      ReferentMapping: {
+        type: 'object',
+        description: 'Mapping from logical model constructs to a relationship used to references some entity type in the ontology',
+        properties: {
+          relationship: { type: 'string', description: 'Name of referent relationship' },
+          expression: { $ref: '#/$defs/Expression' },
+          referent_mappings: { type: 'array', minItems: 1, items: { $ref: '#/$defs/ReferentMapping' } },
+        },
+        required: ['relationship'],
+        anyOf: [{ required: ['expression'] }, { required: ['referent_mappings'] }],
+        additionalProperties: false,
+      },
+      Role: {
+        type: 'object',
+        description: 'Role in some relationship (the container)',
+        properties: {
+          concept: { type: 'string', description: 'Name of the concept playing this role' },
+          name: { type: 'string', description: 'Optional name of this role, used when the same concept plays multiple roles in the same relationship' },
+        },
+        required: ['concept'],
+        additionalProperties: false,
+      },
+      ObjectMapping: {
+        type: 'object',
+        description: 'Pattern of logical-level expressions for identifying objects of some concept using the values in one or more fields',
+        properties: {
+          concept: { type: 'string', description: 'Name of the concept whose objects we are mapping to' },
+          referent_mappings: { type: 'array', minItems: 1, items: { $ref: '#/$defs/ReferentMapping' }, description: 'Maps logical-model constructs to referent relationships of this entity type' },
+          expression: { $ref: '#/$defs/Expression' },
+        },
+        anyOf: [{ required: ['expression'] }, { required: ['referent_mappings'] }],
+        additionalProperties: false,
+      },
+      LinkMapping: {
+        type: 'object',
+        description: 'Mapping from logical schema to the links of relationships in the ontology',
+        properties: {
+          relationship: { type: 'string', description: 'Name of relationship being populated by this mapping node' },
+          object_mapping: { $ref: '#/$defs/ObjectMapping' },
+          children: { type: 'array', items: { $ref: '#/$defs/LinkMapping' }, description: 'Relationship maps at the next level in this hierarchy' },
+        },
+        required: ['object_mapping'],
+        additionalProperties: false,
+      },
+      Multiplicity: { type: 'string', enum: ['ManyToOne', 'OneToOne'], description: 'Relationship multiplicity' },
+      OntologyMap: {
+        type: 'object',
+        description: 'Map from the constructs of some logical model to some ontology',
+        properties: {
+          name: { type: 'string', description: 'Name of this ontology map' },
+          description: { type: 'string', description: 'Human-readable description of this ontology map' },
+          semantic_model: { $ref: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json' },
+          concept_mappings: { type: 'array', items: { $ref: '#/$defs/ConceptMapping' }, description: 'Maps logical model constructs to some concept and its relationships in the ontology' },
+        },
+        required: ['semantic_model', 'concept_mappings'],
+        additionalProperties: false,
+      },
+    },
+  };
+  const OntologyComponentDefinesSingleSchema4 = {
+    type: 'object',
+    description: 'Ontology component that defines a single concept and any relationships that are keyed primarily by that concept',
+    properties: {
+      concept: { type: 'string', description: 'Unique name of the concept defined by this component' },
+      type: { $ref: '#/$defs/ConceptType' },
+      description: { type: 'string', description: 'Human-readable description of the concept' },
+      extends: { type: 'array', items: { type: 'string' }, description: 'Indicates that this concept extends one or more other concepts' },
+      derived_by: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that define how this concept is derived' },
+      identify_by: { type: 'array', items: { type: 'string' }, description: 'Names of relationships to use as the preferred identifier of this concept' },
+      requires: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that constrain the population of this concept' },
+      relationships: { type: 'array', items: { $ref: '#/$defs/Relationship' }, description: 'Defines relationships that pertain primarily to the concept defined in this component' },
+      iri: { type: 'string', description: "Optional global identifier for this concept, expressed as a full IRI or as a QName (prefix:local) resolved against the ontology-level 'prefixes' map." },
+      tessera_notes: { type: 'string', minLength: 1, maxLength: 10000, description: 'Tessera addition since revision 1: a non-empty string of at most 10,000 characters.' },
+      tessera_attributes: {
+        type: 'array',
+        maxItems: 200,
+        items: { type: 'string', minLength: 1 },
+        description: 'Tessera addition since revision 2: a list of at most 200 relationship names of the concept, in the order they are shown.',
+      },
+      tessera_ai_context: {
+        type: ['string', 'object'],
+        maxLength: 10000,
+        properties: {
+          instructions: { type: 'string', maxLength: 10000 },
+          synonyms: { type: 'array', items: { type: 'string', maxLength: 10000 } },
+          examples: { type: 'array', items: { type: 'string', maxLength: 10000 } },
+        },
+        additionalProperties: false,
+        description: 'Tessera addition since revision 2: a text, or an object with instructions, synonyms and examples, each text at most 10,000 characters.',
+      },
+      tessera_governance: {
+        type: 'object',
+        properties: {
+          status: { type: 'string' },
+          owner: { type: 'string', minLength: 1, maxLength: 200 },
+          steward: { type: 'string', minLength: 1, maxLength: 200 },
+          classification: { type: 'string', minLength: 1, maxLength: 200 },
+          replaced_by: { type: 'string', minLength: 1 },
+          deprecation_reason: { type: 'string', minLength: 1, maxLength: 2000 },
+        },
+        description: 'Tessera addition since revision 2: an object with at least one of status, owner, steward, classification, replaced_by, deprecation_reason.',
+      },
+    },
+    required: ['concept', 'type'],
+    additionalProperties: false,
+  };
+  const ConceptEitherEntityTypeSchema4 = { type: 'string', enum: ['EntityType', 'ValueType'], description: 'A concept is either an entity type or a value type' };
+  const ANSISQLExpressionSchema = { type: 'string', description: 'ANSI SQL expression' };
+  const RelationshipBetweenConceptsOntologySchema4 = {
+    type: 'object',
+    description: 'Relationship between concepts in the ontology',
+    properties: {
+      name: { type: 'string', description: 'Name of the relationship' },
+      description: { type: 'string', description: 'Human-readable description of the relationship' },
+      roles: { type: 'array', items: { $ref: '#/$defs/Role' }, description: 'Additional roles in this relationship' },
+      multiplicity: { $ref: '#/$defs/Multiplicity' },
+      derived_by: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that define how this concept is derived' },
+      requires: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that constrain the population of this relationship' },
+      verbalizes: { type: 'array', items: { type: 'string' }, description: 'Natural language expressions that verbalize this relationship' },
+      iri: {
+        type: 'string',
+        description: "Optional global identifier for this relationship, expressed as a full IRI or as a QName (prefix:local) resolved against the ontology-level 'prefixes' map.",
+      },
+      tessera_notes: { type: 'string', minLength: 1, maxLength: 10000, description: 'Tessera addition since revision 1: a non-empty string of at most 10,000 characters.' },
+      tessera_ai_context: {
+        type: ['string', 'object'],
+        maxLength: 10000,
+        properties: {
+          instructions: { type: 'string', maxLength: 10000 },
+          synonyms: { type: 'array', items: { type: 'string', maxLength: 10000 } },
+          examples: { type: 'array', items: { type: 'string', maxLength: 10000 } },
+        },
+        additionalProperties: false,
+        description: 'Tessera addition since revision 2: a text, or an object with instructions, synonyms and examples, each text at most 10,000 characters.',
+      },
+      tessera_governance: {
+        type: 'object',
+        properties: {
+          status: { type: 'string' },
+          owner: { type: 'string', minLength: 1, maxLength: 200 },
+          steward: { type: 'string', minLength: 1, maxLength: 200 },
+          classification: { type: 'string', minLength: 1, maxLength: 200 },
+          replaced_by: { type: 'string', minLength: 1 },
+          deprecation_reason: { type: 'string', minLength: 1, maxLength: 2000 },
+        },
+        description: 'Tessera addition since revision 2: an object with at least one of status, owner, steward, classification, replaced_by, deprecation_reason.',
+      },
+    },
+    required: ['name', 'verbalizes'],
+    additionalProperties: false,
+  };
+  const RoleRelationshipContainerSchema4 = {
+    type: 'object',
+    description: 'Role in some relationship (the container)',
+    properties: {
+      concept: { type: 'string', description: 'Name of the concept playing this role' },
+      name: { type: 'string', description: 'Optional name of this role, used when the same concept plays multiple roles in the same relationship' },
+    },
+    required: ['concept'],
+    additionalProperties: false,
+  };
+  const RelationshipMultiplicitySchema4 = { type: 'string', enum: ['ManyToOne', 'OneToOne'], description: 'Relationship multiplicity' };
+
+  function validate115(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
+    let vErrors = null;
+    let errors = 0;
+    const evaluated0 = validate115.evaluated;
+    if (evaluated0.dynamicProps) {
+      evaluated0.props = undefined;
+    }
+    if (evaluated0.dynamicItems) {
+      evaluated0.items = undefined;
+    }
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.name === undefined) {
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'name' }, message: "must have required property '" + 'name' + "'" };
+        if (vErrors === null) {
+          vErrors = [err0];
+        } else {
+          vErrors.push(err0);
+        }
+        errors++;
+      }
+      if (data.verbalizes === undefined) {
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'verbalizes' }, message: "must have required property '" + 'verbalizes' + "'" };
+        if (vErrors === null) {
+          vErrors = [err1];
+        } else {
+          vErrors.push(err1);
+        }
+        errors++;
+      }
+      for (const key0 in data) {
+        if (!func14.call(RelationshipBetweenConceptsOntologySchema4.properties, key0)) {
+          const err2 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
+          if (vErrors === null) {
+            vErrors = [err2];
+          } else {
+            vErrors.push(err2);
+          }
+          errors++;
+        }
+      }
+      if (data.name !== undefined) {
+        if (typeof data.name !== 'string') {
+          const err3 = { instancePath: instancePath + '/name', schemaPath: '#/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err3];
+          } else {
+            vErrors.push(err3);
+          }
+          errors++;
+        }
+      }
+      if (data.description !== undefined) {
+        if (typeof data.description !== 'string') {
+          const err4 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err4];
+          } else {
+            vErrors.push(err4);
+          }
+          errors++;
+        }
+      }
+      if (data.roles !== undefined) {
+        let data2 = data.roles;
+        if (Array.isArray(data2)) {
+          const len0 = data2.length;
+          for (let i0 = 0; i0 < len0; i0++) {
+            let data3 = data2[i0];
+            if (data3 && typeof data3 == 'object' && !Array.isArray(data3)) {
+              if (data3.concept === undefined) {
+                const err5 = {
+                  instancePath: instancePath + '/roles/' + i0,
+                  schemaPath: '#/$defs/Role/required',
+                  keyword: 'required',
+                  params: { missingProperty: 'concept' },
+                  message: "must have required property '" + 'concept' + "'",
+                };
+                if (vErrors === null) {
+                  vErrors = [err5];
+                } else {
+                  vErrors.push(err5);
+                }
+                errors++;
+              }
+              for (const key1 in data3) {
+                if (!(key1 === 'concept' || key1 === 'name')) {
+                  const err6 = {
+                    instancePath: instancePath + '/roles/' + i0,
+                    schemaPath: '#/$defs/Role/additionalProperties',
+                    keyword: 'additionalProperties',
+                    params: { additionalProperty: key1 },
+                    message: 'must NOT have additional properties',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err6];
+                  } else {
+                    vErrors.push(err6);
+                  }
+                  errors++;
+                }
+              }
+              if (data3.concept !== undefined) {
+                if (typeof data3.concept !== 'string') {
+                  const err7 = {
+                    instancePath: instancePath + '/roles/' + i0 + '/concept',
+                    schemaPath: '#/$defs/Role/properties/concept/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err7];
+                  } else {
+                    vErrors.push(err7);
+                  }
+                  errors++;
+                }
+              }
+              if (data3.name !== undefined) {
+                if (typeof data3.name !== 'string') {
+                  const err8 = {
+                    instancePath: instancePath + '/roles/' + i0 + '/name',
+                    schemaPath: '#/$defs/Role/properties/name/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err8];
+                  } else {
+                    vErrors.push(err8);
+                  }
+                  errors++;
+                }
+              }
+            } else {
+              const err9 = { instancePath: instancePath + '/roles/' + i0, schemaPath: '#/$defs/Role/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
+              if (vErrors === null) {
+                vErrors = [err9];
+              } else {
+                vErrors.push(err9);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err10 = { instancePath: instancePath + '/roles', schemaPath: '#/properties/roles/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err10];
+          } else {
+            vErrors.push(err10);
+          }
+          errors++;
+        }
+      }
+      if (data.multiplicity !== undefined) {
+        let data6 = data.multiplicity;
+        if (typeof data6 !== 'string') {
+          const err11 = { instancePath: instancePath + '/multiplicity', schemaPath: '#/$defs/Multiplicity/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err11];
+          } else {
+            vErrors.push(err11);
+          }
+          errors++;
+        }
+        if (!(data6 === 'ManyToOne' || data6 === 'OneToOne')) {
+          const err12 = {
+            instancePath: instancePath + '/multiplicity',
+            schemaPath: '#/$defs/Multiplicity/enum',
+            keyword: 'enum',
+            params: { allowedValues: RelationshipMultiplicitySchema4.enum },
+            message: 'must be equal to one of the allowed values',
+          };
+          if (vErrors === null) {
+            vErrors = [err12];
+          } else {
+            vErrors.push(err12);
+          }
+          errors++;
+        }
+      }
+      if (data.derived_by !== undefined) {
+        let data7 = data.derived_by;
+        if (Array.isArray(data7)) {
+          const len1 = data7.length;
+          for (let i1 = 0; i1 < len1; i1++) {
+            if (typeof data7[i1] !== 'string') {
+              const err13 = { instancePath: instancePath + '/derived_by/' + i1, schemaPath: '#/$defs/Expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+              if (vErrors === null) {
+                vErrors = [err13];
+              } else {
+                vErrors.push(err13);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err14 = { instancePath: instancePath + '/derived_by', schemaPath: '#/properties/derived_by/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err14];
+          } else {
+            vErrors.push(err14);
+          }
+          errors++;
+        }
+      }
+      if (data.requires !== undefined) {
+        let data9 = data.requires;
+        if (Array.isArray(data9)) {
+          const len2 = data9.length;
+          for (let i2 = 0; i2 < len2; i2++) {
+            if (typeof data9[i2] !== 'string') {
+              const err15 = { instancePath: instancePath + '/requires/' + i2, schemaPath: '#/$defs/Expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+              if (vErrors === null) {
+                vErrors = [err15];
+              } else {
+                vErrors.push(err15);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err16 = { instancePath: instancePath + '/requires', schemaPath: '#/properties/requires/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err16];
+          } else {
+            vErrors.push(err16);
+          }
+          errors++;
+        }
+      }
+      if (data.verbalizes !== undefined) {
+        let data11 = data.verbalizes;
+        if (Array.isArray(data11)) {
+          const len3 = data11.length;
+          for (let i3 = 0; i3 < len3; i3++) {
+            if (typeof data11[i3] !== 'string') {
+              const err17 = {
+                instancePath: instancePath + '/verbalizes/' + i3,
+                schemaPath: '#/properties/verbalizes/items/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err17];
+              } else {
+                vErrors.push(err17);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err18 = { instancePath: instancePath + '/verbalizes', schemaPath: '#/properties/verbalizes/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err18];
+          } else {
+            vErrors.push(err18);
+          }
+          errors++;
+        }
+      }
+      if (data.iri !== undefined) {
+        if (typeof data.iri !== 'string') {
+          const err19 = { instancePath: instancePath + '/iri', schemaPath: '#/properties/iri/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err19];
+          } else {
+            vErrors.push(err19);
+          }
+          errors++;
+        }
+      }
+      if (data.tessera_notes !== undefined) {
+        let data14 = data.tessera_notes;
+        if (typeof data14 === 'string') {
+          if (func1(data14) > 10000) {
+            const err20 = {
+              instancePath: instancePath + '/tessera_notes',
+              schemaPath: '#/properties/tessera_notes/maxLength',
+              keyword: 'maxLength',
+              params: { limit: 10000 },
+              message: 'must NOT have more than 10000 characters',
+            };
+            if (vErrors === null) {
+              vErrors = [err20];
+            } else {
+              vErrors.push(err20);
+            }
+            errors++;
+          }
+          if (func1(data14) < 1) {
+            const err21 = {
+              instancePath: instancePath + '/tessera_notes',
+              schemaPath: '#/properties/tessera_notes/minLength',
+              keyword: 'minLength',
+              params: { limit: 1 },
+              message: 'must NOT have fewer than 1 characters',
+            };
+            if (vErrors === null) {
+              vErrors = [err21];
+            } else {
+              vErrors.push(err21);
+            }
+            errors++;
+          }
+        } else {
+          const err22 = { instancePath: instancePath + '/tessera_notes', schemaPath: '#/properties/tessera_notes/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err22];
+          } else {
+            vErrors.push(err22);
+          }
+          errors++;
+        }
+      }
+      if (data.tessera_ai_context !== undefined) {
+        let data15 = data.tessera_ai_context;
+        if (typeof data15 !== 'string' && !(data15 && typeof data15 == 'object' && !Array.isArray(data15))) {
+          const err23 = {
+            instancePath: instancePath + '/tessera_ai_context',
+            schemaPath: '#/properties/tessera_ai_context/type',
+            keyword: 'type',
+            params: { type: RelationshipBetweenConceptsOntologySchema4.properties.tessera_ai_context.type },
+            message: 'must be string,object',
+          };
+          if (vErrors === null) {
+            vErrors = [err23];
+          } else {
+            vErrors.push(err23);
+          }
+          errors++;
+        }
+        if (typeof data15 === 'string') {
+          if (func1(data15) > 10000) {
+            const err24 = {
+              instancePath: instancePath + '/tessera_ai_context',
+              schemaPath: '#/properties/tessera_ai_context/maxLength',
+              keyword: 'maxLength',
+              params: { limit: 10000 },
+              message: 'must NOT have more than 10000 characters',
+            };
+            if (vErrors === null) {
+              vErrors = [err24];
+            } else {
+              vErrors.push(err24);
+            }
+            errors++;
+          }
+        }
+        if (data15 && typeof data15 == 'object' && !Array.isArray(data15)) {
+          for (const key2 in data15) {
+            if (!(key2 === 'instructions' || key2 === 'synonyms' || key2 === 'examples')) {
+              const err25 = {
+                instancePath: instancePath + '/tessera_ai_context',
+                schemaPath: '#/properties/tessera_ai_context/additionalProperties',
+                keyword: 'additionalProperties',
+                params: { additionalProperty: key2 },
+                message: 'must NOT have additional properties',
+              };
+              if (vErrors === null) {
+                vErrors = [err25];
+              } else {
+                vErrors.push(err25);
+              }
+              errors++;
+            }
+          }
+          if (data15.instructions !== undefined) {
+            let data16 = data15.instructions;
+            if (typeof data16 === 'string') {
+              if (func1(data16) > 10000) {
+                const err26 = {
+                  instancePath: instancePath + '/tessera_ai_context/instructions',
+                  schemaPath: '#/properties/tessera_ai_context/properties/instructions/maxLength',
+                  keyword: 'maxLength',
+                  params: { limit: 10000 },
+                  message: 'must NOT have more than 10000 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err26];
+                } else {
+                  vErrors.push(err26);
+                }
+                errors++;
+              }
+            } else {
+              const err27 = {
+                instancePath: instancePath + '/tessera_ai_context/instructions',
+                schemaPath: '#/properties/tessera_ai_context/properties/instructions/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err27];
+              } else {
+                vErrors.push(err27);
+              }
+              errors++;
+            }
+          }
+          if (data15.synonyms !== undefined) {
+            let data17 = data15.synonyms;
+            if (Array.isArray(data17)) {
+              const len4 = data17.length;
+              for (let i4 = 0; i4 < len4; i4++) {
+                let data18 = data17[i4];
+                if (typeof data18 === 'string') {
+                  if (func1(data18) > 10000) {
+                    const err28 = {
+                      instancePath: instancePath + '/tessera_ai_context/synonyms/' + i4,
+                      schemaPath: '#/properties/tessera_ai_context/properties/synonyms/items/maxLength',
+                      keyword: 'maxLength',
+                      params: { limit: 10000 },
+                      message: 'must NOT have more than 10000 characters',
+                    };
+                    if (vErrors === null) {
+                      vErrors = [err28];
+                    } else {
+                      vErrors.push(err28);
+                    }
+                    errors++;
+                  }
+                } else {
+                  const err29 = {
+                    instancePath: instancePath + '/tessera_ai_context/synonyms/' + i4,
+                    schemaPath: '#/properties/tessera_ai_context/properties/synonyms/items/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err29];
+                  } else {
+                    vErrors.push(err29);
+                  }
+                  errors++;
+                }
+              }
+            } else {
+              const err30 = {
+                instancePath: instancePath + '/tessera_ai_context/synonyms',
+                schemaPath: '#/properties/tessera_ai_context/properties/synonyms/type',
+                keyword: 'type',
+                params: { type: 'array' },
+                message: 'must be array',
+              };
+              if (vErrors === null) {
+                vErrors = [err30];
+              } else {
+                vErrors.push(err30);
+              }
+              errors++;
+            }
+          }
+          if (data15.examples !== undefined) {
+            let data19 = data15.examples;
+            if (Array.isArray(data19)) {
+              const len5 = data19.length;
+              for (let i5 = 0; i5 < len5; i5++) {
+                let data20 = data19[i5];
+                if (typeof data20 === 'string') {
+                  if (func1(data20) > 10000) {
+                    const err31 = {
+                      instancePath: instancePath + '/tessera_ai_context/examples/' + i5,
+                      schemaPath: '#/properties/tessera_ai_context/properties/examples/items/maxLength',
+                      keyword: 'maxLength',
+                      params: { limit: 10000 },
+                      message: 'must NOT have more than 10000 characters',
+                    };
+                    if (vErrors === null) {
+                      vErrors = [err31];
+                    } else {
+                      vErrors.push(err31);
+                    }
+                    errors++;
+                  }
+                } else {
+                  const err32 = {
+                    instancePath: instancePath + '/tessera_ai_context/examples/' + i5,
+                    schemaPath: '#/properties/tessera_ai_context/properties/examples/items/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err32];
+                  } else {
+                    vErrors.push(err32);
+                  }
+                  errors++;
+                }
+              }
+            } else {
+              const err33 = {
+                instancePath: instancePath + '/tessera_ai_context/examples',
+                schemaPath: '#/properties/tessera_ai_context/properties/examples/type',
+                keyword: 'type',
+                params: { type: 'array' },
+                message: 'must be array',
+              };
+              if (vErrors === null) {
+                vErrors = [err33];
+              } else {
+                vErrors.push(err33);
+              }
+              errors++;
+            }
+          }
+        }
+      }
+      if (data.tessera_governance !== undefined) {
+        let data21 = data.tessera_governance;
+        if (data21 && typeof data21 == 'object' && !Array.isArray(data21)) {
+          if (data21.status !== undefined) {
+            if (typeof data21.status !== 'string') {
+              const err34 = {
+                instancePath: instancePath + '/tessera_governance/status',
+                schemaPath: '#/properties/tessera_governance/properties/status/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err34];
+              } else {
+                vErrors.push(err34);
+              }
+              errors++;
+            }
+          }
+          if (data21.owner !== undefined) {
+            let data23 = data21.owner;
+            if (typeof data23 === 'string') {
+              if (func1(data23) > 200) {
+                const err35 = {
+                  instancePath: instancePath + '/tessera_governance/owner',
+                  schemaPath: '#/properties/tessera_governance/properties/owner/maxLength',
+                  keyword: 'maxLength',
+                  params: { limit: 200 },
+                  message: 'must NOT have more than 200 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err35];
+                } else {
+                  vErrors.push(err35);
+                }
+                errors++;
+              }
+              if (func1(data23) < 1) {
+                const err36 = {
+                  instancePath: instancePath + '/tessera_governance/owner',
+                  schemaPath: '#/properties/tessera_governance/properties/owner/minLength',
+                  keyword: 'minLength',
+                  params: { limit: 1 },
+                  message: 'must NOT have fewer than 1 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err36];
+                } else {
+                  vErrors.push(err36);
+                }
+                errors++;
+              }
+            } else {
+              const err37 = {
+                instancePath: instancePath + '/tessera_governance/owner',
+                schemaPath: '#/properties/tessera_governance/properties/owner/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err37];
+              } else {
+                vErrors.push(err37);
+              }
+              errors++;
+            }
+          }
+          if (data21.steward !== undefined) {
+            let data24 = data21.steward;
+            if (typeof data24 === 'string') {
+              if (func1(data24) > 200) {
+                const err38 = {
+                  instancePath: instancePath + '/tessera_governance/steward',
+                  schemaPath: '#/properties/tessera_governance/properties/steward/maxLength',
+                  keyword: 'maxLength',
+                  params: { limit: 200 },
+                  message: 'must NOT have more than 200 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err38];
+                } else {
+                  vErrors.push(err38);
+                }
+                errors++;
+              }
+              if (func1(data24) < 1) {
+                const err39 = {
+                  instancePath: instancePath + '/tessera_governance/steward',
+                  schemaPath: '#/properties/tessera_governance/properties/steward/minLength',
+                  keyword: 'minLength',
+                  params: { limit: 1 },
+                  message: 'must NOT have fewer than 1 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err39];
+                } else {
+                  vErrors.push(err39);
+                }
+                errors++;
+              }
+            } else {
+              const err40 = {
+                instancePath: instancePath + '/tessera_governance/steward',
+                schemaPath: '#/properties/tessera_governance/properties/steward/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err40];
+              } else {
+                vErrors.push(err40);
+              }
+              errors++;
+            }
+          }
+          if (data21.classification !== undefined) {
+            let data25 = data21.classification;
+            if (typeof data25 === 'string') {
+              if (func1(data25) > 200) {
+                const err41 = {
+                  instancePath: instancePath + '/tessera_governance/classification',
+                  schemaPath: '#/properties/tessera_governance/properties/classification/maxLength',
+                  keyword: 'maxLength',
+                  params: { limit: 200 },
+                  message: 'must NOT have more than 200 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err41];
+                } else {
+                  vErrors.push(err41);
+                }
+                errors++;
+              }
+              if (func1(data25) < 1) {
+                const err42 = {
+                  instancePath: instancePath + '/tessera_governance/classification',
+                  schemaPath: '#/properties/tessera_governance/properties/classification/minLength',
+                  keyword: 'minLength',
+                  params: { limit: 1 },
+                  message: 'must NOT have fewer than 1 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err42];
+                } else {
+                  vErrors.push(err42);
+                }
+                errors++;
+              }
+            } else {
+              const err43 = {
+                instancePath: instancePath + '/tessera_governance/classification',
+                schemaPath: '#/properties/tessera_governance/properties/classification/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err43];
+              } else {
+                vErrors.push(err43);
+              }
+              errors++;
+            }
+          }
+          if (data21.replaced_by !== undefined) {
+            let data26 = data21.replaced_by;
+            if (typeof data26 === 'string') {
+              if (func1(data26) < 1) {
+                const err44 = {
+                  instancePath: instancePath + '/tessera_governance/replaced_by',
+                  schemaPath: '#/properties/tessera_governance/properties/replaced_by/minLength',
+                  keyword: 'minLength',
+                  params: { limit: 1 },
+                  message: 'must NOT have fewer than 1 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err44];
+                } else {
+                  vErrors.push(err44);
+                }
+                errors++;
+              }
+            } else {
+              const err45 = {
+                instancePath: instancePath + '/tessera_governance/replaced_by',
+                schemaPath: '#/properties/tessera_governance/properties/replaced_by/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err45];
+              } else {
+                vErrors.push(err45);
+              }
+              errors++;
+            }
+          }
+          if (data21.deprecation_reason !== undefined) {
+            let data27 = data21.deprecation_reason;
+            if (typeof data27 === 'string') {
+              if (func1(data27) > 2000) {
+                const err46 = {
+                  instancePath: instancePath + '/tessera_governance/deprecation_reason',
+                  schemaPath: '#/properties/tessera_governance/properties/deprecation_reason/maxLength',
+                  keyword: 'maxLength',
+                  params: { limit: 2000 },
+                  message: 'must NOT have more than 2000 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err46];
+                } else {
+                  vErrors.push(err46);
+                }
+                errors++;
+              }
+              if (func1(data27) < 1) {
+                const err47 = {
+                  instancePath: instancePath + '/tessera_governance/deprecation_reason',
+                  schemaPath: '#/properties/tessera_governance/properties/deprecation_reason/minLength',
+                  keyword: 'minLength',
+                  params: { limit: 1 },
+                  message: 'must NOT have fewer than 1 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err47];
+                } else {
+                  vErrors.push(err47);
+                }
+                errors++;
+              }
+            } else {
+              const err48 = {
+                instancePath: instancePath + '/tessera_governance/deprecation_reason',
+                schemaPath: '#/properties/tessera_governance/properties/deprecation_reason/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err48];
+              } else {
+                vErrors.push(err48);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err49 = {
+            instancePath: instancePath + '/tessera_governance',
+            schemaPath: '#/properties/tessera_governance/type',
+            keyword: 'type',
+            params: { type: 'object' },
+            message: 'must be object',
+          };
+          if (vErrors === null) {
+            vErrors = [err49];
+          } else {
+            vErrors.push(err49);
+          }
+          errors++;
+        }
+      }
+    } else {
+      const err50 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
+      if (vErrors === null) {
+        vErrors = [err50];
+      } else {
+        vErrors.push(err50);
+      }
+      errors++;
+    }
+    validate115.errors = vErrors;
+    return errors === 0;
+  }
+  validate115.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
+  function validate114(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
+    let vErrors = null;
+    let errors = 0;
+    const evaluated0 = validate114.evaluated;
+    if (evaluated0.dynamicProps) {
+      evaluated0.props = undefined;
+    }
+    if (evaluated0.dynamicItems) {
+      evaluated0.items = undefined;
+    }
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.concept === undefined) {
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'concept' }, message: "must have required property '" + 'concept' + "'" };
+        if (vErrors === null) {
+          vErrors = [err0];
+        } else {
+          vErrors.push(err0);
+        }
+        errors++;
+      }
+      if (data.type === undefined) {
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'type' }, message: "must have required property '" + 'type' + "'" };
+        if (vErrors === null) {
+          vErrors = [err1];
+        } else {
+          vErrors.push(err1);
+        }
+        errors++;
+      }
+      for (const key0 in data) {
+        if (!func14.call(OntologyComponentDefinesSingleSchema4.properties, key0)) {
+          const err2 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
+          if (vErrors === null) {
+            vErrors = [err2];
+          } else {
+            vErrors.push(err2);
+          }
+          errors++;
+        }
+      }
+      if (data.concept !== undefined) {
+        if (typeof data.concept !== 'string') {
+          const err3 = { instancePath: instancePath + '/concept', schemaPath: '#/properties/concept/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err3];
+          } else {
+            vErrors.push(err3);
+          }
+          errors++;
+        }
+      }
+      if (data.type !== undefined) {
+        let data1 = data.type;
+        if (typeof data1 !== 'string') {
+          const err4 = { instancePath: instancePath + '/type', schemaPath: '#/$defs/ConceptType/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err4];
+          } else {
+            vErrors.push(err4);
+          }
+          errors++;
+        }
+        if (!(data1 === 'EntityType' || data1 === 'ValueType')) {
+          const err5 = {
+            instancePath: instancePath + '/type',
+            schemaPath: '#/$defs/ConceptType/enum',
+            keyword: 'enum',
+            params: { allowedValues: ConceptEitherEntityTypeSchema4.enum },
+            message: 'must be equal to one of the allowed values',
+          };
+          if (vErrors === null) {
+            vErrors = [err5];
+          } else {
+            vErrors.push(err5);
+          }
+          errors++;
+        }
+      }
+      if (data.description !== undefined) {
+        if (typeof data.description !== 'string') {
+          const err6 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err6];
+          } else {
+            vErrors.push(err6);
+          }
+          errors++;
+        }
+      }
+      if (data.extends !== undefined) {
+        let data3 = data.extends;
+        if (Array.isArray(data3)) {
+          const len0 = data3.length;
+          for (let i0 = 0; i0 < len0; i0++) {
+            if (typeof data3[i0] !== 'string') {
+              const err7 = { instancePath: instancePath + '/extends/' + i0, schemaPath: '#/properties/extends/items/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+              if (vErrors === null) {
+                vErrors = [err7];
+              } else {
+                vErrors.push(err7);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err8 = { instancePath: instancePath + '/extends', schemaPath: '#/properties/extends/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err8];
+          } else {
+            vErrors.push(err8);
+          }
+          errors++;
+        }
+      }
+      if (data.derived_by !== undefined) {
+        let data5 = data.derived_by;
+        if (Array.isArray(data5)) {
+          const len1 = data5.length;
+          for (let i1 = 0; i1 < len1; i1++) {
+            if (typeof data5[i1] !== 'string') {
+              const err9 = { instancePath: instancePath + '/derived_by/' + i1, schemaPath: '#/$defs/Expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+              if (vErrors === null) {
+                vErrors = [err9];
+              } else {
+                vErrors.push(err9);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err10 = { instancePath: instancePath + '/derived_by', schemaPath: '#/properties/derived_by/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err10];
+          } else {
+            vErrors.push(err10);
+          }
+          errors++;
+        }
+      }
+      if (data.identify_by !== undefined) {
+        let data7 = data.identify_by;
+        if (Array.isArray(data7)) {
+          const len2 = data7.length;
+          for (let i2 = 0; i2 < len2; i2++) {
+            if (typeof data7[i2] !== 'string') {
+              const err11 = {
+                instancePath: instancePath + '/identify_by/' + i2,
+                schemaPath: '#/properties/identify_by/items/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err11];
+              } else {
+                vErrors.push(err11);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err12 = { instancePath: instancePath + '/identify_by', schemaPath: '#/properties/identify_by/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err12];
+          } else {
+            vErrors.push(err12);
+          }
+          errors++;
+        }
+      }
+      if (data.requires !== undefined) {
+        let data9 = data.requires;
+        if (Array.isArray(data9)) {
+          const len3 = data9.length;
+          for (let i3 = 0; i3 < len3; i3++) {
+            if (typeof data9[i3] !== 'string') {
+              const err13 = { instancePath: instancePath + '/requires/' + i3, schemaPath: '#/$defs/Expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+              if (vErrors === null) {
+                vErrors = [err13];
+              } else {
+                vErrors.push(err13);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err14 = { instancePath: instancePath + '/requires', schemaPath: '#/properties/requires/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err14];
+          } else {
+            vErrors.push(err14);
+          }
+          errors++;
+        }
+      }
+      if (data.relationships !== undefined) {
+        let data11 = data.relationships;
+        if (Array.isArray(data11)) {
+          const len4 = data11.length;
+          for (let i4 = 0; i4 < len4; i4++) {
+            if (!validate115(data11[i4], { instancePath: instancePath + '/relationships/' + i4, parentData: data11, parentDataProperty: i4, rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? validate115.errors : vErrors.concat(validate115.errors);
+              errors = vErrors.length;
+            }
+          }
+        } else {
+          const err15 = { instancePath: instancePath + '/relationships', schemaPath: '#/properties/relationships/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err15];
+          } else {
+            vErrors.push(err15);
+          }
+          errors++;
+        }
+      }
+      if (data.iri !== undefined) {
+        if (typeof data.iri !== 'string') {
+          const err16 = { instancePath: instancePath + '/iri', schemaPath: '#/properties/iri/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err16];
+          } else {
+            vErrors.push(err16);
+          }
+          errors++;
+        }
+      }
+      if (data.tessera_notes !== undefined) {
+        let data14 = data.tessera_notes;
+        if (typeof data14 === 'string') {
+          if (func1(data14) > 10000) {
+            const err17 = {
+              instancePath: instancePath + '/tessera_notes',
+              schemaPath: '#/properties/tessera_notes/maxLength',
+              keyword: 'maxLength',
+              params: { limit: 10000 },
+              message: 'must NOT have more than 10000 characters',
+            };
+            if (vErrors === null) {
+              vErrors = [err17];
+            } else {
+              vErrors.push(err17);
+            }
+            errors++;
+          }
+          if (func1(data14) < 1) {
+            const err18 = {
+              instancePath: instancePath + '/tessera_notes',
+              schemaPath: '#/properties/tessera_notes/minLength',
+              keyword: 'minLength',
+              params: { limit: 1 },
+              message: 'must NOT have fewer than 1 characters',
+            };
+            if (vErrors === null) {
+              vErrors = [err18];
+            } else {
+              vErrors.push(err18);
+            }
+            errors++;
+          }
+        } else {
+          const err19 = { instancePath: instancePath + '/tessera_notes', schemaPath: '#/properties/tessera_notes/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err19];
+          } else {
+            vErrors.push(err19);
+          }
+          errors++;
+        }
+      }
+      if (data.tessera_attributes !== undefined) {
+        let data15 = data.tessera_attributes;
+        if (Array.isArray(data15)) {
+          if (data15.length > 200) {
+            const err20 = {
+              instancePath: instancePath + '/tessera_attributes',
+              schemaPath: '#/properties/tessera_attributes/maxItems',
+              keyword: 'maxItems',
+              params: { limit: 200 },
+              message: 'must NOT have more than 200 items',
+            };
+            if (vErrors === null) {
+              vErrors = [err20];
+            } else {
+              vErrors.push(err20);
+            }
+            errors++;
+          }
+          const len5 = data15.length;
+          for (let i5 = 0; i5 < len5; i5++) {
+            let data16 = data15[i5];
+            if (typeof data16 === 'string') {
+              if (func1(data16) < 1) {
+                const err21 = {
+                  instancePath: instancePath + '/tessera_attributes/' + i5,
+                  schemaPath: '#/properties/tessera_attributes/items/minLength',
+                  keyword: 'minLength',
+                  params: { limit: 1 },
+                  message: 'must NOT have fewer than 1 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err21];
+                } else {
+                  vErrors.push(err21);
+                }
+                errors++;
+              }
+            } else {
+              const err22 = {
+                instancePath: instancePath + '/tessera_attributes/' + i5,
+                schemaPath: '#/properties/tessera_attributes/items/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err22];
+              } else {
+                vErrors.push(err22);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err23 = {
+            instancePath: instancePath + '/tessera_attributes',
+            schemaPath: '#/properties/tessera_attributes/type',
+            keyword: 'type',
+            params: { type: 'array' },
+            message: 'must be array',
+          };
+          if (vErrors === null) {
+            vErrors = [err23];
+          } else {
+            vErrors.push(err23);
+          }
+          errors++;
+        }
+      }
+      if (data.tessera_ai_context !== undefined) {
+        let data17 = data.tessera_ai_context;
+        if (typeof data17 !== 'string' && !(data17 && typeof data17 == 'object' && !Array.isArray(data17))) {
+          const err24 = {
+            instancePath: instancePath + '/tessera_ai_context',
+            schemaPath: '#/properties/tessera_ai_context/type',
+            keyword: 'type',
+            params: { type: OntologyComponentDefinesSingleSchema4.properties.tessera_ai_context.type },
+            message: 'must be string,object',
+          };
+          if (vErrors === null) {
+            vErrors = [err24];
+          } else {
+            vErrors.push(err24);
+          }
+          errors++;
+        }
+        if (typeof data17 === 'string') {
+          if (func1(data17) > 10000) {
+            const err25 = {
+              instancePath: instancePath + '/tessera_ai_context',
+              schemaPath: '#/properties/tessera_ai_context/maxLength',
+              keyword: 'maxLength',
+              params: { limit: 10000 },
+              message: 'must NOT have more than 10000 characters',
+            };
+            if (vErrors === null) {
+              vErrors = [err25];
+            } else {
+              vErrors.push(err25);
+            }
+            errors++;
+          }
+        }
+        if (data17 && typeof data17 == 'object' && !Array.isArray(data17)) {
+          for (const key1 in data17) {
+            if (!(key1 === 'instructions' || key1 === 'synonyms' || key1 === 'examples')) {
+              const err26 = {
+                instancePath: instancePath + '/tessera_ai_context',
+                schemaPath: '#/properties/tessera_ai_context/additionalProperties',
+                keyword: 'additionalProperties',
+                params: { additionalProperty: key1 },
+                message: 'must NOT have additional properties',
+              };
+              if (vErrors === null) {
+                vErrors = [err26];
+              } else {
+                vErrors.push(err26);
+              }
+              errors++;
+            }
+          }
+          if (data17.instructions !== undefined) {
+            let data18 = data17.instructions;
+            if (typeof data18 === 'string') {
+              if (func1(data18) > 10000) {
+                const err27 = {
+                  instancePath: instancePath + '/tessera_ai_context/instructions',
+                  schemaPath: '#/properties/tessera_ai_context/properties/instructions/maxLength',
+                  keyword: 'maxLength',
+                  params: { limit: 10000 },
+                  message: 'must NOT have more than 10000 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err27];
+                } else {
+                  vErrors.push(err27);
+                }
+                errors++;
+              }
+            } else {
+              const err28 = {
+                instancePath: instancePath + '/tessera_ai_context/instructions',
+                schemaPath: '#/properties/tessera_ai_context/properties/instructions/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err28];
+              } else {
+                vErrors.push(err28);
+              }
+              errors++;
+            }
+          }
+          if (data17.synonyms !== undefined) {
+            let data19 = data17.synonyms;
+            if (Array.isArray(data19)) {
+              const len6 = data19.length;
+              for (let i6 = 0; i6 < len6; i6++) {
+                let data20 = data19[i6];
+                if (typeof data20 === 'string') {
+                  if (func1(data20) > 10000) {
+                    const err29 = {
+                      instancePath: instancePath + '/tessera_ai_context/synonyms/' + i6,
+                      schemaPath: '#/properties/tessera_ai_context/properties/synonyms/items/maxLength',
+                      keyword: 'maxLength',
+                      params: { limit: 10000 },
+                      message: 'must NOT have more than 10000 characters',
+                    };
+                    if (vErrors === null) {
+                      vErrors = [err29];
+                    } else {
+                      vErrors.push(err29);
+                    }
+                    errors++;
+                  }
+                } else {
+                  const err30 = {
+                    instancePath: instancePath + '/tessera_ai_context/synonyms/' + i6,
+                    schemaPath: '#/properties/tessera_ai_context/properties/synonyms/items/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err30];
+                  } else {
+                    vErrors.push(err30);
+                  }
+                  errors++;
+                }
+              }
+            } else {
+              const err31 = {
+                instancePath: instancePath + '/tessera_ai_context/synonyms',
+                schemaPath: '#/properties/tessera_ai_context/properties/synonyms/type',
+                keyword: 'type',
+                params: { type: 'array' },
+                message: 'must be array',
+              };
+              if (vErrors === null) {
+                vErrors = [err31];
+              } else {
+                vErrors.push(err31);
+              }
+              errors++;
+            }
+          }
+          if (data17.examples !== undefined) {
+            let data21 = data17.examples;
+            if (Array.isArray(data21)) {
+              const len7 = data21.length;
+              for (let i7 = 0; i7 < len7; i7++) {
+                let data22 = data21[i7];
+                if (typeof data22 === 'string') {
+                  if (func1(data22) > 10000) {
+                    const err32 = {
+                      instancePath: instancePath + '/tessera_ai_context/examples/' + i7,
+                      schemaPath: '#/properties/tessera_ai_context/properties/examples/items/maxLength',
+                      keyword: 'maxLength',
+                      params: { limit: 10000 },
+                      message: 'must NOT have more than 10000 characters',
+                    };
+                    if (vErrors === null) {
+                      vErrors = [err32];
+                    } else {
+                      vErrors.push(err32);
+                    }
+                    errors++;
+                  }
+                } else {
+                  const err33 = {
+                    instancePath: instancePath + '/tessera_ai_context/examples/' + i7,
+                    schemaPath: '#/properties/tessera_ai_context/properties/examples/items/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err33];
+                  } else {
+                    vErrors.push(err33);
+                  }
+                  errors++;
+                }
+              }
+            } else {
+              const err34 = {
+                instancePath: instancePath + '/tessera_ai_context/examples',
+                schemaPath: '#/properties/tessera_ai_context/properties/examples/type',
+                keyword: 'type',
+                params: { type: 'array' },
+                message: 'must be array',
+              };
+              if (vErrors === null) {
+                vErrors = [err34];
+              } else {
+                vErrors.push(err34);
+              }
+              errors++;
+            }
+          }
+        }
+      }
+      if (data.tessera_governance !== undefined) {
+        let data23 = data.tessera_governance;
+        if (data23 && typeof data23 == 'object' && !Array.isArray(data23)) {
+          if (data23.status !== undefined) {
+            if (typeof data23.status !== 'string') {
+              const err35 = {
+                instancePath: instancePath + '/tessera_governance/status',
+                schemaPath: '#/properties/tessera_governance/properties/status/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err35];
+              } else {
+                vErrors.push(err35);
+              }
+              errors++;
+            }
+          }
+          if (data23.owner !== undefined) {
+            let data25 = data23.owner;
+            if (typeof data25 === 'string') {
+              if (func1(data25) > 200) {
+                const err36 = {
+                  instancePath: instancePath + '/tessera_governance/owner',
+                  schemaPath: '#/properties/tessera_governance/properties/owner/maxLength',
+                  keyword: 'maxLength',
+                  params: { limit: 200 },
+                  message: 'must NOT have more than 200 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err36];
+                } else {
+                  vErrors.push(err36);
+                }
+                errors++;
+              }
+              if (func1(data25) < 1) {
+                const err37 = {
+                  instancePath: instancePath + '/tessera_governance/owner',
+                  schemaPath: '#/properties/tessera_governance/properties/owner/minLength',
+                  keyword: 'minLength',
+                  params: { limit: 1 },
+                  message: 'must NOT have fewer than 1 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err37];
+                } else {
+                  vErrors.push(err37);
+                }
+                errors++;
+              }
+            } else {
+              const err38 = {
+                instancePath: instancePath + '/tessera_governance/owner',
+                schemaPath: '#/properties/tessera_governance/properties/owner/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err38];
+              } else {
+                vErrors.push(err38);
+              }
+              errors++;
+            }
+          }
+          if (data23.steward !== undefined) {
+            let data26 = data23.steward;
+            if (typeof data26 === 'string') {
+              if (func1(data26) > 200) {
+                const err39 = {
+                  instancePath: instancePath + '/tessera_governance/steward',
+                  schemaPath: '#/properties/tessera_governance/properties/steward/maxLength',
+                  keyword: 'maxLength',
+                  params: { limit: 200 },
+                  message: 'must NOT have more than 200 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err39];
+                } else {
+                  vErrors.push(err39);
+                }
+                errors++;
+              }
+              if (func1(data26) < 1) {
+                const err40 = {
+                  instancePath: instancePath + '/tessera_governance/steward',
+                  schemaPath: '#/properties/tessera_governance/properties/steward/minLength',
+                  keyword: 'minLength',
+                  params: { limit: 1 },
+                  message: 'must NOT have fewer than 1 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err40];
+                } else {
+                  vErrors.push(err40);
+                }
+                errors++;
+              }
+            } else {
+              const err41 = {
+                instancePath: instancePath + '/tessera_governance/steward',
+                schemaPath: '#/properties/tessera_governance/properties/steward/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err41];
+              } else {
+                vErrors.push(err41);
+              }
+              errors++;
+            }
+          }
+          if (data23.classification !== undefined) {
+            let data27 = data23.classification;
+            if (typeof data27 === 'string') {
+              if (func1(data27) > 200) {
+                const err42 = {
+                  instancePath: instancePath + '/tessera_governance/classification',
+                  schemaPath: '#/properties/tessera_governance/properties/classification/maxLength',
+                  keyword: 'maxLength',
+                  params: { limit: 200 },
+                  message: 'must NOT have more than 200 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err42];
+                } else {
+                  vErrors.push(err42);
+                }
+                errors++;
+              }
+              if (func1(data27) < 1) {
+                const err43 = {
+                  instancePath: instancePath + '/tessera_governance/classification',
+                  schemaPath: '#/properties/tessera_governance/properties/classification/minLength',
+                  keyword: 'minLength',
+                  params: { limit: 1 },
+                  message: 'must NOT have fewer than 1 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err43];
+                } else {
+                  vErrors.push(err43);
+                }
+                errors++;
+              }
+            } else {
+              const err44 = {
+                instancePath: instancePath + '/tessera_governance/classification',
+                schemaPath: '#/properties/tessera_governance/properties/classification/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err44];
+              } else {
+                vErrors.push(err44);
+              }
+              errors++;
+            }
+          }
+          if (data23.replaced_by !== undefined) {
+            let data28 = data23.replaced_by;
+            if (typeof data28 === 'string') {
+              if (func1(data28) < 1) {
+                const err45 = {
+                  instancePath: instancePath + '/tessera_governance/replaced_by',
+                  schemaPath: '#/properties/tessera_governance/properties/replaced_by/minLength',
+                  keyword: 'minLength',
+                  params: { limit: 1 },
+                  message: 'must NOT have fewer than 1 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err45];
+                } else {
+                  vErrors.push(err45);
+                }
+                errors++;
+              }
+            } else {
+              const err46 = {
+                instancePath: instancePath + '/tessera_governance/replaced_by',
+                schemaPath: '#/properties/tessera_governance/properties/replaced_by/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err46];
+              } else {
+                vErrors.push(err46);
+              }
+              errors++;
+            }
+          }
+          if (data23.deprecation_reason !== undefined) {
+            let data29 = data23.deprecation_reason;
+            if (typeof data29 === 'string') {
+              if (func1(data29) > 2000) {
+                const err47 = {
+                  instancePath: instancePath + '/tessera_governance/deprecation_reason',
+                  schemaPath: '#/properties/tessera_governance/properties/deprecation_reason/maxLength',
+                  keyword: 'maxLength',
+                  params: { limit: 2000 },
+                  message: 'must NOT have more than 2000 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err47];
+                } else {
+                  vErrors.push(err47);
+                }
+                errors++;
+              }
+              if (func1(data29) < 1) {
+                const err48 = {
+                  instancePath: instancePath + '/tessera_governance/deprecation_reason',
+                  schemaPath: '#/properties/tessera_governance/properties/deprecation_reason/minLength',
+                  keyword: 'minLength',
+                  params: { limit: 1 },
+                  message: 'must NOT have fewer than 1 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err48];
+                } else {
+                  vErrors.push(err48);
+                }
+                errors++;
+              }
+            } else {
+              const err49 = {
+                instancePath: instancePath + '/tessera_governance/deprecation_reason',
+                schemaPath: '#/properties/tessera_governance/properties/deprecation_reason/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err49];
+              } else {
+                vErrors.push(err49);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err50 = {
+            instancePath: instancePath + '/tessera_governance',
+            schemaPath: '#/properties/tessera_governance/type',
+            keyword: 'type',
+            params: { type: 'object' },
+            message: 'must be object',
+          };
+          if (vErrors === null) {
+            vErrors = [err50];
+          } else {
+            vErrors.push(err50);
+          }
+          errors++;
+        }
+      }
+    } else {
+      const err51 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
+      if (vErrors === null) {
+        vErrors = [err51];
+      } else {
+        vErrors.push(err51);
+      }
+      errors++;
+    }
+    validate114.errors = vErrors;
+    return errors === 0;
+  }
+  validate114.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
+  function validate113(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
+    /*# sourceURL="urn:semantic-workbench:tessera-part:3:ossie-0.2.0.dev0" */
+    let vErrors = null;
+    let errors = 0;
+    const evaluated0 = validate113.evaluated;
+    if (evaluated0.dynamicProps) {
+      evaluated0.props = undefined;
+    }
+    if (evaluated0.dynamicItems) {
+      evaluated0.items = undefined;
+    }
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.tessera === undefined) {
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'tessera' }, message: "must have required property '" + 'tessera' + "'" };
+        if (vErrors === null) {
+          vErrors = [err0];
+        } else {
+          vErrors.push(err0);
+        }
+        errors++;
+      }
+      if (data.tessera_part === undefined) {
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'tessera_part' }, message: "must have required property '" + 'tessera_part' + "'" };
+        if (vErrors === null) {
+          vErrors = [err1];
+        } else {
+          vErrors.push(err1);
+        }
+        errors++;
+      }
+      if (data.ontology === undefined) {
+        const err2 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'ontology' }, message: "must have required property '" + 'ontology' + "'" };
+        if (vErrors === null) {
+          vErrors = [err2];
+        } else {
+          vErrors.push(err2);
+        }
+        errors++;
+      }
+      for (const key0 in data) {
+        if (!(key0 === 'tessera' || key0 === 'tessera_part' || key0 === 'ontology')) {
+          const err3 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
+          if (vErrors === null) {
+            vErrors = [err3];
+          } else {
+            vErrors.push(err3);
+          }
+          errors++;
+        }
+      }
+      if (data.tessera !== undefined) {
+        let data0 = data.tessera;
+        if (!(typeof data0 == 'number' && !(data0 % 1) && !isNaN(data0))) {
+          const err4 = { instancePath: instancePath + '/tessera', schemaPath: '#/properties/tessera/type', keyword: 'type', params: { type: 'integer' }, message: 'must be integer' };
+          if (vErrors === null) {
+            vErrors = [err4];
+          } else {
+            vErrors.push(err4);
+          }
+          errors++;
+        }
+        if (3 !== data0) {
+          const err5 = { instancePath: instancePath + '/tessera', schemaPath: '#/properties/tessera/const', keyword: 'const', params: { allowedValue: 3 }, message: 'must be equal to constant' };
+          if (vErrors === null) {
+            vErrors = [err5];
+          } else {
+            vErrors.push(err5);
+          }
+          errors++;
+        }
+      }
+      if (data.tessera_part !== undefined) {
+        if (true !== data.tessera_part) {
+          const err6 = {
+            instancePath: instancePath + '/tessera_part',
+            schemaPath: '#/properties/tessera_part/const',
+            keyword: 'const',
+            params: { allowedValue: true },
+            message: 'must be equal to constant',
+          };
+          if (vErrors === null) {
+            vErrors = [err6];
+          } else {
+            vErrors.push(err6);
+          }
+          errors++;
+        }
+      }
+      if (data.ontology !== undefined) {
+        let data2 = data.ontology;
+        if (Array.isArray(data2)) {
+          if (data2.length < 0) {
+            const err7 = {
+              instancePath: instancePath + '/ontology',
+              schemaPath: '#/properties/ontology/minItems',
+              keyword: 'minItems',
+              params: { limit: 0 },
+              message: 'must NOT have fewer than 0 items',
+            };
+            if (vErrors === null) {
+              vErrors = [err7];
+            } else {
+              vErrors.push(err7);
+            }
+            errors++;
+          }
+          const len0 = data2.length;
+          for (let i0 = 0; i0 < len0; i0++) {
+            if (!validate114(data2[i0], { instancePath: instancePath + '/ontology/' + i0, parentData: data2, parentDataProperty: i0, rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? validate114.errors : vErrors.concat(validate114.errors);
+              errors = vErrors.length;
+            }
+          }
+        } else {
+          const err8 = { instancePath: instancePath + '/ontology', schemaPath: '#/properties/ontology/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err8];
+          } else {
+            vErrors.push(err8);
+          }
+          errors++;
+        }
+      }
+    } else {
+      const err9 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
+      if (vErrors === null) {
+        vErrors = [err9];
+      } else {
+        vErrors.push(err9);
+      }
+      errors++;
+    }
+    validate113.errors = vErrors;
+    return errors === 0;
+  }
+  validate113.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
+  const tesseraOntologyRevisionThreeSchema = {
+    $schema: 'https://json-schema.org/draft/2020-12/schema',
+    $id: 'urn:semantic-workbench:tessera-ontology:3:ossie-0.2.0.dev0',
+    title: 'Apache Ossie Ontology Metadata Specification',
+    description: 'JSON Schema for validating Apache Ossie ontology definitions',
+    type: 'object',
+    properties: {
+      version: { type: 'string', const: '0.2.0.dev0', description: 'Ontology specification version' },
+      name: { type: 'string', description: 'Unique identifier for the ontology' },
+      description: { type: 'string', description: 'Human-readable description' },
+      ai_context: { $ref: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext' },
+      requires: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that constrain the population of this ontology' },
+      ontology: { type: 'array', items: { $ref: '#/$defs/OntologyComponent' }, minItems: 0, description: 'Components that define the concepts and relationships in this ontology' },
+      ontology_mappings: {
+        type: 'array',
+        description:
+          'Deprecated. Embedded ontology maps, accepted only so existing documents continue to validate; write mappings as standalone documents validated against ontology/mapping.json instead.',
+        deprecated: true,
+        items: { $ref: '#/$defs/OntologyMap' },
+      },
+      prefixes: {
+        type: 'object',
+        description: "Maps namespace prefixes to the IRIs they abbreviate, enabling QName expansion (e.g., 'foaf' -> 'http://xmlns.com/foaf/0.1/').",
+        additionalProperties: { type: 'string', format: 'iri' },
+      },
+      tessera: { type: 'integer', const: 3, description: 'Marks the document as Tessera revision 3.' },
+      tessera_notes: { type: 'string', minLength: 1, maxLength: 10000, description: 'Tessera addition since revision 1: a non-empty string of at most 10,000 characters.' },
+      tessera_includes: {
+        type: 'array',
+        minItems: 1,
+        maxItems: 200,
+        uniqueItems: true,
+        items: { type: 'string', minLength: 1 },
+        description: 'Tessera addition since revision 3: an ordered list of project-relative part files.',
+      },
+      tessera_exports: { type: 'array', minItems: 1, uniqueItems: true, items: { type: 'string', minLength: 1 }, description: 'Tessera addition since revision 3: a list of public concept names.' },
+      tessera_imports: {
+        type: 'array',
+        maxItems: 50,
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['project', 'alias', 'concepts'],
+          properties: {
+            project: { type: 'string', minLength: 1 },
+            ontology: { type: 'string', minLength: 1 },
+            alias: { type: 'string', pattern: '^[A-Za-z0-9_]+$' },
+            concepts: { type: 'array', minItems: 1, uniqueItems: true, items: { type: 'string', minLength: 1 } },
+            version: { oneOf: [{ const: 'latest' }, { type: 'object', required: ['pin'], additionalProperties: false, properties: { pin: { type: 'string', minLength: 1 } } }] },
+          },
+        },
+        description: 'Tessera addition since revision 3: a list of provider declarations with explicit concept allow-lists.',
+      },
+    },
+    required: ['tessera', 'version', 'name', 'ontology'],
+    additionalProperties: false,
+    $defs: {
+      OntologyComponent: {
+        type: 'object',
+        description: 'Ontology component that defines a single concept and any relationships that are keyed primarily by that concept',
+        properties: {
+          concept: { type: 'string', description: 'Unique name of the concept defined by this component' },
+          type: { $ref: '#/$defs/ConceptType' },
+          description: { type: 'string', description: 'Human-readable description of the concept' },
+          extends: { type: 'array', items: { type: 'string' }, description: 'Indicates that this concept extends one or more other concepts' },
+          derived_by: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that define how this concept is derived' },
+          identify_by: { type: 'array', items: { type: 'string' }, description: 'Names of relationships to use as the preferred identifier of this concept' },
+          requires: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that constrain the population of this concept' },
+          relationships: { type: 'array', items: { $ref: '#/$defs/Relationship' }, description: 'Defines relationships that pertain primarily to the concept defined in this component' },
+          iri: { type: 'string', description: "Optional global identifier for this concept, expressed as a full IRI or as a QName (prefix:local) resolved against the ontology-level 'prefixes' map." },
+          tessera_notes: { type: 'string', minLength: 1, maxLength: 10000, description: 'Tessera addition since revision 1: a non-empty string of at most 10,000 characters.' },
+          tessera_attributes: {
+            type: 'array',
+            maxItems: 200,
+            items: { type: 'string', minLength: 1 },
+            description: 'Tessera addition since revision 2: a list of at most 200 relationship names of the concept, in the order they are shown.',
+          },
+          tessera_ai_context: {
+            type: ['string', 'object'],
+            maxLength: 10000,
+            properties: {
+              instructions: { type: 'string', maxLength: 10000 },
+              synonyms: { type: 'array', items: { type: 'string', maxLength: 10000 } },
+              examples: { type: 'array', items: { type: 'string', maxLength: 10000 } },
+            },
+            additionalProperties: false,
+            description: 'Tessera addition since revision 2: a text, or an object with instructions, synonyms and examples, each text at most 10,000 characters.',
+          },
+          tessera_governance: {
+            type: 'object',
+            properties: {
+              status: { type: 'string' },
+              owner: { type: 'string', minLength: 1, maxLength: 200 },
+              steward: { type: 'string', minLength: 1, maxLength: 200 },
+              classification: { type: 'string', minLength: 1, maxLength: 200 },
+              replaced_by: { type: 'string', minLength: 1 },
+              deprecation_reason: { type: 'string', minLength: 1, maxLength: 2000 },
+            },
+            description: 'Tessera addition since revision 2: an object with at least one of status, owner, steward, classification, replaced_by, deprecation_reason.',
+          },
+        },
+        required: ['concept', 'type'],
+        additionalProperties: false,
+      },
+      Expression: { type: 'string', description: 'ANSI SQL expression' },
+      Relationship: {
+        type: 'object',
+        description: 'Relationship between concepts in the ontology',
+        properties: {
+          name: { type: 'string', description: 'Name of the relationship' },
+          description: { type: 'string', description: 'Human-readable description of the relationship' },
+          roles: { type: 'array', items: { $ref: '#/$defs/Role' }, description: 'Additional roles in this relationship' },
+          multiplicity: { $ref: '#/$defs/Multiplicity' },
+          derived_by: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that define how this concept is derived' },
+          requires: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that constrain the population of this relationship' },
+          verbalizes: { type: 'array', items: { type: 'string' }, description: 'Natural language expressions that verbalize this relationship' },
+          iri: {
+            type: 'string',
+            description: "Optional global identifier for this relationship, expressed as a full IRI or as a QName (prefix:local) resolved against the ontology-level 'prefixes' map.",
+          },
+          tessera_notes: { type: 'string', minLength: 1, maxLength: 10000, description: 'Tessera addition since revision 1: a non-empty string of at most 10,000 characters.' },
+          tessera_ai_context: {
+            type: ['string', 'object'],
+            maxLength: 10000,
+            properties: {
+              instructions: { type: 'string', maxLength: 10000 },
+              synonyms: { type: 'array', items: { type: 'string', maxLength: 10000 } },
+              examples: { type: 'array', items: { type: 'string', maxLength: 10000 } },
+            },
+            additionalProperties: false,
+            description: 'Tessera addition since revision 2: a text, or an object with instructions, synonyms and examples, each text at most 10,000 characters.',
+          },
+          tessera_governance: {
+            type: 'object',
+            properties: {
+              status: { type: 'string' },
+              owner: { type: 'string', minLength: 1, maxLength: 200 },
+              steward: { type: 'string', minLength: 1, maxLength: 200 },
+              classification: { type: 'string', minLength: 1, maxLength: 200 },
+              replaced_by: { type: 'string', minLength: 1 },
+              deprecation_reason: { type: 'string', minLength: 1, maxLength: 2000 },
+            },
+            description: 'Tessera addition since revision 2: an object with at least one of status, owner, steward, classification, replaced_by, deprecation_reason.',
+          },
+        },
+        required: ['name', 'verbalizes'],
+        additionalProperties: false,
+      },
+      ConceptMapping: {
+        type: 'object',
+        description: 'Mappings from logical model constructs to some ontology component',
+        properties: {
+          concept: { type: 'string', description: 'Name of the concept whose part of the ontology we are mapping to' },
+          object_mappings: {
+            type: 'array',
+            minItems: 1,
+            items: { $ref: '#/$defs/ObjectMapping' },
+            description: 'Mappings from logical constructs that populate the concept in this component. Valid only when the concept is an entity type',
+          },
+          link_mappings: {
+            type: 'array',
+            minItems: 1,
+            items: { $ref: '#/$defs/LinkMapping' },
+            description: 'Mappings from logical model relationships to ontology relationships pertaining to the mapped concept',
+          },
+        },
+        required: ['concept'],
+        anyOf: [{ required: ['object_mappings'] }, { required: ['link_mappings'] }],
+        additionalProperties: false,
+      },
+      ConceptType: { type: 'string', enum: ['EntityType', 'ValueType'], description: 'A concept is either an entity type or a value type' },
+      ReferentMapping: {
+        type: 'object',
+        description: 'Mapping from logical model constructs to a relationship used to references some entity type in the ontology',
+        properties: {
+          relationship: { type: 'string', description: 'Name of referent relationship' },
+          expression: { $ref: '#/$defs/Expression' },
+          referent_mappings: { type: 'array', minItems: 1, items: { $ref: '#/$defs/ReferentMapping' } },
+        },
+        required: ['relationship'],
+        anyOf: [{ required: ['expression'] }, { required: ['referent_mappings'] }],
+        additionalProperties: false,
+      },
+      Role: {
+        type: 'object',
+        description: 'Role in some relationship (the container)',
+        properties: {
+          concept: { type: 'string', description: 'Name of the concept playing this role' },
+          name: { type: 'string', description: 'Optional name of this role, used when the same concept plays multiple roles in the same relationship' },
+        },
+        required: ['concept'],
+        additionalProperties: false,
+      },
+      ObjectMapping: {
+        type: 'object',
+        description: 'Pattern of logical-level expressions for identifying objects of some concept using the values in one or more fields',
+        properties: {
+          concept: { type: 'string', description: 'Name of the concept whose objects we are mapping to' },
+          referent_mappings: { type: 'array', minItems: 1, items: { $ref: '#/$defs/ReferentMapping' }, description: 'Maps logical-model constructs to referent relationships of this entity type' },
+          expression: { $ref: '#/$defs/Expression' },
+        },
+        anyOf: [{ required: ['expression'] }, { required: ['referent_mappings'] }],
+        additionalProperties: false,
+      },
+      LinkMapping: {
+        type: 'object',
+        description: 'Mapping from logical schema to the links of relationships in the ontology',
+        properties: {
+          relationship: { type: 'string', description: 'Name of relationship being populated by this mapping node' },
+          object_mapping: { $ref: '#/$defs/ObjectMapping' },
+          children: { type: 'array', items: { $ref: '#/$defs/LinkMapping' }, description: 'Relationship maps at the next level in this hierarchy' },
+        },
+        required: ['object_mapping'],
+        additionalProperties: false,
+      },
+      Multiplicity: { type: 'string', enum: ['ManyToOne', 'OneToOne'], description: 'Relationship multiplicity' },
+      OntologyMap: {
+        type: 'object',
+        description: 'Map from the constructs of some logical model to some ontology',
+        properties: {
+          name: { type: 'string', description: 'Name of this ontology map' },
+          description: { type: 'string', description: 'Human-readable description of this ontology map' },
+          semantic_model: { $ref: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json' },
+          concept_mappings: { type: 'array', items: { $ref: '#/$defs/ConceptMapping' }, description: 'Maps logical model constructs to some concept and its relationships in the ontology' },
+        },
+        required: ['semantic_model', 'concept_mappings'],
+        additionalProperties: false,
+      },
+    },
+    $comment:
+      'Workbench schema derived from the pinned Ossie 0.2.0.dev0 ontology schema for Tessera revision 3. It is not part of the Ossie standard. Regenerate it with scripts/derive-tessera-schema.ts.',
+    allOf: [{ anyOf: [{ required: ['tessera_includes'] }, { properties: { ontology: { minItems: 1 } } }] }],
+  };
+  const tesseraOntologyRevisionThreeExpressionSchema = { type: 'string', description: 'ANSI SQL expression' };
+  const OntologyComponentDefinesSingleSchema5 = {
+    type: 'object',
+    description: 'Ontology component that defines a single concept and any relationships that are keyed primarily by that concept',
+    properties: {
+      concept: { type: 'string', description: 'Unique name of the concept defined by this component' },
+      type: { $ref: '#/$defs/ConceptType' },
+      description: { type: 'string', description: 'Human-readable description of the concept' },
+      extends: { type: 'array', items: { type: 'string' }, description: 'Indicates that this concept extends one or more other concepts' },
+      derived_by: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that define how this concept is derived' },
+      identify_by: { type: 'array', items: { type: 'string' }, description: 'Names of relationships to use as the preferred identifier of this concept' },
+      requires: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that constrain the population of this concept' },
+      relationships: { type: 'array', items: { $ref: '#/$defs/Relationship' }, description: 'Defines relationships that pertain primarily to the concept defined in this component' },
+      iri: { type: 'string', description: "Optional global identifier for this concept, expressed as a full IRI or as a QName (prefix:local) resolved against the ontology-level 'prefixes' map." },
+      tessera_notes: { type: 'string', minLength: 1, maxLength: 10000, description: 'Tessera addition since revision 1: a non-empty string of at most 10,000 characters.' },
+      tessera_attributes: {
+        type: 'array',
+        maxItems: 200,
+        items: { type: 'string', minLength: 1 },
+        description: 'Tessera addition since revision 2: a list of at most 200 relationship names of the concept, in the order they are shown.',
+      },
+      tessera_ai_context: {
+        type: ['string', 'object'],
+        maxLength: 10000,
+        properties: {
+          instructions: { type: 'string', maxLength: 10000 },
+          synonyms: { type: 'array', items: { type: 'string', maxLength: 10000 } },
+          examples: { type: 'array', items: { type: 'string', maxLength: 10000 } },
+        },
+        additionalProperties: false,
+        description: 'Tessera addition since revision 2: a text, or an object with instructions, synonyms and examples, each text at most 10,000 characters.',
+      },
+      tessera_governance: {
+        type: 'object',
+        properties: {
+          status: { type: 'string' },
+          owner: { type: 'string', minLength: 1, maxLength: 200 },
+          steward: { type: 'string', minLength: 1, maxLength: 200 },
+          classification: { type: 'string', minLength: 1, maxLength: 200 },
+          replaced_by: { type: 'string', minLength: 1 },
+          deprecation_reason: { type: 'string', minLength: 1, maxLength: 2000 },
+        },
+        description: 'Tessera addition since revision 2: an object with at least one of status, owner, steward, classification, replaced_by, deprecation_reason.',
+      },
+    },
+    required: ['concept', 'type'],
+    additionalProperties: false,
+  };
+  const ConceptEitherEntityTypeSchema5 = { type: 'string', enum: ['EntityType', 'ValueType'], description: 'A concept is either an entity type or a value type' };
+  const RelationshipBetweenConceptsOntologySchema5 = {
+    type: 'object',
+    description: 'Relationship between concepts in the ontology',
+    properties: {
+      name: { type: 'string', description: 'Name of the relationship' },
+      description: { type: 'string', description: 'Human-readable description of the relationship' },
+      roles: { type: 'array', items: { $ref: '#/$defs/Role' }, description: 'Additional roles in this relationship' },
+      multiplicity: { $ref: '#/$defs/Multiplicity' },
+      derived_by: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that define how this concept is derived' },
+      requires: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that constrain the population of this relationship' },
+      verbalizes: { type: 'array', items: { type: 'string' }, description: 'Natural language expressions that verbalize this relationship' },
+      iri: {
+        type: 'string',
+        description: "Optional global identifier for this relationship, expressed as a full IRI or as a QName (prefix:local) resolved against the ontology-level 'prefixes' map.",
+      },
+      tessera_notes: { type: 'string', minLength: 1, maxLength: 10000, description: 'Tessera addition since revision 1: a non-empty string of at most 10,000 characters.' },
+      tessera_ai_context: {
+        type: ['string', 'object'],
+        maxLength: 10000,
+        properties: {
+          instructions: { type: 'string', maxLength: 10000 },
+          synonyms: { type: 'array', items: { type: 'string', maxLength: 10000 } },
+          examples: { type: 'array', items: { type: 'string', maxLength: 10000 } },
+        },
+        additionalProperties: false,
+        description: 'Tessera addition since revision 2: a text, or an object with instructions, synonyms and examples, each text at most 10,000 characters.',
+      },
+      tessera_governance: {
+        type: 'object',
+        properties: {
+          status: { type: 'string' },
+          owner: { type: 'string', minLength: 1, maxLength: 200 },
+          steward: { type: 'string', minLength: 1, maxLength: 200 },
+          classification: { type: 'string', minLength: 1, maxLength: 200 },
+          replaced_by: { type: 'string', minLength: 1 },
+          deprecation_reason: { type: 'string', minLength: 1, maxLength: 2000 },
+        },
+        description: 'Tessera addition since revision 2: an object with at least one of status, owner, steward, classification, replaced_by, deprecation_reason.',
+      },
+    },
+    required: ['name', 'verbalizes'],
+    additionalProperties: false,
+  };
+  const RoleRelationshipContainerSchema5 = {
+    type: 'object',
+    description: 'Role in some relationship (the container)',
+    properties: {
+      concept: { type: 'string', description: 'Name of the concept playing this role' },
+      name: { type: 'string', description: 'Optional name of this role, used when the same concept plays multiple roles in the same relationship' },
+    },
+    required: ['concept'],
+    additionalProperties: false,
+  };
+  const RelationshipMultiplicitySchema5 = { type: 'string', enum: ['ManyToOne', 'OneToOne'], description: 'Relationship multiplicity' };
+
+  function validate120(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
+    let vErrors = null;
+    let errors = 0;
+    const evaluated0 = validate120.evaluated;
+    if (evaluated0.dynamicProps) {
+      evaluated0.props = undefined;
+    }
+    if (evaluated0.dynamicItems) {
+      evaluated0.items = undefined;
+    }
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.name === undefined) {
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'name' }, message: "must have required property '" + 'name' + "'" };
+        if (vErrors === null) {
+          vErrors = [err0];
+        } else {
+          vErrors.push(err0);
+        }
+        errors++;
+      }
+      if (data.verbalizes === undefined) {
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'verbalizes' }, message: "must have required property '" + 'verbalizes' + "'" };
+        if (vErrors === null) {
+          vErrors = [err1];
+        } else {
+          vErrors.push(err1);
+        }
+        errors++;
+      }
+      for (const key0 in data) {
+        if (!func14.call(RelationshipBetweenConceptsOntologySchema5.properties, key0)) {
+          const err2 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
+          if (vErrors === null) {
+            vErrors = [err2];
+          } else {
+            vErrors.push(err2);
+          }
+          errors++;
+        }
+      }
+      if (data.name !== undefined) {
+        if (typeof data.name !== 'string') {
+          const err3 = { instancePath: instancePath + '/name', schemaPath: '#/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err3];
+          } else {
+            vErrors.push(err3);
+          }
+          errors++;
+        }
+      }
+      if (data.description !== undefined) {
+        if (typeof data.description !== 'string') {
+          const err4 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err4];
+          } else {
+            vErrors.push(err4);
+          }
+          errors++;
+        }
+      }
+      if (data.roles !== undefined) {
+        let data2 = data.roles;
+        if (Array.isArray(data2)) {
+          const len0 = data2.length;
+          for (let i0 = 0; i0 < len0; i0++) {
+            let data3 = data2[i0];
+            if (data3 && typeof data3 == 'object' && !Array.isArray(data3)) {
+              if (data3.concept === undefined) {
+                const err5 = {
+                  instancePath: instancePath + '/roles/' + i0,
+                  schemaPath: '#/$defs/Role/required',
+                  keyword: 'required',
+                  params: { missingProperty: 'concept' },
+                  message: "must have required property '" + 'concept' + "'",
+                };
+                if (vErrors === null) {
+                  vErrors = [err5];
+                } else {
+                  vErrors.push(err5);
+                }
+                errors++;
+              }
+              for (const key1 in data3) {
+                if (!(key1 === 'concept' || key1 === 'name')) {
+                  const err6 = {
+                    instancePath: instancePath + '/roles/' + i0,
+                    schemaPath: '#/$defs/Role/additionalProperties',
+                    keyword: 'additionalProperties',
+                    params: { additionalProperty: key1 },
+                    message: 'must NOT have additional properties',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err6];
+                  } else {
+                    vErrors.push(err6);
+                  }
+                  errors++;
+                }
+              }
+              if (data3.concept !== undefined) {
+                if (typeof data3.concept !== 'string') {
+                  const err7 = {
+                    instancePath: instancePath + '/roles/' + i0 + '/concept',
+                    schemaPath: '#/$defs/Role/properties/concept/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err7];
+                  } else {
+                    vErrors.push(err7);
+                  }
+                  errors++;
+                }
+              }
+              if (data3.name !== undefined) {
+                if (typeof data3.name !== 'string') {
+                  const err8 = {
+                    instancePath: instancePath + '/roles/' + i0 + '/name',
+                    schemaPath: '#/$defs/Role/properties/name/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err8];
+                  } else {
+                    vErrors.push(err8);
+                  }
+                  errors++;
+                }
+              }
+            } else {
+              const err9 = { instancePath: instancePath + '/roles/' + i0, schemaPath: '#/$defs/Role/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
+              if (vErrors === null) {
+                vErrors = [err9];
+              } else {
+                vErrors.push(err9);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err10 = { instancePath: instancePath + '/roles', schemaPath: '#/properties/roles/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err10];
+          } else {
+            vErrors.push(err10);
+          }
+          errors++;
+        }
+      }
+      if (data.multiplicity !== undefined) {
+        let data6 = data.multiplicity;
+        if (typeof data6 !== 'string') {
+          const err11 = { instancePath: instancePath + '/multiplicity', schemaPath: '#/$defs/Multiplicity/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err11];
+          } else {
+            vErrors.push(err11);
+          }
+          errors++;
+        }
+        if (!(data6 === 'ManyToOne' || data6 === 'OneToOne')) {
+          const err12 = {
+            instancePath: instancePath + '/multiplicity',
+            schemaPath: '#/$defs/Multiplicity/enum',
+            keyword: 'enum',
+            params: { allowedValues: RelationshipMultiplicitySchema5.enum },
+            message: 'must be equal to one of the allowed values',
+          };
+          if (vErrors === null) {
+            vErrors = [err12];
+          } else {
+            vErrors.push(err12);
+          }
+          errors++;
+        }
+      }
+      if (data.derived_by !== undefined) {
+        let data7 = data.derived_by;
+        if (Array.isArray(data7)) {
+          const len1 = data7.length;
+          for (let i1 = 0; i1 < len1; i1++) {
+            if (typeof data7[i1] !== 'string') {
+              const err13 = { instancePath: instancePath + '/derived_by/' + i1, schemaPath: '#/$defs/Expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+              if (vErrors === null) {
+                vErrors = [err13];
+              } else {
+                vErrors.push(err13);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err14 = { instancePath: instancePath + '/derived_by', schemaPath: '#/properties/derived_by/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err14];
+          } else {
+            vErrors.push(err14);
+          }
+          errors++;
+        }
+      }
+      if (data.requires !== undefined) {
+        let data9 = data.requires;
+        if (Array.isArray(data9)) {
+          const len2 = data9.length;
+          for (let i2 = 0; i2 < len2; i2++) {
+            if (typeof data9[i2] !== 'string') {
+              const err15 = { instancePath: instancePath + '/requires/' + i2, schemaPath: '#/$defs/Expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+              if (vErrors === null) {
+                vErrors = [err15];
+              } else {
+                vErrors.push(err15);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err16 = { instancePath: instancePath + '/requires', schemaPath: '#/properties/requires/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err16];
+          } else {
+            vErrors.push(err16);
+          }
+          errors++;
+        }
+      }
+      if (data.verbalizes !== undefined) {
+        let data11 = data.verbalizes;
+        if (Array.isArray(data11)) {
+          const len3 = data11.length;
+          for (let i3 = 0; i3 < len3; i3++) {
+            if (typeof data11[i3] !== 'string') {
+              const err17 = {
+                instancePath: instancePath + '/verbalizes/' + i3,
+                schemaPath: '#/properties/verbalizes/items/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err17];
+              } else {
+                vErrors.push(err17);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err18 = { instancePath: instancePath + '/verbalizes', schemaPath: '#/properties/verbalizes/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err18];
+          } else {
+            vErrors.push(err18);
+          }
+          errors++;
+        }
+      }
+      if (data.iri !== undefined) {
+        if (typeof data.iri !== 'string') {
+          const err19 = { instancePath: instancePath + '/iri', schemaPath: '#/properties/iri/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err19];
+          } else {
+            vErrors.push(err19);
+          }
+          errors++;
+        }
+      }
+      if (data.tessera_notes !== undefined) {
+        let data14 = data.tessera_notes;
+        if (typeof data14 === 'string') {
+          if (func1(data14) > 10000) {
+            const err20 = {
+              instancePath: instancePath + '/tessera_notes',
+              schemaPath: '#/properties/tessera_notes/maxLength',
+              keyword: 'maxLength',
+              params: { limit: 10000 },
+              message: 'must NOT have more than 10000 characters',
+            };
+            if (vErrors === null) {
+              vErrors = [err20];
+            } else {
+              vErrors.push(err20);
+            }
+            errors++;
+          }
+          if (func1(data14) < 1) {
+            const err21 = {
+              instancePath: instancePath + '/tessera_notes',
+              schemaPath: '#/properties/tessera_notes/minLength',
+              keyword: 'minLength',
+              params: { limit: 1 },
+              message: 'must NOT have fewer than 1 characters',
+            };
+            if (vErrors === null) {
+              vErrors = [err21];
+            } else {
+              vErrors.push(err21);
+            }
+            errors++;
+          }
+        } else {
+          const err22 = { instancePath: instancePath + '/tessera_notes', schemaPath: '#/properties/tessera_notes/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err22];
+          } else {
+            vErrors.push(err22);
+          }
+          errors++;
+        }
+      }
+      if (data.tessera_ai_context !== undefined) {
+        let data15 = data.tessera_ai_context;
+        if (typeof data15 !== 'string' && !(data15 && typeof data15 == 'object' && !Array.isArray(data15))) {
+          const err23 = {
+            instancePath: instancePath + '/tessera_ai_context',
+            schemaPath: '#/properties/tessera_ai_context/type',
+            keyword: 'type',
+            params: { type: RelationshipBetweenConceptsOntologySchema5.properties.tessera_ai_context.type },
+            message: 'must be string,object',
+          };
+          if (vErrors === null) {
+            vErrors = [err23];
+          } else {
+            vErrors.push(err23);
+          }
+          errors++;
+        }
+        if (typeof data15 === 'string') {
+          if (func1(data15) > 10000) {
+            const err24 = {
+              instancePath: instancePath + '/tessera_ai_context',
+              schemaPath: '#/properties/tessera_ai_context/maxLength',
+              keyword: 'maxLength',
+              params: { limit: 10000 },
+              message: 'must NOT have more than 10000 characters',
+            };
+            if (vErrors === null) {
+              vErrors = [err24];
+            } else {
+              vErrors.push(err24);
+            }
+            errors++;
+          }
+        }
+        if (data15 && typeof data15 == 'object' && !Array.isArray(data15)) {
+          for (const key2 in data15) {
+            if (!(key2 === 'instructions' || key2 === 'synonyms' || key2 === 'examples')) {
+              const err25 = {
+                instancePath: instancePath + '/tessera_ai_context',
+                schemaPath: '#/properties/tessera_ai_context/additionalProperties',
+                keyword: 'additionalProperties',
+                params: { additionalProperty: key2 },
+                message: 'must NOT have additional properties',
+              };
+              if (vErrors === null) {
+                vErrors = [err25];
+              } else {
+                vErrors.push(err25);
+              }
+              errors++;
+            }
+          }
+          if (data15.instructions !== undefined) {
+            let data16 = data15.instructions;
+            if (typeof data16 === 'string') {
+              if (func1(data16) > 10000) {
+                const err26 = {
+                  instancePath: instancePath + '/tessera_ai_context/instructions',
+                  schemaPath: '#/properties/tessera_ai_context/properties/instructions/maxLength',
+                  keyword: 'maxLength',
+                  params: { limit: 10000 },
+                  message: 'must NOT have more than 10000 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err26];
+                } else {
+                  vErrors.push(err26);
+                }
+                errors++;
+              }
+            } else {
+              const err27 = {
+                instancePath: instancePath + '/tessera_ai_context/instructions',
+                schemaPath: '#/properties/tessera_ai_context/properties/instructions/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err27];
+              } else {
+                vErrors.push(err27);
+              }
+              errors++;
+            }
+          }
+          if (data15.synonyms !== undefined) {
+            let data17 = data15.synonyms;
+            if (Array.isArray(data17)) {
+              const len4 = data17.length;
+              for (let i4 = 0; i4 < len4; i4++) {
+                let data18 = data17[i4];
+                if (typeof data18 === 'string') {
+                  if (func1(data18) > 10000) {
+                    const err28 = {
+                      instancePath: instancePath + '/tessera_ai_context/synonyms/' + i4,
+                      schemaPath: '#/properties/tessera_ai_context/properties/synonyms/items/maxLength',
+                      keyword: 'maxLength',
+                      params: { limit: 10000 },
+                      message: 'must NOT have more than 10000 characters',
+                    };
+                    if (vErrors === null) {
+                      vErrors = [err28];
+                    } else {
+                      vErrors.push(err28);
+                    }
+                    errors++;
+                  }
+                } else {
+                  const err29 = {
+                    instancePath: instancePath + '/tessera_ai_context/synonyms/' + i4,
+                    schemaPath: '#/properties/tessera_ai_context/properties/synonyms/items/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err29];
+                  } else {
+                    vErrors.push(err29);
+                  }
+                  errors++;
+                }
+              }
+            } else {
+              const err30 = {
+                instancePath: instancePath + '/tessera_ai_context/synonyms',
+                schemaPath: '#/properties/tessera_ai_context/properties/synonyms/type',
+                keyword: 'type',
+                params: { type: 'array' },
+                message: 'must be array',
+              };
+              if (vErrors === null) {
+                vErrors = [err30];
+              } else {
+                vErrors.push(err30);
+              }
+              errors++;
+            }
+          }
+          if (data15.examples !== undefined) {
+            let data19 = data15.examples;
+            if (Array.isArray(data19)) {
+              const len5 = data19.length;
+              for (let i5 = 0; i5 < len5; i5++) {
+                let data20 = data19[i5];
+                if (typeof data20 === 'string') {
+                  if (func1(data20) > 10000) {
+                    const err31 = {
+                      instancePath: instancePath + '/tessera_ai_context/examples/' + i5,
+                      schemaPath: '#/properties/tessera_ai_context/properties/examples/items/maxLength',
+                      keyword: 'maxLength',
+                      params: { limit: 10000 },
+                      message: 'must NOT have more than 10000 characters',
+                    };
+                    if (vErrors === null) {
+                      vErrors = [err31];
+                    } else {
+                      vErrors.push(err31);
+                    }
+                    errors++;
+                  }
+                } else {
+                  const err32 = {
+                    instancePath: instancePath + '/tessera_ai_context/examples/' + i5,
+                    schemaPath: '#/properties/tessera_ai_context/properties/examples/items/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err32];
+                  } else {
+                    vErrors.push(err32);
+                  }
+                  errors++;
+                }
+              }
+            } else {
+              const err33 = {
+                instancePath: instancePath + '/tessera_ai_context/examples',
+                schemaPath: '#/properties/tessera_ai_context/properties/examples/type',
+                keyword: 'type',
+                params: { type: 'array' },
+                message: 'must be array',
+              };
+              if (vErrors === null) {
+                vErrors = [err33];
+              } else {
+                vErrors.push(err33);
+              }
+              errors++;
+            }
+          }
+        }
+      }
+      if (data.tessera_governance !== undefined) {
+        let data21 = data.tessera_governance;
+        if (data21 && typeof data21 == 'object' && !Array.isArray(data21)) {
+          if (data21.status !== undefined) {
+            if (typeof data21.status !== 'string') {
+              const err34 = {
+                instancePath: instancePath + '/tessera_governance/status',
+                schemaPath: '#/properties/tessera_governance/properties/status/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err34];
+              } else {
+                vErrors.push(err34);
+              }
+              errors++;
+            }
+          }
+          if (data21.owner !== undefined) {
+            let data23 = data21.owner;
+            if (typeof data23 === 'string') {
+              if (func1(data23) > 200) {
+                const err35 = {
+                  instancePath: instancePath + '/tessera_governance/owner',
+                  schemaPath: '#/properties/tessera_governance/properties/owner/maxLength',
+                  keyword: 'maxLength',
+                  params: { limit: 200 },
+                  message: 'must NOT have more than 200 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err35];
+                } else {
+                  vErrors.push(err35);
+                }
+                errors++;
+              }
+              if (func1(data23) < 1) {
+                const err36 = {
+                  instancePath: instancePath + '/tessera_governance/owner',
+                  schemaPath: '#/properties/tessera_governance/properties/owner/minLength',
+                  keyword: 'minLength',
+                  params: { limit: 1 },
+                  message: 'must NOT have fewer than 1 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err36];
+                } else {
+                  vErrors.push(err36);
+                }
+                errors++;
+              }
+            } else {
+              const err37 = {
+                instancePath: instancePath + '/tessera_governance/owner',
+                schemaPath: '#/properties/tessera_governance/properties/owner/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err37];
+              } else {
+                vErrors.push(err37);
+              }
+              errors++;
+            }
+          }
+          if (data21.steward !== undefined) {
+            let data24 = data21.steward;
+            if (typeof data24 === 'string') {
+              if (func1(data24) > 200) {
+                const err38 = {
+                  instancePath: instancePath + '/tessera_governance/steward',
+                  schemaPath: '#/properties/tessera_governance/properties/steward/maxLength',
+                  keyword: 'maxLength',
+                  params: { limit: 200 },
+                  message: 'must NOT have more than 200 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err38];
+                } else {
+                  vErrors.push(err38);
+                }
+                errors++;
+              }
+              if (func1(data24) < 1) {
+                const err39 = {
+                  instancePath: instancePath + '/tessera_governance/steward',
+                  schemaPath: '#/properties/tessera_governance/properties/steward/minLength',
+                  keyword: 'minLength',
+                  params: { limit: 1 },
+                  message: 'must NOT have fewer than 1 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err39];
+                } else {
+                  vErrors.push(err39);
+                }
+                errors++;
+              }
+            } else {
+              const err40 = {
+                instancePath: instancePath + '/tessera_governance/steward',
+                schemaPath: '#/properties/tessera_governance/properties/steward/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err40];
+              } else {
+                vErrors.push(err40);
+              }
+              errors++;
+            }
+          }
+          if (data21.classification !== undefined) {
+            let data25 = data21.classification;
+            if (typeof data25 === 'string') {
+              if (func1(data25) > 200) {
+                const err41 = {
+                  instancePath: instancePath + '/tessera_governance/classification',
+                  schemaPath: '#/properties/tessera_governance/properties/classification/maxLength',
+                  keyword: 'maxLength',
+                  params: { limit: 200 },
+                  message: 'must NOT have more than 200 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err41];
+                } else {
+                  vErrors.push(err41);
+                }
+                errors++;
+              }
+              if (func1(data25) < 1) {
+                const err42 = {
+                  instancePath: instancePath + '/tessera_governance/classification',
+                  schemaPath: '#/properties/tessera_governance/properties/classification/minLength',
+                  keyword: 'minLength',
+                  params: { limit: 1 },
+                  message: 'must NOT have fewer than 1 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err42];
+                } else {
+                  vErrors.push(err42);
+                }
+                errors++;
+              }
+            } else {
+              const err43 = {
+                instancePath: instancePath + '/tessera_governance/classification',
+                schemaPath: '#/properties/tessera_governance/properties/classification/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err43];
+              } else {
+                vErrors.push(err43);
+              }
+              errors++;
+            }
+          }
+          if (data21.replaced_by !== undefined) {
+            let data26 = data21.replaced_by;
+            if (typeof data26 === 'string') {
+              if (func1(data26) < 1) {
+                const err44 = {
+                  instancePath: instancePath + '/tessera_governance/replaced_by',
+                  schemaPath: '#/properties/tessera_governance/properties/replaced_by/minLength',
+                  keyword: 'minLength',
+                  params: { limit: 1 },
+                  message: 'must NOT have fewer than 1 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err44];
+                } else {
+                  vErrors.push(err44);
+                }
+                errors++;
+              }
+            } else {
+              const err45 = {
+                instancePath: instancePath + '/tessera_governance/replaced_by',
+                schemaPath: '#/properties/tessera_governance/properties/replaced_by/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err45];
+              } else {
+                vErrors.push(err45);
+              }
+              errors++;
+            }
+          }
+          if (data21.deprecation_reason !== undefined) {
+            let data27 = data21.deprecation_reason;
+            if (typeof data27 === 'string') {
+              if (func1(data27) > 2000) {
+                const err46 = {
+                  instancePath: instancePath + '/tessera_governance/deprecation_reason',
+                  schemaPath: '#/properties/tessera_governance/properties/deprecation_reason/maxLength',
+                  keyword: 'maxLength',
+                  params: { limit: 2000 },
+                  message: 'must NOT have more than 2000 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err46];
+                } else {
+                  vErrors.push(err46);
+                }
+                errors++;
+              }
+              if (func1(data27) < 1) {
+                const err47 = {
+                  instancePath: instancePath + '/tessera_governance/deprecation_reason',
+                  schemaPath: '#/properties/tessera_governance/properties/deprecation_reason/minLength',
+                  keyword: 'minLength',
+                  params: { limit: 1 },
+                  message: 'must NOT have fewer than 1 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err47];
+                } else {
+                  vErrors.push(err47);
+                }
+                errors++;
+              }
+            } else {
+              const err48 = {
+                instancePath: instancePath + '/tessera_governance/deprecation_reason',
+                schemaPath: '#/properties/tessera_governance/properties/deprecation_reason/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err48];
+              } else {
+                vErrors.push(err48);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err49 = {
+            instancePath: instancePath + '/tessera_governance',
+            schemaPath: '#/properties/tessera_governance/type',
+            keyword: 'type',
+            params: { type: 'object' },
+            message: 'must be object',
+          };
+          if (vErrors === null) {
+            vErrors = [err49];
+          } else {
+            vErrors.push(err49);
+          }
+          errors++;
+        }
+      }
+    } else {
+      const err50 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
+      if (vErrors === null) {
+        vErrors = [err50];
+      } else {
+        vErrors.push(err50);
+      }
+      errors++;
+    }
+    validate120.errors = vErrors;
+    return errors === 0;
+  }
+  validate120.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
+  function validate119(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
+    let vErrors = null;
+    let errors = 0;
+    const evaluated0 = validate119.evaluated;
+    if (evaluated0.dynamicProps) {
+      evaluated0.props = undefined;
+    }
+    if (evaluated0.dynamicItems) {
+      evaluated0.items = undefined;
+    }
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.concept === undefined) {
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'concept' }, message: "must have required property '" + 'concept' + "'" };
+        if (vErrors === null) {
+          vErrors = [err0];
+        } else {
+          vErrors.push(err0);
+        }
+        errors++;
+      }
+      if (data.type === undefined) {
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'type' }, message: "must have required property '" + 'type' + "'" };
+        if (vErrors === null) {
+          vErrors = [err1];
+        } else {
+          vErrors.push(err1);
+        }
+        errors++;
+      }
+      for (const key0 in data) {
+        if (!func14.call(OntologyComponentDefinesSingleSchema5.properties, key0)) {
+          const err2 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
+          if (vErrors === null) {
+            vErrors = [err2];
+          } else {
+            vErrors.push(err2);
+          }
+          errors++;
+        }
+      }
+      if (data.concept !== undefined) {
+        if (typeof data.concept !== 'string') {
+          const err3 = { instancePath: instancePath + '/concept', schemaPath: '#/properties/concept/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err3];
+          } else {
+            vErrors.push(err3);
+          }
+          errors++;
+        }
+      }
+      if (data.type !== undefined) {
+        let data1 = data.type;
+        if (typeof data1 !== 'string') {
+          const err4 = { instancePath: instancePath + '/type', schemaPath: '#/$defs/ConceptType/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err4];
+          } else {
+            vErrors.push(err4);
+          }
+          errors++;
+        }
+        if (!(data1 === 'EntityType' || data1 === 'ValueType')) {
+          const err5 = {
+            instancePath: instancePath + '/type',
+            schemaPath: '#/$defs/ConceptType/enum',
+            keyword: 'enum',
+            params: { allowedValues: ConceptEitherEntityTypeSchema5.enum },
+            message: 'must be equal to one of the allowed values',
+          };
+          if (vErrors === null) {
+            vErrors = [err5];
+          } else {
+            vErrors.push(err5);
+          }
+          errors++;
+        }
+      }
+      if (data.description !== undefined) {
+        if (typeof data.description !== 'string') {
+          const err6 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err6];
+          } else {
+            vErrors.push(err6);
+          }
+          errors++;
+        }
+      }
+      if (data.extends !== undefined) {
+        let data3 = data.extends;
+        if (Array.isArray(data3)) {
+          const len0 = data3.length;
+          for (let i0 = 0; i0 < len0; i0++) {
+            if (typeof data3[i0] !== 'string') {
+              const err7 = { instancePath: instancePath + '/extends/' + i0, schemaPath: '#/properties/extends/items/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+              if (vErrors === null) {
+                vErrors = [err7];
+              } else {
+                vErrors.push(err7);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err8 = { instancePath: instancePath + '/extends', schemaPath: '#/properties/extends/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err8];
+          } else {
+            vErrors.push(err8);
+          }
+          errors++;
+        }
+      }
+      if (data.derived_by !== undefined) {
+        let data5 = data.derived_by;
+        if (Array.isArray(data5)) {
+          const len1 = data5.length;
+          for (let i1 = 0; i1 < len1; i1++) {
+            if (typeof data5[i1] !== 'string') {
+              const err9 = { instancePath: instancePath + '/derived_by/' + i1, schemaPath: '#/$defs/Expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+              if (vErrors === null) {
+                vErrors = [err9];
+              } else {
+                vErrors.push(err9);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err10 = { instancePath: instancePath + '/derived_by', schemaPath: '#/properties/derived_by/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err10];
+          } else {
+            vErrors.push(err10);
+          }
+          errors++;
+        }
+      }
+      if (data.identify_by !== undefined) {
+        let data7 = data.identify_by;
+        if (Array.isArray(data7)) {
+          const len2 = data7.length;
+          for (let i2 = 0; i2 < len2; i2++) {
+            if (typeof data7[i2] !== 'string') {
+              const err11 = {
+                instancePath: instancePath + '/identify_by/' + i2,
+                schemaPath: '#/properties/identify_by/items/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err11];
+              } else {
+                vErrors.push(err11);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err12 = { instancePath: instancePath + '/identify_by', schemaPath: '#/properties/identify_by/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err12];
+          } else {
+            vErrors.push(err12);
+          }
+          errors++;
+        }
+      }
+      if (data.requires !== undefined) {
+        let data9 = data.requires;
+        if (Array.isArray(data9)) {
+          const len3 = data9.length;
+          for (let i3 = 0; i3 < len3; i3++) {
+            if (typeof data9[i3] !== 'string') {
+              const err13 = { instancePath: instancePath + '/requires/' + i3, schemaPath: '#/$defs/Expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+              if (vErrors === null) {
+                vErrors = [err13];
+              } else {
+                vErrors.push(err13);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err14 = { instancePath: instancePath + '/requires', schemaPath: '#/properties/requires/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err14];
+          } else {
+            vErrors.push(err14);
+          }
+          errors++;
+        }
+      }
+      if (data.relationships !== undefined) {
+        let data11 = data.relationships;
+        if (Array.isArray(data11)) {
+          const len4 = data11.length;
+          for (let i4 = 0; i4 < len4; i4++) {
+            if (!validate120(data11[i4], { instancePath: instancePath + '/relationships/' + i4, parentData: data11, parentDataProperty: i4, rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? validate120.errors : vErrors.concat(validate120.errors);
+              errors = vErrors.length;
+            }
+          }
+        } else {
+          const err15 = { instancePath: instancePath + '/relationships', schemaPath: '#/properties/relationships/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err15];
+          } else {
+            vErrors.push(err15);
+          }
+          errors++;
+        }
+      }
+      if (data.iri !== undefined) {
+        if (typeof data.iri !== 'string') {
+          const err16 = { instancePath: instancePath + '/iri', schemaPath: '#/properties/iri/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err16];
+          } else {
+            vErrors.push(err16);
+          }
+          errors++;
+        }
+      }
+      if (data.tessera_notes !== undefined) {
+        let data14 = data.tessera_notes;
+        if (typeof data14 === 'string') {
+          if (func1(data14) > 10000) {
+            const err17 = {
+              instancePath: instancePath + '/tessera_notes',
+              schemaPath: '#/properties/tessera_notes/maxLength',
+              keyword: 'maxLength',
+              params: { limit: 10000 },
+              message: 'must NOT have more than 10000 characters',
+            };
+            if (vErrors === null) {
+              vErrors = [err17];
+            } else {
+              vErrors.push(err17);
+            }
+            errors++;
+          }
+          if (func1(data14) < 1) {
+            const err18 = {
+              instancePath: instancePath + '/tessera_notes',
+              schemaPath: '#/properties/tessera_notes/minLength',
+              keyword: 'minLength',
+              params: { limit: 1 },
+              message: 'must NOT have fewer than 1 characters',
+            };
+            if (vErrors === null) {
+              vErrors = [err18];
+            } else {
+              vErrors.push(err18);
+            }
+            errors++;
+          }
+        } else {
+          const err19 = { instancePath: instancePath + '/tessera_notes', schemaPath: '#/properties/tessera_notes/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err19];
+          } else {
+            vErrors.push(err19);
+          }
+          errors++;
+        }
+      }
+      if (data.tessera_attributes !== undefined) {
+        let data15 = data.tessera_attributes;
+        if (Array.isArray(data15)) {
+          if (data15.length > 200) {
+            const err20 = {
+              instancePath: instancePath + '/tessera_attributes',
+              schemaPath: '#/properties/tessera_attributes/maxItems',
+              keyword: 'maxItems',
+              params: { limit: 200 },
+              message: 'must NOT have more than 200 items',
+            };
+            if (vErrors === null) {
+              vErrors = [err20];
+            } else {
+              vErrors.push(err20);
+            }
+            errors++;
+          }
+          const len5 = data15.length;
+          for (let i5 = 0; i5 < len5; i5++) {
+            let data16 = data15[i5];
+            if (typeof data16 === 'string') {
+              if (func1(data16) < 1) {
+                const err21 = {
+                  instancePath: instancePath + '/tessera_attributes/' + i5,
+                  schemaPath: '#/properties/tessera_attributes/items/minLength',
+                  keyword: 'minLength',
+                  params: { limit: 1 },
+                  message: 'must NOT have fewer than 1 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err21];
+                } else {
+                  vErrors.push(err21);
+                }
+                errors++;
+              }
+            } else {
+              const err22 = {
+                instancePath: instancePath + '/tessera_attributes/' + i5,
+                schemaPath: '#/properties/tessera_attributes/items/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err22];
+              } else {
+                vErrors.push(err22);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err23 = {
+            instancePath: instancePath + '/tessera_attributes',
+            schemaPath: '#/properties/tessera_attributes/type',
+            keyword: 'type',
+            params: { type: 'array' },
+            message: 'must be array',
+          };
+          if (vErrors === null) {
+            vErrors = [err23];
+          } else {
+            vErrors.push(err23);
+          }
+          errors++;
+        }
+      }
+      if (data.tessera_ai_context !== undefined) {
+        let data17 = data.tessera_ai_context;
+        if (typeof data17 !== 'string' && !(data17 && typeof data17 == 'object' && !Array.isArray(data17))) {
+          const err24 = {
+            instancePath: instancePath + '/tessera_ai_context',
+            schemaPath: '#/properties/tessera_ai_context/type',
+            keyword: 'type',
+            params: { type: OntologyComponentDefinesSingleSchema5.properties.tessera_ai_context.type },
+            message: 'must be string,object',
+          };
+          if (vErrors === null) {
+            vErrors = [err24];
+          } else {
+            vErrors.push(err24);
+          }
+          errors++;
+        }
+        if (typeof data17 === 'string') {
+          if (func1(data17) > 10000) {
+            const err25 = {
+              instancePath: instancePath + '/tessera_ai_context',
+              schemaPath: '#/properties/tessera_ai_context/maxLength',
+              keyword: 'maxLength',
+              params: { limit: 10000 },
+              message: 'must NOT have more than 10000 characters',
+            };
+            if (vErrors === null) {
+              vErrors = [err25];
+            } else {
+              vErrors.push(err25);
+            }
+            errors++;
+          }
+        }
+        if (data17 && typeof data17 == 'object' && !Array.isArray(data17)) {
+          for (const key1 in data17) {
+            if (!(key1 === 'instructions' || key1 === 'synonyms' || key1 === 'examples')) {
+              const err26 = {
+                instancePath: instancePath + '/tessera_ai_context',
+                schemaPath: '#/properties/tessera_ai_context/additionalProperties',
+                keyword: 'additionalProperties',
+                params: { additionalProperty: key1 },
+                message: 'must NOT have additional properties',
+              };
+              if (vErrors === null) {
+                vErrors = [err26];
+              } else {
+                vErrors.push(err26);
+              }
+              errors++;
+            }
+          }
+          if (data17.instructions !== undefined) {
+            let data18 = data17.instructions;
+            if (typeof data18 === 'string') {
+              if (func1(data18) > 10000) {
+                const err27 = {
+                  instancePath: instancePath + '/tessera_ai_context/instructions',
+                  schemaPath: '#/properties/tessera_ai_context/properties/instructions/maxLength',
+                  keyword: 'maxLength',
+                  params: { limit: 10000 },
+                  message: 'must NOT have more than 10000 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err27];
+                } else {
+                  vErrors.push(err27);
+                }
+                errors++;
+              }
+            } else {
+              const err28 = {
+                instancePath: instancePath + '/tessera_ai_context/instructions',
+                schemaPath: '#/properties/tessera_ai_context/properties/instructions/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err28];
+              } else {
+                vErrors.push(err28);
+              }
+              errors++;
+            }
+          }
+          if (data17.synonyms !== undefined) {
+            let data19 = data17.synonyms;
+            if (Array.isArray(data19)) {
+              const len6 = data19.length;
+              for (let i6 = 0; i6 < len6; i6++) {
+                let data20 = data19[i6];
+                if (typeof data20 === 'string') {
+                  if (func1(data20) > 10000) {
+                    const err29 = {
+                      instancePath: instancePath + '/tessera_ai_context/synonyms/' + i6,
+                      schemaPath: '#/properties/tessera_ai_context/properties/synonyms/items/maxLength',
+                      keyword: 'maxLength',
+                      params: { limit: 10000 },
+                      message: 'must NOT have more than 10000 characters',
+                    };
+                    if (vErrors === null) {
+                      vErrors = [err29];
+                    } else {
+                      vErrors.push(err29);
+                    }
+                    errors++;
+                  }
+                } else {
+                  const err30 = {
+                    instancePath: instancePath + '/tessera_ai_context/synonyms/' + i6,
+                    schemaPath: '#/properties/tessera_ai_context/properties/synonyms/items/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err30];
+                  } else {
+                    vErrors.push(err30);
+                  }
+                  errors++;
+                }
+              }
+            } else {
+              const err31 = {
+                instancePath: instancePath + '/tessera_ai_context/synonyms',
+                schemaPath: '#/properties/tessera_ai_context/properties/synonyms/type',
+                keyword: 'type',
+                params: { type: 'array' },
+                message: 'must be array',
+              };
+              if (vErrors === null) {
+                vErrors = [err31];
+              } else {
+                vErrors.push(err31);
+              }
+              errors++;
+            }
+          }
+          if (data17.examples !== undefined) {
+            let data21 = data17.examples;
+            if (Array.isArray(data21)) {
+              const len7 = data21.length;
+              for (let i7 = 0; i7 < len7; i7++) {
+                let data22 = data21[i7];
+                if (typeof data22 === 'string') {
+                  if (func1(data22) > 10000) {
+                    const err32 = {
+                      instancePath: instancePath + '/tessera_ai_context/examples/' + i7,
+                      schemaPath: '#/properties/tessera_ai_context/properties/examples/items/maxLength',
+                      keyword: 'maxLength',
+                      params: { limit: 10000 },
+                      message: 'must NOT have more than 10000 characters',
+                    };
+                    if (vErrors === null) {
+                      vErrors = [err32];
+                    } else {
+                      vErrors.push(err32);
+                    }
+                    errors++;
+                  }
+                } else {
+                  const err33 = {
+                    instancePath: instancePath + '/tessera_ai_context/examples/' + i7,
+                    schemaPath: '#/properties/tessera_ai_context/properties/examples/items/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err33];
+                  } else {
+                    vErrors.push(err33);
+                  }
+                  errors++;
+                }
+              }
+            } else {
+              const err34 = {
+                instancePath: instancePath + '/tessera_ai_context/examples',
+                schemaPath: '#/properties/tessera_ai_context/properties/examples/type',
+                keyword: 'type',
+                params: { type: 'array' },
+                message: 'must be array',
+              };
+              if (vErrors === null) {
+                vErrors = [err34];
+              } else {
+                vErrors.push(err34);
+              }
+              errors++;
+            }
+          }
+        }
+      }
+      if (data.tessera_governance !== undefined) {
+        let data23 = data.tessera_governance;
+        if (data23 && typeof data23 == 'object' && !Array.isArray(data23)) {
+          if (data23.status !== undefined) {
+            if (typeof data23.status !== 'string') {
+              const err35 = {
+                instancePath: instancePath + '/tessera_governance/status',
+                schemaPath: '#/properties/tessera_governance/properties/status/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err35];
+              } else {
+                vErrors.push(err35);
+              }
+              errors++;
+            }
+          }
+          if (data23.owner !== undefined) {
+            let data25 = data23.owner;
+            if (typeof data25 === 'string') {
+              if (func1(data25) > 200) {
+                const err36 = {
+                  instancePath: instancePath + '/tessera_governance/owner',
+                  schemaPath: '#/properties/tessera_governance/properties/owner/maxLength',
+                  keyword: 'maxLength',
+                  params: { limit: 200 },
+                  message: 'must NOT have more than 200 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err36];
+                } else {
+                  vErrors.push(err36);
+                }
+                errors++;
+              }
+              if (func1(data25) < 1) {
+                const err37 = {
+                  instancePath: instancePath + '/tessera_governance/owner',
+                  schemaPath: '#/properties/tessera_governance/properties/owner/minLength',
+                  keyword: 'minLength',
+                  params: { limit: 1 },
+                  message: 'must NOT have fewer than 1 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err37];
+                } else {
+                  vErrors.push(err37);
+                }
+                errors++;
+              }
+            } else {
+              const err38 = {
+                instancePath: instancePath + '/tessera_governance/owner',
+                schemaPath: '#/properties/tessera_governance/properties/owner/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err38];
+              } else {
+                vErrors.push(err38);
+              }
+              errors++;
+            }
+          }
+          if (data23.steward !== undefined) {
+            let data26 = data23.steward;
+            if (typeof data26 === 'string') {
+              if (func1(data26) > 200) {
+                const err39 = {
+                  instancePath: instancePath + '/tessera_governance/steward',
+                  schemaPath: '#/properties/tessera_governance/properties/steward/maxLength',
+                  keyword: 'maxLength',
+                  params: { limit: 200 },
+                  message: 'must NOT have more than 200 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err39];
+                } else {
+                  vErrors.push(err39);
+                }
+                errors++;
+              }
+              if (func1(data26) < 1) {
+                const err40 = {
+                  instancePath: instancePath + '/tessera_governance/steward',
+                  schemaPath: '#/properties/tessera_governance/properties/steward/minLength',
+                  keyword: 'minLength',
+                  params: { limit: 1 },
+                  message: 'must NOT have fewer than 1 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err40];
+                } else {
+                  vErrors.push(err40);
+                }
+                errors++;
+              }
+            } else {
+              const err41 = {
+                instancePath: instancePath + '/tessera_governance/steward',
+                schemaPath: '#/properties/tessera_governance/properties/steward/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err41];
+              } else {
+                vErrors.push(err41);
+              }
+              errors++;
+            }
+          }
+          if (data23.classification !== undefined) {
+            let data27 = data23.classification;
+            if (typeof data27 === 'string') {
+              if (func1(data27) > 200) {
+                const err42 = {
+                  instancePath: instancePath + '/tessera_governance/classification',
+                  schemaPath: '#/properties/tessera_governance/properties/classification/maxLength',
+                  keyword: 'maxLength',
+                  params: { limit: 200 },
+                  message: 'must NOT have more than 200 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err42];
+                } else {
+                  vErrors.push(err42);
+                }
+                errors++;
+              }
+              if (func1(data27) < 1) {
+                const err43 = {
+                  instancePath: instancePath + '/tessera_governance/classification',
+                  schemaPath: '#/properties/tessera_governance/properties/classification/minLength',
+                  keyword: 'minLength',
+                  params: { limit: 1 },
+                  message: 'must NOT have fewer than 1 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err43];
+                } else {
+                  vErrors.push(err43);
+                }
+                errors++;
+              }
+            } else {
+              const err44 = {
+                instancePath: instancePath + '/tessera_governance/classification',
+                schemaPath: '#/properties/tessera_governance/properties/classification/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err44];
+              } else {
+                vErrors.push(err44);
+              }
+              errors++;
+            }
+          }
+          if (data23.replaced_by !== undefined) {
+            let data28 = data23.replaced_by;
+            if (typeof data28 === 'string') {
+              if (func1(data28) < 1) {
+                const err45 = {
+                  instancePath: instancePath + '/tessera_governance/replaced_by',
+                  schemaPath: '#/properties/tessera_governance/properties/replaced_by/minLength',
+                  keyword: 'minLength',
+                  params: { limit: 1 },
+                  message: 'must NOT have fewer than 1 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err45];
+                } else {
+                  vErrors.push(err45);
+                }
+                errors++;
+              }
+            } else {
+              const err46 = {
+                instancePath: instancePath + '/tessera_governance/replaced_by',
+                schemaPath: '#/properties/tessera_governance/properties/replaced_by/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err46];
+              } else {
+                vErrors.push(err46);
+              }
+              errors++;
+            }
+          }
+          if (data23.deprecation_reason !== undefined) {
+            let data29 = data23.deprecation_reason;
+            if (typeof data29 === 'string') {
+              if (func1(data29) > 2000) {
+                const err47 = {
+                  instancePath: instancePath + '/tessera_governance/deprecation_reason',
+                  schemaPath: '#/properties/tessera_governance/properties/deprecation_reason/maxLength',
+                  keyword: 'maxLength',
+                  params: { limit: 2000 },
+                  message: 'must NOT have more than 2000 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err47];
+                } else {
+                  vErrors.push(err47);
+                }
+                errors++;
+              }
+              if (func1(data29) < 1) {
+                const err48 = {
+                  instancePath: instancePath + '/tessera_governance/deprecation_reason',
+                  schemaPath: '#/properties/tessera_governance/properties/deprecation_reason/minLength',
+                  keyword: 'minLength',
+                  params: { limit: 1 },
+                  message: 'must NOT have fewer than 1 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err48];
+                } else {
+                  vErrors.push(err48);
+                }
+                errors++;
+              }
+            } else {
+              const err49 = {
+                instancePath: instancePath + '/tessera_governance/deprecation_reason',
+                schemaPath: '#/properties/tessera_governance/properties/deprecation_reason/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err49];
+              } else {
+                vErrors.push(err49);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err50 = {
+            instancePath: instancePath + '/tessera_governance',
+            schemaPath: '#/properties/tessera_governance/type',
+            keyword: 'type',
+            params: { type: 'object' },
+            message: 'must be object',
+          };
+          if (vErrors === null) {
+            vErrors = [err50];
+          } else {
+            vErrors.push(err50);
+          }
+          errors++;
+        }
+      }
+    } else {
+      const err51 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
+      if (vErrors === null) {
+        vErrors = [err51];
+      } else {
+        vErrors.push(err51);
+      }
+      errors++;
+    }
+    validate119.errors = vErrors;
+    return errors === 0;
+  }
+  validate119.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
+  const MapConstructsLogicalModelSchema4 = {
+    type: 'object',
+    description: 'Map from the constructs of some logical model to some ontology',
+    properties: {
+      name: { type: 'string', description: 'Name of this ontology map' },
+      description: { type: 'string', description: 'Human-readable description of this ontology map' },
+      semantic_model: { $ref: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json' },
+      concept_mappings: { type: 'array', items: { $ref: '#/$defs/ConceptMapping' }, description: 'Maps logical model constructs to some concept and its relationships in the ontology' },
+    },
+    required: ['semantic_model', 'concept_mappings'],
+    additionalProperties: false,
+  };
+  const MappingsLogicalModelConstructsSchema4 = {
+    type: 'object',
+    description: 'Mappings from logical model constructs to some ontology component',
+    properties: {
+      concept: { type: 'string', description: 'Name of the concept whose part of the ontology we are mapping to' },
+      object_mappings: {
+        type: 'array',
+        minItems: 1,
+        items: { $ref: '#/$defs/ObjectMapping' },
+        description: 'Mappings from logical constructs that populate the concept in this component. Valid only when the concept is an entity type',
+      },
+      link_mappings: {
+        type: 'array',
+        minItems: 1,
+        items: { $ref: '#/$defs/LinkMapping' },
+        description: 'Mappings from logical model relationships to ontology relationships pertaining to the mapped concept',
+      },
+    },
+    required: ['concept'],
+    anyOf: [{ required: ['object_mappings'] }, { required: ['link_mappings'] }],
+    additionalProperties: false,
+  };
+  const PatternLogicalLevelExpressionsSchema4 = {
+    type: 'object',
+    description: 'Pattern of logical-level expressions for identifying objects of some concept using the values in one or more fields',
+    properties: {
+      concept: { type: 'string', description: 'Name of the concept whose objects we are mapping to' },
+      referent_mappings: { type: 'array', minItems: 1, items: { $ref: '#/$defs/ReferentMapping' }, description: 'Maps logical-model constructs to referent relationships of this entity type' },
+      expression: { $ref: '#/$defs/Expression' },
+    },
+    anyOf: [{ required: ['expression'] }, { required: ['referent_mappings'] }],
+    additionalProperties: false,
+  };
+  const MappingLogicalModelConstructsSchema4 = {
+    type: 'object',
+    description: 'Mapping from logical model constructs to a relationship used to references some entity type in the ontology',
+    properties: {
+      relationship: { type: 'string', description: 'Name of referent relationship' },
+      expression: { $ref: '#/$defs/Expression' },
+      referent_mappings: { type: 'array', minItems: 1, items: { $ref: '#/$defs/ReferentMapping' } },
+    },
+    required: ['relationship'],
+    anyOf: [{ required: ['expression'] }, { required: ['referent_mappings'] }],
+    additionalProperties: false,
+  };
+  const wrapper6 = { validate: validate127 };
+
+  function validate127(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
+    let vErrors = null;
+    let errors = 0;
+    const evaluated0 = validate127.evaluated;
+    if (evaluated0.dynamicProps) {
+      evaluated0.props = undefined;
+    }
+    if (evaluated0.dynamicItems) {
+      evaluated0.items = undefined;
+    }
+    const _errs1 = errors;
+    let valid0 = false;
+    const _errs2 = errors;
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.expression === undefined) {
+        const err0 = { instancePath, schemaPath: '#/anyOf/0/required', keyword: 'required', params: { missingProperty: 'expression' }, message: "must have required property '" + 'expression' + "'" };
+        if (vErrors === null) {
+          vErrors = [err0];
+        } else {
+          vErrors.push(err0);
+        }
+        errors++;
+      }
+    }
+    var _valid0 = _errs2 === errors;
+    valid0 = valid0 || _valid0;
+    const _errs3 = errors;
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.referent_mappings === undefined) {
+        const err1 = {
+          instancePath,
+          schemaPath: '#/anyOf/1/required',
+          keyword: 'required',
+          params: { missingProperty: 'referent_mappings' },
+          message: "must have required property '" + 'referent_mappings' + "'",
+        };
+        if (vErrors === null) {
+          vErrors = [err1];
+        } else {
+          vErrors.push(err1);
+        }
+        errors++;
+      }
+    }
+    var _valid0 = _errs3 === errors;
+    valid0 = valid0 || _valid0;
+    if (!valid0) {
+      const err2 = { instancePath, schemaPath: '#/anyOf', keyword: 'anyOf', params: {}, message: 'must match a schema in anyOf' };
+      if (vErrors === null) {
+        vErrors = [err2];
+      } else {
+        vErrors.push(err2);
+      }
+      errors++;
+    } else {
+      errors = _errs1;
+      if (vErrors !== null) {
+        if (_errs1) {
+          vErrors.length = _errs1;
+        } else {
+          vErrors = null;
+        }
+      }
+    }
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.relationship === undefined) {
+        const err3 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'relationship' }, message: "must have required property '" + 'relationship' + "'" };
+        if (vErrors === null) {
+          vErrors = [err3];
+        } else {
+          vErrors.push(err3);
+        }
+        errors++;
+      }
+      for (const key0 in data) {
+        if (!(key0 === 'relationship' || key0 === 'expression' || key0 === 'referent_mappings')) {
+          const err4 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
+          if (vErrors === null) {
+            vErrors = [err4];
+          } else {
+            vErrors.push(err4);
+          }
+          errors++;
+        }
+      }
+      if (data.relationship !== undefined) {
+        if (typeof data.relationship !== 'string') {
+          const err5 = { instancePath: instancePath + '/relationship', schemaPath: '#/properties/relationship/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err5];
+          } else {
+            vErrors.push(err5);
+          }
+          errors++;
+        }
+      }
+      if (data.expression !== undefined) {
+        if (typeof data.expression !== 'string') {
+          const err6 = { instancePath: instancePath + '/expression', schemaPath: '#/$defs/Expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err6];
+          } else {
+            vErrors.push(err6);
+          }
+          errors++;
+        }
+      }
+      if (data.referent_mappings !== undefined) {
+        let data2 = data.referent_mappings;
+        if (Array.isArray(data2)) {
+          if (data2.length < 1) {
+            const err7 = {
+              instancePath: instancePath + '/referent_mappings',
+              schemaPath: '#/properties/referent_mappings/minItems',
+              keyword: 'minItems',
+              params: { limit: 1 },
+              message: 'must NOT have fewer than 1 items',
+            };
+            if (vErrors === null) {
+              vErrors = [err7];
+            } else {
+              vErrors.push(err7);
+            }
+            errors++;
+          }
+          const len0 = data2.length;
+          for (let i0 = 0; i0 < len0; i0++) {
+            if (!wrapper6.validate(data2[i0], { instancePath: instancePath + '/referent_mappings/' + i0, parentData: data2, parentDataProperty: i0, rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? wrapper6.validate.errors : vErrors.concat(wrapper6.validate.errors);
+              errors = vErrors.length;
+            }
+          }
+        } else {
+          const err8 = { instancePath: instancePath + '/referent_mappings', schemaPath: '#/properties/referent_mappings/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err8];
+          } else {
+            vErrors.push(err8);
+          }
+          errors++;
+        }
+      }
+    } else {
+      const err9 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
+      if (vErrors === null) {
+        vErrors = [err9];
+      } else {
+        vErrors.push(err9);
+      }
+      errors++;
+    }
+    validate127.errors = vErrors;
+    return errors === 0;
+  }
+  validate127.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
+  function validate126(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
+    let vErrors = null;
+    let errors = 0;
+    const evaluated0 = validate126.evaluated;
+    if (evaluated0.dynamicProps) {
+      evaluated0.props = undefined;
+    }
+    if (evaluated0.dynamicItems) {
+      evaluated0.items = undefined;
+    }
+    const _errs1 = errors;
+    let valid0 = false;
+    const _errs2 = errors;
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.expression === undefined) {
+        const err0 = { instancePath, schemaPath: '#/anyOf/0/required', keyword: 'required', params: { missingProperty: 'expression' }, message: "must have required property '" + 'expression' + "'" };
+        if (vErrors === null) {
+          vErrors = [err0];
+        } else {
+          vErrors.push(err0);
+        }
+        errors++;
+      }
+    }
+    var _valid0 = _errs2 === errors;
+    valid0 = valid0 || _valid0;
+    const _errs3 = errors;
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.referent_mappings === undefined) {
+        const err1 = {
+          instancePath,
+          schemaPath: '#/anyOf/1/required',
+          keyword: 'required',
+          params: { missingProperty: 'referent_mappings' },
+          message: "must have required property '" + 'referent_mappings' + "'",
+        };
+        if (vErrors === null) {
+          vErrors = [err1];
+        } else {
+          vErrors.push(err1);
+        }
+        errors++;
+      }
+    }
+    var _valid0 = _errs3 === errors;
+    valid0 = valid0 || _valid0;
+    if (!valid0) {
+      const err2 = { instancePath, schemaPath: '#/anyOf', keyword: 'anyOf', params: {}, message: 'must match a schema in anyOf' };
+      if (vErrors === null) {
+        vErrors = [err2];
+      } else {
+        vErrors.push(err2);
+      }
+      errors++;
+    } else {
+      errors = _errs1;
+      if (vErrors !== null) {
+        if (_errs1) {
+          vErrors.length = _errs1;
+        } else {
+          vErrors = null;
+        }
+      }
+    }
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      for (const key0 in data) {
+        if (!(key0 === 'concept' || key0 === 'referent_mappings' || key0 === 'expression')) {
+          const err3 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
+          if (vErrors === null) {
+            vErrors = [err3];
+          } else {
+            vErrors.push(err3);
+          }
+          errors++;
+        }
+      }
+      if (data.concept !== undefined) {
+        if (typeof data.concept !== 'string') {
+          const err4 = { instancePath: instancePath + '/concept', schemaPath: '#/properties/concept/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err4];
+          } else {
+            vErrors.push(err4);
+          }
+          errors++;
+        }
+      }
+      if (data.referent_mappings !== undefined) {
+        let data1 = data.referent_mappings;
+        if (Array.isArray(data1)) {
+          if (data1.length < 1) {
+            const err5 = {
+              instancePath: instancePath + '/referent_mappings',
+              schemaPath: '#/properties/referent_mappings/minItems',
+              keyword: 'minItems',
+              params: { limit: 1 },
+              message: 'must NOT have fewer than 1 items',
+            };
+            if (vErrors === null) {
+              vErrors = [err5];
+            } else {
+              vErrors.push(err5);
+            }
+            errors++;
+          }
+          const len0 = data1.length;
+          for (let i0 = 0; i0 < len0; i0++) {
+            if (!validate127(data1[i0], { instancePath: instancePath + '/referent_mappings/' + i0, parentData: data1, parentDataProperty: i0, rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? validate127.errors : vErrors.concat(validate127.errors);
+              errors = vErrors.length;
+            }
+          }
+        } else {
+          const err6 = { instancePath: instancePath + '/referent_mappings', schemaPath: '#/properties/referent_mappings/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err6];
+          } else {
+            vErrors.push(err6);
+          }
+          errors++;
+        }
+      }
+      if (data.expression !== undefined) {
+        if (typeof data.expression !== 'string') {
+          const err7 = { instancePath: instancePath + '/expression', schemaPath: '#/$defs/Expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err7];
+          } else {
+            vErrors.push(err7);
+          }
+          errors++;
+        }
+      }
+    } else {
+      const err8 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
+      if (vErrors === null) {
+        vErrors = [err8];
+      } else {
+        vErrors.push(err8);
+      }
+      errors++;
+    }
+    validate126.errors = vErrors;
+    return errors === 0;
+  }
+  validate126.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
+  const MappingLogicalSchemaLinksSchema4 = {
+    type: 'object',
+    description: 'Mapping from logical schema to the links of relationships in the ontology',
+    properties: {
+      relationship: { type: 'string', description: 'Name of relationship being populated by this mapping node' },
+      object_mapping: { $ref: '#/$defs/ObjectMapping' },
+      children: { type: 'array', items: { $ref: '#/$defs/LinkMapping' }, description: 'Relationship maps at the next level in this hierarchy' },
+    },
+    required: ['object_mapping'],
+    additionalProperties: false,
+  };
+  const wrapper7 = { validate: validate130 };
+
+  function validate130(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
+    let vErrors = null;
+    let errors = 0;
+    const evaluated0 = validate130.evaluated;
+    if (evaluated0.dynamicProps) {
+      evaluated0.props = undefined;
+    }
+    if (evaluated0.dynamicItems) {
+      evaluated0.items = undefined;
+    }
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.object_mapping === undefined) {
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'object_mapping' }, message: "must have required property '" + 'object_mapping' + "'" };
+        if (vErrors === null) {
+          vErrors = [err0];
+        } else {
+          vErrors.push(err0);
+        }
+        errors++;
+      }
+      for (const key0 in data) {
+        if (!(key0 === 'relationship' || key0 === 'object_mapping' || key0 === 'children')) {
+          const err1 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
+          if (vErrors === null) {
+            vErrors = [err1];
+          } else {
+            vErrors.push(err1);
+          }
+          errors++;
+        }
+      }
+      if (data.relationship !== undefined) {
+        if (typeof data.relationship !== 'string') {
+          const err2 = { instancePath: instancePath + '/relationship', schemaPath: '#/properties/relationship/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err2];
+          } else {
+            vErrors.push(err2);
+          }
+          errors++;
+        }
+      }
+      if (data.object_mapping !== undefined) {
+        if (!validate126(data.object_mapping, { instancePath: instancePath + '/object_mapping', parentData: data, parentDataProperty: 'object_mapping', rootData, dynamicAnchors })) {
+          vErrors = vErrors === null ? validate126.errors : vErrors.concat(validate126.errors);
+          errors = vErrors.length;
+        }
+      }
+      if (data.children !== undefined) {
+        let data2 = data.children;
+        if (Array.isArray(data2)) {
+          const len0 = data2.length;
+          for (let i0 = 0; i0 < len0; i0++) {
+            if (!wrapper7.validate(data2[i0], { instancePath: instancePath + '/children/' + i0, parentData: data2, parentDataProperty: i0, rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? wrapper7.validate.errors : vErrors.concat(wrapper7.validate.errors);
+              errors = vErrors.length;
+            }
+          }
+        } else {
+          const err3 = { instancePath: instancePath + '/children', schemaPath: '#/properties/children/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err3];
+          } else {
+            vErrors.push(err3);
+          }
+          errors++;
+        }
+      }
+    } else {
+      const err4 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
+      if (vErrors === null) {
+        vErrors = [err4];
+      } else {
+        vErrors.push(err4);
+      }
+      errors++;
+    }
+    validate130.errors = vErrors;
+    return errors === 0;
+  }
+  validate130.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
+  function validate125(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
+    let vErrors = null;
+    let errors = 0;
+    const evaluated0 = validate125.evaluated;
+    if (evaluated0.dynamicProps) {
+      evaluated0.props = undefined;
+    }
+    if (evaluated0.dynamicItems) {
+      evaluated0.items = undefined;
+    }
+    const _errs1 = errors;
+    let valid0 = false;
+    const _errs2 = errors;
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.object_mappings === undefined) {
+        const err0 = {
+          instancePath,
+          schemaPath: '#/anyOf/0/required',
+          keyword: 'required',
+          params: { missingProperty: 'object_mappings' },
+          message: "must have required property '" + 'object_mappings' + "'",
+        };
+        if (vErrors === null) {
+          vErrors = [err0];
+        } else {
+          vErrors.push(err0);
+        }
+        errors++;
+      }
+    }
+    var _valid0 = _errs2 === errors;
+    valid0 = valid0 || _valid0;
+    const _errs3 = errors;
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.link_mappings === undefined) {
+        const err1 = {
+          instancePath,
+          schemaPath: '#/anyOf/1/required',
+          keyword: 'required',
+          params: { missingProperty: 'link_mappings' },
+          message: "must have required property '" + 'link_mappings' + "'",
+        };
+        if (vErrors === null) {
+          vErrors = [err1];
+        } else {
+          vErrors.push(err1);
+        }
+        errors++;
+      }
+    }
+    var _valid0 = _errs3 === errors;
+    valid0 = valid0 || _valid0;
+    if (!valid0) {
+      const err2 = { instancePath, schemaPath: '#/anyOf', keyword: 'anyOf', params: {}, message: 'must match a schema in anyOf' };
+      if (vErrors === null) {
+        vErrors = [err2];
+      } else {
+        vErrors.push(err2);
+      }
+      errors++;
+    } else {
+      errors = _errs1;
+      if (vErrors !== null) {
+        if (_errs1) {
+          vErrors.length = _errs1;
+        } else {
+          vErrors = null;
+        }
+      }
+    }
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.concept === undefined) {
+        const err3 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'concept' }, message: "must have required property '" + 'concept' + "'" };
+        if (vErrors === null) {
+          vErrors = [err3];
+        } else {
+          vErrors.push(err3);
+        }
+        errors++;
+      }
+      for (const key0 in data) {
+        if (!(key0 === 'concept' || key0 === 'object_mappings' || key0 === 'link_mappings')) {
+          const err4 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
+          if (vErrors === null) {
+            vErrors = [err4];
+          } else {
+            vErrors.push(err4);
+          }
+          errors++;
+        }
+      }
+      if (data.concept !== undefined) {
+        if (typeof data.concept !== 'string') {
+          const err5 = { instancePath: instancePath + '/concept', schemaPath: '#/properties/concept/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err5];
+          } else {
+            vErrors.push(err5);
+          }
+          errors++;
+        }
+      }
+      if (data.object_mappings !== undefined) {
+        let data1 = data.object_mappings;
+        if (Array.isArray(data1)) {
+          if (data1.length < 1) {
+            const err6 = {
+              instancePath: instancePath + '/object_mappings',
+              schemaPath: '#/properties/object_mappings/minItems',
+              keyword: 'minItems',
+              params: { limit: 1 },
+              message: 'must NOT have fewer than 1 items',
+            };
+            if (vErrors === null) {
+              vErrors = [err6];
+            } else {
+              vErrors.push(err6);
+            }
+            errors++;
+          }
+          const len0 = data1.length;
+          for (let i0 = 0; i0 < len0; i0++) {
+            if (!validate126(data1[i0], { instancePath: instancePath + '/object_mappings/' + i0, parentData: data1, parentDataProperty: i0, rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? validate126.errors : vErrors.concat(validate126.errors);
+              errors = vErrors.length;
+            }
+          }
+        } else {
+          const err7 = { instancePath: instancePath + '/object_mappings', schemaPath: '#/properties/object_mappings/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err7];
+          } else {
+            vErrors.push(err7);
+          }
+          errors++;
+        }
+      }
+      if (data.link_mappings !== undefined) {
+        let data3 = data.link_mappings;
+        if (Array.isArray(data3)) {
+          if (data3.length < 1) {
+            const err8 = {
+              instancePath: instancePath + '/link_mappings',
+              schemaPath: '#/properties/link_mappings/minItems',
+              keyword: 'minItems',
+              params: { limit: 1 },
+              message: 'must NOT have fewer than 1 items',
+            };
+            if (vErrors === null) {
+              vErrors = [err8];
+            } else {
+              vErrors.push(err8);
+            }
+            errors++;
+          }
+          const len1 = data3.length;
+          for (let i1 = 0; i1 < len1; i1++) {
+            if (!validate130(data3[i1], { instancePath: instancePath + '/link_mappings/' + i1, parentData: data3, parentDataProperty: i1, rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? validate130.errors : vErrors.concat(validate130.errors);
+              errors = vErrors.length;
+            }
+          }
+        } else {
+          const err9 = { instancePath: instancePath + '/link_mappings', schemaPath: '#/properties/link_mappings/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err9];
+          } else {
+            vErrors.push(err9);
+          }
+          errors++;
+        }
+      }
+    } else {
+      const err10 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
+      if (vErrors === null) {
+        vErrors = [err10];
+      } else {
+        vErrors.push(err10);
+      }
+      errors++;
+    }
+    validate125.errors = vErrors;
+    return errors === 0;
+  }
+  validate125.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
+  function validate123(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
+    let vErrors = null;
+    let errors = 0;
+    const evaluated0 = validate123.evaluated;
+    if (evaluated0.dynamicProps) {
+      evaluated0.props = undefined;
+    }
+    if (evaluated0.dynamicItems) {
+      evaluated0.items = undefined;
+    }
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.semantic_model === undefined) {
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'semantic_model' }, message: "must have required property '" + 'semantic_model' + "'" };
+        if (vErrors === null) {
+          vErrors = [err0];
+        } else {
+          vErrors.push(err0);
+        }
+        errors++;
+      }
+      if (data.concept_mappings === undefined) {
+        const err1 = {
+          instancePath,
+          schemaPath: '#/required',
+          keyword: 'required',
+          params: { missingProperty: 'concept_mappings' },
+          message: "must have required property '" + 'concept_mappings' + "'",
+        };
+        if (vErrors === null) {
+          vErrors = [err1];
+        } else {
+          vErrors.push(err1);
+        }
+        errors++;
+      }
+      for (const key0 in data) {
+        if (!(key0 === 'name' || key0 === 'description' || key0 === 'semantic_model' || key0 === 'concept_mappings')) {
+          const err2 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
+          if (vErrors === null) {
+            vErrors = [err2];
+          } else {
+            vErrors.push(err2);
+          }
+          errors++;
+        }
+      }
+      if (data.name !== undefined) {
+        if (typeof data.name !== 'string') {
+          const err3 = { instancePath: instancePath + '/name', schemaPath: '#/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err3];
+          } else {
+            vErrors.push(err3);
+          }
+          errors++;
+        }
+      }
+      if (data.description !== undefined) {
+        if (typeof data.description !== 'string') {
+          const err4 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err4];
+          } else {
+            vErrors.push(err4);
+          }
+          errors++;
+        }
+      }
+      if (data.semantic_model !== undefined) {
+        if (!validate22(data.semantic_model, { instancePath: instancePath + '/semantic_model', parentData: data, parentDataProperty: 'semantic_model', rootData, dynamicAnchors })) {
+          vErrors = vErrors === null ? validate22.errors : vErrors.concat(validate22.errors);
+          errors = vErrors.length;
+        }
+      }
+      if (data.concept_mappings !== undefined) {
+        let data3 = data.concept_mappings;
+        if (Array.isArray(data3)) {
+          const len0 = data3.length;
+          for (let i0 = 0; i0 < len0; i0++) {
+            if (!validate125(data3[i0], { instancePath: instancePath + '/concept_mappings/' + i0, parentData: data3, parentDataProperty: i0, rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? validate125.errors : vErrors.concat(validate125.errors);
+              errors = vErrors.length;
+            }
+          }
+        } else {
+          const err5 = { instancePath: instancePath + '/concept_mappings', schemaPath: '#/properties/concept_mappings/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err5];
+          } else {
+            vErrors.push(err5);
+          }
+          errors++;
+        }
+      }
+    } else {
+      const err6 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
+      if (vErrors === null) {
+        vErrors = [err6];
+      } else {
+        vErrors.push(err6);
+      }
+      errors++;
+    }
+    validate123.errors = vErrors;
+    return errors === 0;
+  }
+  validate123.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
+  const pattern8 = new RegExp('^[A-Za-z0-9_]+$', 'u');
+
+  function validate118(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
+    /*# sourceURL="urn:semantic-workbench:tessera-ontology:3:ossie-0.2.0.dev0" */
+    let vErrors = null;
+    let errors = 0;
+    const evaluated0 = validate118.evaluated;
+    if (evaluated0.dynamicProps) {
+      evaluated0.props = undefined;
+    }
+    if (evaluated0.dynamicItems) {
+      evaluated0.items = undefined;
+    }
+    const _errs3 = errors;
+    let valid1 = false;
+    const _errs4 = errors;
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.tessera_includes === undefined) {
+        const err0 = {
+          instancePath,
+          schemaPath: '#/allOf/0/anyOf/0/required',
+          keyword: 'required',
+          params: { missingProperty: 'tessera_includes' },
+          message: "must have required property '" + 'tessera_includes' + "'",
+        };
+        if (vErrors === null) {
+          vErrors = [err0];
+        } else {
+          vErrors.push(err0);
+        }
+        errors++;
+      }
+    }
+    var _valid0 = _errs4 === errors;
+    valid1 = valid1 || _valid0;
+    const _errs5 = errors;
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.ontology !== undefined) {
+        let data0 = data.ontology;
+        if (Array.isArray(data0)) {
+          if (data0.length < 1) {
+            const err1 = {
+              instancePath: instancePath + '/ontology',
+              schemaPath: '#/allOf/0/anyOf/1/properties/ontology/minItems',
+              keyword: 'minItems',
+              params: { limit: 1 },
+              message: 'must NOT have fewer than 1 items',
+            };
+            if (vErrors === null) {
+              vErrors = [err1];
+            } else {
+              vErrors.push(err1);
+            }
+            errors++;
+          }
+        }
+      }
+    }
+    var _valid0 = _errs5 === errors;
+    valid1 = valid1 || _valid0;
+    if (_valid0) {
+      var props0 = {};
+      props0.ontology = true;
+    }
+    if (!valid1) {
+      const err2 = { instancePath, schemaPath: '#/allOf/0/anyOf', keyword: 'anyOf', params: {}, message: 'must match a schema in anyOf' };
+      if (vErrors === null) {
+        vErrors = [err2];
+      } else {
+        vErrors.push(err2);
+      }
+      errors++;
+    } else {
+      errors = _errs3;
+      if (vErrors !== null) {
+        if (_errs3) {
+          vErrors.length = _errs3;
+        } else {
+          vErrors = null;
+        }
+      }
+    }
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.tessera === undefined) {
+        const err3 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'tessera' }, message: "must have required property '" + 'tessera' + "'" };
+        if (vErrors === null) {
+          vErrors = [err3];
+        } else {
+          vErrors.push(err3);
+        }
+        errors++;
+      }
+      if (data.version === undefined) {
+        const err4 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'version' }, message: "must have required property '" + 'version' + "'" };
+        if (vErrors === null) {
+          vErrors = [err4];
+        } else {
+          vErrors.push(err4);
+        }
+        errors++;
+      }
+      if (data.name === undefined) {
+        const err5 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'name' }, message: "must have required property '" + 'name' + "'" };
+        if (vErrors === null) {
+          vErrors = [err5];
+        } else {
+          vErrors.push(err5);
+        }
+        errors++;
+      }
+      if (data.ontology === undefined) {
+        const err6 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'ontology' }, message: "must have required property '" + 'ontology' + "'" };
+        if (vErrors === null) {
+          vErrors = [err6];
+        } else {
+          vErrors.push(err6);
+        }
+        errors++;
+      }
+      for (const key0 in data) {
+        if (!func14.call(tesseraOntologyRevisionThreeSchema.properties, key0)) {
+          const err7 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
+          if (vErrors === null) {
+            vErrors = [err7];
+          } else {
+            vErrors.push(err7);
+          }
+          errors++;
+        }
+      }
+      if (data.version !== undefined) {
+        let data1 = data.version;
+        if (typeof data1 !== 'string') {
+          const err8 = { instancePath: instancePath + '/version', schemaPath: '#/properties/version/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err8];
+          } else {
+            vErrors.push(err8);
+          }
+          errors++;
+        }
+        if ('0.2.0.dev0' !== data1) {
+          const err9 = {
+            instancePath: instancePath + '/version',
+            schemaPath: '#/properties/version/const',
+            keyword: 'const',
+            params: { allowedValue: '0.2.0.dev0' },
+            message: 'must be equal to constant',
+          };
+          if (vErrors === null) {
+            vErrors = [err9];
+          } else {
+            vErrors.push(err9);
+          }
+          errors++;
+        }
+      }
+      if (data.name !== undefined) {
+        if (typeof data.name !== 'string') {
+          const err10 = { instancePath: instancePath + '/name', schemaPath: '#/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err10];
+          } else {
+            vErrors.push(err10);
+          }
+          errors++;
+        }
+      }
+      if (data.description !== undefined) {
+        if (typeof data.description !== 'string') {
+          const err11 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err11];
+          } else {
+            vErrors.push(err11);
+          }
+          errors++;
+        }
+      }
+      if (data.ai_context !== undefined) {
+        let data4 = data.ai_context;
+        const _errs16 = errors;
+        let valid5 = false;
+        let passing0 = null;
+        const _errs17 = errors;
+        if (typeof data4 !== 'string') {
+          const err12 = {
+            instancePath: instancePath + '/ai_context',
+            schemaPath: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/0/type',
+            keyword: 'type',
+            params: { type: 'string' },
+            message: 'must be string',
+          };
+          if (vErrors === null) {
+            vErrors = [err12];
+          } else {
+            vErrors.push(err12);
+          }
+          errors++;
+        }
+        var _valid1 = _errs17 === errors;
+        if (_valid1) {
+          valid5 = true;
+          passing0 = 0;
+        }
+        const _errs19 = errors;
+        if (data4 && typeof data4 == 'object' && !Array.isArray(data4)) {
+          if (data4.instructions !== undefined) {
+            if (typeof data4.instructions !== 'string') {
+              const err13 = {
+                instancePath: instancePath + '/ai_context/instructions',
+                schemaPath: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/1/properties/instructions/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err13];
+              } else {
+                vErrors.push(err13);
+              }
+              errors++;
+            }
+          }
+          if (data4.synonyms !== undefined) {
+            let data6 = data4.synonyms;
+            if (Array.isArray(data6)) {
+              const len0 = data6.length;
+              for (let i0 = 0; i0 < len0; i0++) {
+                if (typeof data6[i0] !== 'string') {
+                  const err14 = {
+                    instancePath: instancePath + '/ai_context/synonyms/' + i0,
+                    schemaPath: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/1/properties/synonyms/items/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err14];
+                  } else {
+                    vErrors.push(err14);
+                  }
+                  errors++;
+                }
+              }
+            } else {
+              const err15 = {
+                instancePath: instancePath + '/ai_context/synonyms',
+                schemaPath: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/1/properties/synonyms/type',
+                keyword: 'type',
+                params: { type: 'array' },
+                message: 'must be array',
+              };
+              if (vErrors === null) {
+                vErrors = [err15];
+              } else {
+                vErrors.push(err15);
+              }
+              errors++;
+            }
+          }
+          if (data4.examples !== undefined) {
+            let data8 = data4.examples;
+            if (Array.isArray(data8)) {
+              const len1 = data8.length;
+              for (let i1 = 0; i1 < len1; i1++) {
+                if (typeof data8[i1] !== 'string') {
+                  const err16 = {
+                    instancePath: instancePath + '/ai_context/examples/' + i1,
+                    schemaPath: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/1/properties/examples/items/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err16];
+                  } else {
+                    vErrors.push(err16);
+                  }
+                  errors++;
+                }
+              }
+            } else {
+              const err17 = {
+                instancePath: instancePath + '/ai_context/examples',
+                schemaPath: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/1/properties/examples/type',
+                keyword: 'type',
+                params: { type: 'array' },
+                message: 'must be array',
+              };
+              if (vErrors === null) {
+                vErrors = [err17];
+              } else {
+                vErrors.push(err17);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err18 = {
+            instancePath: instancePath + '/ai_context',
+            schemaPath: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/1/type',
+            keyword: 'type',
+            params: { type: 'object' },
+            message: 'must be object',
+          };
+          if (vErrors === null) {
+            vErrors = [err18];
+          } else {
+            vErrors.push(err18);
+          }
+          errors++;
+        }
+        var _valid1 = _errs19 === errors;
+        if (_valid1 && valid5) {
+          valid5 = false;
+          passing0 = [passing0, 1];
+        } else {
+          if (_valid1) {
+            valid5 = true;
+            passing0 = 1;
+          }
+        }
+        if (!valid5) {
+          const err19 = {
+            instancePath: instancePath + '/ai_context',
+            schemaPath: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf',
+            keyword: 'oneOf',
+            params: { passingSchemas: passing0 },
+            message: 'must match exactly one schema in oneOf',
+          };
+          if (vErrors === null) {
+            vErrors = [err19];
+          } else {
+            vErrors.push(err19);
+          }
+          errors++;
+        } else {
+          errors = _errs16;
+          if (vErrors !== null) {
+            if (_errs16) {
+              vErrors.length = _errs16;
+            } else {
+              vErrors = null;
+            }
+          }
+        }
+      }
+      if (data.requires !== undefined) {
+        let data10 = data.requires;
+        if (Array.isArray(data10)) {
+          const len2 = data10.length;
+          for (let i2 = 0; i2 < len2; i2++) {
+            if (typeof data10[i2] !== 'string') {
+              const err20 = { instancePath: instancePath + '/requires/' + i2, schemaPath: '#/$defs/Expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+              if (vErrors === null) {
+                vErrors = [err20];
+              } else {
+                vErrors.push(err20);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err21 = { instancePath: instancePath + '/requires', schemaPath: '#/properties/requires/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err21];
+          } else {
+            vErrors.push(err21);
+          }
+          errors++;
+        }
+      }
+      if (data.ontology !== undefined) {
+        let data12 = data.ontology;
+        if (Array.isArray(data12)) {
+          if (data12.length < 0) {
+            const err22 = {
+              instancePath: instancePath + '/ontology',
+              schemaPath: '#/properties/ontology/minItems',
+              keyword: 'minItems',
+              params: { limit: 0 },
+              message: 'must NOT have fewer than 0 items',
+            };
+            if (vErrors === null) {
+              vErrors = [err22];
+            } else {
+              vErrors.push(err22);
+            }
+            errors++;
+          }
+          const len3 = data12.length;
+          for (let i3 = 0; i3 < len3; i3++) {
+            if (!validate119(data12[i3], { instancePath: instancePath + '/ontology/' + i3, parentData: data12, parentDataProperty: i3, rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? validate119.errors : vErrors.concat(validate119.errors);
+              errors = vErrors.length;
+            }
+          }
+        } else {
+          const err23 = { instancePath: instancePath + '/ontology', schemaPath: '#/properties/ontology/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err23];
+          } else {
+            vErrors.push(err23);
+          }
+          errors++;
+        }
+      }
+      if (data.ontology_mappings !== undefined) {
+        let data14 = data.ontology_mappings;
+        if (Array.isArray(data14)) {
+          const len4 = data14.length;
+          for (let i4 = 0; i4 < len4; i4++) {
+            if (!validate123(data14[i4], { instancePath: instancePath + '/ontology_mappings/' + i4, parentData: data14, parentDataProperty: i4, rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? validate123.errors : vErrors.concat(validate123.errors);
+              errors = vErrors.length;
+            }
+          }
+        } else {
+          const err24 = { instancePath: instancePath + '/ontology_mappings', schemaPath: '#/properties/ontology_mappings/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err24];
+          } else {
+            vErrors.push(err24);
+          }
+          errors++;
+        }
+      }
+      if (data.prefixes !== undefined) {
+        let data16 = data.prefixes;
+        if (data16 && typeof data16 == 'object' && !Array.isArray(data16)) {
+          for (const key1 in data16) {
+            let data17 = data16[key1];
+            if (typeof data17 === 'string') {
+              if (!formats0.test(data17)) {
+                const err25 = {
+                  instancePath: instancePath + '/prefixes/' + key1.replace(/~/g, '~0').replace(/\//g, '~1'),
+                  schemaPath: '#/properties/prefixes/additionalProperties/format',
+                  keyword: 'format',
+                  params: { format: 'iri' },
+                  message: 'must match format "' + 'iri' + '"',
+                };
+                if (vErrors === null) {
+                  vErrors = [err25];
+                } else {
+                  vErrors.push(err25);
+                }
+                errors++;
+              }
+            } else {
+              const err26 = {
+                instancePath: instancePath + '/prefixes/' + key1.replace(/~/g, '~0').replace(/\//g, '~1'),
+                schemaPath: '#/properties/prefixes/additionalProperties/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err26];
+              } else {
+                vErrors.push(err26);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err27 = { instancePath: instancePath + '/prefixes', schemaPath: '#/properties/prefixes/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
+          if (vErrors === null) {
+            vErrors = [err27];
+          } else {
+            vErrors.push(err27);
+          }
+          errors++;
+        }
+      }
+      if (data.tessera !== undefined) {
+        let data18 = data.tessera;
+        if (!(typeof data18 == 'number' && !(data18 % 1) && !isNaN(data18))) {
+          const err28 = { instancePath: instancePath + '/tessera', schemaPath: '#/properties/tessera/type', keyword: 'type', params: { type: 'integer' }, message: 'must be integer' };
+          if (vErrors === null) {
+            vErrors = [err28];
+          } else {
+            vErrors.push(err28);
+          }
+          errors++;
+        }
+        if (3 !== data18) {
+          const err29 = { instancePath: instancePath + '/tessera', schemaPath: '#/properties/tessera/const', keyword: 'const', params: { allowedValue: 3 }, message: 'must be equal to constant' };
+          if (vErrors === null) {
+            vErrors = [err29];
+          } else {
+            vErrors.push(err29);
+          }
+          errors++;
+        }
+      }
+      if (data.tessera_notes !== undefined) {
+        let data19 = data.tessera_notes;
+        if (typeof data19 === 'string') {
+          if (func1(data19) > 10000) {
+            const err30 = {
+              instancePath: instancePath + '/tessera_notes',
+              schemaPath: '#/properties/tessera_notes/maxLength',
+              keyword: 'maxLength',
+              params: { limit: 10000 },
+              message: 'must NOT have more than 10000 characters',
+            };
+            if (vErrors === null) {
+              vErrors = [err30];
+            } else {
+              vErrors.push(err30);
+            }
+            errors++;
+          }
+          if (func1(data19) < 1) {
+            const err31 = {
+              instancePath: instancePath + '/tessera_notes',
+              schemaPath: '#/properties/tessera_notes/minLength',
+              keyword: 'minLength',
+              params: { limit: 1 },
+              message: 'must NOT have fewer than 1 characters',
+            };
+            if (vErrors === null) {
+              vErrors = [err31];
+            } else {
+              vErrors.push(err31);
+            }
+            errors++;
+          }
+        } else {
+          const err32 = { instancePath: instancePath + '/tessera_notes', schemaPath: '#/properties/tessera_notes/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err32];
+          } else {
+            vErrors.push(err32);
+          }
+          errors++;
+        }
+      }
+      if (data.tessera_includes !== undefined) {
+        let data20 = data.tessera_includes;
+        if (Array.isArray(data20)) {
+          if (data20.length > 200) {
+            const err33 = {
+              instancePath: instancePath + '/tessera_includes',
+              schemaPath: '#/properties/tessera_includes/maxItems',
+              keyword: 'maxItems',
+              params: { limit: 200 },
+              message: 'must NOT have more than 200 items',
+            };
+            if (vErrors === null) {
+              vErrors = [err33];
+            } else {
+              vErrors.push(err33);
+            }
+            errors++;
+          }
+          if (data20.length < 1) {
+            const err34 = {
+              instancePath: instancePath + '/tessera_includes',
+              schemaPath: '#/properties/tessera_includes/minItems',
+              keyword: 'minItems',
+              params: { limit: 1 },
+              message: 'must NOT have fewer than 1 items',
+            };
+            if (vErrors === null) {
+              vErrors = [err34];
+            } else {
+              vErrors.push(err34);
+            }
+            errors++;
+          }
+          const len5 = data20.length;
+          for (let i5 = 0; i5 < len5; i5++) {
+            let data21 = data20[i5];
+            if (typeof data21 === 'string') {
+              if (func1(data21) < 1) {
+                const err35 = {
+                  instancePath: instancePath + '/tessera_includes/' + i5,
+                  schemaPath: '#/properties/tessera_includes/items/minLength',
+                  keyword: 'minLength',
+                  params: { limit: 1 },
+                  message: 'must NOT have fewer than 1 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err35];
+                } else {
+                  vErrors.push(err35);
+                }
+                errors++;
+              }
+            } else {
+              const err36 = {
+                instancePath: instancePath + '/tessera_includes/' + i5,
+                schemaPath: '#/properties/tessera_includes/items/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err36];
+              } else {
+                vErrors.push(err36);
+              }
+              errors++;
+            }
+          }
+          let i6 = data20.length;
+          let j0;
+          if (i6 > 1) {
+            const indices0 = {};
+            for (; i6--;) {
+              let item0 = data20[i6];
+              if (typeof item0 !== 'string') {
+                continue;
+              }
+              if (typeof indices0[item0] == 'number') {
+                j0 = indices0[item0];
+                const err37 = {
+                  instancePath: instancePath + '/tessera_includes',
+                  schemaPath: '#/properties/tessera_includes/uniqueItems',
+                  keyword: 'uniqueItems',
+                  params: { i: i6, j: j0 },
+                  message: 'must NOT have duplicate items (items ## ' + j0 + ' and ' + i6 + ' are identical)',
+                };
+                if (vErrors === null) {
+                  vErrors = [err37];
+                } else {
+                  vErrors.push(err37);
+                }
+                errors++;
+                break;
+              }
+              indices0[item0] = i6;
+            }
+          }
+        } else {
+          const err38 = { instancePath: instancePath + '/tessera_includes', schemaPath: '#/properties/tessera_includes/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err38];
+          } else {
+            vErrors.push(err38);
+          }
+          errors++;
+        }
+      }
+      if (data.tessera_exports !== undefined) {
+        let data22 = data.tessera_exports;
+        if (Array.isArray(data22)) {
+          if (data22.length < 1) {
+            const err39 = {
+              instancePath: instancePath + '/tessera_exports',
+              schemaPath: '#/properties/tessera_exports/minItems',
+              keyword: 'minItems',
+              params: { limit: 1 },
+              message: 'must NOT have fewer than 1 items',
+            };
+            if (vErrors === null) {
+              vErrors = [err39];
+            } else {
+              vErrors.push(err39);
+            }
+            errors++;
+          }
+          const len6 = data22.length;
+          for (let i7 = 0; i7 < len6; i7++) {
+            let data23 = data22[i7];
+            if (typeof data23 === 'string') {
+              if (func1(data23) < 1) {
+                const err40 = {
+                  instancePath: instancePath + '/tessera_exports/' + i7,
+                  schemaPath: '#/properties/tessera_exports/items/minLength',
+                  keyword: 'minLength',
+                  params: { limit: 1 },
+                  message: 'must NOT have fewer than 1 characters',
+                };
+                if (vErrors === null) {
+                  vErrors = [err40];
+                } else {
+                  vErrors.push(err40);
+                }
+                errors++;
+              }
+            } else {
+              const err41 = {
+                instancePath: instancePath + '/tessera_exports/' + i7,
+                schemaPath: '#/properties/tessera_exports/items/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err41];
+              } else {
+                vErrors.push(err41);
+              }
+              errors++;
+            }
+          }
+          let i8 = data22.length;
+          let j1;
+          if (i8 > 1) {
+            const indices1 = {};
+            for (; i8--;) {
+              let item1 = data22[i8];
+              if (typeof item1 !== 'string') {
+                continue;
+              }
+              if (typeof indices1[item1] == 'number') {
+                j1 = indices1[item1];
+                const err42 = {
+                  instancePath: instancePath + '/tessera_exports',
+                  schemaPath: '#/properties/tessera_exports/uniqueItems',
+                  keyword: 'uniqueItems',
+                  params: { i: i8, j: j1 },
+                  message: 'must NOT have duplicate items (items ## ' + j1 + ' and ' + i8 + ' are identical)',
+                };
+                if (vErrors === null) {
+                  vErrors = [err42];
+                } else {
+                  vErrors.push(err42);
+                }
+                errors++;
+                break;
+              }
+              indices1[item1] = i8;
+            }
+          }
+        } else {
+          const err43 = { instancePath: instancePath + '/tessera_exports', schemaPath: '#/properties/tessera_exports/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err43];
+          } else {
+            vErrors.push(err43);
+          }
+          errors++;
+        }
+      }
+      if (data.tessera_imports !== undefined) {
+        let data24 = data.tessera_imports;
+        if (Array.isArray(data24)) {
+          if (data24.length > 50) {
+            const err44 = {
+              instancePath: instancePath + '/tessera_imports',
+              schemaPath: '#/properties/tessera_imports/maxItems',
+              keyword: 'maxItems',
+              params: { limit: 50 },
+              message: 'must NOT have more than 50 items',
+            };
+            if (vErrors === null) {
+              vErrors = [err44];
+            } else {
+              vErrors.push(err44);
+            }
+            errors++;
+          }
+          const len7 = data24.length;
+          for (let i9 = 0; i9 < len7; i9++) {
+            let data25 = data24[i9];
+            if (data25 && typeof data25 == 'object' && !Array.isArray(data25)) {
+              if (data25.project === undefined) {
+                const err45 = {
+                  instancePath: instancePath + '/tessera_imports/' + i9,
+                  schemaPath: '#/properties/tessera_imports/items/required',
+                  keyword: 'required',
+                  params: { missingProperty: 'project' },
+                  message: "must have required property '" + 'project' + "'",
+                };
+                if (vErrors === null) {
+                  vErrors = [err45];
+                } else {
+                  vErrors.push(err45);
+                }
+                errors++;
+              }
+              if (data25.alias === undefined) {
+                const err46 = {
+                  instancePath: instancePath + '/tessera_imports/' + i9,
+                  schemaPath: '#/properties/tessera_imports/items/required',
+                  keyword: 'required',
+                  params: { missingProperty: 'alias' },
+                  message: "must have required property '" + 'alias' + "'",
+                };
+                if (vErrors === null) {
+                  vErrors = [err46];
+                } else {
+                  vErrors.push(err46);
+                }
+                errors++;
+              }
+              if (data25.concepts === undefined) {
+                const err47 = {
+                  instancePath: instancePath + '/tessera_imports/' + i9,
+                  schemaPath: '#/properties/tessera_imports/items/required',
+                  keyword: 'required',
+                  params: { missingProperty: 'concepts' },
+                  message: "must have required property '" + 'concepts' + "'",
+                };
+                if (vErrors === null) {
+                  vErrors = [err47];
+                } else {
+                  vErrors.push(err47);
+                }
+                errors++;
+              }
+              for (const key2 in data25) {
+                if (!(key2 === 'project' || key2 === 'ontology' || key2 === 'alias' || key2 === 'concepts' || key2 === 'version')) {
+                  const err48 = {
+                    instancePath: instancePath + '/tessera_imports/' + i9,
+                    schemaPath: '#/properties/tessera_imports/items/additionalProperties',
+                    keyword: 'additionalProperties',
+                    params: { additionalProperty: key2 },
+                    message: 'must NOT have additional properties',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err48];
+                  } else {
+                    vErrors.push(err48);
+                  }
+                  errors++;
+                }
+              }
+              if (data25.project !== undefined) {
+                let data26 = data25.project;
+                if (typeof data26 === 'string') {
+                  if (func1(data26) < 1) {
+                    const err49 = {
+                      instancePath: instancePath + '/tessera_imports/' + i9 + '/project',
+                      schemaPath: '#/properties/tessera_imports/items/properties/project/minLength',
+                      keyword: 'minLength',
+                      params: { limit: 1 },
+                      message: 'must NOT have fewer than 1 characters',
+                    };
+                    if (vErrors === null) {
+                      vErrors = [err49];
+                    } else {
+                      vErrors.push(err49);
+                    }
+                    errors++;
+                  }
+                } else {
+                  const err50 = {
+                    instancePath: instancePath + '/tessera_imports/' + i9 + '/project',
+                    schemaPath: '#/properties/tessera_imports/items/properties/project/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err50];
+                  } else {
+                    vErrors.push(err50);
+                  }
+                  errors++;
+                }
+              }
+              if (data25.ontology !== undefined) {
+                let data27 = data25.ontology;
+                if (typeof data27 === 'string') {
+                  if (func1(data27) < 1) {
+                    const err51 = {
+                      instancePath: instancePath + '/tessera_imports/' + i9 + '/ontology',
+                      schemaPath: '#/properties/tessera_imports/items/properties/ontology/minLength',
+                      keyword: 'minLength',
+                      params: { limit: 1 },
+                      message: 'must NOT have fewer than 1 characters',
+                    };
+                    if (vErrors === null) {
+                      vErrors = [err51];
+                    } else {
+                      vErrors.push(err51);
+                    }
+                    errors++;
+                  }
+                } else {
+                  const err52 = {
+                    instancePath: instancePath + '/tessera_imports/' + i9 + '/ontology',
+                    schemaPath: '#/properties/tessera_imports/items/properties/ontology/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err52];
+                  } else {
+                    vErrors.push(err52);
+                  }
+                  errors++;
+                }
+              }
+              if (data25.alias !== undefined) {
+                let data28 = data25.alias;
+                if (typeof data28 === 'string') {
+                  if (!pattern8.test(data28)) {
+                    const err53 = {
+                      instancePath: instancePath + '/tessera_imports/' + i9 + '/alias',
+                      schemaPath: '#/properties/tessera_imports/items/properties/alias/pattern',
+                      keyword: 'pattern',
+                      params: { pattern: '^[A-Za-z0-9_]+$' },
+                      message: 'must match pattern "' + '^[A-Za-z0-9_]+$' + '"',
+                    };
+                    if (vErrors === null) {
+                      vErrors = [err53];
+                    } else {
+                      vErrors.push(err53);
+                    }
+                    errors++;
+                  }
+                } else {
+                  const err54 = {
+                    instancePath: instancePath + '/tessera_imports/' + i9 + '/alias',
+                    schemaPath: '#/properties/tessera_imports/items/properties/alias/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err54];
+                  } else {
+                    vErrors.push(err54);
+                  }
+                  errors++;
+                }
+              }
+              if (data25.concepts !== undefined) {
+                let data29 = data25.concepts;
+                if (Array.isArray(data29)) {
+                  if (data29.length < 1) {
+                    const err55 = {
+                      instancePath: instancePath + '/tessera_imports/' + i9 + '/concepts',
+                      schemaPath: '#/properties/tessera_imports/items/properties/concepts/minItems',
+                      keyword: 'minItems',
+                      params: { limit: 1 },
+                      message: 'must NOT have fewer than 1 items',
+                    };
+                    if (vErrors === null) {
+                      vErrors = [err55];
+                    } else {
+                      vErrors.push(err55);
+                    }
+                    errors++;
+                  }
+                  const len8 = data29.length;
+                  for (let i10 = 0; i10 < len8; i10++) {
+                    let data30 = data29[i10];
+                    if (typeof data30 === 'string') {
+                      if (func1(data30) < 1) {
+                        const err56 = {
+                          instancePath: instancePath + '/tessera_imports/' + i9 + '/concepts/' + i10,
+                          schemaPath: '#/properties/tessera_imports/items/properties/concepts/items/minLength',
+                          keyword: 'minLength',
+                          params: { limit: 1 },
+                          message: 'must NOT have fewer than 1 characters',
+                        };
+                        if (vErrors === null) {
+                          vErrors = [err56];
+                        } else {
+                          vErrors.push(err56);
+                        }
+                        errors++;
+                      }
+                    } else {
+                      const err57 = {
+                        instancePath: instancePath + '/tessera_imports/' + i9 + '/concepts/' + i10,
+                        schemaPath: '#/properties/tessera_imports/items/properties/concepts/items/type',
+                        keyword: 'type',
+                        params: { type: 'string' },
+                        message: 'must be string',
+                      };
+                      if (vErrors === null) {
+                        vErrors = [err57];
+                      } else {
+                        vErrors.push(err57);
+                      }
+                      errors++;
+                    }
+                  }
+                  let i11 = data29.length;
+                  let j2;
+                  if (i11 > 1) {
+                    const indices2 = {};
+                    for (; i11--;) {
+                      let item2 = data29[i11];
+                      if (typeof item2 !== 'string') {
+                        continue;
+                      }
+                      if (typeof indices2[item2] == 'number') {
+                        j2 = indices2[item2];
+                        const err58 = {
+                          instancePath: instancePath + '/tessera_imports/' + i9 + '/concepts',
+                          schemaPath: '#/properties/tessera_imports/items/properties/concepts/uniqueItems',
+                          keyword: 'uniqueItems',
+                          params: { i: i11, j: j2 },
+                          message: 'must NOT have duplicate items (items ## ' + j2 + ' and ' + i11 + ' are identical)',
+                        };
+                        if (vErrors === null) {
+                          vErrors = [err58];
+                        } else {
+                          vErrors.push(err58);
+                        }
+                        errors++;
+                        break;
+                      }
+                      indices2[item2] = i11;
+                    }
+                  }
+                } else {
+                  const err59 = {
+                    instancePath: instancePath + '/tessera_imports/' + i9 + '/concepts',
+                    schemaPath: '#/properties/tessera_imports/items/properties/concepts/type',
+                    keyword: 'type',
+                    params: { type: 'array' },
+                    message: 'must be array',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err59];
+                  } else {
+                    vErrors.push(err59);
+                  }
+                  errors++;
+                }
+              }
+              if (data25.version !== undefined) {
+                let data31 = data25.version;
+                const _errs76 = errors;
+                let valid31 = false;
+                let passing1 = null;
+                const _errs77 = errors;
+                if ('latest' !== data31) {
+                  const err60 = {
+                    instancePath: instancePath + '/tessera_imports/' + i9 + '/version',
+                    schemaPath: '#/properties/tessera_imports/items/properties/version/oneOf/0/const',
+                    keyword: 'const',
+                    params: { allowedValue: 'latest' },
+                    message: 'must be equal to constant',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err60];
+                  } else {
+                    vErrors.push(err60);
+                  }
+                  errors++;
+                }
+                var _valid2 = _errs77 === errors;
+                if (_valid2) {
+                  valid31 = true;
+                  passing1 = 0;
+                }
+                const _errs78 = errors;
+                if (data31 && typeof data31 == 'object' && !Array.isArray(data31)) {
+                  if (data31.pin === undefined) {
+                    const err61 = {
+                      instancePath: instancePath + '/tessera_imports/' + i9 + '/version',
+                      schemaPath: '#/properties/tessera_imports/items/properties/version/oneOf/1/required',
+                      keyword: 'required',
+                      params: { missingProperty: 'pin' },
+                      message: "must have required property '" + 'pin' + "'",
+                    };
+                    if (vErrors === null) {
+                      vErrors = [err61];
+                    } else {
+                      vErrors.push(err61);
+                    }
+                    errors++;
+                  }
+                  for (const key3 in data31) {
+                    if (!(key3 === 'pin')) {
+                      const err62 = {
+                        instancePath: instancePath + '/tessera_imports/' + i9 + '/version',
+                        schemaPath: '#/properties/tessera_imports/items/properties/version/oneOf/1/additionalProperties',
+                        keyword: 'additionalProperties',
+                        params: { additionalProperty: key3 },
+                        message: 'must NOT have additional properties',
+                      };
+                      if (vErrors === null) {
+                        vErrors = [err62];
+                      } else {
+                        vErrors.push(err62);
+                      }
+                      errors++;
+                    }
+                  }
+                  if (data31.pin !== undefined) {
+                    let data32 = data31.pin;
+                    if (typeof data32 === 'string') {
+                      if (func1(data32) < 1) {
+                        const err63 = {
+                          instancePath: instancePath + '/tessera_imports/' + i9 + '/version/pin',
+                          schemaPath: '#/properties/tessera_imports/items/properties/version/oneOf/1/properties/pin/minLength',
+                          keyword: 'minLength',
+                          params: { limit: 1 },
+                          message: 'must NOT have fewer than 1 characters',
+                        };
+                        if (vErrors === null) {
+                          vErrors = [err63];
+                        } else {
+                          vErrors.push(err63);
+                        }
+                        errors++;
+                      }
+                    } else {
+                      const err64 = {
+                        instancePath: instancePath + '/tessera_imports/' + i9 + '/version/pin',
+                        schemaPath: '#/properties/tessera_imports/items/properties/version/oneOf/1/properties/pin/type',
+                        keyword: 'type',
+                        params: { type: 'string' },
+                        message: 'must be string',
+                      };
+                      if (vErrors === null) {
+                        vErrors = [err64];
+                      } else {
+                        vErrors.push(err64);
+                      }
+                      errors++;
+                    }
+                  }
+                } else {
+                  const err65 = {
+                    instancePath: instancePath + '/tessera_imports/' + i9 + '/version',
+                    schemaPath: '#/properties/tessera_imports/items/properties/version/oneOf/1/type',
+                    keyword: 'type',
+                    params: { type: 'object' },
+                    message: 'must be object',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err65];
+                  } else {
+                    vErrors.push(err65);
+                  }
+                  errors++;
+                }
+                var _valid2 = _errs78 === errors;
+                if (_valid2 && valid31) {
+                  valid31 = false;
+                  passing1 = [passing1, 1];
+                } else {
+                  if (_valid2) {
+                    valid31 = true;
+                    passing1 = 1;
+                  }
+                }
+                if (!valid31) {
+                  const err66 = {
+                    instancePath: instancePath + '/tessera_imports/' + i9 + '/version',
+                    schemaPath: '#/properties/tessera_imports/items/properties/version/oneOf',
+                    keyword: 'oneOf',
+                    params: { passingSchemas: passing1 },
+                    message: 'must match exactly one schema in oneOf',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err66];
+                  } else {
+                    vErrors.push(err66);
+                  }
+                  errors++;
+                } else {
+                  errors = _errs76;
+                  if (vErrors !== null) {
+                    if (_errs76) {
+                      vErrors.length = _errs76;
+                    } else {
+                      vErrors = null;
+                    }
+                  }
+                }
+              }
+            } else {
+              const err67 = {
+                instancePath: instancePath + '/tessera_imports/' + i9,
+                schemaPath: '#/properties/tessera_imports/items/type',
+                keyword: 'type',
+                params: { type: 'object' },
+                message: 'must be object',
+              };
+              if (vErrors === null) {
+                vErrors = [err67];
+              } else {
+                vErrors.push(err67);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err68 = { instancePath: instancePath + '/tessera_imports', schemaPath: '#/properties/tessera_imports/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err68];
+          } else {
+            vErrors.push(err68);
+          }
+          errors++;
+        }
+      }
+    } else {
+      const err69 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
+      if (vErrors === null) {
+        vErrors = [err69];
+      } else {
+        vErrors.push(err69);
+      }
+      errors++;
+    }
+    validate118.errors = vErrors;
+    return errors === 0;
+  }
+  validate118.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
+  return {
+    standalone: validate20,
+    embedded: validate73,
+    ontology: validate21,
+    tessera: validate78,
+    tesseraRevisionTwo: validate95,
+    tesseraDependencies: validate112,
+    tesseraPart: validate113,
+    tesseraRevisionThree: validate118,
+  };
 })();
 const generatedExtensions = (() => {
   const extensionsRuntime0 = extensionsRuntime0Module.default?.__esModule ? extensionsRuntime0Module.default : extensionsRuntime0Module;
@@ -31373,5 +38463,8 @@ export const embedded = generatedMappings.embedded;
 export const ontology = generatedMappings.ontology;
 export const tessera = generatedMappings.tessera;
 export const tesseraRevisionTwo = generatedMappings.tesseraRevisionTwo;
+export const tesseraDependencies = generatedMappings.tesseraDependencies;
+export const tesseraPart = generatedMappings.tesseraPart;
+export const tesseraRevisionThree = generatedMappings.tesseraRevisionThree;
 export const metric = generatedExtensions.metric;
 export const mapping = generatedExtensions.mapping;
