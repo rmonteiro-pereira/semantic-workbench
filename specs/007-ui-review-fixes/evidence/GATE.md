@@ -72,8 +72,22 @@ Each file was read once from the release Git blob using `git show` and hashed wi
 The duplicate Commerce contract is shared by the Commerce and Mapped commerce imports.
 Three supplemental files exercise SQL colouring, SQL warnings and a mapping with no bindings.
 The two SQL files come from the release fixtures. The empty mapping keeps the Commerce mapping reference fields and drops its bindings.
-A candidate inventory using `bun -e`, `validateInput` and `inspect` verified all 39 hashes and accepted all files. Across unique files it returned
-5,298 entities and 12,145 relationships. The Import UI and the other version inventories still need to run.
+The Import UI returned success for all nine frozen projects in both local and server mode on all three versions.
+Each run wrote 43 files across the projects, using 39 unique inputs, and every reported file hash matched the frozen hash.
+The per-file inventories returned the same 5,298 entities and 12,145 relationships across the unique inputs.
+The UBL server import went into HR for the reader's journey. The other server imports went into Sales.
+The unbound project was renamed through the UI after import to distinguish it from the other Mapped commerce project.
+
+| Capture version | Commit | Vite build | Local import | Server import | Entities | Relationships |
+| --- | --- | --- | --- | --- | --- | --- |
+| v0.6.1 | `3b1c2c10bc6ae96c6c603301764bde4cfdc4dcd4` | 3.10 s | 9 projects, 43 files | 9 projects, 43 files | 5,298 | 12,145 |
+| Main | `5597ae52c55cb76a864aa242873dbbe7083a000e` | 3.12 s | 9 projects, 43 files | 9 projects, 43 files | 5,298 | 12,145 |
+| Candidate at preparation | `e090f17691f0a6dc593386a916fb6ac90317a52d` | 3.01 s | 9 projects, 43 files | 9 projects, 43 files | 5,298 | 12,145 |
+
+`sw-midgard-run` launched the detached comparison preparation and returned status 0 for the full prepare phase.
+`bun --bun run build` ran within each checkout. Each used the same dependency lock.
+The per-version `bun -e` inventory verified every SHA-256 and ran that version's `inspect`.
+The serial Import driver verified each response file hash and closed Chromium and the assigned servers before starting another batch.
 
 <details>
 <summary>Frozen input hashes</summary>
