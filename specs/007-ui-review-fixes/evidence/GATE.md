@@ -636,6 +636,18 @@ of the layout on phone at this checkpoint. Its correction is under a separate re
 - `bash .data/gate/pull-review-007.sh` fetched the phone and 1440 px light selection replays. The six changed triptychs were opened.
 - `git diff --check` returned 0 before the selection correction commit. The detached candidate rebuild returned 0.
 
+Commit `e009e7ca` corrects the separate Layered Collapse areas action. With Order still in the inspector, the settled candidate
+keeps all four area cards inside the canvas in both repetitions at 390 px light, 390 px dark and 1440 px light. The matching
+version strips were opened. After Expand all, the Order card still matches the inspector. The opened native pairs under
+`{before,after}/fixes/ubl-layered-collapsed-390.png` and `ubl-layered-collapsed-1440.png` replace the clipped lower row with
+the complete four-area model. They changed 16.518107% and 21.097377% of pixels, respectively.
+
+- `sw-midgard-run -- bash scripts/ui-review/gate-007/collapsed-and-network-launch.sh` rebuilt the candidate and completed the three selection comparisons.
+- `bash .data/gate/pull-review-007.sh` and `python3 .data/gate/contact-sheet-007.py` fetched and arranged the nine inspected triptychs.
+- `python3 .data/gate/pixel-difference-007.py` counted 54,371 of 329,160 changed pixels on phone and 273,422 of 1,296,000 on desktop.
+- `bun .data/gate/gate-007/box-fit-trial.ts` and the Midgard Network diagnostics measured the geometry separately from the browser. Compressing the
+  force layout and repeating its de-overlap pass left the smallest UBL name below 9 px in the desktop trial. Tighter area packing remains under test.
+
 ## Differences for owner acceptance
 
 - The release has no published working-copy notice. Main adds it to Mappings, with both older release and candidate data otherwise kept under the
