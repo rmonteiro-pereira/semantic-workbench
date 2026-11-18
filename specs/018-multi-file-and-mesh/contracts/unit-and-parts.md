@@ -60,6 +60,18 @@ Messages name the files and the property. Each class has a fixture under
 
 - The compiled root holds its own concepts, then each part's concepts in list order, then imported
   concepts sorted by owner and name.
-- An imported concept is written as `<owner>.<Concept>` where `<owner>` is the provider project's stable name.
+- An imported concept is written as `<owner>~<Concept>` where `<owner>` is the provider project's stable identity and ontology document as defined below.
   Every reference to it in the source, whatever the alias, becomes that name.
 - A name that would collide after qualification fails the compile.
+
+## Owner qualification
+
+The separator is `~`. Each component is escaped before joining: `%` becomes `%25`, a dot becomes
+`%2E`, and `~` becomes `%7E`. A provider's canonical owner includes its stable project identity and
+ontology document; its spelling is `<project>~<ontology>~<Concept>`, with the same component escaping.
+This distinguishes multiple exporting roots in one project and makes qualification injective even
+when source names contain separators. Aliases keep their source spelling `<alias>.<Concept>`.
+
+A qualified concept contains no literal dot, so appending `.relationship` remains compatible with
+`relationshipMatches`. Item addresses continue to pass the whole name to `formatAddress`; `~` is
+ordinary name content in that grammar, never a scope or location delimiter.
