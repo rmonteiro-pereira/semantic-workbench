@@ -154,7 +154,7 @@ export async function screenProblems(page: Page, screen: Screen): Promise<string
   if (screen.name.startsWith('admin-')) problems.push(...(await adminPageProblems(page)));
   const mapping = page.locator('[aria-label="Mapping graph"] .lineage-reading');
   if (await mapping.isVisible()) {
-    await expect(mapping).toHaveText(/^Saved mapping · \d+ reachable assets · \d+ total assets$/);
+    await expect(mapping).toHaveText(/^Saved mapping · (?:1 reachable asset|\d+ reachable assets) · (?:1 total asset|\d+ total assets)$/);
   }
   const graphTour = screen.name.startsWith('graph-');
   if (!screen.dialog && !graphTour && (await page.locator('.full-graph').isVisible())) {
