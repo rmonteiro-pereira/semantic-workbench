@@ -196,11 +196,7 @@ function accessControl(options: AccessOptions, previous?: ActiveAccess) {
     };
   }
 
-  function forRequest(identity: Principal, requestDefaults: Partial<DecisionContext> = {}) {
-    return requestScope(identity, requestDefaults, false);
-  }
-
-  function requestScope(identity: Principal, requestDefaults: Partial<DecisionContext>, replay: boolean) {
+  function forRequest(identity: Principal, requestDefaults: Partial<DecisionContext> = {}, replay = false) {
     refreshProjects();
     let snapshot = active;
     let principal = principalFor(identity);
@@ -214,6 +210,18 @@ function accessControl(options: AccessOptions, previous?: ActiveAccess) {
       decisions.clear();
     }
 
+    function replayAction(action: Action, resource: ResourceRef) {
+      // Creation can search domains, so another action must never borrow its result.
+      if (action === 'createProject') return [action];
+      const type = resource.type === 'file' && resource.metric ? 'metric' : resource.type;
+      const actionClasses = snapshot.policy.actionClasses(
+        principal.grants.map(grant => grant.roleId),
+        principal.kind,
+        type,
+      );
+      return actionClasses.get(action) ?? action;
+    }
+
     function authorize(action: Action, input: ResourceRef, supplied: Partial<DecisionContext> = {}): Decision {
       synchronize();
       const resource = normalizeResource(input);
@@ -223,22 +231,11 @@ function accessControl(options: AccessOptions, previous?: ActiveAccess) {
         ...supplied,
       });
       const project = resource.type === 'workspace' ? '' : resource.project;
-      // Prospective creation also searches domains, beyond Cedar rule applicability.
-      const type = resource.type === 'file' && resource.metric ? 'metric' : resource.type;
-      const actionClasses = replay
-        ? snapshot.policy.actionClasses(
-            principal.grants.map(grant => grant.roleId),
-            principal.kind,
-            type,
-          )
-        : undefined;
-      const creation = action === 'createProject' && options.mode === 'server' && (resource.type === 'workspace' || (resource.type === 'project' && resource.project === NEW_PROJECT));
-      const equivalentAction = actionClasses?.get(action) ?? action;
-      const actionClass = creation ? ['createProject'] : equivalentAction;
+      const actionClass = replay ? replayAction(action, resource) : action;
       const key = JSON.stringify([actionClass, project, ruleClass(snapshot, resource), context, resource.type === 'workspace' ? undefined : resource.domain]);
       const previous = decisions.get(key);
       if (previous) return previous;
-      if (creation) {
+      if (action === 'createProject' && options.mode === 'server' && (resource.type === 'workspace' || (resource.type === 'project' && resource.project === NEW_PROJECT))) {
         const decision = creationDecision(snapshot, principal, resource, supplied);
         decisions.set(key, decision);
         return decision;
@@ -367,10 +364,11 @@ function accessControl(options: AccessOptions, previous?: ActiveAccess) {
     bootstrap: structuredClone(bootstrap),
     config: structuredClone(active.config),
   });
+  const ordinaryRequest: (identity: Principal, defaults?: Partial<DecisionContext>) => ReturnType<typeof forRequest> = forRequest;
   return {
-    forRequest,
+    forRequest: ordinaryRequest,
     /** Reuses equivalent actions within a replay while keeping the ordinary request path lean. */
-    forReplay: (identity: Principal) => requestScope(identity, {}, true),
+    forReplay: (identity: Principal) => forRequest(identity, {}, true),
     authorize,
     filter,
     view,
