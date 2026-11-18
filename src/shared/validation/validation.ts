@@ -6,6 +6,9 @@ import { odcsReferenceIssues } from '../odcs/foreign-keys';
 import { contract, semantic } from '../../generated/validators.js';
 import { type Issue, rejectIssues, InputError, schemaErrorPath } from './diagnostics';
 import { metricLayerIssues, readKpiBindings } from '../metrics/extension';
+import { TesseraNames } from '../tessera/format';
+import { readMarker } from '../tessera/marker';
+import { tesseraIssues, withoutRepeatedSchemaFindings } from '../tessera/validate';
 /** The one Ossie schema version this app ships validators for. */
 export const OSSIE_SCHEMA_VERSION = '0.2.0.dev0';
 const object = (v: any) => v !== null && typeof v === 'object' && !Array.isArray(v);
@@ -42,10 +45,17 @@ function isOssieDocument(data: any) {
   const isContract = data.kind === 'DataContract' || data.apiVersion !== undefined || data.schema !== undefined;
   return !isContract && (data.ontology !== undefined || data.datasets !== undefined || data.semantic_model !== undefined || isMapping(data));
 }
+/** Returns a copy of a document without the Tessera marker, so the standard rules see only what is left. */
+function withoutMarker(data: Record<string, unknown>) {
+  const { [TesseraNames.markerKey]: _marker, ...rest } = data;
+  return rest;
+}
 /** Options that change how a document is checked. */
 export type ValidationOptions = {
   /** Check a file with an unknown Ossie version as if it declared the shipped version. */
   assumeOssieVersion?: boolean;
+  /** Set when the document sits inside another one, so a key named like the Tessera marker is ordinary data. */
+  nested?: boolean;
 };
 /** Checks structured definitions against schemas and semantic rules. */
 export function validateStructured(data: any, applyPinnedSchema = true, options: ValidationOptions = {}): Issue[] {
@@ -104,10 +114,17 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
     fail('/', 'Cyclic aliases or non-JSON scalar values are unsupported.', 'serialization');
     rejectIssues(issues);
   }
+  // A marked document is judged by the Tessera rules: its derived schema replaces the pinned one and it is never "not validated".
+  const marked = !options.nested && readMarker(data).family !== 'standard';
+  if (marked) {
+    issues.push(...tesseraIssues(data).issues);
+    if (data.ontology !== undefined) applyPinnedSchema = false;
+    else data = withoutMarker(data);
+  }
   // The notice goes last so the findings that block a save stay first.
   let notice: Issue | null = null;
   // Mapping files keep their strict schema, which names the one version the agent runtime reads.
-  if (applyPinnedSchema && isOssieDocument(data) && !isMapping(data) && data.version !== OSSIE_SCHEMA_VERSION) {
+  if (!marked && applyPinnedSchema && isOssieDocument(data) && !isMapping(data) && data.version !== OSSIE_SCHEMA_VERSION) {
     if (options.assumeOssieVersion) {
       data = { ...data, version: OSSIE_SCHEMA_VERSION };
     } else {
@@ -219,7 +236,7 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
       if (!schemaIssues.length)
         try {
           issues.push(
-            ...validateStructured(embeddedMapping.semantic_model, false).map(issue => ({
+            ...validateStructured(embeddedMapping.semantic_model, false, { nested: true }).map(issue => ({
               ...issue,
               path: prefix + '/semantic_model' + issue.path,
             })),
@@ -324,6 +341,7 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
         path: schemaErrorPath(error) || '/',
         message: error.message ?? 'Schema violation.',
       });
+  if (marked) issues.splice(0, issues.length, ...withoutRepeatedSchemaFindings(issues));
   if (notice) issues.push(notice);
   rejectIssues(issues);
   return issues;

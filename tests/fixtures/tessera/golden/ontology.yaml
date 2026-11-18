@@ -1,0 +1,15 @@
+version: 0.2.0.dev0
+name: Retail
+ontology:
+  - concept: Order
+    type: EntityType
+    description: A customer order.
+    relationships:
+      - name: placed_by
+        verbalizes:
+          - Order is placed by Customer
+        roles:
+          - concept: Customer
+  - concept: Customer
+    type: EntityType
+    description: A person who buys.

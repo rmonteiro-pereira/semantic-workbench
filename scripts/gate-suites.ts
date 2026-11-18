@@ -21,6 +21,7 @@ export const gateSuites: string[] = [
   'test:mcp:browser',
   'test:rdf-edit',
   'test:validation',
+  'test:tessera',
   'test:scm',
   'test:odcs',
   'test:lineage',

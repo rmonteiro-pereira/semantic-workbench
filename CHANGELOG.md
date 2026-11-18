@@ -12,6 +12,15 @@ not configure a production deployment.
 - `POST /api/projects/:slug/files/*/validate` checks proposed text with the save pipeline and writes nothing.
 - The commit route accepts optional `files`, `expectedBranch` and `expectedHead`, checked in the same turn of the repository queue as the commit. Every commit now takes the project's write lock first, as a save does (and the lock of every sibling project whose files it names), so no save lands between the checks and the commit. Deleting a file accepts an optional `baseHash`. `GET /api/documents?project=` lists a project's files without their text.
 - Audit records of agent calls carry the protocol method, a client label and a result code, and the Admin audit view shows the tool beside the action.
+- The Tessera format: an authoring format that compiles to standard Ossie. An Ossie ontology with the
+  marker `tessera: 1` and the property `tessera_notes` (on the ontology root, a concept or a relationship)
+  opens, saves and validates like any ontology, with its own finding codes, and the validation panel
+  names the format. Agents, the inspector, item addresses and access rules see an ordinary ontology.
+- `bun run tessera compile` writes a bundle of standard Ossie from the committed snapshot of a project
+  folder, with a manifest and a loss report that lists every dropped value by item, size and hash and
+  carries a digest. A compile with loss is released only for that exact digest or a loss policy; exit
+  statuses are 0, 1, 2 and 64. `bun run tessera check` shows the same result for a snapshot or a folder
+  on disk and writes nothing.
 - Canonical `sw1` item addresses identify structured definitions, nested ODCS properties and mapping items.
   Inspector results, canvas cards and agent context use them; unnamed items have volatile positional addresses.
 - Item-address resolution and explicit reconciliation share scoped, audited HTTP and in-process operations,

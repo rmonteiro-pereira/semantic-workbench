@@ -536,6 +536,40 @@ Results describe the text as it is now and clear when either file changes. Data 
 Turtle, N-Triples or N3; convert RDF/XML first. JSON-LD, TriG, N-Quads, OWL/XML, Functional Syntax and Manchester syntax are
 not supported inputs. See [schema provenance](../schemas/README.md).
 
+### Tessera documents
+
+A Tessera document is an Ossie ontology that carries the marker `tessera: 1` and, if you want, the
+property `tessera_notes`. It is an authoring format that compiles to standard Ossie: you edit it in the
+workbench like any ontology, and a release job compiles it into plain Ossie files.
+
+- **The marker.** Put `tessera: 1` at the top level of an ontology file (YAML or JSON). The number is
+  the revision of the Tessera rules; only revision 1 exists today. The file must also name its Ossie
+  base in `version`, which today is `0.2.0.dev0`. The marker is allowed on ontologies only, not on
+  semantic models, mappings, data contracts or RDF files.
+- **Notes.** `tessera_notes` is free text for the people who edit the ontology: a non-empty string of
+  at most 10,000 characters, allowed on the ontology root, on a concept and on a relationship of a
+  concept. Notes appear nowhere else: not in the graph, the inspector, agent context or the compiled
+  output.
+- **The format label.** **Validation details** names the format, for example "Tessera 1 on Ossie
+  0.2.0.dev0 · 0 errors · 0 warnings". A Tessera document is never shown as "Not validated".
+- **Removing the last note** keeps the marker. Only compiling, or you, removes it.
+
+Each mistake gives one finding with a code and a place. `tessera-marker`: the marker is not a whole
+number of at least 1; write `tessera: 1`. `tessera-revision`: the document is newer than this
+workbench, or uses a property that needs a higher revision; use a supported revision. `tessera-base`:
+`version` is missing or not a supported Ossie base; set it to `0.2.0.dev0`. `tessera-kind`: the marker
+is on a file that is not an ontology; remove it. `tessera-property`: a `tessera_` property that does
+not exist, often a misspelling such as `tessera_note`; fix the spelling or remove it.
+`tessera-reserved`: the name is kept for a later feature; remove it. `tessera-location`: a known
+property in a place that does not take it, such as a dataset; move it to the ontology root, a concept
+or a relationship. An empty or too long note is a `schema` finding on the note.
+
+What compiling drops: the marker and every note. The compile lists each dropped value in a loss
+report (by item and size, never the text) and writes a bundle only when you accept that report by its
+digest or by a loss policy. Comments and layout in a compiled file may not survive; values and key
+order do. The command line is described in the [README](../README.md#tessera-an-authoring-format-that-compiles-to-standard-ossie)
+and in [development](development.md#the-tessera-command).
+
 ### SQL expressions
 
 Ossie semantic fields, metrics and mapping expressions, ODCS SQL quality rules and transform logic
@@ -610,3 +644,8 @@ Both split Ossie files and deprecated consolidated `ontology_mappings` layouts a
 Other mixed single-file layouts are rejected with a description of the supported alternatives.
 Agent endpoints expose catalog, context and plans; the workbench does not call a hosted language
 model. See [agent runtime and protocol](agent-runtime.md).
+
+## Glossary
+
+- **Tessera**: an authoring format that compiles to standard Ossie. A Tessera document is an Ossie
+  ontology with the marker `tessera: 1` and, optionally, `tessera_notes`.

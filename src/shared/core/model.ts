@@ -13,6 +13,7 @@ import { applyPatches } from '../editor/patch';
 import { inspectRdf, rdfSyntax } from '../validation/rdf';
 import { isNotValidated, validateStructured, type ValidationOptions } from '../validation/validation';
 import { InputError, validateEnvelope, type Issue } from '../validation/diagnostics';
+import { documentFormat } from '../tessera/validate';
 /** Describes a model item displayed in the catalog and graph. */
 export type Entity = {
   id: string;
@@ -319,6 +320,8 @@ export function inspect(source: string, filename = 'definition.yaml', options: V
     kind,
     layout,
     name: data.name ?? data.semantic_model?.[0]?.name ?? 'Untitled',
+    // Tessera additions create no item, edge or address: the format only says which rules judged the document.
+    format: documentFormat(data) ?? { family: 'standard' as const },
     entities: addressedEntities,
     edges: addressedEdges,
     issues,

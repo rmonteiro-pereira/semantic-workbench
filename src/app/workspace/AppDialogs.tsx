@@ -5,6 +5,7 @@ import type { KpiSummary } from '../../server/agent/explain';
 import type { ImportDraft } from '../validation/ValidationPanel';
 import { ImportRepair, ValidationPanel } from '../validation/ValidationPanel';
 import { ShaclCheck } from '../validation/ShaclCheck';
+import { formatOfInspection } from '../../shared/tessera/format';
 import type { Issue } from '../../shared/validation/diagnostics';
 import type { Saved } from '../edit/ItemEditor';
 import type { Choices, ItemKind, Path } from '../../shared/edit/item-model';
@@ -352,7 +353,13 @@ export function AppDialogs({
             </button>
           }
         >
-          <ValidationPanel source={source} issues={validation.issues} onLocate={handleValidationPanelLocate} onValidateAsShippedVersion={validateAsShippedVersion} />
+          <ValidationPanel
+            source={source}
+            issues={validation.issues}
+            format={formatOfInspection(validation.model)}
+            onLocate={handleValidationPanelLocate}
+            onValidateAsShippedVersion={validateAsShippedVersion}
+          />
           {validation.model?.kind === 'SHACL' && current && <ShaclCheck shapes={current} shapesSource={source} projectDocs={docs} />}
         </Modal>
       )}

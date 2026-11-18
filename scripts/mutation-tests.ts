@@ -17,6 +17,7 @@ import { themeMutants } from './theme-mutants';
 import { brandMutants } from './brand-mutants';
 import { observabilityMutants } from './observability-mutants';
 import { usageMutants } from './usage-mutants';
+import { tesseraMutants } from './tessera-mutants';
 import { chmod, mkdtemp, readdir, rm, symlink } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 const root = process.cwd();
@@ -579,6 +580,8 @@ mutants.push(...mcpMutants);
 mutants.push(...proposalsMutants);
 // Usage counters: what is counted, what is stored, who reads it, how it moves and when it expires.
 mutants.push(...usageMutants);
+// The Tessera format, its compiler and its command line.
+mutants.push(...tesseraMutants);
 // `--only <prefix>` runs the mutants of the categories that start with the prefix and nothing else.
 const only = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1] : undefined;
 if (only) mutants.splice(0, mutants.length, ...mutants.filter(mutant => mutant[0].startsWith(only)));

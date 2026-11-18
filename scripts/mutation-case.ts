@@ -33,6 +33,7 @@ if (category.startsWith('mcp-')) {
   await run(process.argv[2]);
 }
 if (category === 'proposals') await (await import('./proposals-mutation-cases')).proposalsCases(loadedModule);
+if (category === 'tessera') await (await import('./tessera-mutation-cases')).tesseraCase(loadedModule);
 if (category === 'operation-boundary') {
   const { operationBoundaryCases } = await import('./operation-boundary-mutation-cases');
   await operationBoundaryCases(process.argv[2]);

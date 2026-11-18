@@ -39,6 +39,7 @@ These schemas describe workbench storage conventions, not additions to the upstr
 | `semantic-workbench-mapping-v1.json` | Metric-to-concept bindings |
 | `semantic-workbench-repository-v1.json` | Multi-project repository manifest |
 | `semantic-workbench-access-v1.json` | Roles, grants, projects, agents and server settings |
+| `tessera-ontology-1-ossie-0.2.0.dev0.json` | Tessera revision 1 ontologies on the Ossie 0.2.0.dev0 base. A workbench schema, not part of the Ossie standard |
 
 Metric attributes are JSON in an Ossie `custom_extensions` entry with
 `vendor_name: SEMANTIC_WORKBENCH`. Bindings live in the mapping root, or the semantic model inside
@@ -54,6 +55,16 @@ Access configuration uses schema ID `semantic-workbench/access/v1`. Files in `DA
 validate against their corresponding `$defs`: `roles.json`, `grants.json`, `projects.json`,
 `agents.json`, `deactivated.json` and `settings.json`. This is the versioned administration
 repository, separate from definition projects and their Git histories.
+
+## The Tessera schema
+
+`tessera-ontology-1-ossie-0.2.0.dev0.json` is generated, never edited by hand. `bun scripts/derive-tessera-schema.ts`
+derives it from the pinned `ossie-ontology-0.2.0.dev0.json` and the registry of Tessera additions
+(`src/shared/tessera/registry.ts`): it changes the identifier, requires the marker `tessera` and adds
+each registered property where it is allowed, and changes nothing else. `bun scripts/derive-tessera-schema.ts --check`
+exits 1 when the checked-in file is out of date, and `tests/tessera/schema-derivation.test.ts` checks
+the same. The provenance of the pinned base is unchanged. A base that already defines a property
+whose name starts with `tessera_` cannot be registered (`src/shared/tessera/bases.ts`).
 
 ## Updating validators
 
