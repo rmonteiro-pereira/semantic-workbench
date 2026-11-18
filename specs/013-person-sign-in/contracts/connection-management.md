@@ -10,9 +10,9 @@
 | `DELETE /api/admin/connections/:id` | admin | Admin | Revokes any connection (reason `revoked-by-admin`) |
 | `GET /oauth/authorize`, `POST /oauth/consent`, `GET/POST /oauth/setup` | viewOwnState | session | Browser pages |
 
-These rows join the operation inventory with `dispatch: { no: 'page' }` for pages and
-`dispatch: twin` is not set for any of them: they are browser operations, not agent operations.
-The four unauthenticated answers are `publicRow`s.
+These rows join the operation inventory as browser operations, not agent operations: pages use
+`dispatch: { no: 'page' }`, the list and revoke routes use `{ no: 'browser-only' }`. The four
+unauthenticated answers are public rows with `{ no: 'public' }`.
 
 Browser cookie writes need the existing `X-SW-Request` header and origin check.
 

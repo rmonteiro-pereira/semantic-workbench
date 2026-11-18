@@ -398,7 +398,8 @@ permanent copy.
   effective permissions; a tool outside the scopes MUST be absent, and a direct call to one MUST be
   refused with the connection-scope reason.
 - **FR-053**: The existing browser and agent-API behaviour MUST NOT change: same statuses, bodies,
-  cookies and audit records, shown by the characterization suite of feature 010.
+  cookies and audit records, shown by the characterization suite of feature 010. The one reviewed
+  difference is that the list of administration documents gains the registrations document.
 - **FR-054**: The request gate of local mode (loopback host, capability header) MUST remain for local
   mode only, and server mode MUST apply its own checks in a fixed order: method, origin (refuse any
   browser origin), content type, bearer, connection state.
@@ -500,7 +501,7 @@ permanent copy.
 - **SC-006**: The set of requests answered without a principal equals exactly the four of FR-002 in a
   test that walks every route row.
 - **SC-007**: The characterization suite of feature 010 shows zero HTTP differences for the existing
-  routes.
+  routes, except the one listed in FR-053.
 - **SC-008**: Every mutation of FR-073 is detected by the mutation suite.
 - **SC-009**: The consent, setup, error, dialog and Admin screens show no clipped or overlapping text
   in the responsive and clipping suites at the widths those suites use, light and dark.
