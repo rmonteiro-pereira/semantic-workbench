@@ -3,6 +3,7 @@ import { type Reader } from './reader';
 import { BadRequestError } from './errors';
 import { GitError, redactCredentials, remoteAddress, remoteName, type Git, type GitResult, type RemoteAddresses, type RemoteCredential } from './git';
 import { sparseFolders } from './sparse-folder';
+import { refuseWorkInProgressPush } from './work-in-progress-push';
 import type { ContentGuard, FileChange } from '../auth/guards';
 import { asText, blockers, type CredentialFor, type FollowRequest, type FollowResult, type RemoteChoice, type RemoteRequest, type ScmContext } from './scm-context';
 
@@ -167,6 +168,8 @@ export function createScmRemote(ctx: ScmContext) {
     const directory = dir(slug);
     const choice = request.choice;
     const credential = choice?.credential;
+    // Refused before anything is pulled or sent, so a sync never half-runs on a work branch.
+    if (kind === 'push' || kind === 'sync') refuseWorkInProgressPush((await git.status(directory)).branch);
     try {
       let result = { ok: true, conflicted: [] as string[], altered: [] as string[], stderr: '' };
       let follow: FollowResult | null = null;

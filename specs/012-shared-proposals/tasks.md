@@ -77,9 +77,9 @@ under `src/`.
 
 - [x] T025 [US6] Add `close` and `restore` to the service: move the ref between namespaces, keep the record with the outcome, refuse restore on name clash or limit, no operation erases history (FR-026 to FR-029). Proof: `tests/proposals-close.test.ts`; commits stay reachable with `git cat-file`.
 - [x] T026 [US6] Add the `close` and `restore` routes and rows. Proof: `tests/proposals-routes.test.ts`; an author without repository-wide publication authority cannot close.
-- [ ] T027 [US3] Create `src/server/projects/work-in-progress-push.ts` and call it from `remoteAction` in `src/server/projects/scm-remote.ts` for push and sync. Update the cases of T001 so work branches are refused with the contract message and the other cases still pass. Proof: `tests/work-in-progress-push.test.ts` (FR-032).
-- [ ] T028 [US3] Confinement test: with open and closed proposals containing a unique marker, run every operation in `policies/operation-inventory.json` that reads, plus export, agent context, plan and explain, the published snapshot read and each remote action; search results and the bare remote for the marker; record every push's arguments and assert none names `refs/workbench`, `--all`, `--mirror` or `--tags`. Proof: `tests/proposals-confinement.test.ts` (SC-001, FR-031, FR-033).
-- [ ] T029 [P] [US3] Fetch and sync ignore a remote branch named `proposal/x` and create no `refs/workbench/` ref. Proof: case in `tests/proposals-confinement.test.ts`.
+- [x] T027 [US3] Create `src/server/projects/work-in-progress-push.ts` and call it from `remoteAction` in `src/server/projects/scm-remote.ts` for push and sync. Update the cases of T001 so work branches are refused with the contract message and the other cases still pass. Proof: `tests/work-in-progress-push.test.ts` (FR-032).
+- [x] T028 [US3] Confinement test: with open and closed proposals containing a unique marker, run every operation in `policies/operation-inventory.json` that reads, plus export, agent context, plan and explain, the published snapshot read and each remote action; search results and the bare remote for the marker; record every push's arguments and assert none names `refs/workbench`, `--all`, `--mirror` or `--tags`. Proof: `tests/proposals-confinement.test.ts` (SC-001, FR-031, FR-033).
+- [x] T029 [P] [US3] Fetch and sync ignore a remote branch named `proposal/x` and create no `refs/workbench/` ref. Proof: case in `tests/proposals-confinement.test.ts`.
 
 ## Phase 7: User Story 7 - interface (P2)
 

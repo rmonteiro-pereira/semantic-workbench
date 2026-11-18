@@ -84,7 +84,9 @@ export const createProposalRoutes =
   (options: HandlerOptions = {}): Route =>
   async (ws, request, url) => {
     const match = url.pathname.match(PROPOSAL_PATH);
-    if (!match || options.mode !== 'server') return null;
+    if (!match) return null;
+    // Local mode has no shared proposals; the answer is the one a missing proposal gets.
+    if (options.mode !== 'server') return Response.json({ error: 'Not found.' }, { status: 404 });
     const slug = decodeSegment(match[1]);
     const id = match[2] === undefined ? undefined : decodeSegment(match[2]);
     const action = match[3];

@@ -19,8 +19,8 @@ test('local mode has no proposal routes and answers like any unknown path', asyn
     const answer = await workspace.handler(new Request('http://127.0.0.1:4310' + path, { method, ...(method === 'POST' ? { body: '{}' } : {}) }));
     expect(answer.status, `${method} ${path}`).toBe(404);
     expect(answer.status).toBe(unknown.status);
+    expect(await answer.json()).toEqual({ error: 'Not found.' });
   }
-  expect(routeFor('GET', '/api/projects/shop/proposals', 'local')).toBeNull();
   expect(routeFor('GET', '/api/projects/shop/proposals', 'server')?.row.action).toBe('read');
 });
 

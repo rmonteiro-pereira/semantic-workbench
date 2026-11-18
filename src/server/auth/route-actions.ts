@@ -59,7 +59,7 @@ export const pageRow: RouteAction = {
 };
 // The eleven proposal operations, each decided on the project named in the path.
 function proposalRows(): RouteAction[] {
-  const proposal = (method: string, path: string, action: Action): RouteAction => ({ ...row(method, '/api/projects/:slug/proposals' + path, action, project), serverOnly: true });
+  const proposal = (method: string, path: string, action: Action): RouteAction => row(method, '/api/projects/:slug/proposals' + path, action, project);
   return [
     proposal('GET', '', 'read'),
     proposal('GET', '/:id', 'read'),
@@ -153,7 +153,7 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   row('PUT', '/api/projects/:slug/git/remote', 'setRemote', project),
   row('DELETE', '/api/projects/:slug/git/remote', 'setRemote', project),
   row('PUT', '/api/projects/:slug/git/folder', 'setRemote', project),
-  // Shared proposals work in server mode only; local mode has no row for them.
+  // Shared proposals exist in server mode only; their routes answer 404 in local mode.
   ...proposalRows(),
   row('POST', '/api/clone/:operation/cancel', 'clone', workspace),
   row('GET', '/api/repos/:repo/project-candidates', 'registerProjects', workspace),

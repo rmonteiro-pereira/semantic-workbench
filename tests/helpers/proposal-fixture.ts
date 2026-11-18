@@ -89,6 +89,8 @@ export async function proposalFixture(customize?: (options: ReturnType<typeof ac
   const as = signedIn(workspace.ws, access);
   return {
     ...workspace,
+    /** The bare remote the repository was cloned from, where a push would land. */
+    remote: remote.bare,
     projects,
     repository: workspace.ws.repoOf(projects.sales.slug),
     as,
