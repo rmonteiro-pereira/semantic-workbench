@@ -279,6 +279,25 @@ The original review archive contains 3,559 PNGs. A read-only count by folder mea
 
 Status: in progress. No visual pair is classified before both images have been opened.
 
+## Findings with opened visual evidence
+
+Paths in this table are step identifiers in `manifest.csv`, except for the explicit correction pairs above. The table covers the opened pilot and focused
+replays. The outstanding findings still require a matched screenshot or a recorded exclusion.
+
+| Finding | Opened step | Observation |
+| --- | --- | --- |
+| M2, M13 | `local/light/1280/geometry/mall.ontology.yaml/canvas-dimensions` | Counted areas replace undersized names and the toolbar leaves 30 px more graph height. |
+| M4 | `local/light/1440/mapping-fit/mall-mapping/fitted-names` | The follow-up correction keeps the Mall mapping labels inside cards at Fit. |
+| M9 | `server/light/1440/admin/grant-form/validation-error` | A short email error appears next to its input. |
+| M11 | `server/light/1440/admin/access-check/allowed` | The allowed result gives its reason in the banner. Phone placement awaits comparison. |
+| M15, m10 | `local/light/1440/files/commerce.mapping.yaml/neighborhood` | One normal-size card, no empty neighbor count and cross-file links in Other files. |
+| M22 | `server/light/1440/reader/reader/admin-refusal` | A reader who opens Admin sees the role refusal. |
+| m6 | Documentation only | The graph guide names one to three foreign-key hops and one to five mapping steps. There is no requested screen change. |
+| m9 | `before/fixes/ubl-area-headings-1280.png` and its after frame | Wrapped headings have clear space above their cards. |
+| m13 | `local/light/1440/files/commerce-data.ttl/graph` | The Order line area title uses word boundaries. |
+| m14, m15 | `local/light/1440/files/commerce-data.ttl/catalog` | Card starts align and type badges read as words. The tree fade still needs its own screenshot. |
+| m27 | `local/light/1440/files/ubl.ontology.yaml/mappings` | The empty view offers Import and Load example. The separate phone detail transition is M24. |
+
 ## Scope ledger
 
 - Existing lane modules and public contracts remain the implementation boundaries.
