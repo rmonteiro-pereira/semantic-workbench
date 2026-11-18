@@ -268,15 +268,19 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
     }
     // Counting happens after the answer exists and never waits for the disk or changes the answer.
     try {
-      if (entry?.usage)
-        options.usage?.record({
+      // A tool call runs inside the agent endpoint's own operation, which does not own the snapshot read that
+      // counting does, so counting runs as the counted operation itself.
+      if (entry?.usage) {
+        const counted = {
           operationId: entry.id,
           origin: caller.origin,
           surface: requestSurface(request),
           outcome: observation.outcome ?? responseOutcome,
           target: routeTarget(row.resource(found.match, url)),
           response,
-        });
+        };
+        executeOperation(entry, () => options.usage?.record(counted));
+      }
     } catch {
       log.warn('usage.record-failed', { requestId });
     }

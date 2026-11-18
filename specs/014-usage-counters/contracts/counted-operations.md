@@ -20,7 +20,7 @@ not `browser`; the answer's snapshot is a published snapshot (the response carri
 | `agent.catalog.read` | `GET /api/agent/catalog` | nothing (a listing is not a request about items) | all |
 | `agent.projects.list` | `GET /api/agent/projects` | nothing | all |
 
-MCP tools `get_mapping_context`, `plan_query` and `explain_metric` (from 006, not on this base) are
+MCP tools `get_mapping_context`, `plan_query` and `explain_metric` are
 twins of the three counted routes and are counted through them with origin `mcp`. ACP calls that
 dispatch the same twins are counted with origin `acp`. No other tool is counted, including file reads.
 

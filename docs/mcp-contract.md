@@ -36,6 +36,8 @@ nothing reaches outside the workbench.
 | `restore_file` | `POST /api/trash/:entry/restore` | restoreOwn | false | false | true | false | receipt-backed |
 | `git_commit` | `POST .../git/commit` | commit | false | false | true | false | receipt-backed |
 
+Usage counters (`SW_USAGE_COUNTERS=on`) count three of these tools, through their twin routes and with the origin `mcp`: `get_mapping_context` (`agent.context.read`), `plan_query` (`agent.plan`) and `explain_metric` (`metrics.explain`). No other tool is counted, including `get_mapping_catalog` and every file read. The counting is done by the operation boundary after the answer exists, so a tool cannot skip it or change the answer. `tests/usage/usage-mcp-tools.test.ts` drives the three tools through a reference client.
+
 A `git_commit` answer is `{ commit, branch, files }`, plus `movedFrom` when the commit left the default branch and `altered` (the paths whose committed bytes differ from the listed versions) when a hook or filter rewrote them. An altered commit is a success, so its receipt is kept.
 
 ## Route dispositions
@@ -111,7 +113,7 @@ the table above. The static page fallback row is not an operation and is left ou
 | `PUT /api/projects/:slug/git/identity` | later: Remaining workspace and source-control operations |  |
 | `POST /api/projects/:slug/git/stage` | later: Remaining workspace and source-control operations |  |
 | `POST /api/projects/:slug/git/unstage` | later: Remaining workspace and source-control operations |  |
-| `POST /api/projects/:slug/git/commit` | tool: git_commit | push never sent |
+| `POST /api/projects/:slug/git/commit` | tool: git_commit | push never sent, so a commit on a `work/` or `proposal/` branch stays in the workbench as that rule requires |
 | `POST /api/projects/:slug/git/revert` | later: Remaining workspace and source-control operations |  |
 | `POST /api/projects/:slug/git/switch` | later: Remaining workspace and source-control operations |  |
 | `POST /api/projects/:slug/git/fetch` | later: Remaining workspace and source-control operations |  |

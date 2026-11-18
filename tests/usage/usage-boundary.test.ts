@@ -1,10 +1,7 @@
-// Tests counting through the real operation boundary: an application client over HTTP, a twin caller
-// standing for a protocol client, a browser request, and a recorder that fails.
+// Tests counting through the real operation boundary: an application client over HTTP, a browser
+// request, and a recorder that fails. Counting for protocol clients is in usage-mcp-tools.test.ts.
 import { afterEach, describe, expect, test } from 'bun:test';
 import { createHandler } from '../../src/server/handler';
-import { mintCaller } from '../../src/server/auth/caller';
-import { localPrincipal } from '../../src/server/auth/principal';
-import { buildTwinRequest } from '../../src/server/auth/twin-request';
 import { NO_USAGE_RECORDER } from '../../src/server/usage/usage-recorder';
 import { measureTotal } from '../../src/server/usage/usage-counts';
 import { LOCAL_READER } from '../../src/server/projects/reader';
@@ -37,16 +34,13 @@ function total(handler: { usage: { pending(project: string): any[] } }, address:
 }
 
 describe('counting through the boundary', () => {
-  test('an application client over HTTP and a twin caller are counted under their own origins', async () => {
+  test('an application client over HTTP is counted under the http origin', async () => {
     const fixture = await commerceWorkspace();
     const handler = createHandler(fixture.ws, { usageSettings: { enabled: true, retentionDays: 30 } });
     expect((await handler(new Request('http://localhost' + contextPath))).status).toBe(200);
-    const caller = mintCaller({ principal: localPrincipal(), origin: 'mcp' });
-    const twin = buildTwinRequest('agent.context.read', { params: {}, query: { project: PROJECT, mappingId: MAPPING_ID } });
-    expect((await handler.boundary.operate({ caller, request: twin })).response.status).toBe(200);
     await handler.usage.settled();
     const counts = handler.usage.pending(PROJECT)[0].counts[metric]['workbench-requests']['agent.context.read'];
-    expect(counts).toEqual({ http: 1, mcp: 1 });
+    expect(counts).toEqual({ http: 1 });
     handler.usage.close();
   });
 

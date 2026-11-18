@@ -41,5 +41,4 @@ stand; nothing below reopens one.
 ## Not done here
 
 - T035 (screenshots through Codex) is left for the batch.
-- T042: feature 006 is not on this branch, so the MCP twin case stays a twin caller; see
-  `checklists/analysis.md`.
+- T042: done at the batch merge; the twin-caller case became a live-tool case in `tests/usage/usage-mcp-tools.test.ts`.

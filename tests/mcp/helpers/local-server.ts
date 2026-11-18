@@ -34,6 +34,8 @@ export async function startLocalServer(
     ...workspace,
     url,
     endpoint: `${url}/api/mcp`,
+    /** The handler the server answers with; `handler` above is the workspace's own default one. */
+    served: handler!,
     port: server.port as number,
     capability,
     capabilityFile,
