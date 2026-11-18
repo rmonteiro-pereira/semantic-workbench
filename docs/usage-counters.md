@@ -96,13 +96,12 @@ stored.
 
 ## Renames and deletions
 
-Counts follow items through migrations confirmed by the old and new published definitions when a
-publication moves. Usage history is optional and publication proceeds if that history cannot be
-read or written. An unpublished rename leaves the published address and its counts in place.
-Reads apply the published history to in-memory and stored counts, and compaction writes it to the
-day files. Both use the commit recorded by the publication pointer. Migrations merge counts that
-meet and remove the counts of declared deletions. An item removed without a published migration
-disappears from answers, and a newly added item starts with no counts.
+A count stays at its original address when the published history cannot prove a rename. The
+authoring journal identifies the commit before each save, so neither a shared ancestor nor matching
+old and new names proves that a declaration was published. A renamed or removed item drops out of
+the response when its old address no longer resolves in the pinned published model. Compaction
+preserves the original counts. A day already rewritten with an unverified marker is reported
+unavailable and retained until normal expiry. Publication does not read or write usage history.
 
 ## Who sees counts
 

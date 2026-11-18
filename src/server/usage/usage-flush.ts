@@ -3,7 +3,7 @@
 // input rather than a special case in the recorder.
 import type { MigrationRecord } from '../../shared/core/address-migration';
 import { emptyDayFile, mergeIntoDay, type CounterDayFile } from './usage-counts';
-import { rekey } from './usage-migration';
+import { hasPublishedDayHistory, rekey } from './usage-migration';
 import type { DayRead } from './usage-store';
 
 /** What a flush of one project and day should do. */
@@ -15,7 +15,9 @@ export type FlushDecision = { action: 'write'; file: CounterDayFile } | { action
  */
 export function decideFlush(existing: DayRead, memory: CounterDayFile, records: readonly MigrationRecord[] | null): FlushDecision {
   if (existing.status === 'damaged') return { action: 'keep-memory', reason: 'damaged-file' };
-  if (records === null) return { action: 'keep-memory', reason: 'migrations-unavailable' };
+  if (records === null || !hasPublishedDayHistory(memory, records) || (existing.status === 'ok' && !hasPublishedDayHistory(existing.file, records))) {
+    return { action: 'keep-memory', reason: 'migrations-unavailable' };
+  }
   const base = existing.status === 'ok' ? rekey(existing.file, records) : emptyDayFile(memory.project, memory.day);
   const latest = records.at(-1)?.id ?? base.migratedThrough;
   const rekeyed = rekey(memory, records);

@@ -22,7 +22,6 @@ export type PublicationDeps = {
   readable: (candidate: PublicationCandidate) => Promise<unknown>;
   supersede: () => void;
   /** Persists side data indexed by the candidate commit before anything can publish it. */
-  stageCandidate?: (candidate: PublicationCandidate) => Promise<void>;
   stage?: (stage: 'intent' | 'ref' | 'pointer') => void;
 };
 
@@ -56,7 +55,6 @@ export function createPublication(deps: PublicationDeps) {
       const { candidate, checks, release } = prepare(repository, branch, move, guard);
       try {
         for (const check of checks) await check(candidate);
-        await deps.stageCandidate?.(candidate);
         pointers.intent(repository, branch, next);
         deps.stage?.('intent');
         try {

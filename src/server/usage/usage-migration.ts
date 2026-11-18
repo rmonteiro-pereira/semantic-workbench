@@ -4,6 +4,11 @@ import { parseAddress, formatAddress } from '../../shared/core/item-address';
 import { deletesAddress, migrateAddress, type MigrationRecord } from '../../shared/core/address-migration';
 import { mergeItem, type CounterDayFile, type ItemCounts } from './usage-counts';
 
+/** Whether the published history proves the marker already applied to a day. */
+export function hasPublishedDayHistory(file: CounterDayFile, records: readonly MigrationRecord[]): boolean {
+  return file.migratedThrough === null || records.some(record => record.id === file.migratedThrough);
+}
+
 /** The records a file has not seen yet: those after the one it last applied. */
 export function recordsAfter(records: readonly MigrationRecord[], migratedThrough: string | null): readonly MigrationRecord[] {
   if (migratedThrough === null) return records;

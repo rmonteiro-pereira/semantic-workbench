@@ -6,7 +6,7 @@ import { parseAddress } from '../../shared/core/item-address';
 import { BadRequestError } from '../projects/errors';
 import { USAGE_MEASURE_LABELS, USAGE_MEASURES, type UsageMeasure } from './usage-counted-operations';
 import { mergeItem, measureTotal, type CounterDayFile, type ItemCounts } from './usage-counts';
-import { rekey } from './usage-migration';
+import { hasPublishedDayHistory, rekey } from './usage-migration';
 import { periodDays } from './usage-retention';
 import type { UsageSettings } from './usage-settings';
 import type { DayRead } from './usage-store';
@@ -95,10 +95,10 @@ function collect(input: UsageReadInput, period: string[], records: readonly Migr
   };
   for (const day of period) {
     const read = input.dayReads.get(day);
-    if (read?.status === 'damaged') unavailable.push(day);
+    if (read?.status === 'damaged' || (read?.status === 'ok' && !hasPublishedDayHistory(read.file, records))) unavailable.push(day);
     else if (read?.status === 'ok') take(rekey(read.file, records));
   }
-  for (const file of input.pending) if (period.includes(file.day)) take(rekey(file, records));
+  for (const file of input.pending) if (period.includes(file.day) && hasPublishedDayHistory(file, records)) take(rekey(file, records));
   return { merged, unavailable, other };
 }
 

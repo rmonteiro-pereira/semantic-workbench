@@ -43,8 +43,8 @@ not configure a production deployment.
   80 characters, identifiers up to 40.
 - Opt-in usage counters (`SW_USAGE_COUNTERS=on`, `SW_USAGE_RETENTION_DAYS`, default 30) count requests through
   the workbench per published item, day, operation and origin. They hold no identity, never read the audit log,
-  exclude browser views, follow address migrations, expire with the retention and follow a project through the
-  trash. The project operation `usage.read` serves them within each reader's file access.
+  exclude browser views, expire with the retention and follow a project through the trash. Counts stay at their
+  original address unless the published transition proves the rename. The project operation `usage.read` serves them within each reader's file access.
   The agent endpoint's `get_mapping_context`, `plan_query` and `explain_metric` tools are counted with the origin `mcp`.
 - A **Traffic** option on the graphs shades entities and relationships by request count with weight rather than
   colour alone, shows counts with their period in details, sorts the catalog and metrics lists by traffic, and

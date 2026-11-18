@@ -2,7 +2,6 @@
 // restoring it keeps its counts, and purging the entry removes them with the rest of the entry.
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { publishedMigrationFile } from './usage-publication';
 import type { UsageRecorder } from './usage-recorder';
 import { OccupiedError } from '../projects/errors';
 import { assertSlug, type DataLayout } from '../projects/paths';
@@ -26,11 +25,7 @@ export function trackUsageRecorder(layout: DataLayout, recorder: UsageRecorder):
 export function archiveUsage(layout: DataLayout, project: string, archive: string): Step[] {
   for (const recorder of active.get(layout) ?? []) recorder.archive(project);
   const from = join(layout.usage, assertSlug(project));
-  const history = publishedMigrationFile(layout, project);
-  const steps: Step[] = [];
-  if (existsSync(from)) steps.push({ from, to: join(archive, 'usage', assertSlug(project)) });
-  if (existsSync(history)) steps.push({ from: history, to: join(archive, 'published-address-migrations', assertSlug(project) + '.json') });
-  return steps;
+  return existsSync(from) ? [{ from, to: join(archive, 'usage', assertSlug(project)) }] : [];
 }
 
 /**
@@ -41,11 +36,7 @@ export function restoreUsage(layout: DataLayout, originalProject: string, target
   if (originalProject !== targetProject) return [];
   const from = join(archive, 'usage', assertSlug(originalProject));
   const to = join(layout.usage, assertSlug(targetProject));
-  const history = join(archive, 'published-address-migrations', assertSlug(originalProject) + '.json');
-  const steps = [
-    { from, to },
-    { from: history, to: publishedMigrationFile(layout, targetProject) },
-  ].filter(step => existsSync(step.from));
-  if (steps.some(step => existsSync(step.to))) throw new OccupiedError('Usage state already exists for the restored project.', {});
-  return steps;
+  if (!existsSync(from)) return [];
+  if (existsSync(to)) throw new OccupiedError('Usage state already exists for the restored project.', {});
+  return [{ from, to }];
 }

@@ -1,7 +1,7 @@
 // Tests the read route over HTTP: answers, refusals and headers.
 import { afterEach, describe, expect, test } from 'bun:test';
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { dirname } from 'node:path';
+import { dirname, join } from 'node:path';
 import { addressMigrationFile } from '../../src/server/projects/address-migrations';
 import { createAccessControl } from '../../src/server/auth/authorize';
 import { createHandler } from '../../src/server/handler';
@@ -13,7 +13,7 @@ import { AUTH_PROJECTS, authWorkspace } from '../helpers/auth-workspace';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 import { publishFixture } from '../helpers/published-workspace';
 import { LOCAL_READER } from '../../src/server/projects/reader';
-import { publishedMigrationFile, publishedMigrationRecords } from '../../src/server/usage/usage-publication';
+import { publishedMigrationRecords } from '../../src/server/usage/usage-publication';
 import { compactUsage } from '../../src/server/usage/usage-compaction';
 import { testWorkspace } from '../helpers/temp-data-dir';
 import { accessFixture, person } from '../auth/access-fixture';
@@ -50,6 +50,27 @@ describe('in local mode', () => {
     expect(answer.counters).toEqual({ enabled: true, retentionDays: 30 });
     expect(answer.measures[0].items).toEqual([{ address, total: 3, byOperation: { 'agent.plan': 3 }, byOrigin: { http: 3 } }]);
     handler.usage.close();
+  });
+
+  test('does not expose a day already rekeyed by unverified history', async () => {
+    const fixture = await testWorkspace();
+    disposers.push(fixture.dispose);
+    const project = await fixture.seed([{ path: 'a.yaml', source: 'name: O\nontology: [{concept: A}]' }], 'Counted');
+    await publishFixture(fixture);
+    const address = `sw1:${project.slug}/a.yaml#ontology:O/concept:A`;
+    const store = createUsageStore(fixture.ws.layout);
+    const file = emptyDayFile(project.slug, today());
+    file.migratedThrough = 'unverified';
+    addCount(file.counts, { address, measure: 'workbench-requests', operation: 'agent.plan', origin: 'http' }, 3);
+    store.writeDay(file);
+    const handler = createHandler(fixture.ws, { usageSettings: settings });
+    try {
+      const response = await handler(new Request(`http://localhost/api/projects/${project.slug}/usage?days=1`));
+      expect((await response.json()).measures[0]).toMatchObject({ items: [], unavailableDays: [file.day] });
+      expect(store.readDay(project.slug, file.day)).toEqual({ status: 'ok', file });
+    } finally {
+      await handler.usage.close();
+    }
   });
 
   test('answers that counters are off, without any count, when they are off', async () => {
@@ -101,67 +122,90 @@ describe('in server mode', () => {
   });
 });
 
-test('two readers see the counted address change only when its rename is published', async () => {
-  const fixture = await testWorkspace();
-  disposers.push(fixture.dispose);
-  const source = 'name: O\nontology: [{concept: Before}]';
-  const { slug } = await fixture.seed([{ path: 'a.yaml', source }], 'sales-contracts');
-  await publishFixture(fixture);
-  const oldAddress = `sw1:${slug}/a.yaml#ontology:O/concept:Before`;
-  const newAddress = `sw1:${slug}/a.yaml#ontology:O/concept:PrivateRename`;
-  writeCounts(fixture.root, slug, oldAddress);
-  const store = createUsageStore(fixture.ws.layout);
-  const access = createAccessControl(accessFixture());
-  const handlers = (['alice', 'dave'] as const).map(name =>
-    createHandler(fixture.ws, {
-      mode: 'server',
-      remoteCredentials: allowEveryRemote(),
-      access,
-      principal: () => access.principalFor(person(name)),
-      publicOrigin: 'http://localhost',
-      usageSettings: settings,
-    }),
-  );
-  async function checkBoth(address: string) {
-    for (const handler of handlers) {
-      const response = await handler(new Request(`http://localhost/api/projects/${slug}/usage`));
-      expect(response.status, await response.clone().text()).toBe(200);
-      expect((await response.json()).measures[0].items).toEqual([{ address, total: 3, byOperation: { 'agent.plan': 3 }, byOrigin: { http: 3 } }]);
-    }
-  }
-  try {
-    const file = await fixture.ws.readFile(slug, 'a.yaml', LOCAL_READER);
-    await fixture.ws.saveFile(
-      slug,
-      'a.yaml',
-      {
-        baseHash: file.hash,
-        source: source.replace('Before', 'PrivateRename'),
-        declaredMigrations: [{ kind: 'item', from: oldAddress, to: newAddress }],
-      },
-      LOCAL_READER,
+for (const change of ['single rename', 'independent publication', 'two renames'] as const) {
+  test(`two readers keep counts at the old address after ${change} without committed history`, async () => {
+    const fixture = await testWorkspace();
+    disposers.push(fixture.dispose);
+    const source = 'name: O\nontology: [{concept: Before}]';
+    const { slug } = await fixture.seed([{ path: 'a.yaml', source }], 'sales-contracts');
+    await publishFixture(fixture);
+    const oldAddress = `sw1:${slug}/a.yaml#ontology:O/concept:Before`;
+    const newAddress = `sw1:${slug}/a.yaml#ontology:O/concept:PrivateRename`;
+    writeCounts(fixture.root, slug, oldAddress);
+    const store = createUsageStore(fixture.ws.layout);
+    const access = createAccessControl(accessFixture());
+    const handlers = (['alice', 'dave'] as const).map(name =>
+      createHandler(fixture.ws, {
+        mode: 'server',
+        remoteCredentials: allowEveryRemote(),
+        access,
+        principal: () => access.principalFor(person(name)),
+        publicOrigin: 'http://localhost',
+        usageSettings: settings,
+      }),
     );
-    await (await fixture.ws.scmFor(slug, LOCAL_READER)).commit(slug, 'Rename the concept', { paths: ['a.yaml'] });
-    await checkBoth(oldAddress);
-    const compact = () =>
-      compactUsage({
-        store,
-        today: today(),
-        retentionDays: 30,
-        migrationRecords: project => publishedMigrationRecords(fixture.ws.layout, project, fixture.ws.published.pin().commits.get(project)?.commit),
-      });
-    compact();
-    const privateDay = store.readDay(slug, today());
-    expect(privateDay.status === 'ok' && Object.keys(privateDay.file.counts)).toEqual([oldAddress]);
-    await fixture.ws.publish(slug, LOCAL_READER);
-    await checkBoth(newAddress);
-    compact();
-    const publicDay = store.readDay(slug, today());
-    expect(publicDay.status === 'ok' && Object.keys(publicDay.file.counts)).toEqual([newAddress]);
-  } finally {
-    for (const handler of handlers) await handler.usage.close();
-  }
-});
+    async function checkBoth(address: string | null) {
+      for (const handler of handlers) {
+        const response = await handler(new Request(`http://localhost/api/projects/${slug}/usage`));
+        expect(response.status, await response.clone().text()).toBe(200);
+        expect((await response.json()).measures[0].items).toEqual(address ? [{ address, total: 3, byOperation: { 'agent.plan': 3 }, byOrigin: { http: 3 } }] : []);
+      }
+    }
+    try {
+      const file = await fixture.ws.readFile(slug, 'a.yaml', LOCAL_READER);
+      await fixture.ws.saveFile(
+        slug,
+        'a.yaml',
+        {
+          baseHash: file.hash,
+          source: source.replace('Before', 'PrivateRename'),
+          declaredMigrations: [{ kind: 'item', from: oldAddress, to: newAddress }],
+        },
+        LOCAL_READER,
+      );
+      await (await fixture.ws.scmFor(slug, LOCAL_READER)).commit(slug, 'Rename the concept', { paths: ['a.yaml'] });
+      await checkBoth(oldAddress);
+      const compact = () =>
+        compactUsage({
+          store,
+          today: today(),
+          retentionDays: 30,
+          migrationRecords: project => publishedMigrationRecords(fixture.ws.layout, project, fixture.ws.published.pin().commits.get(project)?.commit),
+        });
+      compact();
+      const privateDay = store.readDay(slug, today());
+      expect(privateDay.status === 'ok' && Object.keys(privateDay.file.counts)).toEqual([oldAddress]);
+      if (change === 'independent publication') {
+        const directory = fixture.ws.worktrees.baseDir(slug);
+        await fixture.ws.git.run(directory, ['switch', '-c', 'independent', 'main']);
+        writeFileSync(join(directory, 'a.yaml'), source.replace('Before', 'PrivateRename') + '\n# Independent replacement');
+        await (await fixture.ws.scmFor(slug, LOCAL_READER)).commit(slug, 'Add an independent item', { paths: ['a.yaml'] });
+      }
+      if (change === 'two renames') {
+        const renamed = fixture.ws.readFile(slug, 'a.yaml');
+        await fixture.ws.saveFile(
+          slug,
+          'a.yaml',
+          {
+            baseHash: renamed.hash,
+            source: source.replace('Before', 'Final'),
+            declaredMigrations: [{ kind: 'item', from: newAddress, to: `sw1:${slug}/a.yaml#ontology:O/concept:Final` }],
+          },
+          LOCAL_READER,
+        );
+        await (await fixture.ws.scmFor(slug, LOCAL_READER)).commit(slug, 'Rename the concept again', { paths: ['a.yaml'] });
+      }
+      await fixture.ws.publish(slug, LOCAL_READER);
+      await checkBoth(null);
+      compact();
+      const publicDay = store.readDay(slug, today());
+      expect(publicDay.status === 'ok' && Object.keys(publicDay.file.counts)).toEqual([oldAddress]);
+      await checkBoth(null);
+    } finally {
+      for (const handler of handlers) await handler.usage.close();
+    }
+  });
+}
 
 for (const failure of ['malformed journal', 'unwritable usage history'] as const) {
   test(`publication works with ${failure} while usage counters are off`, async () => {
@@ -183,7 +227,7 @@ for (const failure of ['malformed journal', 'unwritable usage history'] as const
       LOCAL_READER,
     );
     const commit = await (await fixture.ws.scmFor(slug, LOCAL_READER)).commit(slug, 'Rename the concept', { paths: ['a.yaml'] });
-    const path = failure === 'malformed journal' ? addressMigrationFile(fixture.ws.layout, slug) : dirname(publishedMigrationFile(fixture.ws.layout, slug));
+    const path = failure === 'malformed journal' ? addressMigrationFile(fixture.ws.layout, slug) : join(fixture.ws.layout.state, 'published-address-migrations');
     mkdirSync(dirname(path), { recursive: true });
     writeFileSync(path, 'invalid');
     expect((await fixture.ws.publish(slug, LOCAL_READER)).commit).toBe(commit.commit);

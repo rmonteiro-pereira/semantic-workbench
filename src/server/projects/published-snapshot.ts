@@ -187,17 +187,6 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
       const entry = registries.get(requestPin)?.find(entry => entry.slug === project);
       return entry ? requestPin.commits.get(locationOf(entry).repo)?.commit : undefined;
     },
-    /** Lists the registered projects that a publication can change. */
-    projectsOf: (repository: string) =>
-      deps
-        .projects()
-        .filter(entry => locationOf(entry).repo === repository)
-        .map(entry => entry.slug),
-    /** Reads immutable definitions from a checked publication candidate or its previous commit. */
-    async transitionDocuments(repository: string, commit: string) {
-      const index = await load(repository, commit);
-      return [...index.projects.values()].flatMap(files => files.filter(file => file.metadata.visible).map(file => file.document));
-    },
     /** Invalidates cached ancestry and counts when the repository reports a Git change. */
     invalidateStatus(repository: string) {
       statuses.delete(repository);

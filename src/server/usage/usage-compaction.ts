@@ -2,7 +2,7 @@
 // addresses. It runs at start and once a day while the server runs; reads never do this work.
 import type { MigrationRecord } from '../../shared/core/address-migration';
 import { expiredDays } from './usage-retention';
-import { rekey } from './usage-migration';
+import { hasPublishedDayHistory, rekey } from './usage-migration';
 import type { UsageStore } from './usage-store';
 
 /** What compaction needs to know about the instance. */
@@ -30,7 +30,7 @@ export function compactUsage(input: CompactionInput): { deleted: number; rewritt
     if (records === null) continue;
     for (const day of days.filter(candidate => !expiredDays([candidate], today, retentionDays).length)) {
       const read = store.readDay(project, day);
-      if (read.status !== 'ok') continue;
+      if (read.status !== 'ok' || !hasPublishedDayHistory(read.file, records)) continue;
       const current = rekey(read.file, records);
       if (current === read.file) continue;
       store.writeDay(current);
