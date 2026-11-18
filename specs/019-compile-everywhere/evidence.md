@@ -100,3 +100,15 @@ that portion is skipped for integration, rather than running Bun with a nonexist
 T038: compile-dialog.test.tsx passed all 13 tests in the feature run. The unused export option adds
 no review controls; standard or action-less validation panels add no compile/convert controls.
 The full-screen comparison and both-theme captures remain explicitly pending.
+
+## Final browser and release proofs
+
+After the HTTP acknowledgement changes, the development-server browser journey passed again:
+`PASS a project is reviewed, accepted and downloaded as standard Ossie in the browser`.
+The server reports no listener on 5431 and no process from this checkout remains.
+
+T024: official Apache Ossie releases API returned [], tags returned only osi-0.1.1-rc1, and the
+core schema declares properties.version.const = 0.3.0.dev0 on 2026-11-18. research.md records commands,
+outputs, the official source and main revision. Per the continuation brief, the record lives in
+research.md rather than creating the conditional adoption inventory that the original task named.
+No pre-release or schema was adopted. T025-T033 remain open; T039 and T040 remain unticked.

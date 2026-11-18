@@ -8,9 +8,11 @@ The dialog now retains its opening eligibility. Server-side cleanliness, input h
 unit compile and guarded save checks remain authoritative. The original success assertion is retained;
 the journey additionally checks the conversion HTTP response and exactly one changed file.
 
-Completed in this continuation: T019, T034, T035, T037 and T038. T036's executable inventory/parity
+Completed in this continuation: T019, T024, T034, T035, T037 and T038. T036's executable inventory/parity
 portion passed; its checkbox remains open because this base has no MCP registry or tests.
-The release check T024 follows this handoff update. Detailed departures and proofs are in evidence.md.
+T024: on 2026-11-18 the official release list is empty, the sole tag is osi-0.1.1-rc1 and the
+development schema declares 0.3.0.dev0. No stable 0.3.0 release is adopted. Research is in research.md;
+detailed departures and proofs are in evidence.md.
 
 ## Review changes
 
