@@ -223,7 +223,7 @@ specs/012-shared-proposals/
 └── tasks.md
 ```
 
-## Delivery phases (tasks.md splits them into eight)
+## Delivery phases (tasks.md splits them into eight, plus the batch gate)
 
 1. **Record the base**: tests that pin today's push and publish behaviour so the one deliberate change
    (the push rule) is visible.
