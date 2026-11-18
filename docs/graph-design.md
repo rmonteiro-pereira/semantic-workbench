@@ -35,7 +35,7 @@ it is not a drop-in performance switch.
    `network-layout.worker.ts`) places fixed-size entity cards with the compound fCoSE force layout,
    so connected entities sit near each other inside their area. `packNetwork` in `full-layout.ts`
    then lets ELK remove overlaps inside every area and pack the areas into a box of roughly
-   2:1 proportions. Resizing the pane does not lay the graph out again; **Re-layout** does. The view
+   2:1 proportions. Counted areas reserve room for two zoom-compensated heading lines above their cards. Resizing the pane does not lay the graph out again; **Re-layout** does. The view
    draws links inside an area; links between areas are summarised on the area ("links to N areas")
    and drawn only for the selected entity. fCoSE starts from random positions, so the arrangement
    can differ between uncached runs of the same model; the result is cached per model and grouping

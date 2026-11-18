@@ -1,10 +1,12 @@
 // Tests full graph placement and routing.
 import { test, expect } from 'bun:test';
 import ELK from 'elkjs/lib/elk-api.js';
+import { collapseAreas } from '../src/app/graph/collapse';
+import { modelOverview } from '../src/app/graph/overview';
 import { layoutNetwork } from '../src/app/graph/network-layout';
 import { cardNameFontSize } from '../src/app/graph/text-fit';
 import { GROUP_HEADER_HEIGHT } from '../src/app/graph/overview-capacity';
-import { layoutFullGraph, packNetwork, NETWORK_HEADER_HEIGHT, type FullLayoutResult } from '../src/app/graph/full-layout';
+import { layoutFullGraph, packNetwork, COUNTED_NETWORK_HEADER_HEIGHT, NETWORK_HEADER_HEIGHT, type FullLayoutResult } from '../src/app/graph/full-layout';
 import { inspect, type Entity, type Relationship } from '../src/shared/core/model';
 import { groupRelationships } from '../src/app/graph/graph-view';
 
@@ -102,11 +104,13 @@ test('ELK compound layout retains groups and a route for every bundled connectio
   }
 }, 15000);
 
-test('collapsed area cards keep the height needed for their name and expansion guidance', async () => {
+test('collapsed areas reserve room for wrapped headings above their cards', async () => {
   const model = inspect(await Bun.file('public/examples/ubl/ubl.ontology.yaml').text());
-  const entities = model.entities.slice(0, 2).map((entity, index) => ({ ...entity, definition: { collapsedArea: `group-${index}` } }));
-  const layout = await network(entities, [], model.name);
-  checkGeometry(layout, entities.length, NETWORK_HEADER_HEIGHT);
+  const overview = modelOverview(model.entities, model.edges, model.name);
+  const collapsed = new Set(overview.groups.map(group => group.id));
+  const { entities, edges } = collapseAreas(overview, collapsed);
+  const layout = await network(entities, edges, model.name);
+  checkGeometry(layout, entities.length, COUNTED_NETWORK_HEADER_HEIGHT);
   for (const card of layout.nodes.filter(node => !node.group)) expect(card.height).toBeGreaterThanOrEqual(96);
 });
 

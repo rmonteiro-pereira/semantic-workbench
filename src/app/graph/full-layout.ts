@@ -120,23 +120,28 @@ export async function layoutFullGraph(entities: Entity[], edges: Relationship[],
 export type FullLayoutResult = Awaited<ReturnType<typeof layoutFullGraph>>;
 /** The network canvas keeps the header spacing of the original compound layout. */
 export const NETWORK_HEADER_HEIGHT = 62;
+/** Reserves two 48 px title lines in counted Network areas. */
+export const COUNTED_NETWORK_HEADER_HEIGHT = 128;
 
 /** Separates overlapping cards, then packs area frames without replacing their network layout. */
 export async function packNetwork(result: FullLayoutResult, elk: FullLayoutOptions['elk']): Promise<FullLayoutResult> {
   const groups = result.nodes.filter(node => node.group);
   if (!groups.length) return result;
   const interiors: ElkNode[] = await Promise.all(
-    groups.map(group =>
-      elk.layout({
+    groups.map(group => {
+      const cards = result.nodes.filter(node => node.parentId === group.id);
+      // Counted areas need the taller reserve because their headings compensate for zoom.
+      const headerHeight = cards.some(card => card.id === 'collapsed:' + group.group) ? COUNTED_NETWORK_HEADER_HEIGHT : NETWORK_HEADER_HEIGHT;
+      return elk.layout({
         id: group.id,
         layoutOptions: {
           'elk.algorithm': 'sporeOverlap',
           'elk.spacing.nodeNode': '24',
-          'elk.padding': `[top=${NETWORK_HEADER_HEIGHT},left=28,bottom=28,right=28]`,
+          'elk.padding': `[top=${headerHeight},left=28,bottom=28,right=28]`,
         },
-        children: result.nodes.filter(node => node.parentId === group.id).map(node => ({ id: node.id, x: node.x, y: node.y, width: node.width, height: node.height })),
-      }),
-    ),
+        children: cards.map(node => ({ id: node.id, x: node.x, y: node.y, width: node.width, height: node.height })),
+      });
+    }),
   );
   const dimensions = new Map(
     interiors.map(group => {
@@ -145,12 +150,14 @@ export async function packNetwork(result: FullLayoutResult, elk: FullLayoutOptio
     }),
   );
   const children = new Map(interiors.flatMap(group => (group.children ?? []).map(node => [node.id, node] as const)));
+  // The taller counted tiles can pack an extra column. Keep enough width for their fitted names.
+  const counted = groups.every(group => children.has('collapsed:' + group.group));
   const packed: ElkNode = await elk.layout({
     id: 'packing',
     layoutOptions: {
       'elk.algorithm': 'box',
       'elk.aspectRatio': '2.0',
-      'elk.spacing.nodeNode': '70',
+      'elk.spacing.nodeNode': counted ? '60' : '70',
       'elk.padding': '[top=40,left=40,bottom=40,right=40]',
     },
     children: groups.map(group => ({ id: group.id, ...dimensions.get(group.id)! })),
