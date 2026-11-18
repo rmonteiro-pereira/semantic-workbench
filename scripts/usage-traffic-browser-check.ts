@@ -16,7 +16,7 @@ import { graphCanvasProblems } from './helpers/graph-canvas-geometry';
 import { neighborhoodCardProblems } from './helpers/card-geometry';
 import { setShown, viewOptions } from './helpers/graph-options';
 import { tokenContrast } from './helpers/theme-tour';
-import { cardSizes, countedItems, domSignature, usageInterceptor, withoutPart, type UsageMock } from './helpers/usage-traffic';
+import { cardSizes, countedItems, domSignature, usageInterceptor, type UsageMock } from './helpers/usage-traffic';
 
 const BASELINE = 'tests/fixtures/usage/dom-baseline.json';
 const record = process.argv.includes('--record');
@@ -70,21 +70,22 @@ async function setTraffic(page: Page, on: boolean) {
   await viewOptions(page, async options => setShown(options, 'Traffic', on));
 }
 
-/** The only element Traffic adds to a screen while it is off: its own switch. */
-const SWITCH = 'button.show-toggle[title^="Shade items"]';
-
-/** The structure of the graph, the neighborhood and the details of the first entity, with Traffic never switched on and its switch left out. */
+/**
+ * The structure of the graph, the neighborhood and the details of the first entity, with Traffic
+ * never switched on. Its switch lives in the closed Show menu, so while it is off Traffic adds no
+ * element to any of them.
+ */
 async function offStructure(page: Page) {
   const signatures: Record<string, Record<string, number>> = {};
   await openTab(page, 'Graph');
   await page.waitForTimeout(1200);
-  signatures.graph = withoutPart(await domSignature(page, '.full-graph'), await domSignature(page, `.full-graph ${SWITCH}`));
+  signatures.graph = await domSignature(page, '.full-graph');
   await page.locator('.full-entity').first().click();
   await expect(page.locator('.inspector h2')).toBeVisible();
   signatures.details = await domSignature(page, '.inspector');
   await openTab(page, 'Neighborhood');
   await page.waitForTimeout(1200);
-  signatures.neighborhood = withoutPart(await domSignature(page, '.neighborhood-graph'), await domSignature(page, `.neighborhood-graph ${SWITCH}`));
+  signatures.neighborhood = await domSignature(page, '.neighborhood-graph');
   return signatures;
 }
 

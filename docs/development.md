@@ -442,7 +442,9 @@ unimplemented or superseded detail.
 the read operation and privacy; `tests/usage-*.test.ts*` and `tests/admin-settings-usage.test.tsx` cover the Traffic
 display. `bun run test:usage-traffic` drives the display in a browser against a mocked usage answer. Its
 `--record` option rewrites `tests/fixtures/usage/dom-baseline.json`, the structure of every view with
-Traffic off; record it only from source without the Traffic option. Usage mutants run with
+Traffic off. The Traffic switch sits in the closed Show menu and adds no element, so the recorded
+structure is the one these views have without the Traffic option; record it again only when a view's
+structure changes on purpose. Usage mutants run with
 `bun scripts/mutation-tests.ts --only usage`.
 `bun scripts/usage-benchmark.ts` measures what counting adds to 5,000 counted requests, with counters off and on.
 

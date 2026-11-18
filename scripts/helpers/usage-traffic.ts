@@ -89,13 +89,3 @@ export async function cardSizes(page: Page, selector: string): Promise<Record<st
     return sizes;
   }, selector);
 }
-
-/** Removes the elements of one part, such as the Traffic switch itself, from a structure. */
-export function withoutPart(signature: Record<string, number>, part: Record<string, number>): Record<string, number> {
-  const rest = { ...signature };
-  for (const [key, count] of Object.entries(part)) {
-    rest[key] = (rest[key] ?? 0) - count;
-    if (rest[key] <= 0) delete rest[key];
-  }
-  return rest;
-}
