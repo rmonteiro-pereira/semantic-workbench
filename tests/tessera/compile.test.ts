@@ -4,9 +4,11 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parse } from 'yaml';
 import { compileDocument, type CompiledDocument } from '../../src/shared/tessera/compile-document';
+import { compileUnit, type UnitFile } from '../../src/shared/tessera/compile-unit';
 import { sha256Hex } from '../../src/shared/tessera/digest';
 import { REGISTRY, createRegistry, type AdditionEntry } from '../../src/shared/tessera/registry';
 import { RESERVED_NAMES } from '../../src/shared/tessera/reserved-names';
+import { COMMITTED_FILES, PROJECT_FOLDER } from '../helpers/tessera-repository';
 
 const folder = join(import.meta.dir, '../fixtures/tessera/documents');
 const read = (name: string) => readFileSync(join(folder, name), 'utf8');
@@ -103,4 +105,88 @@ test('a number a double cannot hold fails the compile instead of changing digits
 test('text that is not a document fails as an invalid source', () => {
   expect(compileDocument({ path: 'a.json', source: '{ nope' }, REGISTRY).ok).toBe(false);
   expect(compileDocument({ path: 'a.yaml', source: 'a: [1,' }, REGISTRY).ok).toBe(false);
+});
+
+// Compiling a project folder.
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
+const options = { lossPolicySha256: null };
+const projectFiles: UnitFile[] = Object.entries(COMMITTED_FILES)
+  .filter(([path]) => path.startsWith(PROJECT_FOLDER))
+  .map(([path, text]) => ({ path: path.slice(PROJECT_FOLDER.length + 1), bytes: encoder.encode(text) }));
+const textOf = (files: UnitFile[], path: string) => decoder.decode(files.find(file => file.path === path)!.bytes);
+
+test('a project folder compiles: the ontology is compiled, the standard files are copied byte for byte and the others are listed as not included', () => {
+  const result = compileUnit(projectFiles, options);
+  expect(result.failures).toEqual([]);
+  expect(result.outputs.map(output => output.path)).toEqual(['mapping.yaml', 'ontology.yaml', 'semantic-model.yaml']);
+  expect(textOf(result.outputs, 'ontology.yaml')).not.toContain('tessera');
+  for (const path of ['semantic-model.yaml', 'mapping.yaml']) expect(textOf(result.outputs, path)).toBe(COMMITTED_FILES[`${PROJECT_FOLDER}/${path}`]);
+  const treatments = Object.fromEntries(result.report.inputs.map(input => [input.path, input.treatment]));
+  expect(treatments).toEqual({ 'contract.odcs.yaml': 'not-included', 'mapping.yaml': 'copied', 'ontology.yaml': 'compiled', 'semantic-model.yaml': 'copied', 'vocabulary.ttl': 'not-included' });
+  expect(result.report.counts).toEqual({ tessera_notes: 3 });
+  expect(result.tesseraRevisions).toEqual([1]);
+});
+
+test('an invalid standard file fails the whole unit and releases nothing', () => {
+  const broken = {
+    path: 'broken.yaml',
+    bytes: encoder.encode(
+      'version: 0.2.0.dev0\nname: m\ndatasets:\n  - name: A\n    source: db.a\nrelationships:\n  - name: r\n    from: A\n    to: Missing\n    from_columns: [x]\n    to_columns: [y]\n',
+    ),
+  };
+  const result = compileUnit([...projectFiles, broken], options);
+  expect(result.outputs).toEqual([]);
+  expect(result.failures.map(failure => [failure.code, failure.document])).toContainEqual(['invalid-source', 'broken.yaml']);
+});
+
+test('a standard file the validator cannot check against the pinned schema fails the unit', () => {
+  const unversioned = { path: 'old.yaml', bytes: encoder.encode('name: Old\nontology:\n  - concept: A\n    type: EntityType\n') };
+  const result = compileUnit([unversioned], options);
+  expect(result.failures.map(failure => failure.code)).toEqual(['output-schema']);
+  expect(result.outputs).toEqual([]);
+});
+
+test('two outputs that differ only in case fail with a path collision', () => {
+  const lower = projectFiles.find(file => file.path === 'mapping.yaml')!;
+  const upper = { path: 'MAPPING.yaml', bytes: lower.bytes };
+  const result = compileUnit([...projectFiles, upper], options);
+  expect(result.failures.map(failure => failure.code)).toContain('path-collision');
+  expect(result.outputs).toEqual([]);
+});
+
+test('an output that fails the pinned schema fails the unit and cannot be released', () => {
+  const faulty = { compileDocument: () => ({ ok: true as const, text: 'name: broken\nontology: []\n', data: {}, losses: [] }) };
+  const result = compileUnit(projectFiles, options, faulty);
+  expect(result.failures.some(failure => failure.code === 'output-schema')).toBe(true);
+  expect(result.outputs).toEqual([]);
+});
+
+test('an output that changes the meaning fails the unit', () => {
+  const faulty = {
+    compileDocument: (document: { source: string }) => ({ ok: true as const, text: document.source.replace(/^tessera: 1\n/, '').replace('A customer order.', 'Changed.'), data: {}, losses: [] }),
+  };
+  const result = compileUnit(projectFiles, options, faulty);
+  expect(result.failures.map(failure => failure.code)).toContain('meaning');
+});
+
+test('compiling the output again gives the same output', () => {
+  const first = compileUnit(projectFiles, options);
+  const second = compileUnit(first.outputs, options);
+  expect(second.failures).toEqual([]);
+  expect(second.report.losses).toEqual([]);
+  expect(second.outputs.map(output => [output.path, decoder.decode(output.bytes)])).toEqual(first.outputs.map(output => [output.path, decoder.decode(output.bytes)]));
+});
+
+test('a unit with no Tessera file returns the input bytes of its Ossie files', () => {
+  const standard = projectFiles.filter(file => ['semantic-model.yaml', 'mapping.yaml'].includes(file.path));
+  const result = compileUnit(standard, options);
+  expect(result.failures).toEqual([]);
+  expect(result.report.losses).toEqual([]);
+  for (const file of standard) expect(Buffer.from(result.outputs.find(output => output.path === file.path)!.bytes).equals(Buffer.from(file.bytes))).toBe(true);
+});
+
+test('a file over the size limit is refused', () => {
+  const large = { path: 'large.yaml', bytes: new Uint8Array(2_000_001) };
+  expect(compileUnit([large], options).failures.map(failure => failure.code)).toEqual(['limit']);
 });
