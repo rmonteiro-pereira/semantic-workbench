@@ -22,6 +22,8 @@ const PLACE_LABELS: Record<AdditionPlace, string> = {
   relationship: 'a relationship of a concept',
 };
 
+const PROPERTY_CODES = new Set(['tessera-property', 'tessera-reserved', 'tessera-location']);
+
 const MARKER_PATH = `/${TesseraNames.markerKey}`;
 
 function error(code: string, path: string, message: string): Issue {
@@ -110,6 +112,24 @@ function derivedSchemaIssues(data: unknown, base: SupportedBase, revision: numbe
   return issues;
 }
 
+/** Drops schema findings that point at a property a Tessera finding already explains, so one mistake gives one finding. */
+export function withoutRepeatedSchemaFindings(issues: Issue[]): Issue[] {
+  const explained = new Set(issues.filter(issue => PROPERTY_CODES.has(issue.code)).map(issue => issue.path));
+  return issues.filter(issue => issue.code !== 'schema' || !explained.has(issue.path));
+}
+
+/** Describes the format of a parsed document without validating it: standard, Tessera on a known base, or nothing when it cannot be placed. */
+export function documentFormat(data: unknown, options: TesseraOptions = {}): DocumentFormat | null {
+  const reading = readMarker(data);
+  if (reading.family === 'standard') return { family: 'standard' };
+  if (reading.family === 'invalid') return null;
+  const document = data as Record<string, unknown>;
+  const base = findBase(options.bases ?? SUPPORTED_BASES, document.version);
+  const revisions = options.revisions ?? SUPPORTED_REVISIONS;
+  if (document.ontology === undefined || !base || !revisions.includes(reading.revision) || !base.validators[reading.revision]) return null;
+  return { family: 'tessera', revision: reading.revision, base: base.version, baseLabel: base.label };
+}
+
 /** Gives the findings for a document that carries the marker. A document without it gets none and the standard format. */
 export function tesseraIssues(data: unknown, options: TesseraOptions = {}): TesseraResult {
   const registry = options.registry ?? REGISTRY;
@@ -152,5 +172,5 @@ export function tesseraIssues(data: unknown, options: TesseraOptions = {}): Tess
     return { issues, format: null };
   }
   issues.push(...derivedSchemaIssues(document, base, declaredRevision, new Set(properties.map(issue => issue.path))));
-  return { issues, format: { family: 'tessera', revision: declaredRevision, base: base.version, baseLabel: base.label } };
+  return { issues, format: documentFormat(data, options) };
 }

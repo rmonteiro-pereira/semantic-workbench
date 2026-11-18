@@ -4,6 +4,8 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parse } from 'yaml';
 import { tesseraIssues } from '../../src/shared/tessera/validate';
+import { validateInput } from '../../src/shared/validation/input';
+import { isNotValidated } from '../../src/shared/validation/validation';
 
 const folder = join(import.meta.dir, '../fixtures/tessera/documents');
 
@@ -71,3 +73,17 @@ test('a prefixed key in the prefix map is ordinary data', () => {
   const document = { tessera: 1, version: '0.2.0.dev0', name: 'Retail', prefixes: { tessera_x: 'http://example.com/x#' }, ontology: [{ concept: 'Order', type: 'EntityType' }] };
   expect(tesseraIssues(document).issues).toEqual([]);
 });
+
+const STANDARD_ONLY = ['lookalike-unmarked.yaml'];
+
+for (const [name, expected] of Object.entries(EXPECTED)) {
+  test(`${name} gives the same errors through the editor path`, () => {
+    const text = readFileSync(join(folder, name), 'utf8');
+    const result = validateInput(text, name);
+    const errors = result.issues.filter(issue => issue.severity === 'error').map(issue => `${issue.code} ${issue.path}`);
+    const wanted = STANDARD_ONLY.includes(name) ? ['schema /ontology/0/tessera_notes'] : expected;
+    expect(errors).toEqual(wanted);
+    expect(result.issues.some(issue => isNotValidated(issue))).toBe(false);
+    expect(validateInput(text, name, { assumeOssieVersion: true }).issues.map(issue => issue.code)).toEqual(result.issues.map(issue => issue.code));
+  });
+}
