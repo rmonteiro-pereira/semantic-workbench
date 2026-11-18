@@ -1,7 +1,7 @@
 // Introduces faults into temporary source copies and checks that the test suite detects them.
 import { tmpdir } from 'node:os';
 import { operationBoundaryMutants } from './operation-boundary-mutants';
-import { addressMutants, modelAddressMutants, migrationAddressMutants, serverAddressMutants, addressOperationMutants } from './address-mutants';
+import { addressMutants, modelAddressMutants, migrationAddressMutants, serverAddressMutants, addressOperationMutants, addressHistoryMutants } from './address-mutants';
 import { adminMutants } from './admin-mutants';
 import { sessionSecurityMutants } from './session-security-mutants';
 import { securityReviewMutants } from './security-review-mutants';
@@ -573,6 +573,9 @@ mutants.push(...observabilityMutants);
 mutants.push(...operationBoundaryMutants);
 // The Tessera format, its compiler and its command line.
 mutants.push(...tesseraMutants, ...attributesMutants);
+mutants.push(...addressHistoryMutants);
+const addressHistoryOnly = process.argv.includes('--address-history');
+if (addressHistoryOnly) mutants.splice(0, mutants.length, ...addressHistoryMutants);
 const attributesOnly = process.argv.includes('--attributes');
 if (attributesOnly) mutants.splice(0, mutants.length, ...attributesMutants);
 
@@ -692,8 +695,9 @@ try {
     killed++;
     console.log(`KILLED ${category}: ${before} → ${after}`);
   }
-  if (attributesOnly) {
-    console.log(`${killed}/${mutants.length} attribute and governance mutants killed; all focused baselines passed.`);
+  if (attributesOnly || addressHistoryOnly) {
+    const subject = addressHistoryOnly ? 'address-history' : 'attribute and governance';
+    console.log(`${killed}/${mutants.length} ${subject} mutants killed; all focused baselines passed.`);
     await rm(temp, { recursive: true, force: true });
     process.exit(0);
   }

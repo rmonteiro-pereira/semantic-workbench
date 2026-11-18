@@ -486,6 +486,8 @@ Use `bun run test:addresses` for the real selection/rename browser proof and `bu
 for grammar, model, replay and permission mutants. The browser suite is included in the shared gate inventory and pipeline matrix.
 Use `bun test tests/item-address-operations.test.ts tests/address-operation-parity.test.ts` for inventoried
 address reads, HTTP/twin reconciliation replay and save/move/delete history parity.
+Run `bun scripts/mutation-tests.ts --address-history` for the focused side-difference and compile-input
+exclusion mutations. The integrated mutation gate also runs these cases.
 
 
 Correctness cases that load and save the mall metric fixture use a 30-second execution budget

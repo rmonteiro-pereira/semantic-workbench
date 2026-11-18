@@ -34,6 +34,8 @@ if (category === 'operation-boundary') {
 }
 if (category === 'address-operation') await (await import('./item-address-operation-cases')).itemAddressOperationCase(loadedModule as typeof import('../src/server/routes/item-addresses'));
 if (category === 'address-server') (await import('./server-address-cases')).serverAddressCase(loadedModule as typeof import('../src/server/projects/address-resolution'));
+if (category === 'address-history-definition') (await import('./server-address-cases')).addressHistoryDefinitionCase(loadedModule as typeof import('../src/server/tessera/disk-source'));
+if (category === 'address-history-difference') (await import('./server-address-cases')).addressHistoryDifferenceCase(loadedModule as typeof import('../src/server/projects/address-migrations'));
 if (category === 'address-store') (await import('./server-address-cases')).addressStoreCase(loadedModule as typeof import('../src/server/projects/address-migrations'));
 if (category === 'address-migration') addressMigrationCase(loadedModule as typeof import('../src/shared/core/address-migration'));
 if (category === 'address-model') modelAddressCase(loadedModule as typeof import('../src/shared/core/model-addresses'));
