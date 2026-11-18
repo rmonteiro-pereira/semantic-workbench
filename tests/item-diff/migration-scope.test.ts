@@ -50,6 +50,12 @@ test('only the branch whose saved copy records the rename pairs the old and new 
   expect(compareItems([item('purchases')], [item('buys')], addressHistoryDifference(baseline, recorded))).toMatchObject([{ state: 'changed', previousAddress: prefix + 'purchases' }]);
   git(directory, ['add', path, '.gitattributes', ADDRESS_HISTORY_FILE]);
   git(directory, ['commit', '-m', 'Record rename']);
+  const renamedCommit = git(directory, ['rev-parse', 'HEAD']);
+  const fromCommit = await readCommittedAddressMigrations(fixture.ws.git, fixture.ws.layout, 'finance', renamedCommit, LOCAL_READER);
+  expect(fromCommit).toEqual(recorded);
+  git(directory, ['revert', '--no-edit', renamedCommit]);
+  expect(readAddressMigrations(fixture.ws.layout, 'finance', LOCAL_READER)).toEqual([]);
+  expect(git(directory, ['show', 'HEAD:' + path])).toContain('name: purchases');
   git(directory, ['switch', 'work/outside']);
   const restored = fixture.ws.readFile('finance', path, LOCAL_READER);
   await fixture.ws.saveFile('finance', path, { baseHash: restored.hash, source: renamed }, LOCAL_READER);
