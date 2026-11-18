@@ -131,3 +131,64 @@ The publication check runs as part of the existing content guard in the ordered 
 CLI compilation without a data root locates same-repository providers by project-named folder. A registration whose folder differs from its slug requires the data root to recover the registry mapping.
 
 Set findings are recomputed per read instead of stored. No authorized set findings are put in a shared cache. Existing file read, save and batch operations are the entry points for set inspection and preflight, so the feature does not add a new validation route. A private draft survives set refusal.
+
+## Implementation handoff
+
+The checkpoints above describe earlier commits. The implementation now adds Tessera revision 3,
+keeps a single dependency manifest per project, and uses the original 019 unit-source seam for
+working checks, published compiles, and reviewed conversion. The manifest can cover several roots.
+A same-repository edge is resolved from the candidate commit. A separate-repository edge must be in
+published history. Provider lookup checks project access before reading Git, and projects the public
+interface without delivering its source files. The compiler takes only the root and declared parts
+for the ontology. Existing standalone Ossie files still have their existing bundle treatment.
+
+The provider's owner-qualified name is `<project>~<ontology>~<concept>`. Percent, dot, and tilde
+are escaped inside each component. Neither a relationship's dot separator nor the item-address
+grammar needs to change.
+
+The dependents registry is invalidated on publication and project removal and rebuilt on the next
+read, rather than rebuilt inside the publication transaction. The dev server served a 50-row warm
+page in 14 ms against the 200 ms target. A real route test checks 50 rows plus continuation and
+the precise field list, including a consumer without a domain.
+
+The shared graph changes are confined to the imported field, origin mark and import styling blocks
+in full-node-data.ts, FullGraphNodes.tsx, NeighborhoodGraph.tsx, RelationshipEdge.tsx,
+GraphOptions.tsx and legend.css. Keep those blocks when integrating traffic and item history.
+
+T036 and T040 retain incomplete proof for exported concepts whose prerequisites are re-exported
+through another provider. Frozen dependency traversal validates authorization, history, depth and
+commit conflicts. Computing the full re-export closure and carrying canonical ownership across
+that closure still requires changes in public interface preparation and compiler translation.
+The current compiler handles a provider's local public prerequisites and refuses unavailable
+prerequisites. The refusal suite covers missing public prerequisites, base conflicts, qualified
+collisions, version conflicts and altered meaning; undefined translation is not independently
+fault-injected on the provider path.
+
+T045 has the allowed-fields proof on the real dependents route. Its cross-feature store
+boundary needs the usage-counter code. T046's task calls for a findings store, while the
+implementation computes findings per request. The paired test observes both call orders and
+identical responses for missing and hidden parts. It does not establish a statistical latency
+bound. Keeping computed findings request-local avoids cache keys for identity and grant changes.
+
+T055's uniform four-entry-point oracle does not match current contracts. A standalone validator
+and the scanner have no repository pin, provider interface or sibling file set. The tests exercise
+those contextual decisions at structure, dependency update, publication, reader and compiler
+boundaries. The exhaustive cross-surface fixture and one mutant per refusal class remain open.
+
+### MCP integration
+
+The five mesh operations are all classified as later increment. Tool-specific checks wait for the
+MCP code. Map file reads to the existing files.read operation and validate `validate_text` with
+a standalone part, incomplete-set notice, and no findings from hidden files. The nearest
+executable witnesses on this base are mesh-parity.test.ts for the operation transports,
+partial-reader.test.ts for file and set separation and interface-access.test.ts for restricted
+provider source. These tests do not run the MCP tools themselves.
+
+### Batch verification
+
+The batch gate owner runs the full unit suite, the full mutation runner, `bun run test:mesh`,
+`bun run test:tessera`, and every other browser suite once on the integrated tree. The capture
+job runs the comparison with the last release and the deferred screen capture and review.
+The architecture reviewer reviews the integrated branch once. The 016 additions keep their
+revision 2 behavior. The 019 compile inventory, report handling and unit-source seam were
+reconciled during integration. No full unit or full mutation run was performed on this feature.
