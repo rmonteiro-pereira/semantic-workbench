@@ -3,7 +3,9 @@ import { expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { compileDocument } from '../../src/shared/tessera/compile-document';
-import { documentMeaningFailures, readForMeaning, unitMeaningFailures, type DocumentReading } from '../../src/shared/tessera/meaning-check';
+import { inspect } from '../../src/shared/core/model';
+import { parseSourceDocument, syntaxOf } from '../../src/shared/tessera/compile-document';
+import { documentMeaningFailures, summarizeItems, unitMeaningFailures, type DocumentReading } from '../../src/shared/tessera/meaning-check';
 import { REGISTRY } from '../../src/shared/tessera/registry';
 import { COMMITTED_FILES, PROJECT_FOLDER } from '../helpers/tessera-repository';
 
@@ -12,9 +14,9 @@ const source = readFileSync(join(import.meta.dir, '../fixtures/tessera/documents
 const compiled = compileDocument({ path, source }, REGISTRY);
 if (!compiled.ok) throw new Error('The fixture must compile.');
 function reading(document: { path: string; source: string }): DocumentReading {
-  const read = readForMeaning(document);
-  if ('code' in read) throw new Error(read.message);
-  return read;
+  const parsed = parseSourceDocument(document, syntaxOf(document.path));
+  if ('code' in parsed) throw new Error(parsed.message);
+  return { path: document.path, source: document.source, data: parsed.data, summary: summarizeItems(inspect(document.source, document.path.split('/').at(-1)!)) };
 }
 
 const clean = { path, source: compiled.text };

@@ -1,8 +1,5 @@
-// Prints a document after the compiler removed the marker and the additions, then reads the text back so the caller can compare it with what it meant to write.
-import { isScalar, parse, visit, type Document } from 'yaml';
-
-/** Printed text and the data parsed back from that exact text. */
-export type Printed = { text: string; data: unknown };
+// Prints a document after the compiler removed the marker and the additions, and finds numbers a double cannot hold, which printing would change.
+import { isScalar, visit, type Document } from 'yaml';
 
 /** The two document syntaxes the compiler reads and writes. */
 export type DocumentSyntax = 'yaml' | 'json';
@@ -10,16 +7,14 @@ export type DocumentSyntax = 'yaml' | 'json';
 // Line folding is off so long text stays on one line, and the library's other defaults already give LF and one final newline.
 const YAML_PRINT_OPTIONS = { lineWidth: 0 } as const;
 
-/** Prints a YAML document with fixed options and parses the result again. */
-export function printYaml(document: Document): Printed {
-  const text = document.toString(YAML_PRINT_OPTIONS);
-  return { text, data: parse(text, { maxAliasCount: 100 }) };
+/** Prints a YAML document with fixed options. */
+export function printYaml(document: Document): string {
+  return document.toString(YAML_PRINT_OPTIONS);
 }
 
-/** Prints JSON with two spaces, LF and one final newline, and parses the result again. */
-export function printJson(data: unknown): Printed {
-  const text = JSON.stringify(data, null, 2) + '\n';
-  return { text, data: JSON.parse(text) };
+/** Prints JSON with two spaces, LF and one final newline. */
+export function printJson(data: unknown): string {
+  return JSON.stringify(data, null, 2) + '\n';
 }
 
 /** Keeps the digits that carry the value: no sign, no dot, no exponent, no leading or trailing zeros. */

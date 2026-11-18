@@ -21,8 +21,8 @@ export type SourceDocument = { path: string; source: string };
 /** One addition found in a document: where, which, and the value it holds. */
 export type AdditionSite = { path: (string | number)[]; name: string; place: AdditionPlace; value: unknown };
 
-/** A compiled document: its text, the data read back from that text, and what was lost. */
-export type CompiledDocument = { ok: true; text: string; data: unknown; losses: LossEntry[] } | { ok: false; failures: CompileFailure[] };
+/** A compiled document: its text and what was lost. The caller reads the text back to check it. */
+export type CompiledDocument = { ok: true; text: string; losses: LossEntry[] } | { ok: false; failures: CompileFailure[] };
 
 /** A parsed document: its data and, for YAML, the document that keeps comments and scalar spelling. */
 export type ParsedSource = { data: any; yaml?: Document.Parsed };
@@ -115,9 +115,9 @@ function dispositions(document: SourceDocument, data: unknown, sites: AdditionSi
 }
 
 /** Compiles one Tessera ontology into standard Ossie text, with the losses it caused, or says why it cannot. */
-export function compileDocument(document: SourceDocument, registry: Registry, prepared?: ParsedSource): CompiledDocument {
+export function compileDocument(document: SourceDocument, registry: Registry): CompiledDocument {
   const syntax = syntaxOf(document.path);
-  const parsed = prepared ?? parseSourceDocument(document, syntax);
+  const parsed = parseSourceDocument(document, syntax);
   if ('code' in parsed) return { ok: false, failures: [parsed] };
   const sites = additionSites(parsed.data);
   const { losses, failures } = dispositions(document, parsed.data, sites, registry);
@@ -125,13 +125,11 @@ export function compileDocument(document: SourceDocument, registry: Registry, pr
   for (const token of lossy) failures.push({ code: 'serialization', document: document.path, message: `The number ${token} cannot be written without changing its digits.` });
   if (failures.length) return { ok: false, failures };
   if (syntax === 'json') {
-    const printed = printJson(withoutAdditions(parsed.data, sites));
-    return { ok: true, text: printed.text, data: printed.data, losses };
+    return { ok: true, text: printJson(withoutAdditions(parsed.data, sites)), losses };
   }
   const yaml = parsed.yaml!;
   keepHeaderComment(yaml);
   yaml.delete(TesseraNames.markerKey);
   for (const site of sites) yaml.deleteIn(site.path);
-  const printed = printYaml(yaml);
-  return { ok: true, text: printed.text, data: printed.data, losses };
+  return { ok: true, text: printYaml(yaml), losses };
 }

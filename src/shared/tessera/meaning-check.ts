@@ -3,7 +3,7 @@ import { formatAddress, type Address } from '../core/item-address';
 import { inspect } from '../core/model';
 import { deepEqual, isObject } from '../edit/source-text';
 import { isMapping } from '../mappings/mapping-schema';
-import { additionSites, parseSourceDocument, syntaxOf, withoutAdditions, type CompileFailure, type SourceDocument } from './compile-document';
+import { additionSites, withoutAdditions, type CompileFailure } from './compile-document';
 
 function meaningFailure(document: string, message: string): CompileFailure {
   return { code: 'meaning', document, message };
@@ -23,17 +23,6 @@ export function summarizeItems(model: ReturnType<typeof inspect>): ItemSummary {
     edges: model.edges.map(edge => edge.id),
     addresses: items.flatMap(item => ('address' in item ? [formatAddress(item.address as Address)] : [])),
   };
-}
-
-/** Parses and inspects a document, or says why it cannot be read. */
-export function readForMeaning(document: SourceDocument): DocumentReading | CompileFailure {
-  const parsed = parseSourceDocument(document, syntaxOf(document.path));
-  if ('code' in parsed) return parsed;
-  try {
-    return { path: document.path, source: document.source, data: parsed.data, summary: summarizeItems(inspect(document.source, document.path.split('/').at(-1)!)) };
-  } catch (error) {
-    return meaningFailure(document.path, `The document cannot be read: ${(error as Error).message}`);
-  }
 }
 
 /** Checks a compiled document against its source: the output holds equal data and the same items with the same addresses. */

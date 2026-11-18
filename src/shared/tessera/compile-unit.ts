@@ -84,24 +84,25 @@ function outputSchemaFailures(path: string, result: ReturnType<typeof validateIn
 }
 
 /** Validates the text of an output once and keeps what the meaning check needs from that reading. */
-function checkOutput(path: string, text: string, data: unknown): OutputCheck {
+function checkOutput(path: string, text: string): OutputCheck {
   const result = validateInput(text, path.split('/').at(-1)!);
   const failures = outputSchemaFailures(path, result);
-  return { failures, reading: result.valid ? { path, source: text, data, summary: summarizeItems(result.model) } : null };
+  const model = result.valid && 'document' in result.model ? result.model : null;
+  return { failures, reading: model ? { path, source: text, data: model.document, summary: summarizeItems(model) } : null };
 }
 
 type Compiled = { outputs: UnitFile[]; losses: LossEntry[]; failures: CompileFailure[]; treatments: Map<string, ReportInput['treatment']> };
 
 /** Compiles a Tessera ontology and checks its output against its source. */
 function compileOntology(entry: Extract<ClassifiedFile, { kind: 'tessera-ontology' }>, steps: UnitSteps, result: Compiled, readings: { sources: DocumentReading[]; outputs: DocumentReading[] }) {
-  const compiled = steps.compileDocument({ path: entry.file.path, source: entry.text }, REGISTRY, entry.parsed);
+  const compiled = steps.compileDocument({ path: entry.file.path, source: entry.text }, REGISTRY);
   if (!compiled.ok) {
     result.failures.push(...compiled.failures);
     return;
   }
   result.outputs.push({ path: entry.file.path, bytes: encoder.encode(compiled.text) });
   result.losses.push(...compiled.losses);
-  const checked = checkOutput(entry.file.path, compiled.text, compiled.data);
+  const checked = checkOutput(entry.file.path, compiled.text);
   result.failures.push(...checked.failures);
   if (!checked.reading) return;
   readings.sources.push(entry.reading);

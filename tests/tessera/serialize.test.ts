@@ -1,13 +1,13 @@
 // Checks printing keeps scalar types, block text and key order, uses fixed line endings and reports numbers that cannot be held exactly.
 import { expect, test } from 'bun:test';
-import { parseDocument } from 'yaml';
+import { parse, parseDocument } from 'yaml';
 import { lossyNumbers, printJson, printYaml } from '../../src/shared/tessera/serialize';
 
 function printedYaml(source: string) {
   const document = parseDocument(source);
   const before = document.toJS();
-  const printed = printYaml(document);
-  return { before, ...printed };
+  const text = printYaml(document);
+  return { before, text, data: parse(text) };
 }
 
 test('scalars that look like other types keep their type', () => {
@@ -46,9 +46,9 @@ test('CRLF input prints with LF and one final newline, and a missing final newli
 });
 
 test('JSON prints with two spaces, LF and one final newline', () => {
-  const printed = printJson({ a: 1, b: ['x', { c: null }] });
-  expect(printed.text).toBe('{\n  "a": 1,\n  "b": [\n    "x",\n    {\n      "c": null\n    }\n  ]\n}\n');
-  expect(printed.data).toEqual({ a: 1, b: ['x', { c: null }] });
+  const text = printJson({ a: 1, b: ['x', { c: null }] });
+  expect(text).toBe('{\n  "a": 1,\n  "b": [\n    "x",\n    {\n      "c": null\n    }\n  ]\n}\n');
+  expect(JSON.parse(text)).toEqual({ a: 1, b: ['x', { c: null }] });
 });
 
 test('a 20-digit integer in JSON is reported because a double cannot hold it', () => {

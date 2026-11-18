@@ -3,7 +3,7 @@ import { isObject } from '../edit/source-text';
 import { isMapping } from '../mappings/mapping-schema';
 import type { Issue } from '../validation/diagnostics';
 import { validateInput } from '../validation/input';
-import { parseSourceDocument, type CompileFailure, type ParsedSource } from './compile-document';
+import { parseSourceDocument, syntaxOf, type CompileFailure } from './compile-document';
 import { summarizeItems, type DocumentReading } from './meaning-check';
 import { readMarker } from './marker';
 
@@ -12,12 +12,13 @@ export type UnitFile = { path: string; bytes: Uint8Array };
 
 /** What a file is to the compiler. */
 export type ClassifiedFile =
-  | { kind: 'tessera-ontology'; file: UnitFile; text: string; issues: Issue[]; revision: number; parsed: ParsedSource; reading: DocumentReading }
-  | { kind: 'ossie'; file: UnitFile; text: string; issues: Issue[]; parsed: ParsedSource; reading: DocumentReading }
+  | { kind: 'tessera-ontology'; file: UnitFile; text: string; issues: Issue[]; revision: number; reading: DocumentReading }
+  | { kind: 'ossie'; file: UnitFile; text: string; issues: Issue[]; reading: DocumentReading }
   | { kind: 'other'; file: UnitFile }
   | { kind: 'invalid'; file: UnitFile; failures: CompileFailure[]; issues: Issue[] };
 
 const STRUCTURED_FILE = /\.(ya?ml|json)$/i;
+const OSSIE_KINDS = new Set(['Ossie ontology', 'Ossie semantic', 'Ossie mappings']);
 
 function isContract(data: Record<string, unknown>): boolean {
   return data.kind === 'DataContract' || data.apiVersion !== undefined || data.schema !== undefined;
@@ -35,16 +36,26 @@ function baseName(path: string): string {
   return path.split('/').at(-1)!;
 }
 
-/** Validates a document that is Ossie or Tessera and says what it is, or why it is refused. */
-function validated(file: UnitFile, text: string, parsed: ParsedSource, tesseraRevision: number | null): ClassifiedFile {
-  const result = validateInput(text, baseName(file.path));
-  if (!result.valid) {
-    const failures = result.issues.filter(issue => issue.severity === 'error').map(issue => ({ code: 'invalid-source' as const, document: file.path, message: `${issue.path}: ${issue.message}` }));
-    return { kind: 'invalid', file, issues: result.issues, failures };
-  }
-  const reading = { path: file.path, source: text, data: parsed.data, summary: summarizeItems(result.model) };
-  if (tesseraRevision !== null) return { kind: 'tessera-ontology', file, text, issues: result.issues, revision: tesseraRevision, parsed, reading };
-  return { kind: 'ossie', file, text, issues: result.issues, parsed, reading };
+type Validation = ReturnType<typeof validateInput>;
+
+/** A document the validator accepts is Tessera, standard Ossie or something else, by what the validator found. */
+function classifyValid(file: UnitFile, text: string, result: Extract<Validation, { valid: true }>): ClassifiedFile {
+  const model = result.model;
+  if (!('document' in model) || !OSSIE_KINDS.has(model.kind)) return { kind: 'other', file };
+  const reading = { path: file.path, source: text, data: model.document, summary: summarizeItems(model) };
+  if (model.format.family === 'tessera') return { kind: 'tessera-ontology', file, text, issues: result.issues, revision: model.format.revision, reading };
+  return { kind: 'ossie', file, text, issues: result.issues, reading };
+}
+
+/** A document the validator refuses is an invalid Ossie or Tessera document, or a file that is not one of them. */
+function classifyInvalid(file: UnitFile, text: string, issues: Issue[]): ClassifiedFile {
+  const parsed = parseSourceDocument({ path: file.path, source: text }, syntaxOf(file.path));
+  if ('code' in parsed) return invalidFile(file, parsed.message);
+  const data = parsed.data;
+  const ours = isObject(data) && (readMarker(data).family !== 'standard' || isOssieShape(data));
+  if (!ours) return { kind: 'other', file };
+  const failures = issues.filter(issue => issue.severity === 'error').map(issue => ({ code: 'invalid-source' as const, document: file.path, message: `${issue.path}: ${issue.message}` }));
+  return { kind: 'invalid', file, issues, failures };
 }
 
 /** Classifies one file. A structured file that cannot be read is refused, never skipped. */
@@ -56,11 +67,6 @@ export function classifyFile(file: UnitFile): ClassifiedFile {
   } catch {
     return invalidFile(file, 'The file is not valid UTF-8 text.');
   }
-  const parsed = parseSourceDocument({ path: file.path, source: text }, file.path.toLowerCase().endsWith('.json') ? 'json' : 'yaml');
-  if ('code' in parsed) return invalidFile(file, parsed.message);
-  if (!isObject(parsed.data)) return { kind: 'other', file };
-  const reading = readMarker(parsed.data);
-  if (reading.family === 'tessera') return validated(file, text, parsed, reading.revision);
-  if (reading.family === 'invalid') return validated(file, text, parsed, null);
-  return isOssieShape(parsed.data) ? validated(file, text, parsed, null) : { kind: 'other', file };
+  const result = validateInput(text, baseName(file.path));
+  return result.valid ? classifyValid(file, text, result) : classifyInvalid(file, text, result.issues);
 }

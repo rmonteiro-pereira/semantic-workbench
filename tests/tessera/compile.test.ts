@@ -59,7 +59,7 @@ for (const [label, path, source] of [
       delete concept.tessera_notes;
       for (const relationship of concept.relationships ?? []) delete relationship.tessera_notes;
     }
-    expect(result.data).toEqual(sourceData);
+    expect(label === 'JSON' ? JSON.parse(result.text) : parse(result.text)).toEqual(sourceData);
   });
 }
 
