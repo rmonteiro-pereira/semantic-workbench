@@ -37,7 +37,7 @@ export async function serveStatic(request: Request, root = 'dist', publicUrl?: s
   } catch {
     path = '\0';
   }
-  if (/^\/(api|auth)(\/|$)/.test(path)) return null;
+  if (/^\/(api|auth|oauth|\.well-known)(\/|$)/.test(path)) return null;
   const headers = securityHeaders(publicUrl);
   if (mode === 'server') headers.set('Cache-Control', 'no-store');
   if (path.includes('\\') || path.includes('\0') || path.split('/').includes('..')) {

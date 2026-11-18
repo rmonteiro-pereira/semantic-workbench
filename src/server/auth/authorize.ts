@@ -349,6 +349,8 @@ export function createAccessControl(options: AccessOptions) {
     explain,
     whoCan,
     snapshot,
+    /** The registered agent programs of the active configuration, without copying it. */
+    programs: () => active.config.programs,
   };
 }
 /** The access boundary instance shared across requests. */

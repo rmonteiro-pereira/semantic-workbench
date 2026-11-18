@@ -22,6 +22,8 @@ import { type AccessRequest } from './request-scope';
 import { internalErrorResponse, requestAuditId, requestSourceIp } from '../request';
 import type { RequestLimits } from './rate-limit';
 import type { RemoteCredentials } from './remote-credentials';
+import type { ConnectionService } from '../connections/connection-service';
+import type { PendingGrants } from '../connections/pending-grants';
 import { observeRequest } from '../observability/http-request';
 import { log } from '../observability/log';
 
@@ -65,6 +67,8 @@ export type HandlerOptions = {
   staticRoot?: string;
   /** Server mode: each person's own credentials for remote Git commands. */
   remoteCredentials?: RemoteCredentials;
+  /** Server mode: the agent connection service and the memory store of codes it shares with the browser pages. */
+  connections?: { service: ConnectionService; grants: PendingGrants };
   /** True when exported telemetry is on, so browsers may send their error reports. */
   browserReports?: boolean;
   /** Local mode: the capability that opens the agent endpoint. Without it the endpoint is not mounted. */

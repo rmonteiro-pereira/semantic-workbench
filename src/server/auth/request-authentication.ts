@@ -13,6 +13,11 @@ import { auditDenial, agentRefusal } from './refusal';
 import { createAnonymousAuditGate, createRateLimitReport, createRateLimiter, DEFAULT_REQUEST_LIMITS, SIGN_IN_PATHS } from './rate-limit';
 import { recordAuthFailure } from '../observability/metrics';
 
+/** The token endpoint is called by programs, which send no cookie, no origin and no marker header. It authenticates by the grant in its own body. */
+const GRANT_ENDPOINT_PATHS: ReadonlySet<string> = new Set(['/oauth/token']);
+/** Browser forms that carry the session's request token in their own body, which the route checks. The request must still come from this origin. */
+const FORM_POST_PATHS: ReadonlySet<string> = new Set(['/oauth/consent', '/oauth/setup']);
+
 /** Dependencies read by network authentication and request admission. */
 export type RequestAuthenticationOptions = {
   mode?: 'local' | 'server';
@@ -103,6 +108,12 @@ export function createRequestAuthentication(options: RequestAuthenticationOption
       suppressed,
     });
   }
+  /** The cross-site check of a cookie request: a marker header, the logout form's token, or for the connection forms the right origin. */
+  async function crossSiteCheckPasses(request: Request, url: URL): Promise<boolean> {
+    if (request.method === 'POST' && FORM_POST_PATHS.has(url.pathname)) return request.headers.get('Origin') === options.publicOrigin;
+    const logoutToken = url.pathname === '/auth/logout' ? (await options.authentication?.session(request))?.csrf : undefined;
+    return validCsrf(request, options.publicOrigin, logoutToken);
+  }
   async function authenticate(request: AccessRequest, requestId: string): Promise<Principal | Response | undefined> {
     if (mode === 'server') {
       const limited = await limitedResponse(request);
@@ -113,12 +124,14 @@ export function createRequestAuthentication(options: RequestAuthenticationOption
       if (refused) return refused;
     }
     const url = new URL(request.url);
+    // The token endpoint answers by its grant alone; neither a cookie nor a bearer header means anything there.
+    if (mode === 'server' && GRANT_ENDPOINT_PATHS.has(url.pathname)) return undefined;
     // A bearer token replaces the session cookie, so a signed-in browser cannot widen a client.
     const client = await bearerIdentity(request, requestId);
     if (client instanceof Response) return client;
     // The cross-site check protects cookies a browser sends on its own. A validated bearer token
     // is never sent that way, so a client skips it.
-    if (!client && mode === 'server' && !(await validCsrf(request, options.publicOrigin, url.pathname === '/auth/logout' ? (await options.authentication?.session(request))?.csrf : undefined))) {
+    if (!client && mode === 'server' && !(await crossSiteCheckPasses(request, url))) {
       recordAuthFailure('csrf-invalid');
       return new Response('Forbidden', { status: 403 });
     }

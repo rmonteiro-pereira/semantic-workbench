@@ -33,6 +33,8 @@ import { peopleRoutes } from './routes/people';
 import type { AccessControl } from './auth/authorize';
 import { browserReportRoutes } from './routes/browser-reports';
 import { createMcpRoute } from './routes/mcp';
+import { createOAuthRoutes } from './routes/oauth';
+import { createOAuthPageRoutes } from './routes/oauth-consent';
 import { createReceiptStore } from './mcp/receipts';
 import { TOOLS } from './mcp/tool-registry';
 import type { OperationBoundary } from './auth/operation-boundary';
@@ -231,8 +233,24 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
           }),
         ]
       : [];
+  // Agent connections: discovery, the token endpoint and the browser pages exist in server mode only.
+  const connectionRoutes: Route[] =
+    options.mode === 'server' && options.connections && options.authentication
+      ? [
+          createOAuthRoutes({ publicUrl: options.publicOrigin!, service: options.connections.service, now: options.now }),
+          createOAuthPageRoutes({
+            publicUrl: options.publicOrigin!,
+            service: options.connections.service,
+            grants: options.connections.grants,
+            programs: () => access.programs(),
+            session: request => options.authentication!.session(request),
+            boundary: () => operationBoundary!,
+          }),
+        ]
+      : [];
   const routes: Route[] = [
     ...agentEndpoint,
+    ...connectionRoutes,
     adminRoutes(adminService, options),
     auditRoutes(options),
     ...(options.authentication ? [authRoutes(options.authentication, options.remoteCredentials)] : []),
@@ -308,6 +326,9 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
         const brandAsset = new URL(request.url).pathname.startsWith('/brand/');
         if (brandAsset && response.headers.has(name)) continue;
       }
+      // The connection pages set their own policy and referrer rule: the form must be allowed to send its answer to the program.
+      const connectionPage = new URL(request.url).pathname.startsWith('/oauth/') && response.headers.has('X-Frame-Options');
+      if (connectionPage && ['content-security-policy', 'referrer-policy'].includes(name.toLowerCase())) continue;
       if (name.toLowerCase() !== 'cache-control') response.headers.set(name, value);
     }
     if (!response.headers.has('Cache-Control')) response.headers.set('Cache-Control', 'no-store');
