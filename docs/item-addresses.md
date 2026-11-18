@@ -234,7 +234,9 @@ current definition and makes no historical-version claim.
 
 A Tessera ontology has the same items and the same addresses as the Ossie ontology you get by
 removing its marker and its `tessera_` properties. The marker and the additions create no item, edge
-or field, and `inspect` keeps the kind `Ossie ontology`. Compiling a Tessera document changes no
+or field, and `inspect` keeps the kind `Ossie ontology`. An attribute uses its relationship
+address. Display order leaves addresses unchanged. The context and governance flag of a published
+concept or relationship attach to that item's address. Compiling a Tessera document changes no
 address: the document-relative address of every item in the source names the same item in the
 compiled output. The loss report names each dropped value by the document-relative address of the
 item that held it (for the ontology root, the address of the ontology itself, such as

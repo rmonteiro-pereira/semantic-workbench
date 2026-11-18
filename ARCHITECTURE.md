@@ -79,6 +79,11 @@ The integration view shows what the application reads and contacts, and what it 
 
 ## Code map
 
+- `src/shared/attributes/` owns the attribute rule, inheritance and display order over Ossie relationships.
+- `src/app/attributes/` renders and edits attribute rows and shows where value types are used.
+- `src/app/agent-context/` edits item context and labels the preview as working copy content.
+- `src/app/governance/` presents ontology and metric governance using the shared governance model.
+
 - `src/shared/core/address-kinds.ts` owns the versioned item-address kind registry and parent rules.
 - `src/shared/core/item-address.ts` owns canonical parsing, document locators, formatting, relative resolution and whole-segment prefix operations.
 - `src/shared/core/address-migration.ts` validates rename ownership, matches deletion prefixes and applies ordered records without I/O.
@@ -305,22 +310,25 @@ command line.
 - `src/shared/tessera/format.ts` holds the one definition of the name, the marker key, the property
   prefix, the supported revisions and the compiler version. No other module under `src` spells them.
 - `src/shared/tessera/registry.ts` is the one list of additions, built from the modules under
-  `src/shared/tessera/additions/` (`notes.ts` is the only one) and `reserved-names.ts`. Validation,
+  `src/shared/tessera/additions/` and `reserved-names.ts`. Validation,
   the derived schema, the compiler and the loss report all read it. Its header says how to add one.
 - `src/shared/tessera/bases.ts` is the table of supported Ossie bases and the check that a base
   leaves the Tessera names alone. `schema-derivation.ts` derives the Tessera ontology schema from a
   pinned schema and the registry; `scripts/derive-tessera-schema.ts` writes it to
-  `schemas/tessera-ontology-1-ossie-0.2.0.dev0.json` and `scripts/compile-schemas.ts` compiles it.
+  `schemas/tessera-ontology-1-ossie-0.2.0.dev0.json` and the revision 2 counterpart. `scripts/compile-schemas.ts` compiles both.
 - `src/shared/tessera/marker.ts` reads the marker (top level only). `validate.ts` gives the Tessera
   findings and picks the derived schema by marker and base. `src/shared/validation/validation.ts`
   calls it at the top of `validateStructured`, and `src/shared/core/model.ts` returns the document
   `format` from `inspect`. That is the whole read path: the editor, the file scan, the save
   endpoints and agent context reach a Tessera document through those two functions, so no route
-  or operation was added. `agent-view.ts` removes the marker and additions before agent context
-  reads a document.
+  or operation was added. `agent-view.ts` projects item context and governance flags for agent context
+  and strips the remaining Tessera fields. Production agent handlers read the pinned publication.
+- `src/shared/governance/ontology-guards.ts` compares ontology items on the shared write paths.
+  The server guard binds approval to `approveOntologyItem` and classification to `editGuarded`.
 - `compile-document.ts` removes the marker and additions of one ontology by their disposition;
   `serialize.ts` prints the result; `meaning-check.ts` checks the output keeps the data, the items
-  and addresses and the name index; `loss-report.ts` builds the loss report, parses loss policies
+  and addresses, the name index and the attribute relationships. `loss-report.ts` builds the report
+  and counts lost governance entries by status, parses loss policies
   and decides acceptance; `manifest.ts` builds the manifest; `canonical-json.ts` and `digest.ts`
   give equal input equal bytes. `document-kind.ts` sorts the files of a project folder and
   `compile-unit.ts` compiles the whole folder.

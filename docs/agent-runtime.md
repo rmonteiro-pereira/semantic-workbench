@@ -304,9 +304,14 @@ and are not part of the agent runtime.
 
 ## Tessera documents
 
-A published Tessera ontology is read as an Ossie ontology. The marker and the `tessera_` additions,
-such as `tessera_notes`, never reach agent catalog, context, plans or metric explanations; the output
-is the same as for the ontology without them. Test: `tests/tessera/agent-and-access.test.ts`.
+The agent API reads Tessera definitions from the published snapshot. A concept or relationship's
+`tessera_ai_context` appears as `ai_context` at the item's address in context output. Governed items
+carry their status, including “not set” when the entry has no status. The flag includes replacement
+and reason when available for a deprecated item. Plans and metric explanations flag governed
+items they use. The API includes published items at every approval status.
+
+The Tessera marker, notes, attribute order, owner, steward and classification stay out of agent
+responses. The browser preview can show a saved working copy and identifies its source.
 
 ## Verification and provenance
 

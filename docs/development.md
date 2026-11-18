@@ -89,7 +89,13 @@ for the options and exit statuses (0 success, 1 refused, 2 loss needs acceptance
   isolated API and never touches the real workspace.
 - `bun scripts/derive-tessera-schema.ts` regenerates `schemas/tessera-ontology-1-ossie-0.2.0.dev0.json`
   and `bun scripts/derive-tessera-schema.ts --check` verifies it; run `bun run schemas:compile` after a
-  change. Add an addition by following the header of `src/shared/tessera/registry.ts`.
+  change. The script generates both revision schemas. Add an addition by following the header of
+  `src/shared/tessera/registry.ts`.
+- `bun test tests/attributes tests/governance` checks attribute editing and the governance rules.
+  `bun run test:attributes` exercises the details panels, the revision confirmation and the time
+  to open the details of a concept in a 200-concept document.
+- `bun scripts/mutation-tests.ts --attributes` checks the targeted faults for the revision additions.
+  The integrated mutation gate runs these cases with the rest of its inventory.
 - `bun scripts/record-standard-baseline.ts` records what the unchanged code does with every example
   and fixture file (`tests/fixtures/tessera/standard-baseline.json`); `tests/tessera/standard-unchanged.test.ts`
   compares against it. Run it only when a change to ordinary Ossie handling is intended.
@@ -216,6 +222,7 @@ suites use `SW_BASE_URL`. The full runner supplies fresh frontend processes as n
 | `test:monorepo` | Shared repository registration, workspace removal and folder deletion |
 | `test:dialogs` | Fit, keyboard focus and return across six viewport sizes |
 | `test:telemetry` | Bounded error/timing reports, redaction and export-off behavior |
+| `test:attributes` | Attribute editing, agent context, governance and revision confirmation |
 | `test:tessera` | The Tessera format in the browser: format label, finding and fix |
 | `test:terminology` | Metric/table naming across the interface and current guides |
 | `test:mappings-layout` | Binding presentation, geometry and selected-document Source |
@@ -251,7 +258,7 @@ Client/presentation checks are separate from Chromium-backed dialog/geometry che
 ```sh
 bun test tests/admin-client.test.ts tests/admin-presentation.test.tsx
 bun test tests/admin-dialogs.test.tsx
-SW_SCREENSHOT_DIR=/tmp/admin-shots bun test tests/admin-geometry.test.tsx
+SW_SCREENSHOT_DIR=out/admin-shots bun test tests/admin-geometry.test.tsx
 ```
 
 Use a genuinely invalid draft for tests that require text to remain unsaved; a valid comment can
@@ -288,16 +295,16 @@ verified upstream fix.
 With a frontend on port 5180:
 
 ```sh
-SW_BASE_URL=http://127.0.0.1:5180 bun run polish:capture /tmp/local-shots
-SW_BASE_URL=http://127.0.0.1:5180 SW_THEME=dark bun run polish:capture /tmp/local-dark-shots
+SW_BASE_URL=http://127.0.0.1:5180 bun run polish:capture out/local-shots
+SW_BASE_URL=http://127.0.0.1:5180 SW_THEME=dark bun run polish:capture out/local-dark-shots
 ```
 
 Server captures build/use their own isolated API and loopback mock provider:
 
 ```sh
 bun run build
-bun run polish:capture:server /tmp/server-shots
-SW_THEME=dark bun run polish:capture:server /tmp/server-dark-shots
+bun run polish:capture:server out/server-shots
+SW_THEME=dark bun run polish:capture:server out/server-dark-shots
 ```
 
 `SW_ONLY` is a screen-name substring filter, not a regular expression. Filtering to a screen not
@@ -312,7 +319,7 @@ The graph capture includes expanded areas, open controls, additional neighbors, 
 zoomed labels and full-screen views.
 
 `SW_SCREENSHOT_DIR` selects screenshot output; the graph, lineage, metrics, item-edit, UI, responsive and edge suites also honor `TMPDIR` when it is unset. Older drivers retain their documented
-`/tmp/workbench-*.png` locations. Capture collection must check timestamps so an old successful
+`workbench-*.png` files in the system temporary directory. Capture collection must check timestamps so an old successful
 image is not mistaken for evidence from a newer failed run.
 
 Keep source, formatting and builds frozen throughout capture; schema generation can reload Vite.

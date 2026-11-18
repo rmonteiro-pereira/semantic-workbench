@@ -516,12 +516,12 @@ not supported inputs. See [schema provenance](../schemas/README.md).
 
 ### Tessera documents
 
-A Tessera document is an Ossie ontology that carries the marker `tessera: 1` and, if you want, the
+A Tessera document is an Ossie ontology that carries a `tessera` revision marker and, if you want, the
 property `tessera_notes`. It is an authoring format that compiles to standard Ossie: you edit it in the
 workbench like any ontology, and a release job compiles it into plain Ossie files.
 
 - **The marker.** Put `tessera: 1` at the top level of an ontology file (YAML or JSON). The number is
-  the revision of the Tessera rules; only revision 1 exists today. The file must also name its Ossie
+  the revision of the Tessera rules. The workbench supports revisions 1 and 2. The file must also name its Ossie
   base in `version`, which today is `0.2.0.dev0`. The marker is allowed on ontologies only, not on
   semantic models, mappings, data contracts or RDF files.
 - **Notes.** `tessera_notes` is free text for the people who edit the ontology: a non-empty string of
@@ -531,6 +531,21 @@ workbench like any ontology, and a release job compiles it into plain Ossie file
 - **The format label.** **Validation details** names the format, for example "Tessera 1 on Ossie
   0.2.0.dev0 · 0 errors · 0 warnings". A Tessera document is never shown as "Not validated".
 - **Removing the last note** keeps the marker. Only compiling, or you, removes it.
+
+Revision 2 adds three sections to the item details:
+
+- **Attributes** lets you add, edit, reorder and remove single-role relationships to a value type
+  or a built-in. `tessera_attributes` stores display order on the concept. Unlisted rows follow
+  in file order. Inherited rows link to their declaring concept, and a value type lists its uses.
+- **Agent context** uses `tessera_ai_context` for a concept or relationship. Enter instructions,
+  synonyms and examples and preview the working copy. Agents see the published context only.
+- **Governance** uses `tessera_governance` for a concept or relationship. Choose proposed, approved
+  or deprecated, or leave status unset. Replacement and reason belong to deprecated items. A
+  replacement must name an existing item of the same kind. Classification records a declaration.
+  In server mode approval requires permission and a different person from the owner. See
+  [governed content](server-mode.md#governed-content).
+
+When a change needs revision 2, the editor asks you to confirm the upgrade before saving.
 
 Each mistake gives one finding with a code and a place. `tessera-marker`: the marker is not a whole
 number of at least 1; write `tessera: 1`. `tessera-revision`: the document is newer than this
@@ -542,7 +557,12 @@ not exist, often a misspelling such as `tessera_note`; fix the spelling or remov
 property in a place that does not take it, such as a dataset; move it to the ontology root, a concept
 or a relationship. An empty or too long note is a `schema` finding on the note.
 
-What compiling drops: the marker and every note. The compile lists each dropped value in a loss
+An invalid order entry gives `tessera-attribute-order`. Invalid governance fields give
+`tessera-governance-value` and invalid deprecation details give `tessera-governance-deprecation`.
+
+Compiling drops the marker and the Tessera additions and preserves the attribute relationships.
+The standard ontology carries no governance status. Loss report version 2 includes status counts
+when governance was dropped. Accepting loss has no effect on content approval. The compile lists each dropped value in a loss
 report (by item and size, never the text) and writes a bundle only when you accept that report by its
 digest or by a loss policy. Comments and layout in a compiled file may not survive; values and key
 order do. The command line is described in the [README](../README.md#tessera-an-authoring-format-that-compiles-to-standard-ossie)
