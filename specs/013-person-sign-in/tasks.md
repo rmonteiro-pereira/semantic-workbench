@@ -71,7 +71,7 @@ architecture review run once on the integrated batch (last task). Heavy runs: `s
 
 **Independent Test**: `bun test tests/connections/scopes.test.ts tests/auth/connection-scopes.test.ts`.
 
-- [ ] T025 [US5] Intersect requested scopes with the person's roles at consent (disabled rows with reason) and with the program's allowed scopes; pass `effectsOf(scopes)` to the caller. Proof: `tests/auth/connection-scopes.test.ts` scenarios 1 to 5 of Story 5 on the operation inventory, with `administration` refused as unknown.
+- [x] T025 [US5] Intersect requested scopes with the person's roles at consent (disabled rows with reason) and with the program's allowed scopes; pass `effectsOf(scopes)` to the caller. Proof: `tests/auth/connection-scopes.test.ts` scenarios 1 to 5 of Story 5 on the operation inventory, with `administration` refused as unknown.
 - [ ] T026 [US5] Inventory walk: for each operation in `policies/operation-inventory.json`, the set of scope combinations that can reach it equals the table; no operation reachable with its effects missing; `destroy` reachable by none. Proof: `tests/auth/connection-scopes.test.ts` generated cases (SC-004).
 
 ## Phase 8: User Story 6 - Replay ends the connection (P2)

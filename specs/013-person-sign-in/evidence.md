@@ -24,3 +24,5 @@ Where the plan named files or shapes that differ from the code that landed, the 
 
 - T022: `bun test tests/docs-agent-connections.test.ts`: 2 pass, 0 fail. No server-mode client is claimed supported.
 - Redirect decision settled by the owner: HTTPS or loopback HTTP only. FR-011 and the registration contract now agree with the implementation.
+- T025: `bun test tests/auth/connection-scopes.test.ts`: 2 pass, 0 fail; consent rejects a role-disabled scope and unknown/disallowed scopes. Discovery checked across all 64 offered combinations against the role-admitted inventory. T026 still needs the full inventory walk, including direct refusals.
+- T024 phase paused: the bridge contract requires plaintext client tokens in an owner-only file, while the execution brief forbids plaintext token storage. A clarification is pending; no bridge storage exception has been inferred.
