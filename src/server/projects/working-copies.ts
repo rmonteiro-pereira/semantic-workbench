@@ -13,6 +13,7 @@ import type { State } from './state';
 import { createWatcher } from './watcher';
 import { isPersonalBranch, sameBranchName, personalBranch, type BranchHolder, type CopyOwner, type Worktrees } from './worktrees';
 import { PersonalBranchError } from './errors';
+import { ownsContributionBranch } from '../../shared/proposals/contribution-branch';
 import type { Git } from './git';
 import { log } from '../observability/log';
 
@@ -89,7 +90,9 @@ export function copyScmHooks(
     assertBranchFree: async (slug, branch) => {
       await worktrees.assertFree(repoOf(slug), own, branch);
       const mine = ownBranch();
-      if (isPersonalBranch(branch) && !(mine !== null && sameBranchName(branch, mine))) throw new PersonalBranchError(branch);
+      if (!isPersonalBranch(branch)) return;
+      const ownsIt = mine !== null && (sameBranchName(branch, mine) || ownsContributionBranch(mine, branch));
+      if (!ownsIt) throw new PersonalBranchError(branch);
     },
     ownBranch,
     untrackedPull: async (slug, branch) => {

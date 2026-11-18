@@ -10,6 +10,7 @@ import { authorship, commitOf, GitError, isBranchName, symbolicBranch, type Comm
 import { USER_KEY, type DataLayout } from './paths';
 import { log } from '../observability/log';
 import { checkOutFolders, sparseFolders } from './sparse-folder';
+import { ownsContributionBranch } from '../../shared/proposals/contribution-branch';
 
 /** One entry of `git worktree list --porcelain`. */
 export type WorktreeEntry = {
@@ -50,10 +51,14 @@ export const isPersonalBranch = (branch: string) => foldBranch(branch).startsWit
 /**
  * Whether a branch is shown to someone whose own personal branch is `own`, or to someone who has
  * none. A remote branch is judged by the name it has on the remote, `origin/work/x` as `work/x`.
+ * A contribution branch, the personal branch name and a dot and a proposal identifier, is shown
+ * to its owner only.
  */
 export function branchShownTo(branch: string, own: string | null, remote = false) {
   const name = remote ? branch.slice(branch.indexOf('/') + 1) : branch;
-  return !isPersonalBranch(name) || (own !== null && sameBranchName(name, own));
+  if (!isPersonalBranch(name)) return true;
+  if (own === null) return false;
+  return sameBranchName(name, own) || ownsContributionBranch(own, name);
 }
 
 /** The existing branch a new spelling of a name would be taken for, or undefined. */
