@@ -3,6 +3,7 @@
 A server connection lets an external agent act as the signed-in person, limited by the selected
 scopes and that person's current roles. An Admin must register the agent program first. No program
 is registered automatically, and there is no dynamic registration or client metadata fetch.
+Scopes are an authorization ceiling, not a sandbox for the external agent.
 
 Semantic Workbench does not call a language model. When you connect an external agent, that agent can receive definitions you authorize and may send them to its model provider; its configuration and policies govern that onward use.
 
@@ -75,7 +76,10 @@ Published context and plans always use the immutable published snapshot.
 A connection ends at sign-out, session expiry, deactivation, lost access, revocation or removal of
 its registration or scopes. Agent traffic never extends the browser session. Access tokens last
 ten minutes; rotating refresh tokens last only as long as the session. Reusing a spent code or a
-retired refresh token ends the connection. Reconnect through the browser after it ends.
+retired refresh token ends the connection while its hash is retained (the eight most recent
+refresh hashes; codes and setup credentials share a 5,000-entry memory store). Restarting clears
+that short-lived store. Older or evicted credentials are refused without replay revocation. Reconnect through the browser after it ends; session
+expiry can require reconnection as soon as the end of the day.
 
 A person may have ten live connections. Authorization codes last sixty seconds; pending consent
 and single-use setup credentials last ten minutes. Ended connection records remain for seven days.

@@ -100,7 +100,10 @@ same operation boundary used by local tools. Connection revocation aborts work o
 Access tokens last ten minutes. Codes last sixty seconds; pending consent and setup credentials
 last ten minutes. PKCE S256, exact redirects, resource/client binding and rotating refresh tokens
 prevent widening a connection. Replaying a spent code or retired refresh token ends it, including
-code replay during an exchange. Current grants are rechecked without provider calls or browser
+code replay during an exchange while its grant is retained. Replay recognition retains the
+eight most recent refresh hashes per connection and at most 5,000 short-lived grants in memory;
+a restart loses that grant memory. Older or evicted credentials are refused as unknown and cannot
+trigger replay revocation. Current grants are rechecked without provider calls or browser
 idle extension. See [agent connections](agent-connections.md) for the browser authorization
 limitation, onward-use warning and client acceptance status.
 

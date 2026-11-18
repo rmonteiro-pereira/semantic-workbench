@@ -55,3 +55,5 @@ Where the plan named files or shapes that differ from the code that landed, the 
 - Consolidated feature proof on the dev server: 131 pass, 0 fail, 15,412 assertions across 16 files (412.57 seconds). Later constant-time verification edits have separate store/grant/service proofs; final static/build checks remain to run.
 
 - Final check first reached the brand rule and refused the pre-existing hard-coded product name in the onward-use sentence. The sentence now uses the active brand at render time and escapes it; default-brand wording remains identical. Consent page proof: 10 pass, 0 fail, including a custom product name with HTML characters.
+
+- Separate pre-existing integrity limit: the planned eight retired-refresh hashes and 5,000-entry in-memory grant cap bound replay recognition. An older/evicted credential is refused as unknown, so it cannot revoke a surviving connection; restart likewise loses spent-code memory. The code and planned bounds are unchanged. Public threat-model wording now makes this limit explicit. The security reviewer must reconcile unqualified replay language with those retention decisions before release.
