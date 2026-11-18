@@ -28,8 +28,9 @@ export type AuditInput = {
     resourceAttrs: Record<string, unknown>;
   };
   version?: string;
-  /** The settled and candidate commits of a publication or adoption attempt. */
+  /** The publish confirmation showed the dependency disclosure. */
   disclosureShown?: true;
+  /** The settled and candidate commits of a publication or adoption attempt. */
   publication?: { previous: string | null; commit: string | null };
   /** How many refusals of this kind from this source were left out since the last record. */
   suppressed?: number;

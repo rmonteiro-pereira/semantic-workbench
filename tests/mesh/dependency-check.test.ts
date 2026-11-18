@@ -2,6 +2,8 @@ import { expect, test } from 'bun:test';
 import { readFileSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { DEPENDENCY_MANIFEST_PATH, parseDependencyManifest, printDependencyManifest } from '../../src/shared/tessera/dependency-manifest';
+import { createAuditLog } from '../../src/server/auth/audit';
+import { createHandler } from '../../src/server/handler';
 import { createAccessControl } from '../../src/server/auth/authorize';
 import { accessFixture, person } from '../auth/access-fixture';
 import { gitOutput, openCopy, signedIn } from '../auth/working-copy-fixture';
@@ -151,4 +153,24 @@ test('a tracked symbolic link cannot supply a declared part in the publication c
   expect(response.status).toBe(400);
   expect(await response.json()).toEqual({ error: 'The ontology set could not be checked.' });
   expect(fixture.ws.state.published().repositories.retail.commit).toBe(original);
+});
+
+test('publishing a dependency records the displayed disclosure in the publication audit', async () => {
+  using fixture = await meshWorkspace('separate');
+  fixture.addPersonalBranch('retail');
+  fixture.addUncommittedImport();
+  await writeLock(fixture);
+  fixture.git('retail', ['add', '-A']);
+  fixture.git('retail', ['commit', '-qm', 'Confirm disclosure before publication']);
+  const audit = createAuditLog({ dir: join(fixture.fixture.root, 'disclosure-audit') });
+  const handler = createHandler(fixture.ws, { audit });
+  const response = await handler(
+    new Request('http://localhost:4310/api/projects/retail/git/publish', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ disclosureShown: true }),
+    }),
+  );
+  expect(response.status).toBe(200);
+  expect(audit.recent(5)).toMatchObject([{ action: 'publish', decision: 'allow', outcome: 'ok', disclosureShown: true }]);
 });
