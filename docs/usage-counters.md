@@ -109,7 +109,8 @@ the address history cannot be read, no counts are shown and every day is named u
 ## In the interface
 
 While Traffic is off, its displays skip address lookup and relationship traversal. The neighborhood
-graph builds its regular nodes and edges without creating per-item Traffic subscriptions.
+graph builds its regular nodes and edges without creating per-item Traffic subscriptions. Edges
+without label text also skip label measurement and viewport tracking.
 
 The graph options of the full graph and the neighborhood have a **Traffic** switch, off by default and
 remembered for each model in the browser. Switched on, it asks the server once and then at most once a

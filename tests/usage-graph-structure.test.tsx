@@ -83,3 +83,18 @@ test('a plain neighborhood edge renders without consulting the Traffic store', a
   );
   expect(edge).toContain('react-flow__edge-path');
 });
+
+test('a neighborhood edge without label text skips label geometry', () => {
+  const data = {
+    get labelScale() {
+      throw new Error('an unlabeled edge measured a label');
+    },
+  };
+  const edge = renderToStaticMarkup(
+    <ReactFlowProvider>
+      <RelationshipEdge id="relationship" source="a" target="b" sourceX={0} sourceY={0} targetX={100} targetY={50} sourcePosition={Position.Right} targetPosition={Position.Left} data={data} />
+    </ReactFlowProvider>,
+  );
+  expect(edge).toContain('react-flow__edge-path');
+  expect(edge).not.toContain('relationship-label');
+});
