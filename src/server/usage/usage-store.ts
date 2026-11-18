@@ -89,17 +89,33 @@ export function createUsageStore(layout: DataLayout) {
   const projectFolder = (project: string) => join(layout.usage, assertSlug(project));
   const dayPath = (project: string, day: string) => join(projectFolder(project), `${day}.json`);
 
-  const unverifiedPath = (project: string, day: string) => join(projectFolder(project), `${day}.unverified.json`);
+  /** The first preserved copy keeps the plain name; later copies of the same day are numbered. */
+  function unverifiedPath(project: string, day: string, copy: number): string {
+    const suffix = copy === 0 ? '' : `.${copy}`;
+    return join(projectFolder(project), `${day}.unverified${suffix}.json`);
+  }
 
-  /** Keeps an unverified day whole before a new day is written at its original path. */
+  function unverifiedPaths(project: string, day: string): string[] {
+    const folder = projectFolder(project);
+    if (!existsSync(folder)) return [];
+    const pattern = new RegExp(`^${day}\\.unverified(?:\\.\\d+)?\\.json$`);
+    return readdirSync(folder)
+      .filter(name => pattern.test(name))
+      .map(name => join(folder, name));
+  }
+
+  /**
+   * Keeps an unverified day whole before a new day is written at its original path.
+   * A day can lose its verified history more than once, so an earlier copy is never overwritten.
+   */
   function preserveUnverifiedDay(project: string, day: string): void {
-    const destination = unverifiedPath(project, day);
-    if (existsSync(destination)) throw new Error('An unverified usage day is already preserved.');
-    renameSync(dayPath(project, day), destination);
+    let copy = 0;
+    while (existsSync(unverifiedPath(project, day, copy))) copy += 1;
+    renameSync(dayPath(project, day), unverifiedPath(project, day, copy));
   }
 
   function hasUnverifiedDay(project: string, day: string): boolean {
-    return existsSync(unverifiedPath(project, day));
+    return unverifiedPaths(project, day).length > 0;
   }
 
   function readDay(project: string, day: string): DayRead {
@@ -121,7 +137,7 @@ export function createUsageStore(layout: DataLayout) {
     if (!existsSync(folder)) return [];
     const days = readdirSync(folder)
       .filter(name => name.endsWith('.json'))
-      .map(name => name.replace(/(?:\.unverified)?\.json$/, ''))
+      .map(name => name.replace(/(?:\.unverified(?:\.\d+)?)?\.json$/, ''))
       .filter(isDay);
     return [...new Set(days)].sort();
   }
@@ -133,7 +149,7 @@ export function createUsageStore(layout: DataLayout) {
 
   function deleteDay(project: string, day: string): void {
     rmSync(dayPath(project, day), { force: true });
-    rmSync(unverifiedPath(project, day), { force: true });
+    for (const path of unverifiedPaths(project, day)) rmSync(path, { force: true });
   }
 
   return { readDay, writeDay, listDays, listProjects, deleteDay, dayPath, projectFolder, preserveUnverifiedDay, hasUnverifiedDay };

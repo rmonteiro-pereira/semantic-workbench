@@ -100,12 +100,15 @@ Usage follows renames whose saved edits are present in a published commit. The w
 the working copy and branch and verifies the committed bytes before binding a declaration to the
 commit. Reads and compaction replay the committed changes in order, including chains and deletions.
 An item that later reuses a deleted address starts with its own counts. A declaration for another
-branch or a save whose exact byte transition cannot be matched does not transfer counts. Publication
-itself does not depend on this usage history.
+branch or a save whose exact byte transition cannot be matched does not transfer counts. A squash or
+rebase gives the edits new commits that no declaration is bound to, so the renamed items start
+again from zero and their old counts are dropped as deletions. Publication itself does not depend
+on this usage history.
 
 A day already rewritten with an unverified marker is reported partially unavailable when it also
-has fresh counts. The original day is preserved separately until expiry and moves with the project
-on trash and same-name restore.
+has fresh counts. The original day is preserved separately as `<day>.unverified.json` until expiry
+and moves with the project on trash and same-name restore. If the same day loses its verified
+history again, the next copy is numbered (`<day>.unverified.1.json`) instead of replacing the first.
 
 ## Who sees counts
 

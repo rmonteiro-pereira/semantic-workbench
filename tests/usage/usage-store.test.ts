@@ -127,6 +127,27 @@ describe('day files', () => {
     expect(Object.keys(stored).sort()).toEqual(['counts', 'day', 'formatVersion', 'migratedThrough', 'other', 'project']);
   });
 
+  test('a day preserved as unverified twice keeps both copies, and deleting the day removes them', () => {
+    const usage = store();
+    const first = { ...dayWith('revenue'), migratedThrough: 'unverified' };
+    const second = { ...dayWith('orders'), migratedThrough: 'unverified-again' };
+    usage.writeDay(first);
+    usage.preserveUnverifiedDay('shop', '2026-11-10');
+    usage.writeDay(second);
+    usage.preserveUnverifiedDay('shop', '2026-11-10');
+
+    const folder = usage.projectFolder('shop');
+    expect(readdirSync(folder).sort()).toEqual(['2026-11-10.unverified.1.json', '2026-11-10.unverified.json']);
+    expect(JSON.parse(readFileSync(`${folder}/2026-11-10.unverified.json`, 'utf8')).migratedThrough).toBe('unverified');
+    expect(JSON.parse(readFileSync(`${folder}/2026-11-10.unverified.1.json`, 'utf8')).migratedThrough).toBe('unverified-again');
+    expect(usage.hasUnverifiedDay('shop', '2026-11-10')).toBe(true);
+    expect(usage.listDays('shop')).toEqual(['2026-11-10']);
+
+    usage.deleteDay('shop', '2026-11-10');
+    expect(readdirSync(folder)).toEqual([]);
+    expect(usage.hasUnverifiedDay('shop', '2026-11-10')).toBe(false);
+  });
+
   test('deleting a day removes only that file', () => {
     const usage = store();
     usage.writeDay(dayWith('revenue'));
