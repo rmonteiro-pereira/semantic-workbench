@@ -1,5 +1,5 @@
 // Compiles one project folder: validates every Ossie document, compiles the Tessera ones, copies the rest of the Ossie files and checks the whole result before anything is released.
-import { deepEqual, isObject } from '../edit/source-text';
+import { isObject } from '../edit/source-text';
 import type { Issue } from '../validation/diagnostics';
 import { validateInput } from '../validation/input';
 import { OSSIE_SCHEMA_VERSION, isNotValidated } from '../validation/validation';
@@ -9,7 +9,7 @@ import { sha256Hex } from './digest';
 import { classifyFile, type ClassifiedFile, type UnitFile } from './document-kind';
 import { COMPILER_NAME, COMPILER_VERSION } from './format';
 import { buildLossReport, type GovernanceStatusKey, type LossEntry, type LossReport, type ReportInput, type ReportOutput } from './loss-report';
-import { documentMeaningFailures, summarizeItems, unitMeaningFailures, type DocumentReading } from './meaning-check';
+import { documentMeaningFailures, meshMeaningFailures, summarizeItems, unitMeaningFailures, type DocumentReading } from './meaning-check';
 import { SUPPORTED_BASES, findBase } from './bases';
 import { meshAddressMap, type CompiledAddress } from './mesh-address-map';
 import { compileMeshRoot } from './compile-mesh';
@@ -154,12 +154,12 @@ function compileMesh(
   const checked = checkOutput(source.file.path, compiled.text, UNIT_LIMITS.totalBytes);
   result.failures.push(...checked.failures);
   if (!checked.reading) return;
-  if (!deepEqual(compiled.expected, checked.reading.data)) {
-    result.failures.push({ code: 'meaning', document: source.file.path, message: 'Compiled data differs from the merged ontology.' });
-  }
+  const addresses = meshAddressMap(unit, compiled.expected, project, compiled.origins);
+  const emittedAddresses = meshAddressMap(unit, checked.reading.data, project, compiled.origins);
+  result.failures.push(...meshMeaningFailures(source.file.path, { data: compiled.expected, addresses }, { data: checked.reading.data, addresses: emittedAddresses }));
   const fields = (result.mesh ??= { units: [], providers: [], addressMap: [] });
   fields.units.push({ root: unit.root.path, parts: unit.parts.map(part => part.path) });
-  fields.addressMap.push(...meshAddressMap(unit, checked.reading.data, project, compiled.origins));
+  fields.addressMap.push(...addresses);
   for (const provider of providers) {
     if (!provider.interfaceHash || fields.providers.some(prior => prior.project === provider.project && prior.ontology === provider.ontology && prior.commit === provider.version)) continue;
     fields.providers.push({ project: provider.project, ontology: provider.ontology, commit: provider.version, interfaceHash: provider.interfaceHash });

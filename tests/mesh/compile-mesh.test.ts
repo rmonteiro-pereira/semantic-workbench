@@ -124,3 +124,24 @@ test('changing one imported concept in the output prevents the bundle from being
   expect(result.outputs).toEqual([]);
   expect(result.failures).toMatchObject([{ code: 'meaning', document: 'root.json' }]);
 });
+
+test('part order and provider ownership survive merge when providers export the same name', () => {
+  const otherProvider = { ...provider, project: 'logistics', ontology: 'archive.json' };
+  const secondPart = { ...part, ontology: [{ concept: 'Supplier', type: 'EntityType' }] };
+  const ontology = {
+    ...root,
+    tessera_includes: ['supplier.json', 'part.json'],
+    tessera_imports: [...root.tessera_imports, { alias: 'shipping', project: 'logistics', concepts: ['Invoice'] }],
+    ontology: [...root.ontology, { concept: 'Shipment', type: 'EntityType', extends: ['shipping.Invoice'] }],
+  };
+  const result = compileUnit([definition('part.json', part), definition('root.json', ontology), definition('supplier.json', secondPart)], {
+    lossPolicySha256: null,
+    providers: new Map([['root.json', [otherProvider, provider]]]),
+  });
+  expect(result.failures).toEqual([]);
+  const data = JSON.parse(decoder.decode(result.outputs[0].bytes));
+  expect(data.ontology.slice(0, 4).map((item: { concept: string }) => item.concept)).toEqual(['Order', 'Shipment', 'Supplier', 'Customer']);
+  const parents = data.ontology.slice(0, 2).flatMap((item: { extends: string[] }) => item.extends);
+  expect(parents).toEqual(['finance~finance%2Eyaml~Invoice', 'logistics~archive%2Ejson~Invoice']);
+  for (const parent of parents) expect(data.ontology.some((item: { concept: string }) => item.concept === parent)).toBe(true);
+});
