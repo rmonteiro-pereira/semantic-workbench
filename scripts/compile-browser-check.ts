@@ -31,6 +31,9 @@ const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: DESKTOP, acceptDownloads: true });
 const errors: string[] = [];
 page.on('pageerror', error => errors.push(error.message));
+page.on('console', message => {
+  if (message.type() === 'error') errors.push(message.text());
+});
 await routeApi(page, api);
 
 /** The hash of every project file, without Git's own folder, so the check can prove nothing changed. */
@@ -71,6 +74,43 @@ async function openStandardReview(target: Page) {
   await exportDialog.getByLabel('Files to export').selectOption('standard');
   await exportDialog.getByRole('button', { name: 'Review standard Ossie' }).click();
   await target.getByRole('dialog', { name: 'Standard Ossie for Retail' }).waitFor();
+}
+
+async function openValidationDetails() {
+  await page.getByRole('tree', { name: 'Projects' }).getByRole('button', { name: ONTOLOGY, exact: true }).click();
+  await page
+    .locator('footer')
+    .getByRole('button', { name: /^Validation details/ })
+    .click();
+  return page.getByRole('dialog', { name: 'Validation details' });
+}
+
+async function convertOneFile(before: Map<string, string>) {
+  const details = await openValidationDetails();
+  await expect(details.getByRole('button', { name: 'Check as standard Ossie' })).toBeVisible();
+  await details.getByRole('button', { name: 'Convert to standard' }).click();
+  const dialog = page.getByRole('dialog', { name: `Convert ${ONTOLOGY} to standard Ossie` });
+  await expect(dialog.getByText('3 values will be dropped')).toBeVisible();
+  await expect(dialog.getByText('Comments and layout may differ from before.')).toBeVisible();
+  await expectNoSidewaysScroll('conversion review on desktop');
+  await page.setViewportSize(PHONE);
+  await expect(dialog.getByRole('button', { name: 'Convert to standard' })).toBeVisible();
+  await expectNoSidewaysScroll('conversion review on a phone');
+  await page.setViewportSize(DESKTOP);
+  const convert = dialog.getByRole('button', { name: 'Convert to standard' });
+  await expect(convert).toBeDisabled();
+  await dialog.getByLabel('I have reviewed what is dropped and what changes.').check();
+  await convert.click();
+  await expect(dialog.getByText(`Converted. ${ONTOLOGY} is now standard Ossie in your working copy.`)).toBeVisible();
+  await dialog.getByRole('button', { name: 'Done' }).click();
+  const after = projectHashes();
+  const changed = [...after].filter(([path, hash]) => before.get(path) !== hash).map(([path]) => path);
+  expect(changed, 'only the converted file changed').toEqual([ONTOLOGY]);
+  expect(readFileSync(join(api.root, 'projects', repositoryFolder(), ONTOLOGY), 'utf8')).not.toContain('tessera');
+}
+
+function repositoryFolder(): string {
+  return api.ws.repoOf(slug);
 }
 
 try {
@@ -117,8 +157,15 @@ try {
   await dialog.getByRole('button', { name: 'Close' }).click();
 
   expect(projectHashes(), 'no project file changed').toEqual(before);
+
+  // Converting one file shows what is dropped and what changes, asks for confirmation, and rewrites only that file.
+  await convertOneFile(before);
   if (errors.length) throw Error(errors.join('\n'));
   console.log('PASS a project is reviewed, accepted and downloaded as standard Ossie in the browser');
+} catch (error) {
+  // The page's own errors usually explain a failed locator, so they are printed with it.
+  if (errors.length) console.error('Page errors:\n' + errors.join('\n'));
+  throw error;
 } finally {
   await browser.close();
   await api.stop();
