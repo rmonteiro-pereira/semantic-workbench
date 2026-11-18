@@ -1,6 +1,7 @@
 // Checks the loss report has the contract's shape, sorts its lists, hides lost values and changes its digest whenever an input, an option or the compiler version changes.
 import { expect, test } from 'bun:test';
-import { buildLossReport, digestOf, printReport, type LossEntry, type ReportSubject } from '../../src/shared/tessera/loss-report';
+import { LossPolicyError, acceptLoss, buildLossReport, digestOf, parseLossPolicy, printReport, type LossEntry, type ReportSubject } from '../../src/shared/tessera/loss-report';
+import { REGISTRY } from '../../src/shared/tessera/registry';
 
 const loss = (document: string, pointer: string, text: string): LossEntry => ({
   document,
@@ -71,4 +72,53 @@ test('a changed input byte, option or compiler version changes the digest', () =
 
 test('no lost value appears in the printed report', () => {
   expect(printReport(buildLossReport(subject))).not.toContain('SECRET-TEXT');
+});
+
+// Accepting a loss.
+const registry = REGISTRY;
+const lossReport = buildLossReport(subject);
+const policy = (...allow: string[]) => parseLossPolicy(JSON.stringify({ policy: 1, allow }), registry);
+
+test('a report with no loss needs no acceptance', () => {
+  expect(acceptLoss(buildLossReport({ ...subject, losses: [] }), {})).toEqual({ accepted: 'none' });
+});
+
+test('a report with a loss is refused when nothing is offered', () => {
+  expect(acceptLoss(lossReport, {})).toMatchObject({ refusal: expect.stringContaining('not accepted') });
+});
+
+test('the exact digest accepts the loss', () => {
+  expect(acceptLoss(lossReport, { digest: lossReport.digest })).toEqual({ accepted: 'digest' });
+});
+
+test('a digest from before a note was edited is refused with both digests named', () => {
+  const edited = buildLossReport({ ...subject, losses: [loss('retail/ontology.yaml', '/ontology/1/tessera_notes', 'edited!!!!'), subject.losses[1]] });
+  const result = acceptLoss(edited, { digest: lossReport.digest });
+  expect(result).toMatchObject({ refusal: expect.stringContaining(edited.digest) });
+});
+
+test('a digest from before an option changed is refused', () => {
+  const changedOption = buildLossReport({ ...subject, lossPolicySha256: 'f'.repeat(64) });
+  expect('refusal' in acceptLoss(changedOption, { digest: lossReport.digest })).toBe(true);
+});
+
+test('a policy that allows the lost property accepts the loss, and one that does not refuses it', () => {
+  expect(acceptLoss(lossReport, { policy: policy('tessera_notes') })).toEqual({ accepted: 'policy' });
+  expect(acceptLoss(lossReport, { policy: policy() })).toMatchObject({ refusal: expect.stringContaining('does not allow tessera_notes') });
+});
+
+test('when both are given, either one is enough', () => {
+  expect(acceptLoss(lossReport, { digest: 'sha256:wrong', policy: policy('tessera_notes') })).toEqual({ accepted: 'policy' });
+  expect(acceptLoss(lossReport, { digest: lossReport.digest, policy: policy() })).toEqual({ accepted: 'digest' });
+  expect('refusal' in acceptLoss(lossReport, { digest: 'sha256:wrong', policy: policy() })).toBe(true);
+});
+
+test('a malformed policy is refused', () => {
+  for (const text of ['not json', '[]', '{"policy":2,"allow":[]}', '{"policy":1}', '{"policy":1,"allow":[1]}', '{"policy":1,"allow":[],"extra":true}', '{"policy":1,"allow":["tessera_other"]}']) {
+    expect(() => parseLossPolicy(text, registry), text).toThrow(LossPolicyError);
+  }
+});
+
+test('a registered reserved name cannot be allowed because it is not registered', () => {
+  expect(() => parseLossPolicy('{"policy":1,"allow":["tessera_governance"]}', registry)).toThrow('not a registered property');
 });
