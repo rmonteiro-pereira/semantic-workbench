@@ -102,6 +102,7 @@ reuse the operation boundary, export authority, exact acceptance and commit-boun
 
 
 Reviewing a revision 3 root compiles its declared parts and its frozen, published provider
-interfaces. Converting that root saves the merged standard ontology at the root's path. The
+interfaces. Each part keeps its file name in the loss report. Dropped public additions keep
+their provider identity in that report. Converting that root saves the merged standard ontology at the root's path. The
 source part files are retained and the dependency manifest can be cleared with an explicit
 dependency update if the converted root was the last consumer.

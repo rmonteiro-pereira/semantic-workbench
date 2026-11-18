@@ -56,3 +56,11 @@ test('incompatible versions selected by different roots refuse the complete bund
   expect(result.failures[0]?.message ?? '').toContain(`"${other}"`);
   expect(decideAcceptance(result.report, result.failures, { digest: result.report.digest }).decision).toBe('refused');
 });
+
+test('a provider addition with no translation cannot be erased silently', () => {
+  const concepts = new Map([['Invoice', { concept: 'Invoice', type: 'EntityType', tessera_includes: ['part.json'] }]]);
+  const result = compile({ ...provider, concepts });
+  expect(result.outputs).toEqual([]);
+  expect(result.failures[0]?.message ?? '').toContain('tessera_includes');
+  expect(decideAcceptance(result.report, result.failures, { digest: result.report.digest }).decision).toBe('refused');
+});

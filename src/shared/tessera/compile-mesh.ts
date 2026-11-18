@@ -6,7 +6,7 @@ import { INCLUDES_PROPERTY } from './additions/includes';
 import { IMPORTS_PROPERTY } from './additions/imports';
 import { PART_PROPERTY } from './additions/part';
 import { compareText } from './canonical-json';
-import { additionSites, compileDocument, parseSourceDocument, syntaxOf, withoutAdditions, type CompileFailure } from './compile-document';
+import { additionDispositions, additionSites, compileDocument, parseSourceDocument, syntaxOf, withoutAdditions, type CompileFailure } from './compile-document';
 import { conceptReferences } from './concept-references';
 import type { ClassifiedFile } from './document-kind';
 import { declaredImports, providerOf, type ResolvedImportInterface } from './imports';
@@ -44,10 +44,21 @@ function selectedConcepts(entry: ResolvedImportInterface, names: readonly string
   return selected;
 }
 
+function importedDefinition(provider: ResolvedImportInterface, definition: Concept) {
+  const data = { name: provider.ontologyName ?? provider.ontology, ontology: [definition] };
+  const sites = additionSites(data);
+  const document = `${provider.project}/${provider.ontology}`;
+  const result = additionDispositions(document, data, sites, REGISTRY, new Set());
+  if (result.failures.length) throw new Error(result.failures.map(failure => failure.message).join(' '));
+  return { ...result, definition: (withoutAdditions(data, sites) as { ontology: Concept[] }).ontology[0] };
+}
+
 function importedConcepts(unit: OntologyUnit, providers: readonly ResolvedImportInterface[], localNames: ReadonlySet<string>) {
   const aliases = new Map<string, ConceptOwner>();
   const imported = new Map<string, Concept>();
   const origins = new Map<string, ImportedOrigin>();
+  const losses: LossEntry[] = [];
+  const governanceStatuses: GovernanceStatusKey[] = [];
   for (const entry of declaredImports(unit.root.data)) {
     const provider = providerOf(entry, providers);
     if (!provider) throw new Error(`The locked public interface for "${entry.alias}" is unavailable.`);
@@ -57,13 +68,21 @@ function importedConcepts(unit: OntologyUnit, providers: readonly ResolvedImport
     for (const [name, definition] of selectedConcepts(provider, entry.concepts)) {
       const qualified = qualifiedConcept(owner(name));
       if (localNames.has(qualified) || imported.has(qualified)) throw new Error(`A concept collides with imported name "${qualified}".`);
-      const standard = withoutAdditions({ ontology: [definition] }, additionSites({ ontology: [definition] })) as { ontology: Concept[] };
-      const rewritten = rewriteConceptReferences(standard.ontology[0], ref => (provider.concepts.has(ref) ? qualifiedConcept(owner(ref)) : ref));
+      const standard = importedDefinition(provider, definition);
+      losses.push(...standard.losses);
+      governanceStatuses.push(...standard.governanceStatuses);
+      const rewritten = rewriteConceptReferences(standard.definition, ref => (provider.concepts.has(ref) ? qualifiedConcept(owner(ref)) : ref));
       imported.set(qualified, { ...rewritten, concept: qualified });
       origins.set(qualified, { ...owner(name), provider });
     }
   }
-  return { origins, rewrite: qualifyReferences(aliases, localNames), concepts: [...imported].sort(([first], [second]) => compareText(first, second)).map(([, definition]) => definition) };
+  return {
+    origins,
+    losses,
+    governanceStatuses,
+    rewrite: qualifyReferences(aliases, localNames),
+    concepts: [...imported].sort(([first], [second]) => compareText(first, second)).map(([, definition]) => definition),
+  };
 }
 
 const translated = new Set([INCLUDES_PROPERTY, IMPORTS_PROPERTY, PART_PROPERTY]);
@@ -104,7 +123,7 @@ export function compileMeshRoot(unit: OntologyUnit, files: readonly DefinitionFi
     const ontology = [...local.map(concept => rewriteConceptReferences(concept, imported.rewrite)), ...imported.concepts];
     const expected = { ...root, ontology };
     const text = syntaxOf(unit.root.path) === 'json' ? printJson(expected) : printYaml(new Document(expected));
-    return { text, expected, losses, governanceStatuses, origins: imported.origins };
+    return { text, expected, losses: [...losses, ...imported.losses], governanceStatuses: [...governanceStatuses, ...imported.governanceStatuses], origins: imported.origins };
   } catch (error) {
     if (!(error instanceof Error)) throw error;
     return { failures: [{ code: 'translation', document: unit.root.path, message: error.message }] };
