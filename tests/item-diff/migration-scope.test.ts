@@ -3,7 +3,7 @@ import { expect, test } from 'bun:test';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { atomicWriteJson } from '../../src/server/projects/atomic';
-import { itemDiffBaselineWorkspace } from '../helpers/item-diff-baseline';
+import { itemDiffAgentAnswers, itemDiffBaselineWorkspace } from '../helpers/item-diff-baseline';
 import { publishFixture } from '../helpers/published-workspace';
 import { ADDRESS_HISTORY_FILE, addressHistoryDifference, parseAddressHistory, readAddressMigrations, readCommittedAddressMigrations } from '../../src/server/projects/address-migrations';
 import { compareItems } from '../../src/shared/item-diff/compare-items';
@@ -235,4 +235,17 @@ test('a fresh Git clone carries aliases without a workbench state file', async (
     documents: [{ path: 'finance.ontology.yaml', source: git(clone, ['show', 'HEAD:finance.ontology.yaml']) }],
   }));
   expect(result).toMatchObject({ status: 'found', address: to });
+});
+
+test('the persisted history is source control bookkeeping and stays out of file reads and agent answers', async () => {
+  using fixture = await itemDiffBaselineWorkspace();
+  const project = 'finance';
+  const prefix = 'sw1:finance/finance.ontology.yaml#ontology:Finance/concept:';
+  const consumerBefore = await itemDiffAgentAnswers(fixture);
+  await fixture.ws.reconcileAddress({ operationId: 'hidden-file', from: prefix + 'Former', to: prefix + 'Customer' }, LOCAL_READER);
+  const status = await fixture.ws.readScm(project, LOCAL_READER).status(project, LOCAL_READER);
+  expect(status.changes).toContainEqual(expect.objectContaining({ path: ADDRESS_HISTORY_FILE, hidden: true }));
+  const url = `http://localhost:5173/api/projects/${project}/files/${ADDRESS_HISTORY_FILE}`;
+  expect((await fixture.handler(new Request(url))).status).toBe(404);
+  expect(await itemDiffAgentAnswers(fixture)).toEqual(consumerBefore);
 });
