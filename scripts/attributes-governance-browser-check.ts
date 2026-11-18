@@ -103,6 +103,11 @@ async function attributeFlow(page: Page, label: string) {
   await attributes.getByText('phone', { exact: true }).waitFor({ state: 'detached' });
 }
 
+/** The control inside the label that starts with this text. The label wraps the control, so a role query on the label text is not reliable for selects. */
+function fieldOf(region: ReturnType<Page['locator']>, label: string) {
+  return region.locator('label', { has: region.page().getByText(label, { exact: true }) }).locator('input, select, textarea');
+}
+
 async function governanceAndContextFlow(page: Page, label: string) {
   await openConcept(page, FILE, 'Customer');
   const details = page.getByRole('complementary', { name: 'Definition details' });
@@ -111,12 +116,12 @@ async function governanceAndContextFlow(page: Page, label: string) {
     console.log(await details.innerText());
     throw problem;
   });
-  await governance.getByLabel('Status', { exact: true }).selectOption('proposed');
-  await governance.getByLabel('Owner').fill('dana@example.com');
+  await fieldOf(governance, 'Status').selectOption('proposed');
+  await fieldOf(governance, 'Owner').fill('dana@example.com');
   await governance.getByRole('button', { name: 'Save governance' }).click();
   await governance.getByText('proposed').first().waitFor();
   const context = details.getByRole('region', { name: 'Agent context' });
-  await context.getByLabel('Instructions').fill('Prefer the tier. '.repeat(20));
+  await fieldOf(context, 'Instructions').fill('Prefer the tier. '.repeat(20));
   await context.getByRole('button', { name: 'Save agent context' }).click();
   await context.getByText('Agents read this text only from the published version').waitFor();
   await expectCleanLayout(page, `${label}: governance and context`);
