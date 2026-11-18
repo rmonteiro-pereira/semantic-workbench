@@ -158,6 +158,20 @@ export function ontologyItemChanges(
   return [...statusChanges(file, previous, next, recorded), ...removalChanges(file, previous, next), ...classificationChanges(file, previous, next, rules.levelOf, protectedAt, rules.levelNumber)];
 }
 
+/** The name a guard gives an ontology item: the concept's name, or the concept's name and the relationship's name joined by a dot. */
+export function ontologyItemLabel(document: any, path: Path): string | null {
+  const concept = document?.ontology?.[path[1] as number];
+  if (path[0] !== 'ontology' || typeof concept?.concept !== 'string') return null;
+  if (path.length === 2) return concept.concept;
+  const relationship = path.length === 4 && path[2] === 'relationships' ? concept.relationships?.[path[3] as number] : undefined;
+  return typeof relationship?.name === 'string' ? `${concept.concept}.${relationship.name}` : null;
+}
+
+/** Tells whether the item at a path of an ontology document is approved. */
+export function isApprovedOntologyItem(item: unknown): boolean {
+  return isObject(item) && governanceEntry(item).status === 'approved';
+}
+
 /** Sets an approved ontology item back to proposed by patching only its status value. */
 export function demoteOntologyItem(source: string, filename: string, itemPath: Path): string {
   const statusPath = [...itemPath, GOVERNANCE_PROPERTY, 'status'];

@@ -85,3 +85,15 @@ export function inheritedAttributesOf(concept: ConceptShape, concepts: readonly 
 export function attributesOf(concept: ConceptShape, concepts: readonly ConceptShape[], lookup: ConceptKindLookup): AttributeEntry[] {
   return [...declaredAttributesOf(concept, lookup), ...inheritedAttributesOf(concept, concepts, lookup)];
 }
+
+/** The types an attribute may hold: the value types the document declares, then the built-in value types that no declared concept shares a name with. */
+export function valueTypeChoices(concepts: readonly ConceptShape[]): string[] {
+  const declared = concepts.filter(concept => concept?.type === 'ValueType' && typeof concept.concept === 'string').map(concept => concept.concept as string);
+  const builtins = [...OSSIE_BUILTINS].sort().filter(name => builtinConcept(name).type === 'ValueType' && !declared.includes(name));
+  return [...declared, ...builtins];
+}
+
+/** The reading sentence suggested for a new attribute, which the author may change because the standard requires one. */
+export function suggestedReading(conceptName: string, attributeName: string): string {
+  return `{${conceptName}} has ${attributeName}`;
+}

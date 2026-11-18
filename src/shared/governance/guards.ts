@@ -6,7 +6,7 @@ import { parseSource } from '../edit/yaml-patch';
 import { withMetricAttributes } from '../metrics/metric-save';
 import { extensionOf, semanticModelPaths, type Path } from '../edit/item-model';
 import { deepEqual, isObject } from '../edit/source-text';
-import { demoteOntologyItem, ontologyItemChanges } from './ontology-guards';
+import { demoteOntologyItem, isApprovedOntologyItem, ontologyItemChanges, ontologyItemLabel } from './ontology-guards';
 
 /** Classification levels from least to most sensitive; their index is the level number. */
 export const LEVELS = ['public', 'internal', 'confidential', 'restricted'] as const;
@@ -369,6 +369,10 @@ export function demotionsOf(outcome: GuardOutcome): Demotion[] {
 export function applyDemotions(text: string, filename: string, demotions: Demotion[]): string {
   return demotions.reduce((current, demotion) => {
     const path = pathOf(demotion.pointer);
+    if (path[0] === 'ontology') {
+      const approved = isApprovedOntologyItem(parsedAt(current, path)) && ontologyItemLabel(parsed(current), path) === demotion.metric;
+      return approved ? demoteOntologyItem(current, filename, path) : current;
+    }
     const metric = parsedAt(current, path);
     if (metric?.name !== demotion.metric || attributes(metric).status !== 'approved') {
       return current;

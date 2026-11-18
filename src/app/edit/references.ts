@@ -87,6 +87,7 @@ function describe(path: Path, data: any) {
   if (path.includes('relationships')) return `dataset relationship ${item('relationships')}`;
   if (path.includes('fields')) return `field ${item('fields')} of ${item('datasets')}`;
   if (path.includes('identify_by')) return `identifier of ${item('ontology')}`;
+  if (path.includes(ATTRIBUTE_ORDER_PROPERTY)) return `attribute order of ${item('ontology')}`;
   return path.join(' / ');
 }
 /** Mapping references that name the renamed relationship without saying which concept defines it, so no rewrite can be trusted. */
@@ -217,7 +218,7 @@ export function findReferences(target: Target, docs: ProjectDoc[]): Reference[] 
         case 'ontology-relationship':
           if (self && path.at(-2) === 'identify_by' && value === name && startsWith(path, target.path.slice(0, -2))) add(path, within(src, node, new RegExp(escape(name), 'g')).slice(0, 1), dep(path));
           else if (self && path.at(-2) === ATTRIBUTE_ORDER_PROPERTY && value === name && startsWith(path, target.path.slice(0, -2)))
-            add(path, within(src, node, new RegExp(escape(name), 'g')).slice(0, 1), null);
+            add(path, within(src, node, new RegExp(escape(name), 'g')).slice(0, 1), dep(path));
           else if (typeof key === 'number' && (path.at(-2) === 'requires' || path.at(-2) === 'derived_by') && path.includes('ontology')) {
             const qualifiedName = new RegExp(`(?<![\\w$.'"])${escape(String(owner))}\\s*\\.\\s*(${escape(name)})(?![\\w$])`, 'g');
             const ownConcept = self && startsWith(path, target.path.slice(0, -2));

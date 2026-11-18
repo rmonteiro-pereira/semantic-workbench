@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { createAccessControl } from '../../src/server/auth/authorize';
 import { requestAccess, requestReader } from '../../src/server/auth/request-scope';
 import { GuardedChangeError, guardedChanges, type ClassificationSettings, type FileChange } from '../../src/server/auth/guards';
+import { applyDemotions } from '../../src/shared/governance/guards';
 import { ONTOLOGY_GUARDS_ACTIVE } from '../../src/shared/governance/ontology-guards';
 import type { TestUserName } from '../helpers/auth-identities';
 import { accessFixture, person } from '../auth/access-fixture';
@@ -184,4 +185,15 @@ describe('classification', () => {
 test('documents that are not ontologies and unchanged files are never guarded', () => {
   expect(guardedChanges(itemChange('name: notes\n', 'name: notes\n'), SETTINGS)).toEqual([]);
   expect(guardedChanges(itemChange(ontology(governed('approved')), ontology(governed('approved'))), SETTINGS)).toEqual([]);
+});
+
+describe('the browser applies the demotions the server made', () => {
+  const before = ontology(governed('approved'));
+
+  test('an approved concept the server returned to proposed is returned in the typed text too', () => {
+    const typed = ontology(governed('approved'), 'A changed order.');
+    const demotions = [{ file: 'retail.ontology.yaml', pointer: '/ontology/0', metric: 'Order' }];
+    expect(applyDemotions(typed, 'retail.ontology.yaml', demotions)).toBe(typed.replace('status: approved', 'status: proposed'));
+    expect(applyDemotions(before, 'retail.ontology.yaml', [{ ...demotions[0], metric: 'Other' }])).toBe(before);
+  });
 });
