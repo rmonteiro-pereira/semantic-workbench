@@ -119,6 +119,9 @@ function arrangeNetwork(request: NetworkLayoutRequest, signal: AbortSignal, isCa
 /** Publishes completed worker layouts and fits their measured nodes without relaying out on resize. */
 export function useFullGraphLayout({ name, algorithm, version, paneMeasured, overview, display, layoutGrouping, entityById, groupById, fit, setRouteMetrics }: LayoutInputs) {
   const laidOutKey = useRef('');
+  // Selection can change while the worker completes the current layout.
+  const currentFit = useRef(fit);
+  currentFit.current = fit;
   const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
   const [layoutRoutes, setLayoutRoutes] = useState<LayoutResult['routes']>({});
   const [busy, setBusy] = useState(true);
@@ -148,7 +151,7 @@ export function useFullGraphLayout({ name, algorithm, version, paneMeasured, ove
       if (cache.size > 6) cache.delete(cache.keys().next().value!);
       setNodes(previous => flowNodes(result, previous, overview, display, groupById, entityById));
       setBusy(false);
-      fitTimer = setTimeout(() => void fit(), 150);
+      fitTimer = setTimeout(() => void currentFit.current(), 150);
     }
     if (cache.has(key) && !version) {
       apply(cache.get(key)!);

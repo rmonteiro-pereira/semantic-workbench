@@ -172,6 +172,20 @@ export function FullGraph(props: Props) {
     setZoomedGroupId('');
     fitWithin(250);
   }, [fitWithin]);
+  const focusSelection = useCallback(() => {
+    const canvas = container.current?.querySelector('.react-flow');
+    const instance = flow.current;
+    if (!canvas || !props.selected || !instance?.getNode(props.selected)) return false;
+    const neighbors = new Set([props.selected]);
+    for (const edge of display.edges) {
+      if (edge.source === props.selected || edge.target === props.selected) {
+        neighbors.add(edge.source);
+        neighbors.add(edge.target);
+      }
+    }
+    focusFullGraph(instance, canvas, props.selected, neighbors);
+    return true;
+  }, [props.selected, display]);
   const { nodes, onNodesChange, layoutRoutes, busy, error, layoutMs, layoutPasses } = useFullGraphLayout({
     name: props.name,
     algorithm,
@@ -182,7 +196,7 @@ export function FullGraph(props: Props) {
     layoutGrouping,
     entityById,
     groupById,
-    fit: opening.openLayout,
+    fit: () => opening.openLayout(focusSelection),
     setRouteMetrics,
   });
   // Full screen keeps the view it started from and puts it back on exit.
@@ -194,17 +208,6 @@ export function FullGraph(props: Props) {
       setViewport(v);
     },
   );
-  const focusSelection = useCallback(() => {
-    if (!props.selected) return;
-    const neighbors = new Set([props.selected]);
-    for (const edge of display.edges) {
-      if (edge.source === props.selected || edge.target === props.selected) {
-        neighbors.add(edge.source);
-        neighbors.add(edge.target);
-      }
-    }
-    focusFullGraph(flow.current, container.current?.querySelector('.react-flow'), props.selected, neighbors);
-  }, [props.selected, display]);
   useEffect(() => {
     if (!busy && !opening.checking && !held()) focusSelection();
   }, [busy, opening.checking, focusSelection, size.width]);

@@ -46,7 +46,7 @@ export function useFullGraphOpening({ overview, algorithm, collapseChoice, flow,
   const automaticCollapse = safetyCollapse || (algorithm === 'network' && matches && decision.collapsed);
   const checking = collapseChoice === null && !safetyCollapse && !matches;
 
-  const openLayout = async () => {
+  const openLayout = async (focusSelection?: () => boolean) => {
     const canvas = container.current?.querySelector('.react-flow');
     const instance = flow.current;
     if (!canvas || !instance) return;
@@ -57,7 +57,9 @@ export function useFullGraphOpening({ overview, algorithm, collapseChoice, flow,
     const zoom = fitFullGraph(instance, canvas, 0, reservedWidth);
     if (zoom === undefined) return;
     onFitZoom(zoom);
-    if (algorithm === 'layered') {
+    // The initial area view is a fallback when the new layout has no visible selection.
+    const focused = !checking && focusSelection?.();
+    if (algorithm === 'layered' && !focused) {
       const area = overview.groups[0]?.id;
       if (area) {
         fitGraphArea(instance, canvas, area, reservedWidth);

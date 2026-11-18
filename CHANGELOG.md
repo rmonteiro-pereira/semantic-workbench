@@ -82,7 +82,8 @@ and protect release tags. Existing tags inside published history remain usable a
   contract sits partly above the pane on opening, with its **Walk here** button under the page
   header.
 
-- Keep the selected entity readable and fold graph controls before the toolbar wraps.
+- Keep the selected entity readable, including after expanding areas, and fold graph controls
+  before the toolbar wraps.
 - Keep neighborhood Walk targets in view and the center description readable; group cross-file links under Other files.
 - Let phone Neighborhood controls wrap when the center name needs a wider search field.
 - Offer Fit for a Full pierce result that cannot fit at readable scale.

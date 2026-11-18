@@ -66,7 +66,8 @@ first viewport and chooses its automatic representation after layout.
 `src/app/graph/RoutedEdge.tsx` keeps fallback routes attached while a worker result is pending or no
 longer matches current endpoints.
 
-Selection changes emphasis rather than deleting the rest of the model. The optional mini-map is
+When a relayout still contains the selected entity, the camera returns to that card and its
+readable neighbors. The optional mini-map is
 off until requested. Fit reserves its corner above 650 px. The phone layout hides the map and
 uses the whole canvas width. A finite viewport cannot display an unlimited number of full-size labels;
 area collapse, zoom and focused views make that trade-off explicit.
