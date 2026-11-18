@@ -46,9 +46,10 @@ export function testDoubleConnections() {
       live.add(connection);
       return { token, connection };
     },
-    end(connection: string, reason: string) {
+    end(connection: string, reason: ConnectionEndNotice['reason']) {
       live.delete(connection);
-      for (const listener of listeners) listener({ connectionId: connection, reason });
+      for (const listener of listeners)
+        listener({ connectionId: connection, reason, origin: 'acp', person: [...tokens.values()].find(token => token.connection === connection)!.principal.id, clientId: 'acp-relay' });
     },
   };
 }

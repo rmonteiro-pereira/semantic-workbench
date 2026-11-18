@@ -27,7 +27,6 @@ function productName(): string {
 export const RELAY_CLIENT_ID = 'acp-relay';
 /** How often the clock is checked for sessions to end. */
 export const SWEEP_INTERVAL_MS = 5_000;
-const SWEEP_CLOSED_REASONS: readonly string[] = ['sign-out', 'expired', 'deactivated', 'revoked'];
 
 /** What the browser is told when a session starts. */
 export type StartedSession = { id: string; code: string; command: string; statement: string; scopes: readonly string[]; notOffered: string; expiresAt: number };
@@ -46,7 +45,10 @@ export type PanelServiceOptions = {
 };
 
 function endReasonOf(reason: string): EndReason {
-  return (SWEEP_CLOSED_REASONS.includes(reason) ? reason : 'revoked') as EndReason;
+  if (reason === 'signed-out') return 'sign-out';
+  if (reason === 'session-ended' || reason === 'expired') return 'expired';
+  if (reason === 'deactivated') return 'deactivated';
+  return 'revoked';
 }
 
 /** Creates the service. Nothing runs until the first session starts, except the optional sweeper. */
@@ -98,7 +100,7 @@ export function createPanelService(options: PanelServiceOptions) {
     const session = created.session;
     let credential: string | undefined;
     if (options.mode === 'server') {
-      const issued = input.session && options.connections?.createConnectionForSession({ session: input.session, clientId: RELAY_CLIENT_ID, scopes: PANEL_EFFECTS, origin: 'acp' });
+      const issued = input.session && options.connections?.createConnectionForSession({ session: input.session, clientId: RELAY_CLIENT_ID, scopes: ['read', 'edit'], origin: 'acp' });
       if (!issued?.ok) {
         store.end(session, 'closed');
         return { ok: false, status: 502, error: 'The workbench could not prepare a connection for the relay. Ask an Admin whether the relay program is registered.' };
