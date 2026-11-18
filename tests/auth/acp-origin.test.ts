@@ -52,7 +52,7 @@ async function run(testCase: Case, origin: CallerOrigin) {
   const { response } = await handler.boundary.operate({ caller: mintCaller({ principal, origin, connection: 'acp-abc123' }), request });
   const text = await response.text();
   const records = audit.recent(10);
-  return { status: response.status, body: withoutOriginDetails(JSON.parse(text || 'null')), audit: records.map(withoutOriginDetails), origins: records.map(record => record.origin) };
+  return { status: response.status, body: withoutOriginDetails(JSON.parse(text || 'null')), audit: records.map(record => withoutOriginDetails(record)), origins: records.map(record => record.origin) };
 }
 
 for (const testCase of cases) {

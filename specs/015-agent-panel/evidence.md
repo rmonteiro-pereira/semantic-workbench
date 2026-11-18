@@ -145,3 +145,6 @@ modules. Negative cases reject another symbol or another module; access evaluato
 construction remain forbidden. Proof: `bun test tests/auth/boundary-scan.test.ts`: 4 pass, 0 fail,
 16 assertions. The preceding aggregate exposed these issues: 297 pass, 3 fail; the closing
 aggregate must replace that result after these three corrections.
+The final type check required an explicit array callback at the origin normalizer's caller,
+so an array index cannot become its optional field name. The targeted origin proof was rerun:
+11 pass, 0 fail, 51 assertions.
