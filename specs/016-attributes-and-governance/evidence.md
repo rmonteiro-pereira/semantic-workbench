@@ -10,3 +10,11 @@ details dialog. The browser uses local mode. The role split is covered at the se
 
 The dev wrapper transports commits to scratch. Pre-push checks and architectural review apply
 to the integrated project delivery, not to scratch synchronization.
+
+## Targeted mutation gate
+
+`bun scripts/mutation-tests.ts --attributes` on the dev server passed all six focused
+baselines and killed **8/8** mutants. It covers target kind, role count, revision, owner and
+approver checks, demotion, published-only selection and loss status counts. The standalone
+candidate inventory only exports definitions, so the focused mode of the existing runner
+executes the proof. The complete mutation gate belongs to the batch.
