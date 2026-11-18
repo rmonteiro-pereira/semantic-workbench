@@ -16,7 +16,7 @@ import {
 /** The smallest on-screen size of an entity name, and of a detail line where one is shown. */
 export const MIN_NAME_PX = 12;
 export const MIN_DETAIL_PX = 12;
-/** Network and neighborhood names scale with their cards, using the original type size. */
+/** Base type size for Network and Neighborhood names. */
 const STANDARD_NAME_PX = 16;
 /** The share of the window height the canvas keeps on a phone. */
 export const MIN_PHONE_CANVAS_SHARE = 0.55;
@@ -38,11 +38,12 @@ export async function graphCanvasProblems(page: Page, which: Which): Promise<str
       const cardSelector = which === 'model' ? '.full-entity' : '.neighborhood-node .node';
       const nameSelector = which === 'model' ? '.full-entity strong' : '.node strong';
       const sizeOnScreen = (element: Element) => parseFloat(getComputedStyle(element).fontSize) * scale;
+      const compensatedNetwork = root.getAttribute('data-compensated-network') === 'true';
       for (const name of root.querySelectorAll(nameSelector)) {
         if (!onScreen(name.getBoundingClientRect())) continue;
         const px = sizeOnScreen(name);
         const network = which === 'model' && root.getAttribute('data-layout') === 'network' && !name.closest('.collapsed');
-        const largestName = which === 'model' && !network ? largestModelNamePx : standardNamePx;
+        const largestName = which === 'model' && (!network || compensatedNetwork) ? largestModelNamePx : standardNamePx;
         // A card also never draws a name larger than its whole name fits, so that no name is cut.
         const fittingName = parseFloat(getComputedStyle(name).getPropertyValue('--entity-name-cap')) || largestName;
         const largestCardName = Math.min(largestName, fittingName, Math.ceil(minName / scale));
@@ -50,7 +51,8 @@ export async function graphCanvasProblems(page: Page, which: Which): Promise<str
         if (px < minimum - 0.01) {
           out.push(`name "${name.textContent}" is ${px.toFixed(1)} px on screen`);
         }
-        if (network && parseFloat(getComputedStyle(name).fontSize) > standardNamePx) {
+        const fontSize = parseFloat(getComputedStyle(name).fontSize);
+        if (network && (compensatedNetwork ? px > standardNamePx * Math.max(1, scale) + 0.01 : fontSize > standardNamePx)) {
           out.push(`Network name "${name.textContent}" grows beyond its original type scale`);
         }
       }

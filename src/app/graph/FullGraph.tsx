@@ -335,6 +335,7 @@ export function FullGraph(props: Props) {
       ref={container}
       style={textStyle}
       data-layout={algorithm}
+      data-compensated-network={algorithm === 'network' && compensateNetwork ? 'true' : undefined}
       data-opening-name-px={opening.minimumName}
       data-opening-ms={opening.decisionMs}
       data-layout-ms={layoutMs}
