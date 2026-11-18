@@ -17,7 +17,13 @@ async function seed(api: IsolatedApi) {
       files: [
         {
           path: 'finance.yaml',
-          source: JSON.stringify({ tessera: 3, name: 'Finance', version, tessera_exports: ['Invoice'], ontology: [{ concept: 'Invoice', type: 'EntityType' }] }),
+          source: JSON.stringify({
+            tessera: 3,
+            name: 'Finance',
+            version,
+            tessera_exports: ['Invoice'],
+            ontology: [{ concept: 'Invoice', type: 'EntityType' }],
+          }),
         },
       ],
     },
@@ -28,8 +34,24 @@ async function seed(api: IsolatedApi) {
     {
       name: 'Retail',
       files: [
-        { path: root, source: JSON.stringify({ tessera: 3, name: 'Retail', version, tessera_includes: ['customers.yaml'], ontology: [{ concept: 'Order', type: 'EntityType' }] }) },
-        { path: 'customers.yaml', source: JSON.stringify({ tessera: 3, tessera_part: true, ontology: [{ concept: 'Customer', type: 'EntityType' }] }) },
+        {
+          path: root,
+          source: JSON.stringify({
+            tessera: 3,
+            name: 'Retail',
+            version,
+            tessera_includes: ['customers.yaml'],
+            ontology: [{ concept: 'Order', type: 'EntityType' }],
+          }),
+        },
+        {
+          path: 'customers.yaml',
+          source: JSON.stringify({
+            tessera: 3,
+            tessera_part: true,
+            ontology: [{ concept: 'Customer', type: 'EntityType' }],
+          }),
+        },
       ],
     },
     LOCAL_READER,
@@ -59,10 +81,15 @@ async function editImport(page: Page) {
 async function publish(api: IsolatedApi, project: string) {
   const source = `${api.url}/api/projects/${project}/git/`;
   for (const [action, payload] of [
-    ['commit', { message: 'Publish the import', all: true }],
+    ['stage', { all: true }],
+    ['commit', { message: 'Publish the import' }],
     ['publish', { disclosureShown: true }],
   ] as const) {
-    const response = await fetch(source + action, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    const response = await fetch(source + action, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
     if (!response.ok) throw new Error(await response.text());
   }
 }
