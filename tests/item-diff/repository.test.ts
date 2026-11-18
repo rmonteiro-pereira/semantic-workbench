@@ -3,6 +3,7 @@ import { expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parse } from 'yaml';
+import { inspect } from '../../src/shared/core/model';
 import { changedOntology, itemDiffRepository, type RepositoryChange } from '../helpers/item-diff-repository';
 
 test('committed project has an ontology, a model and two attributes', async () => {
@@ -12,6 +13,10 @@ test('committed project has an ontology, a model and two attributes', async () =
     const ontology = parse(await repository.git('show', 'HEAD:finance.ontology.yaml'));
     expect(ontology.ontology[0].relationships.map((entry: { name: string }) => entry.name)).toEqual(['email', 'tier', 'purchases']);
     expect(parse(await repository.git('show', 'HEAD:finance.semantic.yaml')).datasets[0].fields[0].name).toBe('amount');
+    for (const path of ['finance.ontology.yaml', 'finance.semantic.yaml']) {
+      const model = await inspect(await repository.git('show', `HEAD:${path}`), path);
+      expect(model.issues.filter(issue => issue.severity === 'error')).toEqual([]);
+    }
     expect(await repository.git('status', '--porcelain')).toBe('');
   } finally {
     repository.cleanup();
