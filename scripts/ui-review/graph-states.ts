@@ -1,17 +1,45 @@
 // Captures graph stages using existing navigation and control helpers. Imported by capture-states; no additional environment variables.
 import type { Page } from '@playwright/test';
-import { fileTab, openFile } from '../helpers/screen-tour';
-import { revealGraphControls, viewOptions, chooseLayout, setShown, showEveryEntity } from '../helpers/graph-options';
+import { fileTab } from '../helpers/screen-tour';
+import { hideGraphControls, revealGraphControls, viewOptions, chooseLayout, setShown, showEveryEntity } from '../helpers/graph-options';
 import { openGroupMenu, groupingMenuLabels, chooseGrouping } from '../helpers/grouping-menu';
 import { capture, attempt, type CaptureIdentity } from './capture-records';
 
 async function press(page: Page, name: string | RegExp, count = 1) {
-  await revealGraphControls(page);
   const button = page.getByRole('button', { name, exact: typeof name === 'string' }).first();
-  for (let index = 0; index < count; index++) {
-    if (!(await button.isEnabled())) break;
-    await button.click();
-    await page.waitForTimeout(150);
+  // An open Controls panel can cover a different action in the row below it.
+  if (!(await button.isVisible())) await revealGraphControls(page);
+  if (!(await button.isVisible())) {
+    await hideGraphControls(page);
+    throw new Error(`Graph control is unavailable: ${name}`);
+  }
+  const insidePanel = await button.evaluate(element => Boolean(element.closest('.compact-controls-panel')));
+  if (!insidePanel) await hideGraphControls(page);
+  try {
+    if (!(await button.isEnabled())) throw new Error(`Graph control is disabled: ${name}`);
+    for (let index = 0; index < count; index++) {
+      if (!(await button.isEnabled())) break;
+      await button.click();
+      await page.waitForTimeout(150);
+    }
+  } finally {
+    if (insidePanel) await hideGraphControls(page);
+  }
+}
+
+/** Zooms from a name-only lineage view until the detailed cards show their columns. */
+export async function showLineageColumns(page: Page) {
+  const center = page.locator('.lineage-card.center');
+  await center.waitFor();
+  for (let step = 0; step < 12; step++) {
+    if (!(await center.evaluate(card => card.classList.contains('lineage-card-overview')))) return;
+    // Wheel zoom keeps the inspected card under the pointer even if Fit placed it near an edge.
+    await center.locator('.lineage-card-title').hover();
+    await page.mouse.wheel(0, -180);
+    await page.waitForTimeout(200);
+  }
+  if (await center.evaluate(card => card.classList.contains('lineage-card-overview'))) {
+    throw new Error('Zoom did not reveal the detailed lineage center card');
   }
 }
 
@@ -64,6 +92,14 @@ async function hoverReachableEdge(page: Page) {
   await page.mouse.move(point.x, point.y);
 }
 
+async function closeSelectedPath(page: Page) {
+  const dialog = page.getByRole('dialog', { name: 'Selected path', exact: true });
+  if (await dialog.isVisible()) {
+    await dialog.getByRole('button', { name: 'Done', exact: true }).click();
+    await dialog.waitFor({ state: 'hidden' });
+  }
+}
+
 async function graphControls(page: Page, identity: CaptureIdentity, screen: string) {
   await attempt(page, identity, screen, 'after-fit', () => press(page, /^Fit( model| neighborhood)?$/));
   await attempt(page, identity, screen, 'zoomed-in', () => press(page, 'Zoom in', 7));
@@ -71,6 +107,7 @@ async function graphControls(page: Page, identity: CaptureIdentity, screen: stri
   const fit = page.getByRole('button', { name: /^Fit( model| neighborhood)?$/ });
   if (await fit.count()) await press(page, /^Fit( model| neighborhood)?$/);
   await attempt(page, identity, screen, 'node-selected', () => selectReachableNode(page));
+  await closeSelectedPath(page);
   await attempt(page, identity, screen, 'edge-hovered', () => hoverReachableEdge(page));
   await attempt(page, identity, screen, 'labels-on', async () => {
     await viewOptions(page, async options => setShown(options, /^Labels/, true));
@@ -78,11 +115,12 @@ async function graphControls(page: Page, identity: CaptureIdentity, screen: stri
   await attempt(page, identity, screen, 'mini-map-on', () => press(page, /^(Show )?Mini.?map/i));
   await attempt(page, identity, screen, 'legend-open', () => press(page, /^Legend/));
   await attempt(page, identity, screen, 'options-open', () => revealGraphControls(page));
-  await attempt(page, identity, screen, 'fullscreen', () => press(page, 'Enter full screen'));
+  await attempt(page, identity, screen, 'fullscreen', () => press(page, /^(Enter )?Full screen$/i));
   await attempt(page, identity, screen, 'fullscreen-node-selected', async () => {
     await page.locator('.canvas-row.is-fullscreen').waitFor();
     await selectReachableNode(page);
   });
+  await closeSelectedPath(page);
   const exit = page.getByRole('button', { name: 'Exit full screen', exact: true });
   if (await exit.isVisible()) await exit.click();
 }
@@ -147,9 +185,11 @@ async function lineage(page: Page, identity: CaptureIdentity, dataset: boolean) 
   await page.locator('.lineage-card').first().waitFor();
   await capture(page, identity, screen, 'first-view');
   await attempt(page, identity, screen, 'column-selected', async () => {
+    await showLineageColumns(page);
     await page.locator('.lineage-card.center .lineage-row-name').first().click();
   });
-  for (const hops of [1, 3, 5]) {
+  await closeSelectedPath(page);
+  for (const hops of [1, 2, 3]) {
     await attempt(page, identity, screen, `hops-${hops}-list`, async () => {
       await page.getByRole('button', { name: `${hops} ${hops === 1 ? 'hop' : 'hops'}`, exact: true }).click();
       await page.getByRole('button', { name: /^Foreign keys \(/ }).click();
@@ -157,6 +197,7 @@ async function lineage(page: Page, identity: CaptureIdentity, dataset: boolean) 
     await page.keyboard.press('Escape');
   }
   await attempt(page, identity, screen, 'more-columns', async () => {
+    await showLineageColumns(page);
     await page
       .getByRole('button', { name: /^Show all \d+ columns of/ })
       .first()
@@ -197,6 +238,14 @@ async function lineage(page: Page, identity: CaptureIdentity, dataset: boolean) 
   await graphControls(page, identity, screen);
 }
 
+async function openGraphStage(page: Page, run: () => Promise<void>) {
+  // Each family starts without a modal or full-screen overlay left by a previous capture.
+  const workspace = new URL(page.url());
+  workspace.hash = '';
+  await page.goto(workspace.href);
+  await run();
+}
+
 /** Captures model, neighborhood, mapping, and ODCS graph stages for one viewport and theme. */
 export async function captureGraphStates(page: Page, identity: CaptureIdentity) {
   if (process.env.SW_ONLY === 'neighborhood') {
@@ -204,12 +253,16 @@ export async function captureGraphStates(page: Page, identity: CaptureIdentity) 
     return;
   }
   await attempt(page, identity, 'full-graph', 'stages', () => fullGraph(page, identity));
-  await attempt(page, identity, 'neighborhood', 'stages', () => neighborhood(page, identity));
-  for (const dataset of [false, true]) await attempt(page, identity, 'lineage', dataset ? 'dataset-stages' : 'contract-stages', () => lineage(page, identity, dataset));
-  await attempt(page, identity, 'mapping-graph', 'stages', async () => {
-    await loadingBurst(page, identity, 'mapping-graph', 'commerce.mapping.yaml', 'Graph');
-    await capture(page, identity, 'mapping-graph', 'first-view');
-    await graphControls(page, identity, 'mapping-graph');
-  });
-  void openFile;
+  await attempt(page, identity, 'neighborhood', 'stages', () => openGraphStage(page, () => neighborhood(page, identity)));
+  for (const dataset of [false, true]) {
+    const stage = dataset ? 'dataset-stages' : 'contract-stages';
+    await attempt(page, identity, 'lineage', stage, () => openGraphStage(page, () => lineage(page, identity, dataset)));
+  }
+  await attempt(page, identity, 'mapping-graph', 'stages', () =>
+    openGraphStage(page, async () => {
+      await loadingBurst(page, identity, 'mapping-graph', 'commerce.mapping.yaml', 'Graph');
+      await capture(page, identity, 'mapping-graph', 'first-view');
+      await graphControls(page, identity, 'mapping-graph');
+    }),
+  );
 }

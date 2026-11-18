@@ -3,6 +3,7 @@ import { expect, type Page } from '@playwright/test';
 import { fileTab, showSidebar } from '../helpers/screen-tour';
 import { clickConnection } from './followup-graphs';
 import type { State, View } from './followup-capture';
+import { showLineageColumns } from './graph-states';
 
 async function openLineage(page: Page, dataset: boolean, file: string) {
   await fileTab(file, dataset ? 'Contract' : 'Graph')(page);
@@ -36,6 +37,7 @@ export function lineageStates(view: View): State[] {
       state: 'more-columns-open',
       action: async page => {
         await openLineage(page, dataset, file);
+        await showLineageColumns(page);
         await page
           .getByRole('button', { name: /^Show all \d+ columns of/ })
           .first()
@@ -135,6 +137,7 @@ export function lineageStates(view: View): State[] {
       const center = page.locator('.lineage-card.center');
       await expect(center).toHaveAttribute('aria-label', 'Table consignment');
       await page.waitForTimeout(500);
+      await showLineageColumns(page);
       const more = center.getByRole('button', { name: /^Show all \d+ columns of/ });
       record('wide-card', { label: await more.getAttribute('aria-label') });
       await more.click();
