@@ -3456,8 +3456,8 @@
         "action": "read",
         "decision": "allow",
         "rules": [
-          "role:admin:1",
-          "B1-workspace-lists"
+          "B1-workspace-lists",
+          "role:admin:1"
         ],
         "outcome": "ok",
         "type": "audit",
@@ -3552,8 +3552,8 @@
         "action": "read",
         "decision": "allow",
         "rules": [
-          "role:admin:1",
-          "B1-workspace-lists"
+          "B1-workspace-lists",
+          "role:admin:1"
         ],
         "outcome": "failed",
         "type": "audit",
@@ -3664,8 +3664,8 @@
         "action": "viewOwnState",
         "decision": "allow",
         "rules": [
-          "role:admin:1",
-          "B1-workspace-lists"
+          "B1-workspace-lists",
+          "role:admin:1"
         ],
         "outcome": "failed",
         "type": "audit",
@@ -9341,8 +9341,8 @@
         "action": "setRemote",
         "decision": "deny",
         "rules": [
-          "F7-remote-admin",
-          "F2-no-domain"
+          "F2-no-domain",
+          "F7-remote-admin"
         ],
         "reason": "not-readable",
         "type": "audit",
@@ -9445,8 +9445,8 @@
         "action": "setRemote",
         "decision": "deny",
         "rules": [
-          "F7-remote-admin",
-          "F2-no-domain"
+          "F2-no-domain",
+          "F7-remote-admin"
         ],
         "reason": "not-readable",
         "type": "audit",
@@ -20459,8 +20459,8 @@
         "action": "setRemote",
         "decision": "deny",
         "rules": [
-          "F7-remote-admin",
-          "F2-no-domain"
+          "F2-no-domain",
+          "F7-remote-admin"
         ],
         "reason": "not-readable",
         "type": "audit",
@@ -26408,8 +26408,8 @@
         "action": "read",
         "decision": "allow",
         "rules": [
-          "role:admin:1",
-          "B1-workspace-lists"
+          "B1-workspace-lists",
+          "role:admin:1"
         ],
         "outcome": "failed",
         "type": "audit",
@@ -26524,8 +26524,8 @@
         "action": "viewOwnState",
         "decision": "allow",
         "rules": [
-          "role:admin:1",
-          "B1-workspace-lists"
+          "B1-workspace-lists",
+          "role:admin:1"
         ],
         "outcome": "failed",
         "type": "audit",
@@ -37320,8 +37320,8 @@
         "action": "setRemote",
         "decision": "deny",
         "rules": [
-          "F7-remote-admin",
-          "F2-no-domain"
+          "F2-no-domain",
+          "F7-remote-admin"
         ],
         "reason": "not-readable",
         "type": "audit",
@@ -47629,8 +47629,8 @@
         "action": "setRemote",
         "decision": "deny",
         "rules": [
-          "F7-remote-admin",
-          "F2-no-domain"
+          "F2-no-domain",
+          "F7-remote-admin"
         ],
         "reason": "not-readable",
         "type": "audit",
@@ -53113,8 +53113,8 @@
         "action": "setRemote",
         "decision": "deny",
         "rules": [
-          "F7-remote-admin",
-          "F2-no-domain"
+          "F2-no-domain",
+          "F7-remote-admin"
         ],
         "reason": "not-readable",
         "type": "audit",
@@ -53165,8 +53165,8 @@
         "action": "setRemote",
         "decision": "deny",
         "rules": [
-          "F7-remote-admin",
-          "F2-no-domain"
+          "F2-no-domain",
+          "F7-remote-admin"
         ],
         "reason": "not-readable",
         "type": "audit",
@@ -53217,8 +53217,8 @@
         "action": "setRemote",
         "decision": "deny",
         "rules": [
-          "F7-remote-admin",
-          "F2-no-domain"
+          "F2-no-domain",
+          "F7-remote-admin"
         ],
         "reason": "not-readable",
         "type": "audit",
