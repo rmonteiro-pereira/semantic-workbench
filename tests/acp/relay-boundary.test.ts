@@ -34,12 +34,20 @@ for (const allowed of [true, false]) {
       const credential = /SW_ACP_CREDENTIAL=([^ ]+)/.exec(started.session.command)![1];
       const token = connections.exchange(credential)!;
       const base = `https://workbench.test/api/acp/relay/${started.session.id}`;
-      const response = await handler(
-        new Request(`${base}/hello`, { method: 'POST', headers: { authorization: `Bearer ${token.token}`, 'content-type': 'application/json' }, body: JSON.stringify({ code: started.session.code }) }),
-      );
-      expect(response.status).toBe(allowed ? 200 : 403);
-      const record = audit.recent(20).find(entry => entry.tool === 'agentRelay.hello');
-      expect(record).toMatchObject({ origin: 'acp', connection: token.connection, decision: allowed ? 'allow' : 'deny' });
+      for (const action of ['hello', 'frames', 'stream', 'bye']) {
+        const bodies: Record<string, unknown> = { hello: { code: started.session.code }, frames: { frames: [] }, bye: { reason: 'closed' } };
+        const response = await handler(
+          new Request(`${base}/${action}`, {
+            method: action === 'stream' ? 'GET' : 'POST',
+            headers: { authorization: `Bearer ${token.token}`, 'content-type': 'application/json' },
+            ...(action === 'stream' ? {} : { body: JSON.stringify(bodies[action]) }),
+          }),
+        );
+        expect(response.status).toBe(allowed ? 200 : 403);
+        await response.body?.cancel();
+        const record = audit.recent(20).find(entry => entry.tool === `agentRelay.${action}`);
+        expect(record).toMatchObject({ origin: 'acp', connection: token.connection, decision: allowed ? 'allow' : 'deny' });
+      }
       expect(service.store.findForRelay(started.session.id)!.code === undefined).toBe(allowed);
     } finally {
       service.stopSweeper();
