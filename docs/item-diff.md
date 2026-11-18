@@ -13,3 +13,8 @@ The workbench compares structured definitions by item address. The browser reque
 Both sides require project history access. Hidden sides and missing sides return the same answer.
 File permissions apply on both sides. Application and agent callers use published definitions
 through their regular operations.
+
+The browser loads the overlay when Source Control reports unpublished work on a published project.
+It refreshes after saved file, branch and publication changes. If a project has never been
+published, turning on the overlay compares its saved items against an empty baseline in the
+browser.
