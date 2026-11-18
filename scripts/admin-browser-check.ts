@@ -9,8 +9,8 @@ import { signIn, type SignInTarget } from './helpers/sign-in';
 import { ADMIN_AREAS, adminGeometry, adminArea, leaveAdmin, screenshotName, withinAdministrationTime } from './helpers/admin-browser';
 import { openSettings } from './helpers/sidebar-menus';
 
-/** Five seconds leaves about a second for rendering above the 4,022 ms dev-server Admin-suite peak; see docs/development.md. */
-const DRY_RUN_RESULT_TIMEOUT_MS = 5_000;
+/** Six seconds leaves about 1.7 seconds for rendering above the 4,336 ms dev-server Admin-suite peak; see docs/development.md. */
+const DRY_RUN_RESULT_TIMEOUT_MS = 6_000;
 
 /**
  * Runs the dry run in `scope`, checks the result and confirms. The result is in a dialog for a

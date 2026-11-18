@@ -443,10 +443,11 @@ admin rules keep separate scopes and exact action classes. Policy preparation is
 when the validated roles and admin rules match. Decision results remain confined to a scope,
 with refresh invalidation; there is no global request-result cache.
 
-The Admin browser wait is five seconds. The doubled-matrix dev-server p95 is 993.39 ms; the Admin
-browser suite at `960b6dcd` observed a 4,022 ms peak on the conservative arbitrary-rule path,
-leaving about one second for rendering. That suite passes with the five-second wait. Arbitrary-rule
-proposals are outside the subsecond grant-removal measurement above.
+The Admin browser wait is six seconds. The doubled-matrix dev-server p95 is 993.39 ms; the Admin
+browser suite at `0236adb6` observed a 4,336 ms peak on the conservative arbitrary-rule path,
+leaving about 1.7 seconds for rendering. That suite passed with a five-second wait before the
+additional headroom was added. Arbitrary-rule proposals are outside the subsecond grant-removal
+measurement above.
 
 Ordinary-path controls alternate the original and optimized sources in three paired rounds:
 original/optimized, optimized/original, original/optimized. Each boundary run uses the existing
