@@ -50,3 +50,6 @@ Where the plan named files or shapes that differ from the code that landed, the 
 
 - Indexed token candidates and pending grants now receive constant-time keyed-hash verification; token formats and storage remain unchanged. Store/grant proof: 14 pass, 0 fail; service: 26 pass, 0 fail; registration: 6 pass, 0 fail. The two small store/grant files were accidentally run together locally; subsequent grouped proofs use the dev server.
 - Documentation scanner: eight updated public pages pass the complete scanner. `.env.server.example` and `docs/configuration.md` retain existing public temporary-path usage examples required by the brief; these trigger the generic path rule, while the confidential-only scan is clean. No allow rule was used.
+
+- T031: dev-server `bun scripts/mcp-acceptance.ts --server-mode`: server MCP reference acceptance passed (client/server 2.4.0; 21 tools, authenticated project read, revoked-token 401). This is real HTTP transport with fixture consent, not a browser compatibility claim; server-mode programs remain not tested end to end. Listener and fixture close in finally.
+- Consolidated feature proof on the dev server: 131 pass, 0 fail, 15,412 assertions across 16 files (412.57 seconds). Later constant-time verification edits have separate store/grant/service proofs; final static/build checks remain to run.

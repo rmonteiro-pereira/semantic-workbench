@@ -28,10 +28,11 @@ export function pkcePair() {
 }
 
 export async function openConnectionServer(
-  options: { programs?: Program[]; authenticationOptions?: Parameters<typeof createServerAuthentication>[3]; handlerOptions?: Parameters<typeof createHandler>[1] } = {},
+  options: { publicUrl?: string; programs?: Program[]; authenticationOptions?: Parameters<typeof createServerAuthentication>[3]; handlerOptions?: Parameters<typeof createHandler>[1] } = {},
 ) {
   useDefaultBrand();
   const transport = await oidcTransport('keycloak');
+  if (options.publicUrl) transport.config.publicUrl = options.publicUrl;
   const fixture = await authWorkspace({ keycloak: true });
   const client = await createOidcClient(transport.config, { fetch: transport.fetch });
   const auth = await createServerAuthentication(fixture.ws, transport.config, client, options.authenticationOptions);

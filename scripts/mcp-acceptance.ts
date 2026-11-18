@@ -3,6 +3,11 @@
 import assert from 'node:assert/strict';
 import { startLocalServer } from '../tests/mcp/helpers/local-server';
 
+if (process.argv.includes('--server-mode')) {
+  await (await import('./connections-acceptance')).connectionAcceptance();
+  process.exit(0);
+}
+
 const PROJECT = 'mapped-commerce';
 const MAPPING = 'commerce.mapping.yaml';
 const SEMANTIC = 'commerce.mapped-semantic.yaml';

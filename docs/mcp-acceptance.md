@@ -8,6 +8,18 @@ This page records what the scripted acceptance run (`bun run test:mcp`) proved a
 
 Result on the release candidate: all ten steps pass.
 
+## Server-mode reference transport
+
+Command: `bun run test:mcp -- --server-mode`. On 2026-11-18, the reference client
+`@modelcontextprotocol/client` 2.4.0 with server library 2.4.0 passed discovery of 21 tools,
+an authenticated project read and a 401 challenge after connection revocation over a real
+loopback HTTP listener. The fixture uses an isolated identity provider and sends consent
+requests directly; it does not establish browser authorization compatibility.
+
+Server-mode programs remain **not tested** end to end: the browser consent form submits
+`Origin: null` under its required referrer policy and the origin gate refuses it. The server
+bridge credential storage contract is also unresolved. This result does not supersede those limits.
+
 ## Codex CLI
 
 Status: not done. Codex CLI has not been run against this endpoint, and nothing here claims it works.
