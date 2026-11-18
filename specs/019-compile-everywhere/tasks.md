@@ -18,8 +18,8 @@ Codex from a fresh worktree of the current main, with a temporary data folder an
 
 ## Phase 1: Fixtures
 
-- [ ] T001 [P] [US1] Build `tests/fixtures/compile/` and a helper `tests/helpers/compile-workspace.ts`: a workspace with a published project holding a Tessera ontology with notes at several places, a standard semantic model with a `SEMANTIC_WORKBENCH` entry, a mapping and an ODCS file; a second project with no snapshot; a role set (viewer, editor, steward) and one hidden file case. Proof: `bun test tests/compile/fixture.test.ts` shows the published commit holds exactly the committed bytes and the working copy differs.
-- [ ] T002 [P] [US1] Record the command line's bundle for the fixture commit as golden files in `tests/fixtures/compile/golden/` using `bun run tessera compile`. Proof: `bun test tests/compile/golden.test.ts` regenerates and compares.
+- [x] T001 [P] [US1] Build `tests/fixtures/compile/` and a helper `tests/helpers/compile-workspace.ts`: a workspace with a published project holding a Tessera ontology with notes at several places, a standard semantic model with a `SEMANTIC_WORKBENCH` entry, a mapping and an ODCS file; a second project with no snapshot; a role set (viewer, editor, steward) and one hidden file case. Proof: `bun test tests/compile/fixture.test.ts` shows the published commit holds exactly the committed bytes and the working copy differs.
+- [x] T002 [P] [US1] Record the command line's bundle for the fixture commit as golden files in `tests/fixtures/compile/golden/` using `bun run tessera compile`. Proof: `bun test tests/compile/golden.test.ts` regenerates and compares.
 
 ## Phase 2: Pure decisions
 

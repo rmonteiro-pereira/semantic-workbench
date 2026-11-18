@@ -1,0 +1,15 @@
+version: 0.2.0.dev0
+name: Sales people mapping
+description: Refers to the HR ontology, which Sales readers cannot open. LEAK-sales-contracts-people.mapping.yaml
+ontology_ref:
+  name: People ontology
+  iri: ./people.ontology.yaml
+semantic_model_ref:
+  name: People semantic model
+  iri: ./people.semantic.yaml
+concept_mappings:
+  - concept: Employee
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: employees.employee_id
