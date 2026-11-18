@@ -373,7 +373,7 @@ Git and audit is compared before and after.
   only by authentication code, with origin `acp`, the connection id and the connection scope.
   There MUST be no second path that decides access.
 - **FR-033**: The origin `acp` MUST be accepted wherever `http` and `mcp` are: the audit record,
-  its filters, the JSON and CSV export (new columns appended), operation metrics labels, the dry-run
+  its filters, the JSON and CSV export (existing columns keep their order), operation metrics labels, the dry-run
   sample and the operation inventory. Old records MUST remain valid and verifiable.
 - **FR-034**: Session start, session end with its reason, each operation and each refusal MUST be
   audited once, with the connection id and without content. Refused connection attempts MUST be
@@ -394,7 +394,8 @@ Git and audit is compared before and after.
   paths, messages, options and diffs MUST wrap or scroll within their container.
 - **FR-039**: All controls MUST be reachable and named for keyboard and assistive technology.
   New agent messages MUST be announced politely; a question MUST take focus.
-- **FR-040**: Opening the panel MUST NOT change what the rest of the screen shows or measures.
+- **FR-040**: Opening the panel MUST NOT change anything outside the panel's own area except the
+  width given to it, and closing it MUST restore the earlier layout exactly.
 
 **Documentation and honesty**
 

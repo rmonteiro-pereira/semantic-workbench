@@ -134,7 +134,8 @@ test only to make it pass.
 - [ ] T023 [US1] Create `src/server/routes/acp-panel.ts` (create, events, prompt, cancel, answer,
   end per `contracts/panel-api.md`) with the cross-site checks of browser routes and the owner
   check on every route. Proof: `bun test tests/acp/panel-routes.test.ts` including another person's
-  session id and a missing `X-SW-Request` header.
+  session id, a missing `X-SW-Request` header, two tabs posting one prompt (sent once), and
+  attached file paths that are refused by the virtual-path check without saying whether they exist.
 - [ ] T024 [US1] Add route rows for the ten routes in one contiguous block in
   `src/server/auth/route-actions.ts`, entries in `policies/operation-inventory.json` (exposure
   `never`; dispatch `no: browser-only` for the six panel routes and `no: public` for the four relay
@@ -151,7 +152,8 @@ test only to make it pass.
   read per request (local) and credential exchange from `SW_ACP_CREDENTIAL` (server). Add
   `tests/acp/relay-script.test.ts` driving it against an in-process server and the reference agent.
   Proof: the test passes; the credential never appears in the process arguments or in any output
-  captured by the test (SC-007).
+  captured by the test (SC-007); a port scan during the run finds the relay listening on none
+  (FR-014).
 - [ ] T027 [US5] Wire the end reasons: browser end and close, relay loss, agent exit (`bye`), idle,
   replace, flood, protocol error, server restart message on the next relay call. Add
   `tests/acp/end-reasons.test.ts` producing all 13 reasons end to end and checking that the next
@@ -192,7 +194,8 @@ test only to make it pass.
   `src/app/main.tsx`, and the sheet placement in `src/app/workspace/WorkspaceCanvas.tsx`; width
   rules at `NARROW_SCREEN_PX` and `PHONE_SCREEN_PX`. Add `tests/agent-panel-layout.test.tsx` with
   geometry assertions (no overlap, contained) at 360, 768 and 1280 px, light and dark tokens.
-  Proof: the test passes; the main bundle size is unchanged by more than the menu item (build
+  Proof: the test passes; the canvas outside the sheet keeps its geometry when the panel is
+  closed again (FR-040); the main bundle size is unchanged by more than the menu item (build
   output compared in the test).
 - [ ] T036 [US1] Write `scripts/acp-browser-check.ts` and the script `test:acp` in `package.json`:
   against an isolated in-memory store and the reference agent, run connect, converse, write,
