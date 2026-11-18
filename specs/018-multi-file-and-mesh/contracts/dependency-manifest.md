@@ -39,6 +39,10 @@ invalid ontology.
 - Publication needs the manifest to cover exactly the imports of the committed roots, and every named
   object to be readable by the person who publishes.
 
+The first importing root in path order uses the top-level `root` and `providers`. Additional
+importing roots in the same project use `additionalRoots`, a list of objects with those same two
+fields. Projects with one root omit the list.
+
 ## Compile manifest additions (`manifestVersion` 2 of the bundle manifest of feature 011)
 
 ```json

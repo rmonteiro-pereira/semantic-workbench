@@ -13,6 +13,35 @@
       "const": 1
     },
     "root": {
+      "$ref": "#/$defs/rootPath"
+    },
+    "providers": {
+      "$ref": "#/$defs/providers"
+    },
+    "additionalRoots": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "root",
+          "providers"
+        ],
+        "properties": {
+          "root": {
+            "$ref": "#/$defs/rootPath"
+          },
+          "providers": {
+            "$ref": "#/$defs/providers"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "rootPath": {
       "type": "string",
       "minLength": 1
     },

@@ -1,7 +1,7 @@
 /** Routes public-interface discovery and dependency status through the operation boundary. */
 import { isObject } from '../../shared/edit/source-text';
 import { compareText } from '../../shared/tessera/canonical-json';
-import { DEPENDENCY_MANIFEST_PATH, manifestIsCurrent, parseDependencyManifest, type DependencyManifest } from '../../shared/tessera/dependency-manifest';
+import { DEPENDENCY_MANIFEST_PATH, dependencyRoot, manifestIsCurrent, parseDependencyManifest, type DependencyManifest } from '../../shared/tessera/dependency-manifest';
 import { sha256Hex } from '../../shared/tessera/digest';
 import { declaredImports } from '../../shared/tessera/imports';
 import { readMarker } from '../../shared/tessera/marker';
@@ -94,8 +94,9 @@ async function dependencyStatus(ws: Workspace, reader: Reader, project: string, 
     const imports = declaredImports(model.document);
     if (!imports.length) return [];
     const providersVisible = !reader.view || imports.every(entry => reader.view!.readableProjects.has(entry.project));
-    const current = providersVisible && manifest?.root === document.path && manifestIsCurrent(manifest, imports);
-    const available = current && manifest!.providers.some(provider => !provider.sameRepository && provider.choice === 'latest' && publication[provider.repository]?.commit !== provider.commit);
+    const rootLock = manifest && dependencyRoot(manifest, document.path);
+    const current = providersVisible && rootLock && manifestIsCurrent(rootLock, imports);
+    const available = current && rootLock.providers.some(provider => !provider.sameRepository && provider.choice === 'latest' && publication[provider.repository]?.commit !== provider.commit);
     let state = 'needs-update';
     if (current) state = available ? 'update-available' : 'current';
     return [{ path: document.path, imports: providersVisible ? imports : [], state }];

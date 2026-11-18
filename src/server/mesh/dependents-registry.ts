@@ -2,7 +2,7 @@
 import { readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { compareText } from '../../shared/tessera/canonical-json';
-import { DEPENDENCY_MANIFEST_PATH, manifestIsCurrent, parseDependencyManifest } from '../../shared/tessera/dependency-manifest';
+import { DEPENDENCY_MANIFEST_PATH, dependencyRoots, manifestIsCurrent, parseDependencyManifest } from '../../shared/tessera/dependency-manifest';
 import { declaredImports } from '../../shared/tessera/imports';
 import { validateInput } from '../../shared/validation/input';
 import { atomicWriteJson, sha256 } from '../projects/atomic';
@@ -36,22 +36,24 @@ async function derive(snapshots: PublishedSnapshots, pin: PublishedPin, projects
     const file = files.find(entry => entry.path === DEPENDENCY_MANIFEST_PATH);
     if (!file) continue;
     const manifest = parseDependencyManifest(file.source);
-    const source = files.find(definition => definition.path === manifest.root);
-    if (!source) continue;
-    const model = validateInput(source.source, source.filename).model;
-    if (!model || !('document' in model)) continue;
-    const imports = declaredImports(model.document);
-    if (!manifestIsCurrent(manifest, imports)) continue;
-    for (const provider of manifest.providers) {
-      if (!registered.has(provider.project)) continue;
-      entries.push({
-        consumer,
-        root: manifest.root,
-        provider: provider.project,
-        ontology: provider.ontology,
-        concepts: [...provider.concepts].sort(compareText),
-        version: provider.sameRepository ? commit : provider.commit,
-      });
+    for (const root of dependencyRoots(manifest)) {
+      const source = files.find(definition => definition.path === root.root);
+      if (!source) continue;
+      const model = validateInput(source.source, source.filename).model;
+      if (!model || !('document' in model)) continue;
+      const imports = declaredImports(model.document);
+      if (!manifestIsCurrent(root, imports)) continue;
+      for (const provider of root.providers) {
+        if (!registered.has(provider.project)) continue;
+        entries.push({
+          consumer,
+          root: root.root,
+          provider: provider.project,
+          ontology: provider.ontology,
+          concepts: [...provider.concepts].sort(compareText),
+          version: provider.sameRepository ? commit : provider.commit,
+        });
+      }
     }
   }
   return entries;

@@ -1,6 +1,6 @@
 /** Checks ontology units and frozen imports in an immutable publication candidate. */
 import { IMPORTS_PROPERTY } from '../../shared/tessera/additions/imports';
-import { DEPENDENCY_MANIFEST_PATH, manifestIsCurrent, parseDependencyManifest, type LockedProvider } from '../../shared/tessera/dependency-manifest';
+import { DEPENDENCY_MANIFEST_PATH, dependencyRoot, dependencyRoots, manifestIsCurrent, parseDependencyManifest, type LockedProvider } from '../../shared/tessera/dependency-manifest';
 import { declaredImports, providerOf } from '../../shared/tessera/imports';
 import { setFindings, requiredUnitFiles } from '../../shared/tessera/set-validation';
 import { readUnitStructure, type OntologyUnit } from '../../shared/tessera/unit-structure';
@@ -76,10 +76,11 @@ export async function resolveFrozenUnit(source: FrozenDependencySource, pin: Pub
     if (!(error instanceof Error)) throw error;
     refuse('The importing unit has an invalid dependency manifest.');
   }
-  if (lock.root !== unit.root.path || !manifestIsCurrent(lock, imports)) refuse('The dependency manifest is stale.');
-  requireOneProviderVersion(lock.providers);
+  const entry = dependencyRoot(lock, unit.root.path);
+  if (!entry || !manifestIsCurrent(entry, imports)) refuse('The dependency manifest is stale.');
+  requireOneProviderVersion(entry.providers);
   const providers = [];
-  for (const provider of lock.providers) {
+  for (const provider of entry.providers) {
     const snapshot = await checkProvider(source, pin, candidate, reader, provider);
     if (provider.concepts.some(name => !snapshot.exports.has(name))) refuse('A locked concept is not exported by its provider.');
     providers.push(snapshot);
@@ -100,6 +101,24 @@ async function checkImports(source: FrozenDependencySource, pin: PublishedPin, c
   return setFindings(unit, providers, imported);
 }
 
+function checkLockCoverage(units: OntologyUnit[], lockFile?: PublishedDocument) {
+  if (!lockFile) return;
+  let manifest;
+  try {
+    manifest = parseDependencyManifest(lockFile.source);
+  } catch (error) {
+    if (!(error instanceof Error)) throw error;
+    refuse('The project has an invalid dependency manifest.');
+  }
+  const roots = dependencyRoots(manifest);
+  for (const entry of roots) {
+    if (!entry.providers.length) continue;
+    const unit = units.find(unit => unit.root.path === entry.root);
+    if (!unit || !manifestIsCurrent(entry, declaredImports(unit.root.data))) refuse('The dependency manifest is stale.');
+  }
+  requireOneProviderVersion(roots.flatMap(root => root.providers));
+}
+
 /** Blocks the ref transition unless every candidate unit and dependency agrees with the lock. */
 export async function checkPublicationDependencies(
   source: Omit<FrozenDependencySource, 'candidateDocuments' | 'snapshots'> & { snapshots: PublishedSnapshots; projectsIn: (repository: string) => string[] },
@@ -117,6 +136,7 @@ export async function checkPublicationDependencies(
       const hasUnavailableFile = units.some(unit => !requiredUnitFiles(unit).every(path => paths.has(path)));
       const errors = findings.filter(finding => finding.severity === 'error');
       if (hasUnavailableFile || errors.some(finding => !finding.files.every(visible))) throw new MissingOntologySetError();
+      checkLockCoverage(units, lock);
       for (const unit of units) errors.push(...(await checkImports(frozen, pin, candidate, reader, unit, lock)).filter(finding => finding.severity === 'error'));
       if (errors.length) throw new InputError(errors.map(({ code, path, severity, message }) => ({ code, path, severity, message })));
     }

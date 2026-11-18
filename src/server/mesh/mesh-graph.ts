@@ -1,6 +1,6 @@
 /** Projects the published mesh into the projects and roots the caller can read. */
 import { compareText } from '../../shared/tessera/canonical-json';
-import { DEPENDENCY_MANIFEST_PATH, manifestIsCurrent, parseDependencyManifest } from '../../shared/tessera/dependency-manifest';
+import { DEPENDENCY_MANIFEST_PATH, dependencyRoots, manifestIsCurrent, parseDependencyManifest } from '../../shared/tessera/dependency-manifest';
 import { declaredImports } from '../../shared/tessera/imports';
 import { validateInput } from '../../shared/validation/input';
 import { locationOf } from '../projects/paths';
@@ -18,11 +18,13 @@ function importsIn(documents: Awaited<ReturnType<PublishedSnapshots['documents']
   const file = documents.find(document => document.path === DEPENDENCY_MANIFEST_PATH);
   if (!file) return [];
   const manifest = parseDependencyManifest(file.source);
-  const root = documents.find(document => document.path === manifest.root);
-  const model = root && validateInput(root.source, root.filename).model;
-  if (!model || !('document' in model)) return [];
-  const imports = declaredImports(model.document);
-  return manifestIsCurrent(manifest, imports) ? manifest.providers : [];
+  return dependencyRoots(manifest).flatMap(entry => {
+    const root = documents.find(document => document.path === entry.root);
+    const model = root && validateInput(root.source, root.filename).model;
+    if (!model || !('document' in model)) return [];
+    const imports = declaredImports(model.document);
+    return manifestIsCurrent(entry, imports) ? entry.providers : [];
+  });
 }
 
 /** Reads one consistent graph, omitting hidden metadata from every target. */

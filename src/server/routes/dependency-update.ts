@@ -1,13 +1,21 @@
 /** Handles the explicit preview and confirmation of a dependency update. */
 import { isObject } from '../../shared/edit/source-text';
-import { DEPENDENCY_MANIFEST_PATH, parseDependencyManifest, printDependencyManifest } from '../../shared/tessera/dependency-manifest';
+import {
+  DEPENDENCY_MANIFEST_PATH,
+  dependencyRoot,
+  dependencyRoots,
+  parseDependencyManifest,
+  printDependencyManifest,
+  projectDependencies,
+  type RootDependencies,
+} from '../../shared/tessera/dependency-manifest';
 import { sha256Hex } from '../../shared/tessera/digest';
 import { declaredImports } from '../../shared/tessera/imports';
 import { readMarker } from '../../shared/tessera/marker';
 import { validateInput } from '../../shared/validation/input';
 import { requestReader } from '../auth/request-scope';
 import { authorizeWrite } from '../auth/write-access';
-import { planDependencyUpdate } from '../mesh/dependency-update';
+import { planDependencyUpdate, requireOneProviderVersion } from '../mesh/dependency-update';
 import { digestOf, interfaceChanges } from '../mesh/interface-changes';
 import { exportedOntologies } from '../mesh/provider-resolution';
 import { BadRequestError } from '../projects/errors';
@@ -28,7 +36,7 @@ async function summarizePrevious(
   snapshots: PublishedSnapshots,
   pin: Parameters<PublishedSnapshots['documents']>[0],
   reader: Reader,
-  previous: ReturnType<typeof parseDependencyManifest> | undefined,
+  previous: RootDependencies | undefined,
   resolved: Awaited<ReturnType<typeof planDependencyUpdate>>['resolved'],
 ) {
   return Promise.all(
@@ -61,10 +69,12 @@ export async function updateDependencies(ws: Workspace, req: Request, project: s
     const marker = readMarker(model.document);
     if (!(marker.family === 'tessera') || marker.revision !== 3) return [];
     const imports = declaredImports(model.document);
-    return imports.length || previous?.root === file.path ? [{ file, imports }] : [];
+    return imports.length || (previous && dependencyRoot(previous, file.path)) ? [{ file, imports }] : [];
   });
-  if (roots.length !== 1) throw new BadRequestError('Expected exactly one importing root for this dependency update.');
-  const [{ file, imports }] = roots;
+  if (previous && reader.view && dependencyRoots(previous).some(entry => !reader.view!.canRead(project, entry.root))) {
+    throw new BadRequestError('The dependency manifest covers an unavailable ontology.');
+  }
+  if (!roots.length) throw new BadRequestError('Expected an importing ontology for this dependency update.');
   return ws.published.withPin(async pin => {
     const registry = new Set(ws.state.registry().projects.map(entry => entry.slug));
     const source = {
@@ -72,11 +82,17 @@ export async function updateDependencies(ws: Workspace, req: Request, project: s
       repositoryOf: (name: string) => (registry.has(name) ? ws.repoOf(name) : null),
       workingDocuments: (name: string) => ws.dependencyCandidateDocuments(project, name, reader),
     };
-    const { manifest, resolved } = await planDependencyUpdate(source, pin, reader, repository, file.path, imports);
-    const lock = printDependencyManifest(manifest);
+    const updates = await Promise.all(roots.map(({ file, imports }) => planDependencyUpdate(source, pin, reader, repository, file.path, imports)));
+    requireOneProviderVersion(updates.flatMap(update => update.manifest.providers));
+    const lock = printDependencyManifest(projectDependencies(updates.map(update => update.manifest)));
     const preview = sha256Hex(lock);
-    if (!request.confirm) return Response.json({ preview, changes: await summarizePrevious(ws.published, pin, reader, previous, resolved) });
+    if (!request.confirm) {
+      const changes = await Promise.all(
+        updates.map(({ manifest, resolved }) => summarizePrevious(ws.published, pin, reader, previous ? dependencyRoot(previous, manifest.root) : undefined, resolved)),
+      );
+      return Response.json({ preview, changes: changes.flat() });
+    }
     if (request.confirm !== preview) return Response.json({ error: 'preview-changed' }, { status: 409 });
-    return Response.json(await ws.writeDependencyManifest(project, { baseHash: request.baseHash, source: lock }, new Map([[file.path, file.hash]]), reader));
+    return Response.json(await ws.writeDependencyManifest(project, { baseHash: request.baseHash, source: lock }, new Map(roots.map(({ file }) => [file.path, file.hash])), reader));
   });
 }

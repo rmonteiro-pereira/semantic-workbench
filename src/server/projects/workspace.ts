@@ -1,5 +1,6 @@
 // Coordinates project files, durable state, and workspace services. Project folders are the source
 // of truth; the SQLite cache can be rebuilt.
+import { DEPENDENCY_MANIFEST_PATH } from '../../shared/tessera/dependency-manifest';
 import { createDependentsRegistry } from '../mesh/dependents-registry';
 import { upgradePublications } from '../auth/operation-execution';
 import type { PublicationObserver } from './local-publication';
@@ -855,6 +856,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     deleteFile: async (slug: string, path: string, reader: Reader) => {
       entry(slug);
       const relativePath = projectPath(path);
+      if (relativePath === DEPENDENCY_MANIFEST_PATH) throw new BadRequestError('Use Update dependencies to write the dependency manifest.');
       const check = (at: Place) => guardDeletion(at.layout, slug, relativePath, reader.guard);
       const place = await copies.writePlace(reader, slug, check);
       return trash.deleteFile(slug, path, reader.owner, reader, place.copy);

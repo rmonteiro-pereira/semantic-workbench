@@ -1,7 +1,7 @@
 /** Plans a dependency lock from the editing unit and immutable provider objects. */
 import { compareText, canonicalJson } from '../../shared/tessera/canonical-json';
 import { digestOf, type EntryDigest } from './interface-changes';
-import { DEPENDENCY_MANIFEST_PATH, parseDependencyManifest, type DependencyManifest, type LockedProvider, type TransitiveDependency } from '../../shared/tessera/dependency-manifest';
+import { DEPENDENCY_MANIFEST_PATH, dependencyRoot, parseDependencyManifest, type DependencyManifest, type LockedProvider, type TransitiveDependency } from '../../shared/tessera/dependency-manifest';
 import type { UnitImport } from '../../shared/tessera/imports';
 import { InputError } from '../../shared/validation/diagnostics';
 import type { PublishedPin, PublishedSnapshots } from '../projects/published-snapshot';
@@ -26,8 +26,8 @@ function refuse(code: string, message: string): never {
 function publishedDependencies(documents: readonly PublishedDocument[], root: string): TransitiveDependency[] {
   const document = documents.find(file => file.path === DEPENDENCY_MANIFEST_PATH);
   if (!document) return [];
-  const lock = parseDependencyManifest(document.source);
-  if (lock.root !== root) return [];
+  const lock = dependencyRoot(parseDependencyManifest(document.source), root);
+  if (!lock) return [];
   return lock.providers.flatMap(provider => {
     const own = provider.sameRepository ? [] : [{ project: provider.project, commit: provider.commit, interfaceHash: provider.interfaceHash }];
     return [...own, ...provider.dependsOn];

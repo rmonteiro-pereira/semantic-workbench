@@ -76,3 +76,28 @@ test('a transitive pin cannot select a different commit of a direct provider', (
     ]),
   ).toThrow();
 });
+
+test('one manifest freezes every importing root of a project', async () => {
+  using fixture = await meshWorkspace('separate');
+  fixture.addUncommittedImport();
+  const second = join(fixture.projectDirectory('retail'), 'billing.json');
+  writeFileSync(
+    second,
+    JSON.stringify({
+      tessera: 3,
+      version: '0.2.0.dev0',
+      name: 'Billing',
+      ontology: [{ concept: 'Bill', type: 'EntityType' }],
+      tessera_imports: [{ project: 'units', alias: 'measure', concepts: ['Quantity'] }],
+    }),
+  );
+  fixture.git('retail', ['add', '--', 'billing.json']);
+  await fixture.ws.rescan('retail');
+  await previewAndWrite(fixture);
+  const path = join(fixture.projectDirectory('retail'), DEPENDENCY_MANIFEST_PATH);
+  expect(parseDependencyManifest(readFileSync(path, 'utf8'))).toMatchObject({
+    root: 'billing.json',
+    providers: [{ project: 'units' }],
+    additionalRoots: [{ root: 'ontology.yaml', providers: [{ project: 'finance' }] }],
+  });
+});

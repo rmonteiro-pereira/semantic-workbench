@@ -340,6 +340,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     if (baseHash !== null && (typeof baseHash !== 'string' || !/^[0-9a-f]{64}$/.test(baseHash))) throw new BadRequestError('baseHash must be a SHA-256 hex digest or null.');
     if (!gitAvailable) throw new BadRequestError('Git is not available on this machine.');
     const relativePath = projectPath(path);
+    if (relativePath === DEPENDENCY_MANIFEST_PATH) throw new BadRequestError('Use Update dependencies to write the dependency manifest.');
     const committedIn = (at: Place) => git.blob(repoDir(at.layout, slug), 'HEAD', projectPrefix(layout, slug) + relativePath);
     const check = async (at: Place) => guardRevert(at.layout, { slug, path: relativePath }, await committedIn(at), reader.guard);
     const place = await copies.writePlace(reader, slug, check);

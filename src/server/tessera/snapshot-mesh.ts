@@ -1,7 +1,7 @@
 /** Resolves providers for a CLI compile from the candidate repository and trusted publication state. */
 import { readFileSync } from 'node:fs';
 import { basename, join, relative, resolve } from 'node:path';
-import { DEPENDENCY_MANIFEST_PATH, parseDependencyManifest } from '../../shared/tessera/dependency-manifest';
+import { DEPENDENCY_MANIFEST_PATH, dependencyRoots, parseDependencyManifest } from '../../shared/tessera/dependency-manifest';
 import { InputError } from '../../shared/validation/diagnostics';
 import { decode, sha256 } from '../projects/atomic';
 import { locationOf, projectPath, dataLayout } from '../projects/paths';
@@ -44,7 +44,7 @@ async function documents(directory: string, commit: string, folder: string, proj
 export async function readSnapshotMesh(snapshot: SnapshotSource, directory: string, dataRoot?: string) {
   const file = snapshot.files.find(file => file.path === DEPENDENCY_MANIFEST_PATH);
   const manifest = file ? parseDependencyManifest(decode(file.bytes)) : undefined;
-  const locked = manifest?.providers ?? [];
+  const locked = manifest ? dependencyRoots(manifest).flatMap(root => root.providers) : [];
   if (!dataRoot && locked.some(provider => !provider.sameRepository)) throw new TesseraRefusal('Imports from another repository need --data-root to locate published provider history.');
   const state = dataRoot && locked.length ? stateAt(resolve(dataRoot)) : undefined;
   let repository = locked.find(provider => provider.sameRepository)?.repository ?? basename(directory);
