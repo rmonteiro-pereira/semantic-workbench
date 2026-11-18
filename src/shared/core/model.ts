@@ -13,6 +13,8 @@ import { applyPatches } from '../editor/patch';
 import { inspectRdf, rdfSyntax } from '../validation/rdf';
 import { isNotValidated, validateStructured, type ValidationOptions } from '../validation/validation';
 import { InputError, validateEnvelope, type Issue } from '../validation/diagnostics';
+import { combineUnit } from '../tessera/unit-model';
+import type { OntologyUnit } from '../tessera/unit-structure';
 import { documentFormat } from '../tessera/validate';
 /** Describes a model item displayed in the catalog and graph. */
 export type Entity = {
@@ -133,6 +135,16 @@ export function inspect(source: string, filename = 'definition.yaml', options: V
     if (error instanceof InputError) throw new InputError(locate(error.issues));
     throw error;
   }
+  return inspectStructuredModel(data, issues);
+}
+
+/** Inspects a composed ontology while retaining the original source file of each item. */
+export function inspectOntologyUnit(unit: OntologyUnit) {
+  const combined = combineUnit(unit);
+  return { ...inspectStructuredModel(combined.ontology, []), itemFiles: combined.itemFiles };
+}
+
+function inspectStructuredModel(data: any, issues: Issue[]) {
   const entities: Entity[] = [];
   const edges: Relationship[] = [];
   const add = (item: any, path: (string | number)[], kind: string) => {

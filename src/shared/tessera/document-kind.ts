@@ -6,7 +6,7 @@ import { validateInput } from '../validation/input';
 import { parseSourceDocument, syntaxOf, type CompileFailure } from './compile-document';
 import { summarizeItems, type DocumentReading } from './meaning-check';
 import { tesseraPart } from '../../generated/validators.js';
-import { isDependencyManifest } from './dependency-manifest';
+import { DEPENDENCY_MANIFEST_PATH, isDependencyManifest } from './dependency-manifest';
 import { PART_PROPERTY } from './additions/part';
 import { readMarker } from './marker';
 
@@ -66,9 +66,6 @@ function classifyInvalid(file: UnitFile, text: string, issues: Issue[]): Classif
   const failures = issues.filter(issue => issue.severity === 'error').map(issue => ({ code: 'invalid-source' as const, document: file.path, message: `${issue.path}: ${issue.message}` }));
   return { kind: 'invalid', file, issues, failures };
 }
-
-/** Name of the project metadata file that freezes resolved imports. */
-export const DEPENDENCY_MANIFEST_PATH = 'tessera-dependencies.json';
 
 function classifyMeshFile(file: UnitFile, text: string, data: unknown): ClassifiedFile | undefined {
   const manifest = file.path === DEPENDENCY_MANIFEST_PATH;

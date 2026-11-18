@@ -3,6 +3,9 @@ import { tesseraDependencies } from '../../generated/validators.js';
 import { canonicalJson, compareText } from './canonical-json';
 import type { UnitImport } from './imports';
 
+/** Name of the project metadata file that freezes resolved imports. */
+export const DEPENDENCY_MANIFEST_PATH = 'tessera-dependencies.json';
+
 /** Identifies a locked dependency of a provider. */
 export type TransitiveDependency = { project: string; commit: string; interfaceHash: string };
 
