@@ -156,6 +156,8 @@ export type GitStatus = {
   merging: boolean;
   /** False while the repository has no commit, so there is no last commit to compare with. */
   hasCommits: boolean;
+  /** The visible checked-out commit, absent until the first commit. */
+  head?: string;
   remotes: Record<string, string>;
   /** The folder of the repository a project lives in, when only that folder is checked out. */
   folder?: string;

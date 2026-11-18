@@ -23,5 +23,6 @@ test('overlay comparison explains each state in words', () => {
 
 test('branch replacement or removal is announced by name', () => {
   expect(branchChangeNotice('work/customer', 'main')).toContain('branch main');
+  expect(branchChangeNotice('work/customer', 'work/customer', 'old', 'new')).toContain('Branch work/customer moved');
   expect(branchChangeNotice('work/customer', '')).toContain('Branch work/customer is no longer checked out');
 });

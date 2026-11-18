@@ -20,9 +20,10 @@ export function overlaySummary(result: ComparisonState, published: boolean) {
 }
 
 /** Describes a branch change when the comparison follows the new checkout. */
-export function branchChangeNotice(previous: string, next: string) {
-  if (previous === next) return '';
-  return next ? `The comparison now follows branch ${next}.` : `Branch ${previous} is no longer checked out.`;
+export function branchChangeNotice(previous: string, next: string, previousHead?: string, nextHead?: string) {
+  if (previous !== next) return next ? `The comparison now follows branch ${next}.` : `Branch ${previous} is no longer checked out.`;
+  if (next && previousHead && nextHead && previousHead !== nextHead) return `Branch ${next} moved. The comparison used the updated branch.`;
+  return '';
 }
 
 /** Puts the overlay toggle, branch information and comparison summary in the graph controls. */
@@ -30,18 +31,20 @@ export function OverlayControl() {
   const overlay = useItemDiffContext();
   const [open, setOpen] = useState(false);
   const [notice, setNotice] = useState('');
-  const previous = useRef<{ project: string; branch: string }>(undefined);
+  const previous = useRef<{ project: string; branch: string; head?: string }>(undefined);
   const project = overlay?.project.slug ?? '';
   const branch = overlay?.branch ?? '';
+  const head = overlay?.head;
   useEffect(() => {
     const before = previous.current;
-    if (before?.project === project && before.branch !== branch) {
-      setNotice(branchChangeNotice(before.branch, branch));
-    } else if (before?.project !== project) {
+    if (before?.project === project) {
+      const message = branchChangeNotice(before.branch, branch, before.head, head);
+      if (message) setNotice(message);
+    } else {
       setNotice('');
     }
-    previous.current = { project, branch };
-  }, [project, branch]);
+    previous.current = { project, branch, head: head ?? (before?.branch === branch ? before.head : undefined) };
+  }, [project, branch, head]);
   if (!overlay || (overlay.project.actions && !overlay.project.actions.includes('history'))) return null;
   return (
     <span className="item-overlay-control">

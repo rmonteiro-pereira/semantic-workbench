@@ -667,6 +667,7 @@ export function parseStatus(output: string) {
   let branch = '';
   let upstream = '';
   let hasCommits = true;
+  let head: string | undefined;
   let ahead = 0;
   let behind = 0;
   const files = new Map<string, FileGitState>();
@@ -674,8 +675,11 @@ export function parseStatus(output: string) {
   for (let i = 0; i < parts.length; i++) {
     const entry = parts[i];
     if (!entry) continue;
-    if (entry.startsWith('# branch.oid ')) hasCommits = entry.slice(13) !== '(initial)';
-    else if (entry.startsWith('# branch.head ')) branch = entry.slice(14);
+    if (entry.startsWith('# branch.oid ')) {
+      const oid = entry.slice(13);
+      hasCommits = oid !== '(initial)';
+      head = hasCommits ? oid : undefined;
+    } else if (entry.startsWith('# branch.head ')) branch = entry.slice(14);
     else if (entry.startsWith('# branch.upstream ')) upstream = entry.slice(18);
     else if (entry.startsWith('# branch.ab ')) {
       const match = entry.match(/\+(\d+) -(\d+)/);
@@ -727,5 +731,5 @@ export function parseStatus(output: string) {
       });
     }
   }
-  return { branch, upstream, hasCommits, ahead, behind, changes: files.size, files, entries };
+  return { branch, upstream, hasCommits, head, ahead, behind, changes: files.size, files, entries };
 }

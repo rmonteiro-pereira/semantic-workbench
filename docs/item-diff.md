@@ -35,3 +35,6 @@ Tessera additions appear as fields of their owning items.
 Unpublished work is visible on branches inside the workbench. The overlay is a display aid.
 File and branch permissions still apply when it is off. A repository administrator with Git
 access can read repository branches. The operation is available only to the workbench browser.
+
+The comparison reports when the checked-out branch changes or its tip moves. Source Control
+status includes the checked-out commit ID when the branch has a commit.

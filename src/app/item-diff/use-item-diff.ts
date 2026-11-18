@@ -37,9 +37,11 @@ export function useItemDiff(project: ProjectInfo | undefined, documents: readonl
   const [attempt, setAttempt] = useState(0);
   const [loaded, setLoaded] = useState<{ key: string; result: ComparisonState }>();
   const enabled = project ? overlayEnabled(choice?.project === project.slug ? choice.enabled : undefined, project, status) : false;
-  const branch = status?.branch ?? project?.copy?.branch ?? project?.branch ?? '';
+  const checkedOut = status?.branch ?? project?.copy?.branch ?? project?.branch ?? '';
+  const branch = checkedOut === '(detached)' ? '' : checkedOut;
+  const head = status?.head;
   const commit = project?.published?.commit ?? '';
-  const key = JSON.stringify([project?.slug, branch, commit, revision, attempt]);
+  const key = JSON.stringify([project?.slug, branch, head, commit, revision, attempt]);
   const unpublishedDocuments = commit ? undefined : documents;
 
   useEffect(() => {
@@ -57,6 +59,7 @@ export function useItemDiff(project: ProjectInfo | undefined, documents: readonl
     result,
     enabled,
     branch,
+    head,
     commit,
     setEnabled(next: boolean) {
       if (project) setChoice({ project: project.slug, enabled: next });

@@ -119,6 +119,7 @@ export function createScm(deps: ScmDeps) {
       identityConfigured: deps.signedCommits || (await git.identity(directory)),
       merging,
       hasCommits: gitStatus.hasCommits,
+      ...(gitStatus.head ? { head: gitStatus.head } : {}),
       remotes: Object.fromEntries([...(await git.remotes(directory))].map(([n, u]) => [n, redactCredentials(u)])),
       changes: view
         ? changes
