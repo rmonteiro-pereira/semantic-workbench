@@ -16,6 +16,7 @@ import { brandMutants } from './brand-mutants';
 import { observabilityMutants } from './observability-mutants';
 import { attributesMutants, tesseraMutants } from './tessera-mutants';
 import { compileMutants } from './compile-mutants';
+import { killMeshMutants } from './mesh-mutants';
 import { chmod, mkdtemp, readdir, rm, symlink } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 const root = process.cwd();
@@ -701,6 +702,8 @@ try {
     process.exit(0);
   }
   await askpassCases();
+  const meshMutantCount = await killMeshMutants();
+  killed += meshMutantCount;
   const ui = Bun.spawn([process.execPath, resolve(root, 'scripts/ui-tests.ts')], {
     env: { ...process.env, UI_MUTATION: 'clear-nodes' },
     stdout: 'pipe',
@@ -749,7 +752,7 @@ try {
     killed++;
     console.log('KILLED UI: ' + label);
   }
-  const total = mutants.length + askpassMutants.length + layoutMutantCount;
+  const total = mutants.length + askpassMutants.length + layoutMutantCount + meshMutantCount;
   console.log(`${killed}/${total} targeted mutants killed; all unmodified module baselines passed. ` + 'Run test:ui for the full browser baseline.');
 } finally {
   await rm(temp, { recursive: true, force: true });
