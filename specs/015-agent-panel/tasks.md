@@ -26,7 +26,7 @@ test only to make it pass.
   "Protocol record" section of `docs/agent-panel.md`. If a plan assumption fails, edit `plan.md`
   and the contracts first. Proof: every R1 item has an answer or the line "not published"; the
   record names the pinned revision.
-- [ ] T002 Copy the pinned schema to `schemas/acp-<revision>.json` unmodified, record its source
+- [x] T002 Copy the pinned schema to `schemas/acp-<revision>.json` unmodified, record its source
   and revision in `docs/agent-panel.md`, and add `tests/acp/protocol-schema.test.ts` that checks
   the file hash and that the validators for the frames the plan uses compile. Proof: `bun test
   tests/acp/protocol-schema.test.ts`. If no schema file exists, stop and write the SDK
