@@ -66,7 +66,7 @@ const roleMatrix: Record<string, Action[]> = {
   viewer: viewerActions,
   editor: editorActions,
   steward: stewardActions,
-  admin: [...ACTIONS],
+  admin: ACTIONS.filter(action => action !== 'approveOntologyItem'),
 };
 
 test('every role matrix action holds for workspace domain and project scoped grants', () => {

@@ -140,7 +140,7 @@ export function GovernanceSection({ section, metricPath, replacementChoices }: P
   const itemPath = metricPath ?? section.itemPath;
   const item = itemValue(section.doc.source, itemPath) ?? {};
   const governance = metricPath ? metricGovernanceOf(item) : governanceOf(item);
-  const permission = access.control('approveMetric');
+  const permission = access.control(metricPath ? 'approveMetric' : 'approveOntologyItem');
   const choices = statusChoices(governance.status, { me, local: access.local, canApprove: !permission.disabled, approveRequirement: permission.title ?? '', owner: governance.owner });
   let readOnlyReason: string | undefined;
   if (section.dirty) readOnlyReason = UNSAVED_SOURCE_NOTE;

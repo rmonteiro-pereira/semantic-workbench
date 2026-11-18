@@ -78,8 +78,8 @@ function ruleClass(active: ActiveAccess, resource: ResourceRef): unknown[] {
     paths,
     resource.docType ?? '',
     resource.level ?? 'public',
-    resource.metric?.status ?? '',
-    resource.metric?.owner?.toLowerCase() ?? '',
+    (resource.metric ?? resource.ontologyItem)?.status ?? '',
+    (resource.metric ?? resource.ontologyItem)?.owner?.toLowerCase() ?? '',
     active.policy.exactResources ? resource.path : '',
     active.policy.exactResources ? (resource.metric?.name ?? '') : '',
   ];

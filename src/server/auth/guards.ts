@@ -1,9 +1,10 @@
 // Binds the shared governance rules to a request: each guarded change of a write is decided by
-// the access policies (`approveMetric` or `editGuarded`), and a refusal names what was guarded.
+// the access policy for that guard, and a refusal names what was guarded.
 // The pure rules live in src/shared/governance/guards.ts, which this module re-exports.
 import { levelNumber, type Action } from '../../shared/auth/actions';
 import { NEW_PROJECT, type Decision, type ResourceRef } from './resource';
 import type { AccessScope } from './authorize';
+import { operationInventory } from './operation-inventory';
 import { WriteAccessError } from './write-access-error';
 import { applyGuards, type ContentGuard, type GuardedChange, type GuardKind, type GuardOperation } from '../../shared/governance/guards';
 
@@ -54,6 +55,9 @@ function refusalText(change: GuardedChange, decision: Decision, operation?: Guar
     return `Refused: nobody approves or deprecates ${subject} they own (${metric}).${next}`;
   }
   const what = GUARD_TEXT[change.kind];
+  if (change.itemKind) {
+    return `Refused: this would include ${what}, which requires the Approve ontology item permission. Ask an authorized approver to make this change.`;
+  }
   return `Refused: this would include ${what}, which ${WHO_MAY_CHANGE}.${next}`;
 }
 
@@ -85,26 +89,30 @@ function guardedFile(binding: GuardBinding, change: GuardedChange): FileResource
   };
 }
 
-function metricDecision(binding: GuardBinding, change: GuardedChange): Decision {
+function approvalAction(kind: GuardKind) {
+  if (kind === 'item-status' || kind === 'item-body') return operationInventory.contentGuardActions[kind];
+  return 'approveMetric';
+}
+
+function approvalDecision(binding: GuardBinding, change: GuardedChange): Decision {
   const context = { guardKind: change.kind, level: levelNumber(change.level) };
   const metric = change.metric!;
   // An owner before or after the write both count, so changing the owner cannot hide one.
   const owners = metric.owners.length ? metric.owners : [undefined];
   let decision: Decision | undefined;
   for (const owner of owners) {
-    const resource: ResourceRef = {
-      ...guardedFile(binding, change),
-      docType: 'metric',
-      metric: { name: metric.name, status: metric.status, owner },
-    };
-    decision = binding.scope.authorize('approveMetric', resource, context);
+    const file = guardedFile(binding, change);
+    const action = approvalAction(change.kind);
+    const item = { status: metric.status, owner };
+    const resource: ResourceRef = action === 'approveOntologyItem' ? { ...file, docType: 'ontology', ontologyItem: item } : { ...file, docType: 'metric', metric: { ...item, name: metric.name } };
+    decision = binding.scope.authorize(action, resource, context);
     if (!decision.allow) return decision;
   }
   return decision!;
 }
 
 function guardDecision(binding: GuardBinding, change: GuardedChange): Decision {
-  if (change.metric) return metricDecision(binding, change);
+  if (change.metric) return approvalDecision(binding, change);
   const resource: ResourceRef = { ...guardedFile(binding, change), level: change.level };
   const context = { guardKind: change.kind, level: levelNumber(change.level) };
   return binding.scope.authorize('editGuarded', resource, context);
@@ -117,7 +125,7 @@ function guardRefusal(scope: AccessScope, refused: GuardedChange[], decisions: M
   // Pointers inside files the person cannot read stay unnamed; files they are creating are theirs.
   const readable = (change: GuardedChange) => change.project === NEW_PROJECT || view.canRead(change.project, change.file);
   const guarded = refused.filter(readable).map(change => ({ file: change.file, pointer: change.pointer, kind: change.kind }));
-  const action: Action = first.metric ? 'approveMetric' : 'editGuarded';
+  const action: Action = first.metric ? approvalAction(first.kind) : 'editGuarded';
   const resource: ResourceRef = { type: 'file', project: first.project, path: first.file };
   const denied: Decision = {
     allow: false,

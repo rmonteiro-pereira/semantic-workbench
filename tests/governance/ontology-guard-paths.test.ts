@@ -10,11 +10,30 @@ import { join } from 'node:path';
 import { sh } from '../helpers/scm';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { accessFixture, person } from '../auth/access-fixture';
-import { dataSnapshot, expectGuardRefusal, guardHandler, sendCase, type GuardCase } from '../auth/guard-cases';
+import { dataSnapshot, expectGuardRefusal, guardHandler, metricCase, sendCase, type GuardCase } from '../auth/guard-cases';
 
 const PROJECT = 'sales-metrics';
 const FILE = 'retail.ontology.yaml';
 const URL_BASE = `/api/projects/${PROJECT}`;
+
+function ontologyApprover(name: 'alice' | 'bob') {
+  const options = accessFixture();
+  options.config.roles.push({
+    id: 'r_ontology_approver',
+    name: 'Ontology approver',
+    description: 'Approves ontology items',
+    createdBy: 'fixture',
+    createdAt: '2026-10-21T09:00:00Z',
+    permissions: [{ actions: ['approveOntologyItem'] }],
+  });
+  options.config.grants.push({
+    ...options.config.grants[0],
+    id: 'g-ontology-approval',
+    roleId: 'r_ontology_approver',
+    member: { kind: 'email', email: `${name}@example.org` },
+  });
+  return options;
+}
 
 /** Saves the ontology and commits it, so every person's working copy starts with it. */
 async function seed(fixture: Awaited<ReturnType<typeof authWorkspace>>, source: string) {
@@ -56,10 +75,24 @@ test('an Editor is refused approving a concept on every save path and a Steward 
     const before = dataSnapshot(fixture.root);
     await expectGuardRefusal(await sendCase(guardHandler(fixture.ws, 'alice'), item), item, fixture.root);
     expect(dataSnapshot(fixture.root), item.name).toEqual(before);
-    const allowed = await sendCase(guardHandler(fixture.ws, 'bob'), item);
+    const allowed = await sendCase(guardHandler(fixture.ws, 'bob', ontologyApprover('bob')), item);
     expect(allowed.status, `${item.name}: ${await allowed.clone().text()}`).toBe(200);
   }
 }, 60000);
+
+test('ontology approval and metric approval are independent permissions', async () => {
+  using fixture = await authWorkspace();
+  const proposed = ontology('proposed');
+  const saved = await seed(fixture, proposed);
+  const [item] = approvalCases(saved.hash, proposed, ontology('approved'));
+  const metric = metricCase(fixture.ws);
+  const metricApprover = guardHandler(fixture.ws, 'bob');
+  const itemApprover = guardHandler(fixture.ws, 'alice', ontologyApprover('alice'));
+  await expectGuardRefusal(await sendCase(metricApprover, item), item, fixture.root);
+  await expectGuardRefusal(await sendCase(itemApprover, metric), metric, fixture.root);
+  expect((await sendCase(itemApprover, item)).status).toBe(200);
+  expect((await sendCase(metricApprover, metric)).status).toBe(200);
+});
 
 test('deleting a file with an approved concept needs an approver', async () => {
   using fixture = await authWorkspace();
@@ -67,9 +100,9 @@ test('deleting a file with an approved concept needs an approver', async () => {
   const item: GuardCase = { name: 'delete', method: 'DELETE', path: `${URL_BASE}/files/${FILE}`, body: { confirm: true }, guarded: GUARDED_BODY };
   const before = dataSnapshot(fixture.root);
   const body = await expectGuardRefusal(await sendCase(guardHandler(fixture.ws, 'alice'), item), item, fixture.root);
-  expect(body.error).toContain('to delete this file');
+  expect(body.error).toContain('Approve ontology item');
   expect(dataSnapshot(fixture.root)).toEqual(before);
-  expect((await sendCase(guardHandler(fixture.ws, 'bob'), item)).status).toBe(200);
+  expect((await sendCase(guardHandler(fixture.ws, 'bob', ontologyApprover('bob')), item)).status).toBe(200);
 });
 
 test('moving a file with an approved concept needs an approver', async () => {
@@ -78,8 +111,8 @@ test('moving a file with an approved concept needs an approver', async () => {
   const item: GuardCase = { name: 'move', method: 'POST', path: `${URL_BASE}/move`, body: { path: FILE, toProject: 'sales-contracts' }, guarded: GUARDED_BODY };
   const refused = await sendCase(guardHandler(fixture.ws, 'alice'), item);
   const body = await expectGuardRefusal(refused, item, fixture.root);
-  expect(body.error).toContain('to move this file');
-  expect((await sendCase(guardHandler(fixture.ws, 'bob'), item)).status).toBe(200);
+  expect(body.error).toContain('Approve ontology item');
+  expect((await sendCase(guardHandler(fixture.ws, 'bob', ontologyApprover('bob')), item)).status).toBe(200);
 });
 
 test('an import that creates a project is judged as creating its files', async () => {
@@ -92,7 +125,7 @@ test('an import that creates a project is judged as creating its files', async (
     guarded: GUARDED_STATUS,
   });
   const own = create(ontology('approved', 'bob@example.org'));
-  const steward = guardHandler(fixture.ws, 'bob');
+  const steward = guardHandler(fixture.ws, 'bob', ontologyApprover('bob'));
   const body = await expectGuardRefusal(await sendCase(steward, own), own, fixture.root);
   expect(body.error).toContain('nobody approves or deprecates an item they own');
   const created = await sendCase(steward, create(ontology('approved')));
@@ -102,7 +135,7 @@ test('an import that creates a project is judged as creating its files', async (
 const OPERATIONS: GuardOperation[] = ['pull', 'revert', 'delete', 'restore', 'import', 'move', 'switch', 'publish'];
 
 function guardOf(name: 'alice' | 'bob') {
-  const access = createAccessControl(accessFixture());
+  const access = createAccessControl(name === 'bob' ? ontologyApprover(name) : accessFixture());
   const request = new Request('http://localhost/api');
   Object.assign(request, { [requestAccess]: access.forRequest(access.principalFor(person(name))) });
   return requestReader(request).guard!;

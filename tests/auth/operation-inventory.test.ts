@@ -3,6 +3,7 @@ import { expect, test } from 'bun:test';
 import { parseOperationInventory } from '../../src/server/auth/operation-inventory';
 
 const valid = {
+  contentGuardActions: { 'item-status': 'approveOntologyItem', 'item-body': 'approveOntologyItem' },
   operations: {
     'GET /example': {
       id: 'example.read',
@@ -18,6 +19,14 @@ const valid = {
 
 test('inventory parser accepts the reviewed entry shape', () => {
   expect(parseOperationInventory(valid).operations['GET /example'].id).toBe('example.read');
+});
+
+test('both ontology guard kinds require the dedicated approval action', () => {
+  expect(parseOperationInventory(valid).contentGuardActions).toEqual(valid.contentGuardActions);
+  for (const kind of ['item-status', 'item-body']) {
+    const contentGuardActions = { ...valid.contentGuardActions, [kind]: 'approveMetric' };
+    expect(() => parseOperationInventory({ ...valid, contentGuardActions })).toThrow(kind);
+  }
 });
 
 test('inventory parser names the invalid row and field', () => {

@@ -8,7 +8,7 @@ import { actionLabel } from './helpers';
 const groups = {
   Read: ['read', 'export', 'history', 'viewOwnState'],
   Write: ['edit', 'createMetric', 'import', 'move', 'delete', 'revert', 'restoreOwn'],
-  Steward: ['approveMetric', 'editGuarded', 'restoreOthers', 'publish'],
+  Steward: ['approveMetric', 'approveOntologyItem', 'editGuarded', 'restoreOthers', 'publish'],
   Git: ['stage', 'commit', 'branch', 'fetch', 'pull', 'push', 'cancelOwn'],
   Administration: ['purge', 'clear', 'createProject', 'renameProject', 'deleteProject', 'setRemote', 'clone', 'registerProjects', 'setIdentity', 'readStatus', 'readAudit'],
   Agent: ['agentRead'],

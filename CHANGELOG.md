@@ -8,6 +8,12 @@ not configure a production deployment.
 
 ### Added
 
+- Tessera revision 2 adds attribute display order, item context for agents and ontology governance.
+  Agent context and governance flags come from published snapshots. Standard ontology output drops
+  the additions and loss report version 2 counts dropped governance entries by status.
+- The Admin role editor offers **Approve ontology item** as a separate permission. Grant it through
+  a custom role for the appropriate scope. Existing roles retain their metric permissions.
+
 - The Tessera format: an authoring format that compiles to standard Ossie. An Ossie ontology with the
   marker `tessera: 1` and the property `tessera_notes` (on the ontology root, a concept or a relationship)
   opens, saves and validates like any ontology, with its own finding codes, and the validation panel

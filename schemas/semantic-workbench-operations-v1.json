@@ -6,9 +6,19 @@
   "additionalProperties": false,
   "required": [
     "operations",
-    "browserCapabilities"
+    "browserCapabilities",
+    "contentGuardActions"
   ],
   "properties": {
+    "contentGuardActions": {
+      "type": "object",
+      "required": ["item-status", "item-body"],
+      "additionalProperties": false,
+      "properties": {
+        "item-status": { "const": "approveOntologyItem" },
+        "item-body": { "const": "approveOntologyItem" }
+      }
+    },
     "operations": {
       "type": "object",
       "minProperties": 1,

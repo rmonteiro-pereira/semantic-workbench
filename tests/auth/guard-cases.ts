@@ -90,7 +90,8 @@ function classificationCases(ws: Workspace): GuardCase[] {
   ];
 }
 
-function metricCase(ws: Workspace): GuardCase {
+/** An approved metric creation through the metric endpoint. */
+export function metricCase(ws: Workspace): GuardCase {
   const file = ws.readFile('sales-metrics', METRICS);
   return {
     name: 'metric save',
@@ -162,8 +163,8 @@ export function remoteWithReclassification(ws: Workspace, root: string) {
 const origin = 'http://localhost';
 
 /** A server-mode handler acting as one fixture person. */
-export function guardHandler(ws: Workspace, name: TestUserName) {
-  const access = createAccessControl(accessFixture());
+export function guardHandler(ws: Workspace, name: TestUserName, options = accessFixture()) {
+  const access = createAccessControl(options);
   const principal = access.principalFor(person(name));
   return createHandler(ws, {
     mode: 'server',

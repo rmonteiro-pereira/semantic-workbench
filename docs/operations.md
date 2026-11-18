@@ -152,6 +152,15 @@ These steps run inside the admitted route and share its authorization and audit 
 | agent.plan | snapshot.read |
 | git.adopt | publication.advance, publication.abandon |
 
+## Content guards
+
+These actions apply after the write operation is admitted.
+
+| Guard | Policy action |
+| --- | --- |
+| item-status | approveOntologyItem |
+| item-body | approveOntologyItem |
+
 ## Workspace lifecycle
 
 | Operation | Effects | Entry point | Dispatch |

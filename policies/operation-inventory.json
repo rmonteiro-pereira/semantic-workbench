@@ -1,4 +1,8 @@
 {
+  "contentGuardActions": {
+    "item-status": "approveOntologyItem",
+    "item-body": "approveOntologyItem"
+  },
   "operations": {
     "GET /api/me": {
       "id": "identity.read",

@@ -201,8 +201,8 @@ function resourceEntity(resource: ResourceRef, options: EntityOptions): cedar.En
     level: levelNumber(file?.level ?? 'public'),
     restricted: restrictedTo.length > 0,
     restrictedTo,
-    status: file?.metric?.status ?? '',
-    owner: file?.metric?.owner?.toLowerCase() ?? '',
+    status: (file?.metric ?? file?.ontologyItem)?.status ?? '',
+    owner: (file?.metric ?? file?.ontologyItem)?.owner?.toLowerCase() ?? '',
     protectedLevel: levelNumber(project?.protectedLevel ?? options.config.projects.classification.protectedLevel),
   };
   if (resource.type === 'workspace') return entity('Workspace', 'ws', attrs);

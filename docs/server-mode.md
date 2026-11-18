@@ -272,6 +272,19 @@ compare the before/after content under the appropriate repository lock.
 - A refusal rejects the whole operation before workspace bytes change. The response identifies
   guarded pointers only in readable files.
 
+Ontology concepts and relationships, including attributes, use the dedicated
+`approveOntologyItem` action for approval, deprecation, changing an approved item's owner or
+steward, and changing or removing its approved definition. The same owner check applies. An author
+without approval permission can save an eligible definition change as a proposal. Classification is
+a declaration and uses `editGuarded` for changes and protected content.
+
+To grant ontology approval, an Admin opens **Admin → Roles**, creates or edits a custom role, and
+selects **Approve ontology item** in the Steward group. Under **Grants**, assign the role to the
+appropriate person or group at the project or domain scope, review the dry run and confirm. The
+person also needs permission to perform the underlying write. Existing roles, including Steward
+and Admin, need an explicit grant for ontology approval. Metric approval continues to use
+`approveMetric`.
+
 The metric detail explains disabled Approve/Deprecate actions. Deprecation uses a multiline reason
 with actions that remain together on phone screens. An owner who cannot be matched to a known
 eligible identity is shown as unverified. Owner choices are filtered to people who may read the
