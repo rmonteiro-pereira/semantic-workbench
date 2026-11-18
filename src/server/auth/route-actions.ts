@@ -218,6 +218,24 @@ export const ROUTE_ACTIONS: RouteAction[] = [
     methods: ['GET', 'HEAD'],
     serverOnly: true,
   },
+  // Agent connections, server mode only. The first four rows are the only new answers given without a sign-in: two discovery
+  // documents (one of them under two addresses), the token endpoint and, below, the endpoint's own bearer challenge. The
+  // pages and lists need the person's session, and the Admin rows need the admin action.
+  { ...publicRow('GET', '/.well-known/oauth-protected-resource/api/mcp'), serverOnly: true },
+  { ...publicRow('GET', '/.well-known/oauth-protected-resource'), serverOnly: true },
+  { ...publicRow('GET', '/.well-known/oauth-authorization-server'), serverOnly: true },
+  { ...publicRow('POST', '/oauth/token'), serverOnly: true },
+  { ...row('GET', '/oauth/authorize', 'viewOwnState', workspace), serverOnly: true, unaudited: true },
+  { ...row('POST', '/oauth/consent', 'viewOwnState', workspace), serverOnly: true, unaudited: true },
+  { ...row('GET', '/oauth/setup', 'viewOwnState', workspace), serverOnly: true, unaudited: true },
+  { ...row('POST', '/oauth/setup', 'viewOwnState', workspace), serverOnly: true, unaudited: true },
+  { ...row('GET', '/api/connections', 'viewOwnState', workspace), serverOnly: true, unaudited: true },
+  { ...row('DELETE', '/api/connections/:id', 'viewOwnState', workspace), serverOnly: true, unaudited: true },
+  { ...row('GET', '/api/admin/connections', 'admin', workspace), serverOnly: true },
+  { ...row('DELETE', '/api/admin/connections/:id', 'admin', workspace), serverOnly: true },
+  { ...row('GET', '/api/admin/programs', 'admin', workspace), serverOnly: true },
+  { ...row('PUT', '/api/admin/programs', 'admin', workspace), serverOnly: true },
+  { ...row('POST', '/api/admin/programs/preview', 'admin', workspace), serverOnly: true },
   // The local agent transport. Each tool call it carries is decided and audited as the twin of an ordinary route, so this
   // row grants nothing beyond reaching the transport and leaves no record of its own.
   { ...row('POST', '/api/mcp', 'read', workspace), methods: ['POST', 'GET', 'DELETE', 'PUT', 'PATCH'], localOnly: true, unaudited: true },

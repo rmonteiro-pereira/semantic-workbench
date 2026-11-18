@@ -132,6 +132,21 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 | preview.catalog | GET /api/preview/catalog | read | workspace | read | none | never |
 | preview.context | GET /api/preview/context | read | workspace | read | none | never |
 | preview.plan | POST /api/preview/plan | read | workspace | read | AGENT_PLAN_REQUEST_LIMIT | never |
+| connections.resourceMetadata | GET /.well-known/oauth-protected-resource/api/mcp | read | workspace | read | none | team-sign-in |
+| connections.resourceMetadataRoot | GET /.well-known/oauth-protected-resource | read | workspace | read | none | team-sign-in |
+| connections.serverMetadata | GET /.well-known/oauth-authorization-server | read | workspace | read | none | team-sign-in |
+| connections.token | POST /oauth/token | read | workspace | credential | OAUTH_REQUEST_LIMIT | team-sign-in |
+| connections.authorize | GET /oauth/authorize | viewOwnState | workspace | read | none | team-sign-in |
+| connections.consent | POST /oauth/consent | viewOwnState | workspace | credential | OAUTH_REQUEST_LIMIT | team-sign-in |
+| connections.setupForm | GET /oauth/setup | viewOwnState | workspace | read | none | team-sign-in |
+| connections.setupCreate | POST /oauth/setup | viewOwnState | workspace | credential | OAUTH_REQUEST_LIMIT | team-sign-in |
+| connections.list | GET /api/connections | viewOwnState | workspace | read | none | team-sign-in |
+| connections.revoke | DELETE /api/connections/:id | viewOwnState | workspace | localWrite | none | team-sign-in |
+| connections.adminList | GET /api/admin/connections | admin | workspace | administration | none | team-sign-in |
+| connections.adminRevoke | DELETE /api/admin/connections/:id | admin | workspace | administration | none | team-sign-in |
+| programs.read | GET /api/admin/programs | admin | workspace | administration | none | team-sign-in |
+| programs.save | PUT /api/admin/programs | admin | workspace | administration | ADMIN_REQUEST_LIMIT | team-sign-in |
+| programs.preview | POST /api/admin/programs/preview | admin | workspace | administration | ADMIN_REQUEST_LIMIT | team-sign-in |
 | mcp.transport | POST /api/mcp | read | workspace | read | FILE_SAVE_REQUEST_LIMIT | never |
 
 ## Internal publication steps

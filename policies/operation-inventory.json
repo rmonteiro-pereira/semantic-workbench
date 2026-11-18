@@ -1866,6 +1866,261 @@
         "reason": "Browser authoring preview or personal notice."
       }
     },
+    "GET /.well-known/oauth-protected-resource/api/mcp": {
+      "id": "connections.resourceMetadata",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["read"],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "A discovery or token answer of the agent connection flow; it never carries an agent operation."
+      }
+    },
+    "GET /.well-known/oauth-protected-resource": {
+      "id": "connections.resourceMetadataRoot",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["read"],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "A discovery or token answer of the agent connection flow; it never carries an agent operation."
+      }
+    },
+    "GET /.well-known/oauth-authorization-server": {
+      "id": "connections.serverMetadata",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["read"],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "A discovery or token answer of the agent connection flow; it never carries an agent operation."
+      }
+    },
+    "POST /oauth/token": {
+      "id": "connections.token",
+      "handlerChecks": [],
+      "limits": {
+        "request": "OAUTH_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["credential"],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "A discovery or token answer of the agent connection flow; it never carries an agent operation."
+      }
+    },
+    "GET /oauth/authorize": {
+      "id": "connections.authorize",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["read"],
+      "dispatch": {
+        "no": "page"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "A page of the agent connection flow, for the person's browser only."
+      }
+    },
+    "POST /oauth/consent": {
+      "id": "connections.consent",
+      "handlerChecks": [],
+      "limits": {
+        "request": "OAUTH_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["credential"],
+      "dispatch": {
+        "no": "page"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "A page of the agent connection flow, for the person's browser only."
+      }
+    },
+    "GET /oauth/setup": {
+      "id": "connections.setupForm",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["read"],
+      "dispatch": {
+        "no": "page"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "A page of the agent connection flow, for the person's browser only."
+      }
+    },
+    "POST /oauth/setup": {
+      "id": "connections.setupCreate",
+      "handlerChecks": [],
+      "limits": {
+        "request": "OAUTH_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["credential"],
+      "dispatch": {
+        "no": "page"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "A page of the agent connection flow, for the person's browser only."
+      }
+    },
+    "GET /api/connections": {
+      "id": "connections.list",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["read"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "Connection or registration management for a browser; an agent never manages its own connection."
+      }
+    },
+    "DELETE /api/connections/:id": {
+      "id": "connections.revoke",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["localWrite"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "Connection or registration management for a browser; an agent never manages its own connection."
+      }
+    },
+    "GET /api/admin/connections": {
+      "id": "connections.adminList",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["administration"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "Connection or registration management for a browser; an agent never manages its own connection."
+      }
+    },
+    "DELETE /api/admin/connections/:id": {
+      "id": "connections.adminRevoke",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["administration"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "Connection or registration management for a browser; an agent never manages its own connection."
+      }
+    },
+    "GET /api/admin/programs": {
+      "id": "programs.read",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["administration"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "Connection or registration management for a browser; an agent never manages its own connection."
+      }
+    },
+    "PUT /api/admin/programs": {
+      "id": "programs.save",
+      "handlerChecks": [],
+      "limits": {
+        "request": "ADMIN_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["administration"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "Connection or registration management for a browser; an agent never manages its own connection."
+      }
+    },
+    "POST /api/admin/programs/preview": {
+      "id": "programs.preview",
+      "handlerChecks": [],
+      "limits": {
+        "request": "ADMIN_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["administration"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "Connection or registration management for a browser; an agent never manages its own connection."
+      }
+    },
     "POST /api/mcp": {
       "id": "mcp.transport",
       "handlerChecks": [],
