@@ -143,6 +143,11 @@ function App() {
     fileNavigation.selectProject(slug);
   }
 
+  function refreshComparisonBranch() {
+    workspaceEvents.setGitVersion(value => value + 1);
+    void refresh().catch(error => setMessage(error instanceof Error ? error.message : 'Could not reload the branch.'));
+  }
+
   const content = (
     <GitSetupProvider onOpenProject={slug => void openProject(slug)}>
       <div className={shellClassName} style={{ '--sidebar-width': `${sidebar.sidebarWidth}px` } as React.CSSProperties}>
@@ -442,7 +447,7 @@ function App() {
   );
   return (
     <Capabilities projects={projects}>
-      <ItemDiffProvider project={projects.find(item => item.slug === selectedProject)} docs={docs} revision={workspaceEvents.gitVersion}>
+      <ItemDiffProvider project={projects.find(item => item.slug === selectedProject)} docs={docs} revision={workspaceEvents.gitVersion} refreshBranch={refreshComparisonBranch}>
         <AdminHost>{content}</AdminHost>
       </ItemDiffProvider>
     </Capabilities>

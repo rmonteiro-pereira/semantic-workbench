@@ -1,3 +1,4 @@
+import { BranchControl } from '../item-diff/BranchControl';
 import { ItemChangeAnnotation } from '../item-diff/ItemChangeAnnotation';
 /** Presentation and event handling for relationship details. */
 import { Braces, Network, Pencil, Trash2 } from 'lucide-react';
@@ -87,6 +88,7 @@ export function RelationshipDetails({
       )}
       <h2>{relationship.label}</h2>
       <ItemChangeAnnotation document={current} item={relationship} />
+      {current && 'address' in relationship && <BranchControl name={relationship.label} dirty={source !== current.source} />}
       <div className="badge">{relationship.data.kind}</div>
       {(() => {
         const targetValue = relationshipTarget(relationship);

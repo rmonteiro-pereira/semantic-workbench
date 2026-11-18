@@ -1,3 +1,4 @@
+import { BranchControl } from '../item-diff/BranchControl';
 import { ItemChangeAnnotation } from '../item-diff/ItemChangeAnnotation';
 /** Presentation and event handling for entity details. */
 import { Box, Braces, FileCode, Focus, Pencil, Plus, Trash2 } from 'lucide-react';
@@ -76,6 +77,7 @@ export function EntityDetails({
       </div>
       <h2>{entity.name}</h2>
       <ItemChangeAnnotation document={current} item={entity} />
+      {current && 'address' in entity && <BranchControl name={entity.name} dirty={source !== current.source} />}
       <button className="inspect-neighborhood" onClick={() => showNeighborhood(entity.id)}>
         <Focus size={14} />
         Explore neighborhood

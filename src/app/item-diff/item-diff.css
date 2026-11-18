@@ -64,3 +64,17 @@
 .item-change-list dl > div + div {
   margin-block-start: 5px;
 }
+
+.item-branch-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.item-branch-control button {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

@@ -1,3 +1,4 @@
+import { BranchControl } from '../item-diff/BranchControl';
 import { addressAtModelPath } from '../../shared/core/model-addresses';
 import { ItemChangeAnnotation } from '../item-diff/ItemChangeAnnotation';
 import { useVisibleItemChanges } from '../item-diff/ItemDiffContext';
@@ -33,6 +34,7 @@ function readingOf(entry: AttributeEntry): string | undefined {
 
 type ViewProps = {
   annotationsFor?: (entry: AttributeEntry) => React.ReactNode;
+  branchControlFor?: (entry: AttributeEntry) => React.ReactNode;
   entries: AttributeEntry[];
   state: SectionState;
   canEdit: boolean;
@@ -47,7 +49,7 @@ type ViewProps = {
 };
 
 /** The attribute section as the person sees it, for every state: loading, error, empty, read only and filled. */
-export function AttributeListView({ annotationsFor, entries, state, canEdit, editNote, message, openConcept, onAdd, onEdit, onMove, onRemove }: ViewProps) {
+export function AttributeListView({ annotationsFor, branchControlFor, entries, state, canEdit, editNote, message, openConcept, onAdd, onEdit, onMove, onRemove }: ViewProps) {
   const ownNames = entries.filter(entry => !entry.inheritedFrom).map(entry => entry.name);
   function actionsFor(entry: AttributeEntry) {
     if (entry.inheritedFrom) return undefined;
@@ -113,7 +115,12 @@ export function AttributeListView({ annotationsFor, entries, state, canEdit, edi
               inheritedFrom={entry.inheritedFrom}
               onOpenInheritedFrom={openConcept}
               annotations={annotationsFor?.(entry)}
-              actions={actionsFor(entry)}
+              actions={
+                <>
+                  {actionsFor(entry)}
+                  {branchControlFor?.(entry)}
+                </>
+              }
             />
           ))}
         </ul>
@@ -138,9 +145,13 @@ export function AttributeListView({ annotationsFor, entries, state, canEdit, edi
 export function AttributeList({ section, state = { kind: 'ready' }, onRemove }: Props) {
   const changes = useVisibleItemChanges();
   function annotationsFor(entry: AttributeEntry) {
-    if (!changes.length || entry.inheritedFrom) return undefined;
-    const address = addressAtModelPath(section.document, [...section.itemPath, 'relationships', entry.relationshipIndex]);
-    return <ItemChangeAnnotation document={section.doc} item={{ address }} />;
+    if (entry.inheritedFrom) return undefined;
+    const address = changes.length ? addressAtModelPath(section.document, [...section.itemPath, 'relationships', entry.relationshipIndex]) : undefined;
+    return address ? <ItemChangeAnnotation document={section.doc} item={{ address }} /> : undefined;
+  }
+  function branchControlFor(entry: AttributeEntry) {
+    if (entry.inheritedFrom) return undefined;
+    return <BranchControl name={entry.name} dirty={section.dirty} />;
   }
   const access = useCapabilities(section.doc.project);
   const { gate, dialog } = useRevisionGate(section.doc);
@@ -181,6 +192,7 @@ export function AttributeList({ section, state = { kind: 'ready' }, onRemove }: 
       <AttributeListView
         entries={shown}
         annotationsFor={changes.length ? annotationsFor : undefined}
+        branchControlFor={branchControlFor}
         state={state}
         canEdit={canEdit}
         editNote={editNote}
