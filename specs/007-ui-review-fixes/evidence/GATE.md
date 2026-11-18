@@ -419,7 +419,8 @@ These pairs compare the candidate before and after each correction. The scores a
 The conflict resolutions preserve operation boundary mutation coverage and the address architecture map, while adding the lane mutation registrations and font map. FullGraph keeps canonical entity addresses and delegates edge styling, fitting and opening to the lane modules. Graph and lineage suites retain their screenshot and address handling alongside layout checks. Mapping graph assertions use canonical selectors while opening and fitting the detailed card rows. Source Control retains publication styles alongside phone diff rules. Footer and theme tests keep both existing cases. The changelog retains publication, addresses, operation boundary and the UI entries. Git dropped the portable registry temp path patch because its contents were already upstream.
 
 - T002 is complete. The capture index introduced in `5f77711f` and refined in `ceaeed5d` and `6e301fd4` covers all 109 distinct PNG paths named in the spec and tasks.
-- T057 is partially accepted. `81bee1e1` implements the catalog alignment, inline badges, sidebar scroll fade and humanized type labels. `77cd6447` and `7733dfb0` preserve complete descriptions and consistent row height. The 1440 px UBL and Commerce comparisons show aligned card titles, complete descriptions, humanized types and visible Edit actions. Hover-only Edit is skipped to preserve a discoverable direct action on cards alongside View details. Description shortening is superseded by the complete-text requirement.
+- T057 is partially accepted. `81bee1e1` implements the catalog alignment, inline badges, sidebar scroll fade and humanized type labels. `77cd6447` and `7733dfb0` preserve complete descriptions and consistent row height. The 1440 px UBL and Commerce comparisons show aligned card titles, complete descriptions, humanized types and visible Edit actions. Commit `3731b0ae` shows Edit on hover and keyboard focus with a fine pointer, retains it on touch, and fades only the edges with more tree rows.
+Description shortening is excluded by the complete-text requirement.
 - T064 is partially accepted. `81bee1e1` preserves the sidebar spacing and reuses the content cap for the metrics list. The metric detail remains beside that list. Moving it onto the same left edge as other tabs would redesign the approved master/detail layout, so that portion is skipped. See the measured offsets in `E.md`.
 - T010 is recorded as complete from the five original lane refs and the lane evidence. `git show-ref --verify` found A `db4d394f`, B `ab5a420c`,
   C `837ab16b`, D `f676f076` and E `200044e6`. The owner confirmed the separate worktrees and the lane logs document their isolated ports and data.
@@ -573,7 +574,7 @@ The original review archive contains 3,559 PNGs. A read-only count by folder mea
 
 Status: in progress. No visual pair is classified before both images have been opened.
 
-The gallery checkpoint of 728 rows includes 300 intended fixes, 33 expected merged-feature differences, 302 neutral changes and 11
+The gallery checkpoint of 736 rows includes 308 intended fixes, 33 expected merged-feature differences, 302 neutral changes and 11
 unchanged steps. It retains 42 frames of fixed regressions and 40 frames flagged as possible or unresolved regressions. A frame count
 can include multiple actions that carry the same underlying issue. The manifest records actions without matched captures.
 The counted Network heading and compact mapping correction pairs were opened at 390×844 in both themes.
@@ -587,7 +588,14 @@ keyboard focus ring on the metric grouping control. The empty Trash dialog keeps
   Candidate `c50a6823` renders zero cards, one complete explanation, and disabled Mapping steps in both repeats.
   Candidate/main scores are 19.391481% linked, 12.067687% unlinked, and 12.089561%/12.080447% at 5 and 15 seconds.
   The 1-second score is 79.550067%; both references still resolve the mapping while the candidate shows its empty state.
-- `bash .data/gate/publish-current-review.sh` returned 728 rows with the counts above.
+
+- `bash .data/gate/pull-review-007.sh` for `local/light/{390,1440}/catalog-hover` returned eight strips, all opened. Each action
+  succeeded in both repetitions of all three versions. With a fine pointer at 1440×900, `3731b0ae` changes Edit opacity from 0 at rest to
+  1 on hover and focus. The measured card frame stays at x=333, y=169.390625, 202.796875×222.09375 in all six candidate measurements.
+  Both 390×844 touch repetitions leave Edit visible. The sidebar fades down at the top and up at the bottom. The last ODCS row and badge
+  remain whole. Desktop main/candidate differences were 14.532022% at Catalog rest, 13.926080% on hover and focus, and 1.376157%/1.763349%
+  at the top and bottom sidebar positions.
+- `bash .data/gate/publish-current-review.sh` returned 736 rows with the counts above.
 
 The Full Graph replay scored 43 steps, from two repetitions per version. The candidate Network first view and Fit show four named counted areas.
 Both full-screen selection paths open Order and keep it readable. After changing area visibility with Order selected, Layered can leave Order
@@ -687,8 +695,7 @@ refusal or review dialog for each version.
   Graph canvas on main is 511 px on the candidate. The owner can decide whether to take the two inherited ODCS defects into another change.
 - The 390 px workspace header shortens the UBL mapping filename in release, main and candidate. The matched label correction leaves that inherited
   header behavior visible in both themes.
-- The metric detail's same-left-edge proposal would displace the existing side-by-side list and detail. The catalog's hover-only Edit proposal
-  would hide a direct action. These design trade-offs remain recorded under T064 and T057.
+- The metric detail's same-left-edge proposal would displace the existing side-by-side list and detail. That design decision remains under T064.
 
 ## Findings with opened visual evidence
 
@@ -712,7 +719,7 @@ replays. The outstanding findings still require a matched screenshot or a record
 | m9 | `before/fixes/ubl-area-headings-1280.png` and its after frame | Wrapped headings have clear space above their cards. |
 | m11 | `local/dark/1440/mini-map-framing/full-graph-minimap-framing/minimap-on` | The framed mini-map marks the viewport and reserves its corner. |
 | m13 | `local/light/1440/files/commerce-data.ttl/graph` | The Order line area title uses word boundaries. |
-| m14, m15 | `local/light/1440/files/commerce-data.ttl/catalog` | Card starts align and type badges read as words. The tree fade still needs its own screenshot. |
+| m14, m15 | `local/light/1440/files/commerce-data.ttl/catalog` | Card starts align and type badges read as words. The dedicated Catalog and sidebar strips show hover, keyboard, touch and both scroll edges. |
 | m27 | `local/light/1440/files/ubl.ontology.yaml/mappings` | The empty view offers Import and Load example. The separate phone detail transition is M24. |
 | M1 | `local/light/390/followup/mall-properties-lineage/bundled-line-split` | The collapsed dataset header leaves a visible lineage canvas with multiple whole cards. The frame does not establish a successful bundle split. |
 | M6 | `local/light/390/tour/scm-diff-deleted/tour` | The staged deletion labels the right side Deleted (staged). |
