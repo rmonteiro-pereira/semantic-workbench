@@ -574,8 +574,8 @@ The original review archive contains 3,559 PNGs. A read-only count by folder mea
 
 Status: in progress. No visual pair is classified before both images have been opened.
 
-The gallery checkpoint of 752 rows includes 330 intended fixes, 32 expected merged-feature differences, 300 neutral changes and 11
-unchanged steps. It retains 48 frames of fixed regressions and 31 frames flagged as possible or unresolved regressions. A frame count
+The gallery checkpoint of 753 rows includes 330 intended fixes, 32 expected merged-feature differences, 300 neutral changes and 11
+unchanged steps. It retains 49 frames of fixed regressions and 31 frames flagged as possible or unresolved regressions. A frame count
 can include multiple actions that carry the same underlying issue. The manifest records actions without matched captures.
 The counted Network heading and compact mapping correction pairs were opened at 390×844 in both themes.
 The 75-state phone replay (local, light, 390×844) was opened across 25 contact sheets. Both repetitions on all three versions
@@ -662,6 +662,10 @@ keyboard focus ring on the metric grouping control. The empty Trash dialog keeps
   timed out reopening the project tree after reload. The unmodified rerun above passed all 12 checks. The diagnostic runner
   restored the suite source before exit. `sw-midgard-run -- bash scripts/ui-review/gate-007/finish-matched-matrix.sh` started the
   pending matched captures after both assigned ports were clear, with 106 GB available.
+- `bash .data/gate/pull-review-007.sh .data/gate/empty-mapping-final local/light/390/empty-mapping` returned six strips.
+  Both repeats of each were opened and all 36 actions passed after the capture grammar correction. Candidate retains one card
+  and the note for isolated Identifier in the populated mapping with Steps disabled. It keeps zero cards for the entirely unlinked
+  mapping and continues showing all nine cards with Steps enabled for linked Customer.
 - The first resumed matrix action, `local/light/390/import`, ended with status 0 before a planned pause (75).
   `bash .data/gate/pull-review-007.sh .data/gate/import-phone-final local/light/390/import` returned 19 strips.
   All 114 action records passed. All seven sheets and the repeats were opened. The Import dialog keeps both destinations and its
@@ -670,7 +674,7 @@ keyboard focus ring on the metric grouping control. The empty Trash dialog keeps
 - `bun -` checked the mapping capture matcher against four valid singular and plural summaries and one invalid singular.
   `36f93f35` accepts the candidate's corrected grammar during the next replay. In the previous replay the grammar assertion
   incorrectly reported a diagnostic against the settled empty mapping.
-- `bash .data/gate/publish-current-review.sh` returned 752 rows with the counts above.
+- `bash .data/gate/publish-current-review.sh` returned 753 rows with the counts above.
 
 The Full Graph replay scored 43 steps, from two repetitions per version. The candidate Network first view and Fit show four named counted areas.
 Both full-screen selection paths open Order and keep it readable. After changing area visibility with Order selected, Layered can leave Order
