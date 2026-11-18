@@ -5,6 +5,7 @@ import { AgentConnections, ConnectionListView } from '../src/app/auth/AgentConne
 import type { ConnectionView } from '../src/app/auth/connection-api';
 
 const connection: ConnectionView = {
+  origin: 'acp',
   id: 'connection',
   clientId: 'client',
   programName: 'Long program '.repeat(80),
@@ -19,6 +20,7 @@ test('the connection list preserves long names, explicit state and empty state',
   expect(renderToStaticMarkup(<ConnectionListView connections={[]} administrator={false} onRevoke={() => {}} />)).toContain('No agent connections.');
   const html = renderToStaticMarkup(<ConnectionListView connections={[connection]} administrator={true} onRevoke={() => {}} />);
   expect(html).toContain(connection.programName);
+  expect(html).toContain('Origin: acp');
   expect(html).toContain('A person');
   expect(html).toContain('Status: active');
   expect(html).toContain('Revoke ');

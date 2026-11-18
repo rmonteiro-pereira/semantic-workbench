@@ -15,6 +15,7 @@ export async function loadConnections(administrator = false): Promise<Connection
     for (const key of ['clientId', 'programName', 'personName', 'createdAt', 'lastUsedAt']) {
       if (typeof entry[key] !== 'string' || !entry[key].trim()) throw new Error('The server returned invalid connection metadata.');
     }
+    if (!['mcp', 'acp'].includes(entry.origin)) throw new Error('The server returned an invalid connection origin.');
     if (!['active', 'ended'].includes(entry.state) || !Array.isArray(entry.scopes) || !entry.scopes.every((scope: unknown) => typeof scope === 'string')) {
       throw new Error('The server returned an invalid connection state.');
     }

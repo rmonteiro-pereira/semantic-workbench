@@ -15,6 +15,7 @@ export type ConnectionView = {
   clientId: string;
   programName: string;
   personName: string;
+  origin: ConnectionOrigin;
   scopes: Scope[];
   createdAt: string;
   lastUsedAt: string;
@@ -116,6 +117,7 @@ export function viewOf(record: ConnectionRecord): ConnectionView {
     clientId: record.clientId,
     programName: record.programName,
     personName: record.personName,
+    origin: record.origin,
     scopes: [...record.scopes],
     createdAt: new Date(record.createdAt).toISOString(),
     lastUsedAt: new Date(record.lastUsedAt).toISOString(),

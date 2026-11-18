@@ -216,6 +216,14 @@ quickstart, `docs/agent-connections.md`, `scripts/connections-*.ts`, `src/app/au
   its documentation, and no program is built in. Token and setup-credential events keep the origin of
   the connection. Both plans use the inventory dispatch value `public` for routes that answer without a
   session and `browser-only` for browser pages that are never agent operations.
+The joined contract uses `createConnectionForSession({ session, clientId, scopes, origin })`
+with named scopes `read` and `edit`, not effect names or a panel session id. The relay exchanges
+the returned setup credential at the token endpoint, then `resolve` preserves origin `acp`.
+The panel binds the connection at authenticated hello and subscribes to `onConnectionEnded`.
+Both transports reject tokens of the other origin; receipts keep person/connection ownership
+and current authorization. This reconciles the older relay contract’s panel-id/effect wording
+with the transport-neutral service instead of adding a second connection API.
+
 - **014 (counters)**: counts by caller origin; ignores the connection id. No code overlap beyond the
   boundary hook, which this feature does not touch.
 - **012 (proposals)**: no code overlap. Both add inventory rows and matrix cases (contiguous blocks)

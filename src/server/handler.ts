@@ -262,7 +262,7 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
     port: options.port ?? 4310,
     publicOrigin: options.publicOrigin,
     capability: options.mcp?.capability,
-    connections: options.acp?.connections,
+    connections: options.connections?.service ?? options.acp?.connections,
     boundary: () => operationBoundary!,
     audit: options.audit!,
     keepOpen: options.keepOpen,

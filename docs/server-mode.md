@@ -417,8 +417,10 @@ See the [MCP bridge guide](mcp.md#server-stdio-bridge).
 
 The panel's server-mode adapter expects the connection service to create a single-use setup
 credential for the current browser session, with origin `acp` and named scopes `read` and `edit`.
-An Admin registers `acp-relay` as an allowed program; it is not built in. The relay exchanges the
-credential at `/oauth/token`. Real service assembly and server-mode acceptance remain pending.
+In **Admin → Agent programs**, register client id `acp-relay`, name `ACP relay`, scopes `read`
+and `edit`, and redirect `http://127.0.0.1:8765/callback`; review the dry run and confirm.
+The setup grant uses no callback listener. The program is not built in. The relay exchanges the
+credential at `/oauth/token`. The handler supplies the real connection service to the panel.
 
 The connection service's end notification closes the bound panel session on sign-out, expiry,
 deactivation and revocation before later agent traffic can run. The relay never renews browser

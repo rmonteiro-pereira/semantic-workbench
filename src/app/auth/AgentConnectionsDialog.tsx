@@ -13,6 +13,7 @@ export function ConnectionListView({ connections, administrator, onRevoke }: { c
           <strong>{connection.programName}</strong>
           <span>{connection.clientId}</span>
           {administrator && <span>{connection.personName}</span>}
+          <span>Origin: {connection.origin}</span>
           <span>Scopes: {connection.scopes.join(', ') || 'none'}</span>
           <span>Created: {connection.createdAt}</span>
           <span>Last used: {connection.lastUsedAt}</span>
@@ -80,6 +81,7 @@ export function AgentConnections({ administrator = false }: { administrator?: bo
           <p>
             Revoke {selected.programName} ({selected.clientId})? Its current work will stop. A new connection needs consent again.
           </p>
+          <p>Origin: {selected.origin}</p>
           <button type="button" disabled={busy} onClick={confirmRevocation}>
             Confirm revocation
           </button>

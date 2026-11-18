@@ -158,7 +158,7 @@ test only to make it pass.
   replace, flood, protocol error, server restart message on the next relay call. Add
   `tests/acp/end-reasons.test.ts` producing all 13 reasons end to end and checking that the next
   agent request is refused after each. Proof: the test passes (SC-005).
-- [ ] T028 [US5] Needs 013: connect the revocation signal (sign-out, expiry, deactivation,
+- [x] T028 [US5] Needs 013: connect the revocation signal (sign-out, expiry, deactivation,
   revocation) to the session store, and the credential creation to the create route; the agent
   traffic never calls the session touch. Add `tests/acp/server-mode.test.ts`. Proof: the test
   passes for sign-out, expiry, deactivation and revoke; a recorded count of session "touch" calls

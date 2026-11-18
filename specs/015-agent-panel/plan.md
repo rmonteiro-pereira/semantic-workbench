@@ -305,6 +305,14 @@ with the relay program, the named scopes `read` and `edit` (effects `read` and `
 credential through 013's `resolve`, and subscribes with `onConnectionEnded`. If 013's names differ at
 implementation, the contract in `contracts/relay-connection.md` is what 013 must provide.
 
+The joined contract uses `createConnectionForSession({ session, clientId, scopes, origin })`
+with named scopes `read` and `edit`, not effect names or a panel session id. The relay exchanges
+the returned setup credential at the token endpoint, then `resolve` preserves origin `acp`.
+The panel binds the connection at authenticated hello and subscribes to `onConnectionEnded`.
+Both transports reject tokens of the other origin; receipts keep person/connection ownership
+and current authorization. This reconciles the older relay contract’s panel-id/effect wording
+with the transport-neutral service instead of adding a second connection API.
+
 ## Buildable now, needs 006, needs 013
 
 | Part | Needs |

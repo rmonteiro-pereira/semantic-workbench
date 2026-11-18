@@ -34,8 +34,7 @@ Those require a separately authorized connection of the agent's own where availa
 
 ## Server connections
 
-Server-mode mounting requires the connection service. Its integration and acceptance remain
-pending; local-mode compatibility does not establish server-mode compatibility. An Admin must
+Server-mode mounting uses the same person connection service as the MCP endpoint. An Admin must
 register the public program `acp-relay`, permitting the named scopes `read` and `edit`. The latter
 maps to the `localWrite` operation effect; `localWrite` is not a registration scope. The panel
 requests origin `acp` and creates a single-use setup credential for the browser session. The relay
@@ -43,6 +42,15 @@ exchanges `SW_ACP_CREDENTIAL` at `/oauth/token` with setup grant
 `urn:semantic-workbench:grant-type:setup`, client id `acp-relay` and resource `<workbench URL>/api/mcp`.
 The relay keeps access and refresh tokens in memory only. Sign-out, expiry, deactivation or
 revocation ends the bound panel session; relay traffic must not extend browser idle time.
+
+In **Admin → Agent programs**, add client id `acp-relay`, name `ACP relay`, scopes `read` and
+`edit`, and a valid redirect such as `http://127.0.0.1:8765/callback`. The relay uses the setup
+grant and opens no callback listener; the redirect is required registration metadata. Review the
+dry run and confirm the registration. No program is registered automatically.
+
+Connection lists and revocation confirmations show `Origin: acp` or `Origin: mcp`. Relay routes
+refuse MCP tokens, and the MCP endpoint refuses ACP tokens. A receipt remains bound to its
+original person and connection and requires current authorization before replay.
 
 Set `SW_ACP_CREDENTIAL` only for the relay process, using the one-time instructions from the panel.
 Do not save real credentials in an environment file or share a command containing one. The
@@ -123,4 +131,4 @@ server-restarted. Duplicate event numbers are ignored.
 The scripted `reference-agent` version **1.0.0** connects through the real relay, receives prompts,
 reads and writes authorized text, asks permission, handles cancellation and exits cleanly when
 the session ends. Its local-mode browser acceptance covers light and dark at 360, 768 and 1280 px.
-No compatibility claim is made for another agent or for the pending server-mode assembly.
+No compatibility claim is made for another agent or for a server-mode external agent.

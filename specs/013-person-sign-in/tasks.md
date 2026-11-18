@@ -143,3 +143,8 @@ ends with its own targeted proof; the full gate runs once, on the integrated bat
 | M1, M14 boundary and audit | FR-051, FR-055, FR-061, FR-062 | T017, T028, T029 |
 | Principle I and IV | FR-002, FR-031, FR-032, FR-050 | T006, T014, T028 |
 | R2 gates, UI rules | FR-066 to FR-075, SC-009 | T032 to T037, T040 to T044 |
+
+## Joined relay connections
+
+- [x] Connect the real service to the panel; list and confirm revocation with origin; refuse cross-transport tokens; prove revocation and browser lifetime endings stop the panel and 1,000 relay requests cause zero session touches (`tests/acp/server-mode.test.ts`).
+- [ ] Prove ACP receipt ownership and current authorization through the operation boundary.

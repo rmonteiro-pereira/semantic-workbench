@@ -37,9 +37,11 @@ re-established in that time. A reconnecting relay presents the link's last ackno
 ## What 015 needs from 013 (server mode)
 
 1. **Credential creation**: the browser asks for a single-use credential naming the relay client,
-   the person, the panel session id and the effects `read` and `localWrite`. The credential is shown
+   the person’s browser session, named scopes `read` and `edit`, and origin `acp`.
+   It calls `createConnectionForSession({ session, clientId, scopes, origin: 'acp' })`; the service
+   remains transport-neutral and does not accept a panel session id. The credential is shown
    once and expires in 10 minutes.
-2. **Authentication**: a function that, given the relay's request, returns a minted caller with
+2. **Authentication**: `resolve(accessToken)` returns a minted caller with
    origin `acp`, the person's principal, the connection id, the connection scope and the session
    reference, or a refusal with the same answer for every failure.
 3. **Revocation signal**: a subscription by connection id that fires on sign-out, expiry,
@@ -58,3 +60,9 @@ re-established in that time. A reconnecting relay presents the link's last ackno
 
 An unknown session, an ended session, another person's session, a wrong code, a reused code and an
 expired code all answer HTTP 404 with the same empty body and the same timing class.
+
+The relay exchanges the setup credential at `/oauth/token` before presenting its bearer.
+The panel binds the returned connection at authenticated hello; `onConnectionEnded` closes that
+bound session. Tokens retain their origin through refresh. Each transport refuses the other
+origin before invoking an operation. Receipts retain person/connection ownership and current
+operation authorization for either origin.
