@@ -1,0 +1,18 @@
+{
+  "code": "tessera-import-unexported",
+  "files": [
+    {
+      "path": "ontology.yaml",
+      "source": "{\"tessera\": 3, \"version\": \"0.2.0.dev0\", \"name\": \"Retail\", \"ontology\": [{\"concept\": \"Order\", \"type\": \"EntityType\"}], \"tessera_imports\": [{\"project\": \"finance\", \"alias\": \"fin\", \"concepts\": [\"Invoice\"], \"version\": \"latest\"}]}"
+    }
+  ],
+  "providers": [
+    {
+      "project": "finance",
+      "ontology": "ontology.yaml",
+      "exports": [
+        "Currency"
+      ]
+    }
+  ]
+}

@@ -48,3 +48,10 @@ unit equals the one-file twin in concept/relationship order, and the empty root 
 concepts from its part. JSON syntax in .yaml files is intentional: JSON is a YAML subset and the
 fixture values remain readable without introducing another serializer. This proof checks fixture
 content, not unit validation, which is still pending.
+
+T004: fixtures.test.ts: 4 pass, 0 fail, 155 assertions with all 26 refusal envelopes present.
+Each envelope's files parse and the fixture inventory names its expected finding. Link paths are
+caller-supplied metadata, not links followed by the fixture loader. The pin fixture distinguishes
+an available object from published history. These are inputs for the later refusal proofs; no
+claim is made that the current validator emits their set findings. The fixtures are split across
+two commits to keep each change within the file limit.
