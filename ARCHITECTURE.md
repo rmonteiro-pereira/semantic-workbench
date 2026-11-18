@@ -202,6 +202,9 @@ concatenating project, document or item names.
 - `src/server/connections/` owns program registrations, consent grants, token rotation and session-bound connections.
   Server MCP authenticates through `mcp/server-mode-gate.ts` and supplies a fresh caller to the existing
   operation boundary for every request. Scopes narrow effects; the connection end signal cancels its work.
+  Receipt replay uses the same inventoried route and authorization checks, with the original
+  restore target retained when the trash entry is consumed. The stdio bridge keeps rotating
+  client tokens in a private, atomic per-server cache.
   Tokens on the server persist only as keyed hashes; the original browser cookie is never recovered.
   Delegated Git credential updates use the session store reference under its existing mutation lock,
   preserving the browser session idle clock and refusing updates after session end.

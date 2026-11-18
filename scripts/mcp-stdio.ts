@@ -90,7 +90,7 @@ export async function deliver(
       return [bridgeError(message, 'The refreshed connection was refused. Check the connection in the workbench.')].filter((entry): entry is string => entry !== null);
     const text = await response.text();
     if (response.status === 404 && !text.includes('jsonrpc'))
-      return [bridgeError(message, 'MCP is not available in server mode yet. Run the workbench in local mode.')].filter((entry): entry is string => entry !== null);
+      return [bridgeError(message, 'This address does not serve local MCP. For server mode, configure SW_SERVER_URL and SW_CLIENT_ID.')].filter((entry): entry is string => entry !== null);
     if (response.status === 401)
       return [bridgeError(message, 'The workbench refused the capability. If it was rotated, retry; otherwise check DATA_DIR.')].filter((entry): entry is string => entry !== null);
     return answerLines(response.headers.get('content-type') ?? '', text);

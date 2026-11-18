@@ -16,9 +16,8 @@ an authenticated project read and a 401 challenge after connection revocation ov
 loopback HTTP listener. The fixture uses an isolated identity provider and sends consent
 requests directly; it does not establish browser authorization compatibility.
 
-Server-mode programs remain **not tested** end to end: the browser consent form submits
-`Origin: null` under its required referrer policy and the origin gate refuses it. The server
-bridge credential storage contract is also unresolved. This result does not supersede those limits.
+Acceptance of specific external programs is tracked separately from the Workbench browser
+consent flow and the stdio bridge exchange and refresh checks.
 
 ## Codex CLI
 

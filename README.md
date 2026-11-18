@@ -470,7 +470,7 @@ validate, edit and commit; remote and publish require separate selection, and ad
 unavailable. Sign-out, session expiry, revocation and removed access end the connection. Agent
 traffic never extends the browser session. Programs require Admin registration; server-mode
 client support remains unconfirmed. See [agent connections](docs/agent-connections.md), including
-the current browser authorization and receipt-replay limitations, before configuring a client.
+client acceptance status and server bridge setup, before configuring a client.
 
 ## Run it as a container
 

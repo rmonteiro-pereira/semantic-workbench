@@ -111,6 +111,8 @@ Residual risk: file text is data from the project, but an agent reads it with it
 
 ### Server connections
 
+Server mode uses person sign-in to establish an agent connection.
+
 The stdio bridge stores one credential file per server under
 `$XDG_CONFIG_HOME/semantic-workbench/connections/` (default `.config` in your home directory, or
 `LOCALAPPDATA` on Windows). Its filename is the SHA-256 hash of the server origin.
