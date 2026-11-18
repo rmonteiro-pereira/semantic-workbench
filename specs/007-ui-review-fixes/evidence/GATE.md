@@ -87,9 +87,10 @@
   and candidate repetitions failed the probe's additional visible frontier marker precondition, so this probe cannot establish a relative Pierce
   budget. The identical standalone suite assertion above supplies the inherited failure evidence.
 
-- The candidate responsive retry later passed the edit and screen tours at all four review widths. It returned 1 in the phone ODCS group with
-  `odcs-contract-search: contract id is cut off`. The canonical main suite stops earlier at the 481 px canvas. The same ODCS stage needs a focused
-  run on pinned main before attributing the clipping.
+- The candidate responsive retry passed the edit and screen tours at all four review widths. It returned 1 in the phone ODCS group with
+  `odcs-contract-search: contract id is cut off`. The canonical main suite stops earlier at the 481 px canvas. On pinned main,
+  `RESPONSIVE_ONLY='ODCS screens: 390×844' bun scripts/ci-validate.ts --step browser --suite test:responsive` returned 1 at the same clipping
+  assertion. The contrast with main establishes that the phone ID clipping is inherited.
 
 ### Full Graph reopening through browser Back
 
