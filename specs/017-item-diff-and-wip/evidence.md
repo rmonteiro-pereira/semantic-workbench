@@ -258,3 +258,33 @@ suite passed all six cases (29 assertions).
   outer dimensions. The subsequent run passed at 1,440 and 390 pixels in both themes and found
   a test-only Git identity issue in the branch-commit step. The test now supplies an identity on
   the single Git command.
+
+### Scope and hand-off
+
+- T005 reuses the workbench's existing attribute classifier. Its tests cover value types,
+  built-ins, entity targets and relationship arity. A second classifier would encode the same rule.
+- T028 has no pre-existing standalone BranchPicker unit file on this base. The ordinary picker
+  path and the suggested-name path are covered together by the targeted render test. The item
+  browser journey exercises the existing form, branch changes and validation without adding a
+  push. The wider SCM and two-editor browser suites remain part of the batch.
+- T035 remains open for the separate Codex capture job. The automated browser check uses
+  desktop and phone widths in both themes and writes no captures.
+- The spec directory has no separate data-model or quickstart document on this branch.
+- The branch action reuses the existing picker and its switch route. The publication review
+  reads the committed branch tip from the actual confirmation in SyncDialog.
+- The overlay restores removed items and published endpoints in the active graph layout.
+  It does not recover published pixel positions as a separate snapshot. The off-state DOM
+  matches the six baseline structures after excluding the new controls and normalizing the
+  fixture's commit ID. The browser also compares card widths, heights and transforms across
+  an off/on/off round trip at each viewport and theme.
+- Shared file blocks are limited to the name-height and change data in full-node-data.ts,
+  the annotation in FullGraphNodes.tsx, the annotation in NeighborhoodGraph.tsx, the route
+  renderer adapter in RelationshipEdge.tsx, the model toolbar wrapper in GraphOptions.tsx,
+  and the legend styling in legend.css. AttributeRow.tsx uses its existing annotation slot.
+- Feature 012 owns registering the proposal side, replacing its review list, and its managed
+  branch push policy. Feature 014 owns the traffic annotation. Feature 006 owns the MCP contract
+  row for the browser-only operation. There are no MCP file tools to exercise on this base.
+- The integrated batch runner owns the full unit and mutation suites, test:item-diff and every
+  other browser suite. The Codex visual reviewer owns the last-release UI comparison across the
+  full graph journey. The architecture reviewer runs once on the integrated batch. The batch
+  must investigate the full-suite failures recorded above before treating the gate as green.
