@@ -118,7 +118,7 @@ function close() {
       await pending;
     } finally {
       authentication?.close();
-      handler?.usage?.close();
+      handler?.usage.close();
       workspace?.close();
       await lock.close();
       await telemetry.shutdown();

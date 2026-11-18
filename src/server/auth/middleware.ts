@@ -22,7 +22,7 @@ import type { RequestLimits } from './rate-limit';
 import type { RemoteCredentials } from './remote-credentials';
 import { observeRequest } from '../observability/http-request';
 import { log } from '../observability/log';
-import type { UsageRecorder } from '../usage/usage-recorder';
+import { NO_USAGE_RECORDER, type UsageRecorder } from '../usage/usage-recorder';
 import type { UsageSettings } from '../usage/usage-settings';
 
 /** The access boundary instance shared across requests. */
@@ -197,5 +197,5 @@ export function createAccessMiddleware(
       },
     });
   };
-  return Object.assign(httpAdapter, { boundary, usage: options.usage });
+  return Object.assign(httpAdapter, { boundary, usage: options.usage ?? NO_USAGE_RECORDER });
 }

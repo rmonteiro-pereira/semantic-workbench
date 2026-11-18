@@ -285,5 +285,5 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
     if (!response.headers.has('Cache-Control')) response.headers.set('Cache-Control', 'no-store');
     return response;
   };
-  return Object.assign(httpHandler, { boundary: boundary.boundary, usage: options.usage! });
+  return Object.assign(httpHandler, { boundary: boundary.boundary, usage: boundary.usage });
 }
