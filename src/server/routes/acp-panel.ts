@@ -34,7 +34,12 @@ function choiceOf(value: { option?: unknown; cancel?: unknown } | null): { optio
 export function createAcpPanelRoutes(service: PanelService, options: { keepOpen?: (request: Request) => void } = {}): Route {
   async function start(request: Request): Promise<Response> {
     const body = await readBoundedJson(request, PANEL_BODY_LIMIT);
-    const confirmReplace = body.ok && typeof body.value === 'object' && body.value !== null && (body.value as { confirmReplace?: unknown }).confirmReplace === true;
+    if (!body.ok) return refuse(body.status, 'Send the session options as bounded JSON.');
+    if (!body.value || typeof body.value !== 'object' || Array.isArray(body.value)) return refuse(400, 'Send an object with session options.');
+    const input = body.value as { confirmReplace?: unknown };
+    if (Object.keys(input).some(key => key !== 'confirmReplace') || (input.confirmReplace !== undefined && typeof input.confirmReplace !== 'boolean'))
+      return refuse(400, 'Send confirmReplace as a boolean.');
+    const confirmReplace = input.confirmReplace === true;
     const scope = requestScope(request);
     const started = await service.start({ principal: scope.principal, session: (request as AccessRequest)[requestSession], confirmReplace });
     return started.ok ? Response.json(started.session, { status: 201 }) : refuse(started.status, started.error);

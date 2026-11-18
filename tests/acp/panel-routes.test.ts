@@ -79,3 +79,12 @@ test('events carry numbers and a reconnect continues after the last one', async 
   expect(none).toEqual([]);
   await server.browser(`/api/acp/sessions/${body.id}`, { method: 'DELETE' });
 });
+
+test('malformed session options cannot create or replace a connection', async () => {
+  const before = server.service.store.size;
+  for (const body of ['{broken', '[]', 'null', '{"confirmReplace":"yes"}', '{"unknown":true}']) {
+    const response = await server.browser('/api/acp/sessions', { method: 'POST', headers: { 'content-type': 'application/json' }, body });
+    expect(response.status).toBe(400);
+  }
+  expect(server.service.store.size).toBe(before);
+});

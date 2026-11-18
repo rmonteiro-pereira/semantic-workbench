@@ -123,3 +123,7 @@ Review removed a duplicate rendered copy of completed agent messages: the live a
 used a class that did not exist in the theme. The visible message itself is now the polite
 completed-message status region, without a second copy or clipped text. The transcript test
 asserts a single escaped copy and the polite announcement attribute.
+
+Session-create review found that an invalid JSON body was treated as default options and could
+create a session. The route now rejects malformed, oversized and wrongly typed options before
+calling the service. Its targeted route proof includes no state change for malformed bodies.
