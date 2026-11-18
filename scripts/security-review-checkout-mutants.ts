@@ -26,7 +26,7 @@ export const checkoutMutants: [string, string, string, string][] = [
   ['secrev-audit-mirror', 'src/server/auth/audit.ts', 'if (lost) return { ok: false, ...lost };', ''],
   // Branch names are compared without regard to letter case.
   ['secrev-worktrees', 'src/server/projects/worktrees.ts', 'foldBranch(branch).startsWith(PERSONAL_BRANCH_PREFIX)', 'branch.startsWith(PERSONAL_BRANCH_PREFIX)'],
-  ['secrev-worktrees', 'src/server/projects/worktrees.ts', '(own !== null && sameBranchName(name, own))', '(own !== null && name === own)'],
+  ['secrev-worktrees', 'src/server/projects/worktrees.ts', 'sameBranchName(name, own)', 'name === own'],
   ['secrev-worktrees', 'src/server/projects/worktrees.ts', 'if (existing.includes(name)) return undefined;', ''],
   ['secrev-worktrees', 'src/server/projects/worktrees.ts', 'existing.find(other => sameBranchName(other, name))', 'existing.find(other => other === name)'],
   ['secrev-hooks', 'src/server/projects/working-copies.ts', 'sameBranchName(branch, mine)', 'branch === mine'],
