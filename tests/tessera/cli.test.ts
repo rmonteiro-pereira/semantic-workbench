@@ -64,9 +64,9 @@ test('compile without acceptance writes nothing, prints the report digest and ex
 
 test('compile with the digest writes a bundle of the committed snapshot only', () => {
   const s = scene();
+  s.repository.addPersonalBranch('personal/someone');
   s.repository.editWithoutCommit(`${PROJECT_FOLDER}/ontology.yaml`, ONTOLOGY_TEXT + '# UNCOMMITTED-EDIT\n');
   s.repository.editWithoutCommit(`${PROJECT_FOLDER}/untracked.yaml`, 'name: untracked\n');
-  s.repository.addPersonalBranch('personal/someone');
   const digest = digestOf(s);
   const result = run(compileArgs(s, ['--accept-loss', digest]), s.home);
   expect(result.status).toBe(0);

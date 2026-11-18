@@ -34,9 +34,9 @@ test('the snapshot holds the committed files of the project folder only, with th
 
 test('uncommitted edits, ignored files and a personal branch are absent from the snapshot', async () => {
   const created = repository();
+  created.addPersonalBranch('personal/someone');
   created.editWithoutCommit(`${PROJECT_FOLDER}/ontology.yaml`, ONTOLOGY_TEXT + '# uncommitted\n');
   created.editWithoutCommit(`${PROJECT_FOLDER}/new.yaml`, 'name: untracked\n');
-  created.addPersonalBranch('personal/someone');
   const source = await readSnapshot(request(created));
   expect(source.commit).toBe(created.firstCommit);
   expect(source.files.some(file => file.path === 'new.yaml')).toBe(false);
