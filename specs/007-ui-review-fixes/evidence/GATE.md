@@ -73,6 +73,20 @@
   The separate pair `before/fixes/ubl-neighborhood-walk-reached-1600.png` and `after/fixes/ubl-neighborhood-walk-reached-1600.png` shows the
   shared path splitting after `3f08c538`. Both repetitions reached all five targets and each step reported `WALK_EDGE_GEOMETRY ... []`.
 
+### Latest serial Midgard run
+
+- `sw-midgard-run -- bash scripts/ui-review/gate-007/complete-launch.sh` started the serial comparison. Candidate preparation built the app, reproduced the
+  39 fixture hashes, and completed both frozen imports before running the browser phases.
+- The repeated `bun scripts/ci-validate.ts --step browser --suite test:back-history` returned 1 after all 25 forward actions and 14 successful undo
+  steps. Its first mismatch was `Back over "select an entity in the graph"`. The fingerprint reads only mounted Flow nodes. Selection changes the
+  camera, and the candidate virtualizes graph nodes outside the viewport. The next retry fits both snapshots before comparing that state.
+- The first release phone Import replay reached the imported workspace and timed out opening the drawer for the unbound fixture rename. The import
+  result and rename dialog are recorded separately. The phone import stage needs a replay that waits for the drawer after import navigation.
+- The supplementary `timing` phase recorded UBL lineage at 1,953 and 2,018 ms on release, 2,036 ms on main, and 2,151 and 2,221 ms on the candidate.
+  Main's second repetition did not finish the prerequisite Mall file switch. The detached Pierce probe measured 82 and 55 ms on main. Both release
+  and candidate repetitions failed the probe's additional visible frontier marker precondition, so this probe cannot establish a relative Pierce
+  budget. The identical standalone suite assertion above supplies the inherited failure evidence.
+
 ### Matched UBL lineage timing
 
 The repeated 1440×900 frozen-import switch from Mall ODCS to UBL ODCS measured 2,090 and 2,264 ms on main. The candidate measured 2,092 and 2,119 ms.
