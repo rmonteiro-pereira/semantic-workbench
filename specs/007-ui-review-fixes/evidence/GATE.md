@@ -573,15 +573,15 @@ The original review archive contains 3,559 PNGs. A read-only count by folder mea
 
 Status: in progress. No visual pair is classified before both images have been opened.
 
-The current gallery includes 696 rows. Of those, 286 are intended fixes, 32 are expected merged-feature differences, 295 are neutral, and 11
-are unchanged. The gallery retains 30 frames of fixed regressions and 42 frames flagged as possible or unresolved regressions. A frame count
+The current gallery includes 704 rows. Of those, 290 are intended fixes, 32 are expected merged-feature differences, 295 are neutral, and 11
+are unchanged. The gallery retains 32 frames of fixed regressions and 44 frames flagged as possible or unresolved regressions. A frame count
 can include multiple actions that carry the same underlying issue. The manifest explains which actions could not be compared at a matched state.
 The counted Network heading and compact mapping correction pairs were opened at 390×844 in both themes.
 The 75-state phone replay (local, light, 390×844) was opened across 25 contact sheets. Both repetitions on all three versions
 opened the named mapping and its Source tab. The Source view preserves the empty concept list. The transient empty-bindings frame
 is timing noise, confirmed by the settled Identifier replay. The candidate also shows the full line-23 SQL warning and a green
 keyboard focus ring on the metric grouping control. The empty Trash dialog keeps its explanation and Close action.
-The local gallery publisher returned 696 rows with the counts above.
+The local gallery publisher returned 704 rows with the counts above.
 
 The Full Graph replay scored 43 steps, from two repetitions per version. The candidate Network first view and Fit show four named counted areas.
 Both full-screen selection paths open Order and keep it readable. After changing area visibility with Order selected, Layered can leave Order
@@ -610,6 +610,18 @@ that the sign-in link expired or was already used.
 - The superseded candidate unit rerun was stopped at its checkpoint before the camera correction trial. Its status was 143, the verification
   payload was restored and ports 5401 and 5402 were clear. `sw-midgard-run -- bash scripts/ui-review/gate-007/remaining-findings-launch.sh`
   started the next serial replay. Midgard reported 106 GB available at the first build, which passed.
+
+The phone mini-map correction is `c039c13a`. A hidden Mini-map setting previously reduced UBL Fit from 0.648148 to 0.277778, leaving
+all four counted areas in the left part of the phone pane. After the fix, both settings give 0.648148 in both repetitions and themes.
+The corrected 1440 px map stays visible when enabled, with its outlined corner and viewport rectangle. The desktop fit remains at 1.0
+and shifts left 108 px to leave room for the map. Both phone before/after pairs were opened. They show all four counted cards returning
+to full width. The pairs are `before/fixes/ubl-hidden-minimap-390-light-1.png` and `-2.png` with the same filenames under `after/fixes`.
+
+- `python3 .data/gate/pixel-difference-007.py` measured 30.382185% and 30.376413% changed pixels for the two native phone pairs.
+- `bash .data/gate/pull-review-007.sh` returned the light and dark, phone and desktop mini-map strips. All eight steps were opened.
+- The frozen desktop UBL Network opens as four counted areas at 1440 px in both themes, while the release and main open the 45 entities.
+  This is a separate regression against the specified desktop first view. The existing opening check accepted the fallback based on a 7.39 px
+  measured minimum. The 1440 px off-state strips retain this issue while the Network packing is investigated.
 
 The gallery and CSV passed the local path and content scan. The gallery folder uses 56 MB on disk.
 
@@ -647,6 +659,7 @@ replays. The outstanding findings still require a matched screenshot or a record
 | M22 | `server/light/1440/reader/reader/admin-refusal` | A reader who opens Admin sees the role refusal. |
 | m6 | Documentation only | The graph guide names one to three foreign-key hops and one to five mapping steps. There is no requested screen change. |
 | m9 | `before/fixes/ubl-area-headings-1280.png` and its after frame | Wrapped headings have clear space above their cards. |
+| m11 | `local/dark/1440/mini-map-framing/full-graph-minimap-framing/minimap-on` | The framed mini-map marks the viewport and reserves its corner. |
 | m13 | `local/light/1440/files/commerce-data.ttl/graph` | The Order line area title uses word boundaries. |
 | m14, m15 | `local/light/1440/files/commerce-data.ttl/catalog` | Card starts align and type badges read as words. The tree fade still needs its own screenshot. |
 | m27 | `local/light/1440/files/ubl.ontology.yaml/mappings` | The empty view offers Import and Load example. The separate phone detail transition is M24. |
