@@ -151,6 +151,9 @@ The application revision includes `481d012b`. The retry of the browser history s
   accessible names for the full-screen action and the one-to-three foreign-key range documented in all compared revisions.
 - Keep the first-view captures independent and verify the same phone Mapping Graph Zoom steps on all three builds before classifying the earlier
   failed clicks.
+- Lineage Fit and the first view can intentionally use name-only cards. The detailed column actions must still be reachable through Zoom in.
+- Keep the untouched first-view frame, then capture column actions after zooming via the visible toolbar. Record whether the required control
+  appears and preserve the original failure if repeated zoom cannot reach it.
 
 ### First 390 px light comparison
 
@@ -169,6 +172,34 @@ The application revision includes `481d012b`. The retry of the browser history s
 - `sw-midgard-run -- bash scripts/ui-review/gate-007/replay-launch.sh` exited 0 and resumed the serial matrix by matched action. Before the launch,
   the previous matrix process had exited, ports 5401 and 5402 had no listeners, and `free -g` reported 106 GB available. `git diff --check` and
   the readable-code check for the graph capture driver both exited 0.
+
+### Counted Mall graph on a phone
+
+- The Mall semantic Graph opens 11 counted areas after the full entity layout falls below the readable-name threshold.
+- The first fit should frame the actual area bounds. The current readable-zoom floor can exceed that fit and push whole cards past both edges.
+- Honor the fitted bounds in that case. Keep the counted representation, fitted text sizing, explicit expansion and selection zoom conventions.
+- Verify the imported Mall semantic Graph at 390×844 through the normal Graph tab and check the actual card and canvas boxes.
+- `sw-midgard-run -- bash scripts/ui-review/gate-007/counted-phone-launch.sh` reproduced the issue twice in light and dark, with 4 of 11 cards fully
+  visible. The first fit change framed all 11 in light but shrank the smallest count to 6.51 px. Its dark run timed out waiting 5 seconds for
+  the layout to finish. The final check allows up to 30 seconds for the initial layout and still requires every counted card to fit.
+- `sw-midgard-run -- bash scripts/ui-review/gate-007/counted-phone-launch.sh after` reported 11 of 11 inside the canvas and a minimum rendered count
+  of 12.21 px in both repetitions and both themes. `bun test tests/overview-capacity.test.ts tests/graph-tiles.test.ts tests/full-layout.test.ts`
+  returned 0 with 25 passes, 0 failures and 3251 assertions. The built application passed in 2.94 s with the existing chunk-size advisory.
+- M2 regression fixed in `aba04e4f`. I opened both before/after pairs at 390×844. All 11 tiles now fit the pane, and their full names and counts
+  remain visible. The exact changed-pixel scores are 42.627294% for `before/fixes/mall-counted-390-light.png` versus the corresponding `after/fixes`
+  image, and 42.696865% for `mall-counted-390-dark.png`. RGBA scoring used `ffmpeg -pix_fmt rgba -f rawvideo` and compared the two 390×844 buffers.
+
+### Wide content and metric layout
+
+- `sw-midgard-run -- bash scripts/ui-review/gate-007/focused-launch.sh` initially failed with “Permission denied” on the detached script. Invoking
+  the script through Bash returned 0. The two wide groups reported `MATRIX_ACTION_COMPLETE local/light/2560/content-width` and
+  `MATRIX_ACTION_COMPLETE local/dark/2560/content-width`. Both reps ran in release, main and candidate.
+- In the light captures the measured boxes agreed across the three versions. Their left edges were 313 px for the Overview header, 650 px for
+  the first Catalog card, 630 px for the Metrics list and Mappings wrapper, and 1121.03 px for the open Metric detail. The boxes represent the
+  visible sections and include different inner padding, so these figures are not the same measurement as the original lane comparison.
+- In both themes the three wide strips show Metric detail next to the list. Moving it to the Catalog or Overview edge would also move the list
+  or replace the split view. T064 keeps the existing split and the metric list cap, and leaves the common-left-edge requirement as an explicit
+  design decision. The dark Metric detail strip caught the explanation mid-load on main and candidate. The settled explanation still needs a comparison.
 
 ### Matched UBL lineage timing
 
