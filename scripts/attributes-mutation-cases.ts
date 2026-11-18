@@ -26,6 +26,25 @@ function guards(candidate: Record<string, any>) {
   assert.equal(actor('alice')([change('approved')]).refused.length, 0);
 }
 
+function itemIdentity(candidate: Record<string, any>) {
+  const rules = { levelOf: () => 'public', protectedLevel: 'confidential', levelNumber: (level: string) => Number(level !== 'public') };
+  const changes = (before: unknown, after: unknown) => candidate.ontologyItemChanges({ project, file: path }, { before, after, committed: before }, rules);
+  const approved = ontology('approved');
+  const withoutStatus = structuredClone(approved);
+  Object.assign(withoutStatus.ontology[0].tessera_governance, { status: undefined });
+  assert.equal(changes(approved, withoutStatus)[0]?.kind, 'item-body');
+
+  const first = { concept: 'Sales.Order', relationships: [{ name: 'code', tessera_governance: { status: 'proposed' } }] };
+  const second = { concept: 'Sales', relationships: [{ name: 'Order.code', tessera_governance: { status: 'proposed' } }] };
+  const before = { ontology: [first, second] };
+  const after = structuredClone(before);
+  after.ontology[0].relationships[0].tessera_governance.status = 'approved';
+  assert.deepEqual(
+    changes(before, after).map((change: { pointer: string }) => change.pointer),
+    ['/ontology/0/relationships/0'],
+  );
+}
+
 async function publication(candidate: Record<string, any>) {
   const published = [{ source: JSON.stringify(ontology('approved')) }];
   const workspace = {
@@ -73,6 +92,8 @@ export async function attributesMutationCase(candidate: Record<string, any>) {
     assert.ok(issues.some((issue: { code: string }) => issue.code === 'tessera-revision'));
   } else if (candidate.guardFor) {
     guards(candidate);
+  } else if (candidate.ontologyItemChanges) {
+    itemIdentity(candidate);
   } else if (candidate.applyGuards) {
     demotion(candidate);
   } else if (candidate.publishedAgentDocuments) {
