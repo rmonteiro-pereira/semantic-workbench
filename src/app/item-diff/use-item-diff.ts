@@ -11,7 +11,7 @@ export function overlayEnabled(choice: boolean | undefined, project: ProjectInfo
   if (choice !== undefined) return choice;
   const published = status?.published;
   if (published?.state === 'none' || !project.published) return false;
-  return Boolean(project.changes || project.ahead || published?.ahead);
+  return Boolean(project.changes || published?.ahead);
 }
 
 /** Classifies a captured response without hiding an incomplete comparison. */

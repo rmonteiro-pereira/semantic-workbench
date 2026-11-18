@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { loadItemComparison, overlayEnabled, useItemDiff } from '../../src/app/item-diff/use-item-diff';
-import type { Doc, ProjectInfo } from '../../src/app/projects/api';
+import type { Doc, GitStatus, ProjectInfo } from '../../src/app/projects/api';
 import type { ItemDiff } from '../../src/shared/item-diff/item-change';
 
 const project: ProjectInfo = {
@@ -32,6 +32,27 @@ test('the saved status defaults the overlay and a choice overrides it', () => {
   expect(overlayEnabled(undefined, { ...project, published: null })).toBe(false);
   expect(overlayEnabled(false, project)).toBe(false);
   expect(overlayEnabled(true, { ...project, published: null })).toBe(true);
+});
+
+test('commits already published here leave the default off even when the remote is behind', () => {
+  const tracking = { ...project, changes: 0, ahead: 2 };
+  const status: GitStatus = {
+    branch: 'feature',
+    upstream: 'origin/main',
+    ahead: 2,
+    behind: 0,
+    gitAvailable: true,
+    identityConfigured: true,
+    hasCommits: true,
+    merging: false,
+    changes: [],
+    remotes: {},
+    published: { state: 'in-sync', branch: 'main', commit: 'published', ahead: 0, behind: 0, notice: false },
+  };
+  expect(overlayEnabled(undefined, tracking)).toBe(false);
+  expect(overlayEnabled(undefined, tracking, status)).toBe(false);
+  if (status.published?.state !== 'in-sync') throw new Error('Expected a published commit.');
+  expect(overlayEnabled(undefined, tracking, { ...status, published: { ...status.published, ahead: 1 } })).toBe(true);
 });
 
 test('an off comparison stays idle, and an enabled one reports empty, partial and error results', async () => {
