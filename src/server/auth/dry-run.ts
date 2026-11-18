@@ -28,21 +28,46 @@ type RequestScope = ReturnType<AccessControl['forRequest']>;
 /** The same identity evaluated by the active and by the proposed boundary. */
 type ScopePair = { before: RequestScope; after: RequestScope };
 
-/** Builds request scopes once per identity, since each one resolves grants and entities. */
-function scopeCache(before: AccessControl, after: AccessControl) {
+/** Captures the active policy and clock, then builds paired replay scopes on demand. */
+export function scopeCache(access: AccessControl, proposal: AccessConfig) {
+  const active = access.snapshot();
+  const context = { ...active.context?.() };
+  const projects = [...active.knownProjects()];
+  const environment = { knownProjects: () => [...projects], context: () => ({ ...context }) };
+  const before = access.fork(active.config, environment);
+  const snapshot = before.snapshot();
+  const current = active.config;
+  const after = before.fork(proposal);
+  const next = after.snapshot().config;
   const scopes = new Map<string, ScopePair>();
-  return (identity: NormalizedPrincipal): ScopePair => {
+  // Arbitrary Cedar rules can inspect other identities and otherwise unused role holders.
+  const comparable = !Object.keys(current.adminRules ?? {}).length && !Object.keys(next.adminRules ?? {}).length;
+  const sameProjects = JSON.stringify(current.projects) === JSON.stringify(next.projects);
+  function scopeFor(identity: NormalizedPrincipal): ScopePair {
     const key = JSON.stringify(identity);
     let pair = scopes.get(key);
     if (!pair) {
-      pair = {
-        before: before.forRequest(before.principalFor(identity)),
-        after: after.forRequest(after.principalFor(identity)),
-      };
+      const previous = before.principalFor(identity);
+      const proposed = after.principalFor(identity);
+      // Cedar group ancestry can still differ when deactivation hides resolved grants.
+      const activePerson = !previous.deactivated && !proposed.deactivated;
+      const unchanged = comparable && sameProjects && activePerson && principalPolicy(current, previous) === principalPolicy(next, proposed);
+      const previousScope = before.forReplay(previous, context);
+      pair = { before: previousScope, after: unchanged ? previousScope : after.forReplay(proposed, context) };
       scopes.set(key, pair);
     }
     return pair;
-  };
+  }
+  return { snapshot, scopeFor };
+}
+
+function principalPolicy(config: AccessConfig, principal: RequestScope['principal']) {
+  const roles = new Set(principal.grants.map(grant => grant.roleId));
+  return JSON.stringify({
+    principal,
+    roles: config.roles.filter(role => roles.has(role.id)),
+    client: config.agents.clients.find(client => client.clientId === principal.clientId),
+  });
 }
 
 /** Rebuilds the identity an audit snapshot was decided for, with its groups and address. */
@@ -69,7 +94,8 @@ function replayDecisions(scopeFor: (identity: NormalizedPrincipal) => ScopePair,
       case: label,
       before: previous.allow,
       after: proposed.allow,
-      rules: proposed.rules,
+      // Cedar diagnostics can vary in order. Sort a copy by policy ID for a stable report.
+      rules: [...proposed.rules].sort(),
     });
   }
   let matrixCases = 0;
@@ -172,18 +198,21 @@ export interface DryRunEvidence {
   audit: AuditEntry[];
   /** Display names the panel shows, by identity; unknown identities keep their id. */
   names?: Map<string, string>;
+  /** The active boundary, when comparison starts at the Admin service. */
+  access?: AccessControl;
 }
 
 /** Replays matrix and audit cases and compares every known person's and client's project actions. */
-export function compareAccess(options: AccessOptions, next: AccessConfig, { users, audit, names = new Map() }: DryRunEvidence) {
-  const scopeFor = scopeCache(createAccessControl(options), createAccessControl({ ...options, config: next }));
+export function compareAccess(options: AccessOptions, next: AccessConfig, { users, audit, names = new Map(), access }: DryRunEvidence) {
+  const before = access ?? createAccessControl(options);
+  const { snapshot: current, scopeFor } = scopeCache(before, next);
   const identities = new Map(users.map(user => [user.id, user]));
-  for (const client of [...options.config.agents.clients, ...next.agents.clients]) {
+  for (const client of [...current.config.agents.clients, ...next.agents.clients]) {
     identities.set(`client:${client.clientId}`, clientPrincipal(client.clientId, client.name));
   }
-  const projects = [...new Set([...options.knownProjects(), ...Object.keys(next.projects.projects)])];
-  const replayed = replayDecisions(scopeFor, audit, identities, options.config);
-  const configs = { before: options.config, after: next, names };
+  const projects = [...new Set([...current.knownProjects(), ...Object.keys(next.projects.projects)])];
+  const replayed = replayDecisions(scopeFor, audit, identities, current.config);
+  const configs = { before: current.config, after: next, names };
   const people = peopleChanges(scopeFor, [...identities.values()], projects, configs);
   return { ...replayed, people };
 }

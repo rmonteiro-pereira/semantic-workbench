@@ -55,6 +55,12 @@ not configure a production deployment.
 - Push and Sync now refuse any `work/` or `proposal/` branch, in local and server mode. Work in progress stays in
   the workbench: publish it, then use Push default. A commit with push requested keeps the commit and reports
   that the push was refused.
+- Admin permission dry runs reuse policy preparation and equivalent authorization work, reducing
+  the measured dev-server median below one second for the current access matrix.
+  Proposals containing custom Cedar rules can take longer to simulate.
+- Project creation respects the server's default authorization hour. A Cedar time restriction can
+  return 403 for `POST /api/projects`, `POST /api/import`, and `POST /api/examples/:name`, and
+  can remove creation domains from `GET /api/me`.
 
 - Published reads, local Publish, outside adoption and browser previews share the operation boundary
   and its reviewed inventory. MCP callers consume published definitions independently of browser sessions.

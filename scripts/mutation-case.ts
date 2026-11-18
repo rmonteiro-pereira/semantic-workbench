@@ -22,6 +22,19 @@ const composed = {};
 for (const name of [...entryModules, ...authModules]) Object.assign(composed, await import(resolve(treeRoot!, name)));
 const loadedModule = { ...composed, ...mutatedModule };
 const category = process.argv[3];
+if (category === 'access-index') {
+  const candidate = await import(resolve(dirname(process.argv[2]), 'authorize.ts'));
+  const replay = await import(resolve(dirname(process.argv[2]), 'dry-run.ts'));
+  (await import('../tests/auth/access-index-assertions')).assertAccessIndexes(candidate.createAccessControl);
+  const scopes = await import('../tests/auth/dry-run-scope-assertions');
+  scopes.assertDryRunScopes(replay.compareAccess);
+  scopes.assertReloadedReplay(replay.compareAccess);
+  scopes.assertDeactivatedReplay(replay.scopeCache);
+  scopes.assertReplayScopeSnapshot(replay.scopeCache);
+  scopes.assertReplaySurvivesReload(replay.scopeCache);
+  scopes.assertReplayClock(replay.compareAccess, candidate.createAccessControl);
+  await (await import('../tests/auth/creation-route-assertions')).assertCreationRoutes(candidate.createAccessControl);
+}
 // Publication mutants load only the publication module, so working copies come from the real source.
 async function worktreeFactory(): Promise<typeof import('../src/server/projects/worktrees').createWorktrees> {
   return loadedModule.createWorktrees ?? (await import('../src/server/projects/worktrees')).createWorktrees;

@@ -2,7 +2,7 @@
 // Request caches share decisions only for resources no compiled condition can distinguish.
 import { NEW_PROJECT, newProjectIn, normalizeResource, type ResourceRef, type Decision, type DecisionContext } from './resource';
 import builtin from '../../../policies/builtin-roles.json';
-import { loadPolicySet, createPolicyEvaluator, PolicyLoadError } from './cedar';
+import { loadPolicySet, createPolicyEvaluator, PolicyLoadError, type PolicySet } from './cedar';
 import { validateAccessConfig, type AccessConfig, type Role } from './access-config';
 import { holdersOfGrant, resolveGrants, type Bootstrap, type GrantOptions } from './grants';
 import { clientPrincipal, localPrincipal, type NormalizedPrincipal, type Principal } from './principal';
@@ -30,15 +30,20 @@ export type AccessOptions = {
   context?: () => Pick<DecisionContext, 'hour' | 'sourceIp'>;
 };
 
-function prepare(config: AccessConfig, projects: string[], groupMatch: GrantOptions['groupMatch']) {
+function policyInputs(config: AccessConfig) {
+  return { builtinRoles: builtin.roles as Role[], customRoles: config.roles, adminRules: config.adminRules };
+}
+
+function matchesPolicy(current: AccessConfig, proposed: AccessConfig): boolean {
+  return JSON.stringify(policyInputs(current)) === JSON.stringify(policyInputs(proposed));
+}
+
+function prepare(config: AccessConfig, projects: string[], groupMatch: GrantOptions['groupMatch'], previous?: ActiveAccess) {
   projects = [...projects];
   try {
     const validated = validateAccessConfig(config);
-    const policy = loadPolicySet({
-      builtinRoles: builtin.roles as Role[],
-      customRoles: validated.roles,
-      adminRules: validated.adminRules,
-    });
+    const samePolicies = previous && matchesPolicy(previous.config, validated);
+    const policy = samePolicies ? previous.policy : loadPolicySet(policyInputs(validated));
     const evaluate = createPolicyEvaluator(policy, {
       config: validated,
       projects,
@@ -51,7 +56,12 @@ function prepare(config: AccessConfig, projects: string[], groupMatch: GrantOpti
     throw new PolicyLoadError(error instanceof Error ? error.message : String(error));
   }
 }
-type ActiveAccess = ReturnType<typeof prepare>;
+type ActiveAccess = {
+  config: AccessConfig;
+  policy: PolicySet;
+  evaluate: ReturnType<typeof createPolicyEvaluator>;
+  projects: string[];
+};
 
 function requestContext(active: ActiveAccess, mode: AccessOptions['mode'], resource: ResourceRef, supplied: Partial<DecisionContext>): DecisionContext {
   const branch = supplied.branch ?? '';
@@ -93,12 +103,12 @@ type DecisionRequest = {
   context: DecisionContext;
 };
 
-function decisionFor(active: ActiveAccess, request: DecisionRequest): Decision {
+function decisionFor(active: ActiveAccess, request: DecisionRequest, canRead?: () => boolean): Decision {
   const { principal, action, resource, context } = request;
   const result = active.evaluate(principal, action, resource, context);
   if (result.allow) return { allow: true, rules: result.rules, status: 200 };
   if (resource.type !== 'workspace') {
-    const readable = action !== 'read' && active.evaluate(principal, 'read', resource, context).allow;
+    const readable = action !== 'read' && (canRead ? canRead() : active.evaluate(principal, 'read', resource, context).allow);
     if (!readable) return { allow: false, rules: result.rules, status: 404, reason: 'not-readable' };
   }
   return { allow: false, rules: result.rules, status: 403, reason: result.reason };
@@ -140,9 +150,13 @@ function newProjectDecision(active: ActiveAccess, principal: Principal, resource
 
 /** Creates the only authority for access decisions, filtered listings, and principal grants. */
 export function createAccessControl(options: AccessOptions) {
+  return accessControl(options);
+}
+
+function accessControl(options: AccessOptions, previous?: ActiveAccess) {
   const bootstrap = structuredClone(options.bootstrap);
   const listeners = new Set<() => void>();
-  let active = prepare(options.config, options.knownProjects(), options.groupMatch);
+  let active = prepare(options.config, options.knownProjects(), options.groupMatch, previous);
   function refreshProjects(): void {
     const projects = [...options.knownProjects()].sort();
     if (JSON.stringify(projects) === JSON.stringify([...active.projects].sort())) return;
@@ -184,7 +198,7 @@ export function createAccessControl(options: AccessOptions) {
     };
   }
 
-  function forRequest(identity: Principal, requestDefaults: Partial<DecisionContext> = {}) {
+  function forRequest(identity: Principal, requestDefaults: Partial<DecisionContext> = {}, replay = false) {
     refreshProjects();
     let snapshot = active;
     let principal = principalFor(identity);
@@ -198,24 +212,39 @@ export function createAccessControl(options: AccessOptions) {
       decisions.clear();
     }
 
+    function replayAction(action: Action, resource: ResourceRef) {
+      // Creation can search domains, so another action must never borrow its result.
+      if (action === 'createProject') return [action];
+      const type = resource.type === 'file' && resource.metric ? 'metric' : resource.type;
+      const actionClasses = snapshot.policy.actionClasses(
+        principal.grants.map(grant => grant.roleId),
+        principal.kind,
+        type,
+      );
+      return actionClasses.get(action) ?? action;
+    }
+
     function authorize(action: Action, input: ResourceRef, supplied: Partial<DecisionContext> = {}): Decision {
       synchronize();
       const resource = normalizeResource(input);
-      const context = requestContext(snapshot, options.mode, resource, {
-        ...options.context?.(),
+      const contextInputs = {
+        ...(replay ? undefined : options.context?.()),
         ...requestDefaults,
         ...supplied,
-      });
+      };
+      const context = requestContext(snapshot, options.mode, resource, contextInputs);
       const project = resource.type === 'workspace' ? '' : resource.project;
-      const key = JSON.stringify([action, project, ruleClass(snapshot, resource), context, resource.type === 'workspace' ? undefined : resource.domain]);
+      const actionClass = replay ? replayAction(action, resource) : action;
+      const key = JSON.stringify([actionClass, project, ruleClass(snapshot, resource), context, resource.type === 'workspace' ? undefined : resource.domain]);
       const previous = decisions.get(key);
       if (previous) return previous;
       if (action === 'createProject' && options.mode === 'server' && (resource.type === 'workspace' || (resource.type === 'project' && resource.project === NEW_PROJECT))) {
-        const decision = creationDecision(snapshot, principal, resource, supplied);
+        const decision = creationDecision(snapshot, principal, resource, contextInputs);
         decisions.set(key, decision);
         return decision;
       }
-      const decision = decisionFor(snapshot, { principal, action, resource, context });
+      const canRead = replay ? () => authorize('read', resource, context).allow : undefined;
+      const decision = decisionFor(snapshot, { principal, action, resource, context }, canRead);
       decisions.set(key, decision);
       return decision;
     }
@@ -338,8 +367,11 @@ export function createAccessControl(options: AccessOptions) {
     bootstrap: structuredClone(bootstrap),
     config: structuredClone(active.config),
   });
+  const ordinaryRequest: (identity: Principal, defaults?: Partial<DecisionContext>) => ReturnType<typeof forRequest> = forRequest;
   return {
-    forRequest,
+    forRequest: ordinaryRequest,
+    /** Reuses equivalent actions within a replay while keeping the ordinary request path lean. */
+    forReplay: (identity: Principal, context = options.context?.() ?? {}) => forRequest(identity, context, true),
     authorize,
     filter,
     view,
@@ -349,6 +381,14 @@ export function createAccessControl(options: AccessOptions) {
     explain,
     whoCan,
     snapshot,
+    /** Validates policy text, reusing the active preparation only when all policy inputs match. */
+    validatePolicy: (config: AccessConfig) => {
+      const same = matchesPolicy(active.config, config);
+      if (same) return;
+      loadPolicySet(policyInputs(config));
+    },
+    /** Builds an independent proposal boundary, reusing only unchanged prepared policy text. */
+    fork: (config: AccessConfig, environment?: Pick<AccessOptions, 'knownProjects' | 'context'>) => accessControl({ ...options, ...environment, bootstrap, config }, active),
   };
 }
 /** The access boundary instance shared across requests. */

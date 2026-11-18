@@ -450,6 +450,93 @@ Connection effects narrow allowed decisions; they preserve existence-hiding refu
 existing distinction between hidden-trash denials and unaudited missing entries.
 
 `bun scripts/boundary-benchmark.ts` measures 5,000 in-process HTTP requests with isolated temporary data and prints median and 95th-percentile durations.
+
+`bun scripts/dry-run-latency.ts 20` measures the Admin dry-run POST through a loopback socket on
+port 5461, using disposable authorization fixture data and a custom-role grant removal. Each
+matrix size has one warm-up followed by 20 sequential requests; the JSON output includes median
+and p95 wall time through response consumption. The default sizes are 115 cases × 9 principals
+(1,035 cells) and twice those cases (2,070 cells). Duplication changes only the script's in-memory
+matrix; it does not change the checked-in matrix or expected answers. An optional run count and
+case multipliers select shorter probes, for example `bun scripts/dry-run-latency.ts 3 1`.
+`--profile` reports time and call count inside Cedar's WASM authorization entry point. For sampled
+stacks, use `bun --cpu-prof --cpu-prof-dir=out/dry-run scripts/dry-run-latency.ts --profile 3 1`.
+Keep profiling separate from the uninstrumented 20-run latency measurement.
+
+Bun 1.4 measurements compare `84642cb0` with lazy replay indexes at `0236adb6`. Each row uses one
+warm-up and 20 sequential POSTs on the named host. Compare results within a host.
+
+| Measurement host | Matrix cells | Before median / p95 (ms) | After median / p95 (ms) |
+| ---------------- | -----------: | -----------------------: | ----------------------: |
+| Local machine    |        1,035 |      2,466.99 / 3,106.11 |         239.62 / 262.02 |
+| Local machine    |        2,070 |      1,976.19 / 2,190.76 |         247.78 / 263.01 |
+| Dev server       |        1,035 |      7,028.60 / 7,219.57 |         859.63 / 950.51 |
+| Dev server       |        2,070 |      7,010.38 / 7,149.47 |         859.18 / 993.39 |
+
+The instrumented dev-server baseline spent 6,394.51 ms per POST in 4,702 Cedar calls, against a
+7,131.65 ms median POST. Repeated decisions dominated: matrix replay and people summaries asked
+equivalent action questions, including repeated readability checks. The corresponding optimized
+probe spends 706.86 ms in 463 Cedar calls, with an 889.83 ms median POST. The local optimized probe
+spends 202.70 ms in those 463 calls, with a 263.05 ms median POST. Instrumented probes use three
+requests after warm-up and are separate from the timing table.
+
+Validated policies own role-, principal-type- and resource-type-aware action classes, built on
+the first replay. Replay scopes reuse equivalent decisions and their readability checks;
+ordinary request scopes retain exact action keys. Prospective project creation has a separate
+key because it searches domain scopes. Before/after scopes can be shared only when the relevant
+principal, grants, custom roles, project visibility and client entry agree. Deactivated principals
+use separate replay scopes because Cedar still evaluates group ancestry. Arbitrary Cedar
+admin rules keep separate scopes and exact action classes. Policy preparation is reused only
+when the validated roles and admin rules match. Decision results remain confined to a scope,
+with refresh invalidation; there is no global request-result cache. Both sides of a comparison
+use the same default context, captured once from the active control. The scope factory takes that
+control and the proposal. Both sides use independent controls with the project list and context
+captured at the start, so a live policy reload cannot change an in-flight replay.
+
+The Admin browser wait is six seconds. The doubled-matrix dev-server p95 is 993.39 ms; the Admin
+browser suite at `0236adb6` observed a 4,336 ms peak on the conservative arbitrary-rule path,
+leaving about 1.7 seconds for rendering. That suite passed with a five-second wait before the
+additional headroom was added. Arbitrary-rule proposals are outside the subsecond grant-removal
+measurement above.
+
+Ordinary-path controls alternate the original and optimized sources in three paired rounds:
+original/optimized, optimized/original, original/optimized. Each boundary run uses the existing
+5,000-request benchmark and its 150 warm-ups. Each listing run uses the existing 30 requests per
+path after one warm-up at each project count. Both controls use isolated temporary data.
+The tables report the median of the three independently reported medians and p95s, rather than
+a percentile pooled across processes.
+
+| Measurement host | Boundary before median / p95 (ms) | Boundary after median / p95 (ms) |
+| ---------------- | --------------------------------: | -------------------------------: |
+| Local machine    |                     2.644 / 5.405 |                    2.614 / 5.326 |
+| Dev server       |                    8.728 / 18.542 |                   8.709 / 17.918 |
+
+| Measurement host | Projects | HTTP before → after median / p95 (ms) | Boundary before → after median / p95 (ms) | Tool before → after median / p95 (ms) |
+| ---------------- | -------: | ------------------------------------: | ----------------------------------------: | ------------------------------------: |
+| Local machine    |       10 |                 6.1 / 7.9 → 6.3 / 8.7 |                     5.7 / 7.1 → 6.0 / 7.5 |                 5.7 / 7.2 → 5.9 / 7.4 |
+| Local machine    |      100 |             49.6 / 57.5 → 47.4 / 52.8 |                 47.1 / 56.7 → 46.1 / 53.8 |             47.7 / 53.7 → 47.4 / 56.2 |
+| Local machine    |      120 |             55.5 / 63.6 → 55.0 / 65.2 |                 56.6 / 67.1 → 56.3 / 63.2 |             57.8 / 65.2 → 57.0 / 66.9 |
+| Local machine    |      200 |         109.7 / 118.4 → 105.4 / 115.7 |             106.5 / 116.2 → 102.9 / 114.5 |         106.7 / 115.2 → 108.1 / 115.2 |
+| Dev server       |       10 |             12.2 / 16.8 → 13.6 / 22.2 |                 13.1 / 20.1 → 12.6 / 20.1 |             12.5 / 17.5 → 12.8 / 17.9 |
+| Dev server       |      100 |          98.5 / 127.6 → 103.3 / 124.2 |              98.1 / 124.7 → 109.0 / 141.5 |         102.4 / 125.5 → 106.2 / 131.3 |
+| Dev server       |      120 |         126.7 / 170.5 → 122.6 / 146.1 |             129.2 / 160.0 → 118.6 / 143.4 |         126.7 / 159.6 → 126.4 / 160.4 |
+| Dev server       |      200 |         236.9 / 265.2 → 236.9 / 286.8 |             230.8 / 275.5 → 244.5 / 268.8 |         226.8 / 258.5 → 233.2 / 254.6 |
+
+Listing controls vary across runs: one local optimized 200-project HTTP run reached a 345.4 ms
+median and 704.3 ms p95, while the three-run HTTP median is 105.4 ms. Some listing cells and tails
+are higher after the change, so these controls do not establish a uniform listing speedup.
+A separate 200-project probe wraps `statefulIsAuthorized` and `policyToJson` before dynamically
+importing the listing script. Both versions make 93 Cedar decisions across 93 requests. Cedar
+sums 72.65 → 74.06 ms locally and 196.14 → 212.55 ms on the dev server. Ordinary requests make no
+`policyToJson` calls in either the original or final version. Building the replay index eagerly
+requires 18 such calls at construction, costing 4.99 ms locally and 16.36 ms on the dev server.
+Lazy construction keeps that work outside ordinary access boundaries.
+
+Cedar can emit simultaneous forbid IDs in different orders. Repeating the original replay at
+`84642cb0` with the last Admin removed produced five rule-array order differences, with identical
+decisions and rule IDs. Dry-run reports sort rule IDs lexicographically. The whole-matrix parity
+test compares rule IDs as multisets and all other response fields byte for byte against the original
+replay algorithm. Existing fixtures retain their original contents.
+
 `bun test tests/auth/http-characterization.test.ts` compares the original recorded route cases and audit records; preserve its fixture unchanged.
 The comparison asserts and removes only the additive published identity on project listings. New publication and preview routes have separate parity cases.
 For new operations, regenerate `policies/matrix-cases.json` with `bun scripts/generate-access-matrix.ts` and record the new HTTP cases with
