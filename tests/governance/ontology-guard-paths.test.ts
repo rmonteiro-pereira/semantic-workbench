@@ -6,11 +6,14 @@ import { requestAccess, requestReader } from '../../src/server/auth/request-scop
 import type { GuardOperation } from '../../src/shared/governance/guards';
 import { ONTOLOGY_GUARDS_ACTIVE } from '../../src/shared/governance/ontology-guards';
 import { LOCAL_READER } from '../../src/server/projects/reader';
+import { writeFileSync } from 'node:fs';
+import { sha256 } from '../../src/server/projects/atomic';
 import { join } from 'node:path';
 import { sh } from '../helpers/scm';
+import { publishFixture } from '../helpers/published-workspace';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { accessFixture, person } from '../auth/access-fixture';
-import { dataSnapshot, expectGuardRefusal, guardHandler, metricCase, sendCase, type GuardCase } from '../auth/guard-cases';
+import { dataSnapshot, expectGuardRefusal, guardHandler, metricCase, openCopyAs, sendCase, type GuardCase } from '../auth/guard-cases';
 
 const PROJECT = 'sales-metrics';
 const FILE = 'retail.ontology.yaml';
@@ -130,6 +133,82 @@ test('an import that creates a project is judged as creating its files', async (
   expect(body.error).toContain('nobody approves or deprecates an item they own');
   const created = await sendCase(steward, create(ontology('approved')));
   expect(created.status, await created.clone().text()).toBe(200);
+});
+
+const IDENTITY = ['-c', 'user.name=Ontology author', '-c', 'user.email=author@example.org'];
+
+function scmCase(name: string, body: unknown): GuardCase {
+  return { name, method: 'POST', path: `${URL_BASE}/git/${name}`, body, guarded: GUARDED_STATUS };
+}
+
+function commitApproval(repository: string) {
+  writeFileSync(join(repository, FILE), ontology('approved'));
+  sh(repository, [...IDENTITY, 'commit', '-qam', 'Approve Order']);
+}
+
+async function refusedThenAllowed(fixture: Awaited<ReturnType<typeof authWorkspace>>, name: 'alice' | 'bob', item: GuardCase) {
+  const existing = guardHandler(fixture.ws, name);
+  await expectGuardRefusal(await sendCase(existing, item), item, fixture.root);
+  const authorized = guardHandler(fixture.ws, name, ontologyApprover(name));
+  const response = await sendCase(authorized, item);
+  expect(response.status, await response.clone().text()).toBe(200);
+  return response;
+}
+
+test('reverting a personal edit must pass the ontology approval guard', async () => {
+  using fixture = await authWorkspace();
+  await seed(fixture, ontology('approved'));
+  const copy = await openCopyAs(fixture.ws, 'alice', PROJECT);
+  const proposed = ontology('proposed');
+  writeFileSync(join(copy, FILE), proposed);
+  const item = scmCase('revert', { path: FILE, baseHash: sha256(proposed) });
+  await refusedThenAllowed(fixture, 'alice', item);
+});
+
+test('switching to a branch with an approval needs ontology approval permission', async () => {
+  using fixture = await authWorkspace();
+  await seed(fixture, ontology('proposed'));
+  const repository = join(fixture.root, 'projects', PROJECT);
+  const current = sh(repository, ['branch', '--show-current']).trim();
+  sh(repository, ['switch', '-qc', 'review']);
+  commitApproval(repository);
+  sh(repository, ['switch', '-q', current]);
+  await refusedThenAllowed(fixture, 'alice', scmCase('switch', { branch: 'review' }));
+});
+
+test('pulling a commit that approves an item needs ontology approval permission', async () => {
+  using fixture = await authWorkspace();
+  await seed(fixture, ontology('proposed'));
+  const repository = join(fixture.root, 'projects', PROJECT);
+  const branch = sh(repository, ['branch', '--show-current']).trim();
+  const remote = join(fixture.root, 'remote.git');
+  const other = join(fixture.root, 'contributor');
+  sh(fixture.root, ['clone', '-q', '--bare', repository, remote]);
+  sh(fixture.root, ['clone', '-q', remote, other]);
+  commitApproval(other);
+  sh(other, ['push', '-q', 'origin', branch]);
+  await fixture.ws.scm.setRemote(PROJECT, 'origin', remote);
+  const response = await refusedThenAllowed(fixture, 'alice', scmCase('pull', {}));
+  expect((await response.json()).ok).toBe(true);
+});
+
+test('restoring a trashed approval needs ontology approval permission', async () => {
+  using fixture = await authWorkspace();
+  await seed(fixture, ontology('approved'));
+  const authorized = guardHandler(fixture.ws, 'alice', ontologyApprover('alice'));
+  const deleted = await sendCase(authorized, { name: 'delete', method: 'DELETE', path: `${URL_BASE}/files/${FILE}`, body: { confirm: true }, guarded: GUARDED_BODY });
+  expect(deleted.status).toBe(200);
+  const { entryId } = await deleted.json();
+  await refusedThenAllowed(fixture, 'alice', { name: 'restore', method: 'POST', path: `/api/trash/${entryId}/undo`, body: {}, guarded: GUARDED_STATUS });
+});
+
+test('publishing another author’s approval needs ontology approval permission', async () => {
+  using fixture = await authWorkspace();
+  await seed(fixture, ontology('proposed'));
+  await publishFixture(fixture);
+  const copy = await openCopyAs(fixture.ws, 'bob', PROJECT);
+  commitApproval(copy);
+  await refusedThenAllowed(fixture, 'bob', scmCase('publish', {}));
 });
 
 const OPERATIONS: GuardOperation[] = ['pull', 'revert', 'delete', 'restore', 'import', 'move', 'switch', 'publish'];
