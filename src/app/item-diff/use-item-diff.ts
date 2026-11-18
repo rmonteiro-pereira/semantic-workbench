@@ -41,7 +41,7 @@ export function useItemDiff(project: ProjectInfo | undefined, documents: readonl
   const branch = checkedOut === '(detached)' ? '' : checkedOut;
   const head = status?.head;
   const commit = project?.published?.commit ?? '';
-  const key = JSON.stringify([project?.slug, branch, head, commit, revision, attempt]);
+  const key = JSON.stringify([project?.slug, branch, commit, revision, attempt]);
   const unpublishedDocuments = commit ? undefined : documents;
 
   useEffect(() => {

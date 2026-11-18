@@ -189,8 +189,9 @@ export function GraphViews({
         grouping={grouping.value}
         key={current?.id}
         name={model.name}
-        entities={graph.entities}
-        edges={graph.edges}
+        entities={graph.entities.length === model.entities.length ? model.entities : graph.entities}
+        edges={graph.edges.length === model.edges.length ? model.edges : graph.edges}
+        annotations={graph === model ? undefined : graph}
         selected={selected}
         selectedEdge={selectedEdge}
         search={search}

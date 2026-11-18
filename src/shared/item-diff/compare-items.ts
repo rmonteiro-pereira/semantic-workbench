@@ -15,6 +15,7 @@ function byAddress(items: readonly DiffItem[]): Map<string, DiffItem[]> {
 }
 
 function migratedTarget(item: DiffItem, records: readonly MigrationRecord[]): string | null {
+  if (!records.length) return item.address;
   const parsed = parseAddress(item.address);
   if (!parsed.ok) throw new Error(`Invalid comparison item address: ${parsed.reason}.`);
   let address = parsed.address;
