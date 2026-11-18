@@ -32,9 +32,23 @@ async function consumers(fixture: Fixture) {
   const context = await get(fixture, '/api/agent/context?project=retail&mappingId=retail/mapping.yaml');
   const catalog = await get(fixture, '/api/agent/catalog?project=retail');
   const graph = await get(fixture, '/api/projects/retail/dependencies?interfaces=1');
-  expect([bundle.status, context.status, catalog.status, graph.status]).toEqual([200, 200, 200, 200]);
+  const plan = await fixture.fixture.handler(
+    new Request('http://localhost:4310/api/agent/plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ project: 'retail', mappingId: 'retail/mapping.yaml', metrics: ['revenue'], dimensions: [] }),
+    }),
+  );
+  expect([bundle.status, context.status, catalog.status, graph.status, plan.status]).toEqual([200, 200, 200, 200, 200]);
   const graphResult = await graph.json();
-  return { bundle: await bundle.text(), context: await context.text(), catalog: await catalog.text(), graph: graphResult.interfaces, state: graphResult.roots[0].state };
+  return {
+    bundle: await bundle.text(),
+    context: await context.text(),
+    catalog: await catalog.text(),
+    plan: await plan.text(),
+    graph: graphResult.interfaces,
+    state: graphResult.roots[0].state,
+  };
 }
 
 test('published consumers preserve their locked interface across provider edits and publications', async () => {
