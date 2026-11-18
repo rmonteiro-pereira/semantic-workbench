@@ -49,12 +49,17 @@ export async function controlThemeProblems(page: Page, within = 'body'): Promise
         problems.add(`${(choice as HTMLInputElement).type} keeps the browser's own accent colour`);
       }
     }
-    for (const button of scope.querySelectorAll<HTMLButtonElement>('button:disabled')) {
+    // Save state is an indicator when there is no file or action.
+    const primary = scope.querySelector<HTMLButtonElement>('button.primary:not(:disabled)');
+    const primaryBorder = primary && getComputedStyle(primary).borderColor;
+    for (const button of scope.querySelectorAll<HTMLButtonElement>('button:disabled:not([role="status"])')) {
       if (!button.getClientRects().length) continue;
-      const style = getComputedStyle(button);
-      if (style.borderTopStyle !== 'solid') problems.add('disabled button must have a solid border');
-      const enabled = scope.querySelector<HTMLButtonElement>('button.primary:not(:disabled)');
-      if (enabled && getComputedStyle(enabled).borderColor === style.borderColor) problems.add('disabled border must differ from the primary action');
+      // Segmented choices share the outline of the radio group.
+      const radioGroup = button.getAttribute('role') === 'radio' ? button.closest('[role="radiogroup"]') : null;
+      const style = getComputedStyle(radioGroup ?? button);
+      const label = button.getAttribute('aria-label') ?? button.textContent?.trim();
+      if (style.borderTopStyle !== 'solid') problems.add(`disabled button "${label}" must have a solid border`);
+      if (primaryBorder === style.borderColor) problems.add(`disabled button "${label}" must use a different border from the primary action`);
     }
     return [...problems];
   }, within);
