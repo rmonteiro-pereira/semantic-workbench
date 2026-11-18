@@ -61,11 +61,13 @@ export function scopeDocument(snapshot: TrafficSnapshot): AddressDocument | null
 /** The Traffic of one item, given its address relative to the file, for the component that draws it. */
 export function useItemTraffic(address: string | undefined): ItemTraffic | null {
   const snapshot = useTraffic();
+  if (!snapshot.on) return null;
   return trafficOf(snapshot, absoluteTrafficAddress(address, scopeDocument(snapshot)));
 }
 
 /** The traffic of a bundle of relationships drawn as one line: the sum, at the level of the busiest one. */
 export function bundleTraffic(snapshot: TrafficSnapshot, relationships: readonly Relationship[] | undefined, document: AddressDocument | null): ItemTraffic | null {
+  if (!snapshot.on) return null;
   const found = (relationships ?? [])
     .map(relationship => trafficOf(snapshot, absoluteTrafficAddress(relationshipAddressText(relationship), document)))
     .filter((traffic): traffic is ItemTraffic => traffic !== null);
@@ -83,12 +85,16 @@ export function bundleTraffic(snapshot: TrafficSnapshot, relationships: readonly
 /** The traffic of the relationships a line stands for. */
 export function useBundleTraffic(relationships: readonly Relationship[] | undefined): ItemTraffic | null {
   const snapshot = useTraffic();
+  if (!snapshot.on) return null;
   return bundleTraffic(snapshot, relationships, scopeDocument(snapshot));
 }
+
+const zeroTraffic = () => 0;
 
 /** The total of one item's requests, found by its address relative to the file on screen; 0 when none or while Traffic shows nothing. */
 export function useTrafficTotals(): (relativeAddress: string | undefined) => number {
   const snapshot = useTraffic();
+  if (!snapshot.on) return zeroTraffic;
   const document = scopeDocument(snapshot);
   return relativeAddress => trafficOf(snapshot, absoluteTrafficAddress(relativeAddress, document))?.total ?? 0;
 }
@@ -96,5 +102,6 @@ export function useTrafficTotals(): (relativeAddress: string | undefined) => num
 /** The total of one metric's requests; 0 when none or while Traffic shows nothing. */
 export function useMetricTotals(project: string | null): (metric: KpiSummary) => number {
   const snapshot = useTraffic();
+  if (!snapshot.on) return zeroTraffic;
   return metric => (project ? (trafficOf(snapshot, metricAddressText(project, metric))?.total ?? 0) : 0);
 }

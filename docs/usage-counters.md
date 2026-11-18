@@ -102,6 +102,8 @@ the address history cannot be read, no counts are shown and every day is named u
 
 ## In the interface
 
+While Traffic is off, its displays skip address lookup and relationship traversal.
+
 The graph options of the full graph and the neighborhood have a **Traffic** switch, off by default and
 remembered for each model in the browser. Switched on, it asks the server once and then at most once a
 minute. Items that were asked about get a heavier outline and a longer bar, in five steps relative to

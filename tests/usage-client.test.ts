@@ -2,12 +2,22 @@
 import { describe, expect, test } from 'bun:test';
 import { createTrafficStore, describeAnswer, REFRESH_MS } from '../src/app/usage/traffic-store';
 import { absoluteTrafficAddress, metricAddressText } from '../src/app/usage/usage-addresses';
-import { trafficOf } from '../src/app/usage/use-usage';
+import { bundleTraffic, trafficOf } from '../src/app/usage/use-usage';
 import { DOCUMENT, MODEL, PROJECT, answerWith, fakeDeps, itemOf, storeWith } from './helpers/traffic-store';
 
 const scope = { project: PROJECT, path: DOCUMENT, modelName: MODEL };
 
 describe('while the option is off', () => {
+  test('a disabled bundle does not read its relationships', async () => {
+    const { store } = await storeWith(async () => answerWith([]), { on: false });
+    const relationships = new Proxy([], {
+      get() {
+        throw new Error('Traffic inspected a disabled bundle');
+      },
+    });
+    expect(bundleTraffic(store.getSnapshot(), relationships, { project: PROJECT, document: [DOCUMENT] })).toBeNull();
+  });
+
   test('attaching a graph asks for nothing and leaves the store idle', async () => {
     const { deps, requests, timers } = fakeDeps(async () => answerWith([]));
     const store = createTrafficStore(deps);
