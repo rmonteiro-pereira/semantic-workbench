@@ -10,6 +10,7 @@ import { LOCAL_READER } from '../src/server/projects/reader';
 
 const project = 'finance';
 const file = 'finance.ontology.yaml';
+const heldBranch = 'item/held-by-other-copy';
 const fixture = await itemDiffBaselineWorkspace();
 fixture.ws.close();
 const api = await startIsolatedApi({ root: fixture.root });
@@ -31,6 +32,7 @@ function mainFile(page: Page) {
 }
 
 async function serveBrowser(page: Page, publishControls = false) {
+  let failReview = publishControls;
   page.on('pageerror', error => errors.push(error.message));
   page.on('request', request => {
     if (/\/git\/(push|push-default|sync)$/.test(new URL(request.url()).pathname)) unexpectedPush.push(request.url());
@@ -39,6 +41,11 @@ async function serveBrowser(page: Page, publishControls = false) {
     const url = new URL(route.request().url());
     const path = url.pathname + url.search;
     if (url.pathname.endsWith('/item-diff')) {
+      if (failReview && url.searchParams.get('to')?.startsWith('branch:')) {
+        failReview = false;
+        await route.fulfill({ status: 503, json: { error: 'Comparison temporarily unavailable.' } });
+        return true;
+      }
       const response = await api.handler(new Request('http://localhost:5173' + path, { headers: { 'Sec-Fetch-Site': 'same-origin' } }));
       await route.fulfill({ status: response.status, body: await response.text(), headers: Object.fromEntries(response.headers) });
       return true;
@@ -47,7 +54,9 @@ async function serveBrowser(page: Page, publishControls = false) {
       const response = await api.handler(new Request('http://localhost:5173' + path));
       const projects = await response.json();
       for (const entry of projects) {
-        if (entry.slug === project) entry.copy = { branch: entry.branch, defaultBranch: primary, inUseBranches: [] };
+        if (entry.slug === project) {
+          entry.copy = { branch: entry.branch, defaultBranch: primary, inUseBranches: [{ branch: heldBranch, inUseBy: 'Another editor' }] };
+        }
       }
       await route.fulfill({ json: projects });
       return true;
@@ -134,6 +143,8 @@ async function branchFrom(page: Page, locator: Locator, proposal: string) {
   const dialog = page.getByRole('dialog', { name: 'Start a branch for this item' });
   const name = dialog.getByRole('textbox', { name: 'New branch name' });
   await expect(name).toHaveValue(proposal);
+  const held = dialog.locator('option', { hasText: heldBranch + ' (in use by Another editor)' });
+  await expect(held).toHaveAttribute('disabled', '');
   await name.fill('bad..branch');
   await dialog.getByRole('button', { name: 'Create', exact: true }).click();
   await expect(dialog.getByRole('alert')).toContainText('not a valid branch name');
@@ -145,6 +156,7 @@ async function branchFrom(page: Page, locator: Locator, proposal: string) {
 }
 
 async function branchAndPublish(page: Page) {
+  sh(repository, ['branch', heldBranch]);
   await serveBrowser(page, true);
   await itemDiffTab(page, 'Catalog');
   await page
@@ -172,15 +184,21 @@ async function branchAndPublish(page: Page) {
   const sync = await openSyncDialog(page);
   await sync.getByRole('button', { name: 'Publish to ' + primary }).click();
   const confirm = page.getByRole('dialog', { name: 'Publish to ' + primary + '?' });
-  await expect(confirm.getByRole('region', { name: 'Publication changes' })).toContainText('An edited buyer.');
+  const review = confirm.getByRole('region', { name: 'Publication changes' });
+  await expect(review).toContainText('Comparison temporarily unavailable.');
   await expect(confirm.getByRole('button', { name: 'Publish to ' + primary })).toBeEnabled();
+  await review.getByRole('button', { name: 'Try again' }).click();
+  await expect(review).toContainText('An edited buyer.');
   await confirm.getByRole('button', { name: 'Cancel' }).click();
   await page.getByRole('dialog', { name: 'Sync' }).getByRole('button', { name: 'Close' }).click();
   const branch = page.getByRole('combobox', { name: 'Branch', exact: true });
   await branch.selectOption(primary);
   await expect(branch).toHaveValue(primary);
+  await itemDiffTab(page, 'Graph');
+  await expect(await itemDiffToggle(page)).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.locator('.full-graph .item-change-mark')).toHaveCount(0);
   expect(unexpectedPush).toEqual([]);
-  console.log('PASS entity, relationship and attribute branch journey and publication review without push');
+  console.log('PASS item branches, held names, overlay refresh and publication review with retry and no push');
 }
 
 try {
