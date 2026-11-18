@@ -50,6 +50,17 @@ Completed checks on the rebased candidate:
 | `bun scripts/ci-validate.ts --step browser --suite test:sql` | 10 SQL checks passed (36.0 s). |
 | `bun scripts/ci-validate.ts --step browser --suite test:git-setup` | Exit 1 in 12.3 s. Setting identity and committing through the UI passed. The fixture repository had no commits on its current main branch. |
 | `bun scripts/ci-validate.ts --step browser --suite test:monorepo` | Exit 1 in 30.7 s. Clone finished with “Cloned monorepo.” but the browser check required “Cloned.”. |
+| `bun scripts/ci-validate.ts --step browser --suite test:dialogs` | 9 dialog checks passed across six viewports (326.5 s). |
+| `bun scripts/ci-validate.ts --step browser --suite test:telemetry` | Exit 1 in 104.8 s. Seven reporting and privacy checks passed. The disabled-report scenario could not open Catalog. |
+| `bun scripts/ci-validate.ts --step browser --suite test:terminology` | Exit 0 in 104.2 s. |
+| `bun scripts/ci-validate.ts --step browser --suite test:mappings-layout` | 8 mapping layout checks passed (78.6 s). |
+| `bun scripts/ci-validate.ts --step browser --suite test:clipping` | Exit 0 in 28.8 s. |
+| `bun scripts/ci-validate.ts --step browser --suite test:mapping-graph` | Exit 1 in 109.1 s. Fit left five Mall overview card names outside their cards at 9 px. |
+| `bun scripts/ci-validate.ts --step browser --suite test:back-history` | Exit 1 in 52.2 s. The Neighborhood trail covered the second Mall neighbor and prevented the first selection. |
+| `bun scripts/ci-validate.ts --step browser --suite test:theme` | Exit 1 in 56.7 s. Both font loads, offline first-run fonts, theme switching and contrast checks passed. The light sidebar assertion counted a disabled status indicator as an outlined action. |
+| `bun scripts/ci-validate.ts --step browser --suite test:brand` | Exit 0 in 11.9 s. |
+
+The first pass ran all 36 registered browser suites. Twenty passed and sixteen failed.
 
 The catalog mutation removed a tooltip from a description that already wraps in full. The mutation needs to inject actual clipping and the assertion needs to reject clipped descriptions even with a tooltip.
 The read-only Auth check still expects the commit form the Source Control fix deliberately removes. The denied state remains represented by the disabled header button and its tooltip. The two-editor check still uses the former Sync label. Both browser checks need to be rerun against the reviewed controls.
