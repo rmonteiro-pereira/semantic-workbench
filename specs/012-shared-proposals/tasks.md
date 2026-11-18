@@ -20,8 +20,8 @@ Screenshot and browser capture is handed to Codex with a brief (T041, T042).
 **Purpose**: pin today's behaviour so the one deliberate change is visible. Committed before any change
 under `src/`.
 
-- [ ] T001 [US3] Add `tests/work-in-progress-push.test.ts` with cases recorded on the unchanged code: push of the default branch, of a feature branch, of `work/<handle>` and of `work/local` all reach a local bare remote; sync does the same. Use `tests/helpers/git-fixtures.ts` and `tests/helpers/scm.ts`. Proof: passes on the base commit, and the work-branch cases are marked as the cases FR-032 will change.
-- [ ] T002 [P] [US4] Add `tests/proposals-publish-baseline.test.ts`: publishing from a copy moves the default branch and refreshes every project of a repository with three projects (`tests/helpers/publication-fixture.ts`); partial authority refuses. Proof: passes on the base commit.
+- [x] T001 [US3] Add `tests/work-in-progress-push.test.ts` with cases recorded on the unchanged code: push of the default branch, of a feature branch, of `work/<handle>` and of `work/local` all reach a local bare remote; sync does the same. Use `tests/helpers/git-fixtures.ts` and `tests/helpers/scm.ts`. Proof: passes on the base commit, and the work-branch cases are marked as the cases FR-032 will change.
+- [x] T002 [P] [US4] Add `tests/proposals-publish-baseline.test.ts`: publishing from a copy moves the default branch and refreshes every project of a repository with three projects (`tests/helpers/publication-fixture.ts`); partial authority refuses. Proof: passes on the base commit.
 
 ## Phase 2: Foundation (blocks every story)
 
