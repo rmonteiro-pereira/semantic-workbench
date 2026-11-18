@@ -490,6 +490,21 @@ replays. The outstanding findings still require a matched screenshot or a record
 | m13 | `local/light/1440/files/commerce-data.ttl/graph` | The Order line area title uses word boundaries. |
 | m14, m15 | `local/light/1440/files/commerce-data.ttl/catalog` | Card starts align and type badges read as words. The tree fade still needs its own screenshot. |
 | m27 | `local/light/1440/files/ubl.ontology.yaml/mappings` | The empty view offers Import and Load example. The separate phone detail transition is M24. |
+| M1 | `local/light/390/followup/mall-properties-lineage/bundled-line-split` | The collapsed dataset header leaves a visible lineage canvas with multiple whole cards. The frame does not establish a successful bundle split. |
+| M6 | `local/light/390/tour/scm-diff-deleted/tour` | The staged deletion labels the right side Deleted (staged). |
+| M8, m14 | `local/light/390/files/ubl.semantic.yaml/catalog` | All 178 results are counted. The two bridge descriptions include the formerly hidden source occurrence range. |
+| M12 | `local/light/390/source-control/source-control/modified-diff` | The changed file opens in a unified diff with Back to changes. |
+| M18 | `local/light/390/states/metric-wizard/primary-hover` | The phone wizard retains its heading, active step and visible footer actions. |
+| M20 | `local/light/390/trash/trash/another-project` | A deleted file shows its project and Switch to project alongside the outlined empty-trash action. |
+| M24 | `local/light/390/followup/mapped-commerce-mappings/ai-context-open` | The details view has a Back to concepts action within the phone layout. |
+| m13 | `before/fixes/ubl-center-picker-390.png` and its after frame | The center picker accommodates the full label without dropping an action. |
+| m16 | `local/light/390/followup/add-concept/duplicate-name-refusal` | The duplicate-name refusal appears under Name and disables Save. |
+| m19 | `local/light/390/states/shell/avatar-menu` | The local identity menu gives its administration action a distinct name. |
+| m20 | `local/light/390/import/workspace/empty-before-import` | The empty workspace offers Import files without inactive tabs and search. |
+| m22 | `local/light/390/source-control/source-control/clean` | The why-disabled message and remote guidance wrap as body text. Branch and publication changes came from main. |
+| m23 | `local/light/390/tour/admin-settings/tour` | The Save settings control sits under Session lifetimes, apart from Remote policy. |
+| m25 | `local/light/390/tour/admin-audit/tour` | Audit rows give readable action labels and decision colors. |
+| m28 | `local/light/390/tour/ontology-neighborhood-fullscreen/tour` | Exit full screen is exposed in the primary row on the phone. |
 
 ## Scope ledger
 
