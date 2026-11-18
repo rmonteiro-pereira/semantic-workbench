@@ -29,10 +29,14 @@ type RequestScope = ReturnType<AccessControl['forRequest']>;
 type ScopePair = { before: RequestScope; after: RequestScope };
 
 /** Captures the active policy and clock, then builds paired replay scopes on demand. */
-export function scopeCache(before: AccessControl, proposal: AccessConfig) {
+export function scopeCache(access: AccessControl, proposal: AccessConfig) {
+  const active = access.snapshot();
+  const context = { ...active.context?.() };
+  const projects = [...active.knownProjects()];
+  const environment = { knownProjects: () => [...projects], context: () => ({ ...context }) };
+  const before = access.fork(active.config, environment);
   const snapshot = before.snapshot();
-  const context = snapshot.context?.() ?? {};
-  const current = snapshot.config;
+  const current = active.config;
   const after = before.fork(proposal);
   const next = after.snapshot().config;
   const scopes = new Map<string, ScopePair>();

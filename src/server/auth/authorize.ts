@@ -388,7 +388,7 @@ function accessControl(options: AccessOptions, previous?: ActiveAccess) {
       loadPolicySet(policyInputs(config));
     },
     /** Builds an independent proposal boundary, reusing only unchanged prepared policy text. */
-    fork: (config: AccessConfig) => accessControl({ ...options, bootstrap, config }, active),
+    fork: (config: AccessConfig, environment?: Pick<AccessOptions, 'knownProjects' | 'context'>) => accessControl({ ...options, ...environment, bootstrap, config }, active),
   };
 }
 /** The access boundary instance shared across requests. */

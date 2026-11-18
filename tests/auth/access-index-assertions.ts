@@ -39,6 +39,17 @@ export function assertAccessIndexes(createControl: typeof createAccessControl) {
   policyInputsInvalidatePreparation(access, changed);
   arbitraryPolicyActions(createControl);
   prospectiveCreation(createControl);
+  replayScopeSamplesContextOnce(createControl);
+}
+
+function replayScopeSamplesContextOnce(createControl: typeof createAccessControl) {
+  let samples = 0;
+  const access = createControl({ ...accessFixture(), context: () => ({ hour: samples++ }) });
+  const scope = access.forReplay(access.principalFor(person('alice')));
+  const project = { type: 'project', project: 'sales-metrics' } as const;
+  scope.authorize('read', project);
+  scope.authorize('edit', project);
+  assert.equal(samples, 1, 'the replay scope samples the clock once');
 }
 
 function policyInputsInvalidatePreparation(access: ReturnType<typeof createAccessControl>, active: ReturnType<typeof accessFixture>['config']) {

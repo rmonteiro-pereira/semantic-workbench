@@ -31,6 +31,7 @@ if (category === 'access-index') {
   scopes.assertReloadedReplay(replay.compareAccess);
   scopes.assertDeactivatedReplay(replay.scopeCache);
   scopes.assertReplayScopeSnapshot(replay.scopeCache);
+  scopes.assertReplaySurvivesReload(replay.scopeCache);
   scopes.assertReplayClock(replay.compareAccess, candidate.createAccessControl);
   await (await import('../tests/auth/creation-route-assertions')).assertCreationRoutes(candidate.createAccessControl);
 }

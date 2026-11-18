@@ -135,3 +135,31 @@ export function assertReplayScopeSnapshot(scopes: typeof scopeCache) {
   assert.equal(pair.after.authorize('read', project).allow, true);
   assert.equal(samples, 1);
 }
+
+/** Keeps cached and new replay scopes on the policies captured before a reload. */
+export function assertReplaySurvivesReload(scopes: typeof scopeCache) {
+  const access = createAccessControl(accessFixture());
+  const proposal = access.snapshot().config;
+  const fresh = access.fork(proposal);
+  const cache = scopes(access, proposal);
+  const alice = person('alice');
+  const cached = cache.scopeFor(alice);
+  const project = { type: 'project', project: 'sales-metrics' } as const;
+
+  access.reload({ ...proposal, adminRules: { deny: 'forbid(principal, action == SW::Action::"read", resource);' } });
+  assert.equal(access.authorize(access.principalFor(alice), 'read', project).allow, false);
+
+  for (const [identity, pair] of [
+    [alice, cached],
+    [person('dave'), cache.scopeFor(person('dave'))],
+  ] as const) {
+    const expected = fresh.authorize(fresh.principalFor(identity), 'read', project);
+    assert.equal(expected.allow, true);
+    for (const side of [pair.before, pair.after]) {
+      const actual = side.authorize('read', project);
+      assert.equal(actual.allow, expected.allow);
+      assert.equal(actual.status, expected.status);
+      assert.deepEqual([...actual.rules].sort(), [...expected.rules].sort());
+    }
+  }
+}
