@@ -67,6 +67,8 @@ async function mountCases(module: typeof import('../src/server/acp/mount')) {
     assert.equal(await mounted.service.relayFor(request, started.session.id), undefined);
     origin = 'acp';
     assert.ok(await mounted.service.relayFor(request, started.session.id));
+    const browser = new Request('https://workbench.test', { headers: { Origin: 'https://workbench.test', Authorization: 'Bearer token' } });
+    assert.equal(await mounted.service.relayFor(browser, started.session.id), undefined);
   } finally {
     mounted.service.stopSweeper();
   }

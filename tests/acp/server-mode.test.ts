@@ -139,3 +139,21 @@ for (const ending of ['sign-out', 'expired', 'deactivated'] as const) {
     }
   }, 30_000);
 }
+
+test('server relay authentication refuses a browser origin before spending the session code', async () => {
+  const { server, service, panel, tokens } = await openPanel();
+  try {
+    const request = new Request(`${server.origin}/api/acp/relay/${panel.id}/hello`, {
+      method: 'POST',
+      headers: { Origin: server.origin, Authorization: `Bearer ${tokens.access_token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: panel.code }),
+    });
+    const refused = await server.handler(request);
+    expect(refused.status).toBe(404);
+    expect(await refused.text()).toBe('');
+    expect((await relay(server, panel.id, tokens.access_token, 'hello', { code: panel.code })).status).toBe(200);
+  } finally {
+    service.stopSweeper();
+    server.close();
+  }
+}, 30_000);

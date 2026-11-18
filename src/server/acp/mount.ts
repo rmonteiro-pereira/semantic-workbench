@@ -25,6 +25,7 @@ export type AgentPanelMountOptions = {
 /** The relay's bearer token is a connection of the panel's own kind, or nothing. A connection made for another kind of program is refused. */
 function createConnectionAuthenticator(connections: ConnectionDirectory): RelayAuthenticator {
   return async request => {
+    if (request.headers.has('origin')) return { ok: false };
     const token = bearerOf(request);
     if (!token) return { ok: false };
     const resolved = await connections.resolve(token);
