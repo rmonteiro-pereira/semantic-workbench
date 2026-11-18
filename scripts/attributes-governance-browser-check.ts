@@ -87,19 +87,20 @@ async function attributeFlow(page: Page, label: string) {
   const attributes = details.getByRole('region', { name: 'Attributes' });
   await attributes.getByText('tier').first().waitFor();
   await attributes.getByRole('button', { name: 'Add attribute' }).click();
-  const dialog = page.locator('dialog[open]').last();
-  await dialog.getByLabel('Name', { exact: true }).fill(LONG_NAME);
+  const addDialog = page.getByRole('dialog', { name: 'Add an attribute to Customer' });
+  await addDialog.getByLabel('Name').fill(LONG_NAME);
   await expectCleanLayout(page, `${label}: add form`);
-  await dialog.getByRole('button', { name: 'Add attribute' }).click();
+  await addDialog.getByRole('button', { name: 'Add attribute' }).click();
   await attributes.getByText(LONG_NAME, { exact: true }).waitFor();
   await expectCleanLayout(page, `${label}: long name row`);
   await attributes.getByRole('button', { name: `Move ${LONG_NAME} up` }).click();
   await attributes.getByRole('button', { name: `Edit ${LONG_NAME}` }).click();
-  await dialog.getByLabel('Name', { exact: true }).fill('phone');
-  await page.locator('dialog[open]').last().getByRole('button', { name: 'Save attribute' }).click();
+  const editDialog = page.getByRole('dialog', { name: `Edit attribute ${LONG_NAME}` });
+  await editDialog.getByLabel('Name').fill('phone');
+  await editDialog.getByRole('button', { name: 'Save attribute' }).click();
   await attributes.getByText('phone', { exact: true }).waitFor();
   await attributes.getByRole('button', { name: 'Remove phone' }).click();
-  await page.locator('dialog[open]').last().getByRole('button', { name: 'Delete' }).click();
+  await page.getByRole('dialog', { name: 'Delete phone?' }).getByRole('button', { name: 'Delete' }).click();
   await attributes.getByText('phone', { exact: true }).waitFor({ state: 'detached' });
 }
 
@@ -112,10 +113,7 @@ async function governanceAndContextFlow(page: Page, label: string) {
   await openConcept(page, FILE, 'Customer');
   const details = page.locator('aside[aria-label="Definition details"]');
   const governance = details.getByRole('region', { name: 'Governance' });
-  await governance.waitFor({ timeout: 5000 }).catch(async problem => {
-    console.log(await details.innerText());
-    throw problem;
-  });
+  await governance.waitFor();
   await fieldOf(governance, 'Status').selectOption('proposed');
   await fieldOf(governance, 'Owner').fill('dana@example.com');
   await governance.getByRole('button', { name: 'Save governance' }).click();
@@ -137,7 +135,7 @@ async function revisionFlow(page: Page) {
   await question.getByRole('button', { name: 'Cancel' }).click();
   expect(api.ws.readFile('retail', OLDER_FILE, LOCAL_READER).source).toBe(OLDER);
   await attributes.getByRole('button', { name: 'Move tier up' }).click();
-  await page.locator('dialog[open]').last().getByRole('button', { name: 'Move to Tessera 2' }).click();
+  await question.getByRole('button', { name: 'Move to Tessera 2' }).click();
   await expect.poll(() => api.ws.readFile('retail', OLDER_FILE, LOCAL_READER).source).toContain('tessera: 2');
 }
 
@@ -150,7 +148,7 @@ async function largeDocumentTiming(page: Page): Promise<number> {
     .first()
     .getByRole('button', { name: /View details/ })
     .click();
-  await page.locator('aside[aria-label="Definition details"]').getByRole('region', { name: 'Attributes' }).getByText('size').waitFor();
+  await page.locator('aside[aria-label="Definition details"]').getByRole('region', { name: 'Attributes' }).getByText('size', { exact: true }).waitFor();
   return Date.now() - started;
 }
 
@@ -163,14 +161,20 @@ try {
     if (scheme === 'dark') await chooseTheme(page, 'Dark');
     const label = `${width}px ${scheme}`;
     await attributeFlow(page, label);
-    await governanceAndContextFlow(page, label);
     await page.close();
+    const governancePage = await openPage(width, height, scheme);
+    if (scheme === 'dark') await chooseTheme(governancePage, 'Dark');
+    await governanceAndContextFlow(governancePage, label);
+    await governancePage.close();
+    console.log(`PASS ${label}: attribute, governance and context flows`);
   }
   const desktop = await openPage(1440, 900, 'light');
   await revisionFlow(desktop);
-  const milliseconds = await largeDocumentTiming(desktop);
-  console.log(`MEASURED details of a concept in a document of 200 concepts appeared after ${milliseconds} ms`);
   await desktop.close();
+  const timingPage = await openPage(1440, 900, 'light');
+  const milliseconds = await largeDocumentTiming(timingPage);
+  console.log(`MEASURED details of a concept in a document of 200 concepts appeared after ${milliseconds} ms`);
+  await timingPage.close();
   if (errors.length) throw Error(errors.join('\n'));
   console.log('PASS attributes, agent context and governance are edited in the browser at phone and desktop width');
 } finally {
