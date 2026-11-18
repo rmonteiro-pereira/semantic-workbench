@@ -127,9 +127,10 @@ export async function mcpToolsCase(target: string) {
   assert.deepEqual(Object.keys(sent).sort(), ['expectedBranch', 'expectedHead', 'files', 'message'], 'no push and no extra keys');
   assert.deepEqual(sent.files, files);
   assert.equal(sent.expectedHead, 'd'.repeat(40));
-  const onPublished = await tool('git_commit').run({ ...commitArgs, expectedBranch: 'main', idempotencyKey: 'commit-key-00000002' }, context(commitTwin.twin));
-  assert.equal(onPublished.ok, false);
-  assert.equal(onPublished.error.code, 'refused');
+  const alteredTwin = fakeTwin({ 'git.commit': { commit: 'c'.repeat(40), altered: ['a.yaml'] } });
+  const altered = await tool('git_commit').run({ ...commitArgs, idempotencyKey: 'commit-key-00000002' }, context(alteredTwin.twin));
+  assert.equal(altered.ok, true, 'a commit that was made is a success even when a hook altered a file');
+  assert.deepEqual(altered.data.altered, ['a.yaml']);
   const { mapTwinFailure } = await import(join(tree, 'twin-dispatch.ts'));
   const hidden = mapTwinFailure('files.read', { status: 404, body: { error: 'Not found.' }, headers: new Headers() });
   const missing = mapTwinFailure('files.read', { status: 404, body: { error: 'File not found.' }, headers: new Headers() });

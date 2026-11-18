@@ -26,7 +26,7 @@ export const mcpMutants: [string, string, string, string][] = [
     'const body = { message: args.message, files: args.files, expectedBranch: args.expectedBranch, expectedHead: args.expectedHead };',
     'const body = { message: args.message, files: args.files, expectedBranch: args.expectedBranch, expectedHead: args.expectedHead, push: true };',
   ],
-  ['mcp-tools', 'src/server/mcp/tools/source-control.ts', "if (published && published.state !== 'none' && published.branch === args.expectedBranch) {", 'if (false) {'],
+  ['mcp-tools', 'src/server/mcp/tools/source-control.ts', '...(committed.altered?.length ? { altered: committed.altered } : {}),', ''],
   ['mcp-tools', 'src/server/mcp/tools/source-control.ts', 'expectedHead: args.expectedHead };', 'expectedHead: undefined };'],
   ['mcp-tools', 'src/server/mcp/tools/source-control.ts', 'files: args.files, expectedBranch', 'files: [], expectedBranch'],
   // Audit.
