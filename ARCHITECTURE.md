@@ -206,6 +206,9 @@ concatenating project, document or item names.
   repository publication queue. Promotion reuses `moveDefault` through `worktrees.promote`.
   `work-in-progress-push.ts` refuses pushing work and proposal branches. `routes/proposals.ts` exposes the
   routes and `auth/proposal-access.ts` decides authority. The browser side is `app/proposals/`.
+  The proposal visibility boundary allows a reader of any declared project to see the name, creator,
+  contributors and tip. Unreadable project names are filtered. These shared metadata fields can
+  disclose information across declared projects if the author includes it in the proposal name.
 
 ### Identity, authorization, governance and administration
 

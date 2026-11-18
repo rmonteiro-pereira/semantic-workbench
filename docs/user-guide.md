@@ -270,6 +270,9 @@ and Admins use **Check**, **Promote**, **Close proposal** and **Restore**. A rep
 open proposals; a name has up to 80 characters. Push and Sync refuse work and proposal branches: publish
 first, then use **Push default**. Local mode has no proposals.
 
+If you can read at least one declared project, you can see the proposal name, creator, contributors
+and tip. The list of declared projects shows only the projects you can read.
+
 ### Clone a repository
 
 Choose **Add project → Clone a repository** (the Import dialog also links to it). Supply a URL or local path, an optional name and,

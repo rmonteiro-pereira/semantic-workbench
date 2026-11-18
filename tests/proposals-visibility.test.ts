@@ -50,9 +50,11 @@ test('a proposal appears in lists only for people who read a declared project', 
 test('a proposal declaring a readable project and a hidden one shows only the readable one', async () => {
   using fixture = await proposalFixture();
   const { sales, billing, people } = fixture.projects;
-  await fixture.dave().call(proposalsPath(sales.slug), 'POST', { name: 'Mixed', projects: [sales.slug, people.slug, billing.slug] });
+  const created = await fixture.dave().call(proposalsPath(sales.slug), 'POST', { name: 'Mixed', projects: [sales.slug, people.slug, billing.slug] });
   const seen = await fixture.bob().call(`${proposalsPath(sales.slug)}/mixed`);
   expect(seen.status).toBe(200);
+  expect(seen.body).toMatchObject({ name: 'Mixed', createdByName: created.body.createdByName, contributors: [], tip: created.body.tip });
+  expect(seen.body.tip).toMatch(/^[0-9a-f]{40}$/);
   expect(seen.body.projects.map((project: { slug: string }) => project.slug).sort()).toEqual([billing.slug, sales.slug].sort());
   expect(JSON.stringify(seen.body)).not.toContain(people.slug);
 });
