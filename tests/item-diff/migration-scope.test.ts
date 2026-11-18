@@ -8,6 +8,8 @@ import { ADDRESS_HISTORY_FILE, addressHistoryDifference, parseAddressHistory, re
 import { compareItems } from '../../src/shared/item-diff/compare-items';
 import type { DiffItem } from '../../src/shared/item-diff/item-change';
 import { LOCAL_READER } from '../../src/server/projects/reader';
+import { readFolder } from '../../src/server/tessera/disk-source';
+import { readSnapshot } from '../../src/server/tessera/snapshot-source';
 
 function git(directory: string, args: string[]): string {
   const result = Bun.spawnSync(['git', ...args], { cwd: directory, env: process.env });
@@ -80,4 +82,37 @@ test('history replay sorts union lines by record sequence and keeps the first du
   const duplicate = { ...late, to: prefix + 'Other' };
   expect(parseAddressHistory([late, early, duplicate].map(entry => JSON.stringify(entry)).join('\n'))).toEqual([early, late]);
   expect(addressHistoryDifference([early], [late, early])).toEqual([late]);
+});
+
+test('Git unions independently appended histories without adding a compile input', async () => {
+  using fixture = await itemDiffBaselineWorkspace();
+  const project = 'finance';
+  const directory = join(fixture.root, 'projects', project);
+  const path = 'finance.ontology.yaml';
+  const legacy = join(fixture.ws.layout.state, 'address-migrations', 'finance.json');
+  const prefix = 'sw1:finance/finance.ontology.yaml#ontology:Finance/concept:';
+  const initial = { id: 'legacy', kind: 'item', from: prefix + 'Former', to: prefix + 'Customer', at: '2025-01-01T00:00:00Z', commit: '' };
+  atomicWriteJson(legacy, { formatVersion: 1, records: [initial] });
+  const original = fixture.ws.readFile(project, path, LOCAL_READER);
+  await fixture.ws.saveFile(project, path, { baseHash: original.hash, source: original.source + '\n' }, LOCAL_READER);
+  git(directory, ['add', '.']);
+  git(directory, ['commit', '-m', 'Set up address history']);
+  const base = git(directory, ['rev-parse', 'HEAD']);
+  git(directory, ['switch', '-c', 'history-first']);
+  await fixture.ws.reconcileAddress({ operationId: 'first', from: prefix + 'First', to: prefix + 'Customer' }, LOCAL_READER);
+  git(directory, ['commit', '-am', 'Record first reconciliation']);
+  git(directory, ['switch', '-c', 'history-second', base]);
+  await fixture.ws.reconcileAddress({ operationId: 'second', from: prefix + 'Second', to: prefix + 'Customer' }, LOCAL_READER);
+  git(directory, ['commit', '-am', 'Record second reconciliation']);
+  git(directory, ['merge', '--no-edit', 'history-first']);
+  expect(
+    readAddressMigrations(fixture.ws.layout, project, LOCAL_READER)
+      .map(record => record.id)
+      .sort(),
+  ).toEqual(['legacy', 'r-first-0', 'r-second-0']);
+  expect(fixture.ws.resolveAddress(prefix + 'First', LOCAL_READER)).toMatchObject({ status: 'found', address: prefix + 'Customer' });
+  expect(fixture.ws.resolveAddress(prefix + 'Second', LOCAL_READER)).toMatchObject({ status: 'found', address: prefix + 'Customer' });
+  expect(readFolder(directory).files.map(file => file.path)).not.toContain(ADDRESS_HISTORY_FILE);
+  const snapshot = await readSnapshot({ repository: directory, branch: 'history-second' });
+  expect(snapshot.files.map(file => file.path)).not.toContain(ADDRESS_HISTORY_FILE);
 });

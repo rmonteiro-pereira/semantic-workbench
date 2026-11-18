@@ -407,7 +407,7 @@ test fixture reads a branch that is not the person's current one.
 
 ## Decisions made while specifying
 
-The owner has not been asked. Each choice is the one most consistent with the decisions file.
+The choices below follow the design decisions, including the decision to version address history in Git.
 
 1. **The overlay compares `published` with `working`.** Reason: the person sees their saved copy in the
    workbench; decision E5 says unpublished is everything but the default-branch snapshot.
@@ -415,7 +415,9 @@ The owner has not been asked. Each choice is the one most consistent with the de
    generic; the owner asked for entities, relationships and attributes on screen.
 3. **Attributes are relationships (E18).** Reason: E18 forbids a second collection; they are reported under
    their own kind only for display.
-4. **Recorded migrations decide renames.** Reason: decision E6 says unrecorded changes are remove plus add.
+4. **Recorded migrations decide renames.** Each side supplies its own Git or saved working history.
+   Replay destination records whose IDs are absent from the source, in destination order.
+   Unrecorded changes are remove plus add.
 5. **Hidden branch equals missing branch.** Reason: decision E10 style, no disclosure about unreadable things.
 6. **The operation is browser-only on this base.** Reason: decision E5 limits agent tools to the published
    state, and the roadmap does not list an item diff tool.

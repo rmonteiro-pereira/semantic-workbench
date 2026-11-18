@@ -27,14 +27,14 @@ planner view.
 `catFileBatch` (`src/server/projects/git.ts`), `createSnapshotIndexes` and the published snapshots
 (`src/server/projects/snapshot-index.ts`, `published-snapshot.ts`), `@xyflow/react` graph.
 
-**Storage**: none. The diff is computed per request and kept in memory for the length of the request.
+**Storage**: each project carries its address migration history in Git. Diffs are computed per request.
 
 **Testing**: `bun test tests/item-diff/` (new), `tests/auth/item-diff-parity.test.ts`, the existing
 `tests/auth/operation-inventory.test.ts`, one browser check `scripts/item-diff-browser-check.ts`, mutants in
 `scripts/item-diff-mutants.ts`.
 
-**Constraints**: nothing changes for an agent; nothing changes with the overlay off; no push; no new
-durable state; text never clipped; files near 400 lines, functions near 40.
+**Constraints**: nothing changes for an agent; nothing changes with the overlay off; no push; Git-backed
+address history; text never clipped; files near 400 lines, functions near 40.
 
 **Scale/Scope**: about 12 new source files, 10 test files, 1 contract.
 
@@ -183,6 +183,10 @@ tests/fixtures/item-diff/   # two-state projects, migration records, expected an
 ```
 
 ## Files this feature owns
+
+The provenance phase also owns the existing address history store and its callers in document
+save, file move, reconciliation, trash and restore, and the SCM paths that settle records with
+definition changes. See [the provenance decision](research.md).
 
 Every path in the block above, plus `docs/item-diff.md`.
 

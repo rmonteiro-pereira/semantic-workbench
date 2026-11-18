@@ -17,6 +17,12 @@ Browser only on this base. Authorized as a project read of both sides (route act
 Any other name: `400`, with the list of names above. A side that is hidden, unreadable or missing: `404` with
 the same body for all three.
 
+## Rename and move provenance
+
+Each side reads the history saved on that side. Replay records present on the destination and absent
+from the source by ID, in destination order. Global history, ancestry and similarity do not decide
+which items pair.
+
 ## Answer
 
 ```json

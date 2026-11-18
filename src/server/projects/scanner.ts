@@ -1,5 +1,6 @@
 // Indexes project files using Git ignore rules and shared validation. Unsupported files stay hidden
 // while invalid supported files remain visible.
+import { ADDRESS_HISTORY_FILE } from './address-migrations';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, posix } from 'node:path';
 import { Parser } from 'node-sql-parser';
@@ -33,7 +34,7 @@ export const MANIFEST_FILE = '.semantic-workbench.json';
 export function serializationOf(path: string, source?: string): Serialization {
   const name = posix.basename(path).toLowerCase();
   if (name === '.gitignore') return 'gitignore';
-  if (name === MANIFEST_FILE) return 'unsupported';
+  if (name === MANIFEST_FILE || name === ADDRESS_HISTORY_FILE) return 'unsupported';
   if (name.endsWith(TEMP_SUFFIX)) return 'unsupported';
   const ext = name.includes('.') ? name.split('.').pop()! : '';
   if (['yaml', 'yml', 'odcs', 'ossie'].includes(ext)) return 'yaml';
@@ -119,7 +120,7 @@ export function indexBytes(project: string, path: string, bytes: Uint8Array, git
 /** Lists a folder's files without Git, skipping the Git metadata folder. */
 export function walk(dir: string, prefix = '', out: string[] = []) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    if (entry.name === '.git') continue;
+    if (entry.name === '.git' || entry.name.toLowerCase() === ADDRESS_HISTORY_FILE) continue;
     const rel = prefix ? prefix + '/' + entry.name : entry.name;
     if (entry.isDirectory()) walk(join(dir, entry.name), rel, out);
     else if (entry.isFile()) out.push(rel);
@@ -176,6 +177,7 @@ export function createScanner(layout: DataLayout, cache: CopyIndex, git: Git, gi
       let path: string;
       try {
         path = projectPath(raw);
+        if (posix.basename(path).toLowerCase() === ADDRESS_HISTORY_FILE) continue;
       } catch {
         continue;
       }

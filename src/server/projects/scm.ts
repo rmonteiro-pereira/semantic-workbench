@@ -1,6 +1,7 @@
 import type { OperationOutcome } from '../auth/operation-outcome';
 // Connects project source control actions to Git and workspace updates. Checks after mutations
 // detect bytes rewritten by hooks or filters.
+import { ADDRESS_HISTORY_FILE } from './address-migrations';
 import type { AccessView } from '../auth/authorize';
 import { LOCAL_READER, type Reader } from './reader';
 import { BadRequestError, HiddenResourceError } from './errors';
@@ -58,6 +59,7 @@ export function createScm(deps: ScmDeps) {
 
   function requireReadable(slug: string, path: string, view?: AccessView, base?: PathBase) {
     const repoPath = (base === 'repository' ? '' : prefix(slug)) + projectPath(path);
+    if (view && repoPath.split('/').at(-1)?.toLowerCase() === ADDRESS_HISTORY_FILE) throw new HiddenResourceError();
     assertExactCase(repoDir(layout, slug), repoPath);
     if (view && !readablePath(slug, path, view, base)) throw new HiddenResourceError();
   }
