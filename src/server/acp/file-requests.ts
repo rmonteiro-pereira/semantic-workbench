@@ -151,7 +151,9 @@ export function createFileRequests(dependencies: FileRequestDependencies) {
     try {
       const current = await currentFile(parsed.project, parsed.path);
       if (current.status === 429) return { ok: false, failure: refused(display, 'rate-limited') };
-      if (current.status !== 200 && current.status !== 404) return { ok: false, failure: refused(display, 'not-available') };
+      // A refused read does not stop the attempt: the boundary decides the save, and records that decision.
+      const readable = [200, 403, 404].includes(current.status);
+      if (!readable) return { ok: false, failure: refused(display, 'not-available') };
       if (!current.file) return await save(display, parsed, input.content, null, null);
       const recorded = dependencies.versions.get(parsed.project, parsed.path);
       if (recorded === undefined) return { ok: false, failure: refused(display, 'unread') };

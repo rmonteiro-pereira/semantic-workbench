@@ -104,7 +104,7 @@ test only to make it pass.
   `files.read` and `files.save`. Proof: `bun test tests/acp/file-requests.test.ts` with the cases
   of User Story 3 (accepted, stale, unread, create, create race, invalid, hidden, draft kept,
   repeat).
-- [ ] T018 [US3] Add `tests/acp/file-parity.test.ts`: at least 30 cases run through HTTP, through
+- [x] T018 [US3] Add `tests/acp/file-parity.test.ts`: at least 30 cases run through HTTP, through
   an `mcp` twin and through the ACP file request, and compare status class, normalized body and
   audit record ignoring request id, time, origin, tool and connection. Cases include a custom role
   limited by path, a guarded field, a protected branch, a read-only role and an application-free
