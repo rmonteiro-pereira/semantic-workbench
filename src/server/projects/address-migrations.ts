@@ -78,7 +78,19 @@ export function parseAddressHistory(source: string): MigrationRecord[] {
     if (!byId.has(record.id)) byId.set(record.id, record);
     if (byId.size > ADDRESS_MIGRATION_LIMIT) throw new BadRequestError('Address migration history reached its 50,000-record limit.');
   }
-  return [...byId.values()].sort((left, right) => Date.parse(left.at) - Date.parse(right.at) || left.id.localeCompare(right.id, 'en', { numeric: true }));
+  return [...byId.values()].sort(compareRecordSequence);
+}
+
+function compareRecordSequence(left: MigrationRecord, right: MigrationRecord): number {
+  const time = Date.parse(left.at) - Date.parse(right.at);
+  if (time) return time;
+  const operationSequence = /^[dmr]-(.+)-(\d+)$/;
+  const leftSequence = operationSequence.exec(left.id);
+  const rightSequence = operationSequence.exec(right.id);
+  const operationOrder = (leftSequence?.[1] ?? left.id).localeCompare(rightSequence?.[1] ?? right.id, 'en', { numeric: true });
+  if (operationOrder) return operationOrder;
+  const recordOrder = Number(leftSequence?.[2] ?? 0) - Number(rightSequence?.[2] ?? 0);
+  return recordOrder || left.id.localeCompare(right.id, 'en', { numeric: true });
 }
 
 function loadRecords(layout: DataLayout, project: string): MigrationRecord[] {

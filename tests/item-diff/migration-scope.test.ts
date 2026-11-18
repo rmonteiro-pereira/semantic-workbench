@@ -87,6 +87,8 @@ test('history replay sorts union lines by record sequence and keeps the first du
   const duplicate = { ...late, to: prefix + 'Other' };
   expect(parseAddressHistory([late, early, duplicate].map(entry => JSON.stringify(entry)).join('\n'))).toEqual([early, late]);
   expect(addressHistoryDifference([early], [late, early])).toEqual([late]);
+  const deletion = { id: 'd-operation-11', kind: 'deleted', from: prefix + 'New', at: record.at, commit: '' };
+  expect(parseAddressHistory([deletion, late].map(entry => JSON.stringify(entry)).join('\n')).map(entry => entry.id)).toEqual([late.id, deletion.id]);
 });
 
 test('Git unions independently appended histories without adding a compile input', async () => {
