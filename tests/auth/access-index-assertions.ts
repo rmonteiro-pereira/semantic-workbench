@@ -22,6 +22,7 @@ export function assertAccessIndexes(createControl: typeof createAccessControl) {
       const actual = scope.authorize(entry.action, target);
       assert.equal(actual.allow, expected.allow, `${identity.id}: ${entry.case}`);
       assert.equal(actual.status, expected.status, `${identity.id}: ${entry.case}`);
+      assert.deepEqual([...actual.rules].sort(), [...expected.rules].sort(), `${identity.id}: ${entry.case}`);
     }
   }
   const resource = { type: 'project', project: 'sales-metrics' } as const;
