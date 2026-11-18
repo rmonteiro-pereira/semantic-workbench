@@ -396,6 +396,7 @@ display. `bun run test:usage-traffic` drives the display in a browser against a 
 `--record` option rewrites `tests/fixtures/usage/dom-baseline.json`, the structure of every view with
 Traffic off; record it only from source without the Traffic option. Usage mutants run with
 `bun scripts/mutation-tests.ts --only usage`.
+`bun scripts/usage-benchmark.ts` measures what counting adds to 5,000 counted requests, with counters off and on.
 
 ## Operation boundary
 

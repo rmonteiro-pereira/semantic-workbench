@@ -34,4 +34,6 @@ batch comparison).
   first task step is to record one real answer of each as a fixture and adjust the rules table if an
   answer names items differently.
 - No existing test lists the layout folders, so T006 adds `tests/usage/usage-layout.test.ts`.
-- T040 numbers are recorded here when measured. Not yet measured.
+- T040 (5,000 counted agent context requests in process, on the dev server): counters off median 12.73 ms, p95 18.01 ms; counters on median 12.85 ms, p95 18.71 ms; the median grows 0.9 percent, under the 5 percent limit. Run with `bun scripts/usage-benchmark.ts`.
+- T042 pending: feature 006 is not on this branch. After both merge, list `get_mapping_context`, `plan_query` and `explain_metric` as counted tools in docs/mcp-contract.md and switch the twin-caller parity case in tests/auth/usage-read-parity.test.ts to the live tool.
+- Hand-off for the batch gate: suite `bun run test:usage-traffic`, tests under `tests/usage/`, `tests/auth/usage-read-parity.test.ts`, `tests/address-key-inventory.test.ts`, mutant group `bun scripts/mutation-tests.ts --only usage`. UI regression journey screens affected: full graph, neighborhood, details panel, Catalog, Metrics, Admin Settings. Screenshots (T035) are left for Codex. The architecture reviewer should look at the boundary hook, the recorder creation in handler.ts and the departures in evidence.md.
