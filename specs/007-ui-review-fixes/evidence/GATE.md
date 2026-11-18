@@ -1,5 +1,14 @@
 # Integration and regression gate
 
+## Focused regressions and suite retries
+
+- M4, Mall mapping Fit. `sw-midgard-run` ran the detached `verify-fixes` phase and returned 0. The `fitted-names` step passed twice at the same 1440×900 light viewport after `11abdf8c`. The previous candidate's label overflow is preserved under `regression-before/{1,2}/local/light/1440/mapping-fit/` on Midgard, and the passing frames are under `candidate/{1,2}/local/light/1440/mapping-fit/`. The standalone `bun scripts/ci-validate.ts --step browser --suite test:mapping-graph` returned 0. Its summary was `12 mapping graph checks passed`, including complete names at least 9 px at 1280×720 and 1440×900 and no browser errors (134.4 s).
+- M15, UBL Neighborhood Walk. In the same focused phase at 1600×1000 light, both repetitions reached all five targets after lowering the automatic fit floor. The first standalone graph retry showed that this alone shrank the default center description to 4.09 px against the 9 px gate. The center now compensates for zoom too. The full graph suite and re-capture of that version are pending.
+- `bun scripts/ci-validate.ts --step browser --suite test:back-history` reached and re-centered on both Mall neighbors after the viewport change, then used an obsolete locator for the folded Labels control. A rerun using the visible Controls menu is pending.
+- `bun scripts/ci-validate.ts --step browser --suite test:auth` passed the read-only role controls after updating the disabled Commit assertion, then stopped in the local smoke check because it looked for Admin in the person menu. The approved entry point is Settings.
+- `bun scripts/ci-validate.ts --step browser --suite test:two-editors` returned 0 (73.4 s). Edits, branches, commit identities, publication visible to the Viewer, pulls and sparse-project isolation all passed after the test followed the current Sync label.
+- The initial gallery contains 126 recorded comparison steps. At this checkpoint it shows 23 intended fixes, 6 merged feature differences, 34 neutral changes, 2 regressions, 1 unchanged step and 60 awaiting visual classification. It shows the initial candidate, before the graph corrections. Graph captures that caught loading or mismatched state are scheduled for repetition.
+
 ## Gate after rebase
 
 `git fetch origin` resolved `origin/main` to `5597ae52c55cb76a864aa242873dbbe7083a000e`. `git rebase origin/main` replayed the prior integration branch `a8cf837e` through `6e301fd4`. The release baseline `v0.6.1` resolves to commit `3b1c2c10bc6ae96c6c603301764bde4cfdc4dcd4`. All results in the historical sections below precede this rebase.
