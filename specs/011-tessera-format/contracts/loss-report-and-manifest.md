@@ -93,3 +93,9 @@ Nothing makes a schema, reference, size, semantic or registry failure acceptable
 ├── loss-report.json
 └── <project folder files at their relative paths: compiled and copied Ossie documents only>
 ```
+
+## Revision 2 note
+
+The report moved to `reportVersion` 2 when revision 2 added governance. A version 2 report may carry
+`statusCounts`, the number of lost governance entries by status, and the compiler version is 1.1.0. The
+shape is in `specs/016-attributes-and-governance/contracts/revision-2-additions.md`.

@@ -31,11 +31,19 @@ export type ReportSubject = {
   inputs: ReportInput[];
   outputs: ReportOutput[];
   losses: LossEntry[];
+  /** The status of each lost governance entry, in any order. Leave it empty when no governance was lost. */
+  governanceStatuses?: GovernanceStatusKey[];
 };
+
+/** The statuses a lost governance entry counts under. An entry without a status counts as not set. */
+export type GovernanceStatusKey = 'approved' | 'deprecated' | 'notSet' | 'proposed';
+
+/** The number of lost governance entries by status. Every key is present. */
+export type StatusCounts = Record<GovernanceStatusKey, number>;
 
 /** The report. It holds no value, no time and no machine path, so equal input gives equal bytes. */
 export type LossReport = {
-  reportVersion: 1;
+  reportVersion: 2;
   compiler: ReportSubject['compiler'];
   base: ReportSubject['base'];
   options: { lossPolicy: string | null };
@@ -43,6 +51,8 @@ export type LossReport = {
   outputs: ReportOutput[];
   losses: LossEntry[];
   counts: Record<string, number>;
+  /** Present only when a lost value is a governance entry. */
+  statusCounts?: StatusCounts;
   digest: string;
 };
 
@@ -60,6 +70,12 @@ function countByProperty(losses: LossEntry[]): Record<string, number> {
   return counts;
 }
 
+function countStatuses(statuses: GovernanceStatusKey[]): StatusCounts {
+  const counts: StatusCounts = { approved: 0, deprecated: 0, notSet: 0, proposed: 0 };
+  for (const status of statuses) counts[status] += 1;
+  return counts;
+}
+
 /** Prints a report the way it is stored: sorted keys, two spaces, LF. */
 export function printReport(report: LossReport): string {
   return canonicalJson(report);
@@ -72,8 +88,9 @@ export function digestOf(report: Omit<LossReport, 'digest'>): string {
 
 /** Builds the report with sorted lists, counts per property and its digest. */
 export function buildLossReport(subject: ReportSubject): LossReport {
+  const statuses = subject.governanceStatuses ?? [];
   const body: Omit<LossReport, 'digest'> = {
-    reportVersion: 1,
+    reportVersion: 2,
     compiler: subject.compiler,
     base: subject.base,
     options: { lossPolicy: subject.lossPolicySha256 },
@@ -81,6 +98,7 @@ export function buildLossReport(subject: ReportSubject): LossReport {
     outputs: byPath(subject.outputs),
     losses: byDocumentThenPointer(subject.losses),
     counts: countByProperty(subject.losses),
+    ...(statuses.length ? { statusCounts: countStatuses(statuses) } : {}),
   };
   return { ...body, digest: digestOf(body) };
 }

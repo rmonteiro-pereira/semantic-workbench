@@ -62,8 +62,8 @@ comparison and the architecture review run once on the integrated batch (T036). 
 
 ## Phase 8: Compile and loss (US4)
 
-- [ ] T025 [US4] Change `src/shared/tessera/loss-report.ts` to report version 2 with `statusCounts` under the contract, in the digest, absent when no governance is lost; update `contracts/loss-report-and-manifest.md` of 011 with a note pointing here. Proof: `bun test tests/tessera/loss-report-status.test.ts` covers four statuses, no governance, a changed status changing the digest, and no value text in the report (FR-034, FR-035).
-- [ ] T026 [US4] Add to `src/shared/tessera/meaning-check.ts` the comparison that every attribute relationship is equal in source and output; set the new `COMPILER_VERSION` in `src/shared/tessera/format.ts` and regenerate `tests/fixtures/tessera/golden/`. Proof: `bun test tests/tessera/compile.test.ts tests/tessera/determinism.test.ts` pass with the T002 project; an injected change to an attribute fails the compile and no acceptance overrides it (FR-032, FR-033; SC-004, SC-005).
+- [x] T025 [US4] Change `src/shared/tessera/loss-report.ts` to report version 2 with `statusCounts` under the contract, in the digest, absent when no governance is lost; update `contracts/loss-report-and-manifest.md` of 011 with a note pointing here. Proof: `bun test tests/tessera/loss-report-status.test.ts` covers four statuses, no governance, a changed status changing the digest, and no value text in the report (FR-034, FR-035).
+- [x] T026 [US4] Add to `src/shared/tessera/meaning-check.ts` the comparison that every attribute relationship is equal in source and output; set the new `COMPILER_VERSION` in `src/shared/tessera/format.ts` and regenerate `tests/fixtures/tessera/golden/`. Proof: `bun test tests/tessera/compile.test.ts tests/tessera/determinism.test.ts` pass with the T002 project; an injected change to an attribute fails the compile and no acceptance overrides it (FR-032, FR-033; SC-004, SC-005).
 
 ## Phase 9: Mounting, states and browser check
 

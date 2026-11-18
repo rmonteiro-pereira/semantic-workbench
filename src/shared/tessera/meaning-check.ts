@@ -3,6 +3,7 @@ import { formatAddress, type Address } from '../core/item-address';
 import { inspect } from '../core/model';
 import { deepEqual, isObject } from '../edit/source-text';
 import { isMapping } from '../mappings/mapping-schema';
+import { conceptKindLookup, declaredAttributesOf, type ConceptShape } from '../attributes/attribute-rule';
 import { additionSites, withoutAdditions, type CompileFailure } from './compile-document';
 
 function meaningFailure(document: string, message: string): CompileFailure {
@@ -25,11 +26,33 @@ export function summarizeItems(model: ReturnType<typeof inspect>): ItemSummary {
   };
 }
 
+function conceptsOf(data: unknown): ConceptShape[] {
+  return isObject(data) && Array.isArray(data.ontology) ? data.ontology : [];
+}
+
+/** Checks that every attribute relationship of the source, without its additions, is present, equal and still an attribute in the output. No acceptance overrides this. */
+export function attributeMeaningFailures(source: DocumentReading, output: DocumentReading): CompileFailure[] {
+  const sourceConcepts = conceptsOf(withoutAdditions(source.data, additionSites(source.data)));
+  const outputConcepts = conceptsOf(output.data);
+  const sourceLookup = conceptKindLookup(sourceConcepts);
+  const outputLookup = conceptKindLookup(outputConcepts);
+  const failures: CompileFailure[] = [];
+  for (const concept of sourceConcepts) {
+    const outputConcept = outputConcepts.find(candidate => candidate.concept === concept.concept);
+    const before = declaredAttributesOf(concept, sourceLookup);
+    const after = outputConcept ? declaredAttributesOf(outputConcept, outputLookup) : [];
+    const same = before.length === after.length && before.every((attribute, index) => after[index].name === attribute.name && deepEqual(after[index].relationship, attribute.relationship));
+    if (!same) failures.push(meaningFailure(source.path, `The attributes of the concept ${String(concept.concept)} are not the same in the compiled document as in its source.`));
+  }
+  return failures;
+}
+
 /** Checks a compiled document against its source: the output holds equal data and the same items with the same addresses. */
 export function documentMeaningFailures(source: DocumentReading, output: DocumentReading): CompileFailure[] {
   const failures: CompileFailure[] = [];
   const expected = withoutAdditions(source.data, additionSites(source.data));
   if (!deepEqual(expected, output.data)) failures.push(meaningFailure(source.path, 'The compiled text does not hold the same data as the source without the marker and the additions.'));
+  failures.push(...attributeMeaningFailures(source, output));
   if (!deepEqual(source.summary, output.summary)) failures.push(meaningFailure(source.path, 'The compiled document has different items, relationships or item addresses than its source.'));
   return failures;
 }
