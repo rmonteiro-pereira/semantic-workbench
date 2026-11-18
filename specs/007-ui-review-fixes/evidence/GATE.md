@@ -573,10 +573,15 @@ The original review archive contains 3,559 PNGs. A read-only count by folder mea
 
 Status: in progress. No visual pair is classified before both images have been opened.
 
-The current gallery includes 626 rows. Of those, 248 are intended fixes, 28 are expected merged-feature differences, 273 are neutral, and 11
-are unchanged. The gallery retains 31 frames of fixed regressions and 35 frames flagged as possible or unresolved regressions. A frame count
+The current gallery includes 626 rows. Of those, 249 are intended fixes, 28 are expected merged-feature differences, 273 are neutral, and 11
+are unchanged. The gallery retains 30 frames of fixed regressions and 35 frames flagged as possible or unresolved regressions. A frame count
 can include multiple actions that carry the same underlying issue. The manifest explains which actions could not be compared at a matched state.
 The counted Network heading and compact mapping correction pairs were opened at 390×844 in both themes.
+The 75-state phone replay (local, light, 390×844) was opened across 25 contact sheets. Both repetitions on all three versions
+opened the named mapping and its Source tab. The Source view preserves the empty concept list. The transient empty-bindings frame
+is timing noise, confirmed by the settled Identifier replay. The candidate also shows the full line-23 SQL warning and a green
+keyboard focus ring on the metric grouping control. The empty Trash dialog keeps its explanation and Close action.
+The local gallery publisher returned 626 rows with the counts above.
 The gallery and CSV passed the local path and content scan. The gallery folder uses 54 MB on disk.
 
 ## Differences for owner acceptance
