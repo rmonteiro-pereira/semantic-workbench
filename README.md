@@ -168,6 +168,7 @@ is disabled unless explicitly configured.
   evidence, ambiguity/refusal explanations, mapping graphs and composed query previews.
 - **Edit original files:** Source and item editors, YAML/JSON/RDF-aware changes, inline findings,
   stale-version conflicts, autosave, explicit multi-file saves and byte-preserving export.
+- **Review unpublished work:** compare saved branch definitions with the published version, mark changes in the graphs and review a branch before publishing. See [item comparison](docs/item-diff.md).
 - **Manage projects:** import, clone, sparse repository folders, shared-repository projects,
   Source Control, ZIP/Git-history export, trash, Undo and safe restore.
 - **Collaborate securely:** shared-server sign-in, scoped grants, protected content, personal Git

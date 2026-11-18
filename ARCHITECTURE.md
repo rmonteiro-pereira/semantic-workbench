@@ -528,3 +528,11 @@ the bundle outside the source trees.
 Use [the development guide](docs/development.md) for command syntax, fixture rules and validation.
 Keep configuration/API/operation details in their canonical guides instead of appending release
 history or per-control instructions to this architecture map.
+
+
+### Item comparison
+
+The browser-only `items.diff` operation uses the existing history permission and audit boundary.
+It compares structured items from authorized saved files and Git snapshots. The overlay is a
+display aid. Agent operations continue to build context, plans and explanations from the
+published snapshot and have no item comparison operation.

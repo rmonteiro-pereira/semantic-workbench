@@ -206,6 +206,7 @@ suites use `SW_BASE_URL`. The full runner supplies fresh frontend processes as n
 | `test:responsive` | Viewport/theme tours, geometry, text, focus and raw resize errors |
 | `test:edges` | Rendered edge endpoints during movement and zoom |
 | `test:grouping-validation` | Grouping transitions, attachment, provenance and repair |
+| `test:item-diff` | Unpublished comparison, graph marks and branch and publication journeys in an isolated workspace |
 | `test:published-snapshot` | Published status, local Publish and Adopt, migration notice, Mappings preview label and published export in both modes |
 | `test:overview-areas` | Group menu only in Graph, Overview grouping note, cards packed into columns and capped at eight with Show all, Catalog area filter ending on leaving Catalog or changing file |
 | `test:examples:ui` | Example loading, mappings and governed metric presentation |

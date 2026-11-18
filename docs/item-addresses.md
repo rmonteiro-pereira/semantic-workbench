@@ -249,3 +249,7 @@ compiled output. The loss report names each dropped value by the document-relati
 item that held it (for the ontology root, the address of the ontology itself, such as
 `sw1:#ontology:Retail`). Tests: `tests/tessera/workbench-documents.test.ts` and
 `tests/tessera/determinism.test.ts`.
+
+The workbench's item comparison uses the migration records in the destination side that are
+absent by ID from the source side. It applies those records in destination order. A rename
+without a record appears as a removal and an addition.

@@ -646,3 +646,20 @@ model. See [agent runtime and protocol](agent-runtime.md).
 
 - **Tessera**: an authoring format that compiles to standard Ossie. A Tessera document is an Ossie
   ontology with the marker `tessera: 1` and, optionally, `tessera_notes`.
+
+## Review unpublished work
+
+Open **Unpublished work** in the full graph or Neighborhood. On a phone, use **Controls**.
+The comparison follows your branch against the published snapshot. It starts on when Source
+Control reports unpublished work. A project with no published commit shows its saved items as
+added when you turn the overlay on.
+
+Grey surfaces, dashed outlines and text identify added, changed and removed items. Open
+**Comparison** for the branch, published commit, a grouped list of changed fields and any files
+the workbench could not compare. Turning the overlay off restores the ordinary graph display.
+The overlay is a display aid. Workbench access rules apply in either setting.
+
+In the details for a concept, relationship or attribute, choose **Start a branch for this item**
+to open the branch picker with a suggested name. The picker switches your saved working copy
+without pushing. In server mode, the publication confirmation shows what the branch's committed
+tip would change. You can continue publishing if the comparison fails.

@@ -201,3 +201,7 @@ See [development commands](development.md#browser-suites) for the current script
 
 Graph cards reserve name space for the unpublished label when the overlay marks a card.
 The annotation uses the card’s existing width and height.
+
+The full model and neighborhood annotate unpublished nodes by item address. Both use text and a
+dashed border on a grey surface. The neighborhood's relationship labels also include the change
+state and its route is dashed. Without the overlay, the graph uses the usual card data and layout.

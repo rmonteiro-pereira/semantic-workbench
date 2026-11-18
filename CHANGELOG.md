@@ -8,6 +8,10 @@ not configure a production deployment.
 
 ### Added
 
+- Compare saved definitions by item address with the published snapshot, a branch or a commit.
+  The browser marks unpublished items and reviews the committed changes before publication.
+  Agent operations continue to use published definitions.
+
 - Tessera revision 2 adds attribute display order, item context for agents and ontology governance.
   Agent context and governance flags come from published snapshots. Standard ontology output drops
   the additions and loss report version 2 counts dropped governance entries by status.
