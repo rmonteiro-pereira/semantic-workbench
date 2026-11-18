@@ -69,7 +69,7 @@ UI regression comparison against the last release and the architecture review ru
 
 ## Phase 6: User Stories 4 and 5, review and planner
 
-- [ ] T031 [P] [US5] In `src/app/mappings/QueryComposer.tsx` show "Not approved" with the status for a governed metric whose status is not approved, and "Status not set" when absent, read from the metric definition already in the runtime context; no server change (FR-031). Proof: `bun test tests/item-diff/planner-flag.test.tsx` covers approved, proposed, draft, deprecated and absent status.
+- [x] T031 [P] [US5] In `src/app/mappings/QueryComposer.tsx` show "Not approved" with the status for a governed metric whose status is not approved, and "Status not set" when absent, read from the metric definition already in the runtime context; no server change (FR-031). Proof: `bun test tests/item-diff/planner-flag.test.tsx` covers approved, proposed, draft, deprecated and absent status.
 - [ ] T032 [US4] Create `src/app/item-diff/PublicationReview.tsx` and mount it above the confirm control in `src/app/scm/DefaultBranchActions.tsx`: counts by kind, the list, empty text, a notice for files not compared, bounded list; publishing unchanged (FR-028, FR-029). Proof: `bun test tests/item-diff/publication-review.test.tsx` covers changes, none, a comparison failure (publish still enabled) and a large change.
 - [ ] T033 [US5] Write `tests/item-diff/agent-unchanged.test.ts`: with unpublished definitions on a branch and the overlay on, agent context, plan and explanation answers equal the T002 baseline byte for byte (FR-030, SC-007). Proof: the test passes.
 

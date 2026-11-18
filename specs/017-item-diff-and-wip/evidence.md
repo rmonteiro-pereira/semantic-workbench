@@ -71,3 +71,13 @@ Resolution needed: agree a durable provenance contract for saved and committed m
 branches and working copies, including historical comparisons and legacy records. This changes the
 plan's no-new-state constraint and requires changes to the existing migration writers, outside its
 listed file ownership. Do not weaken the no-similarity or outside-rename rule to bypass this gap.
+
+## Independent planner proof
+
+- T031: `bun test tests/item-diff/planner-flag.test.tsx`: 3 pass, 0 fail, 7 assertions.
+- `scripts/item-diff-planner-browser-check.ts` passed on the development server at 1440×900
+  and 360×800, light and dark, for approved, proposed, legacy draft, deprecated and absent status.
+  Geometry, clipped text and contrast checks passed. This checks only the independent planner
+  change; it does not replace the pending overlay browser check.
+- The browser fixture supplies authenticated same-origin metadata when intercepting the preview
+  context request. Without it the existing browser-only route correctly refuses the test client.

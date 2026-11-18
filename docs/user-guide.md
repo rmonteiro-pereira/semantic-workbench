@@ -625,7 +625,9 @@ fewer** folds them again, and **Show N more concepts** works the same way. The t
 mappings of the open file's project, says so when that project has none, and asks you to open a
 project when no file is open. Search includes unbound concepts; empty views offer Source navigation
 for the selected mapping document. **Show query** selects mapped fields/metrics and previews a
-newly composed governed query without running it. **AI context** shows the same context
+newly composed governed query without running it. Metrics with a status other than approved show
+**Not approved** and their status; metrics without one show **Status not set**. These labels do not
+prevent selection or change the stored formula. **AI context** shows the same context
 `/api/agent/context?concept=` returns for the selected concept (or the whole mapping when none is
 selected), including any `ai_context` the documents declare. **Export agent context** downloads metadata.
 

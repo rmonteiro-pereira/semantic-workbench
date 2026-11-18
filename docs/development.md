@@ -96,6 +96,8 @@ for the options and exit statuses (0 success, 1 refused, 2 loss needs acceptance
   to open the details of a concept in a 200-concept document.
 - `bun scripts/mutation-tests.ts --attributes` checks the targeted faults for the revision additions.
   The integrated mutation gate runs these cases with the rest of its inventory.
+- `bun scripts/item-diff-planner-browser-check.ts` checks metric status labels, geometry and contrast
+  in the query composer at phone and desktop widths in both themes, using an isolated API.
 - `bun scripts/record-item-diff-baseline.ts` records six rendered workbench structures and published
   context, plan and explanation responses against isolated published and unpublished definitions.
   Start an isolated frontend and set `SW_BASE_URL` first. `bun test tests/item-diff/baseline.test.ts`
