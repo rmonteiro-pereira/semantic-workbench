@@ -38,9 +38,9 @@ boundary's invocation of the same route; it is deleted in finally. The exception
 is limited to the four registered relay operation ids and still evaluates read access and scope.
 The HTTP authentication dispatcher leaves only those exact paths to relay authentication, so a
 foreign Origin/Host reaches the audited authentication refusal instead of the former outer 403.
-The middleware addition is one contiguous dispatch block. Existing feature additions in imports
-and HandlerOptions are retained; they are separate from that dispatch block and need attention
-when integrating the shared file with the sign-in branch.
+Relay delegation is a single contiguous block in request-authentication.ts. Middleware additions
+are now confined to one HandlerOptions block using an inline type import. The request entry
+remains responsible for authentication delegation, and relay authorization stays in the boundary.
 
 Unknown methods are recorded as unsupported-terminal or unsupported-other; file and question
 refusals get a bounded reason. No arbitrary method, parameter, path or content enters these records.
@@ -67,3 +67,8 @@ removes that container, restoring canvas width and menu focus. No edits to main.
 WorkspaceCanvas.tsx are necessary, so those proposed edits in T035 are skipped. The sheet's
 BrandProvider preserves the deployment identity. The only PersonMenu change is one contiguous
 menu-item block. The panel requests nothing until that item is chosen.
+
+Shared-file consolidation: files.ts has one keepDrafts expression; me.ts one availability field;
+middleware.ts one HandlerOptions block; guard-cases.ts one exemption block; route-actions.ts one
+appended registration block. The latter registers conversation-only examples after the
+definition-read matrix is derived, so event streams cannot hang the definition-read checks.

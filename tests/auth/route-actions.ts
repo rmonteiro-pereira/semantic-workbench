@@ -133,6 +133,20 @@ export const routeExamples: { method: string; path: string; body?: unknown }[] =
   { method: 'GET', path: '/readyz' },
   { method: 'GET', path: '/brand/logo-mark.svg' },
   { method: 'POST', path: '/api/mcp' },
+  { method: 'GET', path: '/catalog' },
+];
+
+/** Read requests exercised against both granted and hidden fixture projects. */
+export const readRouteExamples = routeExamples.filter(
+  example =>
+    example.path.startsWith('/api/') &&
+    // Administration and audit reads are Admin or Steward pages that name no project.
+    !/^\/api\/(admin|audit)(\/|$)/.test(example.path) &&
+    (example.method === 'GET' || example.path.endsWith('/preview') || ['/api/agent/plan', '/api/preview/plan'].includes(example.path) || example.path.endsWith('/item-addresses/resolve')),
+);
+
+// Panel and relay streams carry conversation events, so they are outside the definition-read matrix.
+routeExamples.push(
   { method: 'POST', path: '/api/acp/sessions' },
   { method: 'GET', path: '/api/acp/sessions/missing/events' },
   { method: 'POST', path: '/api/acp/sessions/missing/prompt' },
@@ -143,14 +157,4 @@ export const routeExamples: { method: string; path: string; body?: unknown }[] =
   { method: 'POST', path: '/api/acp/relay/missing/frames' },
   { method: 'GET', path: '/api/acp/relay/missing/stream' },
   { method: 'POST', path: '/api/acp/relay/missing/bye' },
-  { method: 'GET', path: '/catalog' },
-];
-
-/** Read requests exercised against both granted and hidden fixture projects. */
-export const readRouteExamples = routeExamples.filter(
-  example =>
-    example.path.startsWith('/api/') &&
-    // Administration and audit reads are Admin or Steward pages that name no project, and the relay's stream answers without a sign-in.
-    !/^\/api\/(admin|audit|acp\/relay)(\/|$)/.test(example.path) &&
-    (example.method === 'GET' || example.path.endsWith('/preview') || ['/api/agent/plan', '/api/preview/plan'].includes(example.path) || example.path.endsWith('/item-addresses/resolve')),
 );

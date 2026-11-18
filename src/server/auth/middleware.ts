@@ -2,7 +2,6 @@
 import type { BearerValidator } from './bearer';
 import type { LocalCapability } from '../mcp/local-capability';
 import type { CallLimitSettings } from '../mcp/call-limits';
-import type { ConnectionDirectory } from '../acp/connection-directory';
 import { createOperationBoundary } from './operation-boundary';
 import { mintCaller } from './caller';
 export { shouldAudit } from './operation-boundary';
@@ -71,7 +70,7 @@ export type HandlerOptions = {
   /** Local mode: the capability that opens the agent endpoint. Without it the endpoint is not mounted. */
   mcp?: { capability: LocalCapability; limits?: CallLimitSettings };
   /** Server mode: the connection service the agent panel's relay authenticates through. Without it the panel is not offered. */
-  acp?: { connections: ConnectionDirectory };
+  acp?: { connections: import('../acp/connection-directory').ConnectionDirectory };
   /** True when the agent panel is mounted. The handler sets it; it is read by the identity route. */
   agentPanel?: boolean;
 };
@@ -153,8 +152,6 @@ export function createAccessMiddleware(
   const authentication = createRequestAuthentication(options, audit, localCheck);
   const boundary = createOperationBoundary(ws, { mode, access, audit, remoteCredentials: options.remoteCredentials }, run);
   async function dispatch(request: AccessRequest, requestId: string): Promise<Response> {
-    // Relay authentication uses its own bearer and audits failures before entering the boundary.
-    if (/^\/api\/acp\/relay\/[A-Za-z0-9_-]{1,64}\/(hello|frames|stream|bye)$/.test(new URL(request.url).pathname)) return run(request);
     const client = await authentication.authenticate(request, requestId);
     if (client instanceof Response) return client;
     const url = new URL(request.url);
