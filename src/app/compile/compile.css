@@ -1,0 +1,168 @@
+/* The compile dialogs: source choice, the loss preview, findings, the digest and the conversion review. Long names wrap; nothing is cut. */
+.compile-source {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 12px;
+}
+.compile-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+.compile-unpublished {
+  font-size: var(--text-small);
+  border: 1px solid var(--color-warning-border);
+  background: var(--color-warning-soft);
+  color: var(--color-warning-text);
+  border-radius: 7px;
+  padding: 6px 10px;
+  margin: 0 0 10px;
+}
+.compile-note {
+  font-size: var(--text-small);
+  color: var(--text-muted);
+  margin: 0 0 8px;
+}
+.compile-state {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 10px;
+}
+.compile-state-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-weight: 600;
+}
+.compile-state-mark {
+  flex: none;
+  font-weight: 700;
+}
+.compile-placeholder {
+  min-height: 72px;
+  border: 1px dashed var(--color-border);
+  border-radius: 7px;
+  padding: 10px;
+  color: var(--text-muted);
+}
+.compile-findings {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.compile-finding {
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  padding: 8px 10px;
+  display: grid;
+  gap: 2px;
+  font-size: var(--text-small);
+}
+.compile-finding-where,
+.loss-document,
+.loss-item,
+.loss-pointer,
+.loss-digest-value,
+.compile-path {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+.loss-preview {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+.loss-summary,
+.loss-statuses,
+.loss-explanation,
+.loss-shown {
+  margin: 0;
+  font-size: var(--text-small);
+}
+.loss-groups {
+  display: grid;
+  gap: 6px;
+}
+.loss-group {
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  padding: 6px 10px;
+}
+.loss-group > summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: baseline;
+  cursor: pointer;
+}
+.loss-property {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.loss-count {
+  color: var(--text-muted);
+  font-size: var(--text-small);
+}
+.loss-list {
+  list-style: none;
+  margin: 8px 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.loss-entry {
+  display: grid;
+  gap: 1px;
+  font-size: var(--text-small);
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: 6px;
+}
+.loss-document {
+  font-weight: 600;
+}
+.loss-item,
+.loss-pointer {
+  color: var(--text-muted);
+}
+.loss-digest {
+  display: grid;
+  gap: 2px;
+}
+.loss-digest-label {
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+.loss-digest-value {
+  display: block;
+  font: var(--text-small) monospace;
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 5px;
+  padding: 6px 8px;
+}
+.compile-accept-note {
+  font-size: var(--text-small);
+  color: var(--text-muted);
+  margin: 0 0 8px;
+}
+.convert-review {
+  display: grid;
+  gap: 10px;
+}
+.convert-diff {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+}
+@media (max-width: 640px) {
+  .loss-group > summary {
+    flex-direction: column;
+  }
+}
