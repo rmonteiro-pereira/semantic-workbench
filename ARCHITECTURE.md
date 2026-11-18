@@ -79,6 +79,8 @@ The integration view shows what the application reads and contacts, and what it 
 
 ## Code map
 
+- `src/shared/item-diff/` owns comparison side parsing independently of files, Git and browser state.
+
 - `src/shared/attributes/` owns the attribute rule, inheritance and display order over Ossie relationships.
 - `src/app/attributes/` renders and edits attribute rows and shows where value types are used.
 - `src/app/agent-context/` edits item context and labels the preview as working copy content.
