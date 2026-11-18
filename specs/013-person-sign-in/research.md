@@ -27,7 +27,7 @@ endpoint and that only the reference client has run.
 
 **Decision.** Support is claimed only for programs recorded in an acceptance file after a real
 run. The first release registers the reference client for tests. Codex CLI is documented as
-supported only if task T071 shows it can complete the flow with a fixed callback port.
+supported only if task T039 shows it can complete the flow with a fixed callback port.
 
 **Verify.** (a) Whether Codex CLI can use a pre-registered public client id, a fixed callback port
 and a resource indicator. (b) Which discovery requests it makes (path-aware protected-resource
@@ -103,7 +103,7 @@ through unchanged and bounded to 512 characters.
 **Verify.** The exact required and optional parameters, error names and metadata fields of the
 2026-07-28 authorization text and the authorization-server metadata and protected-resource metadata
 standards it references. `contracts/oauth-endpoints.md` is written from what the code of the
-protocol library in 006 (`@modelcontextprotocol/server`) and the decisions file say; task T070
+protocol library in 006 (`@modelcontextprotocol/server`) and the decisions file say; task T038
 compares it with the specification and records differences before tests are fixed.
 
 ## R7. Consent page and CSRF
@@ -119,7 +119,7 @@ redirect origin when needed, `Referrer-Policy: no-referrer`, `X-Frame-Options: D
 
 **Note.** `form-action` and redirects: the consent post answers with a 303 to the program's redirect
 address. Some browsers apply `form-action` to redirects after a post; the plan therefore lists the
-registered redirect's origin in `form-action`, and T080 checks the browsers the suites use.
+registered redirect's origin in `form-action`, and T036 checks the browsers the suites use.
 
 ## R8. Scope to effect mapping
 

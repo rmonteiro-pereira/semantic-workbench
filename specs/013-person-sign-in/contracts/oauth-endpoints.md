@@ -1,7 +1,7 @@
 # Contract: authorization endpoints
 
 Server mode only. Addresses are relative to `SW_PUBLIC_URL`. The parameter and error names follow
-the standards the 2026-07-28 MCP authorization text points to; task T070 compares this page with
+the standards the 2026-07-28 MCP authorization text points to; task T038 compares this page with
 that text before the tests are fixed.
 
 ## The four unauthenticated answers
