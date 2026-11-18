@@ -8,7 +8,9 @@
       "username": "alice@example.org",
       "usernameVerified": true,
       "verifiedEmail": "alice@example.org",
-      "groups": ["7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a01"],
+      "groups": [
+        "7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a01"
+      ],
       "groupsResolved": "token",
       "groupOverage": false
     },
@@ -32,7 +34,9 @@
       "username": "carol@example.org",
       "usernameVerified": true,
       "verifiedEmail": "carol@example.org",
-      "groups": ["7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a02"],
+      "groups": [
+        "7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a02"
+      ],
       "groupsResolved": "token",
       "groupOverage": false
     },
@@ -44,7 +48,9 @@
       "username": "dave@example.org",
       "usernameVerified": true,
       "verifiedEmail": "dave@example.org",
-      "groups": ["7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a03"],
+      "groups": [
+        "7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a03"
+      ],
       "groupsResolved": "token",
       "groupOverage": false
     },
@@ -68,7 +74,10 @@
       "username": "frank@example.org",
       "usernameVerified": true,
       "verifiedEmail": "frank@example.org",
-      "groups": ["7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a01", "7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a04"],
+      "groups": [
+        "7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a01",
+        "7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a04"
+      ],
       "groupsResolved": "token",
       "groupOverage": false
     },
@@ -104,7 +113,9 @@
       "username": "olga@example.org",
       "usernameVerified": true,
       "verifiedEmail": "olga@example.org",
-      "groups": ["7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a01"],
+      "groups": [
+        "7d1f3a52-2c4e-4b8a-9a61-0f3c5e2b1a01"
+      ],
       "groupsResolved": "token",
       "groupOverage": false
     }
