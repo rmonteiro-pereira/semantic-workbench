@@ -19,6 +19,7 @@ export const gateSuites: string[] = [
   'test:item-edit',
   'test:addresses',
   'test:mcp:browser',
+  'test:connections',
   'test:rdf-edit',
   'test:validation',
   'test:scm',
@@ -40,7 +41,7 @@ export const gateSuites: string[] = [
 ];
 
 /** Suites that serve their own built frontend and require server container coverage. */
-export const selfServedSuites = ['test:auth', 'test:two-editors', 'test:admin', 'test:brand'];
+export const selfServedSuites = ['test:connections', 'test:auth', 'test:two-editors', 'test:admin', 'test:brand'];
 
 /** Explicit reasons why other test scripts are not browser gate suites. */
 export const exclusions = [

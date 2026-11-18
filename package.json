@@ -57,6 +57,7 @@
     "test:back-history": "bun scripts/back-history-browser-check.ts",
     "audit:verify": "bun scripts/audit-verify.ts",
     "mcp:rotate": "bun scripts/mcp-rotate.ts",
+    "test:connections": "bun scripts/connections-browser-check.ts",
     "test:mcp": "bun scripts/mcp-acceptance.ts",
     "test:mcp:browser": "bun scripts/mcp-browser-check.ts",
     "mock-oidc": "bun scripts/mock-oidc.ts",
