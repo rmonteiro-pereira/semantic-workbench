@@ -11,7 +11,8 @@ test('provider identity distinguishes matching concepts and aliases do not chang
   expect(qualifiedConcept(finance)).toBe('finance~root%2Eyaml~Order');
   expect(qualifiedConcept(support)).not.toBe(qualifiedConcept(finance));
   expect(qualifyReferences(new Map([['fin.Order', finance]]), new Set())('fin.Order')).toBe(qualifyReferences(new Map([['billing.Order', finance]]), new Set())('billing.Order'));
-  expect(qualifiedConcept({ ...finance, project: 'finance~ops' })).not.toBe(qualifiedConcept({ ...finance, project: 'finance%7Eops' }));
+  expect(qualifiedConcept({ ...finance, project: 'finance~ops' })).toBe('finance%7Eops~root%2Eyaml~Order');
+  expect(qualifiedConcept({ ...finance, project: 'finance%7Eops' })).toBe('finance%257Eops~root%2Eyaml~Order');
   expect(() => qualifyReferences(new Map([['fin.Order', finance]]), new Set([qualifiedConcept(finance)]))).toThrow('collides');
 });
 

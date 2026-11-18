@@ -81,7 +81,7 @@ export async function updateDependencies(ws: Workspace, req: Request, project: s
     };
     const updates = await Promise.all(roots.map(({ file, imports }) => planDependencyUpdate(source, pin, reader, repository, file.path, imports)));
     requireOneProviderVersion(updates.flatMap(update => update.manifest.providers));
-    const manifests = updates.map(update => update.manifest);
+    const manifests: RootDependencies[] = updates.map(update => update.manifest);
     if (!manifests.length && previous) manifests.push({ root: previous.root, providers: [] });
     const lock = printDependencyManifest(projectDependencies(manifests));
     const preview = sha256Hex(lock);

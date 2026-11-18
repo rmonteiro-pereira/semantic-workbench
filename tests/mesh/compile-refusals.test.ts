@@ -27,13 +27,9 @@ function compile(resolved: ResolvedImportInterface, name = 'Order', other?: Reso
       }),
     ),
   };
-  const roots = other
-    ? ([
-        [file.path, [resolved]],
-        ['other.json', [other]],
-      ] as const)
-    : ([[file.path, [resolved]]] as const);
-  return compileUnit([file], { lossPolicySha256: null, providers: new Map(roots) });
+  const providers = new Map([[file.path, [resolved]]]);
+  if (other) providers.set('other.json', [other]);
+  return compileUnit([file], { lossPolicySha256: null, providers });
 }
 
 test('a private dependency inside a provider is an absolute refusal', () => {
