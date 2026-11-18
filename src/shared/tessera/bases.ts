@@ -1,5 +1,7 @@
 // The table of Ossie bases a Tessera document may declare, and the check that a base leaves the Tessera names alone.
+import type { ValidateFunction } from 'ajv';
 import ontologySchema020 from '../../../schemas/ossie-ontology-0.2.0.dev0.json';
+import { tessera as tesseraValidator020 } from '../../generated/validators.js';
 import { hasTesseraPrefix, TesseraNames } from './format';
 
 /** A parsed JSON Schema document. */
@@ -11,6 +13,8 @@ export type SupportedBase = {
   label: string;
   draft: boolean;
   ontologySchema: JsonSchema;
+  /** The compiled validator of the derived schema, by the Tessera revision it checks. */
+  validators: Record<number, ValidateFunction>;
 };
 
 /** The places in an ontology schema where Tessera adds properties, so a base must not define the Tessera names there. */
@@ -26,7 +30,15 @@ export function baseLabel(version: string, draft: boolean): string {
 }
 
 /** The bases this workbench ships. */
-export const SUPPORTED_BASES: readonly SupportedBase[] = [{ version: '0.2.0.dev0', label: baseLabel('0.2.0.dev0', true), draft: true, ontologySchema: ontologySchema020 }];
+export const SUPPORTED_BASES: readonly SupportedBase[] = [
+  {
+    version: '0.2.0.dev0',
+    label: baseLabel('0.2.0.dev0', true),
+    draft: true,
+    ontologySchema: ontologySchema020,
+    validators: { 1: tesseraValidator020 },
+  },
+];
 
 /** Lists the properties a base's ontology schema defines under the Tessera prefix or equal to the marker key. */
 export function baseCollisions(base: SupportedBase): string[] {

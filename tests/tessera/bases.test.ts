@@ -4,7 +4,7 @@ import { SUPPORTED_BASES, baseLabel, findBase, registerBase, type SupportedBase 
 import synthetic from '../fixtures/ossie-next-base/synthetic-ontology.json';
 import colliding from '../fixtures/ossie-next-base/colliding-ontology.json';
 
-const nextBase = (ontologySchema: object): SupportedBase => ({ version: '0.3.0.dev0', label: baseLabel('0.3.0.dev0', true), draft: true, ontologySchema });
+const nextBase = (ontologySchema: object): SupportedBase => ({ version: '0.3.0.dev0', label: baseLabel('0.3.0.dev0', true), draft: true, ontologySchema, validators: {} });
 
 test('the shipped base is labelled as a draft and is accepted by the collision check', () => {
   expect(SUPPORTED_BASES.map(base => base.version)).toEqual(['0.2.0.dev0']);

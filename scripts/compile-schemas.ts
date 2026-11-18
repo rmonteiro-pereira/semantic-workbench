@@ -12,6 +12,7 @@ import odcs from '../schemas/odcs-v3.1.0.json';
 import ossie from '../schemas/ossie-0.2.0.dev0.json';
 import ontology from '../schemas/ossie-ontology-0.2.0.dev0.json';
 import mapping from '../schemas/ossie-mapping-0.2.0.dev0.json';
+import tesseraOntology from '../schemas/tessera-ontology-1-ossie-0.2.0.dev0.json';
 import metric from '../schemas/semantic-workbench-metric-v1.json';
 import bindings from '../schemas/semantic-workbench-mapping-v1.json';
 
@@ -29,6 +30,7 @@ mappings.addFormat('iri', /^[a-z][a-z\d+.-]*:[^\s]+$/i);
 const ontologyId = 'https://raw.githubusercontent.com/apache/ossie/main/ontology/ontology.json';
 mappings.addSchema(ossie, 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json');
 mappings.addSchema(ontology, ontologyId);
+mappings.addSchema(tesseraOntology, tesseraOntology.$id);
 const mappingRef = 'urn:semantic-workbench:mapping';
 const embeddedMappingRef = 'urn:semantic-workbench:embedded-mapping';
 const metricRef = 'urn:semantic-workbench:metric';
@@ -56,12 +58,14 @@ const outputs = [
     schemaRoots: [
       { name: 'ossieMapping', schema: mapping },
       { name: 'ossieOntology', schema: ontology },
+      { name: 'tesseraOntology', schema: tesseraOntology },
       { name: 'ossieSemanticModel', schema: ossie },
     ],
     validators: {
       standalone: mappingRef,
       embedded: embeddedMappingRef,
       ontology: ontologyId,
+      tessera: tesseraOntology.$id,
     },
   },
   {
