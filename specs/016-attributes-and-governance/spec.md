@@ -303,8 +303,8 @@ document and never drops its parts.
 - **FR-023**: Setting status `approved` or `deprecated`, and changing the owner or steward of an
   approved item, MUST need approver authority, the same as for metrics. A person MUST NOT approve an
   item that they own. Owner comparison MUST be case-insensitive and refuse in doubt, as for metrics.
-- **FR-024**: Changing or removing an approved item, except its description, notes or the
-  `tessera_notes` value, MUST be refused or offered as a demotion to proposed, exactly as for metrics.
+- **FR-024**: Changing or removing an approved item, except its description and its notes,
+  MUST be refused or offered as a demotion to proposed, exactly as for metrics.
   Changing its agent context MUST count as changing it.
 - **FR-025**: Classification on an ontology item MUST be a declaration. Changing it, and changing the
   content of an item at or above the protected level, MUST follow the rules that data-contract
