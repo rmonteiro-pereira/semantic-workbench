@@ -414,7 +414,7 @@ concatenating project, document or item names.
 5. All worktrees of a repository share its serialized Git queue. Sparse paths, multi-project
    ownership and protected content apply to both direct changes and incoming Git content.
 
-### Agent tool call
+### Agent operation
 
 1. The route gates the request, streams its body under the cap of the named tool and gives it to the protocol library, which checks the headers, the envelope and the revision.
 2. The tool checks its arguments against its JSON Schema, takes a place under the call limits and builds the request of its twin route.

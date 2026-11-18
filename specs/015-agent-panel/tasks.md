@@ -173,7 +173,7 @@ test only to make it pass.
 - [x] T030 [US1] Create `src/app/agent/agent-api.ts` and `src/app/agent/agent-events.ts` (the pure
   reducer from events to panel state). Add `tests/agent-events.test.ts`. Proof: the test passes,
   including overflow notice, reconnect catch-up and a message arriving after cancel.
-- [ ] T031 [US1] Create `src/app/agent/useAgentSession.ts`, `AgentPanel.tsx`, `ConnectStep.tsx`,
+- [x] T031 [US1] Create `src/app/agent/useAgentSession.ts`, `AgentPanel.tsx`, `ConnectStep.tsx`,
   `WaitingStep.tsx`, `SessionNotice.tsx` and `AgentPanel.css` in the existing visual design (tokens
   only, no literal colours; the Modal for the connect step). The statement text is the fixed text
   of FR-003. Add `tests/agent-panel-connect.test.tsx`. Proof: the test passes for connect, waiting,

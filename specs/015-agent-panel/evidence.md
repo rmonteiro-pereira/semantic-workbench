@@ -51,3 +51,19 @@ Proofs: `sw-midgard-run -- bun test tests/acp/ tests/auth/operation-inventory.te
 `bun test tests/acp/audit-records.test.ts`: 2 pass, 0 fail; `bun test
  tests/acp/relay-boundary.test.ts`: 2 pass, 0 fail, including a real policy denial that leaves the
 single-use code unconsumed and an allow record with origin acp and the connection id.
+
+## Browser panel structure and proofs
+
+Shared event types live in `src/shared/agent-panel/events.ts`; server normalizers re-export the
+same types for existing callers. Presentation proofs live under `tests/acp/`, alongside the rest
+of this feature's tests, rather than a second top-level test group. Reducer proof: 2 pass, 0 fail.
+Presentation proofs: transcript 1 pass (million-character message and 5,000-character task),
+connect 1 pass, change 1 pass (ordinary-save arguments and conflict), question 1 pass (eight long
+escaped choices). These are rendering/contract proofs; focus and geometry belong to the browser
+check, not server rendering.
+
+The lazy person-menu import mounts the sheet beside the canvas into its own React root. Closing
+removes that container, restoring canvas width and menu focus. No edits to main.tsx or
+WorkspaceCanvas.tsx are necessary, so those proposed edits in T035 are skipped. The sheet's
+BrandProvider preserves the deployment identity. The only PersonMenu change is one contiguous
+menu-item block. The panel requests nothing until that item is chosen.
