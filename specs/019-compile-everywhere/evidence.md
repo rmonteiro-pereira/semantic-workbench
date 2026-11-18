@@ -73,3 +73,11 @@ must identify the requested commit and accepted digest. Invalid replies become v
 than success states. This follows the existing save-reply validation pattern without adding a module.
 
 Proof: api.test.ts: 4 pass, 0 fail, 12 assertions, including malformed 200 and unsupported 202 replies.
+
+## Inventory and parity proof
+
+Development-server proof: 45 pass, 0 fail, 45,035 assertions across operation-inventory,
+route-actions, matrix and compile-parity (130.50 s). The generated operation table is unchanged:
+`bun scripts/operation-inventory-table.ts && git diff --exit-code docs/operations.md` exited 0.
+T036 remains unchecked because its MCP contract/registry portion is unavailable on this base;
+that portion is skipped for integration, rather than running Bun with a nonexistent test directory.
