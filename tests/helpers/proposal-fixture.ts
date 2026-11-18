@@ -7,7 +7,7 @@ import { createAccessControl } from '../../src/server/auth/authorize';
 import type { CloneEvent } from '../../src/server/projects/clone';
 import { LOCAL_READER } from '../../src/server/projects/reader';
 import { accessFixture, person } from '../auth/access-fixture';
-import { signedIn } from '../auth/working-copy-fixture';
+import { apiRequest, signedIn } from '../auth/working-copy-fixture';
 import { isolateGit, testWorkspace } from './temp-data-dir';
 import { ontologyText } from './git-fixtures';
 
@@ -103,6 +103,15 @@ export async function proposalFixture() {
 export const filePath = (slug: string, file: string) => `/api/projects/${slug}/files/${file}`;
 
 type Caller = ReturnType<ReturnType<typeof signedIn>>;
+
+/** Answers with status, headers and body text, so two answers can be compared as a client sees them. */
+export async function rawAnswer(caller: Caller, path: string, method = 'GET', body?: unknown) {
+  const response = await caller.handler(apiRequest(path, method, body));
+  const headers = Object.fromEntries(response.headers);
+  delete headers['x-request-id'];
+  delete headers.date;
+  return { status: response.status, headers, body: await response.text() };
+}
 
 /** Edits a project's file in the person's copy, stages it and commits it, as the interface does. */
 export async function commitEdit(caller: Caller, project: SharedProject, text: string, message = 'Edit') {
