@@ -192,3 +192,40 @@ job runs the comparison with the last release and the deferred screen capture an
 The architecture reviewer reviews the integrated branch once. The 016 additions keep their
 revision 2 behavior. The 019 compile inventory, report handling and unit-source seam were
 reconciled during integration. No full unit or full mutation run was performed on this feature.
+
+### Security review and proof scope
+
+The real Publish and Adopt routes reject an absent, stale or unreadable lock, and a provider
+whose current project access was withdrawn. They keep the old durable commit. The same-repository
+test publishes the two sides from a single candidate, leaves an unstaged provider edit out of
+the result, and also exercises a reciprocal import. The separate-repository test keeps the
+consumer on the old published provider while the provider moves forward. Remote follow runs the
+same guard and refuses an invalid candidate.
+
+The publication guard never sends a hidden part path in the generic set refusal. The file GET,
+PUT, batch save and Adopt tests compare the missing and hidden responses byte for byte. The
+response-equivalence test is distinct from a latency test. Immutable snapshot construction
+still varies with tree shape and storage cache state, so timing equivalence across those
+conditions remains open. Complete-set findings are never cached across readers or accesses.
+
+Provider file restrictions are tested through a signed-in caller who can compile an exported
+item from a private part and sees neither its private sibling concept nor the part path. A
+reader with source access sees the original address in the compiled map. Revoking project
+access removes the interface on the next read and prevents compile output. Frozen provider
+failures propagate to published agent calls. Agent context, catalog, plans and compile are
+compared before an author changes a working provider, after the provider publishes, and after
+the consumer updates.
+
+The browser journey opens and updates an import, publishes it after observing the actual
+disclosure dialog, selects a project by keyboard, and opens Used by at 1440, 768 and 390 px in
+both themes. The route audit proof confirms that publication records the acknowledgement.
+Screenshot comparison and every-state review are separate capture work.
+
+### Existing tests changed after the merge baseline
+
+- Authorization coverage changed in `tests/auth/matrix-write.test.ts`, `tests/auth/matrix.test.ts`
+  and `tests/auth/route-actions.ts` for the new operations and their existing entry points.
+- Tessera tests changed in `tests/tessera/additions-r2.test.ts`, `docs-paths.test.ts`,
+  `loss-report.test.ts`, `refusals.test.ts`, `registry.test.ts`, `schema-derivation.test.ts`
+  and `validation.test.ts`. The shared refusal fixture and its inventory moved the unsupported
+  revision sample above revision 3.
