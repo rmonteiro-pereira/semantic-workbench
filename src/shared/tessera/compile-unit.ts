@@ -15,7 +15,7 @@ import { REGISTRY } from './registry';
 export type { UnitFile } from './document-kind';
 
 /** The most a unit may hold, so a compile is bounded before any file is parsed. */
-export const UNIT_LIMITS = { files: 10_000, totalBytes: 64_000_000, documentBytes: 2_000_000 } as const;
+export const UNIT_LIMITS: Readonly<{ files: number; totalBytes: number; documentBytes: number }> = { files: 10_000, totalBytes: 64_000_000, documentBytes: 2_000_000 };
 
 /** Options that become part of the report, because they change what may be released. */
 export type CompileOptions = { lossPolicySha256: string | null };
