@@ -574,7 +574,7 @@ The original review archive contains 3,559 PNGs. A read-only count by folder mea
 
 Status: in progress. No visual pair is classified before both images have been opened.
 
-The gallery checkpoint of 749 rows includes 330 intended fixes, 32 expected merged-feature differences, 300 neutral changes and 11
+The gallery checkpoint of 750 rows includes 331 intended fixes, 32 expected merged-feature differences, 300 neutral changes and 11
 unchanged steps. It retains 42 frames of fixed regressions and 34 frames flagged as possible or unresolved regressions. A frame count
 can include multiple actions that carry the same underlying issue. The manifest records actions without matched captures.
 The counted Network heading and compact mapping correction pairs were opened at 390×844 in both themes.
@@ -600,7 +600,11 @@ keyboard focus ring on the metric grouping control. The empty Trash dialog keeps
   show all 45 names at phone width. Collapsing Layered shows all four counted cards. Selecting Order and expanding again keeps
   Order above the inspector. The hidden mini-map leaves the full width available. Each fullscreen path exposes Exit full screen.
   The Legend step is unavailable in all six runs, and one release pass missed the initial Layered Order selection.
-- `bash .data/gate/publish-current-review.sh` returned 749 rows with the counts above.
+- `bash .data/gate/pull-review-007.sh .data/gate/refused-import-confirmed local/light/1280/refused-import` returned the m21 strip. Both
+  repeats were opened. At 1280×720 the settled UBL Overview stays visible in the candidate and the full supported-format notice
+  appears below the Add project control. Release and main open the Review import parser error for the same unsupported file.
+  All six actions passed. The main/candidate score is 74.038628%.
+- `bash .data/gate/publish-current-review.sh` returned 750 rows with the counts above.
 
 The Full Graph replay scored 43 steps, from two repetitions per version. The candidate Network first view and Fit show four named counted areas.
 Both full-screen selection paths open Order and keep it readable. After changing area visibility with Order selected, Layered can leave Order
