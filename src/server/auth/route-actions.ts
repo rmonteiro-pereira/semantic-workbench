@@ -82,6 +82,10 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   // Reads are audited only when asked; an export leaves the server, so each one is recorded.
   { ...row('GET', '/api/projects/:slug/export', 'export', project), audited: true, readSource: 'by-query' },
   row('POST', '/api/projects/:slug/save-batch', 'edit', project),
+  // Standard Ossie: a check reads, a compile and its download leave the server so each is recorded.
+  { ...row('POST', '/api/projects/:slug/compile/check', 'read', project), readSource: 'by-query' },
+  { ...row('POST', '/api/projects/:slug/compile', 'export', project), audited: true, readSource: 'published' },
+  { ...row('GET', '/api/projects/:slug/compile/bundle', 'export', project), audited: true, readSource: 'published' },
   { ...row('POST', '/api/projects/:slug/item-addresses/resolve', 'read', project), audited: true },
   row('POST', '/api/projects/:slug/item-addresses/reconcile/*', 'edit', file),
   row('POST', '/api/projects/:slug/gitignore', 'edit', project),

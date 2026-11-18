@@ -312,6 +312,54 @@
       },
       "outcomeClassifier": "batchSave"
     },
+    "POST /api/projects/:slug/compile/check": {
+      "id": "compile.check",
+      "handlerChecks": [],
+      "limits": {
+        "request": "FILE_SAVE_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "scan"
+      },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      },
+      "steps": ["snapshot.read"]
+    },
+    "POST /api/projects/:slug/compile": {
+      "id": "compile.run",
+      "handlerChecks": [],
+      "limits": {
+        "request": "FILE_SAVE_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "scan"
+      },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      },
+      "steps": ["snapshot.read"]
+    },
+    "GET /api/projects/:slug/compile/bundle": {
+      "id": "compile.bundle",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "binary",
+        "work": "scan"
+      },
+      "effects": ["read"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "A binary download for the browser. Agents page compile.run instead."
+      },
+      "steps": ["snapshot.read"]
+    },
     "POST /api/projects/:slug/item-addresses/resolve": {
       "id": "itemAddresses.resolve",
       "handlerChecks": [],

@@ -21,6 +21,7 @@ import { projectRoutes } from './routes/projects';
 import { fileRoutes } from './routes/files';
 import { itemAddressRoutes } from './routes/item-addresses';
 import { exportRoutes } from './routes/export';
+import { compileRoutes } from './routes/compile';
 import { draftRoutes } from './routes/drafts';
 import { trashRoutesWith } from './routes/trash';
 import { suggestionRoutes } from './routes/suggestions';
@@ -155,6 +156,7 @@ function workspaceRoutes(administration: AdminRepository, access: AccessControl,
     cloneRoutes(administration),
     repoRoutes,
     exportRoutes,
+    compileRoutes,
     itemAddressRoutes,
     fileRoutes,
     draftRoutes,

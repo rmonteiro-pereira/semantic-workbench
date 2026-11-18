@@ -119,3 +119,9 @@ export function snapshotOfFolder(folder: string): Map<string, string> {
   visit(folder, '');
   return hashes;
 }
+
+/** Sends a request to the local handler of the fixture, adding the header every write needs. */
+export function sendToCompile(workspace: { fixture: { handler: (request: Request) => Promise<Response> } }, path: string, body?: unknown): Promise<Response> {
+  const init: RequestInit = body === undefined ? {} : { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-SW-Request': '1' }, body: JSON.stringify(body) };
+  return workspace.fixture.handler(new Request(`http://localhost${path}`, init));
+}
