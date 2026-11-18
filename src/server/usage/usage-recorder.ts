@@ -7,6 +7,7 @@ import { OPERATION_OUTCOMES, type OperationOutcome } from '../../shared/observab
 import { log } from '../observability/log';
 import { countedOperation, type CountedOperation } from './usage-counted-operations';
 import { addCount, addressCount, emptyDayFile, MAX_ADDRESSES_PER_DAY, type CounterDayFile } from './usage-counts';
+import { compactUsage } from './usage-compaction';
 import { decideFlush } from './usage-flush';
 import { itemAddresses, answerProject, type PublishedModels, type RouteTarget } from './usage-items';
 import { utcDay } from './usage-retention';
@@ -87,6 +88,7 @@ export function createUsageRecorder(deps: UsageRecorderDeps): UsageRecorder {
   const inFlight = new Set<Promise<void>>();
   const lastWarned = new Map<string, number>();
   let closed = false;
+  let compactedOn = '';
 
   function warnOncePerHour(event: string, fields: Record<string, unknown> = {}) {
     const last = lastWarned.get(event) ?? Number.NEGATIVE_INFINITY;
@@ -148,7 +150,20 @@ export function createUsageRecorder(deps: UsageRecorderDeps): UsageRecorder {
     days.delete(day);
   }
 
+  /** Expires old days and updates the addresses of the rest, once for each UTC day. */
+  function compactOncePerDay() {
+    const today = utcDay(now());
+    if (today === compactedOn) return;
+    compactedOn = today;
+    try {
+      compactUsage({ store: deps.store, today, retentionDays: deps.settings.retentionDays, migrationRecords: deps.migrationRecords });
+    } catch {
+      warnOncePerHour('usage.compaction-failed');
+    }
+  }
+
   function flush() {
+    compactOncePerDay();
     for (const [project, days] of memory) {
       for (const day of [...days.keys()]) {
         try {
@@ -161,6 +176,7 @@ export function createUsageRecorder(deps: UsageRecorderDeps): UsageRecorder {
     }
   }
 
+  compactOncePerDay();
   const timer = setInterval(flush, deps.flushIntervalMs ?? DEFAULT_FLUSH_INTERVAL_MS);
   timer.unref();
 
