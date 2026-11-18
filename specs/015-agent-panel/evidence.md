@@ -198,3 +198,29 @@ persistent handler for setup failure, stream failure and recovery. It never chan
 registrations between the two failures, and still requires the observed 503 response before
 checking disconnection. Two consecutive dev-server executions passed, each reporting six
 viewport/theme conversations and exercising all thirteen endings.
+
+## Final proof record
+
+Dev-server aggregate: ACP, operation inventory, route actions, read/write matrices, guard
+inventory and guard files, origin parity, boundary scanner and pipeline registration: 353 pass,
+0 fail, 47,506 assertions across 41 files (384.10 seconds). The final setup-response correction
+then passed all five browser transport/reducer/presentation files: 7 pass, 0 fail, 36 assertions.
+
+`bun --bun run check`: exit 0 after the final browser-harness correction; TypeScript, formatting,
+lint, comments, theme and brand checks pass. Lint reports 2,696 existing warnings and no errors.
+`bun --bun run build`: exit 0, 2,333 modules, 2.97 seconds; the existing chunk-size and ReactFlow
+module-directive warnings remain. Both commands ran on the dev server.
+
+The actual module entry, not the separate theme initializer, was compared against a scratch
+build of fe462cc0: 2,521,830 bytes before, 2,521,415 after (415 bytes smaller). The final product
+build retained the latter size. Its eager bundle contains no panel-session transport URL; panel
+code and styles remain lazy chunks. Closed-only browser visits sent no ACP requests.
+
+Final `test:acp`: two consecutive passes, each six viewport/theme conversations plus all thirteen
+ending notices; final `test:acp --closed-only`: six passing visits without panel requests. The
+reference agent read, wrote, answered, cancelled and ended through the real person-run relay.
+No image capture, complete unit/mutation/browser suite or independent batch review was run.
+
+The full changed-code readable check and docs sync exit 0. The detached validation process has
+exited, browser/relay/fixture cleanup has completed and port 5418 is no longer listening. T028
+(real connection assembly), T037 (captures) and T044 (combined batch gate) stay unticked.

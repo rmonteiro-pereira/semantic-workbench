@@ -237,7 +237,7 @@ test only to make it pass.
   013): record exact agent names and versions that connected, read, wrote and ended cleanly in
   `docs/agent-panel.md`. Claim compatibility only for those. Proof: the record exists; the README
   names no untested agent.
-- [ ] T043 Run the readable-code checker and `scripts/check-comments.ts` on every changed file;
+- [x] T043 Run the readable-code checker and `scripts/check-comments.ts` on every changed file;
   confirm no spec, task or requirement ID is in a code comment. Proof: both clean.
 - [ ] T044 Hand off to the batch gate. This feature does not run the full gate alone. On the
   integrated batch with 012, 013 and 014 the owner of the batch runs: the full unit suite, `bun run

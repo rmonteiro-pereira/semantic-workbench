@@ -1,7 +1,59 @@
 # Hand-off: agent panel
 
-State at the hand-off: every change is committed, nothing is running on the dev server, nothing
-was pushed. Tasks T001 to T026 are ticked in `tasks.md`; T027 onward remain.
+## Current state
+
+Completed: T001–T027, T029–T036 and T038–T043. Final proof summaries follow below. T028, T037 and T044 remain open deliberately. No project remote push, deployment,
+screenshot capture or complete batch suite was performed.
+
+The panel is closed by default. Its person-menu entry dynamically imports a separate React root
+inside the canvas row, preserving the closed canvas and restoring menu focus on close. It renders
+plain-text messages, tools, the agent's plan, versioned diffs/Undo and permission choices. Writes
+use the existing browser API helper and its X-SW-Request header. Transcript content stays in
+memory; sessionStorage stores only the session id. The workbench neither calls a model nor starts
+an agent. The person-run relay starts the selected process without workbench credentials or tool
+servers in the ACP handshake.
+
+## Integration and review still required
+
+- T028: assemble the real connection service from the sign-in worktree in server mode. The
+  interface and double now match its named read/edit scopes, optional origin, credential result
+  and complete end notice. The real service must supply createConnectionForSession, resolve and
+  onConnectionEnded. Exercise sign-out, expiry, deactivation and revocation, and prove 1,000 agent
+  requests never touch the browser session. Local acceptance is not proof of this assembly.
+- T037: capture and judge every planned state at 360/768/1280, light and dark, including long text.
+  The browser check makes geometry assertions without capturing images.
+- T044: integrated batch owns the full unit suite, full mutation suite, all browser suites,
+  release-screen visual comparison and independent architecture review/marker. Run it after
+  combining the related features, not independently here.
+- Security review: the four relay rows remain public inventory rows so the relay adapter can
+  authenticate its own capability/token. Authenticated requests then re-enter the operation
+  boundary with origin acp; all four route policies have allow/refusal proofs. Foreign origins
+  and hosts, invalid credentials and replayed codes return the bounded empty refusal. Do not
+  restore the old outer 403 path or authorize relay operations in the transport.
+- The agent surface is text-file read/write only, using virtual-root validation and a version
+  read in the same session before write. There is no terminal, commit, push, publish or arbitrary
+  filesystem operation. The threat model explicitly discloses draft text that the agent opens.
+
+## Corrections and departures
+
+The consecutive-oversize counter no longer resets before an oversized frame. All thirteen end
+reasons now have lifecycle coverage, including browser inference after process-owned memory is
+replaced. Refused relay attempts and unsupported method classes have content-free audit records.
+Token exchanges validate HTTP status and required token fields. Malformed session-create bodies
+are refused before state changes. Completed messages render once; permission focus waits until
+pending actions settle.
+
+Tests remain under tests/acp rather than adding a second presentation-test group. Layout and
+focus are verified through the real browser entry point rather than a server-rendered geometry
+assertion. No main.tsx or WorkspaceCanvas.tsx edit was needed. CI already consumes the suite
+inventories, so no direct ci-validate.ts edit was needed. One proposed mutant is equivalent
+because the existing equality guard proves both hash values equal; nineteen other mutants were
+killed. Compatibility is claimed only for reference-agent 1.0.0 in local mode.
+
+Shared-file blocks, individual proofs, the scanner caveat and reasons for these departures are
+recorded in evidence.md. Changes to the five shared files identified in the brief are each one
+contiguous block relative to the feature base. The additional authentication dispatcher and
+route-verdict changes are each one block as well.
 
 ## What T001 verified
 
@@ -20,83 +72,62 @@ defined. The full record is in `research.md` (R1 verified record) and `docs/agen
 authentication-required rule, `cwd` and `mcpServers`), then `docs/agent-panel.md` and
 `schemas/acp-1.32.0.json` (T001 and T002).
 
-## Done and remaining
+## Proofs for this continuation
 
-Done: T001 to T026, including T003 (reference agent), T008 (partly, see departures), T021, T022 to
-T026.
+- Feature tests, operation inventory, route actions, read/write matrices, guards, origin parity,
+  boundary scanner and pipeline registration: 353 pass, 0 fail, 47,506 assertions across 41 files
+  on the dev server. The final setup-response validation then passed its targeted file: 2 pass,
+  0 fail, 14 assertions; the closing check/build/browser run includes that correction.
+- Lifecycle: 13 pass, 0 fail, 87 assertions, including loss of server memory and refusal after ending.
+- Connection contract: 3 pass, 0 fail. Token replies: 2 pass, 0 fail, 9 assertions.
+- Session routes: 8 pass, 0 fail, 37 assertions. Event reducer: 2 pass, 0 fail, 9 assertions.
+- Presentation: connect/setup 2 pass/14 assertions; transcript 1 pass/6; Undo 1 pass/3;
+  questions 1 pass/4. Pipeline registration: 8 pass, 0 fail, 32 assertions.
+- Audit: 2 pass, 0 fail; bounded anonymous records and no content canary in audit/logs/metrics.
+- Four relay-route policy proofs: 2 pass, 0 fail, 18 assertions.
+- Final browser transport, reducer and presentation files: 7 pass, 0 fail, 36 assertions.
+- Focused mutation run: 19 killed, 0 survived. One equivalent hash mutant omitted with its proof
+  in evidence.md. The full mutation suite belongs to the batch.
+- Browser: two consecutive passing runs of six width/theme conversations, thirteen ending notices, setup failure, disconnected
+  recovery, long text, diffs, Undo/conflict, question focus and keyboard visibility. Closed-only:
+  six width/theme visits with no ACP requests. No screenshots were taken.
+- Final dev-server check: exit 0, including TypeScript, formatting, lint, comments, theme and
+  brand. Lint has 2,696 existing warnings and no errors. Build: exit 0, 2,333 modules, 2.97 seconds;
+  existing chunk-size and ReactFlow directive warnings remain.
+- Main-entry comparison against fe462cc0: 2,521,830 to 2,521,415 bytes, down 415 bytes. The
+  final product build keeps that size and no panel-transport code in the eager entry.
+- Readability and comment checks: clean. Docs sync: exit 0. Confidential-term scan: clean for all
+  changed files. Full scanner: the eight pre-existing public temporary-path examples described
+  in evidence.md remain flagged. The requested cadence script does not exist in this repo.
 
-Remaining, in order: T027 end reasons, T028 server mode, T029 audit records, T030 to T037 the
-panel UI and its checks, T038 mutants, T039 to T043 documents and acceptance, T044 batch gate.
+## Commits in this continuation
 
-- T027: only some reasons are produced end to end today (closed, replaced, no-agent, agent-exited,
-  relay-lost through the clock, protocol-error, flood, and the connection reasons through
-  `panel-service` mapping). Write `tests/acp/end-reasons.test.ts` for all 13 and check that the
-  next agent request is refused after each. `server-restarted` is the browser's inference when the
-  events route answers 404 for a session it knew; the panel code (T030) must implement it.
-- T028 (needs 013, unticked): the wiring exists against `ConnectionDirectory`
-  (`src/server/acp/connection-directory.ts`, mirrors 013's `createConnectionForSession`, `resolve`,
-  `onConnectionEnded`) and a test double (`tests/acp/helpers/connection-double.ts`). Still to do:
-  `tests/acp/server-mode.test.ts` (sign-out, expiry, deactivation, revoke end the session; zero
-  session "touch" calls over 1,000 agent requests), then pass the real service from 013 as
-  `options.acp.connections` where the server is assembled (013's exports: `createConnectionService`,
-  token path `/oauth/token`, setup grant type, program id `acp-relay` which an Admin must
-  register; document that in `docs/agent-panel.md`).
-- T029: start and end records already exist (`recordSession` in `panel-service.ts`, tool ids
-  `agentPanel.start` and `agentPanel.end`). Still to do: refused-attempt records through the
-  anonymous gate for the relay routes, records for unsupported methods by method class, and
-  `tests/acp/audit-records.test.ts` with a canary string searched in audit, logs and metrics.
-- Screenshots (T037) go to Codex per the owner's rule; `test:acp` (T036) runs on the dev server.
-
-## Departures from plan.md so far
-
-- Added modules: `conversation.ts` (handshake, prompts, cancel, rules for bad frames),
-  `live-session.ts`, `panel-service.ts`, `mount.ts`, `permission-questions.ts`,
-  `update-events.ts`, `version-records.ts`, `event-stream.ts`, `bounded-body.ts`,
-  `relay-authentication.ts`, `connection-directory.ts`; `src/shared/agent-panel/statement.ts`;
-  relay helpers `scripts/acp-relay-link.ts`, `acp-relay-token.ts`, `acp-event-parser.ts`.
-- The relay's `--session` value is `<session id>.<code>`, because the routes are addressed by id.
-- `protocol-schema.ts` was written in T002, not T012.
-- Questions live in `permission-questions.ts`, not in `client-surface.ts`; the session record has
-  no `pending` map.
-- New named request limit `AGENT_PANEL_REQUEST_LIMIT` in `src/server/request.ts` and the
-  operations schema enum.
-- Extra shared-file edits: `src/server/routes/files.ts` (keeps drafts for origin `acp` too),
-  `src/server/routes/me.ts` (`agentPanel` flag), `src/server/auth/middleware.ts` (options `acp`
-  and `agentPanel`), `tests/auth/guard-cases.ts` (exemptions), `tests/auth/route-actions.ts` and
-  `.test.ts` (examples; panel paths skipped where the panel is not mounted).
-- The statement is built by `connectionStatement(productName)` so the brand check passes; the
-  server fills in the brand name (the test gets "This workbench" when no brand is loaded).
-- T008: the Admin audit view has no origin filter, so nothing was added there (see `evidence.md`).
-- A relay request carrying a foreign `Origin` or Host answers 403 from the handler's own local check
-  before the route; every other relay failure answers 404 with an empty body.
-- Panel routes and the relay's public rows are `unaudited` rows; start and end are written by the
-  service with origin `acp`.
-
-## Proofs run (summary lines)
-
-- `bun test tests/acp/`: 222 pass, 0 fail (run before the statement change).
-- `bun test tests/acp/panel-routes.test.ts` after the statement change: 7 pass, 0 fail.
-- `bun test tests/auth/operation-inventory.test.ts tests/auth/route-actions.test.ts
-  tests/auth/matrix.test.ts tests/auth/guard-inventory.test.ts`: 38 pass, 0 fail.
-- `tests/auth/audit-origin`, `audit-compat`, `audit`, `acp-origin` (11), `dry-run-strata`,
-  `boundary-scan` pass; `bun run audit:verify tests/fixtures/audit-v1`: intact, 9 records.
-- `bun --bun run check`: clean after the statement fix. `bun --bun run build`: built.
-- Not run: the full unit suite, mutants, browser suites (batch gate).
-
-## Half-designed
-
-- `mintAcpCaller` is refreshed on every relay request (`relayCallers`), so a server-mode token
-  refresh is picked up. The sweeper timer starts at mount (unref'd) and is stopped by
-  `service.stopSweeper()` in tests.
-- The browser must send `X-SW-Request: 1` on panel writes; check `src/app` fetch helpers when
-  writing `agent-api.ts`.
-- Docs not yet written: README, ARCHITECTURE.md (code map for `src/server/acp`, `src/app/agent`,
-  `src/shared/agent-panel`), CHANGELOG, `docs/development.md`, `docs/server-mode.md`,
-  `docs/user-guide.md`; `docs/agent-panel.md` has only the protocol record. The environment
-  variable `SW_ACP_CREDENTIAL` must go in the README configuration table.
-
-## Exact next task
-
-T027: write `tests/acp/end-reasons.test.ts` producing all 13 end reasons end to end through
-`startPanelServer` and `PanelService`, and check that the next relay request and the next file
-request are refused after each end.
+- `35f5d96e` fix: end agent sessions after consecutive oversized frames
+- `c82c4e13` fix: align relay connection contract with connection service
+- `8073b399` fix: authorize relay calls through the operation boundary and audit refusals
+- `e235565a` feat: reduce numbered panel events and share browser transport contracts
+- `4e9f4e70` test: type relay refusal headers for the request contract
+- `d9baf7af` feat: display plain-text agent messages tools and task lists
+- `9e678bfe` feat: show guarded edit diffs and undo from the accepted version
+- `0093ae58` feat: answer agent permission questions with explicit choices
+- `0c54ed16` feat: connect and end in-memory agent conversations in a responsive sheet
+- `49314098` fix: keep undo errors readable and reject unsupported panel statuses
+- `298f7949` refactor: confine relay authentication delegation to the request stage
+- `8894c4ff` test: detect faults in agent paths versions lifetimes and protocol limits
+- `8c6a2941` fix: focus agent permission options after pending actions settle
+- `5a9e1992` test: cover every agent session ending including lost server memory
+- `c2a80527` fix: validate relay token replies before using connection credentials
+- `73e6a2ed` feat: open the lazy agent sheet from the person menu
+- `34c7b4bd` test: prove policy authorization for all four relay routes
+- `b4e7e29d` docs: describe agent panel setup scope limits and reference compatibility
+- `ba8073bf` fix: align relay request dependency and setup refusal types
+- `dbcab6bf` fix: announce completed agent messages without duplicating their text
+- `16f3b44d` fix: reject malformed agent session options before creating state
+- `8bfea1c8` test: exercise agent conversations and recovery across widths and themes
+- `f5062831` fix: preserve route inventory order when registering conversations
+- `5d00ac91` test: compare audit decision rules without depending on iteration order
+- `8a127e3e` test: constrain panel audit and identity infrastructure imports by symbol
+- `50592223` fix: pass audit normalizer field names only through explicit callbacks
+- `2b57dbc5` test: await the simulated stream failure before checking panel recovery
+- `e7a1c26c` fix: validate complete session instructions before accepting setup replies
+- `edebede1` test: keep one persistent interceptor across agent connection failures
