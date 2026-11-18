@@ -103,8 +103,8 @@ under `src/`.
 - [x] T040 [P] Documentation: README (proposals, the push change, limits), `ARCHITECTURE.md` (code map rows, proposal flow), `docs/server-mode.md` (a "Shared proposals" section beside publishing), `docs/user-guide.md`, `docs/development.md` (new suites), `CHANGELOG.md` (the push change is called out). Statement that the guarantee is the application's. Proof: `bun --bun run check` and `bun scripts/check-comments.ts` clean; a docs check lists every limit of the spec.
 - [ ] T041 Hand to Codex, with a brief and a fresh worktree of the integrated build: capture the proposal views (list, create, detail, check, promote, close, restore, empty, loading, error, long text) at desktop and phone width in light and dark. Proof: the screenshots and a manifest are returned and reviewed.
 - [ ] T042 Hand to Codex the UI regression comparison of the whole app journey against the last release for the batch (the proposals section is the only intended difference). Proof: the comparison index lists the section and no unrequested change.
-- [ ] T043 Run this feature's own proofs and fix: `bun test tests/proposals-*.test.ts tests/work-in-progress-push.test.ts tests/auth/proposal-*.test.ts`, `bun --bun run check`, `bun --bun run build`. Proof: all pass on the dev server.
-- [ ] T044 Final task: hand off to the batch gate (T045). Record in the pull request: the files of "Shared files it touches" that conflicted at integration and how they were resolved.
+- [x] T043 Run this feature's own proofs and fix: `bun test tests/proposals-*.test.ts tests/work-in-progress-push.test.ts tests/auth/proposal-*.test.ts`, `bun --bun run check`, `bun --bun run build`. Proof: all pass on the dev server.
+- [x] T044 Final task: hand off to the batch gate (T045). Record in the pull request: the files of "Shared files it touches" that conflicted at integration and how they were resolved.
 
 ## Phase 9: Batch gate (run once on the integrated batch of 012 to 015)
 
