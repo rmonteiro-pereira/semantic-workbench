@@ -87,6 +87,15 @@
   and candidate repetitions failed the probe's additional visible frontier marker precondition, so this probe cannot establish a relative Pierce
   budget. The identical standalone suite assertion above supplies the inherited failure evidence.
 
+### Full Graph reopening through browser Back
+
+- The history suite can compare area contents at the same Fit zoom. The fitted retry restored selection and all explicit area actions.
+- Undoing the first Neighborhood tab then reopened the unchanged Mall model with 196 separate cards instead of its original 12 counted areas. The
+  explicit area choice was still unset, so the automatic Network legibility decision ran again.
+- The opening check should still use the rendered name sizes. At Fit, a virtualized name cannot exceed its card's sizing cap multiplied by the fitted
+  zoom. Use that bound even when React Flow has yet to mount a card's name element.
+- Verify through the standard Back/Forward suite and a repeated Mall opening at the same viewport. Record only reproducible before/after behavior.
+
 ### Matched UBL lineage timing
 
 The repeated 1440×900 frozen-import switch from Mall ODCS to UBL ODCS measured 2,090 and 2,264 ms on main. The candidate measured 2,092 and 2,119 ms.
