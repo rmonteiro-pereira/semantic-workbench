@@ -8,6 +8,13 @@ not configure a production deployment.
 
 ### Added
 
+- Browser and authorized HTTP check, compile and ZIP download of standard Ossie. Compile reads only
+  the published snapshot and requires export authority; working-copy checks are labelled unpublished
+  and return no compiled bytes. Exact report acceptance releases output whose files equal the CLI bundle.
+- Reviewed conversion of one clean, committed Tessera ontology through the ordinary guarded save,
+  with before/after comparison, whole-unit input hashes and loss digest. Stale reviews and dirty files
+  are refused; the success acknowledgement survives the workspace refresh after saving.
+
 - The Tessera format: an authoring format that compiles to standard Ossie. An Ossie ontology with the
   marker `tessera: 1` and the property `tessera_notes` (on the ontology root, a concept or a relationship)
   opens, saves and validates like any ontology, with its own finding codes, and the validation panel

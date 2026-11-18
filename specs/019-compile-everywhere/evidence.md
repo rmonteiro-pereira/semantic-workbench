@@ -57,3 +57,9 @@ Documentation proof: docs-paths.test.ts: 3 pass, 0 fail, 16 assertions. Leak sca
 ARCHITECTURE, the compile guide and user guide. The existing development guide has six scanner hits
 for literal /tmp screenshot-command examples outside this change; usage examples are preserved.
 No confidential-term hits occurred. Markdown files are excluded by the repository formatter configuration.
+
+## Changelog coverage
+
+The first new Unreleased entry maps to compile-service, unit-source, routes, browser-and-cli and
+compile-parity tests plus the passing compile browser journey. The second maps to convert-service,
+convert-dialog and routes tests and that journey's successful conversion/Done/one-file assertions.
