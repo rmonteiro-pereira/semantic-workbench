@@ -574,8 +574,8 @@ The original review archive contains 3,559 PNGs. A read-only count by folder mea
 
 Status: in progress. No visual pair is classified before both images have been opened.
 
-The gallery checkpoint of 752 rows includes 332 intended fixes, 32 expected merged-feature differences, 300 neutral changes and 11
-unchanged steps. It retains 44 frames of fixed regressions and 33 frames flagged as possible or unresolved regressions. A frame count
+The gallery checkpoint of 752 rows includes 328 intended fixes, 32 expected merged-feature differences, 300 neutral changes and 11
+unchanged steps. It retains 48 frames of fixed regressions and 33 frames flagged as possible or unresolved regressions. A frame count
 can include multiple actions that carry the same underlying issue. The manifest records actions without matched captures.
 The counted Network heading and compact mapping correction pairs were opened at 390×844 in both themes.
 The 75-state phone replay (local, light, 390×844) was opened across 25 contact sheets. Both repetitions on all three versions
@@ -617,6 +617,11 @@ keyboard focus ring on the metric grouping control. The empty Trash dialog keeps
   Both repeats of each were opened and every action passed. With the exact center-card action in `2a95c5b4`, Mall Properties
   stays readable with its expanded list and Show fewer at 390×844. UBL Consignment shows its heading, filter and all eight
   matching rows. Main/candidate scores are 22.887350% and 36.426054%.
+- `bash .data/gate/pull-review-007.sh .data/gate/walked-dataset-confirmed local/light/390/walked-lineage-dataset` returned five strips.
+  Both repeats of each were opened. The new fullscreen assertion checks the Exit full screen control and the center title geometry.
+  In both candidate repeats, the title has 18.22 px on the left and 430.36 px below it. It protrudes 27.72 px below the pane in all
+  four reference frames. The main/candidate score is 9.567080%. Back after Find assets still returns to one hop but leaves
+  the searched center, in both repeats of all three versions. Fit and Forward pass throughout.
 - `bash .data/gate/publish-current-review.sh` returned 752 rows with the counts above.
 
 The Full Graph replay scored 43 steps, from two repetitions per version. The candidate Network first view and Fit show four named counted areas.
