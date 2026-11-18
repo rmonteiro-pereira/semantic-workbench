@@ -28,6 +28,7 @@ import { createScm } from './scm';
 import { migrateLegacyPublicationNotices, scmPublishedStatus } from './scm-published';
 import { createPublication } from './publication';
 import { createPublishedPointers } from './published-pointer';
+import { createItemDiffSides } from './item-diff-sides';
 import { createPublishedSnapshots } from './published-snapshot';
 import { initializePublishedPointers } from './published-initialization';
 import { createWorktrees } from './worktrees';
@@ -847,6 +848,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     registrySteps,
     readFile,
     saveFile,
+    itemDiffSides: createItemDiffSides({ git, gitAvailable: () => gitAvailable, layout, snapshots, workingLayout: (project, reader) => copies.readPlace(reader, project).layout }),
     resolveAddress: (address: string, reader: Reader) =>
       resolveForCaller({ ...addressReads, readMigrations: (project, caller) => readAddressMigrations(copies.readPlace(caller, project).layout, project, caller) }, address, reader),
     resolvePublishedAddress: (address: string, reader: Reader) =>
