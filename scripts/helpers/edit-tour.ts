@@ -213,8 +213,6 @@ export async function editContainmentProblems(page: Page, screenName: string): P
       const firstRow = cards.filter(card => Math.abs(card.top - cards[0].top) < 2);
       const unequal = firstRow.some(card => Math.abs(card.height - firstRow[0].height) > 1);
       if (unequal) problems.push('cards of one row differ in height');
-      const clamped = [...document.querySelectorAll<HTMLElement>('.catalog-card p')].some(paragraph => paragraph.scrollHeight > paragraph.clientHeight && !paragraph.title);
-      if (clamped) problems.push('a clamped card description has no tooltip with the full text');
       for (const card of document.querySelectorAll('.catalog-card')) {
         if (card.querySelector('.catalog-details')?.textContent !== 'View details') {
           problems.push('a catalog card has no visible open action');

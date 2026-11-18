@@ -1,4 +1,4 @@
-// Checks that nothing is cut on the Mappings tab, the header and the entity details panel at 1280
+// Checks that nothing is cut in Catalog, Mappings, the header and the entity details panel at 1280
 // and 390 px, that Commit explains itself while it is off, and that the details panel has no
 // sideways scroll and no nested scroll box. The Admin screens are covered by tests/admin-clipping.test.tsx.
 import { appUrl } from './helpers/base-url';
@@ -20,6 +20,16 @@ const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 const errors: string[] = [];
 page.on('pageerror', error => errors.push(error.message));
 await routeApi(page, api);
+if (process.env.RESPONSIVE_MUTATION === 'catalog-description-clip') {
+  await page.addInitScript(() => {
+    document.addEventListener('DOMContentLoaded', () => {
+      const style = document.createElement('style');
+      style.textContent = '.catalog-card > button:first-child p { max-block-size: 1px; overflow: hidden; }';
+      document.head.append(style);
+    });
+  });
+  console.log('INJECTED_CATALOG_DESCRIPTION_CLIP');
+}
 let passed = 0;
 
 async function check(name: string, run: () => Promise<void>) {
@@ -38,63 +48,67 @@ async function openUblFile(target: Page) {
 
 const tabButton = (name: string) => page.locator('.tabs').getByRole('button', { name, exact: true });
 
-for (const [width, height] of VIEWPORTS) {
-  await page.setViewportSize({ width, height });
-  await openUblFile(page);
-  await expect(page.locator('header.workspace-header')).toBeVisible();
+try {
+  for (const [width, height] of VIEWPORTS) {
+    await page.setViewportSize({ width, height });
+    await openUblFile(page);
+    await expect(page.locator('header.workspace-header')).toBeVisible();
 
-  await check(`${width}px: the header has nothing cut and Commit explains why it is off`, async () => {
-    expect(await clippedTextProblems(page, 'header.workspace-header')).toEqual([]);
-    const commit = page.locator('header.workspace-header').getByRole('button', { name: 'Commit', exact: true });
-    await expect(commit).toHaveAttribute('aria-disabled', 'true');
-    // The header design draws an unavailable Commit as the outlined button, faded.
-    const look = await commit.evaluate(button => ({ border: getComputedStyle(button).borderTopStyle, opacity: getComputedStyle(button).opacity }));
-    expect(look).toEqual({ border: 'solid', opacity: '0.55' });
-    await commit.hover();
-    await expect(page.getByRole('tooltip')).toHaveText(NOTHING_TO_COMMIT);
-    await page.mouse.move(0, 0);
-    await expect(page.getByRole('tooltip')).toBeHidden();
-    await commit.focus();
-    await expect(page.getByRole('tooltip')).toHaveText(NOTHING_TO_COMMIT);
-  });
+    await check(`${width}px: the header has nothing cut and Commit explains why it is off`, async () => {
+      expect(await clippedTextProblems(page, 'header.workspace-header')).toEqual([]);
+      const commit = page.locator('header.workspace-header').getByRole('button', { name: 'Commit', exact: true });
+      await expect(commit).toHaveAttribute('aria-disabled', 'true');
+      // The header design draws an unavailable Commit as the outlined button, faded.
+      const look = await commit.evaluate(button => ({ border: getComputedStyle(button).borderTopStyle, opacity: getComputedStyle(button).opacity }));
+      expect(look).toEqual({ border: 'solid', opacity: '0.55' });
+      await commit.hover();
+      await expect(page.getByRole('tooltip')).toHaveText(NOTHING_TO_COMMIT);
+      await page.mouse.move(0, 0);
+      await expect(page.getByRole('tooltip')).toBeHidden();
+      await commit.focus();
+      await expect(page.getByRole('tooltip')).toHaveText(NOTHING_TO_COMMIT);
+    });
 
-  await check(`${width}px: Mappings shows Show query whole and cuts nothing`, async () => {
-    await tabButton('Mappings').click();
-    const showQuery = page.getByRole('button', { name: 'Show query', exact: true });
-    await expect(showQuery).toBeEnabled();
-    expect(await clippedTextProblems(page, '.mapping-explorer')).toEqual([]);
-    expect(await nestedScrollBoxes(page, '.mapping-explorer')).toEqual([]);
-    expect(await verticallyCutBoxes(page, '.mapping-explorer')).toEqual([]);
-    expect(await sidewaysOverflowProblems(page, '.mapping-explorer')).toEqual([]);
-    await expect(page.getByLabel('Mapping document').locator('option')).toHaveCount(2);
-    if (width <= 650) await page.getByRole('button', { name: 'All concepts', exact: true }).click();
-    const context = page.locator('summary', { hasText: 'AI context' });
-    await context.click();
-    await expect(page.locator('.mapping-detail pre').last()).toContainText('"concepts"');
-    if (width <= 650) {
-      await expect(page.locator('.mapping-concepts')).toBeHidden();
-      await expect(page.getByRole('button', { name: 'Back to concepts' })).toBeVisible();
-    } else {
-      expect(await page.locator('.mapping-concepts').evaluate(element => element.clientHeight === element.scrollHeight)).toBe(true);
-    }
-  });
+    await check(`${width}px: Mappings shows Show query whole and cuts nothing`, async () => {
+      await tabButton('Mappings').click();
+      const showQuery = page.getByRole('button', { name: 'Show query', exact: true });
+      await expect(showQuery).toBeEnabled();
+      expect(await clippedTextProblems(page, '.mapping-explorer')).toEqual([]);
+      expect(await nestedScrollBoxes(page, '.mapping-explorer')).toEqual([]);
+      expect(await verticallyCutBoxes(page, '.mapping-explorer')).toEqual([]);
+      expect(await sidewaysOverflowProblems(page, '.mapping-explorer')).toEqual([]);
+      await expect(page.getByLabel('Mapping document').locator('option')).toHaveCount(2);
+      if (width <= 650) await page.getByRole('button', { name: 'All concepts', exact: true }).click();
+      const context = page.locator('summary', { hasText: 'AI context' });
+      await context.click();
+      await expect(page.locator('.mapping-detail pre').last()).toContainText('"concepts"');
+      if (width <= 650) {
+        await expect(page.locator('.mapping-concepts')).toBeHidden();
+        await expect(page.getByRole('button', { name: 'Back to concepts' })).toBeVisible();
+      } else {
+        expect(await page.locator('.mapping-concepts').evaluate(element => element.clientHeight === element.scrollHeight)).toBe(true);
+      }
+    });
 
-  await check(`${width}px: entity details has no sideways scroll and no nested scroll box`, async () => {
-    await tabButton('Catalog').click();
-    await page
-      .locator('.catalog-card')
-      .filter({ hasText: /^Entity(?:Type| type).*Invoice/ })
-      .locator('button')
-      .first()
-      .click();
-    await expect(page.locator('.inspector .related-edges button').first()).toBeVisible();
-    expect(await sidewaysOverflowProblems(page, '.inspector')).toEqual([]);
-    expect(await nestedScrollBoxes(page, '.inspector')).toEqual([]);
-    expect(await clippedTextProblems(page, '.inspector')).toEqual([]);
-  });
+    await check(`${width}px: entity details has no sideways scroll and no nested scroll box`, async () => {
+      await tabButton('Catalog').click();
+      await expect(page.locator('.catalog-card p').first()).toBeVisible();
+      expect(await verticallyCutBoxes(page, '.catalog'), 'a catalog card description is clipped').toEqual([]);
+      await page
+        .locator('.catalog-card')
+        .filter({ hasText: /^Entity(?:Type| type).*Invoice/ })
+        .locator('button')
+        .first()
+        .click();
+      await expect(page.locator('.inspector .related-edges button').first()).toBeVisible();
+      expect(await sidewaysOverflowProblems(page, '.inspector')).toEqual([]);
+      expect(await nestedScrollBoxes(page, '.inspector')).toEqual([]);
+      expect(await clippedTextProblems(page, '.inspector')).toEqual([]);
+    });
+  }
+} finally {
+  await browser.close();
+  await api.stop();
 }
-
-await browser.close();
-await api.stop();
 console.log(JSON.stringify({ passed, errors }));
 if (errors.length) throw Error(errors.join('\n'));

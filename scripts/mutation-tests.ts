@@ -740,14 +740,14 @@ try {
     'status-stays': 'INJECTED_STATUS_MUTATION',
     'small-text': 'INJECTED_SMALL_TEXT_MUTATION',
     'save-state-cut': 'INJECTED_SAVE_STATE_MUTATION',
-    'catalog-title': 'INJECTED_CATALOG_TITLE_MUTATION',
+    'catalog-description-clip': 'INJECTED_CATALOG_DESCRIPTION_CLIP',
     'far-details-hidden': 'INJECTED_FAR_DETAILS_MUTATION',
     'graph-column-small': 'INJECTED_GRAPH_COLUMN_MUTATION',
     'graph-names-small': 'INJECTED_GRAPH_NAMES_MUTATION',
   };
   // The empty neighborhood projection counts with them.
   const layoutMutantCount = 1 + Object.keys(layoutMutationMarkers).length;
-  for (const [mutation, only, label] of [
+  for (const [mutation, only, label, suite = 'responsive-ui-tests.ts'] of [
     ['overlay', 'overlaps: the graph bundle', 'status line drawn over the mini-map and zoom controls'],
     ['status-stays', 'status messages', 'status messages never dismiss'],
     ['small-text', 'screens', 'sidebar label drawn below the minimum text size'],
@@ -755,9 +755,9 @@ try {
     ['far-details-hidden', '1280×720: zoomed far', 'card types hidden when zoomed far out'],
     ['graph-column-small', 'ODCS graph: 1280×720', 'ODCS graph column names drawn at 8 px'],
     ['graph-names-small', 'graph canvases: 1280×720', 'whole-model graph names drawn at 6 px'],
-    ['catalog-title', 'edit screens', 'clamped catalog description without its full-text tooltip'],
+    ['catalog-description-clip', '', 'a catalog card description is clipped', 'clipping-browser-check.ts'],
   ] as const) {
-    const child = Bun.spawn([process.execPath, resolve(root, 'scripts/responsive-ui-tests.ts')], {
+    const child = Bun.spawn([process.execPath, resolve(root, 'scripts', suite)], {
       env: { ...process.env, RESPONSIVE_MUTATION: mutation, RESPONSIVE_ONLY: only },
       stdout: 'pipe',
       stderr: 'pipe',
@@ -766,7 +766,8 @@ try {
     const output = await new Response(child.stdout).text();
     const error = await new Response(child.stderr).text();
     if (code === 0) throw Error('Surviving UI mutant: ' + label);
-    if (!output.includes(layoutMutationMarkers[mutation]) || !/expect|Expected|toHaveCount/.test(error)) throw Error('Invalid UI mutant: ' + label + '\n' + output + error);
+    const assertionMatched = mutation === 'catalog-description-clip' ? error.includes(label) : /expect|Expected|toHaveCount/.test(error);
+    if (!output.includes(layoutMutationMarkers[mutation]) || !assertionMatched) throw Error('Invalid UI mutant: ' + label + '\n' + output + error);
     killed++;
     console.log('KILLED UI: ' + label);
   }

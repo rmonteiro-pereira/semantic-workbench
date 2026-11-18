@@ -128,7 +128,7 @@ an hour; keep the tree unchanged while it runs.
 | Step | Work |
 | --- | --- |
 | `verify` | Static checks, the complete Bun test suite and production build |
-| `mutation` | Focused faults and browser mutants against temporary copies/pages |
+| `mutation` | Focused faults and browser mutants against temporary copies and pages, including clipped catalog descriptions |
 | `browser` | Canonical suites, each with an isolated frontend/API arrangement |
 | `image` | Image build, vulnerability/secret scan and SPDX bill of materials |
 | `container` | Built-frontend browser checks plus image API/persistence checks |
