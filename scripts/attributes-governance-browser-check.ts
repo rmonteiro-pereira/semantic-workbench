@@ -3,8 +3,9 @@ import { chromium, expect, type Page } from '@playwright/test';
 import { appUrl } from './helpers/base-url';
 import { clippedTextProblems } from './helpers/clipped-text';
 import { layoutProblems } from './helpers/layout-geometry';
+import { showSidebar } from './helpers/screen-tour';
 import { routeApi, startIsolatedApi } from './helpers/isolated-api';
-import { chooseTheme, tokenContrast } from './helpers/theme-tour';
+import { tokenContrast } from './helpers/theme-tour';
 import { LOCAL_READER } from '../src/server/projects/reader';
 
 const FILE = 'retail.ontology.yaml';
@@ -62,10 +63,13 @@ async function openPage(width: number, height: number, scheme: 'light' | 'dark')
   page.on('pageerror', error => errors.push(error.message));
   await routeApi(page, api);
   await page.goto(appUrl());
+  await page.locator('.workspace-toggle').waitFor();
+  expect(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme)).toBe(scheme);
   return page;
 }
 
 async function openConcept(page: Page, file: string, concept: string) {
+  await showSidebar(page);
   await page.getByRole('tree', { name: 'Projects' }).getByRole('button', { name: file, exact: true }).click();
   await page.locator('.tabs').getByRole('button', { name: 'Catalog', exact: true }).click();
   await page
@@ -93,7 +97,11 @@ async function attributeFlow(page: Page, label: string) {
   await addDialog.getByRole('button', { name: 'Add attribute' }).click();
   await attributes.getByText(LONG_NAME, { exact: true }).waitFor();
   await expectCleanLayout(page, `${label}: long name row`);
+  const rows = attributes.locator('.attribute-name');
+  const originalIndex = (await rows.allTextContents()).indexOf(LONG_NAME);
+  expect(originalIndex).toBeGreaterThan(0);
   await attributes.getByRole('button', { name: `Move ${LONG_NAME} up` }).click();
+  await expect(rows.nth(originalIndex - 1)).toHaveText(LONG_NAME);
   await attributes.getByRole('button', { name: `Edit ${LONG_NAME}` }).click();
   const editDialog = page.getByRole('dialog', { name: `Edit attribute ${LONG_NAME}` });
   await editDialog.getByLabel('Name').fill('phone');
@@ -115,12 +123,15 @@ async function governanceAndContextFlow(page: Page, label: string) {
   const governance = details.getByRole('region', { name: 'Governance' });
   await governance.waitFor();
   await fieldOf(governance, 'Status').selectOption('proposed');
-  await fieldOf(governance, 'Owner').fill('dana@example.com');
+  const owner = `dana+${label.replace(' ', '-')}@example.com`;
+  await fieldOf(governance, 'Owner').fill(owner);
   await governance.getByRole('button', { name: 'Save governance' }).click();
-  await governance.getByText('proposed').first().waitFor();
+  await expect.poll(() => api.ws.readFile('retail', FILE, LOCAL_READER).source).toContain(owner);
   const context = details.getByRole('region', { name: 'Agent context' });
-  await fieldOf(context, 'Instructions').fill('Prefer the tier. '.repeat(20));
+  const instructions = `Use the tier in ${label}. ${'Prefer the tier. '.repeat(20)}`;
+  await fieldOf(context, 'Instructions').fill(instructions);
   await context.getByRole('button', { name: 'Save agent context' }).click();
+  await expect.poll(() => api.ws.readFile('retail', FILE, LOCAL_READER).source).toContain(`Use the tier in ${label}.`);
   await context.getByText('Agents read this text only from the published version').waitFor();
   await expectCleanLayout(page, `${label}: governance and context`);
   expect(await tokenContrast(page, '--color-text', '--color-surface')).toBeGreaterThanOrEqual(4.5);
@@ -140,6 +151,7 @@ async function revisionFlow(page: Page) {
 }
 
 async function largeDocumentTiming(page: Page): Promise<number> {
+  await showSidebar(page);
   await page.getByRole('tree', { name: 'Projects' }).getByRole('button', { name: LARGE_FILE, exact: true }).click();
   await page.locator('.tabs').getByRole('button', { name: 'Catalog', exact: true }).click();
   const started = Date.now();
@@ -155,26 +167,25 @@ async function largeDocumentTiming(page: Page): Promise<number> {
 try {
   for (const [width, height, scheme] of [
     [1440, 900, 'light'],
+    [1440, 900, 'dark'],
+    [360, 800, 'light'],
     [360, 800, 'dark'],
   ] as const) {
     const page = await openPage(width, height, scheme);
-    if (scheme === 'dark') await chooseTheme(page, 'Dark');
     const label = `${width}px ${scheme}`;
     await attributeFlow(page, label);
     await page.close();
     const governancePage = await openPage(width, height, scheme);
-    if (scheme === 'dark') await chooseTheme(governancePage, 'Dark');
     await governanceAndContextFlow(governancePage, label);
     await governancePage.close();
     console.log(`PASS ${label}: attribute, governance and context flows`);
   }
   const desktop = await openPage(1440, 900, 'light');
   await revisionFlow(desktop);
-  await desktop.close();
-  const timingPage = await openPage(1440, 900, 'light');
-  const milliseconds = await largeDocumentTiming(timingPage);
+  console.log('PASS revision confirmation leaves the file unchanged on cancel and upgrades on confirmation');
+  const milliseconds = await largeDocumentTiming(desktop);
   console.log(`MEASURED details of a concept in a document of 200 concepts appeared after ${milliseconds} ms`);
-  await timingPage.close();
+  await desktop.close();
   if (errors.length) throw Error(errors.join('\n'));
   console.log('PASS attributes, agent context and governance are edited in the browser at phone and desktop width');
 } finally {
