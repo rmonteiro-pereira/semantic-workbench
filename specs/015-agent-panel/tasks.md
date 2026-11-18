@@ -72,7 +72,7 @@ test only to make it pass.
   and `src/server/acp/panel-events.ts` (event types, plain-text normalization, placeholder for
   unknown content kinds). Add `tests/acp/event-buffer.test.ts`. Proof: overflow drops the oldest
   and emits one notice; a 1,000,000-character message is kept whole when alone; markup stays text.
-- [ ] T012 [US3] Create `src/server/acp/protocol-schema.ts` and `src/server/acp/jsonrpc-connection.ts`
+- [x] T012 [US3] Create `src/server/acp/protocol-schema.ts` and `src/server/acp/jsonrpc-connection.ts`
   (requests, replies, notifications, id matching, size cap, schema refusal). Add
   `tests/acp/jsonrpc-connection.test.ts`: unmatched replies, duplicate ids, oversize frames, frames
   that fail the schema, batches (refused unless the record says allowed). Proof: the test passes.
