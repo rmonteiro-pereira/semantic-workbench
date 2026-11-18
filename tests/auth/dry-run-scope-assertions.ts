@@ -106,3 +106,16 @@ export function assertDeactivatedReplay(scopes: typeof scopeCache) {
   assert(pair.before.authorize('setRemote', project).rules.includes('F3-deactivated'));
   assert.deepEqual([...pair.after.authorize('setRemote', project).rules].sort(), [...expected.rules].sort());
 }
+
+/** An unchanged time rule must not turn a clock tick into a policy change. */
+export function assertReplayClock(compare: typeof compareAccess, createControl = createAccessControl) {
+  const fixture = accessFixture();
+  fixture.config.adminRules = { hour: 'forbid(principal, action == SW::Action::"read", resource) when { context.hour == 13 };' };
+  let samples = 0;
+  const options = { ...fixture, context: () => ({ hour: samples++ === 0 ? 12 : 13 }) };
+  const access = createControl(options);
+  const result = compare(options, options.config, { users: [person('alice')], audit: [], access });
+  assert.deepEqual(result.changed, []);
+  assert.deepEqual(result.people, []);
+  assert.equal(samples, 1);
+}

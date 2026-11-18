@@ -226,7 +226,7 @@ function accessControl(options: AccessOptions, previous?: ActiveAccess) {
       synchronize();
       const resource = normalizeResource(input);
       const contextInputs = {
-        ...options.context?.(),
+        ...(replay ? undefined : options.context?.()),
         ...requestDefaults,
         ...supplied,
       };
@@ -369,7 +369,7 @@ function accessControl(options: AccessOptions, previous?: ActiveAccess) {
   return {
     forRequest: ordinaryRequest,
     /** Reuses equivalent actions within a replay while keeping the ordinary request path lean. */
-    forReplay: (identity: Principal) => forRequest(identity, {}, true),
+    forReplay: (identity: Principal, context = options.context?.() ?? {}) => forRequest(identity, context, true),
     authorize,
     filter,
     view,

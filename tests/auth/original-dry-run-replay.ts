@@ -175,7 +175,9 @@ interface DryRunEvidence {
 
 /** Replays matrix and audit cases and compares every known person's and client's project actions. */
 export function compareOriginalReplay(options: AccessOptions, next: AccessConfig, { users, audit, names = new Map() }: DryRunEvidence) {
-  const scopeFor = scopeCache(createAccessControl(options), createAccessControl({ ...options, config: next }));
+  const context = options.context?.() ?? {};
+  const fixed = { ...options, context: () => context };
+  const scopeFor = scopeCache(createAccessControl(fixed), createAccessControl({ ...fixed, config: next }));
   const identities = new Map(users.map(user => [user.id, user]));
   for (const client of [...options.config.agents.clients, ...next.agents.clients]) {
     identities.set(`client:${client.clientId}`, clientPrincipal(client.clientId, client.name));

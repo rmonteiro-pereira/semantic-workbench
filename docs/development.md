@@ -442,7 +442,8 @@ principal, grants, custom roles, project visibility and client entry agree. Deac
 use separate replay scopes because Cedar still evaluates group ancestry. Arbitrary Cedar
 admin rules keep separate scopes and exact action classes. Policy preparation is reused only
 when the validated roles and admin rules match. Decision results remain confined to a scope,
-with refresh invalidation; there is no global request-result cache.
+with refresh invalidation; there is no global request-result cache. Both sides of a comparison
+use the same default context, captured once before replay.
 
 The Admin browser wait is six seconds. The doubled-matrix dev-server p95 is 993.39 ms; the Admin
 browser suite at `0236adb6` observed a 4,336 ms peak on the conservative arbitrary-rule path,

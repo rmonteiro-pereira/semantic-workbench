@@ -3,7 +3,7 @@ import { createAccessControl, type AccessOptions } from './authorize';
 import { ACTIONS, FILE_ACTIONS, isAction, type Action } from '../../shared/auth/actions';
 import type { AccessConfig } from './access-config';
 import { clientPrincipal, type NormalizedPrincipal } from './principal';
-import type { ResourceRef } from './resource';
+import type { DecisionContext, ResourceRef } from './resource';
 import type { AuditEntry } from './audit';
 import matrix from '../../../policies/matrix-cases.json';
 
@@ -29,7 +29,7 @@ type RequestScope = ReturnType<AccessControl['forRequest']>;
 type ScopePair = { before: RequestScope; after: RequestScope };
 
 /** Builds request scopes once per identity, since each one resolves grants and entities. */
-export function scopeCache(before: AccessControl, after: AccessControl, current: AccessConfig, next: AccessConfig) {
+export function scopeCache(before: AccessControl, after: AccessControl, current: AccessConfig, next: AccessConfig, context: Pick<DecisionContext, 'hour' | 'sourceIp'> = {}) {
   const scopes = new Map<string, ScopePair>();
   // Arbitrary Cedar rules can inspect other identities and otherwise unused role holders.
   const comparable = !Object.keys(current.adminRules ?? {}).length && !Object.keys(next.adminRules ?? {}).length;
@@ -43,8 +43,8 @@ export function scopeCache(before: AccessControl, after: AccessControl, current:
       // Cedar group ancestry can still differ when deactivation hides resolved grants.
       const activePerson = !previous.deactivated && !proposed.deactivated;
       const unchanged = comparable && sameProjects && activePerson && principalPolicy(current, previous) === principalPolicy(next, proposed);
-      const previousScope = before.forReplay(previous);
-      pair = { before: previousScope, after: unchanged ? previousScope : after.forReplay(proposed) };
+      const previousScope = before.forReplay(previous, context);
+      pair = { before: previousScope, after: unchanged ? previousScope : after.forReplay(proposed, context) };
       scopes.set(key, pair);
     }
     return pair;
@@ -196,7 +196,8 @@ export interface DryRunEvidence {
 export function compareAccess(options: AccessOptions, next: AccessConfig, { users, audit, names = new Map(), access }: DryRunEvidence) {
   const before = access ?? createAccessControl(options);
   const current = before.snapshot();
-  const scopeFor = scopeCache(before, before.fork(next), current.config, next);
+  const context = current.context?.() ?? {};
+  const scopeFor = scopeCache(before, before.fork(next), current.config, next, context);
   const identities = new Map(users.map(user => [user.id, user]));
   for (const client of [...current.config.agents.clients, ...next.agents.clients]) {
     identities.set(`client:${client.clientId}`, clientPrincipal(client.clientId, client.name));
