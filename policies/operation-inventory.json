@@ -466,6 +466,7 @@
         "work": "light"
       },
       "effects": ["read"],
+      "usage": true,
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1110,6 +1111,7 @@
         "work": "light"
       },
       "effects": ["read"],
+      "usage": true,
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1125,6 +1127,7 @@
         "work": "light"
       },
       "effects": ["read"],
+      "usage": true,
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
