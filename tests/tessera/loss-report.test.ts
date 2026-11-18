@@ -6,7 +6,7 @@ import { parse } from 'yaml';
 import { compileUnit } from '../../src/shared/tessera/compile-unit';
 import { sha256Hex } from '../../src/shared/tessera/digest';
 import { LossPolicyError, acceptLoss, buildLossReport, digestOf, parseLossPolicy, printReport, type LossEntry, type ReportSubject } from '../../src/shared/tessera/loss-report';
-import { REGISTRY } from '../../src/shared/tessera/registry';
+import { createRegistry, REGISTRY } from '../../src/shared/tessera/registry';
 
 const loss = (document: string, pointer: string, text: string): LossEntry => ({
   document,
@@ -124,8 +124,9 @@ test('a malformed policy is refused', () => {
   }
 });
 
-test('a registered reserved name cannot be allowed because it is not registered', () => {
-  expect(() => parseLossPolicy('{"policy":1,"allow":["tessera_imports"]}', registry)).toThrow('not a registered property');
+test('a reserved name cannot be allowed by a loss policy', () => {
+  const reserved = createRegistry(registry.additions, [{ name: 'tessera_reserved', owner: 'fixture' }]);
+  expect(() => parseLossPolicy('{"policy":1,"allow":["tessera_reserved"]}', reserved)).toThrow('not a registered property');
 });
 
 // Every dropped note is listed.

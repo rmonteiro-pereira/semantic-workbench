@@ -2,6 +2,7 @@
 import { expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { formatAddress } from '../../src/shared/core/item-address';
+import { addressAtModelPath } from '../../src/shared/core/model-addresses';
 import { inspect, isStructuredEntity } from '../../src/shared/core/model';
 import { combineUnit } from '../../src/shared/tessera/unit-model';
 import { readUnitStructure } from '../../src/shared/tessera/unit-structure';
@@ -31,7 +32,7 @@ test('cross-part references resolve and nested items keep their source file', ()
   const order = split.inspected.entities.filter(isStructuredEntity).find(entity => entity.name === 'Order')!;
   const customer = split.inspected.entities.filter(isStructuredEntity).find(entity => entity.name === 'Customer')!;
   const relationship = split.inspected.edges.find(edge => edge.source === order.id && edge.target === customer.id)!;
-  expect(split.itemFiles.get(formatAddress(relationship.address))).toBe('orders.yaml');
+  expect(split.itemFiles.get(formatAddress(addressAtModelPath(split.ontology, relationship.data.path)))).toBe('orders.yaml');
   expect(split.itemFiles.get(formatAddress(order.address))).toBe('orders.yaml');
   expect(split.itemFiles.get(formatAddress(customer.address))).toBe('customers.json');
 });

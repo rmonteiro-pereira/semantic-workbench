@@ -74,7 +74,7 @@ function classifyMeshFile(file: UnitFile, text: string, data: unknown): Classifi
     return isDependencyManifest(data) ? { kind: 'dependency-manifest', file, data } : invalidFile(file, 'Invalid dependency manifest.');
   }
   const marker = readMarker(data);
-  if (marker.family !== 'tessera' || marker.revision !== 3 || !Object.hasOwn(data, PART_PROPERTY)) return undefined;
+  if (!(marker.family === 'tessera' && marker.revision === 3 && Object.hasOwn(data, PART_PROPERTY))) return undefined;
   return tesseraPart(data) ? { kind: 'tessera-part', file, text, data } : invalidFile(file, 'Invalid Tessera part.');
 }
 

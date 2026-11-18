@@ -16,7 +16,7 @@ const command = 'scripts/tessera.ts';
 
 /** The faults of the Tessera format and compiler. */
 export const tesseraMutants: Mutant[] = [
-  ['tessera', validation, "const marked = !options.nested && readMarker(data).family !== 'standard';", 'const marked = false;'],
+  ['tessera', validation, "const marked = !options.nested && marker.family !== 'standard';", 'const marked = false;'],
   ['tessera', marker, '!Object.hasOwn(data, TesseraNames.markerKey)', '!JSON.stringify(data).includes(\'"tessera"\')'],
   ['tessera', validate, 'if (declaredRevision !== undefined && !revisions.includes(declaredRevision))', 'if (false)'],
   ['tessera', validate, '} else if (!entry) {', '} else if (!entry) {\n      continue;'],
