@@ -76,7 +76,7 @@ architecture review run once on the integrated batch (last task). Heavy runs: `s
 
 ## Phase 8: User Story 6 - Replay ends the connection (P2)
 
-- [ ] T027 [US6] Replay and code-reuse paths in `connection-service` and the token endpoint, including the rate-limited flood case. Proof: `tests/auth/connection-flow.test.ts` scenarios 1 to 4 of Story 6.
+- [x] T027 [US6] Replay and code-reuse paths in `connection-service` and the token endpoint, including the rate-limited flood case. Proof: `tests/auth/connection-flow.test.ts` scenarios 1 to 4 of Story 6.
 
 ## Phase 9: MCP endpoint in server mode (needs 006)
 
