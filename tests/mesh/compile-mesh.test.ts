@@ -145,3 +145,12 @@ test('part order and provider ownership survive merge when providers export the 
   expect(parents).toEqual(['finance~finance%2Eyaml~Invoice', 'logistics~archive%2Ejson~Invoice']);
   for (const parent of parents) expect(data.ontology.some((item: { concept: string }) => item.concept === parent)).toBe(true);
 });
+
+test('losses retain the individual path of every contributing part', () => {
+  const includes = ['customer.json', 'supplier.json'];
+  const notedPart = (path: string, concept: string) => definition(path, { ...part, ontology: [{ concept, type: 'EntityType', tessera_notes: 'Author notes' }] });
+  const files = [definition('root.json', { ...root, tessera_includes: includes }), notedPart(includes[0], 'Customer'), notedPart(includes[1], 'Supplier')];
+  const result = compileUnit(files, { lossPolicySha256: null, providers: new Map([['root.json', [provider]]]) });
+  expect(result.failures).toEqual([]);
+  expect(result.report.losses.filter(loss => loss.property === 'tessera_notes').map(loss => loss.document)).toEqual(includes);
+});
