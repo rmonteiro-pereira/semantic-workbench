@@ -28,7 +28,9 @@ function additionProperty(entry: AdditionEntry): JsonSchema {
 export function deriveTesseraSchema(base: SupportedBase, registry: Registry, revision: number): JsonSchema {
   const schema: JsonSchema = structuredClone(base.ontologySchema);
   schema.$id = derivedSchemaId(base, revision);
-  schema.$comment = `Workbench schema derived from the pinned Ossie ${base.version} ontology schema for Tessera revision ${revision}. It is not part of the Ossie standard. Regenerate it with scripts/derive-tessera-schema.ts.`;
+  schema.$comment =
+    `Workbench schema derived from the pinned Ossie ${base.version} ontology schema for Tessera revision ${revision}. ` +
+    'It is not part of the Ossie standard. Regenerate it with scripts/derive-tessera-schema.ts.';
   schema.properties[TesseraNames.markerKey] = { type: 'integer', const: revision, description: `Marks the document as ${TesseraNames.product} revision ${revision}.` };
   schema.required = [TesseraNames.markerKey, ...schema.required];
   for (const entry of registry.additions) {
