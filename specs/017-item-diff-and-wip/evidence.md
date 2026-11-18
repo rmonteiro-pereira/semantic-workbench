@@ -36,3 +36,38 @@
 - T007: address comparison, 6 pass, 0 fail, 12 assertions.
 - T008: serialization and Tessera proofs on the development server, 3 pass, 0 fail, 36 assertions.
   The examples test uses a 60-second timeout because the server run took 13.85 seconds.
+
+## Operation phase blocked by migration provenance
+
+The operation cannot select migrations that happened **between the requested sides** using this
+base's recorded history. The plan permits no new durable state and proposes reading the existing
+project history directly. That history is neither branch-scoped nor versioned alongside definitions.
+
+Concrete reproduction: `bun test tests/item-diff/migration-scope.test.ts` passes with 6 assertions.
+A workbench rename on `work/comparison` writes a migration. Restore the original bytes, create
+`work/outside` at the same HEAD, and save identical renamed bytes without declaring a migration.
+Both branches now have the same before/after definition bytes, the same HEAD and the same migration
+history, although only the first branch performed a recorded rename. The required result is one
+changed item for the first branch and remove plus add for the second. Ancestry cannot distinguish
+these cases because the record names their shared pre-edit HEAD.
+
+Relevant existing code:
+
+- `src/server/projects/workspace/document-save.ts`: `saveMigrations` reads `localCommit` before saving;
+  `saveFile` appends the records using the global workspace layout, regardless of the working copy.
+- `src/server/projects/workspace.ts`: `localCommit` returns `git.head`, not a resulting saved version.
+- `src/server/projects/address-migrations.ts`: `addressMigrationFile` keys only by project;
+  `readAddressMigrations` filters endpoint visibility but has no side or branch provenance.
+- `src/shared/core/address-migration.ts`: `MigrationRecord` holds id, kind, endpoints, time and commit;
+  it has no branch, copy or resulting content version.
+
+The pure comparison accepts an already-selected migration list. No route should pass the entire
+project history to it: that would misclassify outside renames after branch switches. T010–T018 are
+left unticked and the operation phase is stopped, as required for a specification/base contradiction.
+The dependent overlay, branch journey, publication review and their browser proofs remain pending.
+The independent planner status flag can proceed.
+
+Resolution needed: agree a durable provenance contract for saved and committed migrations across
+branches and working copies, including historical comparisons and legacy records. This changes the
+plan's no-new-state constraint and requires changes to the existing migration writers, outside its
+listed file ownership. Do not weaken the no-similarity or outside-rename rule to bypass this gap.
