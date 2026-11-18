@@ -105,7 +105,8 @@ and protect release tags. Existing tags inside published history remain usable a
 - Reveal the column rows when a bundled lineage line splits so the individual connections can be read.
 - Keep walk targets usable at reduced zoom, hiding them when their card cannot hold the target.
 - Identify walked lineage centres with a wrapping caption, retain CENTER beside the card name and provide a collapsible phone legend.
-- Show an explanation in place of a lone unlinked card and disable unavailable hops or mapping steps. Disable layout controls while positions are pending.
+- Explain empty graphs and disable unavailable hops or mapping steps. Keep unmapped concepts inspectable in populated mappings.
+  Disable layout controls while positions are pending.
 - Reject edge-label positions crossed by routes or clipped by the pane.
 - Correct the documented foreign-key range to one through three; distinguish mapping steps one through five.
 - Share compensated name-only cards between lineage and mappings. Keep dense reaches pannable when complete names cannot all fit in the pane.

@@ -476,7 +476,8 @@ The **Hops** control follows one to three foreign keys in either direction and l
 tables and keys by hop. Mapping graphs instead use **Steps** (1–5) in **View options**,
 counting mapping lines. Toolbar switches show or hide **Metrics** and **Other contracts**
 (references to tables in other contracts). Badges and the legend distinguish PK, FK, Required, Unique and line kinds.
-When the centre has no linked assets, the canvas shows an explanation in place of a lone card and disables its unavailable steps.
+When the canvas has no linked assets to draw, it explains why and disables unavailable steps. In a populated mapping,
+select an unmapped concept to inspect its card and badge.
 On a phone, open **Legend** to see keys and line kinds. Labels without room remain available on hover, including relationship names on compact mapping cards.
 **Open in lineage** centers on the selected table.
 

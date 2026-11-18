@@ -224,6 +224,8 @@ export function LineageCanvas({
     return bundled;
   }, [graph, reach, rowsByCard, path, splitPairs]);
   const isolated = lines.length === 0 && reach.cards.size <= 1;
+  // An unmapped concept in a populated graph still has a badge and details to inspect.
+  const emptyCanvas = isolated && (!mapping || graph.edges.length === 0);
   const allLayoutCards = useMemo<LayoutCard[]>(
     () =>
       [...reach.cards].map(id => {
@@ -689,7 +691,7 @@ export function LineageCanvas({
           <ReactFlow
             className={farZoom.className}
             style={farZoom.style}
-            nodes={isolated ? [] : visibleNodes}
+            nodes={emptyCanvas ? [] : visibleNodes}
             edges={edges}
             onNodesChange={recordSizes}
             nodeTypes={nodeTypes}
