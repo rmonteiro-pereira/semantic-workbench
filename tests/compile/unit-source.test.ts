@@ -68,7 +68,7 @@ test('a file over the limit is refused before any content is read', async () => 
   };
   const source = createUnitSource({
     canRead: () => true,
-    openPublished: use => use({ ...view, commit: 'a'.repeat(40) }),
+    openPublished: use => use({ ...view, place: { commit: 'a'.repeat(40), branch: 'main', projectFolder: '.' } }),
     openWorking: async () => view,
     limits: { documentBytes: 10, totalBytes: 100, projectFiles: 5 },
   });

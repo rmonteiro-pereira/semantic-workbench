@@ -10,8 +10,11 @@ export type UnitSourceKind = 'published' | 'working';
 /** Says where the files came from. Only a published snapshot has a commit, and only a working copy is unpublished. */
 export type SourceLabel = { kind: 'published-snapshot'; commit: string; unpublished: false } | { kind: 'working-copy'; unpublished: true };
 
-/** The files of one unit, with the label that every answer built from them must carry. */
-export type UnitRead = { files: UnitFile[]; label: SourceLabel; commit?: string };
+/** Where a published unit sits: the branch and commit the workbench published, and the project's folder inside the repository ('.' for its root). */
+export type PublishedPlace = { commit: string; branch: string; projectFolder: string };
+
+/** The files of one unit, with the label that every answer built from them must carry. A published read also says where it sits. */
+export type UnitRead = { files: UnitFile[]; label: SourceLabel; commit?: string; place?: PublishedPlace };
 
 /** Reads one unit. The compile service holds this and nothing that knows about Git or folders. */
 export type UnitSource = { read(kind: UnitSourceKind): Promise<UnitRead> };
@@ -20,7 +23,7 @@ export type UnitSource = { read(kind: UnitSourceKind): Promise<UnitRead> };
 export type ListedFile = { path: string; size: number };
 
 /** One consistent view of a folder: a list, then the content of each listed file. A file that vanished reads as null. */
-export type FolderView = { commit?: string; list(): Promise<ListedFile[]>; read(path: string): Promise<Uint8Array | null> };
+export type FolderView = { place?: PublishedPlace; list(): Promise<ListedFile[]>; read(path: string): Promise<Uint8Array | null> };
 
 /** What a unit source needs from the workspace, passed in so the decisions here stay free of Git and disk. */
 export type UnitSourceDeps = {
@@ -68,15 +71,18 @@ async function readUnit(view: FolderView, deps: UnitSourceDeps): Promise<UnitFil
   return files;
 }
 
-function publishedLabel(commit: string | undefined): SourceLabel {
-  if (!commit) throw new Error('A published view must name its commit.');
-  return { kind: 'published-snapshot', commit, unpublished: false };
+function publishedPlace(place: PublishedPlace | undefined): PublishedPlace {
+  if (!place) throw new Error('A published view must say where it sits.');
+  return place;
 }
 
 /** Builds the seam over the two sources. */
 export function createUnitSource(deps: UnitSourceDeps): UnitSource {
   async function readPublished(): Promise<UnitRead> {
-    return deps.openPublished(async view => ({ files: await readUnit(view, deps), label: publishedLabel(view.commit), commit: view.commit }));
+    return deps.openPublished(async view => {
+      const place = publishedPlace(view.place);
+      return { files: await readUnit(view, deps), label: { kind: 'published-snapshot', commit: place.commit, unpublished: false }, commit: place.commit, place };
+    });
   }
   async function readWorking(): Promise<UnitRead> {
     const view = await deps.openWorking();

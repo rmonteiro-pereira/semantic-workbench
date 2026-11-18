@@ -1,6 +1,7 @@
 // Connects the unit source to a workspace: the pinned published snapshot and the saved files of the caller's own working copy.
 import { lstatSync, readFileSync } from 'node:fs';
-import { PathError, projectDir, projectFile, type DataLayout } from '../projects/paths';
+import { SnapshotUnavailableError } from '../projects/errors';
+import { PathError, projectDir, projectFile, projectPrefix, type DataLayout } from '../projects/paths';
 import type { Reader } from '../projects/reader';
 import { walk } from '../projects/scanner';
 import type { Workspace } from '../projects/workspace';
@@ -58,9 +59,11 @@ export function workspaceUnitSource(workspace: UnitWorkspace, slug: string, read
     openPublished: use =>
       snapshots.withPin(async pin => {
         const sizes = await snapshots.fileSizes(pin, slug);
-        const commit = pin.commits.get(workspace.repoOf(slug))?.commit;
+        const pinned = pin.commits.get(workspace.repoOf(slug));
+        if (!pinned) throw new SnapshotUnavailableError('no-commit');
+        const prefix = projectPrefix(workspace.layoutFor(slug, reader), slug);
         return use({
-          commit,
+          place: { commit: pinned.commit, branch: pinned.branch, projectFolder: prefix ? prefix.slice(0, -1) : '.' },
           list: async () => sizes,
           read: path => snapshots.fileBytes(pin, slug, path),
         });

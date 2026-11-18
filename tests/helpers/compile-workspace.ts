@@ -105,3 +105,17 @@ export function digestFromCommandLine(workspace: Parameters<typeof compileWithCo
   if (!digest) throw new Error('The command line printed no digest: ' + refused.stdout);
   return digest;
 }
+
+/** The SHA-256 of every file below a folder, by relative path, so a test can prove nothing was written. */
+export function snapshotOfFolder(folder: string): Map<string, string> {
+  const hashes = new Map<string, string>();
+  const visit = (directory: string, prefix: string) => {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      const path = prefix ? `${prefix}/${entry.name}` : entry.name;
+      if (entry.isDirectory()) visit(join(directory, entry.name), path);
+      else hashes.set(path, new Bun.CryptoHasher('sha256').update(readFileSync(join(directory, entry.name))).digest('hex'));
+    }
+  };
+  visit(folder, '');
+  return hashes;
+}
