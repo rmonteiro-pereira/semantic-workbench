@@ -31,23 +31,36 @@
   position: relative;
 }
 
-.item-overlay-status {
-  position: absolute;
+.item-overlay-status,
+.item-change-list {
   display: grid;
-  z-index: 5;
-  inset-block-start: 100%;
-  inset-inline-end: 0;
-  width: min(260px, 75vw);
-  gap: 4px;
-  padding: 8px;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  background: var(--color-surface);
-  color: var(--color-text);
+  gap: 6px;
   overflow-wrap: anywhere;
 }
 
-.compact-controls-panel .item-overlay-status {
-  position: static;
-  width: 100%;
+.item-change-list h3 {
+  text-transform: capitalize;
+}
+
+.item-change-list ul {
+  display: grid;
+  gap: 8px;
+  padding-inline-start: 20px;
+}
+
+.item-change-list .item-change-surface {
+  padding: 6px;
+}
+
+.item-change-list .item-change-mark {
+  margin-inline-start: 8px;
+}
+
+.item-change-list dd {
+  margin-inline-start: 10px;
+  white-space: pre-wrap;
+}
+
+.item-change-list dl > div + div {
+  margin-block-start: 5px;
 }

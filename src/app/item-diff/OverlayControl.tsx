@@ -1,3 +1,5 @@
+import { Modal } from '../projects/Modal';
+import { ChangeList } from './ChangeList';
 import { useEffect, useRef, useState } from 'react';
 import { Layers } from 'lucide-react';
 import { useItemDiffContext } from './ItemDiffContext';
@@ -50,12 +52,24 @@ export function OverlayControl() {
         Comparison
       </button>
       {open && (
-        <span className="item-overlay-status" role="status">
-          <span>Branch: {branch || 'no branch'}</span>
-          {overlay.commit && <span>Published commit: {overlay.commit}</span>}
-          <span>{overlaySummary(overlay.result, Boolean(overlay.commit))}</span>
-          {notice && <span>{notice}</span>}
-        </span>
+        <Modal
+          title="Unpublished comparison"
+          size="wide"
+          onCancel={() => setOpen(false)}
+          footer={
+            <button type="button" onClick={() => setOpen(false)}>
+              Close
+            </button>
+          }
+        >
+          <div className="item-overlay-status" role="status">
+            <span>Branch: {branch || 'no branch'}</span>
+            {overlay.commit && <span>Published commit: {overlay.commit}</span>}
+            <span>{overlaySummary(overlay.result, Boolean(overlay.commit))}</span>
+            {notice && <span>{notice}</span>}
+          </div>
+          <ChangeList result={overlay.result} onRetry={overlay.retry} />
+        </Modal>
       )}
     </span>
   );
