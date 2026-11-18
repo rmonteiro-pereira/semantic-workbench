@@ -1,3 +1,4 @@
+import { ChangeMark } from '../item-diff/ChangeMark';
 /** Displays the complete model graph with grouping, filtering and a detail inspector. */
 import { isStructuredEntity } from '../../shared/core/model';
 import { formatAddress } from '../../shared/core/item-address';
@@ -259,6 +260,7 @@ export function FullGraph(props: Props) {
               selected: node.id === props.selected,
               data: {
                 ...node.data,
+                ...(node.data.change ? { changeMark: <ChangeMark change={node.data.change} /> } : {}),
                 kind: entityById.get(node.id)?.kind,
                 address: entityAddress(entityById.get(node.id)),
                 kpis: props.kpiBadges?.get(String(node.data.name)),

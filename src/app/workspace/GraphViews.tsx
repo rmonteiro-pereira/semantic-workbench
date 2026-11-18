@@ -1,3 +1,4 @@
+import { useGraphChanges } from '../item-diff/graph-changes';
 /** Presentation and event handling for graph views. */
 import React, { useCallback, useMemo } from 'react';
 import { FullGraph } from '../graph/FullGraph';
@@ -14,6 +15,7 @@ type GroupLook = { name: string; color: string };
 
 // Each entity's group name and colour under the current Group by choice.
 function groupLooks(overview: ReturnType<typeof modelOverview> | null) {
+  const graph = useGraphChanges(model, current);
   const looks = new Map<string, GroupLook>();
   for (const group of overview?.groups ?? []) for (const entity of group.entities) looks.set(entity.id, group);
   return looks;
@@ -163,7 +165,7 @@ export function GraphViews({
       />
     );
   }
-  if (tab === 'fullgraph' && model) {
+  if (tab === 'fullgraph' && model && graph) {
     return (
       <FullGraph
         toolbarExtra={graphViewSwitch}
@@ -173,8 +175,8 @@ export function GraphViews({
         grouping={grouping.value}
         key={current?.id}
         name={model.name}
-        entities={model.entities}
-        edges={model.edges}
+        entities={graph.entities}
+        edges={graph.edges}
         selected={selected}
         selectedEdge={selectedEdge}
         search={search}
@@ -212,8 +214,8 @@ export function GraphViews({
       key={current?.id}
       docId={current!.id}
       docLabel={id => docsRef.current.get(id)?.path ?? id}
-      entities={model?.entities ?? []}
-      edges={model?.edges ?? []}
+      entities={graph?.entities ?? []}
+      edges={graph?.edges ?? []}
       search={search}
       walk={walk}
       selected={selected}

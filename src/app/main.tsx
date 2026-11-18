@@ -1,3 +1,4 @@
+import { ItemDiffProvider } from './item-diff/ItemDiffContext';
 /** Application entry point and composition of the workspace views. */
 import { Capabilities } from './auth/Capabilities';
 import { BrandProvider } from './brand/BrandContext';
@@ -441,7 +442,9 @@ function App() {
   );
   return (
     <Capabilities projects={projects}>
-      <AdminHost>{content}</AdminHost>
+      <ItemDiffProvider project={projects.find(item => item.slug === selectedProject)} docs={docs} revision={workspaceEvents.gitVersion}>
+        <AdminHost>{content}</AdminHost>
+      </ItemDiffProvider>
     </Capabilities>
   );
 }
