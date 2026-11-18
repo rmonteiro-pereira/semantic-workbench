@@ -225,18 +225,19 @@ function accessControl(options: AccessOptions, previous?: ActiveAccess) {
     function authorize(action: Action, input: ResourceRef, supplied: Partial<DecisionContext> = {}): Decision {
       synchronize();
       const resource = normalizeResource(input);
-      const context = requestContext(snapshot, options.mode, resource, {
+      const contextInputs = {
         ...options.context?.(),
         ...requestDefaults,
         ...supplied,
-      });
+      };
+      const context = requestContext(snapshot, options.mode, resource, contextInputs);
       const project = resource.type === 'workspace' ? '' : resource.project;
       const actionClass = replay ? replayAction(action, resource) : action;
       const key = JSON.stringify([actionClass, project, ruleClass(snapshot, resource), context, resource.type === 'workspace' ? undefined : resource.domain]);
       const previous = decisions.get(key);
       if (previous) return previous;
       if (action === 'createProject' && options.mode === 'server' && (resource.type === 'workspace' || (resource.type === 'project' && resource.project === NEW_PROJECT))) {
-        const decision = creationDecision(snapshot, principal, resource, supplied);
+        const decision = creationDecision(snapshot, principal, resource, contextInputs);
         decisions.set(key, decision);
         return decision;
       }
