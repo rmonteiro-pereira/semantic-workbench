@@ -2,7 +2,7 @@
 // of truth; the SQLite cache can be rebuilt.
 import { upgradePublications } from '../auth/operation-execution';
 import type { PublicationObserver } from './local-publication';
-import { readAddressMigrations } from './address-migrations';
+import { ADDRESS_HISTORY_FILE, readAddressMigrations } from './address-migrations';
 import { resolveForCaller } from './address-resolution';
 import { recordReconciliation, type ReconciliationRequest } from './address-reconciliation';
 import { convertAddressKeys } from './address-key-conversion';
@@ -240,6 +240,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     layout,
     journal,
     lock,
+    workingLayout: (project: string, reader: Reader) => copies.readPlace(reader, project).layout,
     head: (project: string, reader: Reader) => localCommit(copies.readPlace(reader, project).layout, project),
   };
   function groupingEntities(reference: { project: string; path: string }, reader: Reader) {
@@ -253,6 +254,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   }
   function readFile(slug: string, path: string, reader: Reader = LOCAL_READER) {
     entry(slug);
+    if (posix.basename(path).toLowerCase() === ADDRESS_HISTORY_FILE) throw new NotFoundError('File not found.');
     const place = copies.readPlace(reader, slug);
     const file = projectFile(place.layout, slug, path);
     let bytes: Uint8Array;
@@ -823,7 +825,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     registrySteps,
     readFile,
     saveFile,
-    resolveAddress: (address: string, reader: Reader) => resolveForCaller({ ...addressReads, readMigrations: (project, caller) => readAddressMigrations(layout, project, caller) }, address, reader),
+    resolveAddress: (address: string, reader: Reader) =>
+      resolveForCaller({ ...addressReads, readMigrations: (project, caller) => readAddressMigrations(copies.readPlace(caller, project).layout, project, caller) }, address, reader),
     reconcileAddress: (declaration: ReconciliationRequest, reader: Reader) => recordReconciliation(addressReconciliation, declaration, reader),
     saveFiles: documentSave.saveFiles,
     documents: () => documentsFor(LOCAL_READER),

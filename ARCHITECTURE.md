@@ -149,7 +149,7 @@ concatenating project, document or item names.
   copies and stages the file-store migration.
 - `address-key-stores.ts` locates active and archived grouping stores.
 - `address-key-conversion.ts` backs them up, verifies original hashes, and journals their one-time conversion.
-- `address-migrations.ts` validates request declarations for routes and stages bounded, ordered history without committing a separate transaction.
+- `address-migrations.ts` validates request declarations for routes and stages bounded, ordered history in the project’s Git working copy within the owning journal.
   Document-save services receive typed declarations and check their effect against the guarded source.
 - `address-resolution.ts` resolves current items and visible history behind the reader boundary.
 - `address-reconciliation.ts` receives an already-authorized reader and records explicit reconciliation through the project lock and journal.

@@ -331,7 +331,7 @@ pending work on unmount. Geometry and raw browser-error tests cover these transi
 
 ```text
 DATA_DIR/
-  projects/       published/local definition repositories
+  projects/       published/local definition repositories and address history
   worktrees/      server-mode personal Git working copies
   state/          registry, drafts, views, sessions, journals and audit
   admin/          versioned roles, grants, policies and settings

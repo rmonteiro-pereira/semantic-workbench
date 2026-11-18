@@ -15,6 +15,7 @@ export type AddressReconciliationContext = AddressReadContext & {
   layout: DataLayout;
   journal: Journal;
   lock: <T>(key: string, action: () => Promise<T> | T) => Promise<T>;
+  workingLayout: (project: string, reader: Reader) => DataLayout;
   head: (project: string, reader: Reader) => Promise<string>;
 };
 
@@ -41,8 +42,9 @@ export async function recordReconciliation(context: AddressReconciliationContext
   const [pair] = declaredAddressMigrations([{ kind: 'item', from: declaration.from, to: declaration.to }], project, [previousPath, path]);
   if (!/^[A-Za-z0-9_-]{1,128}$/.test(declaration.operationId)) throw new BadRequestError('Invalid reconciliation operation identifier.');
   return context.lock(projectLockKey(project, reader.copy?.key ?? null), async () => {
+    const layout = context.workingLayout(project, reader);
     const id = `r-${declaration.operationId}-0`;
-    const previous = readAddressMigrations(context.layout, project, reader).find(record => record.id === id);
+    const previous = readAddressMigrations(layout, project, reader).find(record => record.id === id);
     if (previous) {
       if (previous.kind !== 'reconciliation' || previous.from !== pair.from || previous.to !== pair.to) throw new BadRequestError('A reconciliation operation was replayed with different content.');
       return previous;
@@ -56,7 +58,7 @@ export async function recordReconciliation(context: AddressReconciliationContext
     const [record] = operationMigrations({ id: declaration.operationId, at: new Date().toISOString(), commit }, [{ kind: 'reconciliation', from: pair.from, to: pair.to }]);
     const staging = join(context.layout.state, `.reconciliation-${declaration.operationId}`);
     try {
-      const steps = stageAddressMigrations({ layout: context.layout, project, staging }, [record]);
+      const steps = stageAddressMigrations({ layout, project, staging }, [record]);
       context.journal.run('address-reconciliation', steps, [staging], declaration.operationId);
       return record;
     } catch (error) {

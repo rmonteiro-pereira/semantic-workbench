@@ -1,6 +1,6 @@
 // Moves a file inside a project or into another one, together with its draft and view settings.
 import { documentAddress } from '../../../shared/core/item-address';
-import { operationMigrations, stageAddressMigrations } from '../address-migrations';
+import { ADDRESS_HISTORY_FILE, operationMigrations, stageAddressMigrations } from '../address-migrations';
 import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { join, posix } from 'node:path';
 import { decode } from '../atomic';
@@ -55,6 +55,7 @@ export function createFileMove(ctx: FileMoveContext) {
     entry(toProject);
     const from = projectPath(path);
     let to = projectPath(toPath ?? posix.basename(from));
+    if ([from, to].some(path => posix.basename(path).toLowerCase() === ADDRESS_HISTORY_FILE)) throw new NotFoundError('File not found.');
     if (accessView && !accessView.canRead(toProject, to)) {
       throw new OccupiedError('The target is unavailable.', {});
     }
@@ -87,7 +88,7 @@ export function createFileMove(ctx: FileMoveContext) {
         steps.push(...movePersonalState(state, { project: slug, path: from, target: toProject, targetPath: to }, personalStaging, place.copy ?? undefined));
         const records = operationMigrations({ id: opId, at: new Date().toISOString(), commit }, [{ kind: 'document', from: documentAddress(slug, from), to: documentAddress(toProject, to) }]);
         try {
-          for (const project of new Set([slug, toProject])) steps.push(...stageAddressMigrations({ layout, project, staging: personalStaging }, records));
+          for (const project of new Set([slug, toProject])) steps.push(...stageAddressMigrations({ layout: place.layout, project, staging: personalStaging }, records));
           journal.run('move', steps, [personalStaging], opId);
         } catch (error) {
           if (!(error instanceof JournalCrash)) rmSync(personalStaging, { recursive: true, force: true });

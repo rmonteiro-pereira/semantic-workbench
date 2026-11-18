@@ -4,7 +4,7 @@ import type { DeclaredMigration } from '../../../shared/core/address-migration';
 import type { OperationOutcome } from '../../auth/operation-outcome';
 import { parseAddress } from '../../../shared/core/item-address';
 import { deletedItemAddresses } from '../../../shared/edit/address-changes';
-import { operationMigrations, stageAddressMigrations } from '../address-migrations';
+import { ADDRESS_HISTORY_FILE, operationMigrations, stageAddressMigrations } from '../address-migrations';
 import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { InputError, MAX_INPUT_BYTES } from '../../../shared/validation/diagnostics';
@@ -109,6 +109,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     const { guard } = reader;
     entry(slug);
     const relativePath = projectPath(path);
+    if (relativePath.split('/').at(-1)?.toLowerCase() === ADDRESS_HISTORY_FILE) throw new BadRequestError('Address history is managed by the workbench.');
     const declarations = body.declaredMigrations ?? [];
     const deletedItems = body.deletedItems ?? [];
     const check = async (at: Place) => {
@@ -144,7 +145,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
       if (existsSync(file)) steps.push({ from: file, to: join(staging, 'previous') });
       steps.push({ from: staged, to: file });
       try {
-        steps.push(...stageAddressMigrations({ layout, project: slug, staging }, records));
+        steps.push(...stageAddressMigrations({ layout: place.layout, project: slug, staging }, records));
         journal.run('save', steps, [staging], opId);
       } catch (error) {
         if (!(error instanceof JournalCrash)) rmSync(staging, { recursive: true, force: true });
@@ -197,6 +198,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     entry(slug);
     if (!Array.isArray(writes) || !writes.length || writes.length > 50) throw new BadRequestError('Expected 1–50 files.');
     const files = writes.map(w => ({ ...w, path: projectPath(w.path) }));
+    if (files.some(file => file.path.split('/').at(-1)?.toLowerCase() === ADDRESS_HISTORY_FILE)) throw new BadRequestError('Address history is managed by the workbench.');
     const declarations = options.declaredMigrations ?? [];
     const deletedItems = options.deletedItems ?? [];
     if (new Set(files.map(f => f.path)).size !== files.length) throw new BadRequestError('Each file may appear once.');
@@ -269,7 +271,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
           ),
         );
         const records = await saveMigrations(place.layout, slug, opId, declarations, deletedItems);
-        steps.push(...stageAddressMigrations({ layout, project: slug, staging }, records));
+        steps.push(...stageAddressMigrations({ layout: place.layout, project: slug, staging }, records));
         journal.run(kind, steps, [staging], opId);
       } catch (error) {
         if (!(error instanceof JournalCrash)) rmSync(staging, { recursive: true, force: true });
@@ -296,6 +298,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     if (baseHash !== null && (typeof baseHash !== 'string' || !/^[0-9a-f]{64}$/.test(baseHash))) throw new BadRequestError('baseHash must be a SHA-256 hex digest or null.');
     if (!gitAvailable) throw new BadRequestError('Git is not available on this machine.');
     const relativePath = projectPath(path);
+    if (relativePath.split('/').at(-1)?.toLowerCase() === ADDRESS_HISTORY_FILE) throw new BadRequestError('Address history is managed by the workbench.');
     const committedIn = (at: Place) => git.blob(repoDir(at.layout, slug), 'HEAD', projectPrefix(layout, slug) + relativePath);
     const check = async (at: Place) => guardRevert(at.layout, { slug, path: relativePath }, await committedIn(at), reader.guard);
     const place = await copies.writePlace(reader, slug, check);

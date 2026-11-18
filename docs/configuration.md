@@ -297,12 +297,8 @@ published-checkout checks in
 [the deployment guide](../deploy/README.md#moving-a-data-folder-from-local-mode-to-server-mode).
 Do not simply expose a local-mode listener to the network.
 
-Address migration history is stored in `state/address-migrations/<project>.json`. Records retain their original append
-order and are not pruned by age. Each project is limited to 50,000 records; an overflowing operation is refused before
-definitions or history change. There is no retention setting because deleting or compacting ordered records can change
-replay results. There is no bulk history HTTP listing; scoped resolution and reconciliation use the shared operation
-boundary. Conversion backups and the
-completion report are described in [item addresses](item-addresses.md).
+Address migration history travels with each project in Git. See [item addresses](item-addresses.md)
+for history limits, legacy import and conversion backups.
 
 Repositories cloned or registered while the application is running use the same first-snapshot adoption as
 startup. Existing default-branch commits become available immediately without moving a ref or rewriting a

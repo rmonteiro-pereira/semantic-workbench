@@ -111,7 +111,14 @@ project and files. It returns typed declarations or a closed validation reason.
 
 Migrations remain uncompacted because collapsing interleaved ancestor and descendant rewrites can change replay results.
 The store must refuse writes exceeding 50,000 records atomically. The server store stages uncompacted appends in the
-owning journal.
+owning journal. Each project holds its history at its root in
+`.semantic-workbench-address-migrations.jsonl`. Each line holds one record. The first occurrence
+of each ID wins, and replay uses the record timestamp and operation ID to order merged lines.
+The workbench writes a `merge=union` rule in the project’s `.gitattributes`.
+
+Before the first history write, an existing legacy state file supplies the history for sides
+without a Git history file. The first write consumes the legacy file in the same journal. The
+legacy store was never released, so there is no compatibility path beyond that import.
 Operation-derived record IDs use separate `m-` (save/move), `d-` (deletion) and `r-` (reconciliation) namespaces to make replay idempotent, and conflicting reuse of an operation ID is refused.
 
 ```sh

@@ -1,7 +1,7 @@
 // Moves deleted files and project folders into journaled trash without rewriting Git history.
 // Restoration refuses occupied paths and suggests a free alternative.
 import { documentAddress } from '../../shared/core/item-address';
-import { archiveAddressMigrations, operationMigrations, stageAddressMigrations } from './address-migrations';
+import { ADDRESS_HISTORY_FILE, archiveAddressMigrations, operationMigrations, stageAddressMigrations } from './address-migrations';
 import { archivePersonalState, clearPersonalDrafts } from './personal-state';
 import type { EventTags } from './events';
 import type { Reader } from './reader';
@@ -179,6 +179,7 @@ export function createTrash(ctx: TrashContext) {
   // protected property for someone who may not change them.
   async function deleteFile(slug: string, path: string, deletedBy: string | undefined, { guard }: Reader, copy: string | null = null) {
     const relativePath = projectPath(path);
+    if (posix.basename(relativePath).toLowerCase() === ADDRESS_HISTORY_FILE) throw new NotFoundError('File not found.');
     const project = registryEntry(assertSlug(slug));
     return lock(projectLockKey(slug, copy), async () => {
       const file = projectFile(filesOf(copy), slug, relativePath);
@@ -214,7 +215,7 @@ export function createTrash(ctx: TrashContext) {
       const from = documentAddress(slug, relativePath);
       const records = operationMigrations({ id: trashEntry.entryId, at: trashEntry.deletedAt, commit }, [{ kind: 'deleted', from }]);
       try {
-        steps.push(...stageAddressMigrations({ layout, project: slug, staging }, records));
+        steps.push(...stageAddressMigrations({ layout: filesOf(copy), project: slug, staging }, records));
         journal.run('delete', steps, [staging], trashEntry.entryId);
       } catch (err) {
         if (err instanceof JournalCrash) throw err;
@@ -235,6 +236,7 @@ export function createTrash(ctx: TrashContext) {
   // place. A file absent from the last commit goes to trash without a replacement.
   async function revertFile(slug: string, path: string, baseHash: string | null, committed: Uint8Array | null, { owner: deletedBy, guard }: Reader, copy: string | null = null) {
     const relativePath = projectPath(path);
+    if (posix.basename(relativePath).toLowerCase() === ADDRESS_HISTORY_FILE) throw new NotFoundError('File not found.');
     const project = registryEntry(assertSlug(slug));
     const files = filesOf(copy);
     return lock(projectLockKey(slug, copy), async () => {

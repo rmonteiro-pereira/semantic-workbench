@@ -28,7 +28,7 @@ not configure a production deployment.
 - Item-address resolution and explicit reconciliation share scoped, audited HTTP and in-process operations,
   with visibility checks and idempotent reconciliation retries.
 - Renames, moves and deletions record ordered address history atomically with definition changes. History follows
-  project trash/restore, preserves cross-project arrival order and remains uncompacted, bounded at 50,000 records per project.
+  the project’s Git working copy and project trash/restore. Each project holds up to 50,000 records.
   Reusing a deleted locator does not implicitly restore its earlier history.
 - Stable grouping assignments are backed up and converted to addresses while retaining unconvertible keys and existing API behavior.
 - Reviewed operation inventory and generated reference, trusted in-process operation dispatch,
