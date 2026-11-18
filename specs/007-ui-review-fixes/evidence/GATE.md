@@ -634,6 +634,12 @@ keyboard focus ring on the metric grouping control. The empty Trash dialog keeps
   at 30 seconds, before a geometry verdict. The earlier main and candidate sidebar runs each passed four checks.
   The lineage retry passed commerce opening, Walk, Back, Forward and fullscreen, then returned 1 at the 2,000 ms UBL
   first-view limit (3,707 ms). The matched frozen-import timing on both builds is recorded above.
+  The back-history retry returned 0 in 206.4 s, including both Neighborhood and lineage arrows.
+  The responsive retry passed the 1280×720 canvas check and all six shell checks, then returned 1 restoring the graph viewport
+  on fullscreen exit. Expected `matrix(1.00515, 0, 0, 1.00515, -135.787, -62.825)`, measured
+  `matrix(0.5635, 0, 0, 0.5635, -41.03, 13.035)`. The isolated fullscreen check on both revisions remains queued.
+  The theme retry reached Light Catalog and counted the hidden Edit action at `1.00:1`. At rest its measured opacity is zero,
+  as required by the catalog reveal. The updated sampler will exclude fully transparent controls and keep testing visible text.
 - `bun -` checked the mapping capture matcher against four valid singular and plural summaries and one invalid singular.
   `36f93f35` accepts the candidate's corrected grammar during the next replay. In the previous replay the grammar assertion
   incorrectly reported a diagnostic against the settled empty mapping.
