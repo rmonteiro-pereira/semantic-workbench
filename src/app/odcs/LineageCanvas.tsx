@@ -435,11 +435,12 @@ export function LineageCanvas({
       });
   }, [result, reach, rowsByCard, openColumns, why, listRows, selected, path, center, select, walkTo, onOpenAsset, groupOf, mapping, onFinding, sets, cardHeights, overview]);
   const lineLabels = useMemo(() => {
-    if (!result || mapping) return new Map<string, LineLabel>();
+    if (!result || (mapping && !overview)) return new Map<string, LineLabel>();
     const layoutCards = new Map(allLayoutCards.map(c => [c.id, c]));
     return buildLineLabels(
       {
         graph,
+        mapping,
         positions: result.layout.positions,
         routes: result.layout.routes,
         layoutCards,
@@ -448,7 +449,7 @@ export function LineageCanvas({
       },
       lines,
     );
-  }, [result, mapping, allLayoutCards, cardHeights, openColumns, lines, graph]);
+  }, [result, mapping, overview, allLayoutCards, cardHeights, openColumns, lines, graph]);
   const edges = useMemo(() => {
     const lanes = new Map<string, number>();
     return lines
@@ -467,7 +468,7 @@ export function LineageCanvas({
           count: line.count,
           from: line.from,
           to: line.to,
-          label: mapping && line.count === 1 ? graph.edges[line.edges[0]].label : undefined,
+          label: mapping && !overview && line.count === 1 ? graph.edges[line.edges[0]].label : undefined,
           lineLabel: lineLabels.get(line.id),
           route: result?.layout.routes[line.id],
           lane: (() => {
@@ -478,7 +479,7 @@ export function LineageCanvas({
           })(),
         },
       }));
-  }, [lines, result, path, graph, mapping, lineLabels]);
+  }, [lines, result, path, graph, mapping, overview, lineLabels]);
   const { fitAll, framedOnly, releaseFrame } = useLineageViewport({
     flow,
     anchoredCard,

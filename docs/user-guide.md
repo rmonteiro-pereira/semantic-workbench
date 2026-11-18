@@ -475,7 +475,7 @@ The **Hops** control follows one to three foreign keys in either direction and l
 tables and keys by hop. Mapping graphs instead use **Steps** (1–5) in **View options**,
 counting mapping lines. Toolbar switches show or hide **Metrics** and **Other contracts**
 (references to tables in other contracts). Badges and the legend distinguish PK, FK, Required, Unique and line kinds.
-On a phone, open **Legend** to see keys and line kinds. Labels without room remain available on hover.
+On a phone, open **Legend** to see keys and line kinds. Labels without room remain available on hover, including relationship names on compact mapping cards.
 **Open in lineage** centers on the selected table.
 
 ## Editing and validation

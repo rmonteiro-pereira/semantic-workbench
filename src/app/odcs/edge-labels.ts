@@ -105,6 +105,7 @@ export type LineLabel = { lines: string[]; place?: Rect };
 
 type LabelContext = {
   graph: LineageGraph;
+  mapping?: boolean;
   positions: Record<string, { x: number; y: number }>;
   routes: Record<string, Point[]>;
   layoutCards: ReadonlyMap<string, LayoutCard>;
@@ -113,8 +114,9 @@ type LabelContext = {
   scrolling: ReadonlySet<string>;
 };
 function lineText(context: LabelContext, line: LabelledLine): string[] | null {
-  if (line.count > 1) return [String(line.count)];
+  if (line.count > 1) return context.mapping ? null : [String(line.count)];
   const edge = context.graph.edges[line.edges[0]];
+  if (context.mapping) return edge?.label ? [edge.label] : null;
   const hop = edge && foreignKeyHop(context.graph, edge);
   return hop ? [hop.child, `→ ${hop.parent}`] : null;
 }
@@ -129,7 +131,7 @@ function lineEnds(context: LabelContext, line: LabelledLine) {
     to: { x: target.x, y: target.y + portY(targetCard, line.to) },
   };
 }
-/** Gives every foreign key its sentence and every bundle its count. A label that finds room is
+/** Places mapping names, foreign keys and lineage bundle counts. A label that finds room is
  * drawn on its line; the others show when the line is hovered. */
 export function buildLineLabels(context: LabelContext, lines: readonly LabelledLine[]): Map<string, LineLabel> {
   const texts = new Map<string, string[]>();

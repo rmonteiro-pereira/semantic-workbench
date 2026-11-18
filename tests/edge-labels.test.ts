@@ -1,6 +1,7 @@
 // Tests that line labels never cover a card or each other.
 import { test, expect } from 'bun:test';
-import { labelSize, placeEdgeLabels, type LabelRequest, type Rect } from '../src/app/odcs/edge-labels';
+import { buildLineLabels, labelSize, placeEdgeLabels, type LabelRequest, type LabelledLine, type Rect } from '../src/app/odcs/edge-labels';
+import { CARD_W } from '../src/app/odcs/lineage-layout';
 
 const request = (id: string, y: number, priority = 1, width = 260): LabelRequest => ({
   id,
@@ -65,4 +66,43 @@ test('a crossing route blocks every otherwise available label slot', () => {
     { x: 390, y: 200 },
   ];
   expect(placeEdgeLabels([{ ...request('a', 100), routes: [clearRoute] }], []).size).toBe(1);
+});
+
+test('a compact mapping keeps a crowded authored label for hover', () => {
+  const line: LabelledLine = {
+    id: 'party',
+    from: 'source',
+    to: 'target',
+    fromCard: 'source',
+    toCard: 'target',
+    kind: 'link',
+    onPath: false,
+    count: 1,
+    edges: [0],
+  };
+  const labels = buildLineLabels(
+    {
+      graph: {
+        contract: '',
+        cards: new Map(),
+        edges: [{ from: 'source', to: 'target', kind: 'link', source: { file: 'binding.yaml', path: [] }, label: 'Agent party' }],
+        revision: '',
+        unmatchedDatasets: 0,
+      },
+      mapping: true,
+      positions: { source: { x: 0, y: 0 }, target: { x: CARD_W + 20, y: 0 } },
+      routes: {},
+      layoutCards: new Map([
+        ['source', { id: 'source', rows: [], portRows: [], more: false }],
+        ['target', { id: 'target', rows: [], portRows: [], more: false }],
+      ]),
+      heights: new Map([
+        ['source', 80],
+        ['target', 80],
+      ]),
+      scrolling: new Set(),
+    },
+    [line],
+  );
+  expect(labels.get(line.id)).toEqual({ lines: ['Agent party'], place: undefined });
 });
