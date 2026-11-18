@@ -9,6 +9,7 @@ import { NeighborhoodGraph } from '../graph/NeighborhoodGraph';
 import { LineageCanvas } from '../odcs/LineageCanvas';
 import type { LineageCard } from '../odcs/lineage';
 import type { AreaFilter, modelOverview } from '../graph/overview';
+import { useTrafficScope } from '../usage/use-usage';
 
 type GroupLook = { name: string; color: string };
 
@@ -121,6 +122,7 @@ export function GraphViews({
   crossFile,
   crossTo,
 }: Props) {
+  useTrafficScope(current?.project, current?.path, model?.name);
   const looks = useMemo(() => groupLooks(groupingOverview), [groupingOverview]);
   // The Group menu sits in the graph's own tool row, beside Fit and the layout controls.
   const groupMenu = groupingOverview ? <GroupingControls overview={groupingOverview} value={grouping.value} onChange={grouping.change} error={grouping.error} /> : null;
