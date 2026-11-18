@@ -41,8 +41,8 @@ function scopeCache(before: AccessControl, after: AccessControl, current: Access
       const previous = before.principalFor(identity);
       const proposed = after.principalFor(identity);
       const unchanged = comparable && sameProjects && principalPolicy(current, previous) === principalPolicy(next, proposed);
-      const previousScope = before.forRequest(previous);
-      pair = { before: previousScope, after: unchanged ? previousScope : after.forRequest(proposed) };
+      const previousScope = before.forReplay(previous);
+      pair = { before: previousScope, after: unchanged ? previousScope : after.forReplay(proposed) };
       scopes.set(key, pair);
     }
     return pair;

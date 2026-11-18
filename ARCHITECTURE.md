@@ -260,8 +260,9 @@ concatenating project, document or item names.
   their entities and grants. Replay scopes share unchanged principal policy inputs within one
   comparison; arbitrary administrator rules retain independent evaluation.
   Cedar supplies policy-derived action applicability indexes by role, principal kind and resource
-  kind. The ordinary request scope uses these indexes and reuses readability decisions; reloads
-  replace policy indexes and clear request decisions. Cedar remains the decision authority.
+  kind. Replay scopes use these indexes and reuse readability decisions; ordinary HTTP scopes
+  retain their per-action keys. Both use the same decision function. Reloads replace policy
+  indexes and clear scope decisions. Cedar remains the decision authority.
 - `remote-hosts.ts`, `remote-credentials.ts` and `github-oauth.ts` choose permitted remote hosts
   and command-scoped credentials. `src/server/bin/sw-askpass` is the final host-specific credential
   boundary; Git filters and local merge steps must not inherit remote tokens.

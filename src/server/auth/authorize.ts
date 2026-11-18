@@ -197,6 +197,10 @@ function accessControl(options: AccessOptions, previous?: ActiveAccess) {
   }
 
   function forRequest(identity: Principal, requestDefaults: Partial<DecisionContext> = {}) {
+    return requestScope(identity, requestDefaults, false);
+  }
+
+  function requestScope(identity: Principal, requestDefaults: Partial<DecisionContext>, replay: boolean) {
     refreshProjects();
     let snapshot = active;
     let principal = principalFor(identity);
@@ -221,13 +225,16 @@ function accessControl(options: AccessOptions, previous?: ActiveAccess) {
       const project = resource.type === 'workspace' ? '' : resource.project;
       // Prospective creation also searches domains, beyond Cedar rule applicability.
       const type = resource.type === 'file' && resource.metric ? 'metric' : resource.type;
-      const actionClasses = snapshot.policy.actionClasses(
-        principal.grants.map(grant => grant.roleId),
-        principal.kind,
-        type,
-      );
+      const actionClasses = replay
+        ? snapshot.policy.actionClasses(
+            principal.grants.map(grant => grant.roleId),
+            principal.kind,
+            type,
+          )
+        : undefined;
       const creation = action === 'createProject' && options.mode === 'server' && (resource.type === 'workspace' || (resource.type === 'project' && resource.project === NEW_PROJECT));
-      const actionClass = creation ? ['createProject'] : actionClasses.get(action);
+      const equivalentAction = actionClasses?.get(action) ?? action;
+      const actionClass = creation ? ['createProject'] : equivalentAction;
       const key = JSON.stringify([actionClass, project, ruleClass(snapshot, resource), context, resource.type === 'workspace' ? undefined : resource.domain]);
       const previous = decisions.get(key);
       if (previous) return previous;
@@ -236,7 +243,8 @@ function accessControl(options: AccessOptions, previous?: ActiveAccess) {
         decisions.set(key, decision);
         return decision;
       }
-      const decision = decisionFor(snapshot, { principal, action, resource, context }, () => authorize('read', resource, context).allow);
+      const canRead = replay ? () => authorize('read', resource, context).allow : undefined;
+      const decision = decisionFor(snapshot, { principal, action, resource, context }, canRead);
       decisions.set(key, decision);
       return decision;
     }
@@ -361,6 +369,8 @@ function accessControl(options: AccessOptions, previous?: ActiveAccess) {
   });
   return {
     forRequest,
+    /** Reuses equivalent actions within a replay while keeping the ordinary request path lean. */
+    forReplay: (identity: Principal) => requestScope(identity, {}, true),
     authorize,
     filter,
     view,

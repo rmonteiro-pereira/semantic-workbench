@@ -14,7 +14,7 @@ export function assertAccessIndexes(createControl: typeof createAccessControl) {
   distinctKinds(access);
   for (const identity of matrix.principals as NormalizedPrincipal[]) {
     const principal = access.principalFor(identity);
-    const scope = access.forRequest(principal);
+    const scope = access.forReplay(principal);
     for (const entry of matrix.cases) {
       if (!isAction(entry.action)) continue;
       const target = entry.resource as ResourceRef;
@@ -25,7 +25,7 @@ export function assertAccessIndexes(createControl: typeof createAccessControl) {
     }
   }
   const resource = { type: 'project', project: 'sales-metrics' } as const;
-  const scope = access.forRequest(access.principalFor(person('hank')));
+  const scope = access.forReplay(access.principalFor(person('hank')));
   assert.equal(scope.authorize('edit', resource).allow, false);
   const changed = structuredClone(options.config);
   changed.roles[0].permissions = [{ actions: ['read', 'edit'] }];
@@ -45,24 +45,24 @@ function prospectiveCreation(createControl: typeof createAccessControl) {
   options.config.roles.push({ ...options.config.roles[0], id: 'r_project_creator', name: 'Project creator', description: '', permissions: [{ actions: ['createProject', 'renameProject'] }] });
   options.config.grants.push({ ...options.config.grants[0], id: 'creator', roleId: 'r_project_creator', member: { kind: 'email', email: 'erin@example.org' } });
   const access = createControl(options);
-  const scope = access.forRequest(access.principalFor(person('erin')));
+  const scope = access.forReplay(access.principalFor(person('erin')));
   assert.equal(scope.authorize('renameProject', { type: 'workspace' }).allow, false);
   assert.equal(scope.authorize('createProject', { type: 'workspace' }).allow, true);
   assert.equal(scope.authorize('renameProject', { type: 'workspace' }).allow, false);
 }
 
 function distinctKinds(access: ReturnType<typeof createAccessControl>) {
-  const alice = access.forRequest(access.principalFor(person('alice')));
+  const alice = access.forReplay(access.principalFor(person('alice')));
   assert.equal(alice.authorize('export', { type: 'project', project: 'sales-metrics' }).allow, true);
   assert.equal(alice.authorize('export', { type: 'workspace' }).allow, false);
   assert.equal(alice.authorize('read', { type: 'workspace' }).allow, true);
-  const bob = access.forRequest(access.principalFor(person('bob')));
+  const bob = access.forReplay(access.principalFor(person('bob')));
   assert.equal(bob.authorize('readAudit', { type: 'project', project: 'sales-metrics' }).allow, true);
   assert.equal(bob.authorize('admin', { type: 'project', project: 'sales-metrics' }).allow, false);
-  const erin = access.forRequest(access.principalFor(person('erin')));
+  const erin = access.forReplay(access.principalFor(person('erin')));
   const resource = { type: 'project', project: 'sales-contracts' } as const;
   assert.equal(erin.authorize('edit', resource).allow, false);
-  const client = access.forRequest(access.principalFor(clientPrincipal('sw-agent', 'Sales agent')));
+  const client = access.forReplay(access.principalFor(clientPrincipal('sw-agent', 'Sales agent')));
   assert.equal(client.authorize('edit', resource).allow, false);
   assert.equal(client.authorize('agentRead', resource).allow, true);
   assert.equal(alice.authorize('admin', { type: 'project', project: 'sales-metrics' }).status, 403);
@@ -75,7 +75,7 @@ function arbitraryPolicyActions(createControl: typeof createAccessControl) {
   };
   const access = createControl(options);
   const principal = access.principalFor(person('alice'));
-  const scope = access.forRequest(principal);
+  const scope = access.forReplay(principal);
   const resource = { type: 'project', project: 'sales-metrics' } as const;
   for (const action of ACTIONS) {
     assert.equal(scope.authorize(action, resource).allow, access.forRequest(principal).authorize(action, resource).allow);
