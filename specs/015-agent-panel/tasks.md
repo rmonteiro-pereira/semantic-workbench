@@ -92,7 +92,7 @@ test only to make it pass.
 
 ## Phase 4: File requests through the boundary (User Stories 3 and 7)
 
-- [ ] T016 [US3] Create `src/server/acp/connection-auth.ts` with `mintAcpCaller(principal,
+- [x] T016 [US3] Create `src/server/acp/connection-auth.ts` with `mintAcpCaller(principal,
   connection, scope, session)` using `mintCaller` with origin `acp`, and the scope narrowed to
   `read` and `localWrite`. Add `tests/acp/connection-auth.test.ts`: an unminted caller literal is
   refused by the boundary; the scope refuses a `commit` effect. Proof: the test passes.
