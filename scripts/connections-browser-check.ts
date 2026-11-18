@@ -121,6 +121,7 @@ async function connectionStates(prefix: string, administrator: boolean) {
   const path = administrator ? '/api/admin/connections' : '/api/connections';
   const connection = {
     id: 'test-connection',
+    origin: 'acp',
     clientId: program.clientId,
     programName: program.name,
     personName: 'A person with a long display name',
@@ -152,7 +153,9 @@ async function connectionStates(prefix: string, administrator: boolean) {
       if (state === 'error') await expect(section.getByRole('alert')).toContainText('Connections could not be loaded');
       if (state === 'long') {
         await section.getByRole('button', { name: 'Revoke ' + program.name, exact: true }).click();
-        await expect(section.getByRole('region', { name: 'Confirm revocation' })).toContainText(program.clientId);
+        const confirmation = section.getByRole('region', { name: 'Confirm revocation' });
+        await expect(confirmation).toContainText(program.clientId);
+        await expect(confirmation).toContainText('Origin: acp');
       }
       if (state === 'loading') await expect(section.getByRole('status').filter({ hasText: 'Loading connections' })).toBeVisible();
       await capture(page, `${prefix}-${administrator ? 'admin' : 'person'}-${state}`);

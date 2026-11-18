@@ -1,4 +1,5 @@
 // Usage: bun scripts/acp-browser-check.ts [--closed-only]. Serves the built app against an isolated workspace and a person-run reference relay.
+import { mkdirSync } from 'node:fs';
 import { chromium, expect, type Page } from '@playwright/test';
 import { loadBrandBundle, setActiveBrand } from '../src/server/brand/bundle';
 import { resolve } from 'node:path';
@@ -7,6 +8,7 @@ import { startRelay, type RelayProcess } from '../tests/acp/helpers/relay-proces
 import { END_REASONS } from '../src/server/acp/panel-session';
 
 setActiveBrand(loadBrandBundle());
+mkdirSync('out/acp', { recursive: true });
 const server = await startPanelServer({ examples: ['mapped-commerce'], port: 5418, staticRoot: resolve('dist') });
 const browser = await chromium.launch({ headless: true });
 const virtual = '/workbench/mapped-commerce/commerce.mapped-ontology.yaml';
@@ -99,6 +101,7 @@ try {
         await expect(page.getByText('Disconnected from the event stream. Reconnecting…', { exact: true })).toBeVisible();
         recoverStream();
         await contained(page);
+        await page.screenshot({ path: `out/acp/${width}-${theme}-waiting.png` });
         const session = server.service.store.findForRelay(created.id)!;
         relay = await startRelay(server, { id: session.id, code: session.code! }, [
           [
@@ -125,6 +128,7 @@ try {
         await expect(page.getByLabel('Conversation')).toContainText('<script>never execute</script>');
         expect(await page.locator('.agent-panel script').count()).toBe(0);
         await contained(page);
+        await page.screenshot({ path: `out/acp/${width}-${theme}-conversation.png` });
         await page.getByRole('button', { name: 'Undo', exact: true }).click();
         await expect(page.getByText('Earlier text restored.', { exact: true })).toBeVisible();
         await send(page, 'Ask permission');
@@ -141,6 +145,7 @@ try {
           });
         expect(outline).not.toBe('none');
         await contained(page);
+        await page.screenshot({ path: `out/acp/${width}-${theme}-permission.png` });
         await question.getByRole('button').first().click();
         await expect(question).toHaveCount(0);
         await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeVisible();

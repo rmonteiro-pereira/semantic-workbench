@@ -481,7 +481,8 @@ file requests, authorization parity, session endings, audit and browser event re
 isolated temporary workspace and the scripted `reference-agent` version 1.0.0. It checks actual
 conversation, edits, Undo, conflict, permission focus and cancellation in both themes at phone,
 tablet and desktop widths. `bun run test:acp -- --closed-only` checks that default screens make no
-panel requests. The script closes its browser, relay and server before exiting.
+panel requests. Waiting, conversation and permission screenshots are written to `out/acp/`.
+The script closes its browser, relay and server before exiting.
 
 `bun scripts/acp-reference-agent.ts <script.json>` runs the deterministic standard-input reference
 agent. Its turns contain message, task-list, read, write, permission, sleep and exit steps.
