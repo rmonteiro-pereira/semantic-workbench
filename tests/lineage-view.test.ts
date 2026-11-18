@@ -1,5 +1,5 @@
 // Tests which cards open whole in the first view of the lineage canvas.
-import { cardHeight, portY, elkGraph, compactOverviewNeedsPacking, packOverviewCards, OVERVIEW_H } from '../src/app/odcs/lineage-layout';
+import { cardHeight, portY, elkGraph, compactOverviewNamesFit, compactOverviewNeedsPacking, packOverviewCards, OVERVIEW_H } from '../src/app/odcs/lineage-layout';
 import { test, expect } from 'bun:test';
 import { planFirstView, walkTargetSize, fitsReadableView, overviewNameSize, NAME_MIN_PX } from '../src/app/odcs/lineage-view';
 
@@ -117,6 +117,13 @@ test('compact fits pack only when the layered bounds cannot contain complete wra
   expect(compactOverviewNeedsPacking(longNames, { width: 1200, height: 700 }, bounds)).toBe(true);
   expect(compactOverviewNeedsPacking([{ ...cards[0], overview: false }], { width: 350, height: 378 }, bounds)).toBe(false);
   expect(compactOverviewNeedsPacking(cards, undefined, bounds)).toBe(false);
+});
+
+test('automatic framing needs room for all wrapped name lines at the chosen zoom', () => {
+  const longName = { label: 'consignment__consolidated_shipment' };
+  expect(compactOverviewNamesFit([{ label: 'party' }, longName], 0.24)).toBe(false);
+  expect(compactOverviewNamesFit([{ label: 'party' }], 0.24)).toBe(true);
+  expect(compactOverviewNamesFit([{ label: 'party' }, longName], 0.45)).toBe(true);
 });
 
 test('compact packing uses more columns when the canvas is wide', () => {

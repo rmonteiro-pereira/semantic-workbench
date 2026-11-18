@@ -141,14 +141,19 @@ export function elkGraph(cards: LayoutCard[], edges: LayoutEdge[]) {
     edges: edges.map(edge => ({ id: edge.id, sources: [edge.from + ':out'], targets: [edge.to + ':in'] })),
   };
 }
+/** Checks that wrapped names fit the compact card at the proposed zoom. */
+export function compactOverviewNamesFit(cards: readonly Pick<LayoutCard, 'label'>[], zoom: number): boolean {
+  const nameWidth = Math.max(1, (CARD_W - 20) * zoom);
+  const requiredLines = Math.max(2, ...cards.map(card => textLines(card.label ?? '', nameWidth, NAME_MIN_PX * 0.6)));
+  const minimumNameHeight = NAME_MIN_PX * 1.1 * requiredLines;
+  return (OVERVIEW_H - 16) * zoom >= minimumNameHeight;
+}
+
 /** Detects compact fits that cannot contain complete names at the minimum name size. */
 export function compactOverviewNeedsPacking(cards: LayoutCard[], pane: ViewSize | undefined, bounds: { width: number; height: number }): boolean {
   if (!pane?.width || !pane.height || !cards.length || !cards.every(card => card.overview)) return false;
   const zoom = Math.min(pane.width / (bounds.width * 1.12), pane.height / (bounds.height * 1.12), 1);
-  const nameWidth = Math.max(1, (CARD_W - 20) * zoom);
-  const requiredLines = Math.max(2, ...cards.map(card => textLines(card.label ?? '', nameWidth, NAME_MIN_PX * 0.6)));
-  const minimumNameHeight = NAME_MIN_PX * 1.1 * requiredLines;
-  return (OVERVIEW_H - 16) * zoom < minimumNameHeight;
+  return !compactOverviewNamesFit(cards, zoom);
 }
 
 /** Packs equal overview cards in a grid that follows the canvas proportions. */

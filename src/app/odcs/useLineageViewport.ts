@@ -3,8 +3,8 @@ import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import { getViewportForBounds, type ReactFlowInstance } from '@xyflow/react';
 import { useViewRestore, type Fullscreen } from '../graph/fullscreen';
 import type { ExpansionSet } from '../graph/expansion';
-import { fitsReadableView, NAME_MIN_PX } from './lineage-view';
-import { cardHeight, CARD_W, OVERVIEW_H, type LayoutCard } from './lineage-layout';
+import { fitsReadableView } from './lineage-view';
+import { cardHeight, CARD_W, compactOverviewNamesFit, type LayoutCard } from './lineage-layout';
 import type { StageSize } from '../graph/stage-size';
 
 // Column names are 13 px, so this zoom keeps them at 12 px or more on screen.
@@ -106,16 +106,16 @@ export function useLineageViewport({
   const fitGeneration = useRef(0);
   const [fitRevision, setFitRevision] = useState(0);
   const fitCards = useCallback(
-    async (ids?: string[]) => {
+    async (ids?: string[], requireReadableNames = false) => {
       const instance = flow.current;
-      if (!instance || activeLayout.current !== layoutKey) return;
+      if (!instance || activeLayout.current !== layoutKey) return false;
       const cards = nodes
         .filter(node => !ids || ids.includes(node.id))
         .flatMap(node => {
           const layoutCard = layoutCardsRef.current.find(card => card.id === node.id);
-          return layoutCard ? [{ ...node.position, width: CARD_W, height: cardHeight(layoutCard) }] : [];
+          return layoutCard ? [{ ...node.position, width: CARD_W, height: cardHeight(layoutCard), label: layoutCard.label }] : [];
         });
-      if (!cards.length || !stageSize.width || !stageSize.height) return;
+      if (!cards.length || !stageSize.width || !stageSize.height) return false;
       const left = Math.min(...cards.map(card => card.x));
       const top = Math.min(...cards.map(card => card.y));
       const right = Math.max(...cards.map(card => card.x + card.width));
@@ -128,7 +128,9 @@ export function useLineageViewport({
         FIRST_VIEW_MAX_ZOOM,
         0.06,
       );
+      if (requireReadableNames && !compactOverviewNamesFit(cards, viewport.zoom)) return false;
       await instance.setViewport(viewport, { duration: 0 });
+      return true;
     },
     [layoutKey, nodes, stageSize],
   );
@@ -152,10 +154,11 @@ export function useLineageViewport({
       const layoutCard = layoutCardsRef.current.find(card => card.id === node.id);
       return layoutCard ? [{ ...node.position, width: CARD_W, height: cardHeight(layoutCard) }] : [];
     });
-    const minimumZoom = overview ? (NAME_MIN_PX * 1.1) / (OVERVIEW_H - 16) : READABLE;
-    if (fitRequested.current || fitsReadableView(cards, stageSize, minimumZoom, FIRST_VIEW_MARGIN)) {
+    const mayFit = fitRequested.current || overview || fitsReadableView(cards, stageSize, READABLE, FIRST_VIEW_MARGIN);
+    const fittedAll = mayFit && (await fitCards(undefined, overview && !fitRequested.current));
+    if (generation !== fitGeneration.current || activeLayout.current !== layoutKey) return;
+    if (fittedAll) {
       setFramedOnly(null);
-      await fitCards();
     } else if (!overview) {
       onOverview(true);
       return;
@@ -163,9 +166,9 @@ export function useLineageViewport({
       const framed = [...(framedCards ?? reach.cards)].filter(id => instance.getNode(id));
       while (framed.length > 1) {
         if (generation !== fitGeneration.current) return;
-        await fitCards(framed);
+        const fittedSubset = await fitCards(framed, true);
         if (generation !== fitGeneration.current) return;
-        if (instance.getZoom() >= minimumZoom) break;
+        if (fittedSubset) break;
         framed.pop();
       }
       if (framed.length === 1) await readableFit(center, []);

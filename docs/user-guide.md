@@ -458,8 +458,9 @@ opened cards stay on screen.
 
 Select a column to highlight its upstream/downstream path. **Selected path** appears beside the
 canvas or in a phone dialog. **Find assets**, Walk here, Back/Forward and expansion retain context.
-The first view fits the readable complete reach or centres a whole chosen set; **Fit** shows every
-card in the shared name-only representation used by lineage and mappings.
+The first view fits the complete reach when the wrapped names fit inside their cards. A denser
+reach opens around a smaller set of whole cards. **Fit** shows every card in the shared name-only
+representation used by lineage and mappings.
 
 A wide table shows relevant columns and **+ N more columns**, which opens one scrolling list,
 not pagination. Lists above thirty columns offer filtering. Edges for offscreen connected rows
