@@ -27,7 +27,7 @@ export type PanelEventBody =
   | { type: 'session'; state: 'waiting' | 'connected' | 'working'; agentName?: string; scopes: readonly string[] }
   | { type: 'message'; id: string; role: 'agent' | 'user'; text: string; done: boolean }
   | { type: 'reasoning'; id: string; text: string }
-  | { type: 'tool'; id: string; title: string; status: string }
+  | { type: 'tool'; id: string; title?: string; status?: string }
   | { type: 'tasks'; entries: readonly TaskEntry[] }
   | { type: 'change'; card: ChangeCard }
   | { type: 'question'; question: QuestionCard; settled?: boolean }

@@ -109,7 +109,7 @@ test only to make it pass.
   audit record ignoring request id, time, origin, tool and connection. Cases include a custom role
   limited by path, a guarded field, a protected branch, a read-only role and an application-free
   person. Proof: the table passes (SC-001).
-- [ ] T019 [US7] Create `src/server/acp/client-surface.ts` mapping each agent request to a file
+- [x] T019 [US7] Create `src/server/acp/client-surface.ts` mapping each agent request to a file
   request, a question, an update or "unsupported"; terminal and every unknown request answers
   unsupported and runs nothing. Add `tests/acp/hostile-requests.test.ts` with at least 40 cases
   (server paths, traversal, terminal, unknown methods, oversize, flood, plan or context requests,
