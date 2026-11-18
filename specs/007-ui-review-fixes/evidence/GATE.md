@@ -574,8 +574,8 @@ The original review archive contains 3,559 PNGs. A read-only count by folder mea
 
 Status: in progress. No visual pair is classified before both images have been opened.
 
-The gallery checkpoint of 752 rows includes 333 intended fixes, 32 expected merged-feature differences, 300 neutral changes and 11
-unchanged steps. It retains 43 frames of fixed regressions and 33 frames flagged as possible or unresolved regressions. A frame count
+The gallery checkpoint of 752 rows includes 332 intended fixes, 32 expected merged-feature differences, 300 neutral changes and 11
+unchanged steps. It retains 44 frames of fixed regressions and 33 frames flagged as possible or unresolved regressions. A frame count
 can include multiple actions that carry the same underlying issue. The manifest records actions without matched captures.
 The counted Network heading and compact mapping correction pairs were opened at 390×844 in both themes.
 The 75-state phone replay (local, light, 390×844) was opened across 25 contact sheets. Both repetitions on all three versions
@@ -613,6 +613,10 @@ keyboard focus ring on the metric grouping control. The empty Trash dialog keeps
   Both repeats of each were opened. All six Full pierce actions reported 45 entities in three steps. Both candidate repeats show
   `45 entities, Fit`, and the Back action returns to Party with its relationship labels. Main/candidate scores are 22.376543%
   for Full pierce and 21.965972% after Back. The graph suite clicked the Fit action and checked that it framed every card.
+- `bash .data/gate/pull-review-007.sh .data/gate/lineage-columns-confirmed local/light/390/lineage-columns` returned two strips.
+  Both repeats of each were opened and every action passed. With the exact center-card action in `2a95c5b4`, Mall Properties
+  stays readable with its expanded list and Show fewer at 390×844. UBL Consignment shows its heading, filter and all eight
+  matching rows. Main/candidate scores are 22.887350% and 36.426054%.
 - `bash .data/gate/publish-current-review.sh` returned 752 rows with the counts above.
 
 The Full Graph replay scored 43 steps, from two repetitions per version. The candidate Network first view and Fit show four named counted areas.
