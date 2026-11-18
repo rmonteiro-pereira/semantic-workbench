@@ -16,7 +16,9 @@ not configure a production deployment.
 - The Tessera format: an authoring format that compiles to standard Ossie. An Ossie ontology with the
   marker `tessera: 1` and the property `tessera_notes` (on the ontology root, a concept or a relationship)
   opens, saves and validates like any ontology, with its own finding codes, and the validation panel
-  names the format. Agents, the inspector, item addresses and access rules see an ordinary ontology.
+  names the format. Authorized MCP authoring tools read stored bytes, including unpublished changes
+  and Tessera notes. Semantic agent context, plans and explanations use the published projection
+  with the marker and notes removed.
 - `bun run tessera compile` writes a bundle of standard Ossie from the committed snapshot of a project
   folder, with a manifest and a loss report that lists every dropped value by item, size and hash and
   carries a digest. A compile with loss is released only for that exact digest or a loss policy; exit
