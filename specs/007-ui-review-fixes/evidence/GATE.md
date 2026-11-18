@@ -573,7 +573,7 @@ The original review archive contains 3,559 PNGs. A read-only count by folder mea
 
 Status: in progress. No visual pair is classified before both images have been opened.
 
-The current gallery includes 675 rows. Of those, 270 are intended fixes, 28 are expected merged-feature differences, 294 are neutral, and 11
+The current gallery includes 696 rows. Of those, 286 are intended fixes, 32 are expected merged-feature differences, 295 are neutral, and 11
 are unchanged. The gallery retains 30 frames of fixed regressions and 42 frames flagged as possible or unresolved regressions. A frame count
 can include multiple actions that carry the same underlying issue. The manifest explains which actions could not be compared at a matched state.
 The counted Network heading and compact mapping correction pairs were opened at 390×844 in both themes.
@@ -581,7 +581,7 @@ The 75-state phone replay (local, light, 390×844) was opened across 25 contact 
 opened the named mapping and its Source tab. The Source view preserves the empty concept list. The transient empty-bindings frame
 is timing noise, confirmed by the settled Identifier replay. The candidate also shows the full line-23 SQL warning and a green
 keyboard focus ring on the metric grouping control. The empty Trash dialog keeps its explanation and Close action.
-The local gallery publisher returned 675 rows with the counts above.
+The local gallery publisher returned 696 rows with the counts above.
 
 The Full Graph replay scored 43 steps, from two repetitions per version. The candidate Network first view and Fit show four named counted areas.
 Both full-screen selection paths open Order and keep it readable. After changing area visibility with Order selected, Layered can leave Order
@@ -596,7 +596,22 @@ no schema details. This targeted comparison is separate from the canonical suite
 
 - `bash .data/gate/pull-review-007.sh` for phone Full Graph and Admin exported 43 and six captured strips respectively.
 - `python3 .data/gate/contact-sheet-007.py` produced 15 Full Graph sheets and two Admin sheets. All were opened.
-The gallery and CSV passed the local path and content scan. The gallery folder uses 54 MB on disk.
+The desktop Admin replay shows the same confirm order and contextual access results. Both last-Admin steps passed twice on each build.
+The candidate names the account and uses a danger action before refusal, then replaces the raw refusal code with one sentence and leaves Cancel.
+The dark Source Control replay shows dark gutters and collapsed lines in the modified, staged, added and deleted diffs. The stale-save dialog
+also keeps the gutters dark and makes Keep editing primary. The explicit Publish step appears in main and candidate. The dark Source editor keeps
+the same YAML with separate blue tokens for keys and values. DM Sans and Manrope load from registered local faces in the candidate. The matched
+first-run screenshot shows the Manrope heading in place of the release and main serif heading.
+The dark phone auth replay shows primary actions and the no-support-URL administrator guidance in all three candidate screens. The error explains
+that the sign-in link expired or was already used.
+
+- `bash .data/gate/pull-review-007.sh` for desktop Admin, last Admin, dark Source Control, typography, diffs and auth pulled all scored strips.
+- `python3 .data/gate/contact-sheet-007.py` generated 10 sheets for those six groups. All were opened.
+- The superseded candidate unit rerun was stopped at its checkpoint before the camera correction trial. Its status was 143, the verification
+  payload was restored and ports 5401 and 5402 were clear. `sw-midgard-run -- bash scripts/ui-review/gate-007/remaining-findings-launch.sh`
+  started the next serial replay. Midgard reported 106 GB available at the first build, which passed.
+
+The gallery and CSV passed the local path and content scan. The gallery folder uses 56 MB on disk.
 
 ## Differences for owner acceptance
 
@@ -621,7 +636,12 @@ replays. The outstanding findings still require a matched screenshot or a record
 | --- | --- | --- |
 | M2, M13 | `local/light/1280/geometry/mall.ontology.yaml/canvas-dimensions` | Counted areas replace undersized names and the toolbar leaves 30 px more graph height. |
 | M4 | `local/light/1440/mapping-fit/mall-mapping/fitted-names` | The follow-up correction keeps the Mall mapping labels inside cards at Fit. |
+| M5, m24 | `local/dark/1440/diff-surfaces/scm-stale-save/tour` | The merge gutters stay dark and Keep editing is primary. |
+| M7 | `local/light/390/import/workspace/empty-before-import` | The first-run heading changes from serif to Manrope and remains whole. |
 | M9 | `server/light/1440/admin/grant-form/validation-error` | A short email error appears next to its input. |
+| M10 | `server/light/1440/last-admin/last-admin/refused` | The refusal leaves Cancel and explains the last-active-Admin rule. |
+| m18 | `local/dark/1440/typography/typography/yaml-source` | The same YAML displays light-blue keys and deeper-blue plain values. |
+| m26 | `server/dark/390/auth/auth/sign-in-error` | The sign-in error gives a primary retry and administrator guidance. |
 | M11 | `server/light/1440/admin/access-check/allowed` | The allowed result gives its reason in the banner. The matched 390 px replay also shows both banners inside the viewport. |
 | M15, m10 | `local/light/1440/files/commerce.mapping.yaml/neighborhood` | One normal-size card, no empty neighbor count and cross-file links in Other files. |
 | M22 | `server/light/1440/reader/reader/admin-refusal` | A reader who opens Admin sees the role refusal. |
@@ -668,9 +688,9 @@ All commands run from this worktree. Raw output is retained in `.data/gate/logs/
 | `find <baseline>/screenshots -type f -name '*.png'` | Exactly 3,559 baseline PNG images. |
 | `df -h . /tmp; free -h` | 59 GiB worktree filesystem free; 8.3 GiB temporary filesystem free; 25 GiB available memory. |
 
-## Pending checks
+## Historical validation journal
 
-T074–T077 remain open until their recorded requirements pass. T078 belongs to the subsequent architecture review.
+This section retains integration and capture observations from before the rebase. The current suite and visual statuses are above.
 
 ### Merge A unit result
 
