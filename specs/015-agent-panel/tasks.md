@@ -18,7 +18,7 @@ test only to make it pass.
 
 ## Phase 1: Verify and pin the protocol (blocks every phase)
 
-- [ ] T001 Verify the protocol facts listed in `research.md` R1 against the published protocol
+- [x] T001 Verify the protocol facts listed in `research.md` R1 against the published protocol
   schema and its documentation: revision, transport, the agent requests (read text file, write
   text file, ask permission, terminal), the client calls (initialize, new session, prompt, cancel),
   the update notifications, content kinds, whether a write carries a base version, whether a
