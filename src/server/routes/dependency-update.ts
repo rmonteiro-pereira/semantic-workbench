@@ -59,7 +59,7 @@ export async function updateDependencies(ws: Workspace, req: Request, project: s
     const model = validateInput(file.source, file.filename).model;
     if (!model || !('document' in model) || !isObject(model.document)) return [];
     const marker = readMarker(model.document);
-    if (marker.family !== 'tessera' || marker.revision !== 3) return [];
+    if (!(marker.family === 'tessera') || marker.revision !== 3) return [];
     const imports = declaredImports(model.document);
     return imports.length || previous?.root === file.path ? [{ file, imports }] : [];
   });

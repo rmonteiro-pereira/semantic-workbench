@@ -12,7 +12,9 @@ test('a headerless revision-three part is classified separately from a standard 
   expect(classifyFile(file).kind).toBe('tessera-part');
   const data = JSON.parse(readFileSync(part, 'utf8'));
   expect(classifyFile({ ...file, bytes: encoder.encode(JSON.stringify({ ...data, version: '0.2.0.dev0' })) }).kind).toBe('invalid');
-  expect(compileUnit([file], { lossPolicySha256: null }).failures).not.toHaveLength(0);
+  const orphan = compileUnit([file], { lossPolicySha256: null });
+  expect(orphan.outputs).toEqual([]);
+  expect(orphan.report.inputs).toMatchObject([{ path: file.path, treatment: 'not-included' }]);
 });
 
 test('only the project metadata path is recognized as the dependency manifest', () => {

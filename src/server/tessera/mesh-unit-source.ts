@@ -1,4 +1,7 @@
 /** Reads Tessera mesh inputs without treating neighbouring metadata as ontology source. */
+import { INCLUDES_PROPERTY } from '../../shared/tessera/additions/includes';
+import { IMPORTS_PROPERTY } from '../../shared/tessera/additions/imports';
+import { PART_PROPERTY } from '../../shared/tessera/additions/part';
 import { DEPENDENCY_MANIFEST_PATH, parseDependencyManifest, type DependencyManifest } from '../../shared/tessera/dependency-manifest';
 import { classifyFile, type UnitFile } from '../../shared/tessera/document-kind';
 import { declaredImports, type ResolvedImportInterface } from '../../shared/tessera/imports';
@@ -16,7 +19,14 @@ const decoder = new TextDecoder();
 
 /** Resolves the revision-three units and their dependencies from the caller's pinned view. */
 export async function readMeshUnits(source: FrozenDependencySource, pin: PublishedPin, reader: Reader, repository: string, files: UnitFile[]): Promise<MeshUnitRead | undefined> {
-  const classified = files.filter(file => /\.(?:ya?ml|json)$/i.test(file.path)).map(classifyFile);
+  const lock = files.find(file => file.path === DEPENDENCY_MANIFEST_PATH);
+  const structured = files.filter(file => /\.(?:ya?ml|json)$/i.test(file.path));
+  const relevant = structured.filter(file => {
+    if (lock) return true;
+    const text = decoder.decode(file.bytes);
+    return [INCLUDES_PROPERTY, IMPORTS_PROPERTY, PART_PROPERTY].some(name => text.includes(name));
+  });
+  const classified = relevant.map(classifyFile);
   const meshFiles = classified.flatMap(entry => {
     if (entry.kind === 'tessera-ontology' && entry.revision === 3) return [{ path: entry.file.path, data: entry.reading.data }];
     if (entry.kind === 'tessera-part') return [{ path: entry.file.path, data: entry.data }];
@@ -26,7 +36,6 @@ export async function readMeshUnits(source: FrozenDependencySource, pin: Publish
   const { units } = readUnitStructure(meshFiles);
   const paths = new Set(files.map(file => file.path));
   if (units.some(unit => requiredUnitFiles(unit).some(path => !paths.has(path)))) throw new HiddenResourceError();
-  const lock = files.find(file => file.path === DEPENDENCY_MANIFEST_PATH);
   const lockFile = lock ? { source: decoder.decode(lock.bytes) } : undefined;
   const providers = new Map<string, ResolvedImportInterface[]>();
   const candidate = { repo: repository, next: pin.commits.get(repository)?.commit ?? '' };

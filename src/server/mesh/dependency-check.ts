@@ -1,4 +1,5 @@
 /** Checks ontology units and frozen imports in an immutable publication candidate. */
+import { IMPORTS_PROPERTY } from '../../shared/tessera/additions/imports';
 import { DEPENDENCY_MANIFEST_PATH, manifestIsCurrent, parseDependencyManifest, type LockedProvider } from '../../shared/tessera/dependency-manifest';
 import { declaredImports, providerOf } from '../../shared/tessera/imports';
 import { setFindings, requiredUnitFiles } from '../../shared/tessera/set-validation';
@@ -23,7 +24,7 @@ export type FrozenDependencySource = {
 };
 
 function refuse(message: string): never {
-  throw new InputError([{ code: 'tessera-dependencies', path: '/tessera_imports', severity: 'error', message: message + ' Use Update dependencies to review the lock.' }]);
+  throw new InputError([{ code: 'tessera-dependencies', path: '/' + IMPORTS_PROPERTY, severity: 'error', message: message + ' Use Update dependencies to review the lock.' }]);
 }
 
 function parseUnits(documents: readonly PublishedDocument[]) {
