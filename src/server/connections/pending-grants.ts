@@ -1,6 +1,6 @@
 // Memory-only stores for what is valid for minutes: authorization requests waiting for a decision, one-use codes, and one-use setup credentials. Codes and credentials are held only as keyed hashes. A restart loses all of it, which only means a program starts again.
 import type { Scope } from './scopes';
-import { keyedHash, newConnectionId, newToken } from './token-keys';
+import { keyedHash, sameHash, newConnectionId, newToken } from './token-keys';
 
 /** Which transport a connection was created for. A relay of the agent panel uses `acp`. */
 export type ConnectionOrigin = 'mcp' | 'acp';
@@ -46,7 +46,7 @@ export type GrantBinding = {
   origin: ConnectionOrigin;
 };
 
-type StoredGrant = { binding: GrantBinding; expiresAt: number; spent: boolean; replayed?: boolean; connectionId?: string };
+type StoredGrant = { hash: string; binding: GrantBinding; expiresAt: number; spent: boolean; replayed?: boolean; connectionId?: string };
 
 /** The result of presenting a code or setup credential. */
 export type GrantPresentation =
@@ -55,7 +55,7 @@ export type GrantPresentation =
   | { state: 'unknown' };
 
 /** Pure decision on a stored grant at one moment: a live unspent grant is fresh, a live spent one is a replay, anything else is unknown. */
-export function presentationOf(stored: StoredGrant | undefined, now: number): 'fresh' | 'replayed' | 'unknown' {
+export function presentationOf(stored: Pick<StoredGrant, 'spent' | 'expiresAt'> | undefined, now: number): 'fresh' | 'replayed' | 'unknown' {
   if (!stored || stored.expiresAt <= now) return 'unknown';
   return stored.spent ? 'replayed' : 'fresh';
 }
@@ -105,7 +105,8 @@ export function createPendingGrants(options: { key: Uint8Array; now?: () => numb
       const value = binding.kind === 'setup' ? newToken(SETUP_CREDENTIAL_PREFIX) : newToken();
       const lifetime = binding.kind === 'setup' ? SETUP_CREDENTIAL_LIFETIME_MS : CODE_LIFETIME_MS;
       const expiresAt = now() + lifetime;
-      grants.set(keyedHash(options.key, value), { binding, expiresAt, spent: false });
+      const hash = keyedHash(options.key, value);
+      grants.set(hash, { hash, binding, expiresAt, spent: false });
       dropOldest(grants, MAX_ISSUED_GRANTS);
       return { value, expiresAt };
     },
@@ -113,6 +114,7 @@ export function createPendingGrants(options: { key: Uint8Array; now?: () => numb
     present(value: string): GrantPresentation {
       const hash = keyedHash(options.key, value);
       const stored = grants.get(hash);
+      if (!sameHash(hash, stored?.hash ?? '')) return { state: 'unknown' };
       const state = presentationOf(stored, now());
       if (!stored || state === 'unknown') return { state: 'unknown' };
       if (state === 'replayed') {

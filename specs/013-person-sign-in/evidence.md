@@ -39,3 +39,14 @@ Where the plan named files or shapes that differ from the code that landed, the 
 - T040: dev-server `bun run test:mutation -- connections`: 10/10 connection mutants killed; both unmodified baselines passed. The connections selector exits after its own cases and never starts unrelated mutation/browser cases. Existing targeted source-copy machinery is reused; no dependency added.
 - T042: `bun test tests/pipeline/ci-validate.test.ts`: 8 pass, 0 fail. `test:connections` is a self-served canonical gate suite. `ci-validate.ts` already imports those shared lists, so a duplicate pipeline list is unnecessary.
 - Phase 10 STOPPED on a contract contradiction: Chromium sends `Origin: null` on the consent POST under required `Referrer-Policy: no-referrer`; request-authentication requires exact SW_PUBLIC_URL. The real browser run proves 403 before a code is issued. The regression assertion records only Origin, never cookies or credentials. Do not relax the origin gate without reconciling the consent-header/CSRF contract. T033/T034 component implementations exist but their full browser proof is blocked; T035–T037 remain unticked. The capture currently contains only the first consent screen, not a complete manifest.
+
+## Continuation scope ledger
+
+- Existing operation-boundary verdicts enforce roles, effect ceilings and person/connection audit attribution; the MCP adapter must preserve those guarantees.
+- Session references already identify keyed store records without reconstructing a browser cookie; delegated remote credential writes add a locked update through that existing identity.
+- Grant presentation already spends credentials synchronously; attachment after a session await must not lose a concurrent replay, and resolution must recheck revocation after the await.
+- Indexed token lookup selects a candidate; the continuation adds constant-time verification of that candidate's keyed hash without changing token formats or storage.
+- Production browser consent cannot currently satisfy both the mandated referrer policy and the exact-Origin gate. Browser release proof is stopped rather than changing that contract implicitly.
+
+- Indexed token candidates and pending grants now receive constant-time keyed-hash verification; token formats and storage remain unchanged. Store/grant proof: 14 pass, 0 fail; service: 26 pass, 0 fail; registration: 6 pass, 0 fail. The two small store/grant files were accidentally run together locally; subsequent grouped proofs use the dev server.
+- Documentation scanner: eight updated public pages pass the complete scanner. `.env.server.example` and `docs/configuration.md` retain existing public temporary-path usage examples required by the brief; these trigger the generic path rule, while the confidential-only scan is clean. No allow rule was used.

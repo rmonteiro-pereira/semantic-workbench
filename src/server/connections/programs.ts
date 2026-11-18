@@ -1,4 +1,5 @@
 // The agent programs an Admin has registered: their typed form, the rules for redirect addresses, and lookup by client id. Nothing here fetches an address a caller supplied.
+import { hasControlCharacter } from '../../shared/validation/control-characters';
 import { isOfferedScope, type OfferedScope } from './scopes';
 
 /** One registered program. It holds no secret, because every program is a public client that relies on PKCE and its exact redirect address. */
@@ -23,6 +24,7 @@ export const MAX_PROGRAMS = 50;
 export const MAX_REDIRECT_URIS = 5;
 /** The longest redirect address. Assumed. */
 export const MAX_REDIRECT_URI_LENGTH = 512;
+// Assumed registration bounds keep consent and administration text manageable.
 const MAX_NAME_LENGTH = 80;
 const MAX_DESCRIPTION_LENGTH = 500;
 const MAX_SETUP_NOTE_LENGTH = 1000;
@@ -38,7 +40,7 @@ const LOOPBACK_HOSTS = ['127.0.0.1', '[::1]', 'localhost'];
 export function redirectIssue(address: unknown): string | null {
   if (typeof address !== 'string' || address === '') return 'Enter an address.';
   if (address.length > MAX_REDIRECT_URI_LENGTH) return `Use at most ${MAX_REDIRECT_URI_LENGTH} characters.`;
-  if (/[\s\\\u0000-\u001f\u007f]/.test(address)) return 'The address must not contain spaces, backslashes or control characters.';
+  if (/[\s\\]/.test(address) || hasControlCharacter(address)) return 'The address must not contain spaces, backslashes or control characters.';
   if (address.includes('#')) return 'The address must not contain a fragment.';
   if (address.includes('*')) return 'The address must not contain a wildcard.';
   let url: URL;

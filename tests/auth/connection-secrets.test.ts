@@ -13,7 +13,8 @@ afterEach(() => servers.splice(0).forEach(server => server.close()));
 function filesUnder(directory: string): string[] {
   return readdirSync(directory).flatMap(name => {
     const path = join(directory, name);
-    return statSync(path).isDirectory() ? (name === '.git' ? [] : filesUnder(path)) : [path];
+    if (!statSync(path).isDirectory()) return [path];
+    return name === '.git' ? [] : filesUnder(path);
   });
 }
 

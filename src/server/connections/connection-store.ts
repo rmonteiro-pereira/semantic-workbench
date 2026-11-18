@@ -2,6 +2,7 @@
 import { existsSync, readdirSync, readFileSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { atomicWriteJson } from '../projects/atomic';
+import { sameHash } from './token-keys';
 import { log } from '../observability/log';
 import type { ConnectionOrigin } from './pending-grants';
 import type { Scope } from './scopes';
@@ -108,7 +109,12 @@ export function openConnectionStore(directory: string) {
 
   const lookup = (index: Map<string, string>, hash: string) => {
     const id = index.get(hash);
-    return id ? records.get(id) : undefined;
+    const record = id ? records.get(id) : undefined;
+    if (!record) return undefined;
+    // The index selects a candidate; credential verification uses constant-time hash comparison.
+    if (index === byAccess) return sameHash(hash, record.access?.hash ?? '') ? record : undefined;
+    if (index === byRefresh) return sameHash(hash, record.refresh ?? '') ? record : undefined;
+    return record.retiredRefresh.some(retired => sameHash(hash, retired)) ? record : undefined;
   };
   return {
     /** Writes a record and replaces its index entries. The caller passes a changed copy, never the stored object. */
@@ -127,7 +133,7 @@ export function openConnectionStore(directory: string) {
     /** Removes ended records older than the retention. Returns how many were removed. */
     removeEndedBefore(time: number): number {
       let removed = 0;
-      for (const record of [...records.values()]) {
+      for (const record of records.values()) {
         if (record.state !== 'ended' || (record.endedAt ?? 0) > time) continue;
         unindexRecord(record);
         records.delete(record.id);

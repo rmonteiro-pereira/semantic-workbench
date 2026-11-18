@@ -5,6 +5,7 @@ import { DEFAULT_SCOPES, parseScopeParameter, type OfferedScope } from './scopes
 
 /** The longest `state`. Assumed: a state is a random value, not data. */
 export const MAX_STATE_LENGTH = 512;
+// Assumed parameter bound limits parsing before registered redirect validation.
 const MAX_PARAMETER_LENGTH = 2048;
 
 /** A request that passed every check. */
