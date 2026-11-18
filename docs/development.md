@@ -268,7 +268,8 @@ racing the loader's own initial-document selection.
 bun run test:mutation
 ```
 
-The mutation runner checks that each target still exists before starting. The Git push mutation
+The mutation runner checks that each target still exists before starting. The authorization mutant
+removes custom rules from the inputs to policy preparation. The Git push mutation
 exercises the remote-effect check alongside the Git dispatch.
 
 Browser mutants require the Vite development server because they intercept source modules.

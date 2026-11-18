@@ -111,7 +111,7 @@ const mutants: [string, string, string, string][] = [
   ['auth-compiler', 'src/server/auth/role-compiler.ts', '...clauses(permission.conditions ?? {})]', '...clauses({})]'],
   ['auth-compiler', 'src/server/auth/role-compiler.ts', "role.id.startsWith('r_') && (action === 'admin' || action === 'agentRead')", "role.id.startsWith('r_') && action === 'agentRead'"],
   ['auth-decision', 'src/server/auth/authorize.ts', "status: 404, reason: 'not-readable'", "status: 403, reason: 'not-readable'"],
-  ['auth-decision', 'src/server/auth/authorize.ts', 'adminRules: validated.adminRules,', 'adminRules: {},'],
+  ['auth-decision', 'src/server/auth/authorize.ts', 'loadPolicySet(policyInputs(validated))', 'loadPolicySet({ ...policyInputs(validated), adminRules: {} })'],
   ['auth-admin-guard', 'src/server/auth/admin-guard.ts', 'if (allowed) return { ok: true };', 'if (true) return { ok: true };'],
   ['auth-middleware', 'src/server/auth/operation-boundary.ts', "const failure = auditDenial(audit, { ...record, decision: 'deny' });", 'const failure = null;'],
 
