@@ -398,11 +398,12 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Add the empty branch at `CatalogView.tsx:42-45` with the message, **Clear search** and 'N of M', modelled on the Metrics list's no-result state; widen the search box to at least SEARCH_MIN_PX.
   - Proof: Before `states/local-catalog--search-no-result-1440.png`, `states/local-catalog--search-no-result-390.png` (review baseline); after: same state recaptured with `SW_ONLY=catalog scripts/ui-review/capture-states.ts <out> rest`; check: `bun run test:ui` catalog block asserts the message and the box width.
 
-- [ ] T057 [US5] [E] Tidy the catalog cards and sidebar tree.
+- [x] T057 [US5] [E] Tidy the catalog cards and sidebar tree.
   - Findings: m14, m15 · Requirements: FR-061, FR-062
   - Files: src/app/style.css (catalog selectors only), `src/app/workspace/catalog.css`, `src/app/workspace/CatalogView.tsx`, `src/app/projects/Sidebar.tsx`, `src/app/workspace/WorkspaceSidebar.css`, `src/app/projects/project-tree.ts`
   - Change: Top-align card rows (`style.css:469-490` region), cut descriptions at word boundaries, show Edit on hover and focus and in details, add the scroll fade, and render the type as an inline badge. The raw 'EntityType' label uses lane A's humanise function once lane A has merged.
   - Proof: Before `local-light/local-catalog-1440.png`, `local-light/local-metric-detail-1280.png` (review baseline); after: same state recaptured with `scripts/ui-review/capture-tour.ts <out> local light` and `SW_ONLY=catalog scripts/ui-review/capture-states.ts <out> rest`; check: `bun run test:sidebar` and `bun run test:clipping`.
+  - Gate disposition: Catalog descriptions wrap in full under the no-truncation rule. Both pointer modes and sidebar scroll edges were compared in `evidence/GATE.md`.
 
 - [x] T058 [US5] [E] Make the metric wizard stable and its step 2 usable.
   - Findings: M18 · Requirements: FR-055
@@ -445,6 +446,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Files: src/app/style.css (`.workspace-content*` and page selectors only), `src/app/workspace/WorkspaceCanvas.tsx`, `src/app/workspace/WorkspaceSidebar.tsx`, `src/app/workspace/WorkspaceSidebar.css`, `src/app/metrics/metrics.css`
   - Change: Define one `--content-max` and use it for Catalog, Overview, Metrics list, Metric detail and Mappings; keep the same top spacing under the logo when **Add project** is absent.
   - Proof: Before `local-light/local-catalog-2560.png`, `local-light/local-ontology-overview-2560.png`, `local-light/local-metric-detail-2560.png`, `server-personas/server-carol-source-control-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/capture-tour.ts <out> local light` at 2560 and `scripts/ui-review/server-pages.ts <out_root>`; check: `bun run test:responsive` asserts the same left edge (within 2 px) of the main content in the five tabs at 2560 and `bun run test:sidebar`.
+  - Gate disposition: The shared cap and sidebar spacing are implemented. Moving Metric detail to the common left edge remains an owner decision because the view keeps the approved side-by-side list and detail.
 
 - [x] T065 [P] [US5] [E] Make Mappings usable on a phone and fill the desktop pane.
   - Findings: M24 · Requirements: FR-059
