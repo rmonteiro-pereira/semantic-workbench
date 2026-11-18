@@ -213,6 +213,20 @@ function checkLockCoverage(units: OntologyUnit[], lockFile?: PublishedDocument) 
   requireOneProviderVersion(roots.flatMap(root => root.providers));
 }
 
+function requireCompleteSets(units: OntologyUnit[], documents: readonly PublishedDocument[]) {
+  const paths = new Set(documents.map(file => file.path));
+  const available = units.flatMap(unit => requiredUnitFiles(unit).map(path => paths.has(path)));
+  if (available.includes(false)) throw new MissingOntologySetError();
+}
+
+/** Refuses an incomplete reader projection before full candidate indexing or the governance diff. */
+export async function requireVisibleCandidateSets(snapshots: PublishedSnapshots, candidate: PublicationCandidate, reader: Reader): Promise<void> {
+  const view = reader.view;
+  if (!view) return;
+  const projects = await snapshots.visibleCandidateDocuments(candidate, (project, path) => view.canRead(project, path));
+  for (const documents of projects) requireCompleteSets(parseUnits(documents).units, documents);
+}
+
 /** Blocks the ref transition unless every candidate unit and dependency agrees with the lock. */
 export async function checkPublicationDependencies(
   source: Omit<FrozenDependencySource, 'candidateDocuments' | 'snapshots'> & { snapshots: PublishedSnapshots; projectsIn: (repository: string) => string[] },
@@ -225,10 +239,8 @@ export async function checkPublicationDependencies(
       const documents = await frozen.candidateDocuments(project);
       const visible = (path: string) => !reader.view || reader.view.canRead(project, path);
       const readable = documents.filter(file => visible(file.path));
-      const paths = new Set(readable.map(file => file.path));
       const { units, findings } = parseUnits(readable);
-      const unavailable = units.map(unit => requiredUnitFiles(unit).map(path => paths.has(path)));
-      if (unavailable.some(files => files.includes(false))) throw new MissingOntologySetError();
+      requireCompleteSets(units, readable);
       const lock = readable.find(file => file.path === DEPENDENCY_MANIFEST_PATH);
       const errors = findings.filter(finding => finding.severity === 'error');
       if (documents.length !== readable.length) {

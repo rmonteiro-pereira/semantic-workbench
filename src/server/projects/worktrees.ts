@@ -278,11 +278,13 @@ async function moveDefault(context: WorktreeContext, repo: string, move: { branc
 }
 
 function baseGuard(context: WorktreeContext, repository: string, guard: PublicationGuard): PublicationGuard {
-  return async (previous, next) => {
+  const check: PublicationGuard = async (previous, next) => {
     const changed = await context.git.run(baseDir(context, repository), ['status', '--porcelain'], { readOnly: true });
     if (changed.stdout.trim()) throw new BaseChangedError(repository);
     await guard(previous, next);
   };
+  check.beforeReadable = guard.beforeReadable;
+  return check;
 }
 
 async function adopt(context: WorktreeContext, repository: string, guard: PublicationGuard, advance: PublicationAdvance, observe?: PublicationObserver) {

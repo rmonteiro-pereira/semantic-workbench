@@ -9,6 +9,7 @@ export type PublicationCheck = (candidate: PublicationCandidate) => Promise<void
 export type PublicationCheckDeps = {
   isAncestor: (repo: string, previous: string, next: string) => Promise<boolean>;
   readable: (candidate: PublicationCandidate) => Promise<unknown>;
+  beforeReadable?: PublicationCheck;
   guard: PublicationCheck;
 };
 
@@ -20,6 +21,7 @@ export function publicationChecks(deps: PublicationCheckDeps): PublicationCheck[
         throw new NotFastForwardError(candidate.branch);
       }
     },
+    ...(deps.beforeReadable ? [deps.beforeReadable] : []),
     async candidate => {
       try {
         await deps.readable(candidate);

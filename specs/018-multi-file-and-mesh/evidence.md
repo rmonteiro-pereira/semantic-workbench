@@ -260,3 +260,17 @@ to the authorization tests. The commit cadence helper is absent from this checko
 - Re-export edges carry the original project, ontology, version and source address through the entire closure.
 - Compile, mesh and dependents collapse paths to the same canonical item. Publication rejects circular re-exports with the root names.
 - The development server passed 17 tests across five files and killed 15 of 15 mesh mutants. A focused run of the real-route re-export tests also checked the compiled file's bytes and passed three tests.
+
+### Incomplete-set timing and reader isolation
+
+- Working-copy reads and saves check the declared paths through the same index and access view before loading any part. A reader with an incomplete set receives only the active file's findings.
+- Publication lists candidate tree paths without blob sizes, filters by the reader and checks visible definitions before building the shared candidate index or computing the governance diff. The operation test observes exactly one batch containing only the root blob for either condition.
+- Timed the signed-in file GET on the development server. After 20 warm-up pairs, ran 100 pairs at idle and 100 while a real snapshot build was held at its blob-read boundary. Alternated pair order. Used the same access policy and visible setup for both cases. Times are milliseconds.
+
+| Phase | Hidden median | Missing median | Hidden p95 | Missing p95 |
+| --- | ---: | ---: | ---: | ---: |
+| Idle | 10.30 | 10.22 | 13.04 | 14.09 |
+| Snapshot in progress | 9.71 | 9.76 | 13.64 | 15.10 |
+| Combined | 10.00 | 9.98 | 13.22 | 14.23 |
+
+The test requires overlapping p10–p95 intervals, at most 0.5 ms median difference and at most 2 ms p95 difference in each phase and overall. The calibration run's worst gaps were 0.08 ms and 1.47 ms. The margins allow variation on the shared development server. Three tests passed, with 249 assertions. Findings remain request-local and no findings store is needed.

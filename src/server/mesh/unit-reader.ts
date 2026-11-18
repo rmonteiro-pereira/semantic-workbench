@@ -11,7 +11,7 @@ import { validateInput } from '../../shared/validation/input';
 import { MissingOntologySetError } from '../projects/errors';
 
 type UnitText = { path: string; source: string };
-type ReadSource = { read: (path: string) => string | null; rootPaths: () => string[] };
+type ReadSource = { available: (path: string) => boolean; read: (path: string) => string | null; rootPaths: () => string[] };
 
 /** Parses a revision-three root or part from an already readable source file. */
 export function unitDocument(path: string, source: string | null): UnitDocument | undefined {
@@ -48,6 +48,8 @@ export async function readOntologySet(active: UnitText, source: ReadSource, chec
   const root = rootOf(file, source);
   if (!root) return partial;
   const required = requiredUnitFiles({ root, parts: [] });
+  const available = required.map(path => path === root.path || source.available(path));
+  if (available.includes(false)) return partial;
   const files = required.map(path => (path === root.path ? root : unitDocument(path, source.read(path))));
   if (files.some(file => !file)) return partial;
   const { units, findings } = readUnitStructure(files.filter(file => file !== undefined));
@@ -67,6 +69,6 @@ export function requireWritableOntologySet(active: UnitText, source: ReadSource)
     throw new MissingOntologySetError();
   }
   const required = requiredUnitFiles({ root, parts: [] });
-  const available = required.map(path => path === root.path || source.read(path) !== null);
+  const available = required.map(path => path === root.path || source.available(path));
   if (available.some(present => !present)) throw new MissingOntologySetError();
 }

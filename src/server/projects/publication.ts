@@ -10,7 +10,7 @@ export type PublicationMove = { previous: string | null; next: string; expectedR
 /** A completed publication identifies both immutable commits and the default branch. */
 export type PublicationResult = { published: string; previous: string | null; commit: string };
 /** Existing governance checks judge the exact immutable commits being advanced. */
-export type PublicationGuard = (previous: string | null, next: string) => Promise<void>;
+export type PublicationGuard = ((previous: string | null, next: string) => Promise<void>) & { beforeReadable?: (candidate: PublicationCandidate) => Promise<void> };
 /** Advances a publication while its caller holds the repository's queue. */
 export type PublicationAdvance = (repository: string, branch: string, move: PublicationMove, guard: PublicationGuard) => Promise<PublicationResult>;
 /** Git, durable state and bounded reads used by every publication entry point. */
@@ -42,6 +42,7 @@ export function createPublication(deps: PublicationDeps) {
           const validated = await deps.readable(candidate);
           if (typeof validated === 'function') release = validated as () => void;
         },
+        beforeReadable: guard.beforeReadable,
         guard: () => guard(previous, next),
       });
       try {

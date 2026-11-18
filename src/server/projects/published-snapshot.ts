@@ -253,6 +253,13 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
       if (!files) throw new SnapshotUnavailableError('unavailable');
       return { commit, documents: files.filter(file => file.metadata.visible).map(file => file.document) };
     },
+    /** Projects the exact candidate before the shared index can read restricted blob objects. */
+    async visibleCandidateDocuments(candidate: PublicationCandidate, canRead: (project: string, path: string) => boolean) {
+      assertOperationStep('snapshot.read');
+      const projects = deps.projects().filter(project => locationOf(project).repo === candidate.repo);
+      const snapshot = await indexes.visible(candidate.repo, candidate.next, projects, canRead);
+      return [...snapshot.projects.values()].map(files => files.filter(file => file.metadata.visible).map(file => file.document));
+    },
     /** Reads an immutable publication candidate within its registered repository. */
     async candidateDocuments(candidate: Pick<PublicationCandidate, 'repo' | 'next'>, project: string) {
       const requestPin = pin();

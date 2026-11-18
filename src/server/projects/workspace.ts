@@ -869,6 +869,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     repoOf,
     project: entry,
     registrySteps,
+    /** Looks up a definition in the caller's current working-copy index without opening the file. */
+    indexedFile: (slug: string, path: string, reader: Reader) => copies.readPlace(reader, slug).cache.file(slug, path),
     readFile,
     saveFile,
     resolveAddress: (address: string, reader: Reader) => resolveForCaller({ ...addressReads, readMigrations: (project, caller) => readAddressMigrations(layout, project, caller) }, address, reader),

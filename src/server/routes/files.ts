@@ -58,6 +58,11 @@ export const fileRoutes: Route = async (ws, req, url) => {
     const validation = await readOntologySet(
       file,
       {
+        available: name => {
+          const indexed = ws.indexedFile(slug, name, reader);
+          const readable = !reader.view || reader.view.canRead(slug, name);
+          return Boolean(indexed?.visible && readable);
+        },
         read: name => readableSource(ws, slug, name, reader),
         rootPaths: () =>
           ws

@@ -563,3 +563,7 @@ the bundle outside the source trees.
 Use [the development guide](docs/development.md) for command syntax, fixture rules and validation.
 Keep configuration/API/operation details in their canonical guides instead of appending release
 history or per-control instructions to this architecture map.
+
+Publication checks the caller's visible ontology sets before building the shared
+candidate index. The preliminary Git read lists paths without opening restricted
+blobs. It loads only readable definitions and computes findings for that request.

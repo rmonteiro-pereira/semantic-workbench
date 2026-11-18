@@ -120,7 +120,12 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
         .files(project)
         .filter(file => file.docType === 'Ossie ontology')
         .map(file => file.path);
-    requireWritableOntologySet({ path, source }, { read, rootPaths });
+    const available = (name: string) => {
+      const indexed = place.cache.file(project, name);
+      const readable = !reader.view || reader.view.canRead(project, name);
+      return Boolean(indexed?.visible && readable);
+    };
+    requireWritableOntologySet({ path, source }, { available, read, rootPaths });
   }
   async function saveFile(
     slug: string,

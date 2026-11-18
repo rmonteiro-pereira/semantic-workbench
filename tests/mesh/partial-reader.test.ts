@@ -1,4 +1,4 @@
-import { expect, test } from 'bun:test';
+import { expect, spyOn, test } from 'bun:test';
 import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createAccessControl } from '../../src/server/auth/authorize';
@@ -30,7 +30,10 @@ function readers(fixture: Fixture, hidden: boolean) {
 
 async function refusals(hidden: boolean) {
   using fixture = await meshWorkspace('separate');
-  if (!hidden) rmSync(join(fixture.projectDirectory('retail'), privatePart));
+  if (!hidden) {
+    rmSync(join(fixture.projectDirectory('retail'), privatePart));
+    await fixture.ws.rescan('retail');
+  }
   const { partial } = readers(fixture, hidden);
   const read = await partial.raw(path);
   expect(read.status).toBe(200);
@@ -50,7 +53,12 @@ async function refusals(hidden: boolean) {
   writeFileSync(sourcePath, JSON.stringify(data));
   fixture.git('retail', ['add', '-A']);
   fixture.git('retail', ['commit', '-qm', 'Review the incomplete set']);
+  const candidateReads = spyOn(fixture.ws.git, 'catFileBatch');
   const publication = await partial.raw(root + '/git/adopt', 'POST', {});
+  const blobs = candidateReads.mock.calls.map(([, ids]) => ids);
+  candidateReads.mockRestore();
+  expect(blobs).toHaveLength(1);
+  expect(blobs[0]).toEqual([fixture.git('retail', ['rev-parse', 'HEAD:ontology.yaml'])]);
   const response = async (answer: Response) => ({ status: answer.status, bytes: await answer.text() });
   return { read: readBytes, single: await response(single), batch: await response(batch), publication: await response(publication) };
 }
@@ -78,3 +86,81 @@ test('a full reader’s finding never reaches the partial reader in either call 
   expect(next).toMatchObject({ set: [], setNotChecked: true });
   expect(JSON.stringify(next)).not.toContain(privatePart);
 });
+
+type ReaderClient = ReturnType<typeof readers>['partial'];
+
+function quantile(samples: number[], fraction: number): number {
+  return [...samples].sort((first, next) => first - next)[Math.ceil(samples.length * fraction) - 1];
+}
+
+async function sample(client: ReaderClient) {
+  const started = performance.now();
+  const response = await client.raw(path);
+  const bytes = await response.text();
+  return { bytes, elapsed: performance.now() - started };
+}
+
+async function samplePairs(hidden: ReaderClient, missing: ReaderClient, count: number) {
+  const times = { hidden: [] as number[], missing: [] as number[] };
+  for (let i = 0; i < count; i++) {
+    const order = i % 2 ? (['missing', 'hidden'] as const) : (['hidden', 'missing'] as const);
+    const first = await sample(order[0] === 'hidden' ? hidden : missing);
+    const next = await sample(order[1] === 'hidden' ? hidden : missing);
+    expect(first.bytes).toBe(next.bytes);
+    times[order[0]].push(first.elapsed);
+    times[order[1]].push(next.elapsed);
+  }
+  return times;
+}
+
+function latency(samples: number[]) {
+  return { p10: quantile(samples, 0.1), median: quantile(samples, 0.5), p95: quantile(samples, 0.95) };
+}
+
+function compareLatency(phase: string, times: Awaited<ReturnType<typeof samplePairs>>) {
+  const hidden = latency(times.hidden);
+  const missing = latency(times.missing);
+  console.log(`Part timing ${phase} (${times.hidden.length} per case, ms): ${JSON.stringify({ hidden, missing })}`);
+  expect(Math.max(hidden.p10, missing.p10)).toBeLessThanOrEqual(Math.min(hidden.p95, missing.p95));
+  expect(Math.abs(hidden.median - missing.median)).toBeLessThanOrEqual(0.5);
+  expect(Math.abs(hidden.p95 - missing.p95)).toBeLessThanOrEqual(2);
+}
+
+test('hidden and missing parts overlap in latency across 200 interleaved requests each', async () => {
+  using hiddenFixture = await meshWorkspace('separate');
+  using missingFixture = await meshWorkspace('separate');
+  rmSync(join(missingFixture.projectDirectory('retail'), privatePart));
+  await missingFixture.ws.rescan('retail');
+  const hidden = readers(hiddenFixture, true).partial;
+  const missing = readers(missingFixture, true).partial;
+  await samplePairs(hidden, missing, 20);
+  const idle = await samplePairs(hidden, missing, 100);
+  const snapshot = hiddenFixture.ws.state.published().repositories.retail;
+  const entered = Promise.withResolvers<void>();
+  const release = Promise.withResolvers<void>();
+  const original = hiddenFixture.ws.git.catFileBatch;
+  const batch = spyOn(hiddenFixture.ws.git, 'catFileBatch').mockImplementation(async (...args) => {
+    const read = original(...args);
+    entered.resolve();
+    await release.promise;
+    return read;
+  });
+  const building = hiddenFixture.ws.published.validate({ repo: 'retail', branch: snapshot.branch, previous: null, next: snapshot.commit });
+  let active: typeof idle;
+  try {
+    await Promise.race([
+      entered.promise,
+      building.then(() => {
+        throw new Error('The snapshot was already built.');
+      }),
+    ]);
+    active = await samplePairs(hidden, missing, 100);
+  } finally {
+    release.resolve();
+    batch.mockRestore();
+    (await building)();
+  }
+  compareLatency('idle', idle);
+  compareLatency('snapshot in progress', active);
+  compareLatency('combined', { hidden: [...idle.hidden, ...active.hidden], missing: [...idle.missing, ...active.missing] });
+}, 30_000);

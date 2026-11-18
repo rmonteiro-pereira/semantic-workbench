@@ -6,7 +6,8 @@ import { InputError } from '../../shared/validation/diagnostics';
 import { WriteAccessError } from '../auth/write-access-error';
 import type { Reader } from './reader';
 import type { PublishedSnapshots } from './published-snapshot';
-import { checkPublicationDependencies } from '../mesh/dependency-check';
+import { checkPublicationDependencies, requireVisibleCandidateSets } from '../mesh/dependency-check';
+import type { PublicationGuard } from './publication';
 import type { PublicationObserver } from './local-publication';
 import type { FollowRequest, FollowResult } from './scm';
 import type { Place, WorkingCopies } from './working-copies';
@@ -35,13 +36,15 @@ export type PublishingDeps = {
  * comes from a copy or from the remote.
  */
 export function judgePublish(deps: Pick<PublishingDeps, 'snapshots' | 'projectsIn' | 'repositoryOf' | 'repoOf'>, place: Place, slug: string, reader: Reader) {
-  return async (previous: string | null, next: string) => {
+  const guard: PublicationGuard = async (previous, next) => {
     if (reader.guard) {
       const changes = await place.scm.changesBetween(slug, previous, next);
       reader.guard(changes, { operation: 'publish' });
     }
     await checkPublicationDependencies(deps, { repo: deps.repoOf(slug), next }, reader);
   };
+  if (reader.view) guard.beforeReadable = candidate => requireVisibleCandidateSets(deps.snapshots, candidate, reader);
+  return guard;
 }
 
 // Every reader's view of the repository's projects follows the new tip of the default branch.

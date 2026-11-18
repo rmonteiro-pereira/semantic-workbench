@@ -359,8 +359,8 @@ export function createGit(options: GitOptions) {
     const head = await read(cwd, ['rev-parse', '-q', '--verify', 'HEAD']);
     return { committed: true, commit: head.stdout.trim() };
   }
-  async function lsTree(cwd: string, revision: string, prefix = ''): Promise<GitTreeEntry[]> {
-    const result = await run(cwd, ['ls-tree', '-r', '-l', '-z', revision, '--', ...(prefix ? [prefix] : [])], {
+  async function lsTree(cwd: string, revision: string, prefix = '', sizes = true): Promise<GitTreeEntry[]> {
+    const result = await run(cwd, ['ls-tree', '-r', ...(sizes ? ['-l'] : []), '-z', revision, '--', ...(prefix ? [prefix] : [])], {
       env: { GIT_NO_LAZY_FETCH: '1' },
     });
     return result.stdout
@@ -370,7 +370,7 @@ export function createGit(options: GitOptions) {
         const tab = entry.indexOf('\t');
         const fields = entry.slice(0, tab).trim().split(/\s+/);
         if (fields[1] !== 'blob') return [];
-        return [{ path: entry.slice(tab + 1), id: fields[2], size: Number(fields[3]), ...(fields[0] === '120000' ? { link: true as const } : {}) }];
+        return [{ path: entry.slice(tab + 1), id: fields[2], size: sizes ? Number(fields[3]) : 0, ...(fields[0] === '120000' ? { link: true as const } : {}) }];
       });
   }
   async function catFileBatch(cwd: string, ids: string[], limits = OBJECT_LIMITS) {
