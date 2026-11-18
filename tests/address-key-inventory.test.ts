@@ -35,6 +35,7 @@ test('durable key-bearing shapes match the documented inventory', () => {
     'unpublished',
     'view',
   ]);
+  expect(fields('src/server/usage/usage-counts.ts', 'CounterDayFile')).toEqual(['counts', 'day', 'formatVersion', 'migratedThrough', 'other', 'project']);
   const inventory = readFileSync('docs/item-addresses.md', 'utf8');
-  for (const shape of ['assignments', 'names', 'drafts', 'suggestions', 'trash', 'mapping-center', 'lineage-center', 'layout']) expect(inventory).toContain(shape);
+  for (const shape of ['assignments', 'names', 'drafts', 'suggestions', 'trash', 'mapping-center', 'lineage-center', 'layout', 'state/usage']) expect(inventory).toContain(shape);
 });
