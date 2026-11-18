@@ -157,3 +157,37 @@ an explicit event-path regular expression and waits for the intercepted 503 befo
 the visible recovery state. No product behavior changed. Dev-server proofs: `bun run test:acp`
 and `bun run test:acp --closed-only` each report six viewport/theme conversations passed; closed
 screens sent no panel requests. The complete run includes all thirteen ending notices.
+
+## Closing review notes
+
+The mandated readable checker exits 0 on every changed code file. Docs sync exits 0; the
+configuration and development pointers were checked against their updated relay instructions.
+The confidential-only scan exits 0 on all 63 changed files, including these internal logs. The
+complete deliverable scanner exits 0 on README, architecture, changelog, panel guide, server-mode
+and user guide; the eight existing public temporary-path examples described above remain its
+only exceptions. No scanner allow-list or suppressed confidential term was introduced.
+
+The requested scripts/commit_cadence.py is absent from this repository, so that command cannot
+run. Every coherent step has its own commit, and no project-remote push or bypassed hook was used.
+The owner-approved scratch transport is the only push made by the remote test wrapper.
+
+The five shared files identified in the brief each have one contiguous change block relative
+to origin/main 84642cb0: files.ts keeps the draft for acp; me.ts reports availability; middleware.ts
+adds panel options; guard-cases.ts explains panel-only exemptions; route-actions.ts inserts the
+ten conversation route examples after deriving definition reads. The additional shared blocks
+are the person-menu lazy import, request-authentication's exact relay-path delegation and
+route-verdict's four-operation acp exception. Suite inventories and mutation dispatchers each
+have one appended registration block. No existing canvas or application entry was changed.
+
+The batch reviewer must integrate the real connection directory before claiming server-mode
+acceptance, capture the deferred states, and run the complete combined gate and independent
+architecture review. The security reviewer should inspect the request-local relay re-entry,
+bounded anonymous audit, current grants/scopes at each operation, hidden/missing equivalence,
+same-session version checks, refresh validation and draft disclosure. The text-only agent
+surface, empty tool-server list and memory-only transcript remain mandatory constraints.
+
+Browser reply review found that the create-session consumer validated only id and command
+before trusting its other required fields. The transport now validates every required text,
+nonempty scope list and integer expiry after the explicit 201 check, before the hook stores an
+id. Its public transport proof exercises malformed successful replies and the write-intent
+header. Proof: `bun test tests/acp/panel-connect.test.tsx`: 2 pass, 0 fail, 14 assertions.

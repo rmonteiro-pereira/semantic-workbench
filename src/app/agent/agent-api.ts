@@ -17,6 +17,19 @@ export async function panelAction(path = '', body?: unknown, method = 'POST'): P
   return answer;
 }
 
+/** Creates a session only after its complete connection instructions have been validated. */
+export async function startPanelSession(confirmReplace: boolean): Promise<StartedSession> {
+  const answer = await panelAction('', { confirmReplace });
+  const invalid = () => new Error('The server returned incomplete connection instructions.');
+  if (!answer || typeof answer !== 'object' || Array.isArray(answer)) throw invalid();
+  const result = answer as Record<string, unknown>;
+  const textFields = ['id', 'code', 'command', 'statement', 'notOffered'];
+  if (!textFields.every(field => typeof result[field] === 'string' && (result[field] as string).trim().length > 0)) throw invalid();
+  if (!Array.isArray(result.scopes) || !result.scopes.length || !result.scopes.every(scope => typeof scope === 'string' && scope.trim().length > 0)) throw invalid();
+  if (typeof result.expiresAt !== 'number' || !Number.isSafeInteger(result.expiresAt) || result.expiresAt <= 0) throw invalid();
+  return answer as StartedSession;
+}
+
 /** Reads numbered events until the server ends the stream or the panel closes. */
 export async function followPanel(id: string, after: number, signal: AbortSignal, receive: (event: PanelEvent) => void): Promise<number> {
   const response = await apiFetch(`/api/acp/sessions/${encodeURIComponent(id)}/events?after=${after}`, { signal });

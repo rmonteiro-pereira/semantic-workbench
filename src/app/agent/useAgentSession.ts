@@ -1,7 +1,7 @@
 // Owns the panel's in-memory connection and stops its stream when the sheet closes.
 import { useEffect, useRef, useState } from 'react';
 import { emptyAgentView, reduceAgentEvent, streamEndReason } from './agent-events';
-import { followPanel, panelAction, type StartedSession } from './agent-api';
+import { followPanel, panelAction, startPanelSession, type StartedSession } from './agent-api';
 
 const SESSION_KEY = 'workbench-agent-session';
 
@@ -64,8 +64,7 @@ export function useAgentSession() {
   async function start() {
     await act(async () => {
       try {
-        const result = (await panelAction('', { confirmReplace: replace })) as StartedSession;
-        if (typeof result.id !== 'string' || !result.id || typeof result.command !== 'string' || !result.command) throw new Error('The server returned incomplete connection instructions.');
+        const result = await startPanelSession(replace);
         setView(emptyAgentView());
         setStarted(result);
         setId(result.id);
