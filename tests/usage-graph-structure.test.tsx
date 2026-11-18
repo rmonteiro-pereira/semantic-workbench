@@ -52,7 +52,7 @@ describe('a graph card', () => {
     const shaded = card(store);
     expect(shaded).toContain('traffic-ring');
     expect(shaded).toContain('9 requests through this workbench in the last 30 days');
-    const stripped = shaded.replace(/<span class="traffic-ring"[^>]*><\/span><span class="traffic-bar"[^>]*><\/span><span class="traffic-sr">[^<]*<\/span>/, '');
+    const stripped = shaded.replace(/<span class="traffic-marks"><span class="traffic-ring"[^>]*><\/span><span class="traffic-bar"[^>]*><\/span><span class="traffic-sr">[^<]*<\/span><\/span>/, '');
     expect(stripped).toBe(baseline);
   });
 

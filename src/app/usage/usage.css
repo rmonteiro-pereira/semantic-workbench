@@ -1,9 +1,13 @@
 /* Styles for the Traffic display. Colours come from theme tokens, and text wraps instead of being cut. */
 
 /* The ring and bar sit over a card without changing its size. Weight carries the meaning, so it reads without colour. */
-.node:has(> .traffic-ring),
-.full-entity:has(> .traffic-ring) {
+.node:has(> .traffic-marks),
+.full-entity:has(> .traffic-marks) {
   position: relative;
+}
+/* The wrapper takes no box of its own, so it cannot change how the card lays out its content. */
+.traffic-marks {
+  display: contents;
 }
 .traffic-ring {
   position: absolute;

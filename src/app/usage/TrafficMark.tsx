@@ -12,10 +12,10 @@ export function TrafficMark({ address }: { address: string | undefined }) {
   if (!traffic || traffic.level === 0) return null;
   const style = { '--traffic-level': traffic.level } as React.CSSProperties;
   return (
-    <>
+    <span className="traffic-marks">
       <span className="traffic-ring" style={style} aria-hidden="true" />
       <span className="traffic-bar" style={style} aria-hidden="true" />
       <span className="traffic-sr">{countWords(traffic.total, traffic.days)}</span>
-    </>
+    </span>
   );
 }
