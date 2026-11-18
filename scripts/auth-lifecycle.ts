@@ -9,6 +9,7 @@ import { fixtureFiles } from '../tests/helpers/auth-workspace';
 import { check, signIn, signOut, type SignInTarget } from './helpers/sign-in';
 import { freeAuthPort, startAuthApi } from './auth-environment';
 import { waitUntil } from './helpers/processes';
+import { openSettings } from './helpers/sidebar-menus';
 
 /** Reads cookie-authenticated events until sign-out closes the stream. */
 export async function liveUpdateCheck(page: Page, target: SignInTarget, root: string) {
@@ -152,7 +153,7 @@ export async function mockLifecycleChecks(browser: Browser, target: SignInTarget
   await check('expired session returns to provider', () => expiredSession(browser, target, mock));
 }
 
-/** Confirms the built local workspace opens without sign-in, and its avatar menu offers Admin but no sign-out. */
+/** Confirms the local workspace opens without sign-in and offers Admin in Settings. */
 export async function localAuthSmoke(browser: Browser) {
   const url = `http://127.0.0.1:${freeAuthPort()}`;
   const api = await startAuthApi(url, { mode: 'local' });
@@ -165,9 +166,10 @@ export async function localAuthSmoke(browser: Browser) {
         await expect(page.locator('.workspace-sidebar')).toContainText('LOCAL WORKSPACE');
         assert.equal((await (await page.request.get(url + '/api/me')).json()).mode, 'local');
         await page.getByRole('button', { name: 'Person menu' }).click();
-        await expect(page.getByRole('menuitem', { name: /^Admin/ })).toBeVisible();
         await expect(page.getByRole('menuitem', { name: /^Sign out/ })).toHaveCount(0);
         await page.keyboard.press('Escape');
+        const settings = await openSettings(page);
+        await expect(settings.getByRole('button', { name: /^Admin/ })).toBeVisible();
       });
     } finally {
       await page.close();

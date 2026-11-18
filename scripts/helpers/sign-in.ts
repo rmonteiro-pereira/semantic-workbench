@@ -370,9 +370,11 @@ async function checkRoleControls(page: Page, target: SignInTarget, username: Tes
   await page.getByRole('button', { name: 'Source control', exact: false }).click();
   await checkRemoteControl(page, username === 'dave');
   if (!writes) {
-    const commit = page.getByRole('button', { name: /^Commit to / });
+    const commit = page.locator('.workspace-header').getByRole('button', { name: 'Commit', exact: true });
     await expect(commit).toBeDisabled();
-    await expect(commit).toHaveAttribute('title', /Editor/);
+    await expect(commit).toHaveAccessibleDescription(/Editor/);
+    const sourceControl = page.getByRole('region', { name: 'Source Control', exact: true });
+    await expect(sourceControl.getByRole('textbox', { name: 'Commit message', exact: true })).toHaveCount(0);
     const denied = await context.request.put(target.url + `/api/drafts/${slug}/${project.files[0].path}`, {
       headers: { Origin: target.url, 'X-SW-Request': '1' },
       data: { baseHash: null, text: 'forged draft', patches: [] },
