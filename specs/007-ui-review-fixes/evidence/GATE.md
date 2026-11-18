@@ -55,7 +55,8 @@
   returned 0 with `10 theme checks passed` (211.7 s), including the light and dark tours and browser-error check.
 - After the M15 correction, `bun scripts/ci-validate.ts --step browser --suite test:graph` passed the five Walk steps, Back and Forward,
   link labels, dragged positions, 1,000-entity picker, incremental expansion and the Lease pierce. It reached the large Both-direction pierce
-  budget, where the longest main-thread task was 287 ms against the 100 ms limit. A matched main comparison is pending.
+  budget, where the longest main-thread task was 287 ms against the 100 ms limit. Running the same command on main reached the same test
+  and failed the same assertion at 240 ms. Both logs preserve the passing steps before the failure.
 - Main `test:autosave` passed the commit UI check, then failed on the same `git log -1 --format=%s main` unknown-revision error as the candidate. Main
   `test:git-setup` passed identity setup and the commit action, then failed on the same `git log -1 --format=%an` error that the default branch has no
   commits. These postconditions still assume direct local commits on the default branch.
