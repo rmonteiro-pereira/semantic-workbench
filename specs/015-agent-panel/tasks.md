@@ -80,7 +80,7 @@ test only to make it pass.
   buffer (256 frames or 4 MiB), duplicate drop, heartbeat clock. Add `tests/acp/frame-link.test.ts`
   including a property run of 100 random drops and reconnects with no loss and no repeat (SC-006,
   link part). Proof: the test passes.
-- [ ] T014 [US1] Create `src/server/acp/session-store.ts`: create (one per person, replace with
+- [x] T014 [US1] Create `src/server/acp/session-store.ts`: create (one per person, replace with
   confirmation), find by owner (foreign and unknown identical), end, expiry sweep, memory only.
   Add `tests/acp/session-store.test.ts`. Proof: another person's id behaves exactly as an unknown
   id in answer shape and timing class; a replaced session ends with `replaced`.
