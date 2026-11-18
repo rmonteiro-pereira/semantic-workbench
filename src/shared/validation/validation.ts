@@ -58,6 +58,8 @@ function withoutMarker(data: Record<string, unknown>) {
 export type ValidationOptions = {
   /** Check a file with an unknown Ossie version as if it declared the shipped version. */
   assumeOssieVersion?: boolean;
+  /** Supplies the existing bounded unit budget when validating a merged compiler output. */
+  maxDocumentBytes?: number;
   /** Set when the document sits inside another one, so a key named like the Tessera marker is ordinary data. */
   nested?: boolean;
   /** Check imports against the interfaces already resolved for this caller. */

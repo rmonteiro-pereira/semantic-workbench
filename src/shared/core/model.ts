@@ -52,7 +52,7 @@ export function isStructuredEntity(entity: Entity): entity is StructuredEntity {
 }
 /** Parses a document into model entities, relationships and validation findings. */
 export function inspect(source: string, filename = 'definition.yaml', options: ValidationOptions = {}): ReturnType<typeof inspectRdf> | ReturnType<typeof inspectStructuredModel> {
-  validateEnvelope(source, filename);
+  validateEnvelope(source, filename, options.maxDocumentBytes);
   if (/\.(trig|nq|jsonld|ofn|omn)$/i.test(filename))
     throw new InputError([
       {

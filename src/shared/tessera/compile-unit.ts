@@ -100,8 +100,8 @@ function outputSchemaFailures(path: string, result: ReturnType<typeof validateIn
 }
 
 /** Validates the text of an output once and keeps what the meaning check needs from that reading. */
-function checkOutput(path: string, text: string): OutputCheck {
-  const result = validateInput(text, path.split('/').at(-1)!);
+function checkOutput(path: string, text: string, maxDocumentBytes?: number): OutputCheck {
+  const result = validateInput(text, path.split('/').at(-1)!, { maxDocumentBytes });
   const failures = outputSchemaFailures(path, result);
   const model = result.valid && 'document' in result.model ? result.model : null;
   return { failures, reading: model ? { path, source: text, data: model.document, summary: summarizeItems(model) } : null };
@@ -151,7 +151,7 @@ function compileMesh(
     result.failures.push(...compiled.failures);
     return;
   }
-  const checked = checkOutput(source.file.path, compiled.text);
+  const checked = checkOutput(source.file.path, compiled.text, UNIT_LIMITS.totalBytes);
   result.failures.push(...checked.failures);
   if (!checked.reading) return;
   if (!deepEqual(compiled.expected, checked.reading.data)) {
