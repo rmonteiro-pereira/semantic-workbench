@@ -3,6 +3,8 @@
 import { matchesLegacyFieldKey } from '../../shared/core/item-key-adapters';
 import { columnRefs, parseExpression, scalar, expressionSql, quoteIdentifier, sourceSql } from './sql';
 import { BadRequestError } from '../projects/errors';
+import { agentGovernanceFlag, metricGovernanceOf, type AgentGovernance } from '../../shared/governance/item-governance';
+import { AGENT_GOVERNANCE_KEY } from '../../shared/tessera/agent-view';
 import { fieldKey, policy, selectContext, type Binding, type RuntimeContext, type RuntimeField, type RuntimeMetric } from './context';
 /** Selects governed metrics and dimensions, with internal options for model-wide previews. */
 export type PlanRequest = {
@@ -216,6 +218,23 @@ function renderSql({ select, measures, joinSql, from, hasMetrics }: RenderParts)
   const groupByClause = hasMetrics && select.length ? '\nGROUP BY ' + select.map(s => s.sql).join(', ') : '';
   return `SELECT\n  ${columnList}\nFROM ${from}${joinClause}${groupByClause};`;
 }
+/** One item a plan uses that carries governance, with the flag an agent needs to avoid a proposed or deprecated item. */
+export type PlanGovernanceFlag = { kind: 'concept' | 'metric'; name: string } & AgentGovernance;
+
+/** Flags the concepts and metrics the plan uses that carry governance. Items that are not approved stay in the plan and are flagged. */
+function governanceFlags(context: RuntimeContext, selections: Selections): PlanGovernanceFlag[] {
+  const conceptNames = new Set(selections.selected.bindings.flatMap(binding => [binding.concept, binding.rootConcept]));
+  const flags: PlanGovernanceFlag[] = [];
+  for (const concept of context.concepts) {
+    if (conceptNames.has(concept.concept) && concept[AGENT_GOVERNANCE_KEY]) flags.push({ kind: 'concept', name: concept.concept, ...concept[AGENT_GOVERNANCE_KEY] });
+  }
+  for (const metric of selections.metrics) {
+    const governance = metricGovernanceOf(metric.definition);
+    if (governance.status !== undefined) flags.push({ kind: 'metric', name: metric.name, ...agentGovernanceFlag(governance) });
+  }
+  return flags;
+}
+
 /** Builds an unexecuted SQL plan, refusing unsupported expressions or ambiguous joins. */
 export function planQuery(context: RuntimeContext, request: PlanRequest) {
   if (context.findings.some(f => f.severity === 'error')) throw new BadRequestError('Resolve mapping context errors before planning.');
@@ -228,6 +247,7 @@ export function planQuery(context: RuntimeContext, request: PlanRequest) {
   const measures = measureColumns(compile, selections.metrics);
   const from = `${sourceSql(modelDatasets.get(root).source)} AS ${quoteIdentifier(root)}`;
   const sql = renderSql({ select, measures, joinSql: joins.map(join => joinSql(compile, join, modelDatasets)), from, hasMetrics: selections.metrics.length > 0 });
+  const flags = governanceFlags(context, selections);
   return {
     mappingId: context.mappingId,
     dialect: 'ANSI_SQL',
@@ -238,6 +258,7 @@ export function planQuery(context: RuntimeContext, request: PlanRequest) {
     sources: [...aliases].map(name => ({ dataset: name, source: modelDatasets.get(name).source })),
     bindings: selections.selected.bindings,
     documents: context.documents,
+    ...(flags.length ? { governance: flags } : {}),
     policy,
     warnings: ['Generated SQL is a preview. Verify physical uniqueness and dialect compatibility in your query engine. No query was executed.'],
   };

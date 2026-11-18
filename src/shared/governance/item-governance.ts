@@ -98,3 +98,15 @@ export function statusLabel(status: string | undefined): string {
   if (status === 'draft') return 'draft (older value)';
   return 'unknown value';
 }
+
+/** What an agent is told about an item: the status word, and for a deprecated item the replacement and the reason. Owner, steward and classification are never part of it. */
+export type AgentGovernance = { status: string; replacedBy?: string; reason?: string };
+
+/** The flag an agent receives for an item that carries governance. A missing status reads as "not set", never as approved. */
+export function agentGovernanceFlag(governance: ItemGovernance): AgentGovernance {
+  const status = governance.status === undefined ? 'not set' : governance.status;
+  const flag: AgentGovernance = { status };
+  if (status === 'deprecated' && governance.replacedBy) flag.replacedBy = governance.replacedBy;
+  if (status === 'deprecated' && governance.deprecationReason) flag.reason = governance.deprecationReason;
+  return flag;
+}

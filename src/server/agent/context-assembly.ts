@@ -153,6 +153,10 @@ function collectFields(context: RuntimeContext, catalog: Catalog, { ontologyTarg
   context.concepts.forEach((concept, i) => {
     if (concept.ai_context !== undefined)
       addAiContext(context, concept, definitionLabel(context.ontology.address, ontologyTarget.data, ['ontology', i]), evidence(ontologyTarget.doc, ['ontology', i]));
+    (concept.relationships ?? []).forEach((relationship: any, j: number) => {
+      const path = ['ontology', i, 'relationships', j];
+      if (relationship?.ai_context !== undefined) addAiContext(context, relationship, definitionLabel(context.ontology.address, ontologyTarget.data, path), evidence(ontologyTarget.doc, path));
+    });
   });
   context.datasets.forEach((dataset, i) => {
     addAiContext(context, dataset, definitionLabel(context.semanticModel.address, semanticTarget.data, ['datasets', i]), evidence(semanticTarget.doc, [...semanticPrefix, 'datasets', i]));
