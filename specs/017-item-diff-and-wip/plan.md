@@ -127,10 +127,11 @@ the status tokens used for errors only, the graph options and compact controls s
 - **Mark**: a dashed outline (2px, token border colour that meets 3 to 1 on both themes), a lowered
   saturation of the card (a grey surface token, never an opacity that lowers text contrast), and a text label
   "Not published: added", "Not published: changed" or "Not published: removed" shown as a small row inside
-  the card for entities and attributes and as the edge label suffix for relationships. Card sizes do not
-  change: the label uses the space the existing hint row reserves (`reservedNameHeight` in
-  `src/app/graph/full-node-data.ts` gains one case) and wraps in details panels.
-- **Removed items** are drawn from the published side's layout with a strike-free dashed outline and the label;
+  the card for entities and attributes and as the edge label suffix for relationships. The outer size of a
+  card does not change: the label takes a fixed strip inside the card (`reservedNameHeight` in
+  `src/app/graph/full-node-data.ts` gains one case), so the name of a marked card may use a smaller font
+  size, as it already does for cards with a hint row. Labels wrap in details panels.
+- **Removed items** are drawn from the published side's layout with a dashed outline and the label;
   their edges to existing items are drawn dashed.
 - **Overlay control** sits in `GraphOptions.tsx` and in `CompactControls.tsx` on phone width. It names the
   branch, the published commit and the counts, in words.
@@ -147,8 +148,8 @@ the status tokens used for errors only, the graph options and compact controls s
 - Long names wrap. Phone width stacks the list under the graph. Light and dark come from tokens.
 
 How "off equals unchanged" is proven: with the overlay off or no change, the components return null and add no
-class, node, request or legend. The first request is made only when the person has unpublished changes or turns
-the overlay on. The browser check compares the DOM structure with a recorded baseline taken before the change,
+class, node, request or legend. The first request is made only when the existing source-control status says the branch has unpublished
+changes, or when the person turns the overlay on. The browser check compares the DOM structure with a recorded baseline taken before the change,
 and the batch's UI regression comparison against the last release covers the journey.
 
 ### Contract

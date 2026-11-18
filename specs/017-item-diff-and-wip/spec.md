@@ -6,8 +6,7 @@
 
 **Status**: Draft
 
-**Input**: Roadmap step 4 of decision R1. Today the workbench can show which files changed
-(`DiffView`) and can show only one state of an ontology at a time. People who curate definitions
+**Input**: Roadmap step 4 of decision R1. Today the workbench can show which files changed and can show only one state of an ontology at a time. People who curate definitions
 need to see what a change does to concepts, relationships and attributes, and to see their unpublished
 work next to what production uses. Decisions E5, E6, E7 and E16 and the owner's requirements: item
 diff by item address, an overlay of unpublished work shown greyed over production, a display aid and
@@ -258,9 +257,9 @@ test fixture reads a branch that is not the person's current one.
 
 **The operation and its limits**
 
-- **FR-012**: There MUST be one new read operation, `items.diff`, in the operation inventory, served through
-  the operation boundary with the existing authorization and audit, for the browser. It MUST NOT be available
-  to application callers on this base.
+- **FR-012**: There MUST be one new read operation, named `items.diff`, listed with the other operations and
+  served through the same authorization and audit as them, for the browser. It MUST NOT be available to
+  application (agent) callers on this base.
 - **FR-013**: A side MUST be named as `published`, `working` (the person's saved working copy on their current
   branch), `branch:<name>` or `commit:<id>`. The operation MUST refuse any other name and list the names it
   knows.
@@ -275,14 +274,16 @@ test fixture reads a branch that is not the person's current one.
 **Overlay**
 
 - **FR-017**: The workbench MUST offer an overlay, on by default when the current branch has unpublished
-  changes and off otherwise, that compares `published` with `working`.
+  changes and off otherwise, that compares `published` with `working`. When the project has no published
+  state, the overlay stays off until the person turns it on, and then marks every item as added.
 - **FR-018**: With the overlay on, every added, changed or removed item in the full graph, the neighbourhood
   graph, the details panels and the lists MUST be marked with a text label, a dashed outline and a grey
-  treatment, and MUST remain fully readable.
+  treatment, and MUST remain fully readable. A branch that moved or was removed while the overlay is on MUST be
+  reported in words, and the overlay MUST recompute.
 - **FR-019**: A removed item MUST be drawn at the place it has in the published state, together with its
   edges to items that still exist.
 - **FR-020**: The mark MUST NOT rely on colour alone, MUST meet the contrast the existing design requires for
-  text and non-text parts in the light and the dark theme, and MUST NOT change the size of any card.
+  text and non-text parts in the light and the dark theme, and MUST NOT change the outer size of any card or make text overflow or overlap.
 - **FR-021**: With the overlay off, or with no unpublished change, every screen MUST be unchanged by this
   feature in its rendered structure and in the recorded comparison.
 - **FR-022**: The overlay MUST never hide, disable or block any item, action or answer. It MUST NOT change what
@@ -298,8 +299,8 @@ test fixture reads a branch that is not the person's current one.
   authorization, MUST record the item address in no file, and MUST NOT push anything.
 - **FR-026**: The branch list MUST show who holds a branch that another working copy holds and MUST NOT allow
   choosing it, as the existing branch picker does.
-- **FR-027**: The workbench MUST refuse, in both modes, to push a branch it manages for unpublished work
-  from this control. Pushing remains where it is today.
+- **FR-027**: The branch control and the overlay MUST NOT push anything or offer to. Pushing remains where it
+  is today.
 
 **Publication review**
 
@@ -332,9 +333,9 @@ test fixture reads a branch that is not the person's current one.
 
 - **FR-035**: The set of sides MUST be extensible by one registration, so that feature 012 can add
   `proposal:<id>` without changing the comparison or the answer.
-- **FR-036**: The graph and detail components MUST carry the overlay mark through one optional `change`
-  field and one mark component, placed in the item annotation slot that also hosts other marks, so that
-  features 014 and 016 and this one do not edit each other's components.
+- **FR-036**: The overlay mark MUST be one shared display part that is placed in a common place on each item
+  card and row, which other marks (traffic from feature 014, governance from feature 016) also use, so that
+  the features do not need to edit each other's parts.
 
 ### Key Entities
 
