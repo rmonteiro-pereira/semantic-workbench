@@ -3,6 +3,7 @@ import React, { useMemo, useState, useRef, useEffect } from 'react';
 import type { Issue } from '../../shared/validation/diagnostics';
 import { validateInput } from '../../shared/validation/input';
 import { OSSIE_SCHEMA_VERSION, isNotValidated } from '../../shared/validation/validation';
+import { TesseraNames, type DocumentFormat } from '../../shared/tessera/format';
 import { featureLabeler } from '../editor/feature';
 import { CodeEditor, type CodeEditorHandle } from '../editor/CodeEditor';
 import './validation-editor.css';
@@ -12,8 +13,10 @@ export function ValidationPanel({
   onLocate,
   onValidateAsShippedVersion,
   source,
+  format,
 }: {
   issues: Issue[];
+  format?: DocumentFormat;
   onLocate?: (issue: Issue) => void;
   onValidateAsShippedVersion?: () => void;
   source?: string;
@@ -32,7 +35,15 @@ export function ValidationPanel({
     empty: 'Provide a definition before continuing.',
     filename: 'Use a filename without directory separators or control characters.',
     size: 'Split this definition into files smaller than 2 MB.',
+    'tessera-marker': `Write the marker as a whole number of at least 1, for example ${TesseraNames.markerKey}: 1.`,
+    'tessera-revision': 'Use a revision this workbench supports, and only the properties that revision defines.',
+    'tessera-base': 'Set version to one of the supported Ossie bases the message lists.',
+    'tessera-kind': `Remove the ${TesseraNames.markerKey} key; ${TesseraNames.product} applies to ontology documents only.`,
+    'tessera-property': 'Check the spelling against the registered properties the message lists, or remove the property.',
+    'tessera-reserved': 'Remove the property; its name is kept for a later feature.',
+    'tessera-location': 'Move the property to one of the places the message lists.',
   };
+  const formatLabel = format?.family === 'tessera' ? `${TesseraNames.product} ${format.revision} on Ossie ${format.base} · ` : '';
   return (
     <div className="validation-report" aria-label="Validation report">
       {notValidated && (
@@ -49,6 +60,7 @@ export function ValidationPanel({
       )}
       {!notValidated && (
         <p>
+          {formatLabel}
           {errorCount} {errorCount === 1 ? 'error' : 'errors'} · {warningCount} {warningCount === 1 ? 'warning' : 'warnings'}
         </p>
       )}

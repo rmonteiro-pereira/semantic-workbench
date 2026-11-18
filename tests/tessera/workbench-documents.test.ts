@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { parse } from 'yaml';
 import { formatAddress, type Address } from '../../src/shared/core/item-address';
 import { inspect } from '../../src/shared/core/model';
-import type { DocumentFormat } from '../../src/shared/tessera/format';
+import { formatOfInspection } from '../../src/shared/tessera/format';
 import { fieldsFor, writeField } from '../../src/shared/edit/item-model';
 import { valuePatches } from '../../src/shared/edit/yaml-patch';
 import { applyPatches } from '../../src/shared/editor/patch';
@@ -37,10 +37,6 @@ function withoutTessera(text: string): string {
   return JSON.stringify(strip(data), null, 2) + '\n';
 }
 
-function formatOf(model: object) {
-  return 'format' in model ? (model.format as DocumentFormat) : undefined;
-}
-
 function summary(text: string, filename: string) {
   const model = inspect(text, filename);
   return {
@@ -56,8 +52,8 @@ for (const form of FORMS) {
   test(`${form.label}: inspection of a Tessera ontology equals that of the same ontology without marker and notes`, () => {
     const twin = withoutTessera(form.text);
     expect(summary(form.text, form.filename)).toEqual(summary(twin, 'twin.ontology.json'));
-    expect(formatOf(inspect(form.text, form.filename))).toEqual({ family: 'tessera', revision: 1, base: '0.2.0.dev0', baseLabel: 'valid against the bundled Ossie 0.2.0.dev0 draft' });
-    expect(formatOf(inspect(twin, 'twin.ontology.json'))).toEqual({ family: 'standard' });
+    expect(formatOfInspection(inspect(form.text, form.filename))).toEqual({ family: 'tessera', revision: 1, base: '0.2.0.dev0', baseLabel: 'valid against the bundled Ossie 0.2.0.dev0 draft' });
+    expect(formatOfInspection(inspect(twin, 'twin.ontology.json'))).toEqual({ family: 'standard' });
   });
 
   test(`${form.label}: the scanner records the document type Ossie ontology`, () => {
@@ -115,6 +111,6 @@ for (const form of FORMS) {
     const text = form.filename.endsWith('.json') ? JSON.stringify(document, null, 2) + '\n' : form.text.replace(/^\s*tessera_notes:.*\n/gm, '');
     const result = validateInput(text, form.filename);
     expect(result.valid).toBe(true);
-    expect(result.valid && formatOf(result.model)?.family).toBe('tessera');
+    expect(result.valid && formatOfInspection(result.model)?.family).toBe('tessera');
   });
 }

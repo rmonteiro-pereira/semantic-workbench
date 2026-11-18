@@ -25,3 +25,8 @@ export function tesseraPropertyName(suffix: string): string {
 
 /** What a document is: ordinary Ossie or ODCS, or Tessera at a revision on a named Ossie base. */
 export type DocumentFormat = { family: 'standard' } | { family: 'tessera'; revision: number; base: string; baseLabel: string };
+
+/** Reads the format an inspection reports, or nothing for a result that has none, such as an RDF file. */
+export function formatOfInspection(model: object | null): DocumentFormat | undefined {
+  return model !== null && 'format' in model ? (model.format as DocumentFormat) : undefined;
+}
