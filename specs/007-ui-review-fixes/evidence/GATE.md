@@ -641,6 +641,14 @@ keyboard focus ring on the metric grouping control. The empty Trash dialog keeps
   The theme retry reached Light Catalog and counted the hidden Edit action at `1.00:1`. At rest its measured opacity is zero,
   as required by the catalog reveal. The updated sampler will exclude fully transparent controls and keep testing visible text.
   Auth returned 0 in 143.7 s. Session expiry, grant refresh, read-only export and Git history refusal passed.
+- `sw-midgard-run -- bash scripts/ui-review/gate-007/continue-verified-matrix.sh` restarted the serial work after the previous
+  process exited and both assigned ports were clear. There were 105 GB available. `bun --bun run check` found 2,661 warnings and zero
+  errors. Build completed in 3.24 s. `bun scripts/ci-validate.ts --step browser --suite test:theme` returned 0 in 217.1 s with
+  `10 theme checks passed`, both tours readable and no uncaught browser errors. Commit `09c4d701` narrows the contrast sample
+  to visible text. This leaves the measured contrast threshold in place for Edit on hover or focus.
+- `RESPONSIVE_ONLY='full screen:' bun scripts/ci-validate.ts --step browser --suite test:responsive` on pinned main also returned 1
+  waiting 3 seconds for the fullscreen exit transform at the same assertion. Expected `matrix(0.617106, 0, 0, 0.617106, -95.1602, -57.878)`,
+  measured `matrix(0.316825, 0, 0, 0.316825, 29.327, 126.842)`.
 - The first resumed matrix action, `local/light/390/import`, ended with status 0 before a planned pause (75).
   `bash .data/gate/pull-review-007.sh .data/gate/import-phone-final local/light/390/import` returned 19 strips.
   All 114 action records passed. All seven sheets and the repeats were opened. The Import dialog keeps both destinations and its
