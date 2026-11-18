@@ -58,3 +58,15 @@ test('a deletion stops migration replay and colliding migration targets are neve
   expect(compareItems([before], [after], [renamed, deleted])).toHaveLength(2);
   expect(compareItems([before, item('Older')], [after], [renamed, migration(item('Older'), after, 'other')])).toHaveLength(3);
 });
+
+test('a recorded rename still pairs its destination when a new item reuses the old address', () => {
+  const before = item('Customer', { description: 'Original buyer' });
+  const renamed = item('Buyer', { description: 'Original buyer' });
+  const reused = item('Customer', { description: 'Replacement buyer' });
+  const result = compareItems([before], [renamed, reused], [migration(before, renamed)]);
+  expect(result.map(change => [change.name, change.state])).toEqual([
+    ['Buyer', 'changed'],
+    ['Customer', 'added'],
+  ]);
+  expect(result[0].previousAddress).toBe(before.address);
+});

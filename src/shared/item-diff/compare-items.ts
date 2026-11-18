@@ -50,7 +50,7 @@ export function compareItems(before: readonly DiffItem[], after: readonly DiffIt
   const claims = new Map<string, number>();
   for (const [address, items] of oldItems) {
     if (ambiguous.has(address)) continue;
-    const target = newItems.has(address) ? address : migratedTarget(items[0], records);
+    const target = migratedTarget(items[0], records);
     targets.set(address, target);
     if (target) claims.set(target, (claims.get(target) ?? 0) + 1);
   }
