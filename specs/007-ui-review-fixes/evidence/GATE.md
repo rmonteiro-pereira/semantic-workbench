@@ -658,6 +658,10 @@ keyboard focus ring on the metric grouping control. The empty Trash dialog keeps
 - The serial `bun scripts/ci-validate.ts --step browser --suite test:sidebar` rerun returned 0 with four checks on both builds,
   in 203.5 s on main and 205.1 s on the candidate. The readiness probe records the viewport and page state only if the original
   startup assertion fails. The rerun reached every geometry check, including the footer at 500 px high and after file and project deletion.
+- A screenshot-only retry of `test:mapping-graph` passed the Shipment and warning checks and saved the Shipment image. It later
+  timed out reopening the project tree after reload. The unmodified rerun above passed all 12 checks. The diagnostic runner
+  restored the suite source before exit. `sw-midgard-run -- bash scripts/ui-review/gate-007/finish-matched-matrix.sh` started the
+  pending matched captures after both assigned ports were clear, with 106 GB available.
 - The first resumed matrix action, `local/light/390/import`, ended with status 0 before a planned pause (75).
   `bash .data/gate/pull-review-007.sh .data/gate/import-phone-final local/light/390/import` returned 19 strips.
   All 114 action records passed. All seven sheets and the repeats were opened. The Import dialog keeps both destinations and its
