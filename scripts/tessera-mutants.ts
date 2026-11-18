@@ -58,6 +58,11 @@ export const attributesMutants: Mutant[] = [
   ['attributes-item-identity', 'src/shared/governance/ontology-guards.ts', 'JSON.stringify([concept.concept, relationship.name])', 'label'],
   ['attributes-item-identity', 'src/shared/governance/ontology-guards.ts', "else if (oldStatus === 'approved' && status === '')", 'else if (false)'],
   ['attributes-demotion', 'src/shared/governance/guards.ts', 'if (options.demote && guarded.demotable)', 'if (false)'],
-  ['attributes-publication', 'src/server/routes/agent.ts', 'const response = await use(documents);', 'const response = await editingAgentDocuments(workspace, request, project, use);'],
+  [
+    'attributes-publication',
+    'src/server/routes/agent.ts',
+    'const response = await use(documents.map(file => (providers.has(file.path) ? { ...file, publishedInterfaces: providers.get(file.path) } : file)));',
+    'const response = await editingAgentDocuments(workspace, request, project, use);',
+  ],
   ['attributes-loss', lossReport, 'statusCounts: countStatuses(statuses)', 'statusCounts: countStatuses([])'],
 ];
