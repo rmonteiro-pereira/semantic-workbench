@@ -155,14 +155,13 @@ The shared graph changes are confined to the imported field, origin mark and imp
 in full-node-data.ts, FullGraphNodes.tsx, NeighborhoodGraph.tsx, RelationshipEdge.tsx,
 GraphOptions.tsx and legend.css. Keep those blocks when integrating traffic and item history.
 
-T036 and T040 retain incomplete proof for exported concepts whose prerequisites are re-exported
+T036 retains incomplete proof for exported concepts whose prerequisites are re-exported
 through another provider. Frozen dependency traversal validates authorization, history, depth and
 commit conflicts. Computing the full re-export closure and carrying canonical ownership across
 that closure still requires changes in public interface preparation and compiler translation.
 The current compiler handles a provider's local public prerequisites and refuses unavailable
 prerequisites. The refusal suite covers missing public prerequisites, base conflicts, qualified
-collisions, version conflicts and altered meaning; undefined translation is not independently
-fault-injected on the provider path.
+collisions, version conflicts, undefined provider translations and altered meaning.
 
 T045 has the allowed-fields proof on the real dependents route. Its cross-feature store
 boundary needs the usage-counter code. T046's task calls for a findings store, while the
