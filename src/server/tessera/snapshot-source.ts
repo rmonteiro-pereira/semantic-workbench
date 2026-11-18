@@ -1,11 +1,12 @@
 // Reads one project folder as it is in a commit on the default branch, from Git objects only. The working tree, the index and other branches are never read.
-import { readFileSync } from 'node:fs';
-import { basename, dirname, join, relative, resolve } from 'node:path';
+import { existsSync, readFileSync, realpathSync } from 'node:fs';
+import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import type { UnitFile } from '../../shared/tessera/compile-unit';
 import { commitOf, createGit, isBranchName, type Git } from '../projects/git';
 import { parsePublishedState } from '../projects/published-pointer';
 import { SNAPSHOT_LIMITS, type SnapshotLimits } from '../projects/snapshot-index';
 import { UnknownDefaultBranchError, defaultBranchAt } from '../projects/worktrees';
+import { isWorkInProgressBranch } from '../projects/work-in-progress-push';
 import { TesseraRefusal } from './refusal';
 
 /** What the person asked to read. */
@@ -19,7 +20,8 @@ export type SnapshotRequest = {
 
 /** A committed project folder: where it came from and the bytes of its files. */
 export type SnapshotSource = {
-  kind: 'published-snapshot';
+  kind: 'published-snapshot' | 'standalone-snapshot';
+  dataRoot?: string;
   branch: string;
   commit: string;
   projectFolder: string;
@@ -62,20 +64,54 @@ async function chosenCommit(git: Git, directory: string, branch: string, tip: st
   return requested;
 }
 
-/** With a data root, the commit must be the one the workbench has published for this repository. */
-function checkPublishedPointer(dataRoot: string, directory: string, branch: string, commit: string) {
+function workbenchRoot(repository: string): string | undefined {
+  for (let parent = dirname(repository); parent !== dirname(parent); parent = dirname(parent)) {
+    if (!['projects', 'worktrees'].includes(basename(parent))) continue;
+    const root = dirname(parent);
+    if (existsSync(join(root, 'state', 'projects.json')) || existsSync(join(root, 'state', 'published.json'))) return root;
+  }
+}
+
+function publishedCommit(root: string, repository: string, branch: string, requested: string | undefined) {
   let state;
   try {
-    state = parsePublishedState(JSON.parse(readFileSync(join(dataRoot, 'state', 'published.json'), 'utf8')));
+    state = parsePublishedState(JSON.parse(readFileSync(join(root, 'state', 'published.json'), 'utf8')));
   } catch (error) {
     throw new TesseraRefusal(`The data root has no readable publication record: ${(error as Error).message}`);
   }
-  const projectsRoot = resolve(dataRoot, 'projects');
-  const inside = resolve(directory).startsWith(projectsRoot + '/');
-  const pointer = state.repositories[inside ? relative(projectsRoot, resolve(directory)) : basename(directory)];
+  const path = relative(join(root, 'projects'), repository).split(sep).join('/');
+  const pointer = state.repositories[path];
   if (!pointer?.commit) throw new TesseraRefusal('The workbench has not published this repository.');
   if (pointer.branch !== branch) throw new TesseraRefusal(`The workbench publishes ${pointer.branch}, not ${branch}.`);
-  if (pointer.commit !== commit) throw new TesseraRefusal(`The workbench has published ${pointer.commit}, not ${commit}.`);
+  if (requested !== undefined && pointer.commit !== requested) throw new TesseraRefusal(`The workbench has published ${pointer.commit}, not ${requested}.`);
+  return pointer.commit;
+}
+
+function rejectReserved(branch: string | undefined) {
+  if (branch !== undefined && isWorkInProgressBranch(branch)) throw new TesseraRefusal('The branch refers to reserved workbench history.');
+}
+
+async function snapshotPosition(git: Git, request: SnapshotRequest, directory: string, commonDirectory: string) {
+  rejectReserved(request.branch);
+  const repository = dirname(realpathSync(commonDirectory));
+  const dataRoot = workbenchRoot(repository);
+  const checkoutRoot = workbenchRoot(realpathSync(directory));
+  if (checkoutRoot && (checkoutRoot !== dataRoot || !repository.startsWith(join(checkoutRoot, 'projects') + sep))) {
+    throw new TesseraRefusal('The checkout is not linked to a project repository in its workbench data root.');
+  }
+  if (request.dataRoot && (!existsSync(request.dataRoot) || realpathSync(request.dataRoot) !== dataRoot)) {
+    throw new TesseraRefusal('The repository is outside the specified workbench data root.');
+  }
+  const branch = await defaultBranch(git, directory, dataRoot ? undefined : request.branch);
+  rejectReserved(branch);
+  if (dataRoot) {
+    if (request.branch !== undefined && request.branch !== branch) throw new TesseraRefusal(`The configured default branch is ${branch}, not ${request.branch}.`);
+    const commit = publishedCommit(dataRoot, repository, branch, request.commit);
+    if (!FULL_COMMIT.test(commit) || (await commitOf(git, directory, commit)) !== commit) throw new TesseraRefusal('The published commit is missing or invalid.');
+    return { kind: 'published-snapshot' as const, branch, commit, dataRoot };
+  }
+  const commit = await chosenCommit(git, directory, branch, await branchTip(git, directory, branch), request.commit);
+  return { kind: 'standalone-snapshot' as const, branch, commit };
 }
 
 function folderPrefix(projectFolder: string | undefined): string {
@@ -89,11 +125,10 @@ function folderPrefix(projectFolder: string | undefined): string {
 /** Resolves the commit, checks the limits before any blob is read, then reads the project folder's files. */
 export async function readSnapshot(request: SnapshotRequest, git: Git = gitFor(request.repository), limits: SnapshotLimits = SNAPSHOT_LIMITS): Promise<SnapshotSource> {
   const directory = resolve(request.repository);
-  const inside = await git.run(directory, ['rev-parse', '--git-dir'], { readOnly: true, allowFailure: true });
+  const inside = await git.run(directory, ['rev-parse', '--path-format=absolute', '--git-common-dir'], { readOnly: true, allowFailure: true });
   if (inside.code !== 0) throw new TesseraRefusal(`${request.repository} is not a Git repository.`);
-  const branch = await defaultBranch(git, directory, request.branch);
-  const commit = await chosenCommit(git, directory, branch, await branchTip(git, directory, branch), request.commit);
-  if (request.dataRoot) checkPublishedPointer(resolve(request.dataRoot), directory, branch, commit);
+  const position = await snapshotPosition(git, request, directory, inside.stdout.trim());
+  const { commit } = position;
   const prefix = folderPrefix(request.projectFolder);
   const entries = await git.lsTree(directory, commit, prefix);
   if (entries.length > limits.projectFiles) throw new TesseraRefusal(`The folder holds ${entries.length} files, and the limit is ${limits.projectFiles}.`);
@@ -107,5 +142,5 @@ export async function readSnapshot(request: SnapshotRequest, git: Git = gitFor(r
     limits,
   );
   const files = entries.map(entry => ({ path: entry.path.slice(prefix.length), bytes: blobs.get(entry.id)! }));
-  return { kind: 'published-snapshot', branch, commit, projectFolder: prefix ? prefix.slice(0, -1) : '.', files };
+  return { ...position, projectFolder: prefix ? prefix.slice(0, -1) : '.', files };
 }

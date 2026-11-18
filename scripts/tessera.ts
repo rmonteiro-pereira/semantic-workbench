@@ -59,7 +59,7 @@ function refused(source: RunOutcome['source'], message: string, compile: Compile
 
 function bundleFiles(result: CompileResult, source: ManifestSource, accepted: 'digest' | 'policy' | 'none'): UnitFile[] {
   const manifest = buildManifest(result, source, accepted);
-  return [...result.outputs, { path: 'manifest.json', bytes: encoder.encode(printManifest(manifest)) }, { path: 'loss-report.json', bytes: encoder.encode(printReport(result.report)) }];
+  return [...result.outputs, { path: 'manifest.json', bytes: encoder.encode(printManifest(manifest)) }, { path: 'loss-report.json', bytes: encoder.encode(printReport(result.report, source)) }];
 }
 
 async function runCompile(args: CompileArguments): Promise<RunOutcome> {
@@ -70,17 +70,17 @@ async function runCompile(args: CompileArguments): Promise<RunOutcome> {
     checkTarget(target);
     source = await readSnapshot({ repository: args.repository, projectFolder: args.projectFolder, branch: args.branch, commit: args.commit, dataRoot: args.dataRoot });
   } catch (error) {
-    if (error instanceof TesseraRefusal) return refused({ kind: 'published-snapshot' }, error.message);
+    if (error instanceof TesseraRefusal) return refused({ kind: 'snapshot' }, error.message);
     throw error;
   }
-  const manifestSource: ManifestSource = { kind: 'published-snapshot', branch: source.branch, commit: source.commit, projectFolder: source.projectFolder };
+  const manifestSource: ManifestSource = { kind: source.kind, branch: source.branch, commit: source.commit, projectFolder: source.projectFolder };
   const result = compileUnit(source.files, { lossPolicySha256: policy?.sha256 ?? null });
   if (result.failures.length) return refused(manifestSource, 'The compile failed, and no acceptance can override that.', result);
   const acceptance = acceptLoss(result.report, { digest: args.acceptLoss, policy: policy?.policy });
   if ('refusal' in acceptance) return { result: 'needs-acceptance', source: manifestSource, compile: result, accepted: null, message: acceptance.refusal, bundle: null };
   const files = bundleFiles(result, manifestSource, acceptance.accepted);
   try {
-    writeBundle(target, files);
+    writeBundle({ ...target, dataRoot: source.dataRoot ?? target.dataRoot }, files);
   } catch (error) {
     if (error instanceof TesseraRefusal) return refused(manifestSource, error.message, result);
     throw error;

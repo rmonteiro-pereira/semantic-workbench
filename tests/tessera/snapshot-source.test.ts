@@ -1,8 +1,8 @@
 // Checks the command reads only the committed snapshot of the default branch and refuses sources it must not use, and that the disk source stays inside its folder.
 import { afterEach, expect, test } from 'bun:test';
-import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { SNAPSHOT_LIMITS } from '../../src/server/projects/snapshot-index';
 import { UNIT_LIMITS } from '../../src/shared/tessera/compile-unit';
 import { readFolder } from '../../src/server/tessera/disk-source';
@@ -27,7 +27,7 @@ const request = (created: TesseraRepository, more: object = {}) => ({ repository
 test('the snapshot holds the committed files of the project folder only, with the folder removed from their paths', async () => {
   const created = repository();
   const source = await readSnapshot(request(created));
-  expect(source).toMatchObject({ kind: 'published-snapshot', branch: 'main', commit: created.firstCommit, projectFolder: PROJECT_FOLDER });
+  expect(source).toMatchObject({ kind: 'standalone-snapshot', branch: 'main', commit: created.firstCommit, projectFolder: PROJECT_FOLDER });
   expect(source.files.map(file => file.path).sort()).toEqual(['contract.odcs.yaml', 'mapping.yaml', 'ontology.yaml', 'semantic-model.yaml', 'vocabulary.ttl']);
   expect(decode(source.files.find(file => file.path === 'ontology.yaml')!.bytes)).toBe(ONTOLOGY_TEXT);
 });
@@ -70,20 +70,42 @@ function dataRootPointing(commit: string, repositoryName: string): string {
   return root;
 }
 
-test('with a data root the commit must equal the published one, so a branch moved ahead is refused', async () => {
+function inWorkbench(created: TesseraRepository, root: string) {
+  const projects = join(root, 'projects');
+  mkdirSync(projects);
+  const directory = join(projects, basename(created.directory));
+  renameSync(created.directory, directory);
+  return directory;
+}
+
+test('the configured default and publication record pin an in-workbench compile even when the branch is ahead', async () => {
   const created = repository();
-  const name = created.directory.split('/').at(-1)!;
-  const root = dataRootPointing(created.firstCommit, name);
-  expect((await readSnapshot(request(created, { dataRoot: root }))).commit).toBe(created.firstCommit);
-  created.addSecondCommit();
-  await expect(readSnapshot(request(created, { dataRoot: root }))).rejects.toThrow('has published');
-  expect((await readSnapshot(request(created, { dataRoot: root, commit: created.firstCommit }))).commit).toBe(created.firstCommit);
+  created.addPersonalBranch('private-notes');
+  const second = created.addSecondCommit();
+  const root = dataRootPointing(created.firstCommit, basename(created.directory));
+  const directory = inWorkbench(created, root);
+  expect(await readSnapshot({ repository: directory })).toMatchObject({ kind: 'published-snapshot', commit: created.firstCommit });
+  await expect(readSnapshot({ repository: directory, branch: 'private-notes' })).rejects.toThrow('default branch');
+  await expect(readSnapshot({ repository: directory, commit: second })).rejects.toThrow('has published');
+  const copy = join(root, 'worktrees', 'u' + '1'.repeat(20), basename(directory));
+  mkdirSync(join(copy, '..'), { recursive: true });
+  const linked = Bun.spawnSync(['git', 'worktree', 'add', '-q', copy, 'private-notes'], { cwd: directory });
+  expect(linked.exitCode).toBe(0);
+  expect(await readSnapshot({ repository: copy })).toMatchObject({ kind: 'published-snapshot', commit: created.firstCommit });
 });
 
-test('a data root without a record for the repository is refused', async () => {
+test('a data root without a record for its repository cannot establish publication', async () => {
   const created = repository();
   const root = dataRootPointing(created.firstCommit, 'another-repository');
-  await expect(readSnapshot(request(created, { dataRoot: root }))).rejects.toThrow('has not published');
+  await expect(readSnapshot({ repository: inWorkbench(created, root) })).rejects.toThrow('has not published');
+});
+
+test('standalone compile refuses reserved branch and workbench ref names', async () => {
+  const created = repository();
+  for (const branch of ['work/alice', 'proposal/draft', 'refs/workbench/hidden']) {
+    created.addPersonalBranch(branch);
+    await expect(readSnapshot(request(created, { branch }))).rejects.toThrow('reserved');
+  }
 });
 
 test('a file over the document limit is refused before any blob is read', async () => {

@@ -438,15 +438,20 @@ Ossie ontology. The validation panel names the format ("Tessera 1 on Ossie 0.2.0
 `tessera_` property, a reserved name, a marker on a file that is not an ontology or an unsupported
 Ossie `version` each give a finding with its own code (`tessera-marker`, `tessera-revision`,
 `tessera-base`, `tessera-kind`, `tessera-property`, `tessera-reserved`, `tessera-location`).
-Agents, the item inspector and access rules treat the file as an ordinary Ossie ontology, and notes
-never reach agent context. Tests: `tests/tessera/validation.test.ts`,
+The item inspector and access rules apply to Tessera files. Semantic agent context uses the published projection with notes removed.
+Authorized MCP authoring tools can read the stored source, including unpublished edits and notes. Tests: `tests/tessera/validation.test.ts`,
 `tests/tessera/workbench-documents.test.ts`, `tests/tessera/agent-and-access.test.ts`.
 
 ### The compiler and its command line
 
-`bun run tessera compile` reads one project folder of a Git repository as it is in a commit on the
-default branch (never the working tree or another branch), compiles every Tessera ontology to
-standard Ossie by removing the marker and the notes, copies the other Ossie files byte for byte and
+`bun run tessera compile` reads one project folder from Git objects. In a workbench data root,
+the configured default branch and the publication record select the commit. An explicit `--branch`
+or `--commit` must match that selection. An explicit `--data-root` must contain the repository.
+Anywhere else, the manifest and loss report label the source `standalone-snapshot`, meaning a Git
+commit on the chosen branch whose publication the workbench cannot establish. Reserved `work/`,
+`proposal/` and `refs/workbench/` refs are refused in either case.
+
+The compiler removes the Tessera marker and notes, copies the other Ossie files byte for byte, and
 writes a bundle outside the repository and the data root’s project and working copy trees.
 The output check follows symlinks and treats names like `..exports` as ordinary child folders.
 The bundle contains the compiled files, `manifest.json` and
@@ -465,7 +470,8 @@ failed output check, an invalid source, a refused commit or output folder); 2 th
 values and the loss is not accepted, so nothing was written and the report was printed; 64 misuse.
 
 Dropped values are never silent. The loss report lists each one by document, item address, property,
-JSON pointer, byte length and SHA-256, never the value, and ends with a digest. A compile with loss
+JSON pointer, byte length and SHA-256, never the value, and ends with a digest. Source provenance
+is carried alongside the loss report and excluded from its digest. A compile with loss
 is released only when you pass that exact digest (`--accept-loss`) or a loss policy file
 (`{ "policy": 1, "allow": ["tessera_notes"] }`). A policy continues to allow loss when the values of allowed properties change.
 An exact digest applies only to the report it identifies. A policy must be a regular file of at most

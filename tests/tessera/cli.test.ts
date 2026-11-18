@@ -78,9 +78,9 @@ test('compile with the digest writes a bundle of the committed snapshot only', (
   expect(readBundle(s.out, 'semantic-model.yaml')).toBe(COMMITTED_FILES[`${PROJECT_FOLDER}/semantic-model.yaml`]);
   expect(readBundle(s.out, 'mapping.yaml')).toBe(COMMITTED_FILES[`${PROJECT_FOLDER}/mapping.yaml`]);
   const manifest = JSON.parse(readBundle(s.out, 'manifest.json'));
-  expect(manifest.source).toEqual({ kind: 'published-snapshot', branch: 'main', commit: s.repository.firstCommit, projectFolder: PROJECT_FOLDER });
+  expect(manifest.source).toEqual({ kind: 'standalone-snapshot', branch: 'main', commit: s.repository.firstCommit, projectFolder: PROJECT_FOLDER });
   expect(manifest.loss).toEqual({ digest, accepted: 'digest' });
-  expect(JSON.parse(readBundle(s.out, 'loss-report.json')).digest).toBe(digest);
+  expect(JSON.parse(readBundle(s.out, 'loss-report.json'))).toMatchObject({ digest, source: manifest.source });
   expect(result.stdout).toContain('Accepting a loss report is not approval of the exported content.');
 });
 
@@ -285,11 +285,11 @@ test('a commit that is not on the default branch history is refused', () => {
   expectRefused(s, compileArgs(s, ['--commit', offBranch]), 'not on the history');
 });
 
-test('a branch that moved ahead of the data root pointer is refused', () => {
+test('a publication record cannot label an unrelated repository with the same directory name', () => {
   const s = scene();
   const root = dataRootPointingAt(s, s.repository.firstCommit);
   s.repository.addSecondCommit();
-  expectRefused(s, compileArgs(s, ['--data-root', root]), 'has published');
+  expectRefused(s, compileArgs(s, ['--data-root', root]), 'outside');
 });
 
 test('an existing output folder that is not empty is refused', () => {

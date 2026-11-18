@@ -48,12 +48,14 @@ export function findingsOf(outcome: RunOutcome): OutputFinding[] {
 
 /** The one JSON object of `--json`. */
 export function renderJson(outcome: RunOutcome): string {
-  return canonicalJson({ result: outcome.result, source: outcome.source, findings: findingsOf(outcome), report: outcome.compile?.report ?? null, bundle: outcome.bundle });
+  const report = outcome.compile ? { ...outcome.compile.report, source: outcome.source } : null;
+  return canonicalJson({ result: outcome.result, source: outcome.source, findings: findingsOf(outcome), report, bundle: outcome.bundle });
 }
 
 function sourceLine(source: RunOutcome['source']): string {
   if (source.kind === 'files-on-disk') return 'Source: files on disk (unpublished)';
-  const label = source.kind === 'published-snapshot' ? 'published snapshot' : 'snapshot';
+  const labels = { 'published-snapshot': 'published snapshot', 'standalone-snapshot': 'standalone snapshot', snapshot: 'snapshot' };
+  const label = labels[source.kind];
   if (!source.commit) return `Source: ${label} (not read)`;
   return `Source: ${label} of ${source.branch} at ${source.commit}, folder ${source.projectFolder}`;
 }

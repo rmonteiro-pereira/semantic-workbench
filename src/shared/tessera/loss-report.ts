@@ -1,4 +1,5 @@
 // The loss report: what a compile dropped, listed by item, with counts and a digest that acceptance is bound to.
+import type { ManifestSource } from './manifest';
 import { canonicalJson, compareText } from './canonical-json';
 import { sha256Hex } from './digest';
 import type { Registry } from './registry';
@@ -61,8 +62,8 @@ function countByProperty(losses: LossEntry[]): Record<string, number> {
 }
 
 /** Prints a report the way it is stored: sorted keys, two spaces, LF. */
-export function printReport(report: LossReport): string {
-  return canonicalJson(report);
+export function printReport(report: LossReport, source?: ManifestSource): string {
+  return canonicalJson(source ? { ...report, source } : report);
 }
 
 /** The digest of a report: the SHA-256 of its canonical JSON without the digest field. */

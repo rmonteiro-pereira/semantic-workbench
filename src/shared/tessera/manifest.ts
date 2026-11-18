@@ -4,7 +4,7 @@ import type { CompileResult } from './compile-unit';
 import type { Acceptance, LossReport } from './loss-report';
 
 /** Where the compiled files came from. Files on disk carry no commit and are never published. */
-export type ManifestSource = { kind: 'published-snapshot' | 'snapshot' | 'files-on-disk'; branch?: string; commit?: string; projectFolder?: string };
+export type ManifestSource = { kind: 'published-snapshot' | 'standalone-snapshot' | 'snapshot' | 'files-on-disk'; branch?: string; commit?: string; projectFolder?: string };
 
 /** The manifest of a bundle. It says nothing about approval of the exported content. */
 export type Manifest = {
