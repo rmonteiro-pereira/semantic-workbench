@@ -56,16 +56,20 @@ type Props = {
   >;
   relatedDocuments: Doc[];
   openDocument: (doc: Doc) => boolean;
+  applySaved: SectionSupport['applySaved'];
 };
+import { declaredImports } from '../../shared/tessera/imports';
+import { documentFormat } from '../../shared/tessera/validate';
+import { ImportsSection } from '../mesh/ImportsSection';
 import { PartPicker } from '../mesh/PartPicker';
 import { ontologyPartSelection } from './ontologyUnit';
 import { ItemSectionSupportContext, type SectionSupport } from '../edit/section-context';
 
 /** Renders details and makes the workspace's editing support available to its sections. */
-export function DetailsPanel({ sections, ...props }: Props & { sections: SectionSupport }) {
+export function DetailsPanel({ sections, ...props }: Omit<Props, 'applySaved'> & { sections: SectionSupport }) {
   return (
     <ItemSectionSupportContext.Provider value={sections}>
-      <DetailsPanelContent {...props} />
+      <DetailsPanelContent {...props} applySaved={sections.applySaved} />
     </ItemSectionSupportContext.Provider>
   );
 }
@@ -96,9 +100,13 @@ function DetailsPanelContent({
   setAdding,
   relatedDocuments,
   openDocument,
+  applySaved,
 }: Props) {
   const unitFiles = model && 'unitFiles' in model && Array.isArray(model.unitFiles) ? model.unitFiles : undefined;
   const partSelection = ontologyPartSelection(current, model, unitFiles);
+  const data = model && 'document' in model ? model.document : undefined;
+  const format = documentFormat(data);
+  const showImports = model?.kind === 'Ossie ontology' && format?.family === 'tessera' && format.revision === 3 && !partSelection?.part;
   function renderDetails() {
     if (relationship) {
       return (
@@ -174,6 +182,7 @@ function DetailsPanelContent({
             )}
           </div>
           {partSelection && <PartPicker selection={partSelection} />}
+          {showImports && current && <ImportsSection key={current.id} doc={current} imports={declaredImports(data)} dirty={source !== current.source} applySaved={applySaved} />}
           {renderDetails()}
         </aside>
       )}

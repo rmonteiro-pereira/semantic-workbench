@@ -556,6 +556,10 @@ When a change needs revision 2, the editor asks you to confirm the upgrade befor
 The Source view lists the visible files of a split ontology. Use the unit file buttons to open
 another part. Definition details show the current file’s role in the unit.
 
+For a revision 3 root, open **Imports** in Definition details. Choose a published provider,
+enter a local alias, and select the concepts the ontology can use. The version choice follows
+the latest publication or names a published commit or release tag.
+
 Each mistake gives one finding with a code and a place. `tessera-marker`: the marker is not a whole
 number of at least 1; write `tessera: 1`. `tessera-revision`: the document is newer than this
 workbench, or uses a property that needs a higher revision; use a supported revision. `tessera-base`:
