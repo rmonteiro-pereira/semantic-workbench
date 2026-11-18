@@ -574,8 +574,8 @@ The original review archive contains 3,559 PNGs. A read-only count by folder mea
 
 Status: in progress. No visual pair is classified before both images have been opened.
 
-The gallery checkpoint of 749 rows includes 318 intended fixes, 32 expected merged-feature differences, 305 neutral changes and 11
-unchanged steps. It retains 42 frames of fixed regressions and 41 frames flagged as possible or unresolved regressions. A frame count
+The gallery checkpoint of 749 rows includes 330 intended fixes, 32 expected merged-feature differences, 300 neutral changes and 11
+unchanged steps. It retains 42 frames of fixed regressions and 34 frames flagged as possible or unresolved regressions. A frame count
 can include multiple actions that carry the same underlying issue. The manifest records actions without matched captures.
 The counted Network heading and compact mapping correction pairs were opened at 390×844 in both themes.
 The 75-state phone replay (local, light, 390×844) was opened across 25 contact sheets. Both repetitions on all three versions
@@ -595,6 +595,11 @@ keyboard focus ring on the metric grouping control. The empty Trash dialog keeps
   Both 390×844 touch repetitions leave Edit visible. The sidebar fades down at the top and up at the bottom. The last ODCS row and badge
   remain whole. Desktop main/candidate differences were 14.532022% at Catalog rest, 13.926080% on hover and focus, and 1.376157%/1.763349%
   at the top and bottom sidebar positions.
+- `bash .data/gate/pull-review-007.sh .data/gate/full-graph-confirmed local/light/390/full-graph-controls` pulled 43 steps.
+  `python3 .data/gate/contact-sheet-007.py` composed 15 sheets. Both repeats were opened throughout. Network Fit and Expand all
+  show all 45 names at phone width. Collapsing Layered shows all four counted cards. Selecting Order and expanding again keeps
+  Order above the inspector. The hidden mini-map leaves the full width available. Each fullscreen path exposes Exit full screen.
+  The Legend step is unavailable in all six runs, and one release pass missed the initial Layered Order selection.
 - `bash .data/gate/publish-current-review.sh` returned 749 rows with the counts above.
 
 The Full Graph replay scored 43 steps, from two repetitions per version. The candidate Network first view and Fit show four named counted areas.
