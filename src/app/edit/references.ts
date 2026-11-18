@@ -362,7 +362,7 @@ export function renameUnitAlias(root: ProjectDoc, documents: readonly ProjectDoc
   if (declarations.some(entry => entry.alias === next)) throw new Error(`Import alias "${next}" already exists.`);
   const names = new Set<string>(declarations[index].concepts.map((concept: string) => `${previous}.${concept}`));
   const rewrite = (reference: string) => (names.has(reference) ? next + reference.slice(previous.length) : reference);
-  const parts = Array.isArray(data[INCLUDES_PROPERTY]) ? data[INCLUDES_PROPERTY] : [];
+  const parts: string[] = Array.isArray(data[INCLUDES_PROPERTY]) ? data[INCLUDES_PROPERTY].filter((path: unknown) => typeof path === 'string') : [];
   const byPath = new Map(documents.map(document => [document.path, document]));
   return [
     root,

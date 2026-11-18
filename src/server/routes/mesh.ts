@@ -1,7 +1,7 @@
 /** Routes public-interface discovery and dependency status through the operation boundary. */
 import { isObject } from '../../shared/edit/source-text';
 import { compareText } from '../../shared/tessera/canonical-json';
-import { DEPENDENCY_MANIFEST_PATH, manifestIsCurrent, parseDependencyManifest } from '../../shared/tessera/dependency-manifest';
+import { DEPENDENCY_MANIFEST_PATH, manifestIsCurrent, parseDependencyManifest, type DependencyManifest } from '../../shared/tessera/dependency-manifest';
 import { declaredImports } from '../../shared/tessera/imports';
 import { readMarker } from '../../shared/tessera/marker';
 import { validateInput } from '../../shared/validation/input';
@@ -65,7 +65,7 @@ function dependencyStatus(ws: Workspace, reader: Reader, project: string) {
   ws.project(project);
   const documents = ws.documentsFor(reader).filter(document => document.project === project);
   const lock = documents.find(document => document.path === DEPENDENCY_MANIFEST_PATH);
-  let manifest;
+  let manifest: DependencyManifest | undefined;
   if (lock) {
     try {
       manifest = parseDependencyManifest(lock.source);
