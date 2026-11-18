@@ -145,6 +145,17 @@ describe('approved item changes', () => {
     expect(guardedChanges(itemChange(after, before), SETTINGS).map(change => change.kind)).toEqual(['item-body']);
   });
 
+  test('dotted concept and relationship names retain separate governance identities', () => {
+    const relationship = { name: 'code', roles: [{ concept: 'String' }], verbalizes: ['A code'], tessera_governance: { status: 'proposed' } };
+    const first = { concept: 'Sales.Order', type: 'EntityType', relationships: [relationship] };
+    const second = { concept: 'Sales', type: 'EntityType', relationships: [{ ...relationship, name: 'Order.code', tessera_governance: { status: 'proposed' } }] };
+    const document = { tessera: 2, version: '0.2.0.dev0', name: 'Retail', ontology: [first, second] };
+    const before = JSON.stringify(document);
+    relationship.tessera_governance.status = 'approved';
+    const changes = guardedChanges(itemChange(JSON.stringify(document), before), SETTINGS);
+    expect(changes.map(({ kind, pointer }) => ({ kind, pointer }))).toEqual([{ kind: 'item-status', pointer: '/ontology/0/relationships/0' }]);
+  });
+
   test('removing an approved concept needs an approver and is never demoted', () => {
     const before = ontology(governed('approved'));
     const removed = 'tessera: 2\nversion: 0.2.0.dev0\nname: Retail\nontology: []\n';

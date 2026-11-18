@@ -44,7 +44,8 @@ function itemsOf(document: any): Map<string, LocatedItem> {
     list(concept.relationships).forEach((relationship, relationshipIndex) => {
       if (!isObject(relationship) || typeof relationship.name !== 'string') return;
       const label = `${concept.concept}.${relationship.name}`;
-      found.set(`relationship:${label}`, { path: [...conceptPath, 'relationships', relationshipIndex], value: relationship, kind: 'relationship', label });
+      const key = JSON.stringify([concept.concept, relationship.name]);
+      found.set(key, { path: [...conceptPath, 'relationships', relationshipIndex], value: relationship, kind: 'relationship', label });
     });
   });
   return found;
