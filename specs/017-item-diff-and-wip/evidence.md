@@ -288,3 +288,27 @@ suite passed all six cases (29 assertions).
   other browser suite. The Codex visual reviewer owns the last-release UI comparison across the
   full graph journey. The architecture reviewer runs once on the integrated batch. The batch
   must investigate the full-suite failures recorded above before treating the gate as green.
+
+### Final development-server proofs
+
+- The operation parity suite passed 25 cases with 341 assertions in 352.75 seconds.
+- All four comparison mutants and both provenance mutants were killed. The temporary
+  branch-push request also failed its browser request assertion before it was removed.
+- Comparing 2,000 definitions per side with 100 changes took 739.6 ms. The 500-entity
+  browser median rose from 2,450.1 ms to 2,504.4 ms with the overlay on, a 2.2% increase.
+- The Azure browser matrix contains the new item comparison suite exactly once. The
+  two absent rows on the base remain the Tessera and attributes browser suites.
+- The browser check passed all six overlay-off DOM comparisons against the base and all four
+  viewport/theme combinations (1,440 and 390 pixels, light and dark). It also passed start-branch
+  journeys for entities, relationships and attributes, a disabled held branch, refreshed
+  overlay after switching back, and a failed publication review with retry and an enabled
+  confirmation. The fixture supplies the held-copy metadata and the initial review error.
+  All comparison reads otherwise use the isolated API, and no push requests were observed.
+- The final feature, inventory, matrix, branch-access and Git-status group passed 126 tests
+  with 45,190 assertions across 38 files in 144.75 seconds. It includes all 13 provenance
+  scenarios, the four comparison parity cases and nine operation inventory checks.
+- The final check exited 0. TypeScript, formatting, comment, theme and brand checks passed.
+  Lint reported 2,698 warnings and zero errors. The readable-code checker and Git whitespace
+  check passed across the feature changes.
+- The final build exited 0. Vite built in 3.30 seconds and reported the existing vendor
+  directive and large-chunk warnings.
