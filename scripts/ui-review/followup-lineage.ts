@@ -160,8 +160,11 @@ export function lineageStates(view: View): State[] {
     },
     check: async page => {
       await expect(page.locator('g.lineage-edge[data-count="9"]')).toHaveCount(0);
-      await expect(page.locator('g.lineage-edge[data-edge-kind="reads"]')).toHaveCount(9);
-      return { split: true, single_reads: 9 };
+      const reads = page.locator('g.lineage-edge[data-edge-kind="reads"] path.react-flow__edge-path');
+      await expect(reads).toHaveCount(9);
+      const countRoutes = () => reads.evaluateAll(paths => new Set(paths.map(path => path.getAttribute('d'))).size);
+      await expect.poll(countRoutes).toBe(9);
+      return { split: true, single_reads: 9, distinct_routes: await countRoutes() };
     },
   });
   return states;

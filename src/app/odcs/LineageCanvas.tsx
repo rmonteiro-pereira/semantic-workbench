@@ -574,6 +574,12 @@ export function LineageCanvas({
     }
     if (edge.id.startsWith(BUNDLE_PREFIX)) {
       const pair = edge.id.slice(BUNDLE_PREFIX.length);
+      if (overview) {
+        // Name-only cards share one port, so the split needs their detailed rows.
+        keepOnScreen(edge.source);
+        releaseFrame();
+        setOverview(false);
+      }
       setSplitPairs(current => new Set([...current, pair]));
       return;
     }

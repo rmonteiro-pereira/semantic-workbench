@@ -102,6 +102,7 @@ and protect release tags. Existing tags inside published history remain usable a
 - Compact table headers on the Lineage tab and align embedded canvases with the table content width.
 - Keep lineage hop controls on one row and group viewport actions beside the walk trail.
 - Keep the inspected lineage card in view when zoom reveals its columns or its column list changes height.
+- Reveal the column rows when a bundled lineage line splits so the individual connections can be read.
 - Keep walk targets usable at reduced zoom, hiding them when their card cannot hold the target.
 - Identify walked lineage centres with a wrapping caption, retain CENTER beside the card name and provide a collapsible phone legend.
 - Show an explanation in place of a lone unlinked card and disable unavailable hops or mapping steps. Disable layout controls while positions are pending.

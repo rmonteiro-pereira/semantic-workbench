@@ -453,7 +453,7 @@ At far zoom, select a card and choose **Walk here** in Selected path.
 
 Click a line to see what it stands for. A single line selects its relationship, highlighting
 both columns and listing them under **Selected path**. A bundled line, labelled with the number
-of lines it stands for, splits into those lines. A line to a counted card, such as **17 more
+of lines it stands for, reveals the individual lines and their column rows. A line to a counted card, such as **17 more
 tables**, opens that card; the view keeps the table at the other end of the line in place, so the
 opened cards stay on screen.
 

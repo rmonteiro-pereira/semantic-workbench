@@ -728,7 +728,9 @@ try {
     await expect(bundled).toHaveCount(1);
     await clickLine('[aria-label="Lineage graph"] g.lineage-edge[data-count="9"]');
     await expect(bundled).toHaveCount(0);
-    await expect(graph().locator('g.lineage-edge[data-edge-kind="reads"]')).toHaveCount(9);
+    const splitReads = graph().locator('g.lineage-edge[data-edge-kind="reads"] path.react-flow__edge-path');
+    await expect(splitReads).toHaveCount(9);
+    await expect.poll(() => splitReads.evaluateAll(paths => new Set(paths.map(path => path.getAttribute('d'))).size)).toBe(9);
     // A card that is not the centre keeps drawing, with lines on its rows, when it shows more
     // columns.
     await page.locator('.tabs').getByRole('button', { name: 'Overview' }).click();
