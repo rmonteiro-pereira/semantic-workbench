@@ -55,7 +55,8 @@ it is not a drop-in performance switch.
    React Flow has yet to mount when a graph is reopened, including through browser Back. Explicit
    area choices bypass the automatic decision.
    Layered opens on the first area at readable name scale without moving its orthogonal routes;
-   Fit returns to the whole model. Resizing does not change the automatic representation.
+   Fit returns to the whole model, and Collapse areas frames every counted card even if the inspector
+   stays open. Resizing preserves the chosen representation.
 
 `src/app/graph/full-layout.ts` and its workers own engine input/output.
 `full-graph-viewport.ts` owns Fit and readable selection framing; `useFullGraphEdges.ts` builds

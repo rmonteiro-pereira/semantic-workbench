@@ -59,7 +59,9 @@ export function useFullGraphOpening({ overview, algorithm, collapseChoice, flow,
     onFitZoom(zoom);
     // The initial area view is a fallback when the new layout has no visible selection.
     const focused = !checking && focusSelection?.();
-    if (algorithm === 'layered' && !focused) {
+    if (counted && collapseChoice !== null) {
+      onArea('');
+    } else if (algorithm === 'layered' && !focused) {
       const area = overview.groups[0]?.id;
       if (area) {
         fitGraphArea(instance, canvas, area, reservedWidth);

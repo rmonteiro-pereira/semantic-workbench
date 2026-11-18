@@ -94,7 +94,8 @@ and protect release tags. Existing tags inside published history remain usable a
 - Keep the full-screen Exit visible on phones and limit the details pane height.
 - Open Network as counted area cards when names at Fit would be too small, including when returning with browser Back.
   Frame the complete counted layout on phones.
-- Open Layered on the first area at readable scale while preserving its routes.
+- Open Layered on the first area at readable scale while preserving its routes. Explicitly collapsing
+  all areas frames the counted cards together.
 - Compact table headers on the Lineage tab and align embedded canvases with the table content width.
 - Keep lineage hop controls on one row and group viewport actions beside the walk trail.
 - Keep the inspected lineage card in view when zoom reveals its columns or its column list changes height.

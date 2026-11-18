@@ -221,9 +221,10 @@ export function FullGraph(props: Props) {
       timer = setTimeout(() => {
         if (!held()) {
           if (opening.checking || (opening.automaticCollapse && collapseChoice === null)) void opening.openLayout();
-          else if (props.selected) focusSelection();
-          else if (algorithm === 'layered' && zoomedGroupId) fitGraphArea(flow.current!, el, zoomedGroupId, miniMapReservedWidth);
-          else fitWithin(0);
+          else if (!focusSelection()) {
+            if (algorithm === 'layered' && zoomedGroupId) fitGraphArea(flow.current!, el, zoomedGroupId, miniMapReservedWidth);
+            else fitWithin(0);
+          }
         }
       }, 100);
     });
