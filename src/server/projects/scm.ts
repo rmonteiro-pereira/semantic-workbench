@@ -1,7 +1,7 @@
 import type { OperationOutcome } from '../auth/operation-outcome';
 // Connects project source control actions to Git and workspace updates. Checks after mutations
 // detect bytes rewritten by hooks or filters.
-import { ADDRESS_HISTORY_FILE, addressHistoryDifference, historyEndpoints, parseAddressHistory, serializeAddressHistory } from './address-migrations';
+import { ADDRESS_HISTORY_FILE, addressHistoryDifference, committedAddressHistoryFile, historyEndpoints, serializeAddressHistory, workingAddressHistoryFile } from './address-migrations';
 import type { AccessView } from '../auth/authorize';
 import { LOCAL_READER, type Reader } from './reader';
 import { BadRequestError, HiddenResourceError } from './errors';
@@ -204,13 +204,13 @@ export function createScm(deps: ScmDeps) {
       if (owner) folders.set(owner.project, owner.prefix);
     }
     const blobs = new Map<string, string>();
-    for (const folder of folders.values()) {
+    for (const [project, folder] of folders) {
       const path = folder + ADDRESS_HISTORY_FILE;
-      assertNoLinks(directory, path);
-      if (!existsSync(join(directory, path))) continue;
-      const current = parseAddressHistory(readFileSync(join(directory, path), 'utf8'));
-      const base = await git.blob(directory, 'HEAD', path);
-      const previous = base ? parseAddressHistory(decode(base)) : [];
+      const current = workingAddressHistoryFile(layout, project);
+      if (!current) continue;
+      const commit = await git.head(directory);
+      const base = commit ? await committedAddressHistoryFile(git, layout, project, commit) : null;
+      const previous = base ?? [];
       const selectedRecord = (record: Parameters<typeof historyEndpoints>[0]) => historyEndpoints(record, project => folders.get(project)).some(endpoint => selected.has(endpoint));
       const additions = addressHistoryDifference(previous, current).filter(selectedRecord);
       const removals = new Set(

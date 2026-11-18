@@ -94,7 +94,8 @@ function compareRecordSequence(left: MigrationRecord, right: MigrationRecord): n
   return recordOrder || left.id.localeCompare(right.id, 'en', { numeric: true });
 }
 
-function loadRecords(layout: DataLayout, project: string): MigrationRecord[] {
+/** Reads the working history file for a commit, without inventing a file from legacy state. */
+export function workingAddressHistoryFile(layout: DataLayout, project: string): MigrationRecord[] | null {
   const file = addressMigrationFile(layout, project);
   if (!existsSync(file)) return legacyRecords(layout, project);
   return parseAddressHistory(readFileSync(file, 'utf8'));
@@ -120,21 +121,27 @@ function readableRecord(record: MigrationRecord, reader: Reader): boolean {
 /** Reads history only after project visibility is established and filters every record's endpoints. */
 export function readAddressMigrations(layout: DataLayout, project: string, reader: Reader): MigrationRecord[] {
   if (reader.view && !reader.view.readableProjects.has(project)) return [];
-  return loadRecords(layout, project).filter(record => readableRecord(record, reader));
+  return (workingAddressHistoryFile(layout, project) ?? legacyRecords(layout, project)).filter(record => readableRecord(record, reader));
 }
 
 /** Reads a history from an already-authorized immutable Git commit. */
 export async function readCommittedAddressMigrations(git: Git, layout: DataLayout, project: string, commit: string, reader: Reader): Promise<MigrationRecord[]> {
   if (reader.view && !reader.view.readableProjects.has(project)) return [];
+  const records = (await committedAddressHistoryFile(git, layout, project, commit)) ?? legacyRecords(layout, project);
+  return records.filter(record => readableRecord(record, reader));
+}
+
+/** Reads the history file from a verified commit, retaining its absence for commit planning. */
+export async function committedAddressHistoryFile(git: Git, layout: DataLayout, project: string, commit: string): Promise<MigrationRecord[] | null> {
   const directory = repoDir(layout, project);
   const path = projectPrefix(layout, project) + ADDRESS_HISTORY_FILE;
   const entry = (await git.lsTree(directory, commit, path)).find(candidate => candidate.path === path);
-  if (!entry) return legacyRecords(layout, project).filter(record => readableRecord(record, reader));
+  if (!entry) return null;
   const maximumBytes = ADDRESS_MIGRATION_LIMIT * 9_000;
   const blobs = await git.catFileBatch(directory, [entry.id], { documentBytes: maximumBytes, totalBytes: maximumBytes });
   const bytes = blobs.get(entry.id);
   if (!bytes) throw new BadRequestError('Address history is unavailable.');
-  return parseAddressHistory(decode(bytes)).filter(record => readableRecord(record, reader));
+  return parseAddressHistory(decode(bytes));
 }
 
 /** Assigns repeatable record identifiers from the journal's business operation identifier. */

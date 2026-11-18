@@ -1,6 +1,7 @@
 // Moves deleted files and project folders into journaled trash without rewriting Git history.
 // Restoration refuses occupied paths and suggests a free alternative.
 import { documentAddress } from '../../shared/core/item-address';
+import type { MigrationRecord } from '../../shared/core/address-migration';
 import { ADDRESS_HISTORY_FILE, historyEndpoints, operationMigrations, stageAddressMigrations, stageHistoryRemoval, trashedAddressHistory } from './address-migrations';
 import { archivePersonalState, clearPersonalDrafts } from './personal-state';
 import type { EventTags } from './events';
@@ -73,10 +74,8 @@ export type TrashContext = {
   layout: DataLayout;
   /** Reads the current local commit before history is staged. */
   head?: (files: DataLayout, project: string) => Promise<string>;
-  /** Reads record IDs already committed with the current definition baseline. */
-  committedHistoryExists?: (files: DataLayout, project: string) => Promise<boolean>;
-  /** Identifies the records that belong to the committed version. */
-  committedHistoryIds?: (files: DataLayout, project: string) => Promise<ReadonlySet<string>>;
+  /** Reads the current commit's history, with absence distinct from an empty tracked file. */
+  committedAddressHistory?: (files: DataLayout, project: string) => Promise<readonly MigrationRecord[] | null>;
   /** Where a person's working copy keeps its files; absent where there are no copies. */
   copyLayout?: (copy: string) => DataLayout;
   state: State;
@@ -285,11 +284,12 @@ export function createTrash(ctx: TrashContext) {
           atomicWrite(staged, committed);
           steps.push({ from: staged, to: file });
         }
-        const committedIds = await ctx.committedHistoryIds?.(files, slug);
-        if (committedIds) {
+        if (ctx.committedAddressHistory) {
+          const committedHistory = await ctx.committedAddressHistory(files, slug);
+          const committedIds = new Set(committedHistory?.map(record => record.id));
           const belongsToFile = (record: Parameters<typeof historyEndpoints>[0]) =>
             !committedIds.has(record.id) && historyEndpoints(record, project => (project === slug ? '' : undefined)).includes(relativePath);
-          const keepEmpty = (await ctx.committedHistoryExists?.(files, slug)) ?? false;
+          const keepEmpty = committedHistory !== null;
           steps.push(...stageHistoryRemoval({ layout: files, project: slug, staging }, belongsToFile, { keepEmpty, archive: entryDir ? trashedAddressHistory(entryDir) : undefined }));
         }
         steps.push(...clearPersonalDrafts(state, slug, [relativePath], staging, copy ?? undefined));

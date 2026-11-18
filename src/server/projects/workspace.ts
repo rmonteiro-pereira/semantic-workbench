@@ -2,7 +2,7 @@
 // of truth; the SQLite cache can be rebuilt.
 import { upgradePublications } from '../auth/operation-execution';
 import type { PublicationObserver } from './local-publication';
-import { ADDRESS_HISTORY_FILE, readAddressMigrations, readCommittedAddressMigrations } from './address-migrations';
+import { ADDRESS_HISTORY_FILE, committedAddressHistoryFile, readAddressMigrations, readCommittedAddressMigrations } from './address-migrations';
 import { resolveForCaller, resolvePublishedForCaller } from './address-resolution';
 import { recordReconciliation, type ReconciliationRequest } from './address-reconciliation';
 import { convertAddressKeys } from './address-key-conversion';
@@ -550,13 +550,9 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   const trash = createTrash({
     layout,
     head: localCommit,
-    async committedHistoryExists(files, project) {
-      return gitAvailable && (await git.treeIds(repoDir(files, project), 'HEAD', [projectPrefix(files, project) + ADDRESS_HISTORY_FILE])).size > 0;
-    },
-    async committedHistoryIds(files, project) {
+    async committedAddressHistory(files, project) {
       const commit = await localCommit(files, project);
-      const records = commit ? await readCommittedAddressMigrations(git, files, project, commit, LOCAL_READER) : [];
-      return new Set(records.map(record => record.id));
+      return commit ? committedAddressHistoryFile(git, files, project, commit) : null;
     },
     state,
     journal,
