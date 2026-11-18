@@ -1,6 +1,6 @@
 /** Fits whole-model nodes using their compound positions and measured card dimensions. */
 import { getViewportForBounds, type ReactFlowInstance } from '@xyflow/react';
-import { NAME_MIN_PX, MODEL_CARD_WIDTH } from './overview-capacity';
+import { FULL_GRAPH_FIT_PADDING, NAME_MIN_PX, MODEL_CARD_WIDTH } from './overview-capacity';
 
 /** Fits all current nodes, retaining the current viewport when the pane is hidden. */
 export function fitFullGraph(instance: ReactFlowInstance<any, any> | null, canvas: Element | null | undefined, duration: number, reservedWidth = 0) {
@@ -35,7 +35,7 @@ export function fitFullGraph(instance: ReactFlowInstance<any, any> | null, canva
   const rect = canvas.getBoundingClientRect();
   if (!rect.width || !rect.height) return;
   const startsValid = Number.isFinite(instance.getViewport().zoom);
-  const viewport = getViewportForBounds({ x, y, width, height }, Math.max(1, rect.width - reservedWidth), rect.height, 0.001, 1, 0.08);
+  const viewport = getViewportForBounds({ x, y, width, height }, Math.max(1, rect.width - reservedWidth), rect.height, 0.001, 1, FULL_GRAPH_FIT_PADDING);
   void instance.setViewport(viewport, { duration: startsValid ? duration : 0 });
   return viewport.zoom;
 }
@@ -65,6 +65,6 @@ export function fitGraphArea(instance: ReactFlowInstance<any, any>, canvas: Elem
   const readableZoom = Math.max(0.75, NAME_MIN_PX / minimumCap);
   const bounds = instance.getNodesBounds([area]);
   const pane = canvas.getBoundingClientRect();
-  const viewport = getViewportForBounds(bounds, Math.max(1, pane.width - reservedWidth), pane.height, readableZoom, Math.max(1, readableZoom), 0.08);
+  const viewport = getViewportForBounds(bounds, Math.max(1, pane.width - reservedWidth), pane.height, readableZoom, Math.max(1, readableZoom), FULL_GRAPH_FIT_PADDING);
   void instance.setViewport(viewport, { duration: 0 });
 }

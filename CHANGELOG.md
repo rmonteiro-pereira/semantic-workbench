@@ -93,6 +93,7 @@ and protect release tags. Existing tags inside published history remain usable a
   leave the entire phone canvas available for Fit.
 - Keep the full-screen Exit visible on phones and limit the details pane height.
 - Open Network as counted area cards when names at Fit would be too small, including when returning with browser Back.
+  Pack named areas to the pane and try tighter rows or taller portrait cards when that keeps the full model readable.
   Frame the complete counted layout on phones.
 - Open Layered on the first area at readable scale while preserving its routes. Explicitly collapsing
   all areas frames the counted cards together.

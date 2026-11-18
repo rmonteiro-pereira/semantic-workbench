@@ -191,6 +191,10 @@ export function FullGraph(props: Props) {
     algorithm,
     version,
     paneMeasured,
+    networkPaneSize: () => {
+      const pane = container.current?.querySelector('.react-flow')?.getBoundingClientRect();
+      return pane ? { width: Math.max(1, pane.width - miniMapReservedWidth), height: pane.height } : undefined;
+    },
     overview,
     display,
     layoutGrouping,
@@ -286,8 +290,8 @@ export function FullGraph(props: Props) {
             {
               x: node.position.x + (parentNode?.position.x ?? 0),
               y: node.position.y + (parentNode?.position.y ?? 0),
-              width: MODEL_CARD_WIDTH,
-              height: 60,
+              width: Number(node.style?.width ?? MODEL_CARD_WIDTH),
+              height: Number(node.style?.height ?? 60),
             },
           ];
         }),
@@ -312,7 +316,8 @@ export function FullGraph(props: Props) {
   const selectedConnection = collapsed.size ? connections.find(e => e.data.relationships.some(r => r.id === props.selectedEdge)) : undefined;
   const originalById = useMemo(() => new Map(props.edges.map(e => [e.id, e])), [props.edges]);
   const originalEntities = useMemo(() => new Map(props.entities.map(e => [e.id, e])), [props.entities]);
-  const sizes = textSizesAt(zoomStep, algorithm, collapsed.size === overview.groups.length);
+  const compensateNetwork = collapsed.size === overview.groups.length || nodes.some(node => node.data.compensateName);
+  const sizes = textSizesAt(zoomStep, algorithm, compensateNetwork);
   const textStyle = {
     '--entity-name-size': `${sizes.entityName}px`,
     '--entity-name-lines': sizes.entityLines,

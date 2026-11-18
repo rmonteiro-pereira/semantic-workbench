@@ -8,6 +8,10 @@ export const MODEL_CARD_WIDTH = 184;
 const LARGE_MODEL = 250;
 /** Smallest readable entity-name size in screen pixels. */
 export const NAME_MIN_PX = 9;
+/** Keeps a small margin around fitted whole-model nodes. */
+export const FULL_GRAPH_FIT_PADDING = 0.08;
+/** Gives taller Network cards enough name size to remain legible at portrait Fit. */
+export const PORTRAIT_NETWORK_NAME_PX = 24;
 /** Area titles also grow as the graph zooms out, up to this size. */
 export const LARGEST_AREA_TITLE_PX = 48;
 /** Room above an area's entities for its title (two lines at the largest size) and its link summary. */
@@ -22,11 +26,12 @@ export function modelCardHeight(collapsed: boolean): number {
   return collapsed ? 96 : CARD_HEIGHT;
 }
 
-/** Network text scales with its original cards; Layered text compensates for zoom. */
-export function textSizesAt(zoom: number, layout: 'network' | 'layered' = 'layered', counted = false) {
-  const entityName = (layout === 'network' && !counted) || zoom >= READABLE_ZOOM ? 16 : Math.min(LARGEST_ENTITY_NAME_PX, Math.ceil(12 / zoom));
+/** Layered, counted areas and taller portrait cards compensate their labels for zoom. */
+export function textSizesAt(zoom: number, layout: 'network' | 'layered' = 'layered', compensateNetwork = false) {
+  const fixedNetwork = layout === 'network' && !compensateNetwork;
+  const entityName = fixedNetwork || zoom >= READABLE_ZOOM ? 16 : Math.min(LARGEST_ENTITY_NAME_PX, Math.ceil(12 / zoom));
   const titleTarget = layout === 'network' ? NAME_MIN_PX : 13;
-  const areaTitle = layout === 'network' && !counted ? 20 : Math.min(LARGEST_AREA_TITLE_PX, Math.max(20, Math.ceil(titleTarget / zoom)));
+  const areaTitle = fixedNetwork ? 20 : Math.min(LARGEST_AREA_TITLE_PX, Math.max(20, Math.ceil(titleTarget / zoom)));
   // Two lines of the larger name no longer fit the card, so it keeps one.
   const areaLinks = Math.min(LARGEST_AREA_LINKS_PX, Math.max(12, Math.ceil(10 / zoom)));
   const entityLines = entityName > 17 ? 1 : 2;

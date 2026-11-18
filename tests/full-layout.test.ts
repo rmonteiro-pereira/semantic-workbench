@@ -1,12 +1,13 @@
 // Tests full graph placement and routing.
 import { test, expect } from 'bun:test';
 import ELK from 'elkjs/lib/elk-api.js';
+import { getViewportForBounds } from '@xyflow/react';
 import { collapseAreas } from '../src/app/graph/collapse';
 import { modelOverview } from '../src/app/graph/overview';
 import { layoutNetwork } from '../src/app/graph/network-layout';
-import { cardNameFontSize } from '../src/app/graph/text-fit';
-import { GROUP_HEADER_HEIGHT } from '../src/app/graph/overview-capacity';
-import { layoutFullGraph, packNetwork, COUNTED_NETWORK_HEADER_HEIGHT, NETWORK_HEADER_HEIGHT, type FullLayoutResult } from '../src/app/graph/full-layout';
+import { cardHeightFor, cardNameFontSize } from '../src/app/graph/text-fit';
+import { FULL_GRAPH_FIT_PADDING, GROUP_HEADER_HEIGHT, MODEL_CARD_WIDTH, NAME_MIN_PX, PORTRAIT_NETWORK_NAME_PX, modelCardHeight } from '../src/app/graph/overview-capacity';
+import { layoutFullGraph, packNetwork, COUNTED_NETWORK_HEADER_HEIGHT, NETWORK_HEADER_HEIGHT, type FullLayoutResult, type NetworkPane } from '../src/app/graph/full-layout';
 import { inspect, type Entity, type Relationship } from '../src/shared/core/model';
 import { groupRelationships } from '../src/app/graph/graph-view';
 
@@ -17,10 +18,10 @@ function engine() {
   });
 }
 
-async function network(entities: Entity[], edges: Relationship[], name: string) {
+async function network(entities: Entity[], edges: Relationship[], name: string, pane?: NetworkPane) {
   const elk = engine();
   try {
-    return await packNetwork(layoutNetwork(entities, edges, name), elk);
+    return await packNetwork(layoutNetwork(entities, edges, name), elk, pane);
   } finally {
     elk.terminateWorker();
   }
@@ -76,6 +77,34 @@ test('network retains every entity, whole names and nonoverlapping areas without
       return members.length >= 4 && new Set(members.map(node => Math.round(node.y))).size > Math.ceil(Math.sqrt(members.length));
     });
   expect(organic, 'entities should follow their connections, not uniform tile rows').toBe(true);
+});
+
+function fitNameSize(layout: FullLayoutResult, pane: NetworkPane, model: ReturnType<typeof inspect>) {
+  const areas = layout.nodes.filter(node => node.group);
+  const x = Math.min(...areas.map(area => area.x));
+  const y = Math.min(...areas.map(area => area.y));
+  const width = Math.max(...areas.map(area => area.x + area.width)) - x;
+  const height = Math.max(...areas.map(area => area.y + area.height)) - y;
+  const fit = getViewportForBounds({ x, y, width, height }, pane.width, pane.height, 0.001, 1, FULL_GRAPH_FIT_PADDING);
+  const names = new Map(model.entities.map(entity => [entity.id, entity.name]));
+  const caps = layout.nodes.filter(node => node.parentId).map(node => cardNameFontSize(names.get(node.id)!, node, node.compensateName ? PORTRAIT_NETWORK_NAME_PX : 16));
+  return fit.zoom * Math.min(...caps);
+}
+
+test('network fits the full UBL model with readable names in desktop and phone panes', async () => {
+  const filename = 'ubl.ontology.yaml';
+  const model = inspect(await Bun.file(`public/examples/ubl/${filename}`).text(), filename);
+  const portraitCardHeights = new Map(model.entities.map(entity => [entity.id, cardHeightFor(entity.name, MODEL_CARD_WIDTH, PORTRAIT_NETWORK_NAME_PX, modelCardHeight(false))]));
+  const panes = [
+    { width: 954, height: 511, nameSize: 16 },
+    { width: 376, height: 581, nameSize: 16, portraitCardHeights },
+  ];
+  for (const pane of panes) {
+    const layout = await network(model.entities, model.edges, model.name, pane);
+    checkGeometry(layout, model.entities.length, NETWORK_HEADER_HEIGHT);
+    expect(layout.relationshipCount).toBe(model.edges.length);
+    expect(fitNameSize(layout, pane, model)).toBeGreaterThanOrEqual(NAME_MIN_PX);
+  }
 });
 
 test('ELK compound layout retains groups and a route for every bundled connection', async () => {

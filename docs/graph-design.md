@@ -34,12 +34,15 @@ it is not a drop-in performance switch.
 3. Use Network layout by default. Layered uses ELK routes. Network (`network-layout.ts`, run by
    `network-layout.worker.ts`) places fixed-size entity cards with the compound fCoSE force layout,
    so connected entities sit near each other inside their area. `packNetwork` in `full-layout.ts`
-   then lets ELK remove overlaps inside every area and pack the areas into a box of roughly
-   2:1 proportions. Counted areas reserve room for two zoom-compensated heading lines above their cards. Resizing the pane does not lay the graph out again; **Re-layout** does. The view
+   then lets ELK remove overlaps inside every area and pack named areas to the pane's proportions.
+   It tries tighter rows when the ordinary arrangement would make names too small and the cards
+   can fit at readable scale. Portrait panes can use taller cards that give compensated labels
+   room to wrap. Counted areas reserve room for two zoom-compensated heading lines
+   above their cards. Resizing the pane does not lay the graph out again; **Re-layout** does. The view
    draws links inside an area; links between areas are summarised on the area ("links to N areas")
    and drawn only for the selected entity. fCoSE starts from random positions, so the arrangement
-   can differ between uncached runs of the same model; the result is cached per model and grouping
-   while the page stays open.
+   can differ between uncached runs of the same model. The cache distinguishes the model, grouping
+   and pane dimensions used to pack its named cards while the page stays open.
 4. Render parent areas before their children using relative positions and `parentId`.
 5. Retain ELK route vertices while their endpoints match live handles. Dragging invalidates stale
    routes and falls back to live geometry. SVG appearance props are selected separately so graph

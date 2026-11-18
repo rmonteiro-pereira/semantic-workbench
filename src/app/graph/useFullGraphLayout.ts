@@ -8,8 +8,10 @@ import { FALLBACK_GROUP_COLOR } from '../theme/theme-palette';
 import { timeOperation } from '../observability/page-reporting';
 import type { GroupingOptions, modelOverview } from './overview';
 import type { collapseAreas } from './collapse';
-import { layoutFullGraph, packNetwork } from './full-layout';
-import { areaTileData, entityCardData } from './full-node-data';
+import { layoutFullGraph, packNetwork, type NetworkPane } from './full-layout';
+import { areaTileData, entityCardData, reservedNameHeight } from './full-node-data';
+import { MODEL_CARD_WIDTH, PORTRAIT_NETWORK_NAME_PX, modelCardHeight, textSizesAt } from './overview-capacity';
+import { cardHeightFor } from './text-fit';
 import type { NetworkLayoutRequest, NetworkLayoutResponse } from './network-layout';
 import type { Entity } from '../../shared/core/model';
 
@@ -29,6 +31,7 @@ type LayoutInputs = {
   algorithm: 'network' | 'layered';
   version: number;
   paneMeasured: boolean;
+  networkPaneSize: () => { width: number; height: number } | undefined;
   overview: Overview;
   display: Display;
   layoutGrouping: GroupingOptions;
@@ -52,6 +55,7 @@ function nodeData(node: LayoutResult['nodes'][number], group: Group | undefined,
     collapsedArea,
     internalCount: display.internal.get(collapsedArea)?.length ?? 0,
     color: group?.color ?? FALLBACK_GROUP_COLOR,
+    compensateName: node.compensateName,
     ...entityCardData(entity!, node),
   };
 }
@@ -91,7 +95,7 @@ function flowNodes(result: LayoutResult, previous: any[], overview: Overview, di
 }
 
 // The Network layout runs in a worker, then ELK packs its components.
-function arrangeNetwork(request: NetworkLayoutRequest, signal: AbortSignal, isCancelled: () => boolean, handles: LayoutHandles): Promise<LayoutResult> {
+function arrangeNetwork(request: NetworkLayoutRequest, signal: AbortSignal, isCancelled: () => boolean, handles: LayoutHandles, pane?: NetworkPane): Promise<LayoutResult> {
   return new Promise((resolve, reject) => {
     signal.addEventListener('abort', () => reject(new DOMException('Network layout cancelled.', 'AbortError')), { once: true });
     handles.worker = new Worker(new URL('./network-layout.worker.ts', import.meta.url), { type: 'module' });
@@ -104,7 +108,7 @@ function arrangeNetwork(request: NetworkLayoutRequest, signal: AbortSignal, isCa
         return;
       }
       handles.elk = new ELK({ algorithms: ['box', 'sporeOverlap'], workerFactory: () => new Worker(elkWorkerUrl) });
-      packNetwork(data.result, handles.elk).then(resolve, reject);
+      packNetwork(data.result, handles.elk, pane).then(resolve, reject);
     };
     worker.onerror = event => {
       event.preventDefault();
@@ -115,13 +119,25 @@ function arrangeNetwork(request: NetworkLayoutRequest, signal: AbortSignal, isCa
   });
 }
 
-/** Publishes worker layouts and records their duration without rerunning them on canvas resize. */
+function networkPaneFor(display: Display, size: ReturnType<LayoutInputs['networkPaneSize']>): NetworkPane | undefined {
+  if (!size?.width || !size.height || display.entities.some(entity => entity.definition?.collapsedArea)) return;
+  const defaultHeight = modelCardHeight(false);
+  const nameSize = display.entities.reduce((current, entity) => {
+    const card = entityCardData(entity, { width: MODEL_CARD_WIDTH, height: defaultHeight });
+    return Math.min(current, Number.parseFloat(card.nameCap));
+  }, textSizesAt(1, 'network').entityName);
+  const pane = { ...size, nameSize };
+  if (size.width >= size.height) return pane;
+  const portraitCardHeights = new Map(display.entities.map(entity => [entity.id, cardHeightFor(entity.name, MODEL_CARD_WIDTH, PORTRAIT_NETWORK_NAME_PX, defaultHeight, reservedNameHeight(entity))]));
+  return { ...pane, portraitCardHeights };
+}
+
 /** Publishes completed worker layouts and fits their measured nodes without relaying out on resize. */
-export function useFullGraphLayout({ name, algorithm, version, paneMeasured, overview, display, layoutGrouping, entityById, groupById, fit, setRouteMetrics }: LayoutInputs) {
+export function useFullGraphLayout({ name, algorithm, version, paneMeasured, networkPaneSize, overview, display, layoutGrouping, entityById, groupById, fit, setRouteMetrics }: LayoutInputs) {
   const laidOutKey = useRef('');
   // Selection can change while the worker completes the current layout.
-  const currentFit = useRef(fit);
-  currentFit.current = fit;
+  const viewport = useRef({ fit, networkPaneSize });
+  viewport.current = { fit, networkPaneSize };
   const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
   const [layoutRoutes, setLayoutRoutes] = useState<LayoutResult['routes']>({});
   const [busy, setBusy] = useState(true);
@@ -136,7 +152,8 @@ export function useFullGraphLayout({ name, algorithm, version, paneMeasured, ove
     const controller = new AbortController();
     let fitTimer: ReturnType<typeof setTimeout>;
     const handles: LayoutHandles = {};
-    const key = JSON.stringify([algorithm, layoutGrouping, name, display.entities.map(e => [e.id, e.name, e.kind]), display.edges.map(e => [e.source, e.target])]);
+    const pane = algorithm === 'network' ? networkPaneFor(display, viewport.current.networkPaneSize()) : undefined;
+    const key = JSON.stringify([algorithm, layoutGrouping, name, pane, display.entities.map(e => [e.id, e.name, e.kind]), display.edges.map(e => [e.source, e.target])]);
     setBusy(true);
     setError('');
     // A re-layout that lands on the same arrangement re-routes nothing, so its old metrics still hold.
@@ -151,7 +168,7 @@ export function useFullGraphLayout({ name, algorithm, version, paneMeasured, ove
       if (cache.size > 6) cache.delete(cache.keys().next().value!);
       setNodes(previous => flowNodes(result, previous, overview, display, groupById, entityById));
       setBusy(false);
-      fitTimer = setTimeout(() => void currentFit.current(), 150);
+      fitTimer = setTimeout(() => void viewport.current.fit(), 150);
     }
     if (cache.has(key) && !version) {
       apply(cache.get(key)!);
@@ -159,7 +176,7 @@ export function useFullGraphLayout({ name, algorithm, version, paneMeasured, ove
       let arranged: Promise<LayoutResult>;
       if (algorithm === 'network') {
         const request = { entities: display.entities, edges: display.edges, name, grouping: layoutGrouping } satisfies NetworkLayoutRequest;
-        arranged = arrangeNetwork(request, controller.signal, () => cancelled, handles);
+        arranged = arrangeNetwork(request, controller.signal, () => cancelled, handles, pane);
       } else {
         handles.elk = new ELK({
           algorithms: ['layered', 'box'],

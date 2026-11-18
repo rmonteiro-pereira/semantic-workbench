@@ -53,6 +53,7 @@ export function useFullGraphOpening({ overview, algorithm, collapseChoice, flow,
     const started = performance.now();
     const cards = instance.getNodes().filter(node => node.type === 'entity');
     const counted = cards.length > 0 && cards.every(node => node.data.collapsedArea);
+    const compensateNetwork = counted || cards.some(node => node.data.compensateName);
     const nameCap = Math.min(LARGEST_ENTITY_NAME_PX, ...cards.map(node => Number.parseFloat(String(node.data.nameCap ?? 16))));
     const zoom = fitFullGraph(instance, canvas, 0, reservedWidth);
     if (zoom === undefined) return;
@@ -69,7 +70,7 @@ export function useFullGraphOpening({ overview, algorithm, collapseChoice, flow,
       }
     }
     // The fit also includes names outside the mounted viewport, so rendered nodes alone can overstate legibility.
-    const fitNameLimit = algorithm === 'network' ? Math.min(nameCap, textSizesAt(zoom, algorithm, counted).entityName) * zoom : undefined;
+    const fitNameLimit = algorithm === 'network' ? Math.min(nameCap, textSizesAt(zoom, algorithm, compensateNetwork).entityName) * zoom : undefined;
     const measure = () => renderedNameMinimum(canvas, algorithm === 'network' ? zoom : instance.getViewport().zoom);
     const measured = await measureGraphOpening(overview.entities.length, measure, afterGraphPaint, fitNameLimit);
     if (current.current.overview !== overview || current.current.algorithm !== algorithm || current.current.collapseChoice !== collapseChoice) return;
