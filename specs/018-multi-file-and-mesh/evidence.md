@@ -71,3 +71,41 @@ code. Revision 3 remains unsupported until the foundational format tasks are imp
 Merge operation-boundary proof on the development server: 46 pass, 0 fail, 45,038 assertions,
 4 files, 124.07 seconds (inventory, route actions, matrix and compile parity). Regenerating the
 operation table gives no diff.
+
+## Setup checkpoint and remaining implementation
+
+Completed: T001–T006 only. No task was skipped as wrong or unnecessary. T007–T063 remain open;
+this is not a completed feature or a release-ready state. Revision 3 still fails closed under the
+existing unsupported-revision rule. No mesh runtime module, route, dependency writer, publication
+check, compile translation, address map or UI has been implemented.
+
+Final development-server setup proof: tests/mesh/ has 10 pass, 0 fail, 185 assertions across two
+files, 5.13 seconds. Check exits 0 with 2,684 lint warnings and no errors. Build exits 0 with 2,365
+modules, 3.08 seconds and the existing directive/chunk warnings. The changed code passes the
+readable-code checker. The repository formatter excludes Markdown and fixture trees. Leak scans
+of the added fixture files and changed product prose pass; internal evidence is scanned for
+confidential terms. The repository has no scripts/commit_cadence.py.
+
+No browser check or mutation run proves mesh behavior yet. There is no test:mesh command at this
+checkpoint. T053 and its dependent screenshot review T054 stay open for the later capture job.
+MCP, usage-counter and item-diff integration are still absent from this base and require their
+later integration proofs. Their absence does not account for the unfinished foundational tasks.
+
+No imported block has been added to full-node-data.ts, FullGraphNodes.tsx, NeighborhoodGraph.tsx,
+RelationshipEdge.tsx, GraphOptions.tsx or legend.css. Those files retain their baseline behavior.
+
+Batch-gate owner: after implementation, run the integrated full suite, full mutation inventory,
+remaining browser suites, release comparison and architecture review once. The feature's own mesh
+browser and targeted mutant proofs must exist and pass before that handoff. Do not use the fixture
+syntax checks as proof of any runtime refusal, pin, publication, privacy or compilation guarantee.
+
+Reviewer: the production delta after the merge is only the report-version acknowledgement fix;
+check the regenerated golden report and complete status counts. Existing tests changed in the
+merge resolution are tests/compile/api.test.ts and tests/compile/loss-preview.test.tsx.
+Security reviewer: meshWorkspace and publishFixture install fixture Git objects and publication
+pointers directly. This setup cannot prove production publication authorization, dependency
+atomicity, hidden/missing timing equivalence or reader-specific finding isolation. Those runtime
+proofs remain mandatory. No security guarantee of revision 3 is claimed at this checkpoint.
+
+Only scratch transport was pushed; no project remote, tag or deployment was changed. No persistent
+server or browser process was started; every test and wrapper command has finished.
