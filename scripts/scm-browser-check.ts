@@ -190,6 +190,10 @@ try {
     await page.screenshot({ path: '/tmp/workbench-scm-branch.png' });
   });
   await check('remote: save a local bare remote and push; pull a commit made elsewhere', async () => {
+    await panel().getByRole('button', { name: 'New branch' }).click();
+    await panel().getByLabel('New branch name').fill('team/notes');
+    await panel().getByRole('button', { name: 'Create' }).click();
+    await expect(panel().getByLabel('Branch')).toHaveValue('team/notes');
     await setRemote(bare);
     // The branch has never been pushed: no counters, a tracking note and a Publish action.
     await expect(panel().getByLabel('Not published')).toBeVisible();
@@ -200,12 +204,12 @@ try {
     await expect(panel().getByRole('status').filter({ hasText: 'Push finished' })).toBeVisible({
       timeout: 20000,
     });
-    await expect(panel().getByText('Tracking origin/work/local')).toBeVisible();
+    await expect(panel().getByText('Tracking origin/team/notes')).toBeVisible();
     await expect(panel().getByLabel('0 commits to push, 0 to pull')).toBeVisible();
     await expect(remoteActions(page).getByRole('button', { name: 'Publish branch' })).toHaveCount(0);
-    expect(sh(bare, ['log', '-1', '--format=%s', 'work/local']).trim()).toBe('Ignore temporary files');
+    expect(sh(bare, ['log', '-1', '--format=%s', 'team/notes']).trim()).toBe('Ignore temporary files');
     sh(extra, ['clone', '-q', bare, other]);
-    sh(other, ['switch', '-q', 'work/local']);
+    sh(other, ['switch', '-q', 'team/notes']);
     writeFileSync(join(other, file), readFileSync(join(other, file), 'utf8').replace('Order in the order-to-cash process.', 'Order placed elsewhere.'));
     sh(other, ['commit', '-qam', 'Elsewhere']);
     sh(other, ['push', '-q']);
@@ -285,7 +289,7 @@ try {
     await expect(panel().getByRole('status').filter({ hasText: 'Sync finished' })).toBeVisible({
       timeout: 20000,
     });
-    expect(sh(bare, ['log', '-1', '--format=%s', 'work/local']).trim()).toBe('Merge their wording');
+    expect(sh(bare, ['log', '-1', '--format=%s', 'team/notes']).trim()).toBe('Merge their wording');
   });
   await check('a rejected push leads with a plain summary and Pull remote changes; Git output is under Show details', async () => {
     sh(other, ['pull', '-q', '--no-rebase']);
@@ -311,7 +315,7 @@ try {
     await expect(panel().getByRole('status').filter({ hasText: 'Push finished' })).toBeVisible({
       timeout: 20000,
     });
-    expect(sh(bare, ['log', '-1', '--format=%P', 'work/local']).trim().split(' ')).toHaveLength(2);
+    expect(sh(bare, ['log', '-1', '--format=%P', 'team/notes']).trim().split(' ')).toHaveLength(2);
   });
   await check('New branch form: Escape and Cancel return focus to the New branch button', async () => {
     const newBranch = panel().getByRole('button', { name: 'New branch' });
@@ -415,7 +419,7 @@ try {
     await expect(finished).toHaveCount(0);
     await setRemote(bare);
     await runSyncAction(page, 'Publish branch');
-    await expect(panel().getByText('Tracking origin/work/local')).toBeVisible({ timeout: 20000 });
+    await expect(panel().getByText('Tracking origin/team/notes')).toBeVisible({ timeout: 20000 });
   });
   await check('Admin → Git remotes explains an empty workspace and leads back to Add project', async () => {
     const empty = await startIsolatedApi();
