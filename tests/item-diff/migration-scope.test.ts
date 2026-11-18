@@ -140,3 +140,71 @@ test('address resolution sees branch aliases in the editor and only published al
   await publishFixture(fixture);
   expect(await resolve(false)).toMatchObject({ status: 'found', address: to });
 });
+
+test('a selective commit includes only the records for its selected definitions', async () => {
+  using fixture = await itemDiffBaselineWorkspace();
+  const directory = join(fixture.root, 'projects', 'finance');
+  const semanticPath = 'commerce.mapped-semantic.yaml';
+  const path = 'finance.ontology.yaml';
+  const prefix = 'sw1:finance/finance.ontology.yaml#ontology:Finance/concept:Customer/relationship:';
+  const before = fixture.ws.readFile('finance', path, LOCAL_READER);
+  await fixture.ws.saveFile(
+    'finance',
+    path,
+    {
+      baseHash: before.hash,
+      source: before.source.replace('name: purchases', 'name: buys'),
+      declaredMigrations: [{ kind: 'item', from: prefix + 'purchases', to: prefix + 'buys' }],
+    },
+    LOCAL_READER,
+  );
+  const semantic = fixture.ws.readFile('finance', semanticPath, LOCAL_READER);
+  const metric = 'sw1:finance/commerce.mapped-semantic.yaml#model:Mapped%20commerce%20semantic%20model/metric:';
+  await fixture.ws.saveFile(
+    'finance',
+    semanticPath,
+    {
+      baseHash: semantic.hash,
+      source: semantic.source.replaceAll('gross_revenue', 'gross_turnover'),
+      declaredMigrations: [{ kind: 'item', from: metric + 'gross_revenue', to: metric + 'gross_turnover' }],
+    },
+    LOCAL_READER,
+  );
+  git(directory, ['add', semanticPath]);
+  const scm = await fixture.ws.scmFor('finance', LOCAL_READER);
+  await scm.commit('finance', 'Rename relationship only', { paths: [path] });
+  const committed = parseAddressHistory(git(directory, ['show', 'HEAD:' + ADDRESS_HISTORY_FILE]));
+  expect(committed.map(record => record.from)).toEqual([prefix + 'purchases']);
+  expect(git(directory, ['diff', '--cached', '--name-only'])).toBe(semanticPath);
+  expect(readAddressMigrations(fixture.ws.layout, 'finance', LOCAL_READER).map(record => record.from)).toContain(metric + 'gross_revenue');
+});
+
+test('discard and undo journal the history changes with the definition', async () => {
+  using fixture = await itemDiffBaselineWorkspace();
+  const project = 'finance';
+  const path = 'finance.ontology.yaml';
+  const directory = join(fixture.root, 'projects', project);
+  const prefix = 'sw1:finance/finance.ontology.yaml#ontology:Finance/concept:Customer/relationship:';
+  const before = fixture.ws.readFile(project, path, LOCAL_READER);
+  await fixture.ws.saveFile(
+    project,
+    path,
+    {
+      baseHash: before.hash,
+      source: before.source.replace('name: purchases', 'name: buys'),
+      declaredMigrations: [{ kind: 'item', from: prefix + 'purchases', to: prefix + 'buys' }],
+    },
+    LOCAL_READER,
+  );
+  expect(readAddressMigrations(fixture.ws.layout, project, LOCAL_READER)).toHaveLength(1);
+  const current = fixture.ws.readFile(project, path, LOCAL_READER);
+  await fixture.ws.revertFile(project, path, current.hash, LOCAL_READER);
+  expect(fixture.ws.readFile(project, path, LOCAL_READER).source).toContain('name: purchases');
+  expect(readAddressMigrations(fixture.ws.layout, project, LOCAL_READER)).toEqual([]);
+  expect(git(directory, ['status', '--porcelain'])).toContain(ADDRESS_HISTORY_FILE);
+  const deletion = await fixture.ws.trash.deleteFile(project, path, undefined, LOCAL_READER);
+  expect(readAddressMigrations(fixture.ws.layout, project, LOCAL_READER)).toMatchObject([{ kind: 'deleted' }]);
+  await fixture.ws.trash.undo(deletion.entryId, LOCAL_READER);
+  expect(fixture.ws.readFile(project, path, LOCAL_READER).source).toContain('name: purchases');
+  expect(readAddressMigrations(fixture.ws.layout, project, LOCAL_READER)).toEqual([]);
+});

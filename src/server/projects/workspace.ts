@@ -550,6 +550,11 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   const trash = createTrash({
     layout,
     head: localCommit,
+    async committedHistoryIds(files, project) {
+      const commit = await localCommit(files, project);
+      const records = commit ? await readCommittedAddressMigrations(git, files, project, commit, LOCAL_READER) : [];
+      return new Set(records.map(record => record.id));
+    },
     state,
     journal,
     lock,

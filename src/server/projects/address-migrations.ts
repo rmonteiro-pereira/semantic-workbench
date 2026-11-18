@@ -217,3 +217,55 @@ export function declaredDeletedItems(input: unknown, project: string, documents:
   if (new Set(addresses).size !== addresses.length) throw new BadRequestError('Each deleted item may be declared once.');
   return addresses;
 }
+
+/** Matches a record to the definition paths it describes within a repository. */
+export function historyEndpoints(record: MigrationRecord, prefix: (project: string) => string | undefined): string[] {
+  return [record.from, record.to].flatMap(value => {
+    if (!value) return [];
+    const parsed = parseAddress(value);
+    if (!parsed.ok || !parsed.address.project || !parsed.address.document) return [];
+    const folder = prefix(parsed.address.project);
+    return folder === undefined ? [] : [folder + parsed.address.document.join('/')];
+  });
+}
+
+/** Serializes replay records for a Git index entry. */
+export function serializeAddressHistory(records: readonly MigrationRecord[]): string {
+  return records.map(record => JSON.stringify(record) + '\n').join('');
+}
+
+/** Prepares a working history rewrite for the same journal as a discard or restore. */
+export function stageHistoryRemoval(
+  context: { layout: DataLayout; project: string; staging: string },
+  discard: (record: MigrationRecord) => boolean,
+  archive?: string,
+): { from: string; to: string }[] {
+  const { layout, project, staging } = context;
+  const destination = addressMigrationFile(layout, project);
+  if (!existsSync(destination)) return [];
+  const records = parseAddressHistory(readFileSync(destination, 'utf8'));
+  const removed = records.filter(discard);
+  if (!removed.length) return [];
+  const excluded = new Set(removed.map(record => record.id));
+  const staged = join(staging, 'remaining-address-history');
+  atomicWrite(staged, serializeAddressHistory(records.filter(record => !excluded.has(record.id))));
+  const steps = [
+    { from: destination, to: staged + '.previous' },
+    { from: staged, to: destination },
+  ];
+  if (archive) {
+    const archived = staged + '.removed';
+    atomicWrite(archived, serializeAddressHistory(removed));
+    steps.push({ from: archived, to: archive });
+  }
+  return steps;
+}
+
+/** Location of the undo payload for records removed with a reverted definition. */
+export const trashedAddressHistory = (entry: string) => join(entry, 'address-history.jsonl');
+
+/** Reads the undo payload for a reverted definition, if it had any records. */
+export function readTrashedAddressHistory(entry: string): MigrationRecord[] {
+  const path = trashedAddressHistory(entry);
+  return existsSync(path) ? parseAddressHistory(readFileSync(path, 'utf8')) : [];
+}

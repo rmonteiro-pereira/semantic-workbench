@@ -1,6 +1,6 @@
 // Restores trash entries: a file back into a project, or a project, subproject or repository back into the
 // workspace. Nothing is overwritten; an occupied target gets a free alternative suggested.
-import { restoreAddressMigrations } from './address-migrations';
+import { ADDRESS_HISTORY_FILE, readTrashedAddressHistory, restoreAddressMigrations, stageAddressMigrations, stageHistoryRemoval } from './address-migrations';
 import { JournalCrash } from './journal';
 import { restorePersonalState } from './personal-state';
 import type { Reader } from './reader';
@@ -37,6 +37,7 @@ export function createTrashRestore(ctx: TrashContext, shared: TrashRestoreShared
     if (trashEntry.kind === 'file') {
       const slug = target.toProject !== undefined ? assertSlug(target.toProject) : trashEntry.project;
       const path = projectPath(target.toPath ?? trashEntry.path!);
+      if (posix.basename(path).toLowerCase() === ADDRESS_HISTORY_FILE) throw new NotFoundError('The target is unavailable.');
       if (view && !view.canRead(slug, path)) {
         throw new OccupiedError('The target is unavailable.', {});
       }
@@ -80,6 +81,13 @@ export function createTrashRestore(ctx: TrashContext, shared: TrashRestoreShared
         const steps = [{ from: payload, to: dest }];
         if (existsSync(join(dir, 'draft.json')) && !existsSync(state.draftFile(slug, path))) steps.push({ from: join(dir, 'draft.json'), to: state.draftFile(slug, path) });
         steps.push(...restorePersonalState(state, { project: trashEntry.project, path: trashEntry.path, target: slug, targetPath: path }, join(dir, 'personal')));
+        if (slug === trashEntry.project && path === trashEntry.path) {
+          const staging = join(dir, '.address-history');
+          const history = { layout: files, project: slug, staging };
+          const restored = readTrashedAddressHistory(dir);
+          if (restored.length) steps.push(...stageAddressMigrations(history, restored));
+          else steps.push(...stageHistoryRemoval(history, record => record.id === `d-${trashEntry.entryId}-0` && record.kind === 'deleted'));
+        }
         journal.run('restore', steps, [dir]);
         if (trashEntry.view !== undefined) state.writeView(slug, { ...state.view(slug).files, [path]: trashEntry.view });
         await ctx.afterFiles(slug, copy);

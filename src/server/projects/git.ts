@@ -1,7 +1,9 @@
 // Runs the installed Git with argument arrays, timeouts, and a queue per repository. In local
 // mode credentials come from Git configuration; in server mode a remote command receives the
 // signed-in person's credential for that command only. Terminal prompts are disabled.
-import { relative, resolve, sep } from 'node:path';
+import { join, relative, resolve, sep } from 'node:path';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { BadRequestError } from './errors';
 import { observeGitCommand } from '../observability/git-command';
@@ -289,7 +291,10 @@ export function createGit(options: GitOptions) {
       return gitResult;
     };
     if (opts.readOnly) return exec();
-    const key = queueKey(dir);
+    return enqueue(dir, exec);
+  }
+  function enqueue<T>(directory: string, exec: () => Promise<T>): Promise<T> {
+    const key = queueKey(directory);
     const previous = queues.get(key) ?? Promise.resolve();
     const next = previous.catch(() => {}).then(exec);
     queues.set(key, next);
@@ -332,10 +337,32 @@ export function createGit(options: GitOptions) {
     await run(cwd, ['config', '--local', 'user.email', email]);
   }
   const merging = async (cwd: string) => (await read(cwd, ['rev-parse', '-q', '--verify', 'MERGE_HEAD'], true)).code === 0;
+  async function commitWithBlobs(cwd: string, paths: string[], blobs: ReadonlyMap<string, string>, message: string, author?: CommitAuthor) {
+    return enqueue(insideProjects(cwd), () => commitIsolatedIndex(cwd, paths, blobs, message, author));
+  }
+  async function commitIsolatedIndex(cwd: string, paths: string[], blobs: ReadonlyMap<string, string>, message: string, author?: CommitAuthor) {
+    const temporary = mkdtempSync(join(tmpdir(), 'sw-git-index-'));
+    const env = { GIT_INDEX_FILE: join(temporary, 'index') };
+    try {
+      const parent = await read(cwd, ['rev-parse', '--verify', 'HEAD'], true);
+      await run(cwd, ['read-tree', parent.code === 0 ? parent.stdout.trim() : '--empty'], { env, readOnly: true });
+      for (const chunk of chunks(paths)) await run(cwd, ['add', '-A', '--', ...chunk], { env, readOnly: true });
+      for (const [path, source] of blobs) {
+        const object = await run(cwd, ['hash-object', '-w', '--stdin'], { stdin: source, readOnly: true });
+        await run(cwd, ['update-index', '--add', '--cacheinfo', '100644', object.stdout.trim(), path], { env, readOnly: true });
+      }
+      const signed = authorship(author);
+      await run(cwd, [...signed.config, 'commit', '-q', ...signed.trailer, '-F', '-'], { stdin: message, env: { ...signed.env, ...env }, readOnly: true });
+      for (const chunk of chunks([...paths, ...blobs.keys()])) await run(cwd, ['reset', '-q', 'HEAD', '--', ...chunk], { readOnly: true });
+    } finally {
+      rmSync(temporary, { recursive: true, force: true });
+    }
+  }
+
   // Commit only these paths from the working tree to preserve unrelated staged and unstaged
   // changes. Skip ignored or unchanged paths; report missing identity, active merges, or no changes
   // as outcomes.
-  async function commitPaths(cwd: string, paths: string[], message: string, author?: CommitAuthor): Promise<CommitPathsResult> {
+  async function commitPaths(cwd: string, paths: string[], message: string, author?: CommitAuthor, blobs: ReadonlyMap<string, string> = new Map()): Promise<CommitPathsResult> {
     if (typeof message !== 'string' || !message.trim()) throw new GitError('A commit message is required.');
     if (!Array.isArray(paths) || !paths.length) throw new GitError('Name the files to commit.');
     // A server-mode commit is authored by the signed-in person, so no repository identity is needed.
@@ -348,6 +375,12 @@ export function createGit(options: GitOptions) {
     }
     const list = paths.filter(p => changed.has(p));
     if (!list.length) return { committed: false, reason: 'nothing' };
+    if (blobs.size) await commitWithBlobs(cwd, list, blobs, message, author);
+    else await commitWorkingPaths(cwd, list, message, author);
+    const head = await read(cwd, ['rev-parse', '-q', '--verify', 'HEAD']);
+    return { committed: true, commit: head.stdout.trim() };
+  }
+  async function commitWorkingPaths(cwd: string, list: string[], message: string, author?: CommitAuthor) {
     const untracked: string[] = [];
     for (const chunk of chunks(list)) {
       const gitResult = await read(cwd, ['ls-files', '-z', '--others', '--exclude-standard', '--', ...chunk]);
@@ -356,8 +389,6 @@ export function createGit(options: GitOptions) {
     for (const chunk of chunks(untracked)) await run(cwd, ['add', '--', ...chunk]);
     const signed = authorship(author);
     await run(cwd, [...signed.config, 'commit', '-q', ...signed.trailer, '--only', '-F', '-', '--', ...list], { stdin: message, env: signed.env });
-    const head = await read(cwd, ['rev-parse', '-q', '--verify', 'HEAD']);
-    return { committed: true, commit: head.stdout.trim() };
   }
   async function lsTree(cwd: string, revision: string, prefix = ''): Promise<GitTreeEntry[]> {
     const result = await run(cwd, ['ls-tree', '-r', '-l', '-z', revision, '--', ...(prefix ? [prefix] : [])], {

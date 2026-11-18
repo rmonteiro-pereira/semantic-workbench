@@ -1,7 +1,7 @@
 // Moves deleted files and project folders into journaled trash without rewriting Git history.
 // Restoration refuses occupied paths and suggests a free alternative.
 import { documentAddress } from '../../shared/core/item-address';
-import { ADDRESS_HISTORY_FILE, archiveAddressMigrations, operationMigrations, stageAddressMigrations } from './address-migrations';
+import { ADDRESS_HISTORY_FILE, archiveAddressMigrations, historyEndpoints, operationMigrations, stageAddressMigrations, stageHistoryRemoval, trashedAddressHistory } from './address-migrations';
 import { archivePersonalState, clearPersonalDrafts } from './personal-state';
 import type { EventTags } from './events';
 import type { Reader } from './reader';
@@ -73,6 +73,8 @@ export type TrashContext = {
   layout: DataLayout;
   /** Reads the current local commit before history is staged. */
   head?: (files: DataLayout, project: string) => Promise<string>;
+  /** Reads record IDs already committed with the current definition baseline. */
+  committedHistoryIds?: (files: DataLayout, project: string) => Promise<ReadonlySet<string>>;
   /** Where a person's working copy keeps its files; absent where there are no copies. */
   copyLayout?: (copy: string) => DataLayout;
   state: State;
@@ -280,6 +282,12 @@ export function createTrash(ctx: TrashContext) {
           const staged = join(staging, 'head');
           atomicWrite(staged, committed);
           steps.push({ from: staged, to: file });
+        }
+        const committedIds = await ctx.committedHistoryIds?.(files, slug);
+        if (committedIds) {
+          const belongsToFile = (record: Parameters<typeof historyEndpoints>[0]) =>
+            !committedIds.has(record.id) && historyEndpoints(record, project => (project === slug ? '' : undefined)).includes(relativePath);
+          steps.push(...stageHistoryRemoval({ layout: files, project: slug, staging }, belongsToFile, entryDir ? trashedAddressHistory(entryDir) : undefined));
         }
         steps.push(...clearPersonalDrafts(state, slug, [relativePath], staging, copy ?? undefined));
         journal.run('revert', steps, [staging], opId);
