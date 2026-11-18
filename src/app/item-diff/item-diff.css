@@ -78,3 +78,25 @@
   white-space: normal;
   overflow-wrap: anywhere;
 }
+
+.full-entity:has(> .item-change-mark) {
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.full-entity.focused:has(> .item-change-mark),
+.node:has(> .item-change-mark) {
+  background: var(--color-surface-sunken);
+}
+
+.node:has(> .item-change-mark) > span {
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: anywhere;
+}
+
+.node > .item-change-mark {
+  color: var(--color-text);
+}

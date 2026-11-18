@@ -60,7 +60,7 @@ export function ChangeList({ result, onRetry }: { result: ComparisonState; onRet
           </h3>
           <ul>
             {items.map(change => (
-              <ChangeRow key={change.address} change={change} />
+              <ChangeRow key={change.state + change.address} change={change} />
             ))}
           </ul>
         </section>

@@ -54,3 +54,12 @@
   font-size: var(--text-small);
   line-height: 1;
 }
+
+.item-overlay-legend {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 5px;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}

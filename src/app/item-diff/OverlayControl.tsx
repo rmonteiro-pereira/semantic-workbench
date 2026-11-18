@@ -1,4 +1,5 @@
 import { Modal } from '../projects/Modal';
+import { ChangeMark } from './ChangeMark';
 import { ChangeList } from './ChangeList';
 import { useEffect, useRef, useState } from 'react';
 import { Layers } from 'lucide-react';
@@ -68,6 +69,13 @@ export function OverlayControl() {
             <span>{overlaySummary(overlay.result, Boolean(overlay.commit))}</span>
             {notice && <span>{notice}</span>}
           </div>
+          {overlay.enabled && (
+            <p className="item-overlay-legend">
+              <ChangeMark change="added" />
+              <ChangeMark change="changed" />
+              <ChangeMark change="removed" />
+            </p>
+          )}
           <ChangeList result={overlay.result} onRetry={overlay.retry} />
         </Modal>
       )}
