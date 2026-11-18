@@ -54,11 +54,11 @@ function publicResult(result: CurrentItemResolution, address: Address): CallerRe
   return result;
 }
 
-/** Resolves visible current locators first and only then replays visible ordered migration prefixes. */
-export function resolveForCaller(context: AddressResolutionContext, text: string, reader: Reader): CallerResolution {
+function* resolveWithHistory(context: AddressResolutionContext, text: string, reader: Reader): Generator<string, CallerResolution> {
   const parsed = parseAddress(text);
   if (!parsed.ok || parsed.address.form !== 'absolute' || !parsed.address.chain.length || !readable(parsed.address, reader)) return { status: 'missing' };
   let address = parsed.address;
+  yield address.project!;
   const current = resolveCurrentItem(context, address, reader);
   if (current.status !== 'missing') return publicResult(current, address);
   if (!context.projectExists(address.project!)) return { status: 'missing' };
@@ -85,6 +85,7 @@ export function resolveForCaller(context: AddressResolutionContext, text: string
     waitingForReconciliation = false;
     if (address.project && address.project !== previousProject) {
       if (!histories.has(address.project)) {
+        yield address.project;
         if (!context.projectExists(address.project)) return { status: 'missing' };
         histories.set(address.project, context.readMigrations(address.project, reader));
       }
@@ -98,4 +99,41 @@ export function resolveForCaller(context: AddressResolutionContext, text: string
   }
   if (waitingForReconciliation || formatAddress(address) === text) return { status: 'missing' };
   return publicResult(resolveCurrentItem(context, address, reader), address);
+}
+
+/** Resolves current locators before replaying visible migrations from the saved working copy. */
+export function resolveForCaller(context: AddressResolutionContext, text: string, reader: Reader): CallerResolution {
+  const resolution = resolveWithHistory(context, text, reader);
+  let next = resolution.next();
+  while (!next.done) next = resolution.next();
+  return next.value;
+}
+
+/** Resolves locators using their definitions and history from the same pinned publication. */
+export async function resolvePublishedForCaller(
+  text: string,
+  reader: Reader,
+  load: (project: string) => Promise<{ documents: readonly { path: string; source: string }[]; records: readonly MigrationRecord[] } | null>,
+): Promise<CallerResolution> {
+  const projects = new Map<string, NonNullable<Awaited<ReturnType<typeof load>>>>();
+  const resolution = resolveWithHistory(
+    {
+      projectExists: project => projects.has(project),
+      readMigrations: project => projects.get(project)?.records ?? [],
+      readFile(project, path) {
+        const document = projects.get(project)?.documents.find(candidate => candidate.path === path);
+        if (!document) throw new NotFoundError('File not found.');
+        return document;
+      },
+    },
+    text,
+    reader,
+  );
+  let next = resolution.next();
+  while (!next.done) {
+    const snapshot = await load(next.value);
+    if (snapshot) projects.set(next.value, snapshot);
+    next = resolution.next();
+  }
+  return next.value;
 }

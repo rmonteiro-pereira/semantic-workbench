@@ -2,8 +2,8 @@
 // of truth; the SQLite cache can be rebuilt.
 import { upgradePublications } from '../auth/operation-execution';
 import type { PublicationObserver } from './local-publication';
-import { ADDRESS_HISTORY_FILE, readAddressMigrations } from './address-migrations';
-import { resolveForCaller } from './address-resolution';
+import { ADDRESS_HISTORY_FILE, readAddressMigrations, readCommittedAddressMigrations } from './address-migrations';
+import { resolveForCaller, resolvePublishedForCaller } from './address-resolution';
 import { recordReconciliation, type ReconciliationRequest } from './address-reconciliation';
 import { convertAddressKeys } from './address-key-conversion';
 import { inspect } from '../../shared/core/model';
@@ -827,6 +827,19 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     saveFile,
     resolveAddress: (address: string, reader: Reader) =>
       resolveForCaller({ ...addressReads, readMigrations: (project, caller) => readAddressMigrations(copies.readPlace(caller, project).layout, project, caller) }, address, reader),
+    resolvePublishedAddress: (address: string, reader: Reader) =>
+      snapshots.withPin(pin =>
+        resolvePublishedForCaller(address, reader, async project => {
+          try {
+            const { commit, documents } = await snapshots.readableDocuments(pin, project, reader);
+            const records = await readCommittedAddressMigrations(git, layout, project, commit, reader);
+            return { documents, records };
+          } catch (error) {
+            if (error instanceof SnapshotUnavailableError) return null;
+            throw error;
+          }
+        }),
+      ),
     reconcileAddress: (declaration: ReconciliationRequest, reader: Reader) => recordReconciliation(addressReconciliation, declaration, reader),
     saveFiles: documentSave.saveFiles,
     documents: () => documentsFor(LOCAL_READER),

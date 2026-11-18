@@ -4,6 +4,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { atomicWriteJson } from '../../src/server/projects/atomic';
 import { itemDiffBaselineWorkspace } from '../helpers/item-diff-baseline';
+import { publishFixture } from '../helpers/published-workspace';
 import { ADDRESS_HISTORY_FILE, addressHistoryDifference, parseAddressHistory, readAddressMigrations } from '../../src/server/projects/address-migrations';
 import { compareItems } from '../../src/shared/item-diff/compare-items';
 import type { DiffItem } from '../../src/shared/item-diff/item-change';
@@ -115,4 +116,27 @@ test('Git unions independently appended histories without adding a compile input
   expect(readFolder(directory).files.map(file => file.path)).not.toContain(ADDRESS_HISTORY_FILE);
   const snapshot = await readSnapshot({ repository: directory, branch: 'history-second' });
   expect(snapshot.files.map(file => file.path)).not.toContain(ADDRESS_HISTORY_FILE);
+});
+
+test('address resolution sees branch aliases in the editor and only published aliases for consumers', async () => {
+  using fixture = await itemDiffBaselineWorkspace();
+  const prefix = 'sw1:finance/finance.ontology.yaml#ontology:Finance/concept:';
+  const from = prefix + 'Former';
+  const to = prefix + 'Customer';
+  await fixture.ws.reconcileAddress({ operationId: 'browser-alias', from, to }, LOCAL_READER);
+  const resolve = async (editor: boolean) => {
+    const response = await fixture.handler(
+      new Request('http://localhost:5173/api/projects/finance/item-addresses/resolve', {
+        method: 'POST',
+        headers: { Origin: 'http://localhost:5173', 'X-SW-Request': '1', ...(editor ? { 'Sec-Fetch-Site': 'same-origin' } : {}) },
+        body: JSON.stringify({ address: from }),
+      }),
+    );
+    expect(response.status).toBe(200);
+    return response.json();
+  };
+  expect(await resolve(true)).toMatchObject({ status: 'found', address: to });
+  expect(await resolve(false)).toEqual({ status: 'missing' });
+  await publishFixture(fixture);
+  expect(await resolve(false)).toMatchObject({ status: 'found', address: to });
 });

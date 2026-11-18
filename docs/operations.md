@@ -140,6 +140,7 @@ These steps run inside the admitted route and share its authorization and audit 
 | --- | --- |
 | repositories.clone | publication.upgrade |
 | projects.export | snapshot.read |
+| itemAddresses.resolve | snapshot.read |
 | metrics.list | snapshot.read |
 | metrics.save | snapshot.read |
 | metrics.preview | snapshot.read |

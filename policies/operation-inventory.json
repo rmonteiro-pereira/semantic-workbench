@@ -328,7 +328,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
-      }
+      },
+      "steps": ["snapshot.read"]
     },
     "POST /api/projects/:slug/item-addresses/reconcile/*": {
       "id": "itemAddresses.reconcile",
