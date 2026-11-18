@@ -49,7 +49,8 @@ it is not a drop-in performance switch.
 7. Fit the actual pane, then measure painted entity names. Network starts as counted area cards
    when its smallest name is below 9 screen pixels; a 250-entity safety cap bounds very large
    initial layouts. A failed legibility check costs one additional layout of the counted cards.
-   Counted-card text compensates for zoom. Explicit area choices bypass the automatic decision.
+   Counted-card text compensates for zoom. Area titles keep their backing over relationship strokes
+   and leave room above the cards when a title wraps. Explicit area choices bypass the automatic decision.
    Layered opens on the first area at readable name scale without moving its orthogonal routes;
    Fit returns to the whole model. Resizing does not change the automatic representation.
 

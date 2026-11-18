@@ -121,7 +121,7 @@
 .full-graph .full-area-title {
   background: var(--color-surface-page);
   border-radius: 4px;
-  padding: 3px 5px;
+  padding-inline: 5px;
   z-index: 3;
   pointer-events: auto;
 }
