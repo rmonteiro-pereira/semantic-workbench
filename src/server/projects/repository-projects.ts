@@ -5,7 +5,7 @@ import type { EventTags } from './events';
 import { existsSync, lstatSync, readFileSync } from 'node:fs';
 import { join, posix } from 'node:path';
 import { atomicWrite, decode, sha256 } from './atomic';
-import { BadRequestError, GitUnavailableError, StaleError, NotFoundError } from './errors';
+import { GitUnavailableError, StaleError, NotFoundError } from './errors';
 import type { Git } from './git';
 import { PathError, assertNoLinks, assertSlug, locationOf, slugify, uniqueName, type DataLayout } from './paths';
 import { MANIFEST_FILE, MANIFEST_SCHEMA, checkProjectFolders, detectProjectFolders, parseManifest, type RepositoryProject } from './repositories';
