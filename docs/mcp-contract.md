@@ -126,6 +126,18 @@ the table above. The static page fallback row is not an operation and is left ou
 | `POST /api/projects/:slug/git/push-default` | later: Remaining workspace and source-control operations |  |
 | `PUT /api/projects/:slug/git/remote` | later: Remaining workspace and source-control operations |  |
 | `DELETE /api/projects/:slug/git/remote` | later: Remaining workspace and source-control operations |  |
+| `GET /api/projects/:slug/usage` | later: Remaining workspace and source-control operations | a person reads usage counts in the browser; a tool for them is a later increment |
+| `GET /api/projects/:slug/proposals` | later: Remaining workspace and source-control operations |  |
+| `GET /api/projects/:slug/proposals/:id` | later: Remaining workspace and source-control operations |  |
+| `GET /api/projects/:slug/proposals/:id/diff` | later: Remaining workspace and source-control operations |  |
+| `POST /api/projects/:slug/proposals` | later: Remaining workspace and source-control operations | proposals are a person's work; agent access is a later increment |
+| `POST /api/projects/:slug/proposals/:id/work` | later: Remaining workspace and source-control operations |  |
+| `POST /api/projects/:slug/proposals/:id/synchronize` | later: Remaining workspace and source-control operations |  |
+| `POST /api/projects/:slug/proposals/:id/contribute` | later: Remaining workspace and source-control operations |  |
+| `GET /api/projects/:slug/proposals/:id/promotion-check` | later: Remaining workspace and source-control operations |  |
+| `POST /api/projects/:slug/proposals/:id/promote` | later: Remaining workspace and source-control operations | promotion publishes, so it stays with a person |
+| `POST /api/projects/:slug/proposals/:id/close` | later: Remaining workspace and source-control operations |  |
+| `POST /api/projects/:slug/proposals/:id/restore` | later: Remaining workspace and source-control operations |  |
 | `PUT /api/projects/:slug/git/folder` | later: Remaining workspace and source-control operations |  |
 | `POST /api/clone/:operation/cancel` | later: Remaining workspace and source-control operations |  |
 | `GET /api/repos/:repo/project-candidates` | later: Remaining workspace and source-control operations |  |
