@@ -1,3 +1,39 @@
+# Batch 1 gate after the third review
+
+The third review returned two must-fix items in usage counting. Both are fixed in `6d6a993b` and
+`9d5aa723`, and a fresh review of those commits found no blocker. Its follow-ups are fixed in
+`5a014ae9`, `229e1b47` and `26565460`, except the synchronous Git read in the published-history
+lookup, which stays until the committed address history replaces that lookup.
+
+| Command at `78d97065` | Summary |
+| --- | --- |
+| `bun --bun run check` | Exit 0. |
+| Usage, Tessera, proposals and auth unit tests | Exit 0. |
+| `bun --bun run build` | Exit 0. |
+| Browser: `test:usage-traffic`, `test:admin`, `test:proposals`, `test:tessera` | All passed. |
+| `bun scripts/ci-validate.ts --step mutation` | 850/850 targeted mutants killed. All unmodified module baselines passed. Gate passed in 2764.2 seconds. |
+
+The follow-up commits were checked with `bun --bun run check` (exit 0) and the address, usage and
+source control tests (266 pass, 0 fail).
+
+**Dialogs.** The earlier dialogs failures came from the test machine, not from this batch. The page
+stayed blank because Chromium aborted dozens of module requests with `ERR_NETWORK_CHANGED`, on this
+branch and on `main` alike. The dev server's container runtime adds and removes network interfaces,
+and Chromium drops in-flight loads when it sees one. Run inside a network namespace with only
+loopback, `test:dialogs` passed all nine checks at six viewports, both at `78d97065` and at
+`26565460`.
+
+**Inherited failures.** Rerun at `26565460` in the isolated network, the five suites that also fail
+on `main` fail at the same assertions:
+
+| Script | First failure |
+| --- | --- |
+| `test:responsive` | 481 px where more than 504 px is required. |
+| `test:graph` | Longest main-thread task during pierce 329 ms against a 100 ms budget. |
+| `test:editor` | 57 ms per keystroke against a limit under 30 ms. |
+| `test:lineage` | Stops at the same click the sidebar separator intercepts. |
+| `test:back-history` | Collapsing the graph areas leaves the same empty fingerprint. |
+
 # Batch 1 gate after the second review
 
 Tested source and gate scripts are at `1bebf7ecfc682fab3c3f36a1371cf087ee3c73bb`.
