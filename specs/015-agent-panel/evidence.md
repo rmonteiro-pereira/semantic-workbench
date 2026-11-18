@@ -191,3 +191,10 @@ before trusting its other required fields. The transport now validates every req
 nonempty scope list and integer expiry after the explicit 201 check, before the hook stores an
 id. Its public transport proof exercises malformed successful replies and the write-intent
 header. Proof: `bun test tests/acp/panel-connect.test.tsx`: 2 pass, 0 fail, 14 assertions.
+
+The next repeat showed that the regular expression alone did not make failure simulation
+stable: the real stream could still bypass interception. The browser harness now installs one
+persistent handler for setup failure, stream failure and recovery. It never changes handler
+registrations between the two failures, and still requires the observed 503 response before
+checking disconnection. Two consecutive dev-server executions passed, each reporting six
+viewport/theme conversations and exercising all thirteen endings.

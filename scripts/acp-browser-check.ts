@@ -22,6 +22,29 @@ async function send(page: Page, text: string) {
   await page.getByRole('textbox', { name: 'Message to your agent' }).fill(text);
   await page.getByRole('button', { name: 'Send message', exact: true }).click();
 }
+async function simulateConnectionFailures(page: Page) {
+  let failSetup = true;
+  let failStream = true;
+  // One persistent handler avoids racing a one-shot route's removal against registration of the next route.
+  await page.route('**/api/acp/**', async route => {
+    const request = route.request();
+    const path = new URL(request.url()).pathname;
+    if (path === '/api/acp/sessions' && request.method() === 'POST' && failSetup) {
+      failSetup = false;
+      await route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Connection setup unavailable.' }) });
+      return;
+    }
+    if (panelEvents.test(request.url()) && failStream) {
+      await route.fulfill({ status: 503, body: '{}' });
+      return;
+    }
+    await route.continue();
+  });
+  return () => {
+    failStream = false;
+  };
+}
+
 async function contained(page: Page) {
   const geometry = await page.locator('.agent-panel').evaluate(element => {
     const bounds = element.getBoundingClientRect();
@@ -64,12 +87,9 @@ try {
         await expect(page.getByRole('dialog', { name: 'Connect your agent' })).toBeVisible();
         await expect(page.getByText(/does not call a language model/)).toBeVisible();
         expect(panelRequests).toEqual([]);
-        await page.route('**/api/acp/sessions', route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Connection setup unavailable.' }) }), {
-          times: 1,
-        });
+        const recoverStream = await simulateConnectionFailures(page);
         await page.getByRole('button', { name: 'Start session', exact: true }).click();
         await expect(page.getByRole('alert').filter({ hasText: 'Connection setup unavailable.' })).toBeVisible();
-        await page.route(panelEvents, route => route.fulfill({ status: 503, body: '{}' }));
         const disconnected = page.waitForResponse(response => panelEvents.test(response.url()) && response.status() === 503);
         const creating = page.waitForResponse(response => response.url().endsWith('/api/acp/sessions') && response.request().method() === 'POST');
         await page.getByRole('button', { name: 'Start session', exact: true }).click();
@@ -77,7 +97,7 @@ try {
         await disconnected;
         await expect(page.getByText(/Waiting for your agent/)).toBeVisible();
         await expect(page.getByText('Disconnected from the event stream. Reconnecting…', { exact: true })).toBeVisible();
-        await page.unroute(panelEvents);
+        recoverStream();
         await contained(page);
         const session = server.service.store.findForRelay(created.id)!;
         relay = await startRelay(server, { id: session.id, code: session.code! }, [
