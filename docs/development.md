@@ -96,6 +96,10 @@ for the options and exit statuses (0 success, 1 refused, 2 loss needs acceptance
   to open the details of a concept in a 200-concept document.
 - `bun scripts/mutation-tests.ts --attributes` checks the targeted faults for the revision additions.
   The integrated mutation gate runs these cases with the rest of its inventory.
+- `bun scripts/record-item-diff-baseline.ts` records six rendered workbench structures and published
+  context, plan and explanation responses against isolated published and unpublished definitions.
+  Start an isolated frontend and set `SW_BASE_URL` first. `bun test tests/item-diff/baseline.test.ts`
+  compares the consumer responses without a browser.
 - `bun scripts/record-standard-baseline.ts` records what the unchanged code does with every example
   and fixture file (`tests/fixtures/tessera/standard-baseline.json`); `tests/tessera/standard-unchanged.test.ts`
   compares against it. Run it only when a change to ordinary Ossie handling is intended.
