@@ -20,6 +20,7 @@ const fixtureScripts = new Set([
   'scripts/observability-cases.ts',
   'scripts/operation-boundary-mutation-cases.ts',
   'scripts/snapshot-mutation-cases.ts',
+  'scripts/proposals-mutation-cases.ts',
 ]);
 const publicEntries = new Set(['operation-boundary', 'caller', 'twin-request', 'operation-inventory', 'call-attribution', 'operation-outcome']);
 
