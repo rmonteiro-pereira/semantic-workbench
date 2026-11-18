@@ -346,6 +346,10 @@ command line.
   The shared inspector connects allowed aliases to read-only concept nodes that retain the provider’s
   project, ontology, and published version.
   `src/server/routes/mesh.ts` serves provider discovery, dependency status and explicit dependency updates through the operation boundary.
+  `src/server/mesh/dependents-registry.ts` rebuilds the provider's dependents index from published lock files.
+  `src/server/mesh/mesh-graph.ts` projects the published graph to the reader's visible projects.
+  Dependency previews report interface changes. Cross-project links in this revision are workbench-local imports, and compatibility
+  verdicts, externally composed ontologies, organization-wide targets and release automation are outside the mesh boundary.
   The shared publication guard checks locks against the immutable candidate tree and pinned provider history before advancing the ref.
   The compile unit source passes root and declared part files, lock metadata and pinned public interfaces to the compiler.
   Mesh bundles merge parts into their roots, qualify imported concepts, and record their provenance and address map in manifest version 2.

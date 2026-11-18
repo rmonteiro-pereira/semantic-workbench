@@ -386,7 +386,7 @@ authorization boundaries and invariants. It is the detailed reference for changi
 | Ossie ontology | YAML, JSON | Concepts, relationships, inheritance and IRIs |
 | Ossie semantic model | YAML, JSON | Datasets, fields, joins, expressions and metrics |
 | Ossie mappings | YAML, JSON | Standalone and deprecated embedded mappings |
-| Tessera ontology (authoring format that compiles to standard Ossie) | YAML, JSON | An Ossie ontology with a `tessera: 1` or `tessera: 2` marker; see [Tessera](#tessera-an-authoring-format-that-compiles-to-standard-ossie) |
+| Tessera ontology (authoring format that compiles to standard Ossie) | YAML, JSON | An Ossie ontology with a `tessera: 1`, `tessera: 2` or `tessera: 3` marker; see [Tessera](#tessera-an-authoring-format-that-compiles-to-standard-ossie) |
 | RDF | Turtle, N-Triples, N3, RDF/XML | Resource inspection, safe item edits and Source |
 | OWL / SHACL | Turtle or RDF/XML | Definitions and selected structural checks; SHACL shapes also run against a chosen Turtle, N-Triples or N3 data file in the project |
 
@@ -452,6 +452,13 @@ attribute order, owner, steward and classification stay in the workbench. Tests:
 Browser and HTTP check, compile, bundle and reviewed one-file conversion are described in
 [Check, compile and convert](docs/compile.md). Export's **Standard Ossie (compiled)** option reviews
 only the published snapshot; **Validation details** checks saved working files without releasing bytes.
+
+Revision 3 lets a project divide one ontology into a root and its declared parts. Projects in the
+same workbench can export concepts and import a named selection from a provider. **Update
+dependencies** reviews and writes the project's committed `tessera-dependencies.json`. Projects
+can share a repository or publish independently. **Mesh** shows the published connections the
+reader may see. People with provider publication permission can open **Used by**. See
+[Ontology units and imports](docs/user-guide.md#ontology-units-and-imports).
 
 ### The compiler and its command line
 
