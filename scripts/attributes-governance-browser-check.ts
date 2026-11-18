@@ -91,7 +91,7 @@ async function attributeFlow(page: Page, label: string) {
   await dialog.getByLabel('Name').fill(LONG_NAME);
   await expectCleanLayout(page, `${label}: add form`);
   await dialog.getByRole('button', { name: 'Add attribute' }).click();
-  await attributes.getByText(LONG_NAME).waitFor();
+  await attributes.getByText(LONG_NAME, { exact: true }).waitFor();
   await expectCleanLayout(page, `${label}: long name row`);
   await attributes.getByRole('button', { name: `Move ${LONG_NAME} up` }).click();
   await attributes.getByRole('button', { name: `Edit ${LONG_NAME}` }).click();
