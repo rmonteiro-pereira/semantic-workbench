@@ -28,9 +28,13 @@ export type AccessRequest = Request & {
   [requestRemote]?: RemoteCredentials | 'local';
   [requestSession]?: Session | null;
   [requestConnectionScope]?: Caller['scope'];
+  [requestDisclosureShown]?: true;
   [requestPublicationRefusal]?: string;
   [requestPublication]?: { previous: string | null; commit: string | null };
 };
+/** Marks a publication whose browser confirmation included the mesh disclosure. */
+export const requestDisclosureShown = Symbol('requestDisclosureShown');
+
 /** The completed publication attached by its route for the one request audit record. */
 export const requestPublication = Symbol('requestPublication');
 /** A bounded refusal reason attached by the adoption route for its audit outcome. */
@@ -79,6 +83,7 @@ export function attachIdentity(
   // A reused request must not carry a previous operation's publication outcome.
   attached[requestPublication] = undefined;
   attached[requestPublicationRefusal] = undefined;
+  attached[requestDisclosureShown] = undefined;
 }
 
 /**

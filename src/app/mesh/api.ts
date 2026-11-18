@@ -92,3 +92,40 @@ export async function updateDependencies(project: string, baseHash: string | nul
   }
   return { preview: result.preview, changes: result.changes };
 }
+
+/** Holds the public metadata disclosed to the provider's publishers. */
+export type DependentView = { name: string; domain: string | null; items: string[]; version: string };
+
+function isDependent(value: unknown): value is DependentView {
+  return (
+    isObject(value) &&
+    typeof value.name === 'string' &&
+    value.name.length > 0 &&
+    (value.domain === null || typeof value.domain === 'string') &&
+    Array.isArray(value.items) &&
+    value.items.every(item => typeof item === 'string' && item.length > 0) &&
+    typeof value.version === 'string' &&
+    /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(value.version)
+  );
+}
+
+/** Reads the provider's published dependent entries in cursor order. */
+export async function readDependents(project: string, signal?: AbortSignal): Promise<DependentView[]> {
+  const dependents: DependentView[] = [];
+  const seen = new Set<string>();
+  let cursor: string | null = null;
+  do {
+    const path = `/api/projects/${encodeURIComponent(project)}/dependents`;
+    const result = await read(cursor ? path + '?' + new URLSearchParams({ cursor }) : path, signal);
+    if (!isObject(result) || !Array.isArray(result.dependents) || !result.dependents.every(isDependent) || (result.cursor !== null && typeof result.cursor !== 'string')) {
+      throw new Error('Invalid published dependents listing.');
+    }
+    dependents.push(...result.dependents);
+    cursor = result.cursor;
+    if (cursor !== null) {
+      if (!cursor || seen.has(cursor)) throw new Error('The dependents listing repeated a page.');
+      seen.add(cursor);
+    }
+  } while (cursor !== null);
+  return dependents;
+}

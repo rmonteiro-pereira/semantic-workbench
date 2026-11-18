@@ -1,4 +1,5 @@
 /** Lets an author choose a published provider and the exact concepts its alias exposes. */
+import { DisclosureNotice } from './DisclosureNotice';
 import React, { useState } from 'react';
 import type { UnitImport } from '../../shared/tessera/imports';
 import type { ProviderChoice } from './api';
@@ -80,6 +81,7 @@ export function ImportEditor({ providers, existing, aliases, onAdd, onCancel }: 
           )}
         </>
       )}
+      <DisclosureNotice />
       {error && <p role="alert">{error}</p>}
       <div className="mesh-actions">
         <button type="button" onClick={onCancel} disabled={saving}>

@@ -10,6 +10,7 @@ import { renameUnitAlias } from '../edit/references';
 import type { Saved } from '../edit/ItemEditor';
 import { ImportEditor } from './ImportEditor';
 import { useDependencyState, useProviderChoices, type MeshRead } from './use-mesh';
+import { DependentsList } from './DependentsList';
 import { DependencyUpdate } from './DependencyUpdate';
 import type { DependencyState } from './api';
 
@@ -102,6 +103,7 @@ export function ImportsSection({
           onCancel={() => setEditing(null)}
         />
       )}
+      {access.can('publish') && <DependentsList key={doc.project} project={doc.project} />}
       {editing && providers.status !== 'ready' && <button onClick={() => setEditing(null)}>Close import editor</button>}
     </section>
   );

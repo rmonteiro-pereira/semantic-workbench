@@ -17,7 +17,7 @@ import type { ResourceRef, Decision } from './resource';
 import { WriteAccessError } from './write-access';
 import { GuardedChangeError } from './guards';
 import { READ_ACTIONS } from '../../shared/auth/actions';
-import { attachIdentity, requestPublication, requestPublicationRefusal, type AccessRequest } from './request-scope';
+import { attachIdentity, requestDisclosureShown, requestPublication, requestPublicationRefusal, type AccessRequest } from './request-scope';
 import { hiddenResponses, requestAuditId } from '../request';
 import { actorPseudonym, setRequestActor } from '../observability/request-context';
 import { auditDenial, agentRefusal } from './refusal';
@@ -176,7 +176,15 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
     try {
       const publication = input.request[requestPublication];
       const reason = input.request[requestPublicationRefusal];
-      input.audit.append({ ...record, decision: 'allow', outcome: semanticOutcome, ...(publication ? { publication } : {}), ...(reason ? { reason } : {}) });
+      const disclosure = input.request[requestDisclosureShown];
+      input.audit.append({
+        ...record,
+        ...(disclosure ? { disclosureShown: true } : {}),
+        decision: 'allow',
+        outcome: semanticOutcome,
+        ...(publication ? { publication } : {}),
+        ...(reason ? { reason } : {}),
+      });
     } catch (error) {
       // The operation already ran; a failure response could trigger a duplicate write on retry.
       reportAuditFailure({ requestId: input.requestId, action: verdict.row.action, error });

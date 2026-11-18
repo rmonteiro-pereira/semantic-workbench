@@ -518,7 +518,7 @@ export const scm = {
   acknowledgePublication: (p: string) => gitPost<{ acknowledged: boolean }>(p, 'git/acknowledge-publication', {}),
   /** Adopts a checked outside fast-forward as the published snapshot. */
   adopt: (p: string) => gitPost<{ published: string; commit: string }>(p, 'git/adopt', {}),
-  publish: (p: string) => gitPost<{ published: string; commit: string }>(p, 'git/publish', {}),
+  publish: (p: string, disclosureShown = false) => gitPost<{ published: string; commit: string }>(p, 'git/publish', disclosureShown ? { disclosureShown } : {}),
   /** Server mode: merges the default branch into the person's branch. */
   pullDefault: (p: string) => gitPost<RemoteResult>(p, 'git/pull-default', {}),
   /** Server mode: pushes the default branch to the remote; Stewards and Admins only. */

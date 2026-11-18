@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { Modal } from '../projects/Modal';
 import { useCapabilities } from '../auth/Capabilities';
 import type { GitStatus, WorkingCopyInfo } from '../projects/api';
+import { DisclosureNotice } from '../mesh/DisclosureNotice';
+import { useDependencyState } from '../mesh/use-mesh';
 import { DefaultBranchActions } from './DefaultBranchActions';
 
 type Props = {
@@ -14,12 +16,14 @@ type Props = {
   busy: boolean;
   onClose: () => void;
   onPullDefault: () => void;
-  onPublish: () => void;
+  onPublish: (disclosureShown: boolean) => void;
   onPushDefault: () => void;
 };
 
 /** Asks before the person's branch becomes the published branch for everyone. */
-function ConfirmPublish({ target, branch, onCancel, onConfirm }: { target: string; branch: string; onCancel: () => void; onConfirm: () => void }) {
+function ConfirmPublish({ project, target, branch, onCancel, onConfirm }: { project: string; target: string; branch: string; onCancel: () => void; onConfirm: (disclosureShown: boolean) => void }) {
+  const state = useDependencyState(project, undefined, '');
+  const disclose = state.status === 'ready' && Boolean(state.value?.imports.length);
   return (
     <Modal
       title={`Publish to ${target}?`}
@@ -28,7 +32,7 @@ function ConfirmPublish({ target, branch, onCancel, onConfirm }: { target: strin
       footer={
         <>
           <button onClick={onCancel}>Cancel</button>
-          <button className="primary" onClick={onConfirm}>
+          <button className="primary" disabled={state.status === 'loading'} onClick={() => onConfirm(disclose)}>
             Publish to {target}
           </button>
         </>
@@ -37,6 +41,7 @@ function ConfirmPublish({ target, branch, onCancel, onConfirm }: { target: strin
       <p>
         {branch} becomes the published {target} on this server, so everyone who opens the project sees it.
       </p>
+      {disclose && <DisclosureNotice />}
       <p className="scm-hint">This does not push to a remote. Push {target} does that.</p>
     </Modal>
   );
@@ -48,7 +53,7 @@ export function SyncDialog(props: Props) {
   const access = useCapabilities(props.project);
   const [confirming, setConfirming] = useState(false);
   if (confirming && copy) {
-    return <ConfirmPublish target={copy.defaultBranch} branch={status.branch} onCancel={() => setConfirming(false)} onConfirm={onPublish} />;
+    return <ConfirmPublish project={props.project} target={copy.defaultBranch} branch={status.branch} onCancel={() => setConfirming(false)} onConfirm={onPublish} />;
   }
   return (
     <Modal title="Sync" size="narrow" onCancel={onClose} className="scm-sync-dialog" footer={<button onClick={onClose}>Close</button>}>

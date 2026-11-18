@@ -29,6 +29,7 @@ export type AuditInput = {
   };
   version?: string;
   /** The settled and candidate commits of a publication or adoption attempt. */
+  disclosureShown?: true;
   publication?: { previous: string | null; commit: string | null };
   /** How many refusals of this kind from this source were left out since the last record. */
   suppressed?: number;
@@ -50,7 +51,7 @@ function pick(value: Record<string, unknown>, keys: string[]) {
 const resourceKeys = ['type', 'project', 'path', 'branch', 'metric', 'entry', 'area', 'role', 'grant'];
 function record(input: AuditInput, at: string, prev: string): AuditEntry {
   const entry = {
-    ...pick(input, ['requestId', 'action', 'decision', 'rules', 'reason', 'outcome', 'version', 'tool', 'connection']),
+    ...pick(input, ['requestId', 'action', 'decision', 'rules', 'reason', 'outcome', 'version', 'tool', 'connection', 'disclosureShown']),
     type: 'audit',
     at,
     prev,

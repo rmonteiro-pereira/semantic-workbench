@@ -575,7 +575,7 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
           busy={busy}
           onClose={() => setSyncOpen(false)}
           onPullDefault={() => fromSync(pullDefault)}
-          onPublish={() => fromSync(publishCopy)}
+          onPublish={disclosureShown => fromSync(() => publishCopy(disclosureShown))}
           onPushDefault={() => fromSync(pushDefault)}
         />
       )}

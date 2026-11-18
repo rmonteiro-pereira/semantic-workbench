@@ -66,9 +66,9 @@ export function useRemoteActions({ project, act, guard, altered, setNote, setErr
       r => reportRemote('push', r),
     );
   }
-  function publishCopy() {
+  function publishCopy(disclosureShown = false) {
     void act(
-      () => scm.publish(project),
+      () => scm.publish(project, disclosureShown),
       r => setNote({ tone: 'info', text: `Published to ${r.published}.` }),
     );
   }
