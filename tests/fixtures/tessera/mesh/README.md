@@ -45,6 +45,7 @@ provided by the caller; it does not follow a filesystem link while loading test 
 
 ## Workspace fixtures
 
-The planned temporary workspace helper owns repository placement, publication and cleanup. Access
-fixtures will declare a project without a domain, a restricted part and the readers. Providers, dependency manifests and golden bundles will be
+The temporary workspace helper owns repository placement, publication and cleanup. Access fixture
+`access/projects.json` declares the project without a domain and the restricted part;
+`access/grants.json` declares the readers. Providers, dependency manifests and golden bundles will be
 indexed here when their executable proofs are added.

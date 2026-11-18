@@ -55,3 +55,19 @@ caller-supplied metadata, not links followed by the fixture loader. The pin fixt
 an available object from published history. These are inputs for the later refusal proofs; no
 claim is made that the current validator emits their set findings. The fixtures are split across
 two commits to keep each change within the file limit.
+
+T005 and T006: mesh-workspace.test.ts: 6 pass, 0 fail, 30 assertions. Shared repositories use one
+repository with three registered project folders; separate repositories use three. Published bytes
+stay unchanged after an unstaged import and a personal branch. Provider changes advance only the
+intended repository snapshot and retain an unstaged consumer import. The authorization fixture
+hides the retail part from Alice and includes it for Bob; units has no domain. Fixture disposal
+closes the latest workspace as well as the original fixture lifetime.
+
+The helper follows publishFixture's direct Git/pointer setup to install committed fixture states.
+It is not evidence that the ordinary publication path accepts or refuses a unit; T030 and T031
+must exercise the real publication boundary. No production validation is bypassed by application
+code. Revision 3 remains unsupported until the foundational format tasks are implemented.
+
+Merge operation-boundary proof on the development server: 46 pass, 0 fail, 45,038 assertions,
+4 files, 124.07 seconds (inventory, route actions, matrix and compile parity). Regenerating the
+operation table gives no diff.

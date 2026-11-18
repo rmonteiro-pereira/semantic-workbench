@@ -1,0 +1,15 @@
+{
+  "formatVersion": 1,
+  "domains": [{ "id": "commerce", "name": "Commerce" }],
+  "projects": {
+    "finance": { "domain": "commerce", "stewards": [], "restricted": [], "protectedBranches": ["main"] },
+    "retail": {
+      "domain": "commerce",
+      "stewards": [],
+      "restricted": [{ "pattern": "private/**", "groups": [], "emails": ["bob@example.org"] }],
+      "protectedBranches": ["main"]
+    },
+    "units": { "stewards": [], "restricted": [], "protectedBranches": ["main"] }
+  },
+  "classification": { "levels": ["public", "internal", "confidential", "restricted"], "aliases": {}, "protectedLevel": "confidential" }
+}
