@@ -108,3 +108,17 @@ These describe the earlier worker state; the continuation results below supersed
 | `b97cf1fb` | docs: record completed connection documentation checks |
 | `4c6f10b7` | test: use a neutral product name in the branding fixture |
 | `9b268eb1` | test: expose completed MCP receipt authorization gap |
+
+
+## Owner decisions and completion proof
+
+- Receipt identity is now the person and connection, or the single local caller. The local caller retains legacy receipts. An unrelated caller takes the ordinary missing-key path.
+- A receipt uses the same inventoried twin, current scope and grants, and authorized target as the fresh effect. A retained trash target supplies the original resource after restore consumes the entry. A cancelled connection cannot release a prior result.
+- Only the bridge caches usable client tokens. The server continues to persist keyed hashes. The bridge verifies owner-only access, binds its cache to the server and program, atomically replaces that cache, serializes rotation, and removes the cache on invalid grant or explicit sign-out.
+- Consent and setup pages use a same-origin referrer policy to preserve the Origin header. The outgoing consent redirect still sends no referrer. The exact-Origin and CSRF checks remain, and a setup form is consumed once per session-bound request.
+- The visual proof builds the current frontend, checks six theme/width combinations with masked credentials, and scopes dialog assertions to the visible region. The separate screenshot capture job remains open.
+- Workbench server builds and test groups use only the scratch transport. The earlier pre-push review finding does not gate it.
+
+- T024: server bridge proof passed 2 tests and 17 assertions. It covers a real server-handler setup grant, reload of the file, rotation, active and startup permission refusal, revoked-token cleanup, and simulated Windows ACL outcomes.
+- T033–T036: the built browser check exited 0 after 96 screens across 320, 768 and 1280 px in light and dark. Consent carried the exact Origin and redirected to the registered callback. Reloading the setup result did not mint a second credential. The person's dialog and both Admin sections covered empty, loading, error and long content, and both connection lists confirmed and applied revocation. The terminology suite exited 0 across the rendered views, README and docs. Separate screenshot review is deferred.
+- Latest static/build proof: check and build exited 0 on the dev server. The connection-only mutation gate killed 12/12 mutants across three passing baselines, including explicit receipt-owner and current-authorization mutants.
