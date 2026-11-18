@@ -132,3 +132,8 @@ Final route-inventory review caught the positional requirement in route-actions.
 conversation examples must precede the final pages row. The single appended block now inserts
 them immediately before that row, after deriving the definition-read matrix.
 Proof: `bun test tests/auth/route-actions.test.ts`: 7 pass, 0 fail, 385 assertions.
+
+The origin-parity proof compared rule arrays by iteration order, although the decision supplies
+the same rule set in either order. Its comparison now canonicalizes only rules; decisions,
+resources and every other audit field remain compared. No production authorization changed.
+Proof: `bun test tests/auth/acp-origin.test.ts`: 11 pass, 0 fail, 51 assertions.

@@ -32,11 +32,14 @@ const cases: Case[] = [
 
 const originDependentKeys = ['at', 'prev', 'requestId', 'origin', 'tool', 'connection', 'method', 'clientLabel', 'createdAt', 'updatedAt', 'commit'];
 
-function withoutOriginDetails(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(withoutOriginDetails);
+function withoutOriginDetails(value: unknown, field?: string): unknown {
+  if (Array.isArray(value)) {
+    const items = value.map(item => withoutOriginDetails(item));
+    return field === 'rules' ? items.sort() : items;
+  }
   if (!value || typeof value !== 'object') return value;
   const entries = Object.entries(value).filter(([key]) => !originDependentKeys.includes(key));
-  return Object.fromEntries(entries.map(([key, item]) => [key, withoutOriginDetails(item)]));
+  return Object.fromEntries(entries.map(([key, item]) => [key, withoutOriginDetails(item, key)]));
 }
 
 async function run(testCase: Case, origin: CallerOrigin) {
