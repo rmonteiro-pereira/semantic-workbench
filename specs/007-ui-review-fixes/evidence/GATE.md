@@ -98,6 +98,25 @@
   fixture files while the frozen imports were staged under the capture script directory. The next attempt keeps the byte-exact fixture bundle in the
   ignored output directory during mutation and formatting. The final unit/check/build phase uses the same isolation.
 
+### Final suite disposition
+
+`bun scripts/ci-validate.ts --step mutation` returned 0. `771/771 targeted mutants killed; all unmodified module baselines passed.` The rebuilt catalog
+mutant triggered the actual clipping assertion, and the examples module baseline passed. The browser gate covered all 36 registered suites. Twenty-nine
+passed after focused harness fixes. The seven remaining suite failures have a matching main failure at the failing behavior.
+
+| Suite | Candidate | Pinned main |
+| --- | --- | --- |
+| `test:admin` | Times out waiting for Dry-run result. | Same timeout on the canonical suite. |
+| `test:autosave` | The UI commits, then the fixture cannot resolve `main`. | Same unknown-revision error after the UI commit. |
+| `test:git-setup` | The default branch has no commits after a UI working-copy commit. | Same Git error after the UI commit. |
+| `test:editor` | 55.31 ms/key for the 1.9 MB source against a 30 ms limit. | 55.36 ms/key at the same assertion. |
+| `test:graph` | 287 ms longest task on Both-direction Full pierce against a 100 ms limit. | 240 ms at the same assertion. |
+| `test:lineage` | The UBL canonical suite exceeds 2 s. The matched switch with frozen imports also exceeds 2 s. | The canonical suite stops earlier at a Walk click; the matched switch with the same timed lab steps exceeds 2 s. |
+| `test:responsive` | Passes the compact Full Graph threshold (511 px). The phone tour fails the ODCS contract-ID assertion. | Fails the earlier Full Graph threshold (481 px). The focused phone ODCS run fails the same ID assertion. |
+
+The Mall ODCS canvas is separate from those responsive checks. It remains 389 px on both main and candidate against 421 px in the equivalent Example
+view. The candidate's 30 px Full Graph gain comes from the Full Graph toolbar, not from lane B's lineage changes.
+
 ### Verification after the graph corrections
 
 | Command | Summary |

@@ -509,7 +509,7 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: A conflict outside the plan's shared-file list is a lane-boundary error: report it, do not patch it.
   - Proof: Three commands green after each of the five merges; merge commit ids in `evidence/GATE.md`.
 
-- [ ] T075 Run every browser suite and the mutation tests on the merged branch: `test:ui`, `test:responsive`, `test:edges`, `test:grouping-validation`, `test:examples:ui`, `test:graph`, `test:lineage`, `test:odcs`, `test:mapping-graph`, `test:scm`, `test:editor`, `test:validation`, `test:theme`, `test:dialogs`, `test:admin`, `test:auth`, `test:brand`, `test:metrics`, `test:trash`, `test:projects`, `test:sidebar`, `test:mappings-layout`, `test:back-history`, then `bun scripts/mutation-tests.ts`.
+- [x] T075 Run every browser suite and the mutation tests on the merged branch: `test:ui`, `test:responsive`, `test:edges`, `test:grouping-validation`, `test:examples:ui`, `test:graph`, `test:lineage`, `test:odcs`, `test:mapping-graph`, `test:scm`, `test:editor`, `test:validation`, `test:theme`, `test:dialogs`, `test:admin`, `test:auth`, `test:brand`, `test:metrics`, `test:trash`, `test:projects`, `test:sidebar`, `test:mappings-layout`, `test:back-history`, then `bun scripts/mutation-tests.ts`.
   - Change: Every mutant must be detected, including the new ones registered under the five sentinels.
   - Proof: All green; output saved in `evidence/GATE.md`.
 
