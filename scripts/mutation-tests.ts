@@ -1,6 +1,7 @@
 // Introduces faults into temporary source copies and checks that the test suite detects them.
 import { tmpdir } from 'node:os';
 import { operationBoundaryMutants } from './operation-boundary-mutants';
+import { connectionsMutants } from './connections-mutation-cases';
 import { mcpMutants } from './mcp-mutants';
 import { addressMutants, modelAddressMutants, migrationAddressMutants, serverAddressMutants, addressOperationMutants } from './address-mutants';
 import { adminMutants } from './admin-mutants';
@@ -573,11 +574,16 @@ mutants.push(...observabilityMutants);
 mutants.push(...operationBoundaryMutants);
 // The local agent endpoint: access checks, cursors, receipts, tool twins, the commit tool and the audit fields.
 mutants.push(...mcpMutants);
+mutants.push(...connectionsMutants);
+const connectionsOnly = process.argv.includes('connections');
+if (connectionsOnly) mutants.splice(0, mutants.length, ...connectionsMutants);
 
 // Split modules import their siblings, so a mutant runs inside a copy of the whole folder: only
 // imports that leave the folder point back at the real sources.
 const SPLIT_PROJECT_MODULES = /^src\/server\/projects\/(workspace\.ts|workspace\/|scm|trash)/;
 function copiedFolderOf(category: string, file: string) {
+  if (category === 'connections-domain') return 'src/server/connections';
+  if (category === 'connections-gate') return 'src/server/mcp';
   if (category === 'agent') return 'src/server/agent';
   if (['mcp-gate', 'mcp-state', 'mcp-tools'].includes(category)) return 'src/server/mcp';
   if (['auth-middleware', 'sec-request-limits', 'signin-redirect', 'bearer-cookie', 'observability-unaudited', 'operation-boundary', 'mcp-audit', 'mcp-rows'].includes(category))
@@ -691,6 +697,11 @@ try {
     if (/Cannot find|SyntaxError|ModuleNotFound/.test(result.error)) throw Error(`Invalid mutation ${i}: ${result.error}`);
     killed++;
     console.log(`KILLED ${category}: ${before} → ${after}`);
+  }
+  if (connectionsOnly) {
+    console.log(`${killed}/${mutants.length} connection mutants killed; all baselines passed.`);
+    await rm(temp, { recursive: true, force: true });
+    process.exit(0);
   }
   await askpassCases();
   const ui = Bun.spawn([process.execPath, resolve(root, 'scripts/ui-tests.ts')], {
