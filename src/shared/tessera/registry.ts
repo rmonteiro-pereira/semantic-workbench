@@ -15,6 +15,10 @@ import { AI_CONTEXT_ADDITION } from './additions/ai-context';
 import { ATTRIBUTES_ADDITION } from './additions/attributes';
 import { GOVERNANCE_ADDITION } from './additions/governance';
 import { NOTES_ADDITION } from './additions/notes';
+import { INCLUDES_ADDITION } from './additions/includes';
+import { EXPORTS_ADDITION } from './additions/exports';
+import { PART_ADDITION } from './additions/part';
+import { IMPORTS_ADDITION } from './additions/imports';
 import { RESERVED_NAMES, type ReservedName } from './reserved-names';
 
 /** Where in an ontology document an addition may appear. */
@@ -43,7 +47,16 @@ export type Registry = {
 };
 
 /** Every addition of every revision. */
-export const ADDITIONS: readonly AdditionEntry[] = [NOTES_ADDITION, ATTRIBUTES_ADDITION, AI_CONTEXT_ADDITION, GOVERNANCE_ADDITION];
+export const ADDITIONS: readonly AdditionEntry[] = [
+  NOTES_ADDITION,
+  ATTRIBUTES_ADDITION,
+  AI_CONTEXT_ADDITION,
+  GOVERNANCE_ADDITION,
+  INCLUDES_ADDITION,
+  EXPORTS_ADDITION,
+  PART_ADDITION,
+  IMPORTS_ADDITION,
+];
 
 /** Lists the mistakes in a list of additions: a repeated name, a missing prefix, a name that is also reserved or the marker key itself. */
 export function registryProblems(additions: readonly AdditionEntry[], reservedNames: readonly ReservedName[]): string[] {

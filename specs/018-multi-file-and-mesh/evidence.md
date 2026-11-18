@@ -109,3 +109,11 @@ proofs remain mandatory. No security guarantee of revision 3 is claimed at this 
 
 Only scratch transport was pushed; no project remote, tag or deployment was changed. No persistent
 server or browser process was started; every test and wrapper command has finished.
+
+T007 registers the four unit properties at revision 3. The registry proof has 8 passing
+tests, and the mesh registry proof has 5 passing tests including rejection by a revision 2
+reader. The schema and runtime selection follow in T008 and T017.
+
+For integration with 017, the committed address history JSON Lines file remains outside
+definition reads and unit membership. Enumerate the root and its declared parts for a unit.
+The dependency manifest is separate metadata and is never a part.

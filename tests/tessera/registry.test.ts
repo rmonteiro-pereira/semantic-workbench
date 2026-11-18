@@ -9,12 +9,21 @@ import { ADDITIONS, REGISTRY, createRegistry, type AdditionEntry } from '../../s
 const notes = ADDITIONS[0];
 const entryNamed = (name: string): AdditionEntry => ({ ...notes, name });
 
-test('the shipped registry holds the notes addition, the three revision 2 additions and one reserved name', () => {
-  expect(REGISTRY.additions.map(addition => addition.name)).toEqual(['tessera_notes', 'tessera_attributes', 'tessera_ai_context', 'tessera_governance']);
-  expect(REGISTRY.reservedNames.map(entry => entry.name)).toEqual(['tessera_imports']);
+test('the shipped registry holds the notes addition, the three revision 2 additions and the unit additions', () => {
+  expect(REGISTRY.additions.map(addition => addition.name)).toEqual([
+    'tessera_notes',
+    'tessera_attributes',
+    'tessera_ai_context',
+    'tessera_governance',
+    'tessera_includes',
+    'tessera_exports',
+    'tessera_part',
+    'tessera_imports',
+  ]);
+  expect(REGISTRY.reservedNames.map(entry => entry.name)).toEqual([]);
   expect(REGISTRY.byName('tessera_notes')).toBe(notes);
   expect(REGISTRY.atPlace('concept').map(addition => addition.name)).toEqual(['tessera_notes', 'tessera_attributes', 'tessera_ai_context', 'tessera_governance']);
-  expect(REGISTRY.reservedOwner('tessera_imports')).toBe('multi-file units');
+  expect(REGISTRY.reservedOwner('tessera_imports')).toBeUndefined();
 });
 
 test('a duplicate name fails when the registry is built', () => {
@@ -27,7 +36,7 @@ test('a name without the prefix fails', () => {
 });
 
 test('a name that is also reserved fails', () => {
-  expect(() => createRegistry([entryNamed('tessera_imports')], RESERVED_NAMES)).toThrow('also a reserved name');
+  expect(() => createRegistry([notes], [{ name: notes.name, owner: 'fixture' }])).toThrow('also a reserved name');
 });
 
 function sourceFiles(folder: string): string[] {
