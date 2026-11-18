@@ -41,6 +41,6 @@ export function exportClosure(unit: CombinedUnit, rootPath: string, imported: Re
       if (!concepts.has(dependency) && !OSSIE_BUILTINS.has(dependency)) report('tessera-export-open', `Export "${name}" requires exported concept "${dependency}".`);
     }
   }
-  const interfaceHash = sha256Hex(canonicalJson({ version: unit.ontology.version, prefixes: unit.ontology.prefixes, concepts: [...concepts] }));
+  const interfaceHash = `sha256:${sha256Hex(canonicalJson({ version: unit.ontology.version, prefixes: unit.ontology.prefixes, concepts: [...concepts] }))}`;
   return { concepts, interfaceHash, findings };
 }

@@ -5,7 +5,8 @@ import type { Issue } from '../validation/diagnostics';
 import { validateInput } from '../validation/input';
 import { parseSourceDocument, syntaxOf, type CompileFailure } from './compile-document';
 import { summarizeItems, type DocumentReading } from './meaning-check';
-import { tesseraDependencies, tesseraPart } from '../../generated/validators.js';
+import { tesseraPart } from '../../generated/validators.js';
+import { isDependencyManifest } from './dependency-manifest';
 import { PART_PROPERTY } from './additions/part';
 import { readMarker } from './marker';
 
@@ -73,7 +74,7 @@ function classifyMeshFile(file: UnitFile, text: string, data: unknown): Classifi
   const manifest = file.path === DEPENDENCY_MANIFEST_PATH;
   if (!isObject(data)) return manifest ? invalidFile(file, 'Expected a dependency manifest object.') : undefined;
   if (manifest) {
-    return tesseraDependencies(data) ? { kind: 'dependency-manifest', file, data } : invalidFile(file, 'Invalid dependency manifest.');
+    return isDependencyManifest(data) ? { kind: 'dependency-manifest', file, data } : invalidFile(file, 'Invalid dependency manifest.');
   }
   const marker = readMarker(data);
   if (marker.family !== 'tessera' || marker.revision !== 3 || !Object.hasOwn(data, PART_PROPERTY)) return undefined;
