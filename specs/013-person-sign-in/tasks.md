@@ -64,7 +64,7 @@ architecture review run once on the integrated batch (last task). Heavy runs: `s
 
 **Independent Test**: `bun test tests/auth/connection-flow.test.ts -t setup` and `bun test tests/mcp/bridge-server-mode.test.ts` (needs 006).
 
-- [ ] T023 [US4] `GET/POST /oauth/setup` in `src/server/routes/oauth.ts` and the setup grant in the token endpoint. Proof: scenarios 1, 2, 3 and 5 of Story 4: same connection kind, identical failures for spent, expired, foreign and ended-session credentials, shown once, never in an address.
+- [x] T023 [US4] `GET/POST /oauth/setup` in `src/server/routes/oauth.ts` and the setup grant in the token endpoint. Proof: scenarios 1, 2, 3 and 5 of Story 4: same connection kind, identical failures for spent, expired, foreign and ended-session credentials, shown once, never in an address.
 - [ ] T024 [US4] **needs 006** Extend `scripts/mcp-stdio.ts` (and a small `scripts/mcp-credential-file.ts` shared with the local capability's file protection) for `SW_SERVER_URL`, `SW_SETUP_CREDENTIAL` and `--setup-credential-file`: exchange, owner-only file, refresh before expiry, reconnect message on `invalid_grant`, no secret on any output stream. Proof: `tests/mcp/bridge-server-mode.test.ts` against a test server: file mode 0600, nothing printed, refresh, ended connection message; Windows access-list code path covered by the existing fake-platform test style of 006.
 
 ## Phase 7: User Story 5 - Scopes (P2)
