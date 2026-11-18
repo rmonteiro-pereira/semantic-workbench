@@ -126,9 +126,8 @@ refusing all non-default branches (breaks ordinary feature branches that E7 does
 
 ## R8. Contribution checks on the diff
 
-**Decision.** Compute changed paths with `git diff --name-status -M --no-renames`? A rename is two paths;
-use `--no-renames` so a rename is a delete plus an add and both paths are checked against the declared
-set and for authorization. Map every path to its owner project with the same longest-prefix rule as
+**Decision.** Compute changed paths with `git diff --name-status --no-renames`, so a rename is a delete plus an
+add and both paths are checked against the declared set and for authorization. Map every path to its owner project with the same longest-prefix rule as
 `authorizeGitPaths`. A path with no owner is refused. Run the content guard over `changesBetween(old, new)`
 as the contributor.
 
