@@ -307,6 +307,7 @@ export function createScm(deps: ScmDeps) {
       options: {
         paths?: unknown;
         push?: boolean;
+        pushBranch?: string;
         base?: PathBase;
         credentialFor?: CredentialFor;
         author?: CommitAuthor;
@@ -331,7 +332,7 @@ export function createScm(deps: ScmDeps) {
       if (!options.push) return result;
       let pushed: { ok: boolean; message: string };
       try {
-        const action = await remoteAction(slug, 'push', { choice });
+        const action = await remoteAction(slug, 'push', { choice }, result.branch ?? options.pushBranch, result.commit);
         pushed = {
           ok: action.ok,
           message: action.stderr || (action.ok ? 'Pushed.' : 'Push failed.'),

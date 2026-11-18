@@ -269,8 +269,13 @@ brings in what others contributed, and **Contribute** sends your commits to the 
 If another tab changes your branch or its last commit while you choose Work or Synchronize, reload
 the copy and try again. Stewards
 and Admins use **Check**, **Promote**, **Close proposal** and **Restore**. A repository holds up to 50
-open proposals; a name has up to 80 characters. Push and Sync refuse work and proposal branches: publish
-first, then use **Push default**. Local mode has no proposals.
+open proposals, and a name has up to 80 characters. Local mode has no proposals.
+
+Push, Sync and Push default send only commits in the published default branch’s history. The
+destination must be outside `work/`, `proposal/` and `refs/workbench/`. To send new changes, publish
+first, then use **Push default**. Sync checks before pulling and checks the resulting commit again
+before sending it. If the pull adds unpublished history, Sync keeps the pull and reports that the
+push was refused.
 
 If you can read at least one declared project, you can see the proposal name, creator, contributors
 and tip. The list of declared projects shows only the projects you can read.

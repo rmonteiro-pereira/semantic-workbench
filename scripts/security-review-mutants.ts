@@ -77,8 +77,18 @@ export const securityReviewMutants: [string, string, string, string][] = [
   ['secrev-scm-remote-args', 'src/server/projects/scm-remote.ts', "['fetch', '--end-of-options', source.remote, refspec]", "['fetch', source.remote, refspec]"],
   ['secrev-scm-remote-args', 'src/server/projects/scm-remote.ts', "['--end-of-options', remote, 'refs/heads/' + untracked]", "[remote, 'refs/heads/' + untracked]"],
   ['secrev-scm-remote-args', 'src/server/projects/scm-remote.ts', "['fetch', '--prune', '--end-of-options', chosenName(choice)]", "['fetch', '--prune', chosenName(choice)]"],
-  ['secrev-scm-remote-args', 'src/server/projects/scm-remote.ts', "['push', '-u', '--end-of-options', chosenName(choice), gitStatus.branch]", "['push', '-u', chosenName(choice), gitStatus.branch]"],
-  ['secrev-scm-remote-args', 'src/server/projects/scm-remote.ts', "['push', '--end-of-options', chosenName(choice), `${ref}:${ref}`]", "['push', chosenName(choice), `${ref}:${ref}`]"],
+  [
+    'secrev-scm-remote-args',
+    'src/server/projects/scm-remote.ts',
+    "['push', '--no-mirror', '--no-follow-tags', '--recurse-submodules=no', '--end-of-options', chosenName(choice), refspec]",
+    "['push', '--no-mirror', '--follow-tags', '--recurse-submodules=no', '--end-of-options', chosenName(choice), refspec]",
+  ],
+  [
+    'secrev-scm-remote-args',
+    'src/server/projects/scm-remote.ts',
+    "['push', '--no-mirror', '--no-follow-tags', '--recurse-submodules=no', '--end-of-options', chosenName(choice), refspec]",
+    "['push', '--no-mirror', '--no-follow-tags', '--recurse-submodules=no', chosenName(choice), refspec]",
+  ],
   ['secrev-git-routes', 'src/server/routes/git.ts', 'await change(slug, list, base, reader)', 'await change(slug, list, base)'],
   ['secrev-git-routes', 'src/server/routes/git.ts', 'await scm.branches(slug, reader)', 'await scm.branches(slug)'],
   // Drafts are bounded in size and number, and belong to files the person has.

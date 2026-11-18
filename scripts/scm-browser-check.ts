@@ -189,7 +189,14 @@ try {
     await openScm();
     await page.screenshot({ path: '/tmp/workbench-scm-branch.png' });
   });
-  await check('remote: save a local bare remote and push; pull a commit made elsewhere', async () => {
+  async function publishBrowserSnapshot() {
+    await panel().getByLabel('Published snapshot').getByRole('button', { name: 'Publish', exact: true }).click();
+    await expect(panel().getByRole('status').filter({ hasText: 'Published to main.' })).toBeVisible();
+  }
+  await check('remote: publish locally, push published history, then pull a commit made elsewhere', async () => {
+    await publishBrowserSnapshot();
+    await panel().getByLabel('Branch').selectOption('main');
+    await expect(panel().getByLabel('Branch')).toHaveValue('main');
     await panel().getByRole('button', { name: 'New branch' }).click();
     await panel().getByLabel('New branch name').fill('team/notes');
     await panel().getByRole('button', { name: 'Create' }).click();
@@ -285,6 +292,7 @@ try {
     ).toBeVisible();
     expect(sh(dir, ['log', '-1', '--format=%P']).trim().split(' ')).toHaveLength(2);
     expect(read(file)).toContain('Our and their wording.');
+    await publishBrowserSnapshot();
     await runSyncAction(page, 'Sync');
     await expect(panel().getByRole('status').filter({ hasText: 'Sync finished' })).toBeVisible({
       timeout: 20000,
@@ -301,6 +309,7 @@ try {
     await saveSource();
     await openScm();
     await commitAll('Warehouse here');
+    await publishBrowserSnapshot();
     await runSyncAction(page, 'Push');
     const rejection = panel().getByRole('alert').filter({ hasText: 'Push rejected' });
     await expect(rejection).toContainText('Push rejected: the remote has commits you have not integrated.', { timeout: 20000 });
@@ -311,6 +320,7 @@ try {
     await expect(panel().getByRole('status').filter({ hasText: 'Pull finished' })).toBeVisible({
       timeout: 20000,
     });
+    await publishBrowserSnapshot();
     await runSyncAction(page, 'Push');
     await expect(panel().getByRole('status').filter({ hasText: 'Push finished' })).toBeVisible({
       timeout: 20000,

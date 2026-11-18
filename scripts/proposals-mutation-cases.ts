@@ -223,6 +223,8 @@ async function remoteCases(loaded: Loaded) {
   let branch = 'work/alice';
   const stub: any = {
     status: async () => ({ branch, upstream: '' }),
+    head: async () => 'published',
+    isAncestor: async () => true,
     run: async (_directory: string, args: string[]) => {
       runs.push(args);
       return { code: 0, stdout: '', stderr: '', bytes: new Uint8Array() };
@@ -232,7 +234,8 @@ async function remoteCases(loaded: Loaded) {
     configValue: async () => null,
   };
   const context: any = {
-    deps: {},
+    deps: { defaultBranch: async () => 'main', publishedPosition: () => ({ branch: 'main', commit: 'published' }) },
+    inWriteTurn: async (_slug: string, task: () => Promise<unknown>) => task(),
     git: stub,
     dir: () => '/repository',
     ownerOf: () => undefined,

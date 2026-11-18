@@ -25,11 +25,11 @@ export const proposalsMutants: [string, string, string, string][] = [
   ['proposals', 'src/server/projects/work-in-progress-push.ts', 'if (isWorkInProgressBranch(branch)) throw new BadRequestError(WORK_IN_PROGRESS_MESSAGE);', ''],
   ['proposals', 'src/server/projects/work-in-progress-push.ts', "const WORK_IN_PROGRESS_PREFIXES = ['work/', 'proposal/'];", "const WORK_IN_PROGRESS_PREFIXES = ['work/'];"],
   ['proposals', 'src/server/projects/work-in-progress-push.ts', "const folded = branch.normalize('NFC').toLowerCase();", 'const folded = branch;'],
-  ['proposals', 'src/server/projects/scm-remote.ts', 'refuseWorkInProgressPush((await git.status(directory)).branch);', ''],
+  ['proposals', 'src/server/projects/scm-remote.ts', 'let refspec = await approvedRefspec(slug, head, branch);', 'let refspec = head + ":refs/heads/" + branch;'],
   [
     'proposals',
     'src/server/projects/scm-remote.ts',
-    "['push', '-u', '--end-of-options', chosenName(choice), gitStatus.branch]",
-    "['push', '-u', '--end-of-options', chosenName(choice), gitStatus.branch, 'refs/workbench/*:refs/workbench/*']",
+    "['push', '--no-mirror', '--no-follow-tags', '--recurse-submodules=no', '--end-of-options', chosenName(choice), refspec]",
+    "['push', '--no-mirror', '--no-follow-tags', '--recurse-submodules=no', '--end-of-options', chosenName(choice), refspec, 'refs/workbench/*:refs/workbench/*']",
   ],
 ];

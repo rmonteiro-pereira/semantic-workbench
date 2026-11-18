@@ -23,12 +23,13 @@ for (const name of ['push', 'sync'] as const) {
   test(`${name} sends the default branch and an ordinary feature branch`, async () => {
     const project = await scmProject();
     try {
+      const published = sh(project.dir, ['rev-parse', 'refs/heads/main']).trim();
       for (const branch of ['main', 'feature-notes']) {
-        checkOutBranchWithCommit(project, branch);
+        sh(project.dir, branch === 'main' ? ['switch', '-q', branch] : ['switch', '-qc', branch]);
         const result = await call(project.t, 'POST', project.base + action(name));
         expect(result.status, branch).toBe(200);
         expect(result.body.ok, branch).toBe(true);
-        expect(remoteHasBranch(project, branch), branch).toBe(true);
+        expect(sh(project.bare, ['rev-parse', `refs/heads/${branch}`]).trim(), branch).toBe(published);
       }
     } finally {
       project.dispose();
@@ -38,7 +39,7 @@ for (const name of ['push', 'sync'] as const) {
   test(`${name} refuses a work-in-progress branch and sends nothing`, async () => {
     const project = await scmProject();
     try {
-      for (const branch of ['work/alice', 'work/local', 'Work/Mixed', 'work/alice.a-proposal', 'proposal/rename']) {
+      for (const branch of ['work/alice', 'work/local', 'Work/Mixed', 'work/alice.a-proposal', 'proposal/rename', 'refs/workbench/hidden']) {
         checkOutBranchWithCommit(project, branch);
         const result = await call(project.t, 'POST', project.base + action(name));
         expect(result.status, branch).toBe(400);

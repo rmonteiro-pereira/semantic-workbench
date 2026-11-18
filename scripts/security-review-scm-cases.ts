@@ -67,6 +67,7 @@ async function scmFixture(candidate: Candidate, wrap?: (git: any) => any, deps: 
     rescan: async () => {},
     emit: () => {},
     defaultBranch: async () => 'main',
+    publishedPosition: () => ({ branch: 'main', commit: git(dir, 'rev-parse', 'HEAD') }),
     ...deps,
   });
   return { fixture, slug, dir, scm, root: fixture.root };
@@ -208,10 +209,12 @@ async function scmRemoteArgumentsCase(candidate: Candidate) {
     };
     await scm.fetch(slug);
     optionEnd('fetch', 'origin');
+    const refspec = git(dir, 'rev-parse', 'HEAD') + ':refs/heads/main';
     await scm.push(slug);
-    optionEnd('push', 'origin', 'main');
+    optionEnd('push', 'origin', refspec);
     await scm.pushDefault(slug);
-    optionEnd('push', 'origin', 'refs/heads/main:refs/heads/main');
+    optionEnd('push', 'origin', refspec);
+    assert(calls.filter(args => args[0] === 'push').every(args => args.includes('--no-follow-tags')));
     // A pull with a guard fetches the branch first; without one it names the remote and branch.
     git(dir, 'branch', '--unset-upstream');
     await scm.pull(slug, reader);

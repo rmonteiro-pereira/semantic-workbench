@@ -489,6 +489,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       rescan: slug => rescanIn(place, slug),
       emit: (e, d, tags) => events.emit(e, d, place.tags(tags)),
       defaultBranch: slug => worktrees.defaultBranch(repoOf(slug)),
+      publishedPosition: slug => publication.pointer(repoOf(slug)),
       beforeCommit: !own && !options.reconcilePublished ? slug => prepareLocalCommit(git, repoDir(place.layout, slug)) : undefined,
       isReadableRevision: (slug, revision, head) => snapshots.isReadableRevision(revision, head, repoOf(slug)),
       publishedStatus: (slug, reader) => scmPublishedStatus({ git, snapshots, state }, repoOf(slug), slug, repoDir(place.layout, slug), reader),
