@@ -44,7 +44,7 @@ async function clone(target: Page, address: string) {
   const dialog = target.getByRole('dialog', { name: 'Clone repository' });
   await dialog.getByLabel('Repository URL or path').fill(address);
   await dialog.getByRole('button', { name: 'Clone', exact: true }).click();
-  await expect(dialog.getByRole('status')).toContainText('Cloned.', { timeout: 20_000 });
+  await expect(dialog.getByRole('status')).toContainText(/^Cloned .+\.$/, { timeout: 20_000 });
   return dialog;
 }
 
@@ -138,7 +138,7 @@ try {
   await check('Delete folder moves only that subfolder to the trash', async () => {
     const dialog = await openDelete('Finance');
     await dialog.getByRole('radio', { name: /Delete folder/ }).check();
-    await expect(dialog.getByRole('heading', { name: 'Moved to trash' })).toBeVisible();
+    await expect(dialog.getByRole('heading', { name: 'Will move to trash' })).toBeVisible();
     await dialog.getByRole('button', { name: 'Delete', exact: true }).click();
     await expect(dialog).toHaveCount(0);
     expect(existsSync(join(repo, 'domains/finance'))).toBe(false);
