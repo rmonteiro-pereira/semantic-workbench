@@ -225,15 +225,15 @@ export function createConnectionService(dependencies: ConnectionServiceDependenc
     return { ok: true, tokens: issued.tokens, connection: issued.record.id };
   }
 
-  function refuse(reason: RefusalReason, binding?: Pick<GrantBinding, 'clientId' | 'person' | 'scopes' | 'origin'>): TokenOutcome {
-    events.record({ action: 'connection.refused', origin: connectionCallerOrigin(binding?.origin ?? 'mcp'), outcome: 'refused', program: binding?.clientId, scopes: binding?.scopes, reason });
+  // A refusal is not audited here: the endpoint audits it through a gate that bounds anonymous records, so a loop of bad requests cannot fill the log.
+  function refuse(reason: RefusalReason): TokenOutcome {
     return { ok: false, reason };
   }
 
   /** A second use of a code or setup credential ends what the first use produced. */
   function replayedGrant(binding: GrantBinding, connectionId: string | undefined): TokenOutcome {
     if (connectionId) end(connectionId, 'code-reuse');
-    return refuse('replayed-credential', binding);
+    return refuse('replayed-credential');
   }
 
   async function issueFromCode(trade: CodeTrade): Promise<TokenOutcome> {
@@ -245,9 +245,9 @@ export function createConnectionService(dependencies: ConnectionServiceDependenc
     const verifier = binding.kind === 'code' && binding.codeChallenge !== undefined && verifyS256(trade.codeVerifier, binding.codeChallenge);
     const bound =
       binding.kind === 'code' && trade.clientId === binding.clientId && trade.redirectUri === binding.redirectUri && trade.resource === binding.resource && binding.resource === dependencies.resource;
-    if (!bound) return refuse('binding-mismatch', binding);
-    if (!verifier) return refuse('verifier-mismatch', binding);
-    if (!programAllows(binding)) return refuse('program-not-registered', binding);
+    if (!bound) return refuse('binding-mismatch');
+    if (!verifier) return refuse('verifier-mismatch');
+    if (!programAllows(binding)) return refuse('program-not-registered');
     return openOrRefuse(binding, presented.attachConnection);
   }
 
@@ -257,14 +257,14 @@ export function createConnectionService(dependencies: ConnectionServiceDependenc
     if (presented.state === 'replayed') return replayedGrant(presented.binding, presented.connectionId);
     const { binding } = presented;
     const bound = binding.kind === 'setup' && trade.clientId === binding.clientId && trade.resource === binding.resource && binding.resource === dependencies.resource;
-    if (!bound) return refuse('binding-mismatch', binding);
-    if (!programAllows(binding)) return refuse('program-not-registered', binding);
+    if (!bound) return refuse('binding-mismatch');
+    if (!programAllows(binding)) return refuse('program-not-registered');
     return openOrRefuse(binding, presented.attachConnection);
   }
 
   async function openOrRefuse(binding: GrantBinding, attach: (connectionId: string) => void): Promise<TokenOutcome> {
     const opened = await openConnection(binding, attach);
-    return opened.ok ? opened : refuse(opened.reason, binding);
+    return opened.ok ? opened : refuse(opened.reason);
   }
 
   async function refresh(trade: RefreshTrade): Promise<TokenOutcome> {
@@ -277,15 +277,14 @@ export function createConnectionService(dependencies: ConnectionServiceDependenc
     if (!current) {
       const retired = store.byRetiredHash(hash);
       if (retired) end(retired.id, 'replay');
-      return refuse('replayed-credential', retired ? { clientId: retired.clientId, person: retired.person, scopes: retired.scopes, origin: retired.origin } : undefined);
+      return refuse('replayed-credential');
     }
-    const binding = { clientId: current.clientId, person: current.person, scopes: current.scopes, origin: current.origin };
-    if (current.state !== 'active') return refuse('connection-ended', binding);
-    if (trade.clientId !== current.clientId || trade.resource !== current.resource || current.resource !== dependencies.resource) return refuse('binding-mismatch', binding);
+    if (current.state !== 'active') return refuse('connection-ended');
+    if (trade.clientId !== current.clientId || trade.resource !== current.resource || current.resource !== dependencies.resource) return refuse('binding-mismatch');
     const unfit = unfitnessOf(current, session);
     if (unfit) {
       end(current.id, unfit);
-      return refuse('connection-ended', binding);
+      return refuse('connection-ended');
     }
     const rotated = mintTokens(current, current);
     store.save(rotated.record);

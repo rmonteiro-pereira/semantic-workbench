@@ -31,6 +31,8 @@ export const TRASH_REQUEST_LIMIT = 4096;
 export const ADMIN_REQUEST_LIMIT = 1_000_000;
 /** Maximum body for a browser diagnostic report. */
 export const BROWSER_REPORT_REQUEST_LIMIT = MAX_REPORT_BODY_BYTES;
+/** Maximum body for the token endpoint and the connection forms, which hold a few short fields. Assumed. */
+export const OAUTH_REQUEST_LIMIT = 4096;
 /** Named byte limits consumed by route parsers and the operation inventory. */
 export const REQUEST_LIMITS = {
   FILE_SAVE_REQUEST_LIMIT,
@@ -45,6 +47,7 @@ export const REQUEST_LIMITS = {
   TRASH_REQUEST_LIMIT,
   ADMIN_REQUEST_LIMIT,
   BROWSER_REPORT_REQUEST_LIMIT,
+  OAUTH_REQUEST_LIMIT,
 } as const;
 
 /** Parses a body within maxBytes, using empty for an absent or empty optional body. */
