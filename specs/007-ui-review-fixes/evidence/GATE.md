@@ -24,11 +24,15 @@ Completed checks on the rebased candidate:
 | `bun --bun run build` | Exit 0 in 6.2 s. Vite built in 3.24 s with the chunk-size advisory. |
 | `bun scripts/ci-validate.ts --step mutation` | Exit 1 in 2,994.7 s. `Surviving UI mutant: clamped catalog description without its full-text tooltip`. All unmodified module baselines passed. |
 | `bun scripts/ci-validate.ts --step browser --suite test:auth` | Exit 1 in 47.0 s. Read-only role check expects an accessible name beginning with `Commit to` but the disabled button is named `Commit`. |
+| `bun scripts/ci-validate.ts --step browser --suite test:two-editors` | Exit 1 in 73.7 s. Personal edits, branches and commit authors all passed. The publication step waited for the obsolete button name `Sync…`. |
+| `bun scripts/ci-validate.ts --step browser --suite test:admin` | Exit 1 in 35.6 s. The candidate failed at the `Dry-run result` region, the same assertion reported on main. |
+| `bun scripts/ci-validate.ts --step browser --suite test:ui` | Exit 0 in 65.8 s. `20 UI checks passed`, including no browser runtime errors. |
+| `bun scripts/ci-validate.ts --step browser --suite test:responsive` | Exit 1 in 105.1 s. The candidate passed the 1280×720 compact-shell assertion that main fails. At the next phone viewport, loading the UBL model timed out before the heading appeared. The Mall ODCS check still needs a standalone run. |
 
 The catalog mutation removed a tooltip from a description that already wraps in full. The mutation needs to inject actual clipping and the assertion needs to reject clipped descriptions even with a tooltip.
-The Auth failure is pending a rerun on middle revision. The relevant header and harness files are identical between middle and candidate.
+The read-only Auth check still expects the commit form the Source Control fix deliberately removes. The denied state remains represented by the disabled header button and its tooltip. The two-editor check still uses the former Sync label. Both browser checks need to be rerun against the reviewed controls.
 
-Reported failures on middle revision `5597ae52`: `test:responsive` observed a 481 px canvas at 1280×720 where the compact-shell check requires more than 504 px. This is distinct from the 421 px minimum on the Mall ODCS Graph. `test:admin` failed at the Dry-run result step. Candidate comparison results are pending.
+Reported failures on middle revision `5597ae52`: `test:responsive` observed a 481 px canvas at 1280×720 where the compact-shell check requires more than 504 px. This is distinct from the 421 px minimum on the Mall ODCS Graph. `test:admin` failed at the Dry-run result step. The candidate diverges on compact-shell geometry and reaches the same Admin assertion. The live three-version comparison is pending.
 
 The comparison fixture consists of the seven release projects with 36 unique source files.
 Each file was read once from the release Git blob using `git show` and hashed with SHA-256.
