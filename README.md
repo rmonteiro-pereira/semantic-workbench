@@ -467,7 +467,8 @@ values and the loss is not accepted, so nothing was written and the report was p
 Dropped values are never silent. The loss report lists each one by document, item address, property,
 JSON pointer, byte length and SHA-256, never the value, and ends with a digest. A compile with loss
 is released only when you pass that exact digest (`--accept-loss`) or a loss policy file
-(`{ "policy": 1, "allow": ["tessera_notes"] }`). A policy must be a regular file of at most
+(`{ "policy": 1, "allow": ["tessera_notes"] }`). A policy continues to allow loss when the values of allowed properties change.
+An exact digest applies only to the report it identifies. A policy must be a regular file of at most
 65,536 bytes, with no more allow-list entries than there are registered properties. A failure of the compile itself, such as an output
 that does not pass the pinned schema, a changed meaning or two files that would write the same
 path, can never be accepted. Accepting a loss report is not approval of the exported content.

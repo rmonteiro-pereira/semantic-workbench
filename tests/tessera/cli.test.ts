@@ -161,9 +161,13 @@ test('a loss policy that does not list the property leaves the compile at status
   expect(existsSync(s.out)).toBe(false);
 });
 
-test('a digest from before a note changed is refused with status 2 and the new digest is printed', () => {
+test('a changed note invalidates its digest while the same policy still allows the property', () => {
   const s = scene();
+  const policy = policyFile(s, ['tessera_notes']);
   const stale = digestOf(s);
+  const priorOutput = join(s.base, 'prior-bundle');
+  expect(run(compileArgs({ ...s, out: priorOutput }, ['--loss-policy', policy]), s.home).status).toBe(0);
+  const prior = JSON.parse(readBundle(priorOutput, 'manifest.json'));
   s.repository.commitFile(`${PROJECT_FOLDER}/ontology.yaml`, ONTOLOGY_TEXT.replace('Ask finance before adding a Return concept.', 'Ask legal instead.'));
   const result = run(compileArgs(s, ['--accept-loss', stale]), s.home);
   const fresh = digestOf(s);
@@ -171,6 +175,11 @@ test('a digest from before a note changed is refused with status 2 and the new d
   expect(result.status).toBe(2);
   expect(result.stdout).toContain(fresh);
   expect(existsSync(s.out)).toBe(false);
+  expect(run(compileArgs(s, ['--loss-policy', policy]), s.home).status).toBe(0);
+  const revised = JSON.parse(readBundle(s.out, 'manifest.json'));
+  expect(revised.loss.accepted).toBe('policy');
+  expect(revised.loss.digest).not.toBe(prior.loss.digest);
+  expect(revised.lossPolicySha256).toBe(prior.lossPolicySha256);
 });
 
 test('a schema failure is never accepted, even with the right digest', () => {
