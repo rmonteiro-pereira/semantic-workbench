@@ -1,5 +1,5 @@
 // Tests which cards open whole in the first view of the lineage canvas.
-import { cardHeight, portY, elkGraph, compactOverviewNeedsPacking, OVERVIEW_H } from '../src/app/odcs/lineage-layout';
+import { cardHeight, portY, elkGraph, compactOverviewNeedsPacking, packOverviewCards, OVERVIEW_H } from '../src/app/odcs/lineage-layout';
 import { test, expect } from 'bun:test';
 import { planFirstView, walkTargetSize, fitsReadableView, overviewNameSize, NAME_MIN_PX } from '../src/app/odcs/lineage-view';
 
@@ -117,6 +117,14 @@ test('compact fits pack only when the layered bounds cannot contain complete wra
   expect(compactOverviewNeedsPacking(longNames, { width: 1200, height: 700 }, bounds)).toBe(true);
   expect(compactOverviewNeedsPacking([{ ...cards[0], overview: false }], { width: 350, height: 378 }, bounds)).toBe(false);
   expect(compactOverviewNeedsPacking(cards, undefined, bounds)).toBe(false);
-  expect(elkGraph(cards, [], 350 / 378).layoutOptions['elk.algorithm']).toBe('box');
-  expect(elkGraph(cards, []).layoutOptions['elk.algorithm']).toBe('layered');
+});
+
+test('compact packing uses more columns when the canvas is wide', () => {
+  const cards = ['customer', 'order', 'line', 'product'].map(id => ({ id, rows: [], portRows: [], more: false, overview: true }));
+  const portrait = packOverviewCards(cards, { width: 390, height: 640 });
+  const landscape = packOverviewCards(cards, { width: 1300, height: 400 });
+  expect(portrait.order.x).toBe(0);
+  expect(portrait.order.y).toBeGreaterThan(portrait.customer.y);
+  expect(landscape.order.y).toBe(landscape.customer.y);
+  expect(landscape.order.x).toBeGreaterThan(landscape.customer.x);
 });

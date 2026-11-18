@@ -100,13 +100,11 @@ export function portY(layoutCard: LayoutCard, row: string) {
   return header + rowTop(layoutCard, layoutCard.rows.length) + MORE_H / 2;
 }
 /** Builds an ELK graph with fixed ports aligned to visible card rows. */
-export function elkGraph(cards: LayoutCard[], edges: LayoutEdge[], aspectRatio?: number) {
-  const packOverview = aspectRatio !== undefined && cards.every(card => card.overview);
+export function elkGraph(cards: LayoutCard[], edges: LayoutEdge[]) {
   return {
     id: 'root',
     layoutOptions: {
-      'elk.algorithm': packOverview ? 'box' : 'layered',
-      ...(packOverview ? { 'elk.aspectRatio': String(aspectRatio) } : {}),
+      'elk.algorithm': 'layered',
       'elk.direction': 'RIGHT',
       'elk.edgeRouting': 'POLYLINE',
       'elk.layered.spacing.nodeNodeBetweenLayers': '230',
@@ -140,7 +138,7 @@ export function elkGraph(cards: LayoutCard[], edges: LayoutEdge[], aspectRatio?:
         },
       ]),
     })),
-    edges: packOverview ? [] : edges.map(edge => ({ id: edge.id, sources: [edge.from + ':out'], targets: [edge.to + ':in'] })),
+    edges: edges.map(edge => ({ id: edge.id, sources: [edge.from + ':out'], targets: [edge.to + ':in'] })),
   };
 }
 /** Detects compact fits that cannot contain complete names at the minimum name size. */
@@ -153,7 +151,7 @@ export function compactOverviewNeedsPacking(cards: LayoutCard[], pane: ViewSize 
   return (OVERVIEW_H - 16) * zoom < minimumNameHeight;
 }
 
-/** Packs equal overview cards to maximize their fitted zoom within the canvas. */
+/** Packs equal overview cards in a grid that follows the canvas proportions. */
 export function packOverviewCards(cards: LayoutCard[], pane: ViewSize): LayoutResult['positions'] {
   const gap = 34;
   const columnPitch = CARD_W + gap;
