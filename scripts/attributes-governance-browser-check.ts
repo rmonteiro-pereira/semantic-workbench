@@ -87,19 +87,19 @@ async function attributeFlow(page: Page, label: string) {
   const attributes = details.getByRole('region', { name: 'Attributes' });
   await attributes.getByText('tier').first().waitFor();
   await attributes.getByRole('button', { name: 'Add attribute' }).click();
-  const dialog = page.getByRole('dialog');
-  await dialog.getByLabel('Name').fill(LONG_NAME);
+  const dialog = page.locator('dialog[open]').last();
+  await dialog.getByLabel('Name', { exact: true }).fill(LONG_NAME);
   await expectCleanLayout(page, `${label}: add form`);
   await dialog.getByRole('button', { name: 'Add attribute' }).click();
   await attributes.getByText(LONG_NAME, { exact: true }).waitFor();
   await expectCleanLayout(page, `${label}: long name row`);
   await attributes.getByRole('button', { name: `Move ${LONG_NAME} up` }).click();
   await attributes.getByRole('button', { name: `Edit ${LONG_NAME}` }).click();
-  await page.getByRole('dialog').getByLabel('Name').fill('phone');
-  await page.getByRole('dialog').getByRole('button', { name: 'Save attribute' }).click();
+  await dialog.getByLabel('Name', { exact: true }).fill('phone');
+  await page.locator('dialog[open]').last().getByRole('button', { name: 'Save attribute' }).click();
   await attributes.getByText('phone', { exact: true }).waitFor();
   await attributes.getByRole('button', { name: 'Remove phone' }).click();
-  await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
+  await page.locator('dialog[open]').last().getByRole('button', { name: 'Delete' }).click();
   await attributes.getByText('phone', { exact: true }).waitFor({ state: 'detached' });
 }
 
@@ -137,7 +137,7 @@ async function revisionFlow(page: Page) {
   await question.getByRole('button', { name: 'Cancel' }).click();
   expect(api.ws.readFile('retail', OLDER_FILE, LOCAL_READER).source).toBe(OLDER);
   await attributes.getByRole('button', { name: 'Move tier up' }).click();
-  await page.getByRole('dialog').getByRole('button', { name: 'Move to Tessera 2' }).click();
+  await page.locator('dialog[open]').last().getByRole('button', { name: 'Move to Tessera 2' }).click();
   await expect.poll(() => api.ws.readFile('retail', OLDER_FILE, LOCAL_READER).source).toContain('tessera: 2');
 }
 
