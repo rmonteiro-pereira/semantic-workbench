@@ -301,6 +301,24 @@
       },
       "steps": ["snapshot.read"]
     },
+    "GET /api/projects/:slug/item-diff": {
+      "id": "items.diff",
+      "handlerChecks": [],
+      "limits": {
+        "request": "ITEM_DIFF_QUERY_LIMIT",
+        "response": "bounded",
+        "work": "scan"
+      },
+      "effects": ["read"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The comparison can include unpublished definitions for the browser editor."
+      },
+      "steps": ["snapshot.read"]
+    },
     "POST /api/projects/:slug/save-batch": {
       "id": "files.saveBatch",
       "handlerChecks": ["authorizeWrite", "bodyTargets"],

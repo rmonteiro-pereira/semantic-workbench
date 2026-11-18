@@ -81,6 +81,7 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   row('POST', '/api/projects/:slug/import', 'import', project),
   // Reads are audited only when asked; an export leaves the server, so each one is recorded.
   { ...row('GET', '/api/projects/:slug/export', 'export', project), audited: true, readSource: 'by-query' },
+  { ...row('GET', '/api/projects/:slug/item-diff', 'history', project), audited: true, readSource: 'editing' },
   row('POST', '/api/projects/:slug/save-batch', 'edit', project),
   { ...row('POST', '/api/projects/:slug/item-addresses/resolve', 'read', project), audited: true },
   row('POST', '/api/projects/:slug/item-addresses/reconcile/*', 'edit', file),

@@ -93,6 +93,7 @@
                 "IMPORT_REQUEST_LIMIT",
                 "METRIC_REQUEST_LIMIT",
                 "ITEM_ADDRESS_REQUEST_LIMIT",
+                "ITEM_DIFF_QUERY_LIMIT",
                 "GROUPING_REQUEST_LIMIT",
                 "DRAFT_REQUEST_LIMIT",
                 "TRASH_REQUEST_LIMIT",
