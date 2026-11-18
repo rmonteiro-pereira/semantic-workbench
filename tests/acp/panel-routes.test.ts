@@ -1,10 +1,13 @@
 // The browser routes of the panel: starting, owner checks, the page marker, prompts and ending.
 import { afterAll, beforeAll, expect, test } from 'bun:test';
+import { activeBrand } from '../../src/server/brand/bundle';
+import { useDefaultBrand } from '../helpers/brand-fixture';
 import { connectionStatement } from '../../src/shared/agent-panel/statement';
 import { startPanelServer, type PanelServer } from './helpers/panel-server';
 
 let server: PanelServer;
 beforeAll(async () => {
+  useDefaultBrand();
   server = await startPanelServer();
 }, 60_000);
 afterAll(async () => {
@@ -15,7 +18,7 @@ test('starting a session answers the code, the command, the statement and the sc
   const { response, body } = await server.startSession(true);
   expect(response.status).toBe(201);
   expect(body.code).toMatch(/^[A-Z2-9]{8}$/);
-  expect(body.statement).toBe(connectionStatement('This workbench'));
+  expect(body.statement).toBe(connectionStatement(activeBrand().manifest.productName));
   expect(body.scopes).toEqual(['Read files you may read', 'Change files you may edit']);
   expect(body.command).toContain(`--session ${body.id}.${body.code}`);
   expect(body.command).not.toContain('SW_ACP_CREDENTIAL');
