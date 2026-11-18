@@ -248,7 +248,7 @@ to the authorization tests. The commit cadence helper is absent from this checko
 - Exact publication locks still define the snapshots and the allow-list still gates each import.
 - Re-export edges carry the original project, ontology, version and source address through the entire closure.
 - Compile, mesh and dependents collapse paths to the same canonical item. Publication rejects circular re-exports with the root names.
-- The development server passed 17 tests across five files and killed 15 of 15 mesh mutants. A focused run of the real-route re-export tests also checked the compiled file's bytes and passed three tests.
+- The initial development-server proof passed 17 tests across five files and killed 15 of 15 mesh mutants. The final tests compile both chains independently as well as the diamond, checking the emitted Ossie, the canonical source address and repeatability.
 
 ### Incomplete-set timing and reader isolation
 
@@ -264,6 +264,14 @@ to the authorization tests. The commit cadence helper is absent from this checko
 
 The test requires overlapping p10–p95 intervals, at most 0.5 ms median difference and at most 2 ms p95 difference in each phase and overall. The calibration run's worst gaps were 0.08 ms and 1.47 ms. The margins allow variation on the shared development server. Three tests passed, with 249 assertions. Findings remain request-local and no findings store is needed.
 
+The corrected-tree run reproduced overlap and both tolerances across the same phases.
+
+| Phase | Hidden median | Missing median | Hidden p95 | Missing p95 |
+| --- | ---: | ---: | ---: | ---: |
+| Idle | 9.51 | 9.46 | 10.18 | 10.15 |
+| Snapshot in progress | 9.30 | 9.23 | 13.35 | 12.40 |
+| Combined | 9.42 | 9.37 | 11.95 | 11.73 |
+
 ### Refusal boundaries
 
 The ontology-unit validation guide identifies one responsible check per refusal and its
@@ -277,3 +285,19 @@ This replaces the task's proposed requirement to reproduce set and history refus
 in every consumer. The focused development-server proof passed nine tests with 32
 assertions. The address history integration remains based on declared parts and
 the root; the lock and project-owned history are excluded from definitions.
+
+### Follow-up verification
+
+| Development-server proof | Result |
+| --- | --- |
+| Mesh, Tessera, compile, operation inventory and content guard inventory | 788 passed, 0 failed across 93 files |
+| Authorization matrices and HTTP/in-process parity | 78 passed, 0 failed across six files |
+| Authorization matrices after the guard inventory correction | 33 passed, 0 failed across two files |
+| Focused mesh mutants | 15 killed out of 15, including canonical ownership and diamond de-duplication |
+| Mesh browser check | Passed at 1440, 768 and 390 px in light and dark |
+| `bun --bun run check` | Exit 0. TypeScript, formatter, lint, comments, theme and brand passed. Lint reported 2,732 warnings and zero errors. |
+| `bun --bun run build` | Exit 0. Vite built in 3.25 s. |
+
+The guard inventory maps conversion to the existing guarded file save. Provider discovery,
+compile checking and compile release only read project definitions. The lock update writes
+dependency metadata under its existing edit authorization.

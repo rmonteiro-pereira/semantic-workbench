@@ -16,7 +16,7 @@ the same answer for a restricted part and a missing part.
 | An illegal part header, nested includes or missing ontology list (`tessera-part-shape`) | Single-file part schema | `refusals.test.ts` |
 | A part declares its own Ossie version (`tessera-mixed-version` in set diagnostics) | Single-file part schema | `refusals.test.ts` |
 | An absolute path, parent path, backslash, control character or symbolic link (`tessera-include-escape`) | Set structure and path confinement | `unit-structure.test.ts` and `dependency-check.test.ts` |
-| A listed file is unavailable (`tessera-include-missing` under complete inspection) | Set availability | `partial-reader.test.ts` |
+| A listed file is unavailable (`tessera-include-missing` under complete inspection) | Set availability | `unit-structure.test.ts` and `partial-reader.test.ts` |
 | A root lists itself, another root or the same part twice (`tessera-include-cycle`) | Set structure | `unit-structure.test.ts` |
 | A listed file lacks the part marker (`tessera-include-not-part`) | Set structure | `unit-structure.test.ts` |
 | More than one root owns a part (`tessera-duplicate-owner`) | Set structure | `unit-structure.test.ts` |
