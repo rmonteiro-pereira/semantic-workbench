@@ -92,6 +92,18 @@
 .show-menu-on {
   color: var(--color-accent-text);
 }
-.show-menu .grouping-item {
+/* The menu sits inside the toolbar, whose button rules (border, background, padding, no wrapping)
+   would otherwise make each row a bordered button and cut long summaries at the menu's edge. */
+.show-menu .grouping-menu > button.grouping-item {
   justify-content: flex-start;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  color: var(--color-text-secondary);
+}
+.show-menu .grouping-menu > button.grouping-item[aria-checked='true'] {
+  background: var(--color-accent-soft);
 }
