@@ -334,6 +334,7 @@ command line.
   findings from parsed project files. It never follows links or reads the filesystem.
   `unit-model.ts` combines the concepts in include order and maps item addresses to source files.
   `export-closure.ts` checks the public concept list and computes its canonical interface hash.
+  `imports.ts` checks aliases and allow-lists against the resolved public interfaces.
 - `src/shared/tessera/marker.ts` reads the marker (top level only). `validate.ts` gives the Tessera
   findings and picks the derived schema by marker and base. `src/shared/validation/validation.ts`
   calls it at the top of `validateStructured`, and `src/shared/core/model.ts` returns the document
