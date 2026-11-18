@@ -15,9 +15,10 @@ import { exportedOntologies } from './provider-resolution';
 
 type Candidate = Pick<PublicationCandidate, 'repo' | 'next'>;
 
-type CheckSource = {
+/** Supplies immutable provider snapshots and the workbench's registered repository identity. */
+export type FrozenDependencySource = {
   snapshots: PublishedSnapshots;
-  projectsIn: (repository: string) => string[];
+  candidateDocuments: (project: string) => Promise<PublishedDocument[]>;
   repositoryOf: (project: string) => string | null;
 };
 
@@ -34,15 +35,13 @@ function parseUnits(documents: readonly PublishedDocument[]) {
   );
 }
 
-async function checkProvider(source: CheckSource, pin: PublishedPin, candidate: Candidate, reader: Reader, provider: LockedProvider) {
+async function checkProvider(source: FrozenDependencySource, pin: PublishedPin, candidate: Candidate, reader: Reader, provider: LockedProvider) {
   const { project, ontology, repository } = provider;
   if ((reader.view && !reader.view.readableProjects.has(project)) || source.repositoryOf(project) !== repository) refuse('A locked provider is unavailable.');
   const sameRepository = repository === candidate.repo;
   if (provider.sameRepository !== sameRepository) refuse('A dependency uses the wrong repository resolution.');
   const selected = await (
-    provider.sameRepository
-      ? source.snapshots.candidateDocuments(candidate, project).then(documents => ({ commit: candidate.next, documents }))
-      : source.snapshots.pinnedDocumentsAt(pin, project, provider.commit)
+    provider.sameRepository ? source.candidateDocuments(project).then(documents => ({ commit: candidate.next, documents })) : source.snapshots.pinnedDocumentsAt(pin, project, provider.commit)
   ).catch(error => {
     if (error instanceof SnapshotUnavailableError) return null;
     throw error;
@@ -50,12 +49,13 @@ async function checkProvider(source: CheckSource, pin: PublishedPin, candidate: 
   if (!selected) refuse('A locked provider version is unavailable.');
   const match = exportedOntologies(project, repository, selected.commit, selected.documents).find(entry => entry.ontology === ontology);
   if (!match || match.closure.interfaceHash !== provider.interfaceHash) refuse('A locked provider interface differs from the candidate or pinned version.');
-  return { project, ontology, exports: new Set(match.closure.concepts.keys()), sameRepository, concepts: match.closure.concepts };
+  return { project, ontology, exports: new Set(match.closure.concepts.keys()), sameRepository, concepts: match.closure.concepts, version: match.commit, scope: match.base };
 }
 
-async function checkImports(source: CheckSource, pin: PublishedPin, candidate: Candidate, reader: Reader, unit: OntologyUnit, lockFile?: PublishedDocument) {
+/** Resolves exactly the public interface entries selected by the lock, using only the given snapshots. */
+export async function resolveFrozenUnit(source: FrozenDependencySource, pin: PublishedPin, candidate: Candidate, reader: Reader, unit: OntologyUnit, lockFile?: { source: string }) {
   const imports = declaredImports(unit.root.data);
-  if (!imports.length) return setFindings(unit, []);
+  if (!imports.length) return { imports, providers: [] };
   if (!lockFile) refuse('The importing unit has no dependency manifest.');
   let lock;
   try {
@@ -67,7 +67,16 @@ async function checkImports(source: CheckSource, pin: PublishedPin, candidate: C
   if (lock.root !== unit.root.path || !manifestIsCurrent(lock, imports)) refuse('The dependency manifest is stale.');
   requireOneProviderVersion(lock.providers);
   const providers = [];
-  for (const provider of lock.providers) providers.push(await checkProvider(source, pin, candidate, reader, provider));
+  for (const provider of lock.providers) {
+    const snapshot = await checkProvider(source, pin, candidate, reader, provider);
+    if (provider.concepts.some(name => !snapshot.exports.has(name))) refuse('A locked concept is not exported by its provider.');
+    providers.push(snapshot);
+  }
+  return { imports, providers };
+}
+
+async function checkImports(source: FrozenDependencySource, pin: PublishedPin, candidate: Candidate, reader: Reader, unit: OntologyUnit, lockFile?: PublishedDocument) {
+  const { imports, providers } = await resolveFrozenUnit(source, pin, candidate, reader, unit, lockFile);
   const imported = new Map<string, Record<string, unknown>>();
   for (const entry of imports) {
     const provider = providerOf(entry, providers);
@@ -80,10 +89,15 @@ async function checkImports(source: CheckSource, pin: PublishedPin, candidate: C
 }
 
 /** Blocks the ref transition unless every candidate unit and dependency agrees with the lock. */
-export async function checkPublicationDependencies(source: CheckSource, candidate: Candidate, reader: Reader): Promise<void> {
+export async function checkPublicationDependencies(
+  source: Omit<FrozenDependencySource, 'candidateDocuments'> & { projectsIn: (repository: string) => string[] },
+  candidate: Candidate,
+  reader: Reader,
+): Promise<void> {
   return source.snapshots.withPin(async pin => {
+    const frozen = { ...source, candidateDocuments: (project: string) => source.snapshots.candidateDocuments(candidate, project) };
     for (const project of source.projectsIn(candidate.repo)) {
-      const documents = await source.snapshots.candidateDocuments(candidate, project);
+      const documents = await frozen.candidateDocuments(project);
       const { units, findings } = parseUnits(documents);
       const lock = documents.find(file => file.path === DEPENDENCY_MANIFEST_PATH);
       const visible = (path: string) => !reader.view || reader.view.canRead(project, path);
@@ -91,7 +105,7 @@ export async function checkPublicationDependencies(source: CheckSource, candidat
       const hasUnavailableFile = units.some(unit => !requiredUnitFiles(unit).every(path => paths.has(path)));
       const errors = findings.filter(finding => finding.severity === 'error');
       if (hasUnavailableFile || errors.some(finding => !finding.files.every(visible))) refuse('The ontology set could not be checked.');
-      for (const unit of units) errors.push(...(await checkImports(source, pin, candidate, reader, unit, lock)).filter(finding => finding.severity === 'error'));
+      for (const unit of units) errors.push(...(await checkImports(frozen, pin, candidate, reader, unit, lock)).filter(finding => finding.severity === 'error'));
       if (errors.length) throw new InputError(errors.map(({ code, path, severity, message }) => ({ code, path, severity, message })));
     }
   });

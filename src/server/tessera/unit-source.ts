@@ -1,4 +1,5 @@
 // Where a compile reads its unit from: the published snapshot, or the caller's saved working copy. The compile never learns which, except through the label.
+import type { MeshUnitRead } from './mesh-unit-source';
 import type { UnitFile } from '../../shared/tessera/compile-unit';
 import { HiddenResourceError } from '../projects/errors';
 import { selectExportPaths } from '../projects/project-export';
@@ -14,7 +15,7 @@ export type SourceLabel = { kind: 'published-snapshot'; commit: string; unpublis
 export type PublishedPlace = { commit: string; branch: string; projectFolder: string };
 
 /** The files of one unit, with the label that every answer built from them must carry. A published read also says where it sits. */
-export type UnitRead = { files: UnitFile[]; label: SourceLabel; commit?: string; place?: PublishedPlace };
+export type UnitRead = { files: UnitFile[]; label: SourceLabel; commit?: string; place?: PublishedPlace; mesh?: MeshUnitRead };
 
 /** Reads one unit. The compile service holds this and nothing that knows about Git or folders. */
 export type UnitSource = { read(kind: UnitSourceKind): Promise<UnitRead> };
@@ -23,7 +24,7 @@ export type UnitSource = { read(kind: UnitSourceKind): Promise<UnitRead> };
 export type ListedFile = { path: string; size: number };
 
 /** One consistent view of a folder: a list, then the content of each listed file. A file that vanished reads as null. */
-export type FolderView = { place?: PublishedPlace; list(): Promise<ListedFile[]>; read(path: string): Promise<Uint8Array | null> };
+export type FolderView = { place?: PublishedPlace; list(): Promise<ListedFile[]>; read(path: string): Promise<Uint8Array | null>; mesh?(files: UnitFile[]): Promise<MeshUnitRead | undefined> };
 
 /** What a unit source needs from the workspace, passed in so the decisions here stay free of Git and disk. */
 export type UnitSourceDeps = {
@@ -81,12 +82,16 @@ export function createUnitSource(deps: UnitSourceDeps): UnitSource {
   async function readPublished(): Promise<UnitRead> {
     return deps.openPublished(async view => {
       const place = publishedPlace(view.place);
-      return { files: await readUnit(view, deps), label: { kind: 'published-snapshot', commit: place.commit, unpublished: false }, commit: place.commit, place };
+      const files = await readUnit(view, deps);
+      const mesh = await view.mesh?.(files);
+      return { files: mesh?.files ?? files, ...(mesh ? { mesh } : {}), label: { kind: 'published-snapshot', commit: place.commit, unpublished: false }, commit: place.commit, place };
     });
   }
   async function readWorking(): Promise<UnitRead> {
     const view = await deps.openWorking();
-    return { files: await readUnit(view, deps), label: { kind: 'working-copy', unpublished: true } };
+    const files = await readUnit(view, deps);
+    const mesh = await view.mesh?.(files);
+    return { files: mesh?.files ?? files, ...(mesh ? { mesh } : {}), label: { kind: 'working-copy', unpublished: true } };
   }
   return { read: kind => (kind === 'published' ? readPublished() : readWorking()) };
 }

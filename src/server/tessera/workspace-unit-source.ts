@@ -1,6 +1,7 @@
 // Connects the unit source to a workspace: the pinned published snapshot and the saved files of the caller's own working copy.
 import { lstatSync, readFileSync } from 'node:fs';
-import { SnapshotUnavailableError } from '../projects/errors';
+import { readMeshUnits } from './mesh-unit-source';
+import { NotFoundError, SnapshotUnavailableError } from '../projects/errors';
 import { PathError, projectDir, projectFile, projectPrefix, type DataLayout } from '../projects/paths';
 import type { Reader } from '../projects/reader';
 import { walk } from '../projects/scanner';
@@ -54,6 +55,18 @@ function workingView(workspace: UnitWorkspace, slug: string, reader: Reader): Fo
 /** The unit source for one project and one caller. Published reads are pinned for the whole read, so a publish during it changes nothing. */
 export function workspaceUnitSource(workspace: UnitWorkspace, slug: string, reader: Reader): UnitSource {
   const snapshots = workspace.published;
+  const repository = workspace.repoOf(slug);
+  function repositoryOf(project: string) {
+    try {
+      return workspace.repoOf(project);
+    } catch (error) {
+      if (error instanceof NotFoundError) return null;
+      throw error;
+    }
+  }
+  function meshOf(pin: Parameters<typeof snapshots.documents>[0], files: Parameters<typeof readMeshUnits>[4]) {
+    return readMeshUnits({ snapshots, repositoryOf, candidateDocuments: project => snapshots.documents(pin, project) }, pin, reader, repository, files);
+  }
   return createUnitSource({
     canRead: path => !reader.view || reader.view.canRead(slug, path),
     openPublished: use =>
@@ -66,8 +79,9 @@ export function workspaceUnitSource(workspace: UnitWorkspace, slug: string, read
           place: { commit: pinned.commit, branch: pinned.branch, projectFolder: prefix ? prefix.slice(0, -1) : '.' },
           list: async () => sizes,
           read: path => snapshots.fileBytes(pin, slug, path),
+          mesh: files => meshOf(pin, files),
         });
       }),
-    openWorking: async () => workingView(workspace, slug, reader),
+    openWorking: async () => ({ ...workingView(workspace, slug, reader), mesh: files => snapshots.withPin(pin => meshOf(pin, files)) }),
   });
 }
