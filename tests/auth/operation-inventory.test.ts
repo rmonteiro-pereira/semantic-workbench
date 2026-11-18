@@ -3,7 +3,7 @@ import { expect, test } from 'bun:test';
 import { parseOperationInventory } from '../../src/server/auth/operation-inventory';
 
 const valid = {
-  contentGuardActions: { 'item-status': 'approveOntologyItem', 'item-body': 'approveOntologyItem' },
+  contentGuardActions: { 'item-status': 'approveOntologyItem', 'item-body': 'approveOntologyItem' } as const,
   operations: {
     'GET /example': {
       id: 'example.read',

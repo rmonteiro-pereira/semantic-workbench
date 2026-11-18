@@ -176,7 +176,7 @@ becoming readable through a broad workspace grant.
 | --- | --- |
 | Viewer | Read definitions/history, own view settings and project export |
 | Editor | Viewer actions plus file edits, imports, drafts and project Git |
-| Steward | Editor plus approvals, protected edits, publishing and project creation/rename |
+| Steward | Editor plus metric approvals, protected edits, publishing and project creation/rename |
 | Admin | Administration, all projects, purge/clear, remotes, clone and registration |
 
 Custom roles select actions and conditions; they cannot contain the `admin` action. Scope and
