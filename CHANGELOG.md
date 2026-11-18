@@ -97,7 +97,7 @@ and protect release tags. Existing tags inside published history remain usable a
 - Keep lineage hop controls on one row and group viewport actions beside the walk trail.
 - Keep the inspected lineage card in view when zoom reveals its columns or its column list changes height.
 - Keep walk targets usable at reduced zoom, hiding them when their card cannot hold the target.
-- Identify walked lineage centres, retain CENTER beside the card name and provide a collapsible phone legend.
+- Identify walked lineage centres with a wrapping caption, retain CENTER beside the card name and provide a collapsible phone legend.
 - Explain unlinked assets and disable unavailable hops; disable layout controls while positions are pending.
 - Reject edge-label positions crossed by routes or clipped by the pane.
 - Correct the documented foreign-key range to one through three; distinguish mapping steps one through five.

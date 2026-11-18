@@ -655,8 +655,10 @@ button.odcs-link.fk:hover {
 .lineage-trail {
   flex-shrink: 0;
   display: flex;
+  --lineage-history-button-width: 27px;
+  --lineage-trail-gap: 6px;
   align-items: center;
-  gap: 6px;
+  gap: var(--lineage-trail-gap);
   padding: 5px 10px;
   border-bottom: 1px solid var(--color-border-subtle);
   font-size: var(--text-small);
@@ -670,6 +672,10 @@ button.odcs-link.fk:hover {
   border-radius: 6px;
   padding: 3px 6px;
   cursor: pointer;
+}
+.lineage-trail > button[aria-label='Back'],
+.lineage-trail > button[aria-label='Forward'] {
+  width: var(--lineage-history-button-width);
 }
 .lineage-trail ol {
   display: flex;
@@ -1628,7 +1634,7 @@ button.odcs-link.fk:hover {
 }
 .lineage-context {
   flex: 0 0 auto;
-  max-width: 100%;
+  max-width: calc(100% - 2 * (var(--lineage-history-button-width) + var(--lineage-trail-gap)));
   min-width: 0;
   white-space: normal;
   overflow-wrap: anywhere;

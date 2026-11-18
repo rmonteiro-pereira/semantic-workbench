@@ -458,6 +458,7 @@ opened cards stay on screen.
 
 Select a column to highlight its upstream/downstream path. **Selected path** appears beside the
 canvas or in a phone dialog. **Find assets**, Walk here, Back/Forward and expansion retain context.
+The Lineage caption names the current and original table, wrapping when space is limited.
 The first view fits the complete reach when the wrapped names fit inside their cards. A denser
 reach opens around a smaller set of whole cards. **Fit** shows every card in the shared name-only
 representation used by lineage and mappings.
