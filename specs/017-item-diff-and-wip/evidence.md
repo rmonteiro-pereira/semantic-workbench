@@ -27,3 +27,12 @@
   hierarchy, classes, labels and text. No source changes preceded recording.
 - T003: `bun test tests/item-diff/sides.test.ts`: 3 pass, 0 fail, 15 assertions.
 - T004: `bun test tests/item-diff/bounds.test.ts`: 3 pass, 0 fail, 11 assertions.
+
+- T008 adds `src/shared/item-diff/model-items.ts` to extract addressed comparison inputs in one
+  reusable pure module. Container child collections are excluded to avoid reporting a concept edit
+  as an ontology edit too; relationship roles remain a relationship field. This seam is also the
+  server service's extraction input. The plan named no extraction module.
+- T006: field changes, 3 pass, 0 fail, 11 assertions.
+- T007: address comparison, 6 pass, 0 fail, 12 assertions.
+- T008: serialization and Tessera proofs on the development server, 3 pass, 0 fail, 36 assertions.
+  The examples test uses a 60-second timeout because the server run took 13.85 seconds.

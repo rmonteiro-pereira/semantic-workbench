@@ -79,7 +79,9 @@ The integration view shows what the application reads and contacts, and what it 
 
 ## Code map
 
-- `src/shared/item-diff/` owns comparison side parsing independently of files, Git and browser state.
+- `src/shared/item-diff/` owns comparison side parsing, parsed model item extraction, field comparison and
+  address-based pairing independently of files, Git and browser state. Child item collections do not
+  cascade changes to their containers; relationship roles remain a named relationship field.
 
 - `src/shared/attributes/` owns the attribute rule, inheritance and display order over Ossie relationships.
 - `src/app/attributes/` renders and edits attribute rows and shows where value types are used.
