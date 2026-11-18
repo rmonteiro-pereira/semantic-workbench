@@ -1,4 +1,5 @@
 /** Resolves a flat list of declared ontology parts without reading the filesystem. */
+import { hasControlCharacter } from '../validation/control-characters';
 import { INCLUDES_PROPERTY, MAX_UNIT_PARTS } from './additions/includes';
 import { IMPORTS_PROPERTY, MAX_UNIT_IMPORTS } from './additions/imports';
 import { PART_PROPERTY } from './additions/part';
@@ -31,7 +32,13 @@ function isRoot(file: UnitDocument): boolean {
 }
 
 function confined(path: unknown): path is string {
-  return typeof path === 'string' && !/^[A-Za-z]:/.test(path) && !/[\\\u0000-\u001f\u007f]/u.test(path) && path.split('/').every(segment => segment !== '' && segment !== '.' && segment !== '..');
+  return (
+    typeof path === 'string' &&
+    !/^[A-Za-z]:/.test(path) &&
+    !path.includes('\\') &&
+    !hasControlCharacter(path) &&
+    path.split('/').every(segment => segment !== '' && segment !== '.' && segment !== '..')
+  );
 }
 
 function issue(code: string, files: string[], property: string, detail: string, severity: UnitFinding['severity'] = 'error'): UnitFinding {
