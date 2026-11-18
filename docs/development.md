@@ -77,6 +77,30 @@ Generated standalone schema validators are checked in and formatted with the pro
 Regenerate with `bun run schemas:compile`; tests verify reproducible output. The browser uses these
 validators without eval under the CSP. Do not edit pinned upstream schemas to make a fixture pass.
 
+## The tessera command
+
+`bun run tessera compile` and `bun run tessera check` compile a project folder of a Git repository
+to standard Ossie; see the [README](../README.md#tessera-an-authoring-format-that-compiles-to-standard-ossie)
+for the options and exit statuses (0 success, 1 refused, 2 loss needs acceptance, 64 misuse).
+
+- `bun test tests/tessera/` runs the feature's own tests. The command-line tests start the command as a
+  child process against a temporary Git repository built by `tests/helpers/tessera-repository.ts`.
+- `bun run test:tessera` is the browser check (`scripts/tessera-browser-check.ts`); it runs on an
+  isolated API and never touches the real workspace.
+- `bun scripts/derive-tessera-schema.ts` regenerates `schemas/tessera-ontology-1-ossie-0.2.0.dev0.json`
+  and `bun scripts/derive-tessera-schema.ts --check` verifies it; run `bun run schemas:compile` after a
+  change. Add an addition by following the header of `src/shared/tessera/registry.ts`.
+- `bun scripts/record-standard-baseline.ts` records what the unchanged code does with every example
+  and fixture file (`tests/fixtures/tessera/standard-baseline.json`); `tests/tessera/standard-unchanged.test.ts`
+  compares against it. Run it only when a change to ordinary Ossie handling is intended.
+- Golden compiler output is in `tests/fixtures/tessera/golden/`. After a deliberate change to the
+  compiler or its version, regenerate it with `UPDATE_TESSERA_GOLDEN=1 bun test tests/tessera/determinism.test.ts`.
+- The mutation gate has a `tessera` category (`scripts/tessera-mutants.ts`, `scripts/tessera-mutation-cases.ts`).
+- Scale: `tests/tessera/compile-scale.test.ts` compiles 200 documents and about 20 MB (60 Tessera
+  ontologies, 60 standard ontologies, 40 semantic models and 40 data contracts). Measured on the
+  shared development server it took 20 s (limit 30 s), and 6 s on a workstation. Validating one
+  1,000-concept ontology with the marker took between 1.0 and 1.1 times as long as without it.
+
 ## Profiling the React UI
 
 For Azure configuration, enable/disable procedures, viewing signals and costs, see
@@ -192,6 +216,7 @@ suites use `SW_BASE_URL`. The full runner supplies fresh frontend processes as n
 | `test:monorepo` | Shared repository registration, workspace removal and folder deletion |
 | `test:dialogs` | Fit, keyboard focus and return across six viewport sizes |
 | `test:telemetry` | Bounded error/timing reports, redaction and export-off behavior |
+| `test:tessera` | The Tessera format in the browser: format label, finding and fix |
 | `test:terminology` | Metric/table naming across the interface and current guides |
 | `test:mappings-layout` | Binding presentation, geometry and selected-document Source |
 | `test:clipping` | Nothing cut on Mappings, header and entity details at 1280 and 390 px; Commit tooltip; no sideways scroll in details (Admin: `tests/admin-clipping.test.tsx`) |

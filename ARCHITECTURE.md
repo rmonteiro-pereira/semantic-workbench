@@ -28,7 +28,7 @@ flowchart TB
         Access["Identity and access boundary<br/>[Component]<br/>sessions, grants and Cedar"]
         Routes["Resource routes<br/>[Component]<br/>typed requests and dispatch"]
         Workspace["Workspace services<br/>[Component]<br/>files, Git, journals and events"]
-        Models["Definition model and validation<br/>[Component]<br/>parsers, schemas and guards"]
+        Models["Definition model and validation<br/>[Component]<br/>parsers, schemas, guards and the Tessera format"]
         Planner["Agent and metric planner<br/>[Component]<br/>filtered metadata and SQL previews"]
         Admin["Access administration<br/>[Component]<br/>review, replay and versioned activation"]
         Audit["Security audit<br/>[Component]<br/>durable hash-chained records"]
@@ -296,6 +296,49 @@ concatenating project, document or item names.
   `runtime.ts` re-exports both as the public entry point. They never execute a plan or
   call an LLM. Synthetic example execution belongs only to verification scripts/tests.
 
+### The Tessera format and compiler
+
+Tessera is an authoring format that compiles to standard Ossie. Its definitions are pure code in
+`src/shared/tessera/`; Git and the file system are touched only in `src/server/tessera/` and the
+command line.
+
+- `src/shared/tessera/format.ts` holds the one definition of the name, the marker key, the property
+  prefix, the supported revisions and the compiler version. No other module under `src` spells them.
+- `src/shared/tessera/registry.ts` is the one list of additions, built from the modules under
+  `src/shared/tessera/additions/` (`notes.ts` is the only one) and `reserved-names.ts`. Validation,
+  the derived schema, the compiler and the loss report all read it. Its header says how to add one.
+- `src/shared/tessera/bases.ts` is the table of supported Ossie bases and the check that a base
+  leaves the Tessera names alone. `schema-derivation.ts` derives the Tessera ontology schema from a
+  pinned schema and the registry; `scripts/derive-tessera-schema.ts` writes it to
+  `schemas/tessera-ontology-1-ossie-0.2.0.dev0.json` and `scripts/compile-schemas.ts` compiles it.
+- `src/shared/tessera/marker.ts` reads the marker (top level only). `validate.ts` gives the Tessera
+  findings and picks the derived schema by marker and base. `src/shared/validation/validation.ts`
+  calls it at the top of `validateStructured`, and `src/shared/core/model.ts` returns the document
+  `format` from `inspect`. That is the whole read path: the editor, the file scan, the save
+  endpoints and agent context reach a Tessera document through those two functions, so no route
+  or operation was added. `agent-view.ts` removes the marker and additions before agent context
+  reads a document.
+- `compile-document.ts` removes the marker and additions of one ontology by their disposition;
+  `serialize.ts` prints the result; `meaning-check.ts` checks the output keeps the data, the items
+  and addresses and the name index; `loss-report.ts` builds the loss report, parses loss policies
+  and decides acceptance; `manifest.ts` builds the manifest; `canonical-json.ts` and `digest.ts`
+  give equal input equal bytes. `document-kind.ts` sorts the files of a project folder and
+  `compile-unit.ts` compiles the whole folder.
+- `src/server/tessera/snapshot-source.ts` reads a committed project folder through the Git helper
+  (`src/server/projects/git.ts`), `disk-source.ts` reads a folder for `check`, and
+  `bundle-writer.ts` writes the bundle to a temporary folder and renames it.
+  `scripts/tessera.ts` is the command line; `scripts/tessera-arguments.ts` and
+  `scripts/tessera-output.ts` read its options and print its results.
+- Tests live in `tests/tessera/`. The mutation gate adds `scripts/tessera-mutants.ts` and
+  `scripts/tessera-mutation-cases.ts`, and the browser check is `scripts/tessera-browser-check.ts`.
+
+Compile flow: read the project folder at a full commit on the default branch (with a data root, the
+commit must equal the published one); classify each file as Tessera ontology, standard Ossie or
+other; validate every Ossie document with the shared validator; compile the Tessera ones and copy
+the others; validate every output with the pinned schema and no notice; run the meaning check;
+build the loss report; release only when there is no failure and the loss is accepted exactly; write
+the bundle outside the source trees.
+
 ### Browser shell and graph rendering
 
 - `src/app/main.tsx` composes the application. `src/app/workspace/` is the workbench shell. Its about 18
@@ -457,6 +500,7 @@ concatenating project, document or item names.
 | Content protection | `src/shared/governance/`, then server/client bindings |
 | Item address kind | `shared/core/address-kinds.ts`, model derivation, conformance fixtures, properties and `docs/item-addresses.md` |
 | Definition syntax | `src/shared/core/model.ts`, `src/shared/validation/`, `src/shared/odcs/` and pinned schemas |
+| Tessera addition, base or compiler | `src/shared/tessera/registry.ts` (read its header), `bases.ts`, `compile-document.ts`; the command line in `scripts/tessera.ts` |
 | Byte-preserving item edit | `src/shared/edit/`, `src/app/edit/` and `src/shared/editor/patch.ts` |
 | Metrics/bindings/plans | `src/shared/metrics/`, `src/app/metrics/`, `src/server/agent/` |
 | Graph layout/routing | `FullGraph.tsx`, `src/app/graph/`, `src/app/odcs/` |

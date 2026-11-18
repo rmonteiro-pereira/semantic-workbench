@@ -18,6 +18,7 @@ Separate verification scripts can execute SQL against disposable synthetic fixtu
 - [What you can do](#what-you-can-do)
 - [How the software works](#how-the-software-works)
 - [Supported formats and boundaries](#supported-formats-and-boundaries)
+- [Tessera: an authoring format that compiles to standard Ossie](#tessera-an-authoring-format-that-compiles-to-standard-ossie)
 - [Example workspaces](#example-workspaces)
 - [Local and shared-server modes](#local-and-shared-server-modes)
 - [Run it as a container](#run-it-as-a-container)
@@ -359,6 +360,7 @@ owns the data root; merely increasing container replicas is not safe scaling.
 | `src/app/metrics/`, `src/app/mappings/`, `src/app/odcs/` | Metric, mapping and contract/lineage views |
 | `src/app/graph/` | Whole-model and neighborhood graphs, layout, traversal and workers |
 | `src/shared/` | Code the browser and server both import: model, parsers, validation, patches, metric bindings |
+| `src/shared/tessera/`, `src/server/tessera/`, `scripts/tessera.ts` | The Tessera format, its compiler, snapshot reading and bundle writing, and the command line |
 | `src/app/components/`, `src/app/theme/` | Cross-feature UI and theme palettes |
 | `schemas/`, `src/generated/` | Pinned schema sources and compiled browser validators |
 | `src/server/routes/`, `src/server/handler.ts` | HTTP request parsing and service dispatch |
@@ -383,6 +385,7 @@ authorization boundaries and invariants. It is the detailed reference for changi
 | Ossie ontology | YAML, JSON | Concepts, relationships, inheritance and IRIs |
 | Ossie semantic model | YAML, JSON | Datasets, fields, joins, expressions and metrics |
 | Ossie mappings | YAML, JSON | Standalone and deprecated embedded mappings |
+| Tessera ontology (authoring format that compiles to standard Ossie) | YAML, JSON | An Ossie ontology with the marker `tessera: 1` and `tessera_notes`; see [Tessera](#tessera-an-authoring-format-that-compiles-to-standard-ossie) |
 | RDF | Turtle, N-Triples, N3, RDF/XML | Resource inspection, safe item edits and Source |
 | OWL / SHACL | Turtle or RDF/XML | Definitions and selected structural checks; SHACL shapes also run against a chosen Turtle, N-Triples or N3 data file in the project |
 
@@ -406,6 +409,75 @@ MDX remain plain with a not-checked note. Syntax warnings do not block autosave.
 refuses unsupported or ambiguous semantics rather than inventing joins, grains or aggregation.
 See [validation coverage](docs/user-guide.md#validation-coverage-and-limits) and
 [agent planning limits](docs/agent-runtime.md#deliberate-limits).
+
+## Tessera: an authoring format that compiles to standard Ossie
+
+Tessera is an authoring format that compiles to standard Ossie. A Tessera ontology is an Ossie
+ontology with the top-level key `tessera: 1` (the revision of the Tessera rules) and properties
+whose names start with `tessera_`. Revision 1 defines one such property, `tessera_notes`: free text
+for the people who edit an ontology, on the ontology root, on a concept or on a relationship of a
+concept, at most 10,000 characters. Everything else in the document is ordinary Ossie 0.2.0.dev0.
+
+```yaml
+tessera: 1
+version: 0.2.0.dev0
+name: Retail
+ontology:
+  - concept: Order
+    type: EntityType
+    tessera_notes: Ask finance before adding a Return concept.
+```
+
+In the workbench a Tessera ontology opens, edits, saves and appears in the graph like any other
+Ossie ontology. The validation panel names the format ("Tessera 1 on Ossie 0.2.0.dev0 · 0 errors ·
+0 warnings"). A document is never "Not validated": a wrong marker, an unknown or misplaced
+`tessera_` property, a reserved name, a marker on a file that is not an ontology or an unsupported
+Ossie `version` each give a finding with its own code (`tessera-marker`, `tessera-revision`,
+`tessera-base`, `tessera-kind`, `tessera-property`, `tessera-reserved`, `tessera-location`).
+Agents, the item inspector and access rules treat the file as an ordinary Ossie ontology, and notes
+never reach agent context. Tests: `tests/tessera/validation.test.ts`,
+`tests/tessera/workbench-documents.test.ts`, `tests/tessera/agent-and-access.test.ts`.
+
+### The compiler and its command line
+
+`bun run tessera compile` reads one project folder of a Git repository as it is in a commit on the
+default branch (never the working tree or another branch), compiles every Tessera ontology to
+standard Ossie by removing the marker and the notes, copies the other Ossie files byte for byte and
+writes a bundle to a new folder outside the repository: the compiled files, `manifest.json` and
+`loss-report.json`. ODCS contracts, RDF files and other files are listed in the manifest as not
+included. `bun run tessera check` runs the same validation and compilation in memory, for a
+committed snapshot or for a folder on disk (labelled unpublished), and writes nothing.
+
+```sh
+bun run tessera compile --repository <dir> --project-folder retail --out <dir> [--accept-loss <digest>] [--loss-policy <file>] [--json]
+bun run tessera check --repository <dir> --project-folder retail
+bun run tessera check --files <dir>
+```
+
+Exit statuses: 0 success (the bundle was written, or `check` found no error); 1 refused (findings, a
+failed output check, an invalid source, a refused commit or output folder); 2 the compile drops
+values and the loss is not accepted, so nothing was written and the report was printed; 64 misuse.
+
+Dropped values are never silent. The loss report lists each one by document, item address, property,
+JSON pointer, byte length and SHA-256, never the value, and ends with a digest. A compile with loss
+is released only when you pass that exact digest (`--accept-loss`) or a loss policy file
+(`{ "policy": 1, "allow": ["tessera_notes"] }`). A failure of the compile itself, such as an output
+that does not pass the pinned schema, a changed meaning or two files that would write the same
+path, can never be accepted. Accepting a loss report is not approval of the exported content.
+Tests: `tests/tessera/compile.test.ts`, `tests/tessera/determinism.test.ts`,
+`tests/tessera/loss-report.test.ts`, `tests/tessera/cli.test.ts`.
+
+### Limits
+
+- The compiled output is "valid against the bundled Ossie 0.2.0.dev0 draft". That Ossie version is an
+  unreleased draft; the workbench pins its own copy.
+- Comments and layout of a compiled YAML or JSON document may not survive. Values and key order do,
+  and so does a comment above the marker.
+- Notes are authoring-only: compiling drops them, and nothing recovers them. There is no
+  "convert to standard" operation and no reverse compiler. Source files are never rewritten.
+- The command line is an operator tool. It is not an authorization boundary: it reads Git as the
+  operating-system user and applies no workbench access rules.
+- The command line uses no network and needs no sign-in. Browser and HTTP export are not part of it.
 
 ## Example workspaces
 

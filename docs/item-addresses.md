@@ -229,3 +229,14 @@ visible migration endpoints. Cross-project replay resumes after the move marker 
 arrival order even when a document moves back. Deletions follow the history-cut rule above. Snapshot suffixes remain
 opaque and are preserved during prefix replacement; until published-snapshot integration, this resolver reads the
 current definition and makes no historical-version claim.
+
+## Tessera documents
+
+A Tessera ontology has the same items and the same addresses as the Ossie ontology you get by
+removing its marker and its `tessera_` properties. The marker and the additions create no item, edge
+or field, and `inspect` keeps the kind `Ossie ontology`. Compiling a Tessera document changes no
+address: the document-relative address of every item in the source names the same item in the
+compiled output. The loss report names each dropped value by the document-relative address of the
+item that held it (for the ontology root, the address of the ontology itself, such as
+`sw1:#ontology:Retail`). Tests: `tests/tessera/workbench-documents.test.ts` and
+`tests/tessera/determinism.test.ts`.

@@ -302,6 +302,12 @@ full n-ary tuple population execution are not implemented. There is no ontology 
 check or OWL reasoner. SHACL shapes run only in the workbench's validation details, in the browser,
 and are not part of the agent runtime.
 
+## Tessera documents
+
+A published Tessera ontology is read as an Ossie ontology. The marker and the `tessera_` additions,
+such as `tessera_notes`, never reach agent catalog, context, plans or metric explanations; the output
+is the same as for the ontology without them. Test: `tests/tessera/agent-and-access.test.ts`.
+
 ## Verification and provenance
 
 Unit/API/browser tests cover reference resolution, nested/inherited mappings, immutable governed
