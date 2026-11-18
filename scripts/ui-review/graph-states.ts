@@ -115,6 +115,15 @@ async function closeSelectedPath(page: Page) {
   }
 }
 
+async function fullscreenOpen(page: Page) {
+  const exit = page.getByRole('button', { name: 'Exit full screen', exact: true });
+  if (await exit.isVisible()) return true;
+  await revealGraphControls(page);
+  const visible = await exit.isVisible();
+  await hideGraphControls(page);
+  return visible;
+}
+
 async function graphControls(page: Page, identity: CaptureIdentity, screen: string) {
   await attempt(page, identity, screen, 'after-fit', () => press(page, /^Fit( model| neighborhood)?$/));
   await attempt(page, identity, screen, 'zoomed-in', () => press(page, 'Zoom in', 7));
@@ -144,13 +153,12 @@ async function graphControls(page: Page, identity: CaptureIdentity, screen: stri
   await attempt(page, identity, screen, 'options-open', () => revealGraphControls(page));
   await attempt(page, identity, screen, 'fullscreen', () => press(page, /^(Enter )?Full screen$/i));
   await attempt(page, identity, screen, 'fullscreen-node-selected', async () => {
-    await page.locator('.canvas-row.is-fullscreen').waitFor();
+    if (!(await fullscreenOpen(page))) throw new Error('Graph did not enter full screen');
     await selectReachableNode(page, name);
   });
   if (fullGraph) await closeGraphDetails(page);
   await closeSelectedPath(page);
-  const exit = page.getByRole('button', { name: 'Exit full screen', exact: true });
-  if (await exit.isVisible()) await exit.click();
+  if (await fullscreenOpen(page)) await press(page, 'Exit full screen');
 }
 
 async function fullGraph(page: Page, identity: CaptureIdentity) {
@@ -231,16 +239,12 @@ async function lineage(page: Page, identity: CaptureIdentity, dataset: boolean) 
   }
   await attempt(page, identity, screen, 'more-columns', async () => {
     await showLineageColumns(page);
-    await page
-      .getByRole('button', { name: /^Show all \d+ columns of/ })
-      .first()
-      .click();
+    const center = page.locator('.lineage-card.center');
+    await center.getByRole('button', { name: /^Show all \d+ columns of/ }).click();
   });
   await attempt(page, identity, screen, 'column-filter', async () => {
-    await page
-      .getByRole('textbox', { name: /Filter columns/i })
-      .first()
-      .fill('id');
+    const center = page.locator('.lineage-card.center');
+    await center.getByRole('textbox', { name: /Filter columns/i }).fill('id');
   });
   await page.keyboard.press('Escape');
   const visited = new Set([await page.locator('.lineage-card.center').getAttribute('data-id')]);
