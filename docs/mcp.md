@@ -99,7 +99,7 @@ The server endpoint accepts only opaque workbench connection tokens. Cookies can
 it, and identity-provider JWTs are refused. Checks run in order: method, any Origin header, JSON
 content type, bearer shape and live connection. Refusals disclose no credential failure reason;
 an invalid token receives an empty 401 with the protected-resource metadata challenge. Every
-admitted fresh tool call carries the current person, owning session, connection and scope effects to the
+admitted fresh invocation carries the current person, owning session, connection and scope effects to the
 same operation boundary used by local tools. Connection revocation aborts work opened through it.
 
 Access tokens last ten minutes. Codes last sixty seconds; pending consent and setup credentials

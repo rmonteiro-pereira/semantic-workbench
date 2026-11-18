@@ -78,3 +78,33 @@ These describe the earlier worker state; the continuation results below supersed
 - The final consolidated feature command passed: 132 pass, 0 fail, 15,414 assertions across 16 files in 417.00 seconds. Complete output is retained in `out/proofs/connections-own-proof.log`. This command excludes the explicitly pending MCP receipt regression and cannot establish release readiness.
 
 - T043: final static/HTTP run on the dev server passed `bun --bun run check` again on the final test source, followed by HTTP characterization: 1 pass, 0 fail, 1,602 assertions (29.00 seconds). The build already passed on the identical production source (2,322 modules, 3.15 seconds). The final exact feature command passed 132/0 as above. This tick records those scoped commands only; the receipt TODO and failed browser proof keep the feature/batch red.
+
+## Continuation commit index
+
+| Commit | Change |
+| --- | --- |
+| `2a62f74f` | Tick the replay and flood task, covered by the flow tests |
+| `6606db78` | docs: document agent program configurations and secure redirects |
+| `c324404a` | test: prove connection consent and scope discovery narrowing |
+| `694d1b22` | feat: authenticate server MCP requests with person connections |
+| `6a513791` | fix: persist delegated Git credentials through session references |
+| `e0e57939` | fix: reject connection origins without operation and audit support |
+| `7dcda550` | test: walk every inventoried operation against connection scopes |
+| `c47f0168` | fix: preserve authenticated caller types across MCP gates |
+| `b8a6cd06` | test: prove revocation cancels active MCP work |
+| `5079841c` | generated: re-record stable HTTP characterization with programs |
+| `78db874b` | feat: show and revoke personal agent connections |
+| `f21ee7c6` | feat: administer registered agent programs and connections |
+| `9603175c` | fix: settle connection replay and revocation after session waits |
+| `7f664e6f` | test: gate connection security with ten targeted mutants |
+| `19087ec5` | test: gate server connection screens and reproduce consent origin failure |
+| `691c73d3` | docs: describe person connections and server transport threat model |
+| `19a861da` | fix: verify indexed connection credentials in constant time |
+| `c90930a6` | test: record server MCP reference transport acceptance |
+| `5a51b7a1` | fix: render connection onward-use wording with the active brand |
+| `f60302a6` | refactor: keep MCP mode selection in one handler block |
+| `77dc7687` | docs: state connection session and replay retention limits |
+| `099d33dd` | test: prove connection scope parity through every MCP tool |
+| `b97cf1fb` | docs: record completed connection documentation checks |
+| `4c6f10b7` | test: use a neutral product name in the branding fixture |
+| `9b268eb1` | test: expose completed MCP receipt authorization gap |
