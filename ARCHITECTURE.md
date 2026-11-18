@@ -330,6 +330,8 @@ command line.
   leaves the Tessera names alone. `schema-derivation.ts` derives the Tessera ontology schema from a
   pinned schema and the registry; `scripts/derive-tessera-schema.ts` writes it to
   `schemas/tessera-ontology-1-ossie-0.2.0.dev0.json` and the revision 2 counterpart. `scripts/compile-schemas.ts` compiles both.
+- `src/shared/tessera/unit-structure.ts` resolves the root’s declared parts and reports structural
+  findings from parsed project files. It never follows links or reads the filesystem.
 - `src/shared/tessera/marker.ts` reads the marker (top level only). `validate.ts` gives the Tessera
   findings and picks the derived schema by marker and base. `src/shared/validation/validation.ts`
   calls it at the top of `validateStructured`, and `src/shared/core/model.ts` returns the document
