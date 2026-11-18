@@ -281,7 +281,8 @@ branding, deployment decisions and observability.
 Shared proposals have their own suite, `bun run test:proposals`, with unit and route tests
 (`tests/proposals-*.test.ts`, `tests/work-in-progress-push.test.ts`, `tests/auth/proposal-*.test.ts`),
 browser component tests and `scripts/proposals-browser-check.ts`. The `proposals` mutant category
-(`scripts/proposals-mutants.ts`) runs under `bun run test:mutation`.
+(`scripts/proposals-mutants.ts`) runs under `bun run test:mutation`. The restore-limit case allows ten seconds to
+create every filler proposal before asserting the same limit refusal.
 
 Do not remove a failed assertion, increase its budget or exclude an error to make a release pass.
 Use a targeted reproducer, preserve failure evidence and rerun on the corrected frozen state.

@@ -86,7 +86,7 @@ test('restoring is refused when the repository already holds the most open propo
   const full = await act(dave, fixture, proposal.id, 'restore');
   expect(full.status).toBe(409);
   expect(full.body.error).toBe('limit');
-});
+}, 10_000);
 
 test('closing and restoring need authority over every project of the repository', async () => {
   using fixture = await proposalFixture();
