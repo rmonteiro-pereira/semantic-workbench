@@ -23,7 +23,9 @@ export function ChangeCard({ card }: { card: Change }) {
       setUndone(true);
       setNotice('Earlier text restored.');
     } catch (error) {
-      setNotice(error instanceof StaleSave ? 'The file changed since this edit. Undo did not save anything.' : error instanceof Error ? error.message : 'Undo failed. Try again.');
+      if (error instanceof StaleSave) setNotice('The file changed since this edit. Undo did not save anything.');
+      else if (error instanceof Error) setNotice(error.message);
+      else setNotice('Undo failed. Try again.');
     } finally {
       setBusy(false);
     }

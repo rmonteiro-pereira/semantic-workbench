@@ -10,6 +10,10 @@ export async function panelAction(path = '', body?: unknown, method = 'POST'): P
   const response = await apiFetch(`/api/acp/sessions${path}`, { method, headers: { 'Content-Type': 'application/json' }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
   const answer = await response.json();
   if (!response.ok) throw Object.assign(new Error(answer.error ?? 'The panel request failed.'), { status: response.status });
+  let expectedStatus = 200;
+  if (path === '') expectedStatus = 201;
+  else if (path.endsWith('/prompt')) expectedStatus = 202;
+  if (response.status !== expectedStatus) throw new Error('The server returned an unsupported panel response.');
   return answer;
 }
 
