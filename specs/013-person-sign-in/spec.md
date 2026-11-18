@@ -278,7 +278,7 @@ permanent copy.
   description, one to five exact redirect addresses, the scopes the program may request, and optional
   documentation text shown to the person. It MUST NOT hold a secret.
 - **FR-011**: A redirect address MUST be an absolute address that is either `https`, or `http` on a
-  loopback host with an explicit port, or a custom scheme registered by name. It MUST NOT contain a
+  loopback host with an explicit port. It MUST NOT contain a
   fragment, wildcard or credentials. Comparison MUST be exact, byte for byte after normalizing nothing.
 - **FR-012**: The dry run of a registration change MUST list added, changed and removed programs and,
   for each removed or narrowed one, how many live connections would end.
@@ -536,6 +536,10 @@ permanent copy.
 - Per-agent branches or working copies (M12).
 
 ## Decisions made while specifying
+
+Redirect policy: HTTPS or loopback HTTP only, following MCP authorization revision 2026-07-28.
+Registered custom schemes are excluded; the implementation already enforces this restriction.
+
 
 No clarify round took place. Each choice below follows the decisions file and is the most
 conservative reading where the file is silent.

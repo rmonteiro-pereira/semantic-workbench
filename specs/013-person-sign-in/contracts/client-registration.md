@@ -37,7 +37,7 @@ body is recognised by its `programs` field.
 1. Unknown fields refused.
 2. `clientId` unique and within its alphabet.
 3. Every redirect address passes FR-011: `https`, or `http` with a loopback host (`127.0.0.1`,
-   `[::1]`, `localhost`) and an explicit port, or a custom scheme from the list the schema allows;
+   `[::1]`, `localhost`) and an explicit port;
    no fragment, wildcard, user information; at most 512 characters; unique within the program.
 4. `scopes` contains only offered scopes; `administration` is refused with the reason that it is not
    available yet.

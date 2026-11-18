@@ -19,3 +19,8 @@ Where the plan named files or shapes that differ from the code that landed, the 
 - `static.ts` no longer serves `/oauth/*` and `/.well-known/*` as the single-page app.
 - Delegated Git credentials through a connection session: `getByReference` returns a session whose `id` is empty (the id cannot be recovered from its hash), and `remote-credentials` saves by `session.id`. No current tool uses the remote effect; the next worker must add `updateRemote` by reference before one does.
 - Audit origin `acp`: `CALLER_ORIGINS` is `http | mcp` on this base. `connectionCallerOrigin` casts. The agent panel adds `acp` to the list; audit of an `acp` connection throws until it does.
+
+## Continuation proofs
+
+- T022: `bun test tests/docs-agent-connections.test.ts`: 2 pass, 0 fail. No server-mode client is claimed supported.
+- Redirect decision settled by the owner: HTTPS or loopback HTTP only. FR-011 and the registration contract now agree with the implementation.
