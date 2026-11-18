@@ -104,9 +104,10 @@ async function attributeFlow(page: Page, label: string) {
 }
 
 async function governanceAndContextFlow(page: Page, label: string) {
+  await openConcept(page, FILE, 'Customer');
   const details = page.getByRole('complementary', { name: 'Definition details' });
   const governance = details.getByRole('region', { name: 'Governance' });
-  await governance.getByLabel('Status').selectOption('proposed');
+  await governance.getByLabel('Status', { exact: true }).selectOption('proposed');
   await governance.getByLabel('Owner').fill('dana@example.com');
   await governance.getByRole('button', { name: 'Save governance' }).click();
   await governance.getByText('proposed').first().waitFor();
