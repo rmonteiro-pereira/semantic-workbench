@@ -296,6 +296,15 @@ where a vocabulary or a route table must learn `acp`.
   reader and call limits but changes none of its files.
 - **010 (on this base).** `tests/auth/boundary-scan.test.ts` and the parity test are extended.
 
+## Agreement with 013
+
+013 keeps its connection record transport-neutral: it carries an origin, `mcp` or `acp`, set by the
+creator. The relay is an ordinary registered program (013, M3); the Admin registers it from the
+configuration this feature documents, and no program is built in. 015 calls `createConnectionForSession`
+with the relay program, the effects `read` and `localWrite` and the origin `acp`, resolves the relay's
+credential through 013's `resolve`, and subscribes with `onConnectionEnded`. If 013's names differ at
+implementation, the contract in `contracts/relay-connection.md` is what 013 must provide.
+
 ## Buildable now, needs 006, needs 013
 
 | Part | Needs |

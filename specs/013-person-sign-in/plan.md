@@ -209,6 +209,13 @@ quickstart, `docs/agent-connections.md`, `scripts/connections-*.ts`, `src/app/au
 - **015 (agent panel)**: reuses `connection-service` to create a connection for its relay and listens
   to the end signal. Keep `createConnectionForSession` and `onConnectionEnded` exported and
   transport-neutral. 015 adds origin `acp`; this feature records `connection` the same way.
+- **Agreement with 015 (relay connections)**: a connection record carries the origin it was created
+  for, `mcp` (default) or `acp`. `createConnectionForSession` accepts the client program, the scopes
+  and the origin, and `resolve` returns a caller with that origin. The relay of 015 is an ordinary
+  registered program (M3): the Admin registers it using the documented configuration that 015 adds to
+  its documentation, and no program is built in. Token and setup-credential events keep the origin of
+  the connection. Both plans use the inventory dispatch value `public` for routes that answer without a
+  session and `browser-only` for browser pages that are never agent operations.
 - **014 (counters)**: counts by caller origin; ignores the connection id. No code overlap beyond the
   boundary hook, which this feature does not touch.
 - **012 (proposals)**: no code overlap. Both add inventory rows and matrix cases (contiguous blocks)
