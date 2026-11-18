@@ -573,15 +573,15 @@ The original review archive contains 3,559 PNGs. A read-only count by folder mea
 
 Status: in progress. No visual pair is classified before both images have been opened.
 
-The current gallery includes 704 rows. Of those, 290 are intended fixes, 32 are expected merged-feature differences, 295 are neutral, and 11
-are unchanged. The gallery retains 32 frames of fixed regressions and 44 frames flagged as possible or unresolved regressions. A frame count
+The gallery checkpoint of 713 rows includes 290 intended fixes, 33 expected merged-feature differences, 301 neutral changes and 11
+unchanged steps. The gallery retains 38 frames of fixed regressions and 40 frames flagged as possible or unresolved regressions. A frame count
 can include multiple actions that carry the same underlying issue. The manifest explains which actions could not be compared at a matched state.
 The counted Network heading and compact mapping correction pairs were opened at 390×844 in both themes.
 The 75-state phone replay (local, light, 390×844) was opened across 25 contact sheets. Both repetitions on all three versions
 opened the named mapping and its Source tab. The Source view preserves the empty concept list. The transient empty-bindings frame
 is timing noise, confirmed by the settled Identifier replay. The candidate also shows the full line-23 SQL warning and a green
 keyboard focus ring on the metric grouping control. The empty Trash dialog keeps its explanation and Close action.
-The local gallery publisher returned 704 rows with the counts above.
+The local gallery publisher returned 713 rows with the counts above.
 
 The Full Graph replay scored 43 steps, from two repetitions per version. The candidate Network first view and Fit show four named counted areas.
 Both full-screen selection paths open Order and keep it readable. After changing area visibility with Order selected, Layered can leave Order
@@ -647,6 +647,18 @@ the complete four-area model. They changed 16.518107% and 21.097377% of pixels, 
 - `python3 .data/gate/pixel-difference-007.py` counted 54,371 of 329,160 changed pixels on phone and 273,422 of 1,296,000 on desktop.
 - `bun .data/gate/gate-007/box-fit-trial.ts` and the Midgard Network diagnostics measured the geometry separately from the browser. Compressing the
   force layout and repeating its de-overlap pass left the smallest UBL name below 9 px in the desktop trial. Tighter area packing remains under test.
+
+Commit `a5ee8187` restores the named Network first view. In both local light repetitions, all 45 UBL entity cards were whole, with zero name boxes
+outside their cards. The minimum name measured 9.95 px at 390×844, 9.88 px at 1280×720 and 11.53 px at 1440×900. The model filled 93.09%, 92.66%
+and 92.64% of the pane in its limiting dimension, respectively. Mall opened with all 12 counted areas in both repetitions at those widths.
+The opened native pairs under `{before,after}/fixes/ubl-network-first-view-390.png` and `ubl-network-first-view-1440.png` replace four area counts
+with readable cards. Long words wrap within the taller portrait cards. The compact desktop rows leave less room between cards, with relationship
+arrows still present. Both repeat rows were opened for the frozen first views at these three widths.
+
+- `sw-midgard-run -- bash scripts/ui-review/gate-007/verified-network-launch.sh`: targeted `bun test tests/full-layout.test.ts` returned
+  `6 pass`, `0 fail`, `5540 expect() calls` in 4.92 s. The candidate build and first three comparisons returned 0.
+- `bash .data/gate/pull-review-007.sh` and `python3 .data/gate/pixel-difference-007.py`: native revisions changed 160,385 of 329,160 pixels at 390 px
+  (48.725544%) and 438,704 of 1,296,000 at 1440 px (33.850617%). The main and release first views show the same assets with smaller names.
 
 ## Differences for owner acceptance
 
