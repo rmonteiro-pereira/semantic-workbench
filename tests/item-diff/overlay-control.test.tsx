@@ -14,7 +14,7 @@ const diff: ItemDiff = {
 test('overlay comparison explains each state in words', () => {
   expect(overlaySummary({ state: 'off' }, false)).toBe('This project has no published commit.');
   expect(overlaySummary({ state: 'off' }, true)).toBe('Overlay off.');
-  expect(overlaySummary({ state: 'loading' }, true)).toBe('Comparing saved items…');
+  expect(overlaySummary({ state: 'loading' }, true)).toBe('Comparing saved items.');
   expect(overlaySummary({ state: 'error', message: 'Comparison unavailable.' }, true)).toBe('Comparison unavailable.');
   expect(overlaySummary({ state: 'empty', diff }, true)).toBe('No unpublished item changes.');
   expect(overlaySummary({ state: 'ready', diff }, true)).toBe('1 added, 2 changed, 3 removed.');

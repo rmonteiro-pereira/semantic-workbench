@@ -37,7 +37,7 @@ function ChangeRow({ change }: { change: ItemChange }) {
 /** Lists bounded changes and explains anything the comparison could not show. */
 export function ChangeList({ result, onRetry }: { result: ComparisonState; onRetry: () => void }) {
   if (result.state === 'off') return <p>Turn on Unpublished work to compare saved items.</p>;
-  if (result.state === 'loading') return <p role="status">Comparing saved items…</p>;
+  if (result.state === 'loading') return <p role="status">Comparing saved items.</p>;
   if (result.state === 'error') {
     return (
       <div role="alert">

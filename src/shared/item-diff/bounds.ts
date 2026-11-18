@@ -5,7 +5,7 @@ import type { ItemDiff } from './item-change';
 export const DIFF_LIMITS = { items: 2_000, bytes: 2_000_000, valueCharacters: 500 } as const;
 /** Limits accepted by the pure response bounding function. */
 export type DiffLimits = { items: number; bytes: number; valueCharacters: number };
-const omittedValue = '… (value shortened)';
+const omittedValue = ' (value shortened)';
 
 /** Shortens a displayed value while keeping its marker inside the character limit. */
 export function boundValue(value: string, limit: number = DIFF_LIMITS.valueCharacters): string {

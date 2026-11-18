@@ -10,7 +10,7 @@ import type { ComparisonState } from './use-item-diff';
 export function overlaySummary(result: ComparisonState, published: boolean) {
   if (!published) return 'This project has no published commit.';
   if (result.state === 'off') return 'Overlay off.';
-  if (result.state === 'loading') return 'Comparing saved items…';
+  if (result.state === 'loading') return 'Comparing saved items.';
   if (result.state === 'error') return result.message;
   if (result.state === 'empty') return 'No unpublished item changes.';
   if (!('diff' in result)) return '';
