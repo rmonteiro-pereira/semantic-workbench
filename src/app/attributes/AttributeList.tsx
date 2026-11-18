@@ -1,7 +1,9 @@
 import { BranchControl } from '../item-diff/BranchControl';
 import { addressAtModelPath } from '../../shared/core/model-addresses';
-import { ItemChangeAnnotation } from '../item-diff/ItemChangeAnnotation';
-import { useVisibleItemChanges } from '../item-diff/ItemDiffContext';
+import { itemAddress } from '../item-diff/ItemChangeAnnotation';
+import { ChangeMark } from '../item-diff/ChangeMark';
+import type { ItemChange } from '../../shared/item-diff/item-change';
+import { useItemDiffContext, useVisibleItemChanges } from '../item-diff/ItemDiffContext';
 /** The attributes of a concept in the details panel: listed in order, with inherited ones marked, and added, edited, moved and removed in place. */
 import { ArrowDown, ArrowUp, Pencil, Plus, Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
@@ -33,6 +35,8 @@ function readingOf(entry: AttributeEntry): string | undefined {
 }
 
 type ViewProps = {
+  removed?: ItemChange[];
+  onOpenRemoved?: (address: string) => void;
   annotationsFor?: (entry: AttributeEntry) => React.ReactNode;
   branchControlFor?: (entry: AttributeEntry) => React.ReactNode;
   entries: AttributeEntry[];
@@ -49,7 +53,22 @@ type ViewProps = {
 };
 
 /** The attribute section as the person sees it, for every state: loading, error, empty, read only and filled. */
-export function AttributeListView({ annotationsFor, branchControlFor, entries, state, canEdit, editNote, message, openConcept, onAdd, onEdit, onMove, onRemove }: ViewProps) {
+export function AttributeListView({
+  removed = [],
+  onOpenRemoved,
+  annotationsFor,
+  branchControlFor,
+  entries,
+  state,
+  canEdit,
+  editNote,
+  message,
+  openConcept,
+  onAdd,
+  onEdit,
+  onMove,
+  onRemove,
+}: ViewProps) {
   const ownNames = entries.filter(entry => !entry.inheritedFrom).map(entry => entry.name);
   function actionsFor(entry: AttributeEntry) {
     if (entry.inheritedFrom) return undefined;
@@ -93,7 +112,7 @@ export function AttributeListView({ annotationsFor, branchControlFor, entries, s
         </button>
       </div>
     );
-  else if (!entries.length)
+  else if (!entries.length && !removed.length)
     body = (
       <div className="attribute-empty">
         <p>No attributes yet</p>
@@ -116,10 +135,25 @@ export function AttributeListView({ annotationsFor, branchControlFor, entries, s
               onOpenInheritedFrom={openConcept}
               annotations={annotationsFor?.(entry)}
               actions={
-                <>
-                  {actionsFor(entry)}
-                  {branchControlFor?.(entry)}
-                </>
+                entry.inheritedFrom ? undefined : (
+                  <>
+                    {actionsFor(entry)}
+                    {branchControlFor?.(entry)}
+                  </>
+                )
+              }
+            />
+          ))}
+          {removed.map(change => (
+            <AttributeRow
+              key={change.address}
+              name={change.name}
+              valueType="Published attribute"
+              annotations={<ChangeMark change="removed" />}
+              actions={
+                <button type="button" onClick={() => onOpenRemoved?.(change.address)}>
+                  View published item
+                </button>
               }
             />
           ))}
@@ -144,10 +178,17 @@ export function AttributeListView({ annotationsFor, branchControlFor, entries, s
 /** Renders the attribute section of one concept, with the form and the revision question it may open. */
 export function AttributeList({ section, state = { kind: 'ready' }, onRemove }: Props) {
   const changes = useVisibleItemChanges();
+  const overlay = useItemDiffContext();
+  const conceptAddress = changes.length ? addressAtModelPath(section.document, section.itemPath) : undefined;
+  const relationshipPrefix = conceptAddress ? itemAddress(section.doc, conceptAddress) + '/relationship:' : '';
+  const removed = relationshipPrefix ? changes.filter(change => change.kind === 'attribute' && change.state === 'removed' && change.address.startsWith(relationshipPrefix)) : [];
   function annotationsFor(entry: AttributeEntry) {
     if (entry.inheritedFrom) return undefined;
     const address = changes.length ? addressAtModelPath(section.document, [...section.itemPath, 'relationships', entry.relationshipIndex]) : undefined;
-    return address ? <ItemChangeAnnotation document={section.doc} item={{ address }} /> : undefined;
+    if (!address) return undefined;
+    const absolute = itemAddress(section.doc, address);
+    const change = changes.find(candidate => candidate.address === absolute && candidate.state !== 'removed');
+    return change ? <ChangeMark change={change.state} /> : undefined;
   }
   function branchControlFor(entry: AttributeEntry) {
     if (entry.inheritedFrom) return undefined;
@@ -191,6 +232,8 @@ export function AttributeList({ section, state = { kind: 'ready' }, onRemove }: 
     <>
       <AttributeListView
         entries={shown}
+        removed={removed}
+        onOpenRemoved={address => overlay?.openRemoved('removed:' + address)}
         annotationsFor={changes.length ? annotationsFor : undefined}
         branchControlFor={branchControlFor}
         state={state}

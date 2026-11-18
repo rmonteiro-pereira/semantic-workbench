@@ -13,7 +13,7 @@ export function useItemChange(document: Pick<Doc, 'project' | 'path'> | null, it
   const changes = useVisibleItemChanges();
   if (!document || !('address' in item) || !item.address || !changes.length) return undefined;
   const address = itemAddress(document, item.address as Address);
-  return changes.find(change => change.address === address);
+  return changes.find(change => change.address === address && change.state !== 'removed');
 }
 
 /** Renders nothing until this item has a visible unpublished change. */

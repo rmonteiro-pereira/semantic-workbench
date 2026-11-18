@@ -1,3 +1,6 @@
+import { ChangeMark } from '../item-diff/ChangeMark';
+import { useGraphChanges } from '../item-diff/graph-changes';
+import { useItemDiffContext } from '../item-diff/ItemDiffContext';
 import { ItemChangeAnnotation } from '../item-diff/ItemChangeAnnotation';
 /** Presentation and event handling for catalog view. */
 import { Gauge, Pencil } from 'lucide-react';
@@ -48,6 +51,8 @@ function metricCountLabel(count: number) {
 }
 /** Renders catalog view. */
 export function CatalogView({ current, model, search, area, clearArea, selectEntity, kpiBadges, entityTarget, rdfTarget, setEditing, setRdfEditing }: Props) {
+  const graph = useGraphChanges(model, current ?? null);
+  const overlay = useItemDiffContext();
   const areaIds = area ? new Set(area.entityIds) : null;
   const inArea = (entity: Entity) => !areaIds || areaIds.has(entity.id);
   return (
@@ -62,7 +67,7 @@ export function CatalogView({ current, model, search, area, clearArea, selectEnt
           </button>
         </div>
       )}
-      {model?.entities
+      {graph?.entities
         .filter(inArea)
         .filter(e => e.name.toLowerCase().includes(search.toLowerCase()))
         .map(entity => {
@@ -71,9 +76,12 @@ export function CatalogView({ current, model, search, area, clearArea, selectEnt
             if (target) setEditing(target);
             else setRdfEditing(rdfTarget(entity));
           }
+          function handleViewDetails() {
+            if (!overlay?.openRemoved(entity.id)) selectEntity(entity.id);
+          }
           return (
             <div className="catalog-card" key={entity.id}>
-              <button onClick={() => selectEntity(entity.id)}>
+              <button onClick={handleViewDetails}>
                 <small>
                   {entity.kind === 'Metric' ? 'Metric' : entity.kind}
                   {(kpiBadges.get(entity.name)?.length ?? 0) > 0 && (
@@ -87,7 +95,7 @@ export function CatalogView({ current, model, search, area, clearArea, selectEnt
                 <p title={entity.description || undefined}>{entity.description || 'No description yet'}</p>
                 <span className="catalog-details">View details</span>
               </button>
-              <ItemChangeAnnotation document={current ?? null} item={entity} />
+              {entity.id.startsWith('removed:') ? <ChangeMark change="removed" /> : <ItemChangeAnnotation document={current ?? null} item={entity} />}
               <CardMarks entity={entity} model={model} />
               {(entityTarget(entity) || rdfTarget(entity)) && (
                 <button className="catalog-edit" aria-label={`Edit ${entity.name}`} onClick={handleCatalogEditClick}>

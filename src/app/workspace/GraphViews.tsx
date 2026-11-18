@@ -1,3 +1,4 @@
+import { useItemDiffContext } from '../item-diff/ItemDiffContext';
 import { useGraphChanges } from '../item-diff/graph-changes';
 /** Presentation and event handling for graph views. */
 import React, { useCallback, useMemo } from 'react';
@@ -123,6 +124,19 @@ export function GraphViews({
   crossTo,
 }: Props) {
   const graph = useGraphChanges(model, current);
+  const overlay = useItemDiffContext();
+  function selectFullEntity(id: string) {
+    if (!overlay?.openRemoved(id)) selectEntity(id);
+  }
+  function selectFullEdge(id: string) {
+    if (!overlay?.openRemoved(id)) handleFullGraphSelectEdge(id);
+  }
+  function selectNeighborhoodEntity(id: string) {
+    if (!overlay?.openRemoved(id)) handleNeighborhoodGraphSelectEntity(id);
+  }
+  function selectNeighborhoodEdge(id: string) {
+    if (!overlay?.openRemoved(id)) setSelectedEdge(id);
+  }
   const looks = useMemo(() => groupLooks(groupingOverview), [groupingOverview]);
   // The Group menu sits in the graph's own tool row, beside Fit and the layout controls.
   const groupMenu = groupingOverview ? <GroupingControls overview={groupingOverview} value={grouping.value} onChange={grouping.change} error={grouping.error} /> : null;
@@ -180,8 +194,8 @@ export function GraphViews({
         selected={selected}
         selectedEdge={selectedEdge}
         search={search}
-        onSelectEntity={selectEntity}
-        onSelectEdge={handleFullGraphSelectEdge}
+        onSelectEntity={selectFullEntity}
+        onSelectEdge={selectFullEdge}
       />
     );
   }
@@ -223,10 +237,8 @@ export function GraphViews({
       onWalk={handleNeighborhoodGraphWalk}
       onWalkTo={walkTo}
       onClearSearch={() => setSearch('')}
-      onSelectEntity={handleNeighborhoodGraphSelectEntity}
-      onSelectEdge={id => {
-        setSelectedEdge(id);
-      }}
+      onSelectEntity={selectNeighborhoodEntity}
+      onSelectEdge={selectNeighborhoodEdge}
       onOpenKpis={handleNeighborhoodGraphOpenKpis}
       crossFile={crossFile}
       onCrossFile={crossTo}
