@@ -216,10 +216,26 @@ function byFailureOrder(first: CompileFailure, second: CompileFailure): number {
   return compareText(first.document ?? '', second.document ?? '') || compareText(first.code, second.code) || compareText(first.message, second.message);
 }
 
+function providerVersionFailures(providers: CompileOptions['providers']): CompileFailure[] {
+  if (!providers) return [];
+  const seen = new Map<string, string>();
+  const failures: CompileFailure[] = [];
+  for (const [document, imports] of [...providers].sort(([first], [next]) => compareText(first, next))) {
+    for (const provider of imports) {
+      const previous = seen.get(provider.project);
+      if (previous !== undefined && previous !== provider.version) {
+        failures.push({ code: 'translation', document, message: `Provider "${provider.project}" resolves to both "${previous}" and "${provider.version}".` });
+      }
+      seen.set(provider.project, provider.version);
+    }
+  }
+  return failures;
+}
+
 /** Compiles a project folder. Input order never changes the result. */
 export function compileUnit(files: UnitFile[], options: CompileOptions, steps: UnitSteps = DEFAULT_STEPS): CompileResult {
   const sorted = [...files].sort((first, second) => compareText(first.path, second.path));
-  const limits = limitFailures(sorted);
+  const limits = [...limitFailures(sorted), ...providerVersionFailures(options.providers)];
   const base = findBase(SUPPORTED_BASES, OSSIE_SCHEMA_VERSION)!;
   const empty = { outputs: [], losses: [], governanceStatuses: [], failures: [], treatments: new Map() } as Compiled;
   const classified = limits.length ? [] : sorted.map(classifyFile);

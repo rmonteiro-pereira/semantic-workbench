@@ -14,7 +14,7 @@ const provider: ResolvedImportInterface = {
   concepts: new Map([['Invoice', { concept: 'Invoice', type: 'EntityType' }]]),
 };
 
-function compile(resolved: ResolvedImportInterface, name = 'Order') {
+function compile(resolved: ResolvedImportInterface, name = 'Order', other?: ResolvedImportInterface) {
   const file = {
     path: 'root.json',
     bytes: new TextEncoder().encode(
@@ -27,7 +27,13 @@ function compile(resolved: ResolvedImportInterface, name = 'Order') {
       }),
     ),
   };
-  return compileUnit([file], { lossPolicySha256: null, providers: new Map([[file.path, [resolved]]]) });
+  const roots = other
+    ? ([
+        [file.path, [resolved]],
+        ['other.json', [other]],
+      ] as const)
+    : ([[file.path, [resolved]]] as const);
+  return compileUnit([file], { lossPolicySha256: null, providers: new Map(roots) });
 }
 
 test('a private dependency inside a provider is an absolute refusal', () => {
@@ -45,4 +51,12 @@ test('a different provider base and a qualified local collision cannot release o
   const collision = compile(provider, qualifiedConcept(target));
   expect(collision.failures[0].message).toContain('collides with imported name');
   expect(collision.outputs).toEqual([]);
+});
+
+test('incompatible versions selected by different roots refuse the complete bundle', () => {
+  const other = 'b'.repeat(40);
+  const result = compile(provider, 'Order', { ...provider, version: other });
+  expect(result.failures[0].message).toContain(`"${provider.version}"`);
+  expect(result.failures[0].message).toContain(`"${other}"`);
+  expect(decideAcceptance(result.report, result.failures, { digest: result.report.digest }).decision).toBe('refused');
 });
