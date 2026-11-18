@@ -12,6 +12,7 @@ const browser = await chromium.launch({ headless: true });
 const virtual = '/workbench/mapped-commerce/commerce.mapped-ontology.yaml';
 let relay: RelayProcess | undefined;
 let passed = 0;
+const panelEvents = /\/api\/acp\/sessions\/[^/]+\/events(?:\?|$)/;
 
 async function openPanel(page: Page) {
   await page.getByRole('button', { name: 'Person menu', exact: true }).click();
@@ -68,13 +69,15 @@ try {
         });
         await page.getByRole('button', { name: 'Start session', exact: true }).click();
         await expect(page.getByRole('alert').filter({ hasText: 'Connection setup unavailable.' })).toBeVisible();
-        await page.route('**/api/acp/sessions/*/events*', route => route.fulfill({ status: 503, body: '{}' }));
+        await page.route(panelEvents, route => route.fulfill({ status: 503, body: '{}' }));
+        const disconnected = page.waitForResponse(response => panelEvents.test(response.url()) && response.status() === 503);
         const creating = page.waitForResponse(response => response.url().endsWith('/api/acp/sessions') && response.request().method() === 'POST');
         await page.getByRole('button', { name: 'Start session', exact: true }).click();
         const created = await (await creating).json();
+        await disconnected;
         await expect(page.getByText(/Waiting for your agent/)).toBeVisible();
         await expect(page.getByText('Disconnected from the event stream. Reconnecting…', { exact: true })).toBeVisible();
-        await page.unroute('**/api/acp/sessions/*/events*');
+        await page.unroute(panelEvents);
         await contained(page);
         const session = server.service.store.findForRelay(created.id)!;
         relay = await startRelay(server, { id: session.id, code: session.code! }, [
@@ -155,7 +158,7 @@ try {
       for (const reason of END_REASONS) {
         await page.goto(server.url);
         await openPanel(page);
-        if (reason === 'server-restarted') await page.route('**/api/acp/sessions/*/events*', route => route.fulfill({ status: 404, body: '{}' }));
+        if (reason === 'server-restarted') await page.route(panelEvents, route => route.fulfill({ status: 404, body: '{}' }));
         const creating = page.waitForResponse(response => response.url().endsWith('/api/acp/sessions') && response.request().method() === 'POST');
         await page.getByRole('button', { name: 'Start session', exact: true }).click();
         const created = await (await creating).json();
@@ -167,7 +170,7 @@ try {
         if (reason === 'server-restarted') await expect(page.getByText(/The server no longer holds this session/)).toBeVisible();
         else expect(server.service.store.findForRelay(created.id)!.timing.endReason).toBe(reason);
         await page.getByRole('button', { name: 'Close agent panel', exact: true }).click();
-        await page.unroute('**/api/acp/sessions/*/events*');
+        await page.unroute(panelEvents);
         server.service.end(server.service.store.findForRelay(created.id)!, 'closed');
       }
     } finally {

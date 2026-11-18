@@ -20,8 +20,8 @@ The plan did not list this file.
 
 The end-to-end flood case exposed a reset of the oversize counter before every frame, including
 oversize frames. Consecutive oversize frames now accumulate and end the session. The lifecycle
-proof covers the twelve server-produced reasons; `server-restarted` requires the browser 404
-inference and remains part of the panel work before T027 is complete.
+proof covers the twelve server-produced reasons and the browser 404 inference for
+`server-restarted`; the completed thirteen-case proof is recorded below.
 
 The connection directory now matches the connection service request and end notice: optional
 origin, mutable named scopes (read/edit rather than operation effects read/localWrite), and connectionId, reason, origin, person and clientId on
@@ -103,8 +103,9 @@ including 360/768/1280 widths, both themes, real reference-agent messages, long 
 versioned write, Undo, conflict, eight options, keyboard-visible focus, cancellation, all end
 reasons and unchanged canvas geometry on close. Default screens sent no panel requests. No
 capture was made: the screenshot portion of T036 is deferred with T037 as explicitly requested.
-The baseline screenshot and exact main-bundle comparison remain the integrated regression gate's
-responsibility; the panel code and stylesheet are separate lazy build chunks.
+The baseline screenshot comparison remains the integrated regression gate's responsibility.
+The closing build comparison below records main-entry sizes; panel code and styles are separate
+lazy build chunks.
 
 Documents cover relay setup, named scopes versus operation effects, the credential variable,
 draft-text disclosure, memory-only transcript, limits, threat model and pending server assembly.
@@ -116,8 +117,9 @@ T041 requires no edit to ci-validate.ts: it already imports gateSuites and selfS
 registering test:acp in those inventories includes it automatically. Proof: `bun test
  tests/pipeline/ci-validate.test.ts`: 8 pass, 0 fail. Docs sync on the working tree exits 0.
 The leak scanner is clean for README, architecture and the panel guide. Its complete-file scan
-flags the existing public container cache path in docs/configuration.md and .env.server.example
-as a local path; those usage defaults are preserved rather than changed to evade the scanner.
+flags existing public temporary/cache path examples: one hit in docs/configuration.md, one in
+.env.server.example and six in docs/development.md. Those usage defaults are preserved rather
+than changed to evade the scanner. No confidential-term hit was found in any changed file.
 
 Review removed a duplicate rendered copy of completed agent messages: the live announcement
 used a class that did not exist in the theme. The visible message itself is now the polite
@@ -148,3 +150,10 @@ aggregate must replace that result after these three corrections.
 The final type check required an explicit array callback at the origin normalizer's caller,
 so an array index cannot become its optional field name. The targeted origin proof was rerun:
 11 pass, 0 fail, 51 assertions.
+
+A repeated browser proof exposed a missed glob interception of the event stream: the actual
+server answered 200, so the test had not caused its intended disconnect. The harness now uses
+an explicit event-path regular expression and waits for the intercepted 503 before checking
+the visible recovery state. No product behavior changed. Dev-server proofs: `bun run test:acp`
+and `bun run test:acp --closed-only` each report six viewport/theme conversations passed; closed
+screens sent no panel requests. The complete run includes all thirteen ending notices.
