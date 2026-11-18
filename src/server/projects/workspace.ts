@@ -2,7 +2,7 @@
 // of truth; the SQLite cache can be rebuilt.
 import { upgradePublications } from '../auth/operation-execution';
 import type { PublicationObserver } from './local-publication';
-import { ADDRESS_HISTORY_FILE, committedAddressHistoryFile, readAddressMigrations, readCommittedAddressMigrations } from './address-migrations';
+import { ADDRESS_HISTORY_FILE, committedAddressHistoryFile, readAddressMigrations, readCommittedAddressMigrations, trashHistoryChanges } from './address-migrations';
 import { resolveForCaller, resolvePublishedForCaller } from './address-resolution';
 import { recordReconciliation, type ReconciliationRequest } from './address-reconciliation';
 import { convertAddressKeys } from './address-key-conversion';
@@ -380,15 +380,15 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     publication,
   });
   // The repository paths of files that copy-less trash entries hold, per repository folder.
-  function trashedPaths(): Map<string, Set<string>> {
-    const byRepo = new Map<string, Set<string>>();
+  function trashedPaths(): Map<string, TrashEntry[]> {
+    const byRepo = new Map<string, TrashEntry[]>();
     for (const id of readdirSync(layout.trash)) {
       const kept = readJsonFile<TrashEntry>(join(layout.trash, id, 'entry.json'));
       const project = projects().find(item => item.slug === kept?.project);
       if (!kept || kept.kind !== 'file' || kept.copy || !kept.path || !project) continue;
       const repo = locationOf(project).repo;
-      const paths = byRepo.get(repo) ?? new Set<string>();
-      paths.add(projectPrefix(layout, project.slug) + kept.path);
+      const paths = byRepo.get(repo) ?? [];
+      paths.push(kept);
       byRepo.set(repo, paths);
     }
     return byRepo;
@@ -399,9 +399,27 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       const dir = join(layout.projects, repo);
       if (!existsSync(join(dir, '.git'))) continue;
       const report = options.log ?? ((line: string) => log.info('workspace.reconcile', { detail: line }));
-      const paths = trashed.get(repo) ?? new Set<string>();
-      await restoreTrashedDeletions({ git, dir, repo, trashed: paths, log: report });
+      const entries = trashed.get(repo) ?? [];
+      const paths = new Set(entries.map(kept => projectPrefix(layout, kept.project) + kept.path));
+      await restoreTrashedDeletions({
+        git,
+        dir,
+        repo,
+        trashed: paths,
+        log: report,
+        historyChanges: restored => restoredHistoryPaths(entries, new Set(restored)),
+      });
     }
+  }
+  async function restoredHistoryPaths(entries: TrashEntry[], restored: ReadonlySet<string>) {
+    const byProject = new Map<string, Set<string>>();
+    for (const kept of entries) {
+      if (!restored.has(projectPrefix(layout, kept.project) + kept.path)) continue;
+      const records = byProject.get(kept.project) ?? new Set<string>();
+      records.add(`d-${kept.entryId}-0`);
+      byProject.set(kept.project, records);
+    }
+    return (await Promise.all([...byProject].map(([project, records]) => trashHistoryChanges(git, layout, project, records)))).flat();
   }
   if (gitAvailable)
     await upgradePublications(async () => {

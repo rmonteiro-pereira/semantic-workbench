@@ -2,7 +2,7 @@
 // Restoration refuses occupied paths and suggests a free alternative.
 import { documentAddress } from '../../shared/core/item-address';
 import type { MigrationRecord } from '../../shared/core/address-migration';
-import { ADDRESS_HISTORY_FILE, historyEndpoints, operationMigrations, stageAddressMigrations, stageHistoryRemoval, trashedAddressHistory } from './address-migrations';
+import { ADDRESS_HISTORY_FILE, historyEndpoints, isAddressHistoryBookkeeping, operationMigrations, stageAddressMigrations, stageHistoryRemoval, trashedAddressHistory } from './address-migrations';
 import { archivePersonalState, clearPersonalDrafts } from './personal-state';
 import type { EventTags } from './events';
 import type { Reader } from './reader';
@@ -326,7 +326,7 @@ export function createTrash(ctx: TrashContext) {
           const paths = deletedBy
             ? members.flatMap(project =>
                 readdirRecursive(projectDir(layout, project.slug))
-                  .filter(path => !path.startsWith('.git/'))
+                  .filter(path => !path.startsWith('.git/') && !isAddressHistoryBookkeeping(layout, project.slug, path))
                   .map(path => ({ project: project.slug, path })),
               )
             : [];

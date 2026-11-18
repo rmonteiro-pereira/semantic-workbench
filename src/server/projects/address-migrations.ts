@@ -216,6 +216,36 @@ function stageHistoryAttributes(layout: DataLayout, project: string, staging: st
   return [...(existed ? [{ from: destination, to: staged + '.previous' }] : []), { from: staged, to: destination }];
 }
 
+/** Identifies files created solely to hold address history and its merge rule. */
+export function isAddressHistoryBookkeeping(layout: DataLayout, project: string, path: string): boolean {
+  if (path === ADDRESS_HISTORY_FILE) return true;
+  if (path !== '.gitattributes') return false;
+  return readFileSync(projectFile(layout, project, path), 'utf8').trim() === HISTORY_MERGE_RULE;
+}
+
+/** Identifies working bookkeeping explained entirely by the deletions being restored. */
+export async function trashHistoryChanges(git: Git, layout: DataLayout, project: string, restoredIds: ReadonlySet<string>): Promise<string[]> {
+  const folder = projectPrefix(layout, project);
+  const directory = repoDir(layout, project);
+  const commit = await git.head(directory);
+  const working = workingAddressHistoryFile(layout, project);
+  if (!commit || !working) return [];
+  const committed = await committedAddressHistoryFile(git, layout, project, commit);
+  const previous = committed ?? [];
+  const added = addressHistoryDifference(previous, working);
+  if (!added.length || added.some(record => record.kind !== 'deleted' || !restoredIds.has(record.id))) return [];
+  const retained = working.filter(record => !restoredIds.has(record.id));
+  if (serializeAddressHistory(retained) !== serializeAddressHistory(previous)) return [];
+  const explained = [folder + ADDRESS_HISTORY_FILE];
+  if (committed) return explained;
+  const source = await git.blob(directory, commit, folder + '.gitattributes');
+  const previousRule = source ? decode(source) : '';
+  const rulePath = projectFile(layout, project, '.gitattributes');
+  const separator = previousRule && !previousRule.endsWith('\n') ? '\n' : '';
+  if (existsSync(rulePath) && readFileSync(rulePath, 'utf8') === previousRule + separator + HISTORY_MERGE_RULE + '\n') explained.push(folder + '.gitattributes');
+  return explained;
+}
+
 /** Validates an optional save declaration list without exposing locator text in refusal errors. */
 export function declaredAddressMigrations(input: unknown, project: string, documents: readonly string[]): DeclaredMigration[] {
   const result = validateDeclaredMigrations(input, project, documents);
