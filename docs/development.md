@@ -299,9 +299,11 @@ Server capture preparation adopts its committed contract additions before starti
 opens Mappings in the project that owns the mapping fixture. File actions target the selected
 sidebar row so repeated file names in different projects remain unambiguous. The sidebar capture
 opens the fixture ontology Overview first so its background does not depend on prior navigation.
-The graph capture includes expanded areas, open controls, additional neighbors, hover labels,
-zoomed labels and full-screen views. The empty-mapping capture opens the file under its named
-project when the same filename appears elsewhere.
+The graph capture accepts `SW_ONLY=full-graph` for the whole-model stages alone. It includes
+expanded areas, open controls, additional neighbors, hover labels,
+zoomed labels, an enabled mini-map and full-screen views. Network and Layered open from separate
+workspace entries so a prior selection does not affect the other layout. The empty-mapping capture
+opens the file under its named project when the same filename appears elsewhere.
 
 `SW_SCREENSHOT_DIR` selects screenshot output. The graph, lineage, metrics, item-edit, UI, responsive and edge suites also honor `TMPDIR` when it is unset.
 Older drivers retain their documented `workbench-*.png` files in the system temporary directory. Capture collection must check timestamps so an old successful

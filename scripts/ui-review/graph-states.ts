@@ -1,4 +1,4 @@
-// Captures graph stages using existing navigation and control helpers. Imported by capture-states; no additional environment variables.
+/** Captures comparable graph stages through the workspace's navigation and controls. */
 import type { Page } from '@playwright/test';
 import { fileTab } from '../helpers/screen-tour';
 import { hideGraphControls, revealGraphControls, viewOptions, chooseLayout, setShown, showEveryEntity } from '../helpers/graph-options';
@@ -54,14 +54,24 @@ async function loadingBurst(page: Page, identity: CaptureIdentity, screen: strin
   await page.waitForTimeout(1000);
 }
 
-async function selectReachableNode(page: Page) {
+async function selectReachableNode(page: Page, name?: string) {
   if (await page.locator('.full-entity.collapsed').count()) {
     await showEveryEntity(page);
     await page.locator('.full-graph-loading').waitFor({ state: 'hidden', timeout: 60000 });
     await page.getByRole('button', { name: 'Fit model', exact: true }).click();
     await page.waitForTimeout(400);
   }
-  const point = await page.locator('.full-entity, .neighborhood-node, .lineage-card:not(.group) .lineage-card-title').evaluateAll(elements => {
+  if (name) {
+    await page
+      .locator('.full-entity:not(.collapsed)')
+      .filter({ has: page.getByText(name, { exact: true }) })
+      .click();
+    const inspector = page.locator('aside[aria-label="Definition details"]');
+    await inspector.getByRole('heading', { name, exact: true }).waitFor();
+    return;
+  }
+  const nodes = page.locator('.full-entity, .neighborhood-node, .lineage-card:not(.group) .lineage-card-title');
+  const point = await nodes.evaluateAll(elements => {
     for (const element of elements) {
       const box = element.getBoundingClientRect();
       const point = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
@@ -72,6 +82,11 @@ async function selectReachableNode(page: Page) {
   });
   if (!point) throw new Error('No uncovered entity or card title is visible in the canvas');
   await page.mouse.click(point.x, point.y);
+}
+
+async function closeGraphDetails(page: Page) {
+  const close = page.getByRole('button', { name: 'Close details', exact: true });
+  if (await close.isVisible()) await close.click();
 }
 
 async function hoverReachableEdge(page: Page) {
@@ -106,20 +121,33 @@ async function graphControls(page: Page, identity: CaptureIdentity, screen: stri
   await attempt(page, identity, screen, 'zoomed-minimum', () => press(page, 'Zoom out', 25));
   const fit = page.getByRole('button', { name: /^Fit( model| neighborhood)?$/ });
   if (await fit.count()) await press(page, /^Fit( model| neighborhood)?$/);
-  await attempt(page, identity, screen, 'node-selected', () => selectReachableNode(page));
+  const fullGraph = screen.startsWith('full-graph-');
+  const name = fullGraph ? 'Order' : undefined;
+  await attempt(page, identity, screen, 'node-selected', () => selectReachableNode(page, name));
+  if (fullGraph) await closeGraphDetails(page);
   await closeSelectedPath(page);
   await attempt(page, identity, screen, 'edge-hovered', () => hoverReachableEdge(page));
   await attempt(page, identity, screen, 'labels-on', async () => {
     await viewOptions(page, async options => setShown(options, /^Labels/, true));
   });
-  await attempt(page, identity, screen, 'mini-map-on', () => press(page, /^(Show )?Mini.?map/i));
+  if (fullGraph) {
+    await attempt(page, identity, screen, 'mini-map-on', async () => {
+      await viewOptions(page, options => setShown(options, /^(Show )?Mini.?map/i, true));
+      const miniMap = page.locator('.react-flow__minimap');
+      await miniMap.waitFor({ state: 'attached' });
+      // The phone stylesheet hides the map even when the graph remembers the enabled setting.
+      const state = identity.width <= 650 ? 'hidden' : 'visible';
+      await miniMap.waitFor({ state });
+    });
+  }
   await attempt(page, identity, screen, 'legend-open', () => press(page, /^Legend/));
   await attempt(page, identity, screen, 'options-open', () => revealGraphControls(page));
   await attempt(page, identity, screen, 'fullscreen', () => press(page, /^(Enter )?Full screen$/i));
   await attempt(page, identity, screen, 'fullscreen-node-selected', async () => {
     await page.locator('.canvas-row.is-fullscreen').waitFor();
-    await selectReachableNode(page);
+    await selectReachableNode(page, name);
   });
+  if (fullGraph) await closeGraphDetails(page);
   await closeSelectedPath(page);
   const exit = page.getByRole('button', { name: 'Exit full screen', exact: true });
   if (await exit.isVisible()) await exit.click();
@@ -128,27 +156,32 @@ async function graphControls(page: Page, identity: CaptureIdentity, screen: stri
 async function fullGraph(page: Page, identity: CaptureIdentity) {
   for (const layout of ['network', 'layered'] as const) {
     const screen = `full-graph-${layout}`;
-    await loadingBurst(page, identity, screen, 'ubl.ontology.yaml', 'Graph');
-    await viewOptions(page, options => chooseLayout(options, layout));
-    await page.locator('.full-graph-loading').waitFor({ state: 'hidden', timeout: 30000 });
-    await capture(page, identity, screen, 'first-view');
-    await graphControls(page, identity, screen);
-    await attempt(page, identity, screen, 'grouping-menu', async () => {
-      await openGroupMenu(page);
-    });
-    await page.keyboard.press('Escape');
-    const labels = await groupingMenuLabels(page);
-    for (const label of labels) {
-      await attempt(page, identity, screen, `group-${label.toLowerCase().replace(/\W+/g, '-')}`, async () => {
-        await chooseGrouping(page, label);
-        await page.waitForTimeout(800);
+    await openGraphStage(page, async () => {
+      await loadingBurst(page, identity, screen, 'ubl.ontology.yaml', 'Graph');
+      await viewOptions(page, async options => {
+        await setShown(options, /^(Show )?Mini.?map/i, false);
+        await chooseLayout(options, layout);
       });
-    }
-    await attempt(page, identity, screen, 'areas-collapsed', () => press(page, 'Collapse areas'));
-    await attempt(page, identity, screen, 'area-expanded', async () => {
-      await page.locator('.react-flow__node[data-id^="collapsed:"]').first().click();
+      await page.locator('.full-graph-loading').waitFor({ state: 'hidden', timeout: 30000 });
+      await capture(page, identity, screen, 'first-view');
+      await graphControls(page, identity, screen);
+      await attempt(page, identity, screen, 'grouping-menu', async () => {
+        await openGroupMenu(page);
+      });
+      await page.keyboard.press('Escape');
+      const labels = await groupingMenuLabels(page);
+      for (const label of labels) {
+        await attempt(page, identity, screen, `group-${label.toLowerCase().replace(/\W+/g, '-')}`, async () => {
+          await chooseGrouping(page, label);
+          await page.waitForTimeout(800);
+        });
+      }
+      await attempt(page, identity, screen, 'areas-collapsed', () => press(page, 'Collapse areas'));
+      await attempt(page, identity, screen, 'area-expanded', async () => {
+        await page.locator('.react-flow__node[data-id^="collapsed:"]').first().click();
+      });
+      await attempt(page, identity, screen, 'all-areas-expanded', () => press(page, 'Expand all'));
     });
-    await attempt(page, identity, screen, 'all-areas-expanded', () => press(page, 'Expand all'));
   }
 }
 
@@ -253,6 +286,7 @@ export async function captureGraphStates(page: Page, identity: CaptureIdentity) 
     return;
   }
   await attempt(page, identity, 'full-graph', 'stages', () => fullGraph(page, identity));
+  if (process.env.SW_ONLY === 'full-graph') return;
   await attempt(page, identity, 'neighborhood', 'stages', () => openGraphStage(page, () => neighborhood(page, identity)));
   for (const dataset of [false, true]) {
     const stage = dataset ? 'dataset-stages' : 'contract-stages';
