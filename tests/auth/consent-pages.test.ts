@@ -118,11 +118,11 @@ test('the error page says one sentence from a closed list and echoes nothing', a
 
 test('the onward-use statement uses and escapes the active product name', async () => {
   const original = activeBrand();
-  setActiveBrand({ ...original, manifest: { ...original.manifest, productName: 'Acme <Models>' } });
+  setActiveBrand({ ...original, manifest: { ...original.manifest, productName: 'Example <Product>' } });
   try {
     const { body } = await consent();
-    expect(body).toContain('Acme &lt;Models&gt; does not call a language model.');
-    expect(body).not.toContain('Acme <Models> does not');
+    expect(body).toContain('Example &lt;Product&gt; does not call a language model.');
+    expect(body).not.toContain('Example <Product> does not');
   } finally {
     setActiveBrand(original);
   }
