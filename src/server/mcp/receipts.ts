@@ -121,7 +121,11 @@ export function createReceiptStore(directory: string, now: () => Date = () => ne
   }
   async function runOnce(request: ReceiptRequest, id: string, hash: string): Promise<ToolResult> {
     const existing = find(id);
-    if (existing === 'corrupt') return fail('uncertain', 'The record of earlier attempts could not be read, so this key may have been used. Read the current state before trying again.');
+    if (existing === 'corrupt')
+      return fail(
+        'uncertain',
+        'The record of earlier attempts could not be read, so this key may have been used. Read the current state before trying again. A person can lift this by checking the trash and the Git log, then deleting the corrupt file in data/state/mcp-receipts/.',
+      );
     if (existing && existing.argumentsHash !== hash) return fail('key_reused', 'This idempotency key was already used with different arguments. Use a new key for a new request.');
     if (existing?.state === 'done' && existing.result) return existing.result;
     if (existing?.state === 'uncertain') return fail('uncertain', 'The earlier attempt may or may not have completed. Read the current state before trying again.');
