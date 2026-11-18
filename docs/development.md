@@ -511,3 +511,7 @@ Published snapshot measurements use `scripts/published-snapshot-performance-fixt
 their own frontend.
 The edge suite budgets 30 seconds for its initial model readiness on a cold frontend; its
 attachment and geometry checks retain their own limits.
+
+Browser sign-in checks measure from the first authentication navigation to the callback response.
+The callback must arrive in under five seconds. The server is already running and workspace
+readiness is checked separately.
