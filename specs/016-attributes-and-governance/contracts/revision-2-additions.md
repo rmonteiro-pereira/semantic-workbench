@@ -39,8 +39,7 @@ An object with at least one of these keys and no other key.
 
 `tessera-attribute-order` (entry not an attribute, repeated or missing), `tessera-governance-value`
 (unknown status, key outside the object, empty object), `tessera-governance-deprecation`
-(`replaced_by` or reason without `deprecated`, or a replacement that does not exist),
-`tessera-governance-duplicate` (two representations of one item's governance).
+(`replaced_by` or reason without `deprecated`, or a replacement that does not exist).
 
 ## Loss report version 2
 

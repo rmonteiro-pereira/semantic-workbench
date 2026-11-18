@@ -324,8 +324,9 @@ document and never drops its parts.
   and written only in their existing extension and MUST NOT be rewritten when merely viewed.
 - **FR-030**: The legacy metric status `draft` MUST be shown as "draft (older value)" and treated as
   not approved. An unknown status MUST be shown as an unknown value and treated as not approved.
-- **FR-031**: Two representations of governance for one item (for example a metric carrying a second
-  copy) MUST be a finding.
+- **FR-031**: When a metric carries two workbench governance entries, the adapter MUST read the first,
+  as the existing reader does, and the section MUST say that a second entry is ignored. This MUST NOT
+  add a validation finding to a standard document (feature 011 keeps unmarked documents unchanged).
 
 **Compilation and loss**
 
@@ -356,8 +357,9 @@ document and never drops its parts.
 - **FR-040**: Creating a concept with an IRI MUST save that IRI.
 - **FR-041**: The relationship target choices MUST include the built-in concepts after the declared
   ones, and the form MUST accept a built-in target.
-- **FR-042**: Renaming a relationship MUST rewrite every reference to it in the document and its
-  mappings that a person could write, and MUST refuse the save, naming the reference, when a reference
+- **FR-042**: Renaming a relationship MUST rewrite every reference to it: the `identify_by` lists, the
+  expressions of `requires` and `derived_by`, the relationship keys of mappings, and the attribute order
+  list, and MUST refuse the save, naming the reference, when a reference
   cannot be rewritten. Rewriting MUST NOT touch an unrelated item with the same name.
 
 **Interface**
@@ -409,8 +411,9 @@ document and never drops its parts.
 - **SC-006**: An agent answer produced before and after an unpublished edit is byte-equal, for context,
   plan and explanation.
 - **SC-007**: The attribute, agent-context and governance sections show no clipped text, no
-  colour-only status and no horizontal page scroll at 360 px width, light and dark, in a recorded
-  comparison. The width of 360 px is the narrowest width the existing responsive checks use.
+  colour-only status and no horizontal page scroll at a phone width of 360 px, light and dark, in a recorded
+  comparison. The 360 px is assumed; the task that builds the check uses the phone width of the existing
+  responsive checks if it differs.
 - **SC-008**: Creating, editing, renaming, reordering and removing an attribute each succeed through
   the editor in the browser check on a fixture of 200 concepts. The time bound is measured by the
   task that builds the check; no number is assumed here.
