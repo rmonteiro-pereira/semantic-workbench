@@ -47,6 +47,17 @@ pre-registered client id, needs an acceptance record before this program can be 
 There is no confirmed server-mode configuration to copy. Local bridge configuration is described
 in [the MCP guide](mcp.md).
 
+## Manage connections
+
+In server mode, open the person menu and choose **Agent connections** to list your connections,
+refresh their status, revoke a named connection, or open **Create a setup credential**. Revocation
+asks for confirmation and stops current work. Ended connections show their reason.
+
+Admins use **Admin → Agent programs** to edit registrations, run a dry run and confirm changes.
+The review names programs and counts the connections a removal will end. **Admin → Agent
+connections** lists connections with their owners and offers explicit revocation. Neither screen
+shows credentials. Application identity grants remain a separate access mechanism.
+
 ## Scopes and lifetime
 
 The default scopes are `read`, `validate`, `edit` and `commit`. `remote` and `publish` require
