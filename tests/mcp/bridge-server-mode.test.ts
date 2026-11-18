@@ -28,9 +28,11 @@ test('server bridge exchanges setup once, refreshes and removes an ended connect
     const refreshed = await restored.access(initial);
     expect(refreshed !== initial).toBe(true);
     chmodSync(path, 0o640);
+    expect(() => restored.access()).toThrow('accessible only to you');
     expect(() => openServerCredentials(fixture.origin, 'reference-client', undefined, send)).toThrow('accessible only to you');
     chmodSync(path, 0o600);
     chmodSync(dirname(path), 0o750);
+    expect(() => restored.access()).toThrow('accessible only to you');
     expect(() => openServerCredentials(fixture.origin, 'reference-client', undefined, send)).toThrow('accessible only to you');
     chmodSync(dirname(path), 0o700);
     fixture.auth.connections.service.end(fixture.auth.connections.service.listAll()[0].id, 'revoked-by-person');

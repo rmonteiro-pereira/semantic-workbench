@@ -124,9 +124,16 @@ export function openServerCredentials(address: string, clientId: string, setupCr
     if (response.status !== 200 || reply.token_type !== 'Bearer' || !Number.isFinite(reply.expires_in) || reply.expires_in <= 0) throw new Error('Server token exchange failed.');
     const tokens = tokensOf({ accessToken: reply.access_token, refreshToken: reply.refresh_token, accessExpiresAt: Date.now() + reply.expires_in * 1000 });
     if (!tokens) throw new Error('The server returned invalid connection tokens.');
-    current = tokens;
     setup = undefined;
-    writeTokens(path, { ...tokens, server, clientId });
+    try {
+      writeTokens(path, { ...tokens, server, clientId });
+    } catch (error) {
+      // After rotation the old file cannot recover this connection safely.
+      ended = true;
+      current = undefined;
+      throw error;
+    }
+    current = tokens;
     return tokens.accessToken;
   }
 
@@ -152,8 +159,9 @@ export function openServerCredentials(address: string, clientId: string, setupCr
     resource,
     /** Returns a live token, refreshing once for any group of simultaneous requests. */
     access(rejected?: string): Promise<string> {
+      if (!privatePath(directory, true)) return Promise.reject(new Error('The private bridge credential directory is missing.'));
       if (pending) return pending;
-      if (current && current.accessToken !== rejected && current.accessExpiresAt - Date.now() > REFRESH_MARGIN_MS) return Promise.resolve(current.accessToken);
+      if (current && privatePath(path, false) && current.accessToken !== rejected && current.accessExpiresAt - Date.now() > REFRESH_MARGIN_MS) return Promise.resolve(current.accessToken);
       pending = renew(rejected).finally(() => {
         pending = undefined;
       });
