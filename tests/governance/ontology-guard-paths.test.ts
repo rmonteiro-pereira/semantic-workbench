@@ -13,30 +13,11 @@ import { sh } from '../helpers/scm';
 import { publishFixture } from '../helpers/published-workspace';
 import { authWorkspace } from '../helpers/auth-workspace';
 import { accessFixture, person } from '../auth/access-fixture';
-import { dataSnapshot, expectGuardRefusal, guardHandler, metricCase, openCopyAs, sendCase, type GuardCase } from '../auth/guard-cases';
+import { dataSnapshot, expectGuardRefusal, guardHandler, metricCase, ontologyApprover, openCopyAs, sendCase, type GuardCase } from '../auth/guard-cases';
 
 const PROJECT = 'sales-metrics';
 const FILE = 'retail.ontology.yaml';
 const URL_BASE = `/api/projects/${PROJECT}`;
-
-function ontologyApprover(name: 'alice' | 'bob') {
-  const options = accessFixture();
-  options.config.roles.push({
-    id: 'r_ontology_approver',
-    name: 'Ontology approver',
-    description: 'Approves ontology items',
-    createdBy: 'fixture',
-    createdAt: '2026-10-21T09:00:00Z',
-    permissions: [{ actions: ['approveOntologyItem'] }],
-  });
-  options.config.grants.push({
-    ...options.config.grants[0],
-    id: 'g-ontology-approval',
-    roleId: 'r_ontology_approver',
-    member: { kind: 'email', email: `${name}@example.org` },
-  });
-  return options;
-}
 
 /** Saves the ontology and commits it, so every person's working copy starts with it. */
 async function seed(fixture: Awaited<ReturnType<typeof authWorkspace>>, source: string) {

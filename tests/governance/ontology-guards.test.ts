@@ -7,6 +7,7 @@ import { GuardedChangeError, guardedChanges, type ClassificationSettings, type F
 import { applyDemotions } from '../../src/shared/governance/guards';
 import { ONTOLOGY_GUARDS_ACTIVE } from '../../src/shared/governance/ontology-guards';
 import type { TestUserName } from '../helpers/auth-identities';
+import { ontologyApprover } from '../auth/guard-cases';
 import { accessFixture, person } from '../auth/access-fixture';
 
 const METRICS = readFileSync('tests/fixtures/auth-workspace/projects/sales-metrics/sales.semantic.yaml', 'utf8');
@@ -20,7 +21,7 @@ function ontology(governance: string, description = 'A customer order.', extra =
 const governed = (status: string, owner?: string) => `    tessera_governance:\n      status: ${status}\n${owner ? `      owner: ${owner}\n` : ''}`;
 
 function personGuard(name: TestUserName) {
-  const access = createAccessControl(accessFixture());
+  const access = createAccessControl(['bob', 'hank', 'dave'].includes(name) ? ontologyApprover(name) : accessFixture());
   const principal = access.principalFor(person(name));
   const request = new Request('http://localhost/api');
   Object.assign(request, { [requestAccess]: access.forRequest(principal) });
