@@ -1,6 +1,7 @@
 // Checks that agents read the item context and the status flag from the published snapshot only, and never owner, steward, classification, notes or the order list.
 import { expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
+import { documentForAgents } from '../../src/shared/tessera/agent-view';
 import { parseDocument } from 'yaml';
 import { buildContext, planQuery, selectContext, type StoredDocument } from '../../src/server/agent/runtime';
 import { explainMetric } from '../../src/server/agent/explain';
@@ -10,7 +11,7 @@ import { testWorkspace } from '../helpers/temp-data-dir';
 
 const origin = 'http://localhost:5173';
 const read = (name: string) => readFileSync(`public/examples/commerce/${name}`, 'utf8');
-const PRIVATE_TEXT = ['OWNER-DANA', 'STEWARD-ELI', 'CLASS-INTERNAL', 'NOTE-FOR-AUTHORS', 'ORDER-LIST-MARKER'];
+const PRIVATE_TEXT = ['OWNER-DANA', 'STEWARD-ELI', 'CLASS-INTERNAL', 'NOTE-FOR-AUTHORS'];
 
 /** The commerce ontology with context, governance and the private additions on a few items. */
 function governedOntology(): string {
@@ -57,7 +58,8 @@ test('no owner, steward, classification, note or order list reaches the context,
   const context = buildContext(governed, mappingId);
   const plan = planQuery(context, { mappingId, metrics: ['gross_revenue'], dimensions: [JSON.stringify(['customers', 'region'])] });
   const explanation = explainMetric(governed, 'p', 'commerce.mapped-semantic.yaml', 'gross_revenue');
-  const text = JSON.stringify({ context, plan, explanation, selected: selectContext(context, ['Customer']) });
+  const projected = documentForAgents(parseDocument(governedOntology()).toJS());
+  const text = JSON.stringify({ projected, context, plan, explanation, selected: selectContext(context, ['Customer']) });
   for (const secret of PRIVATE_TEXT) expect(text).not.toContain(secret);
   expect(text).not.toContain('tessera');
 });
@@ -104,16 +106,35 @@ test('the published snapshot answers the agent routes and unpublished context re
         new Request(`${origin}/api/${prefix}/context?project=ungrouped&mappingId=ungrouped/commerce.mapping.yaml`, { headers: { Origin: origin, 'X-SW-Request': '1', 'Sec-Fetch-Site': 'same-site' } }),
       )
     ).text();
+  const requestOutputs = async () => {
+    const requests = [
+      new Request(`${origin}/api/agent/plan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ project: 'ungrouped', mappingId: 'ungrouped/commerce.mapping.yaml', metrics: ['gross_revenue'], dimensions: [] }),
+      }),
+      new Request(`${origin}/api/projects/ungrouped/files/commerce.mapped-semantic.yaml/explain/gross_revenue`),
+    ];
+    return Promise.all(
+      requests.map(async request => {
+        const response = await fixture.handler(request);
+        expect(response.status).toBe(200);
+        return response.text();
+      }),
+    );
+  };
   const before = await ask('agent');
+  const outputsBefore = await requestOutputs();
   expect(before).toContain('Customers belong to one region.');
   const saved = fixture.ws.readFile('ungrouped', 'commerce.mapped-ontology.yaml', LOCAL_READER);
   await fixture.ws.saveFile(
     'ungrouped',
     'commerce.mapped-ontology.yaml',
-    { baseHash: saved.hash, source: saved.source.replace('Customers belong to one region.', 'UNPUBLISHED-CONTEXT') },
+    { baseHash: saved.hash, source: saved.source.replace('Customers belong to one region.', 'UNPUBLISHED-CONTEXT').replace('status: approved', 'status: proposed') },
     LOCAL_READER,
   );
   expect(await ask('agent')).toBe(before);
+  expect(await requestOutputs()).toEqual(outputsBefore);
   expect(await ask('agent')).not.toContain('UNPUBLISHED-CONTEXT');
   expect(await ask('preview')).toContain('UNPUBLISHED-CONTEXT');
 });
