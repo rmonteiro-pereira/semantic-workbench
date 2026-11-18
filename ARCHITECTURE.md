@@ -338,6 +338,10 @@ Usage reads resolve addresses against the pinned model and the reader's file gra
   `usage-migration.ts`, `usage-retention.ts` and `usage-compaction.ts` move counts with item addresses and
   expire them, `usage-read.ts` builds the answer of `usage.read` for one reader, `usage-trash.ts` moves
   counts with a trashed project and `usage-workspace.ts` is the one module that knows the workspace.
+  `usage-publication.ts` is the one lookup of the address history that a published commit proves: it
+  replays the declarations that `src/server/projects/address-commit.ts` bound to a commit when that
+  commit was made in the same working copy with exactly the saved bytes. Every commit takes its turn
+  of the repository queue so that binding sees the same head as the commit.
 - The operation boundary calls the recorder once after a counted answer exists. It never waits for the
   disk, changes an answer or reads the audit log; no usage module imports audit or telemetry code, and a
   test scans the imports. `state/usage/` is a durable store that is registered in the persisted-key
