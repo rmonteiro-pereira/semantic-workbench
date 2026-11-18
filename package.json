@@ -39,6 +39,8 @@
     "test:item-edit": "bun scripts/item-edit-browser-check.ts",
     "test:rdf-edit": "bun scripts/rdf-edit-browser-check.ts",
     "test:validation": "bun scripts/validation-browser-check.ts",
+    "test:tessera": "bun scripts/tessera-browser-check.ts",
+    "tessera": "bun scripts/tessera.ts",
     "test:scm": "bun scripts/scm-browser-check.ts",
     "test:odcs": "bun scripts/odcs-browser-check.ts",
     "test:lineage": "bun scripts/lineage-browser-check.ts",
