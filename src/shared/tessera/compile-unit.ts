@@ -38,6 +38,8 @@ const encoder = new TextEncoder();
 const TREATMENT_OF_KIND: Record<ClassifiedFile['kind'], ReportInput['treatment']> = {
   'tessera-ontology': 'compiled',
   ossie: 'copied',
+  'tessera-part': 'not-included',
+  'dependency-manifest': 'not-included',
   other: 'not-included',
   invalid: 'not-included',
 };
@@ -116,6 +118,9 @@ function compileFiles(classified: ClassifiedFile[], steps: UnitSteps): Compiled 
   const readings = { sources: [] as DocumentReading[], outputs: [] as DocumentReading[] };
   for (const entry of classified) {
     result.treatments.set(entry.file.path, TREATMENT_OF_KIND[entry.kind]);
+    if (entry.kind === 'tessera-part' || entry.kind === 'dependency-manifest') {
+      result.failures.push({ code: 'translation', document: entry.file.path, message: 'This input requires complete Tessera unit compilation.' });
+    }
     if (entry.kind === 'invalid') result.failures.push(...entry.failures);
     if (entry.kind === 'ossie') {
       result.outputs.push(entry.file);

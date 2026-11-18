@@ -5,6 +5,8 @@ import type { Issue } from '../validation/diagnostics';
 import { validateInput } from '../validation/input';
 import { parseSourceDocument, syntaxOf, type CompileFailure } from './compile-document';
 import { summarizeItems, type DocumentReading } from './meaning-check';
+import { tesseraDependencies, tesseraPart } from '../../generated/validators.js';
+import { PART_PROPERTY } from './additions/part';
 import { readMarker } from './marker';
 
 /** A file of the unit: its path inside the project folder and its bytes. */
@@ -14,6 +16,8 @@ export type UnitFile = { path: string; bytes: Uint8Array };
 export type ClassifiedFile =
   | { kind: 'tessera-ontology'; file: UnitFile; text: string; issues: Issue[]; revision: number; reading: DocumentReading }
   | { kind: 'ossie'; file: UnitFile; text: string; issues: Issue[]; reading: DocumentReading }
+  | { kind: 'tessera-part'; file: UnitFile; text: string; data: Record<string, unknown> }
+  | { kind: 'dependency-manifest'; file: UnitFile; data: Record<string, unknown> }
   | { kind: 'other'; file: UnitFile }
   | { kind: 'invalid'; file: UnitFile; failures: CompileFailure[]; issues: Issue[] };
 
@@ -42,6 +46,8 @@ type Validation = ReturnType<typeof validateInput>;
 function classifyValid(file: UnitFile, text: string, result: Extract<Validation, { valid: true }>): ClassifiedFile {
   const model = result.model;
   if (!('document' in model) || !OSSIE_KINDS.has(model.kind)) return { kind: 'other', file };
+  const mesh = classifyMeshFile(file, text, model.document);
+  if (mesh) return mesh;
   const reading = { path: file.path, source: text, data: model.document, summary: summarizeItems(model) };
   if (model.format.family === 'tessera') return { kind: 'tessera-ontology', file, text, issues: result.issues, revision: model.format.revision, reading };
   return { kind: 'ossie', file, text, issues: result.issues, reading };
@@ -52,10 +58,26 @@ function classifyInvalid(file: UnitFile, text: string, issues: Issue[]): Classif
   const parsed = parseSourceDocument({ path: file.path, source: text }, syntaxOf(file.path));
   if ('code' in parsed) return invalidFile(file, parsed.message);
   const data = parsed.data;
+  const mesh = classifyMeshFile(file, text, data);
+  if (mesh) return mesh;
   const ours = isObject(data) && (readMarker(data).family !== 'standard' || isOssieShape(data));
   if (!ours) return { kind: 'other', file };
   const failures = issues.filter(issue => issue.severity === 'error').map(issue => ({ code: 'invalid-source' as const, document: file.path, message: `${issue.path}: ${issue.message}` }));
   return { kind: 'invalid', file, issues, failures };
+}
+
+/** Name of the project metadata file that freezes resolved imports. */
+export const DEPENDENCY_MANIFEST_PATH = 'tessera-dependencies.json';
+
+function classifyMeshFile(file: UnitFile, text: string, data: unknown): ClassifiedFile | undefined {
+  const manifest = file.path === DEPENDENCY_MANIFEST_PATH;
+  if (!isObject(data)) return manifest ? invalidFile(file, 'Expected a dependency manifest object.') : undefined;
+  if (manifest) {
+    return tesseraDependencies(data) ? { kind: 'dependency-manifest', file, data } : invalidFile(file, 'Invalid dependency manifest.');
+  }
+  const marker = readMarker(data);
+  if (marker.family !== 'tessera' || marker.revision !== 3 || !Object.hasOwn(data, PART_PROPERTY)) return undefined;
+  return tesseraPart(data) ? { kind: 'tessera-part', file, text, data } : invalidFile(file, 'Invalid Tessera part.');
 }
 
 /** Classifies one file. A structured file that cannot be read is refused, never skipped. */
@@ -66,6 +88,11 @@ export function classifyFile(file: UnitFile): ClassifiedFile {
     text = new TextDecoder('utf-8', { fatal: true }).decode(file.bytes);
   } catch {
     return invalidFile(file, 'The file is not valid UTF-8 text.');
+  }
+  if (file.path === DEPENDENCY_MANIFEST_PATH) {
+    const parsed = parseSourceDocument({ path: file.path, source: text }, 'json');
+    if ('code' in parsed) return invalidFile(file, parsed.message);
+    return classifyMeshFile(file, text, parsed.data)!;
   }
   const result = validateInput(text, baseName(file.path));
   return result.valid ? classifyValid(file, text, result) : classifyInvalid(file, text, result.issues);
