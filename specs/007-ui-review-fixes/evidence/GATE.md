@@ -28,6 +28,13 @@ Completed checks on the rebased candidate:
 | `bun scripts/ci-validate.ts --step browser --suite test:admin` | Exit 1 in 35.6 s. The candidate failed at the `Dry-run result` region, the same assertion reported on main. |
 | `bun scripts/ci-validate.ts --step browser --suite test:ui` | Exit 0 in 65.8 s. `20 UI checks passed`, including no browser runtime errors. |
 | `bun scripts/ci-validate.ts --step browser --suite test:responsive` | Exit 1 in 105.1 s. The candidate passed the 1280×720 compact-shell assertion that main fails. At the next phone viewport, loading the UBL model timed out before the heading appeared. The Mall ODCS check still needs a standalone run. |
+| `bun scripts/ci-validate.ts --step browser --suite test:edges` | 6 edge attachment UI checks passed (32.8 s). |
+| `bun scripts/ci-validate.ts --step browser --suite test:grouping-validation` | 8 grouping and validation UI checks passed (60.9 s). |
+| `bun scripts/ci-validate.ts --step browser --suite test:overview-areas` | 7 overview area checks passed (37.9 s). |
+| `bun scripts/ci-validate.ts --step browser --suite test:published-snapshot` | 2 published snapshot browser checks passed (32.6 s). |
+| `bun scripts/ci-validate.ts --step browser --suite test:examples:ui` | 19 example UI checks passed, no browser runtime errors (129.7 s). |
+| `bun scripts/ci-validate.ts --step browser --suite test:projects` | 8 project checks passed (37.3 s). |
+| `bun scripts/ci-validate.ts --step browser --suite test:trash` | 13 trash checks passed (43.0 s). |
 
 The catalog mutation removed a tooltip from a description that already wraps in full. The mutation needs to inject actual clipping and the assertion needs to reject clipped descriptions even with a tooltip.
 The read-only Auth check still expects the commit form the Source Control fix deliberately removes. The denied state remains represented by the disabled header button and its tooltip. The two-editor check still uses the former Sync label. Both browser checks need to be rerun against the reviewed controls.
