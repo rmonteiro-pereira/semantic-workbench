@@ -239,3 +239,80 @@ test('check never needs acceptance, with or without a loss', () => {
   const s = scene();
   expect(run(['check', '--repository', s.repository.directory, '--project-folder', PROJECT_FOLDER, '--json'], s.home).status).toBe(0);
 });
+
+// Refusals at compile time: each exits 1 and writes nothing.
+function expectRefused(s: Scene, args: string[], message: string) {
+  const result = run(args, s.home);
+  expect(result.status, result.stdout + result.stderr).toBe(1);
+  expect(result.stdout).toContain(message);
+  expect(existsSync(s.out)).toBe(false);
+}
+
+function dataRootPointingAt(s: Scene, commit: string): string {
+  const root = join(s.base, 'data');
+  mkdirSync(join(root, 'state'), { recursive: true });
+  mkdirSync(join(root, 'projects'), { recursive: true });
+  writeFileSync(join(root, 'state', 'published.json'), JSON.stringify({ formatVersion: 1, repositories: { repository: { branch: 'main', commit } } }));
+  return root;
+}
+
+test('a commit that is not on the default branch history is refused', () => {
+  const s = scene();
+  const offBranch = s.repository.addPersonalBranch('personal/someone');
+  expectRefused(s, compileArgs(s, ['--commit', offBranch]), 'not on the history');
+});
+
+test('a branch that moved ahead of the data root pointer is refused', () => {
+  const s = scene();
+  const root = dataRootPointingAt(s, s.repository.firstCommit);
+  s.repository.addSecondCommit();
+  expectRefused(s, compileArgs(s, ['--data-root', root]), 'has published');
+});
+
+test('an existing output folder that is not empty is refused', () => {
+  const s = scene();
+  mkdirSync(s.out);
+  writeFileSync(join(s.out, 'keep.txt'), 'keep');
+  const result = run(compileArgs(s, ['--accept-loss', `sha256:${'a'.repeat(64)}`]), s.home);
+  expect(result.status).toBe(1);
+  expect(readdirSync(s.out)).toEqual(['keep.txt']);
+});
+
+test('an output folder inside the data root projects folder is refused', () => {
+  const s = scene();
+  const root = dataRootPointingAt(s, s.repository.firstCommit);
+  const inside = join(root, 'projects', 'bundle');
+  const result = run(['compile', '--repository', s.repository.directory, '--project-folder', PROJECT_FOLDER, '--data-root', root, '--out', inside], s.home);
+  expect(result.status).toBe(1);
+  expect(existsSync(inside)).toBe(false);
+});
+
+test('two files whose output paths differ only in case are refused', () => {
+  const s = scene();
+  s.repository.commitFile(`${PROJECT_FOLDER}/Mapping.yaml`, COMMITTED_FILES[`${PROJECT_FOLDER}/mapping.yaml`]);
+  const result = run([...compileArgs(s, ['--accept-loss', digestOf(s)])], s.home);
+  expect(result.status).toBe(1);
+  expect(result.stdout).toContain('path-collision');
+  expect(existsSync(s.out)).toBe(false);
+});
+
+test('a document of 2,000,001 bytes is refused', () => {
+  const s = scene();
+  s.repository.commitFile(`${PROJECT_FOLDER}/big.yaml`, 'x'.repeat(2_000_001));
+  expectRefused(s, compileArgs(s), 'limit');
+});
+
+test('an invalid standard file refuses the whole compile', () => {
+  const s = scene();
+  s.repository.commitFile(`${PROJECT_FOLDER}/broken.yaml`, 'version: 0.2.0.dev0\nname: broken\ndatasets: []\n');
+  expectRefused(s, compileArgs(s), 'compile failed');
+});
+
+test('a Tessera document that names an unsupported Ossie base is refused', () => {
+  const s = scene();
+  s.repository.commitFile(`${PROJECT_FOLDER}/ontology.yaml`, ONTOLOGY_TEXT.replace('version: 0.2.0.dev0', 'version: 0.3.0'));
+  const result = run(compileArgs(s, ['--json']), s.home);
+  expect(result.status).toBe(1);
+  expect(JSON.parse(result.stdout).findings.map((finding: { code: string }) => finding.code)).toContain('tessera-base');
+  expect(existsSync(s.out)).toBe(false);
+});
