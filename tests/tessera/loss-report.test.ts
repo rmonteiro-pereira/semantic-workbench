@@ -1,0 +1,74 @@
+// Checks the loss report has the contract's shape, sorts its lists, hides lost values and changes its digest whenever an input, an option or the compiler version changes.
+import { expect, test } from 'bun:test';
+import { buildLossReport, digestOf, printReport, type LossEntry, type ReportSubject } from '../../src/shared/tessera/loss-report';
+
+const loss = (document: string, pointer: string, text: string): LossEntry => ({
+  document,
+  item: 'sw1:#ontology:Retail',
+  property: 'tessera_notes',
+  pointer,
+  bytes: text.length + 2,
+  sha256: 'a'.repeat(64),
+});
+
+const subject: ReportSubject = {
+  compiler: { name: 'tessera', version: '1.0.0' },
+  base: { version: '0.2.0.dev0', label: 'valid against the bundled Ossie 0.2.0.dev0 draft' },
+  lossPolicySha256: null,
+  inputs: [
+    { path: 'retail/ontology.yaml', sha256: 'b'.repeat(64), treatment: 'compiled' },
+    { path: 'retail/a.yaml', sha256: 'c'.repeat(64), treatment: 'copied' },
+  ],
+  outputs: [
+    { path: 'retail/ontology.yaml', sha256: 'd'.repeat(64) },
+    { path: 'retail/a.yaml', sha256: 'c'.repeat(64) },
+  ],
+  losses: [loss('retail/ontology.yaml', '/ontology/1/tessera_notes', 'SECRET-TEXT'), loss('retail/ontology.yaml', '/ontology/0/tessera_notes', 'other')],
+};
+
+test('the report has the shape of the contract', () => {
+  const report = buildLossReport(subject);
+  expect(Object.keys(report).sort()).toEqual(['base', 'compiler', 'counts', 'digest', 'inputs', 'losses', 'options', 'outputs', 'reportVersion']);
+  expect(report.reportVersion).toBe(1);
+  expect(report.options).toEqual({ lossPolicy: null });
+  expect(report.counts).toEqual({ tessera_notes: 2 });
+  expect(report.digest).toMatch(/^sha256:[0-9a-f]{64}$/);
+});
+
+test('lists are sorted by path, and losses by document then pointer', () => {
+  const report = buildLossReport(subject);
+  expect(report.inputs.map(input => input.path)).toEqual(['retail/a.yaml', 'retail/ontology.yaml']);
+  expect(report.outputs.map(output => output.path)).toEqual(['retail/a.yaml', 'retail/ontology.yaml']);
+  expect(report.losses.map(entry => entry.pointer)).toEqual(['/ontology/0/tessera_notes', '/ontology/1/tessera_notes']);
+});
+
+test('input order does not change the digest', () => {
+  const shuffled = { ...subject, inputs: [...subject.inputs].reverse(), losses: [...subject.losses].reverse() };
+  expect(buildLossReport(shuffled).digest).toBe(buildLossReport(subject).digest);
+});
+
+test('the printed report uses sorted keys, two spaces, LF and one final newline', () => {
+  const text = printReport(buildLossReport(subject));
+  expect(text.startsWith('{\n  "base": {')).toBe(true);
+  expect(text.endsWith('}\n')).toBe(true);
+  expect(text).not.toContain('\r');
+});
+
+test('the digest is the hash of the report without its digest field', () => {
+  const { digest, ...body } = buildLossReport(subject);
+  expect(digest).toBe(digestOf(body));
+});
+
+test('a changed input byte, option or compiler version changes the digest', () => {
+  const base = buildLossReport(subject).digest;
+  const changedInput = { ...subject, inputs: [{ ...subject.inputs[0], sha256: 'e'.repeat(64) }, subject.inputs[1]] };
+  const changedOutput = { ...subject, outputs: [{ ...subject.outputs[0], sha256: 'e'.repeat(64) }, subject.outputs[1]] };
+  const changedOption = { ...subject, lossPolicySha256: 'f'.repeat(64) };
+  const changedVersion = { ...subject, compiler: { name: 'tessera', version: '1.0.1' } };
+  const changedLoss = { ...subject, losses: [loss('retail/ontology.yaml', '/ontology/1/tessera_notes', 'edited!!!!'), subject.losses[1]] };
+  for (const changed of [changedInput, changedOutput, changedOption, changedVersion, changedLoss]) expect(buildLossReport(changed).digest).not.toBe(base);
+});
+
+test('no lost value appears in the printed report', () => {
+  expect(printReport(buildLossReport(subject))).not.toContain('SECRET-TEXT');
+});

@@ -10,6 +10,9 @@ export const TesseraNames = {
 /** The revisions of the Tessera rules this workbench understands. */
 export const SUPPORTED_REVISIONS: readonly number[] = [1];
 
+/** The name the compiler goes by in reports and manifests. */
+export const COMPILER_NAME = 'tessera';
+
 /** The version of the compiler; it is part of every loss report and manifest. */
 export const COMPILER_VERSION = '1.0.0';
 

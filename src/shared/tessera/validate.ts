@@ -2,6 +2,7 @@
 import { isObject } from '../edit/source-text';
 import type { Issue } from '../validation/diagnostics';
 import { schemaErrorPath } from '../validation/diagnostics';
+import { compareText } from './canonical-json';
 import { findBase, SUPPORTED_BASES, type SupportedBase } from './bases';
 import { hasTesseraPrefix, SUPPORTED_REVISIONS, TesseraNames, type DocumentFormat } from './format';
 import { readMarker, type MarkerReading } from './marker';
@@ -64,7 +65,7 @@ function prefixedProperties(data: unknown): PropertySite[] {
       }
     }
   }
-  return sites.sort((first, second) => first.pointer.localeCompare(second.pointer));
+  return sites.sort((first, second) => compareText(first.pointer, second.pointer));
 }
 
 /** Checks every prefixed property against the registry and the reserved names. */
