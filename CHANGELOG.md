@@ -27,6 +27,7 @@ not configure a production deployment.
 
 - Admin permission dry runs reuse policy preparation and equivalent authorization work, reducing
   the measured dev-server median below one second for the current access matrix.
+  Proposals containing custom Cedar rules can take longer to simulate.
 
 - Published reads, local Publish, outside adoption and browser previews share the operation boundary
   and its reviewed inventory. MCP callers consume published definitions independently of browser sessions.

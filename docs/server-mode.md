@@ -312,7 +312,7 @@ confirmation rather than nesting whole administration screens.
 Access changes require a **Dry run** followed by **Confirm**. The review is bound to the proposal
 and current version. Editing the proposal invalidates it; a stale version must be reopened and
 reviewed again. The server replays configured matrix cases, recent audit snapshots and known
-identities without changing live policies during preview.
+identities without changing live policies during preview. Custom policy text takes longer to simulate.
 
 Each accepted change makes one Admin-authored commit in `DATA_DIR/admin/`. History compares
 versions. Rollback is a new reviewed commit, not a history rewrite. Any number of people can be

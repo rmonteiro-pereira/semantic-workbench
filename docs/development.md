@@ -484,9 +484,9 @@ Lazy construction keeps that work outside ordinary access boundaries.
 
 Cedar can emit simultaneous forbid IDs in different orders. Repeating the original replay at
 `84642cb0` with the last Admin removed produced five rule-array order differences, with identical
-decisions and identical rule sets. A strict whole-answer byte comparison passes for grant addition,
-grant removal, custom-role changes and role deletion, but encounters this existing nondeterminism
-for last-Admin removal. Existing fixtures retain their original contents.
+decisions and rule IDs. Dry-run reports sort rule IDs lexicographically. The whole-matrix parity
+test compares rule IDs as multisets and all other response fields byte for byte against the original
+replay algorithm. Existing fixtures retain their original contents.
 
 `bun test tests/auth/http-characterization.test.ts` compares the original recorded route cases and audit records; preserve its fixture unchanged.
 The comparison asserts and removes only the additive published identity on project listings. New publication and preview routes have separate parity cases.

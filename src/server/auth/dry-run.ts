@@ -82,7 +82,8 @@ function replayDecisions(scopeFor: (identity: NormalizedPrincipal) => ScopePair,
       case: label,
       before: previous.allow,
       after: proposed.allow,
-      rules: proposed.rules,
+      // Cedar diagnostics can vary in order. Sort a copy by policy ID for a stable report.
+      rules: [...proposed.rules].sort(),
     });
   }
   let matrixCases = 0;
