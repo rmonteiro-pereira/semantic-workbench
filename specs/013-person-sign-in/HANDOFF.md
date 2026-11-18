@@ -45,7 +45,10 @@ matrix passed 12,096 schema-valid calls (21 tools × 64 scope combinations × ni
 30,209 assertions, 415.24 seconds. The latest targeted mutation run killed all 12 mutants,
 including receipt ownership and current authorization, across three passing baselines. Check
 and build passed on the dev server. The browser check passed 96 screens at three widths in
-both themes and verified the consent redirect and single-use setup form.
+both themes and verified the consent redirect and single-use setup form. The MCP group had
+99 passes and one missing contract classification. The dev-server rerun of both affected
+documentation test files passed all seven tests after that correction. Logs are under
+`out/proofs/connection-final/` and masked browser-check captures are under `out/connections/`.
 The reference transport 2.4.0 passed real HTTP discovery (21 tools), authenticated project read
 and post-revocation 401. Fixture consent is not browser authorization compatibility.
 
