@@ -1,0 +1,9 @@
+tessera: 1
+version: 0.2.0.dev0
+name: FinanceModel
+datasets:
+  - name: orders
+    source: db.orders
+    fields:
+      - name: amount
+        type: decimal
