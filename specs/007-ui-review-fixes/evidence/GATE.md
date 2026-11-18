@@ -630,7 +630,10 @@ keyboard focus ring on the metric grouping control. The empty Trash dialog keeps
   The check finished with 2,661 warnings and zero errors. The build finished in 3.24 s with the chunk-size advisory.
   `bun scripts/ci-validate.ts --step browser --suite test:mapping-graph` returned 0 with all 12 checks, including Shipment's Unmapped
   badge and the Unmapped only filter after `87e4fd50`. The prior failing frame is `before/fixes/commerce-unmapped-shipment-1440.png`.
-  The success frame for that same fixture remains queued. The sidebar retry returned 1 waiting for its initial project-tree locator
+  The success frame is `after/fixes/commerce-unmapped-shipment-1440.png`. Both were opened. The corrected graph shows the complete
+  Shipment card, CENTER, its type and the Unmapped badge while keeping its explanation and disabled Steps. The earlier canvas
+  had no card. `python3 .data/gate/pixel-difference-007.py` reported 5.553549% at 1440×900.
+  The earlier sidebar retry returned 1 waiting for its initial project-tree locator
   at 30 seconds, before a geometry verdict. The earlier main and candidate sidebar runs each passed four checks.
   The lineage retry passed commerce opening, Walk, Back, Forward and fullscreen, then returned 1 at the 2,000 ms UBL
   first-view limit (3,707 ms). The matched frozen-import timing on both builds is recorded above.
@@ -652,6 +655,9 @@ keyboard focus ring on the metric grouping control. The empty Trash dialog keeps
   The second main run passed both fullscreen checks and later timed out waiting for the UBL heading. Both candidate repeats hit
   the same restore assertion. Both expected zoom 1.00515 and received 0.5635. An earlier full candidate run reached the later
   inherited phone ID clipping check. Restore is intermittent on both revisions.
+- The serial `bun scripts/ci-validate.ts --step browser --suite test:sidebar` rerun returned 0 with four checks on both builds,
+  in 203.5 s on main and 205.1 s on the candidate. The readiness probe records the viewport and page state only if the original
+  startup assertion fails. The rerun reached every geometry check, including the footer at 500 px high and after file and project deletion.
 - The first resumed matrix action, `local/light/390/import`, ended with status 0 before a planned pause (75).
   `bash .data/gate/pull-review-007.sh .data/gate/import-phone-final local/light/390/import` returned 19 strips.
   All 114 action records passed. All seven sheets and the repeats were opened. The Import dialog keeps both destinations and its
