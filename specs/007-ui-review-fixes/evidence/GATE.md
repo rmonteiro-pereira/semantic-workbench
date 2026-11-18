@@ -574,7 +574,7 @@ The original review archive contains 3,559 PNGs. A read-only count by folder mea
 
 Status: in progress. No visual pair is classified before both images have been opened.
 
-The gallery checkpoint of 750 rows includes 331 intended fixes, 32 expected merged-feature differences, 300 neutral changes and 11
+The gallery checkpoint of 752 rows includes 333 intended fixes, 32 expected merged-feature differences, 300 neutral changes and 11
 unchanged steps. It retains 43 frames of fixed regressions and 33 frames flagged as possible or unresolved regressions. A frame count
 can include multiple actions that carry the same underlying issue. The manifest records actions without matched captures.
 The counted Network heading and compact mapping correction pairs were opened at 390×844 in both themes.
@@ -609,7 +609,11 @@ keyboard focus ring on the metric grouping control. The empty Trash dialog keeps
   nine reads lay on a single stroke between compact cards. After `c5910838`, both cards expose their full column rows and nine
   distinct routes, as in release and main. The native pair is `before/fixes/lineage-bundle-1440.png` and
   `after/fixes/lineage-bundle-1440.png`. `python3 .data/gate/pixel-difference-007.py` reported 15.767978%.
-- `bash .data/gate/publish-current-review.sh` returned 750 rows with the counts above.
+- `bash .data/gate/pull-review-007.sh .data/gate/neighborhood-pierce-verified local/light/1440/neighborhood-pierce` returned two strips.
+  Both repeats of each were opened. All six Full pierce actions reported 45 entities in three steps. Both candidate repeats show
+  `45 entities, Fit`, and the Back action returns to Party with its relationship labels. Main/candidate scores are 22.376543%
+  for Full pierce and 21.965972% after Back. The graph suite clicked the Fit action and checked that it framed every card.
+- `bash .data/gate/publish-current-review.sh` returned 752 rows with the counts above.
 
 The Full Graph replay scored 43 steps, from two repetitions per version. The candidate Network first view and Fit show four named counted areas.
 Both full-screen selection paths open Order and keep it readable. After changing area visibility with Order selected, Layered can leave Order
@@ -780,6 +784,7 @@ replays. The outstanding findings still require a matched screenshot or a record
 | M19 | `local/light/390/states/add-concept/field-errors` | Save to file is visibly disabled while Type is missing. |
 | M21 | `local/light/390/states/editing/stages` | The located editor error wraps without a second copy below the editor. |
 | M22 | `server/light/1440/reader/reader/admin-refusal` | A reader who opens Admin sees the role refusal. |
+| m1 | `local/light/1440/neighborhood-pierce/ubl-neighborhood/pierce-alone` | After pierce, the candidate offers Fit for all 45 entities. |
 | m2 | `local/light/390/walked-lineage-fit/mall-three-hop-lineage/fit` | The caption names the walked centre and the original Properties centre. |
 | m3 | `local/light/390/graphs/contract-lineage/more-columns` | The expanded Properties card shows its heading, CENTER badge, all 13 rows and Show fewer. |
 | m4 | `local/light/390/files/commerce.owl/overview` | The Order group uses the new non-error tint. |
