@@ -1,4 +1,5 @@
-// Lets an agent that starts programs reach the local workbench: it reads one protocol message per line from standard input, posts each to the running local server with the capability and the mirrored headers, and writes each answer to standard output. It starts no server, opens no port and never prints the capability.
+// Relays stdio protocol messages to the configured workbench. In local mode it reads the
+// capability per message. In server mode it exchanges or refreshes connection tokens.
 // Usage: bun scripts/mcp-stdio.ts. In server mode set SW_SERVER_URL and SW_CLIENT_ID.
 // Supply a one-use credential with --setup-credential-file or SW_SETUP_CREDENTIAL.
 // Use --sign-out after revoking or signing out in the workbench.

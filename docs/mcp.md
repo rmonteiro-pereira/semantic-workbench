@@ -18,7 +18,7 @@ args:    scripts/mcp-stdio.ts
 env:     DATA_DIR=<your data folder>, SW_PORT=<the workbench port, default 4310>
 ```
 
-The bridge reads the capability file for every message, so `bun run mcp:rotate` needs no reconfiguration. It starts no server, opens no port and never prints the capability. When the workbench is not running it answers each request with an error that says to start it in local mode, and when the server runs in server mode it says MCP is not available there yet.
+The bridge reads the capability file for every message, so `bun run mcp:rotate` needs no reconfiguration. It starts no server, opens no port and never prints the capability. When the workbench is not running it answers each request with an error that says to start it in local mode, and when the address does not serve local MCP it points to the server bridge settings.
 
 Directly over HTTP, for clients that take a URL and a header: URL `http://127.0.0.1:4310/api/mcp` and the header `Authorization: Bearer <contents of data/state/mcp-capability>`. Browser-based clients cannot connect, by design.
 
