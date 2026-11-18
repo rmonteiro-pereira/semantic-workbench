@@ -152,6 +152,24 @@ The application revision includes `481d012b`. The retry of the browser history s
 - Keep the first-view captures independent and verify the same phone Mapping Graph Zoom steps on all three builds before classifying the earlier
   failed clicks.
 
+### First 390 px light comparison
+
+- The first local light slice scored 472 steps after two runs per version. The page and manifest combine them with the earlier 126-step pilot.
+  `python3 .data/gate/publish-review-007.py` published 598 rows: 83 intended fixes, 14 merged features, 111 neutral, 10 unchanged, 17 historical
+  regression frames from the earlier candidate and 363 awaiting classification. `du -sh` measured 52 MB. The leak scan returned zero hits
+  for the page and manifest.
+- The phone Catalog tour shows “Entity type” and wrapped full descriptions, with Edit available for touch. The Sidebar tour shows the file-type badges
+  and scroll fade. The inherited abbreviated project title is visible on all three. These captures support keeping the explicit action and full wording
+  in T057.
+- The phone ODCS search screenshot shows the same visually shortened ID beside Copy on release, main and candidate. The phone Source Control diff
+  opens in its own pane with Back to changes. Main's Preview, Publish and working-copy destination are present on the candidate.
+- The initially matched commit step timed out twice in every version because the capture asked for “Commit” instead of “Commit to” the active branch.
+  The import frames for Commerce and Mall also show the preceding project in some versions. Their screenshots are provisional until the driver
+  waits for the newly imported project and invokes the actual commit control. The focused Import preparation still verified identical frozen bytes.
+- `sw-midgard-run -- bash scripts/ui-review/gate-007/replay-launch.sh` exited 0 and resumed the serial matrix by matched action. Before the launch,
+  the previous matrix process had exited, ports 5401 and 5402 had no listeners, and `free -g` reported 106 GB available. `git diff --check` and
+  the readable-code check for the graph capture driver both exited 0.
+
 ### Matched UBL lineage timing
 
 The repeated 1440×900 frozen-import switch from Mall ODCS to UBL ODCS measured 2,090 and 2,264 ms on main. The candidate measured 2,092 and 2,119 ms.
