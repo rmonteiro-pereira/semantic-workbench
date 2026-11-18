@@ -187,7 +187,7 @@ test only to make it pass.
   accepted and refused variants and **Undo** as the ordinary save from the card's version. Add
   `tests/agent-panel-change.test.tsx`. Proof: undo reports a conflict when the file changed since;
   the saved text equals the earlier text otherwise.
-- [ ] T034 [US4] Create `QuestionCard.tsx`: options as plain text, focus moves to the first option,
+- [x] T034 [US4] Create `QuestionCard.tsx`: options as plain text, focus moves to the first option,
   alert role, answer and cancel. Add `tests/agent-panel-question.test.tsx`. Proof: the test passes
   with eight long options.
 - [ ] T035 [US1] Add the person-menu item in `src/app/auth/PersonMenu.tsx`, the lazy mount in
