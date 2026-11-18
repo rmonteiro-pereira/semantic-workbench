@@ -980,6 +980,83 @@
       }
     },
     {
+      "case": "GET /oauth/authorize",
+      "action": "viewOwnState",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /oauth/consent",
+      "action": "viewOwnState",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /oauth/setup",
+      "action": "viewOwnState",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /oauth/setup",
+      "action": "viewOwnState",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/connections",
+      "action": "viewOwnState",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "DELETE /api/connections/:id",
+      "action": "viewOwnState",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/admin/connections",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "DELETE /api/admin/connections/:id",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/admin/programs",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "PUT /api/admin/programs",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/admin/programs/preview",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
       "case": "GET/HEAD pages",
       "action": "read",
       "resource": {
