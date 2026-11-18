@@ -1,10 +1,12 @@
 // Finds the items a counted answer concerns and names each by its canonical address. Everything here
 // is a pure function of the answer and the published definition models, so a rule can be tested
 // without a workspace.
-import { formatAddress } from '../../shared/core/item-address';
-import { absoluteItemAddress, addressAtModelPath } from '../../shared/core/model-addresses';
+import { formatAddress, parseAddress } from '../../shared/core/item-address';
+import { absoluteItemAddress, addressAtModelPath, resolveInModel } from '../../shared/core/model-addresses';
 import { relationshipMatches } from '../../shared/mappings/relationship-reference';
 import { semanticModelPaths } from '../../shared/edit/item-model';
+import type { StoredDocument } from '../agent/context-types';
+import { parseDocuments } from '../agent/context-documents';
 import type { ItemRule } from './usage-counted-operations';
 
 /** Most items one request adds to; a mapping context names tens, so the cap only stops hostile sizes. */
@@ -13,6 +15,23 @@ export const MAX_ITEMS_PER_REQUEST = 500;
 type ModelPath = (string | number)[];
 /** Parsed definition documents of one published snapshot, keyed by document id (`<project>/<path>`). */
 export type PublishedModels = ReadonlyMap<string, any>;
+/** Parses published definition documents into the models used by usage reads and recording. */
+export function modelsOfDocuments(documents: readonly StoredDocument[]): PublishedModels {
+  return new Map(parseDocuments([...documents]).map(parsed => [parsed.doc.id, parsed.data]));
+}
+
+/** Checks that a stored address resolves unambiguously in the supplied published models. */
+export function usageAddressExists(models: PublishedModels, text: string): boolean {
+  const parsed = parseAddress(text);
+  if (!parsed.ok) return false;
+  const address = parsed.address;
+  if (address.form !== 'absolute' || !address.document || !address.project) return false;
+  if (address.snapshot !== undefined || address.chain.some(segment => 'position' in segment)) return false;
+  const model = models.get(address.project + '/' + address.document.join('/'));
+  if (!model) return false;
+  return address.chain.length === 0 || resolveInModel(model, address).status === 'found';
+}
+
 /** The file an operation's route named, when the route names one. */
 export type RouteTarget = { project?: string; path?: string };
 /** The project and file a route named, from its resource; a route that names neither gives an empty target. */

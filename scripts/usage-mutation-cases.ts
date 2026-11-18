@@ -93,6 +93,7 @@ function readCases(candidate: typeof import('../src/server/usage/usage-read')) {
     dayReads: new Map([['2026-11-17', { status: 'ok' as const, file }]]),
     pending: [],
     records: [],
+    resolves: () => true,
     canRead: path => path !== 'finance/pay.yaml',
     readsWholeProject: false,
   });

@@ -1,39 +1,18 @@
 // Serves `GET /api/projects/:slug/usage`: the counts of a project's items for a period, limited to
 // the documents the caller may read. The operation boundary has already decided access to the project.
 import { requestReader } from '../auth/request-scope';
-import { readAddressMigrations } from '../projects/address-migrations';
 import { decodeSegment } from '../request';
-import type { Workspace } from '../projects/workspace';
 import { periodDays } from '../usage/usage-retention';
 import type { UsageRecorder } from '../usage/usage-recorder';
+import { publishedMigrationRecords } from '../usage/usage-publication';
+import { modelsOfDocuments, usageAddressExists } from '../usage/usage-items';
 import { parseUsageQuery, readUsage } from '../usage/usage-read';
 import { USAGE_OFF, type UsageSettings } from '../usage/usage-settings';
 import { createUsageStore, type DayRead } from '../usage/usage-store';
 import { utcDay } from '../usage/usage-retention';
-import type { Reader } from '../projects/reader';
 import type { Route } from './http';
 
 const USAGE_ROUTE = /^\/api\/projects\/([^/]+)\/usage$/;
-
-/** Whether the reader may read every file the published snapshot holds for the project. */
-async function readsWholeProject(ws: Workspace, project: string, reader: Reader): Promise<boolean> {
-  const { view } = reader;
-  if (!view) return true;
-  try {
-    const paths = await ws.published.withPin(pin => ws.published.filePaths(pin, project));
-    return paths.every(path => view.canRead(project, path));
-  } catch {
-    return false;
-  }
-}
-
-function migrationRecords(ws: Workspace, project: string, reader: Reader) {
-  try {
-    return readAddressMigrations(ws.layout, project, reader);
-  } catch {
-    return null;
-  }
-}
 
 /** Creates the route of the read operation over a recorder and the operator's settings. */
 export function usageRoutes(usage: UsageRecorder, settings: UsageSettings = USAGE_OFF, clock: () => number = Date.now): Route {
@@ -47,18 +26,27 @@ export function usageRoutes(usage: UsageRecorder, settings: UsageSettings = USAG
     const reader = requestReader(req);
     const today = utcDay(new Date(clock()));
     const store = createUsageStore(ws.layout);
-    const dayReads = new Map<string, DayRead>();
-    if (effective.enabled) for (const day of periodDays(today, days)) dayReads.set(day, store.readDay(project, day));
-    const answer = readUsage({
-      settings: effective,
-      project,
-      days,
-      today,
-      dayReads,
-      pending: usage.pending(project),
-      records: migrationRecords(ws, project, reader),
-      canRead: path => !reader.view || reader.view.canRead(project, path),
-      readsWholeProject: effective.enabled ? await readsWholeProject(ws, project, reader) : true,
+    const canRead = (path: string) => !reader.view || reader.view.canRead(project, path);
+    const answer = await ws.published.withPin(async pin => {
+      const dayReads = new Map<string, DayRead>();
+      const commit = ws.published.commitOf(pin, project);
+      if (effective.enabled && commit) for (const day of periodDays(today, days)) dayReads.set(day, store.readDay(project, day));
+      const pending = usage.pending(project);
+      const records = effective.enabled ? publishedMigrationRecords(ws.layout, project, commit) : [];
+      const [paths, documents] = effective.enabled && commit ? await Promise.all([ws.published.filePaths(pin, project), ws.published.documents(pin, project)]) : [[], []];
+      const models = modelsOfDocuments(documents.filter(document => canRead(document.path)));
+      return readUsage({
+        settings: effective,
+        project,
+        days,
+        today,
+        dayReads,
+        pending,
+        records,
+        canRead,
+        resolves: address => usageAddressExists(models, address),
+        readsWholeProject: !!commit && paths.every(canRead),
+      });
     });
     return Response.json(answer, { headers: { 'Cache-Control': 'no-store' } });
   };

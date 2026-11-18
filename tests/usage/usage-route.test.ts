@@ -8,6 +8,10 @@ import { addCount, emptyDayFile } from '../../src/server/usage/usage-counts';
 import { utcDay } from '../../src/server/usage/usage-retention';
 import { AUTH_PROJECTS, authWorkspace } from '../helpers/auth-workspace';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
+import { publishFixture } from '../helpers/published-workspace';
+import { LOCAL_READER } from '../../src/server/projects/reader';
+import { publishedMigrationRecords } from '../../src/server/usage/usage-publication';
+import { compactUsage } from '../../src/server/usage/usage-compaction';
 import { testWorkspace } from '../helpers/temp-data-dir';
 import { accessFixture, person } from '../auth/access-fixture';
 import type { TestUserName } from '../helpers/auth-identities';
@@ -32,6 +36,7 @@ describe('in local mode', () => {
     const fixture = await testWorkspace();
     disposers.push(fixture.dispose);
     const project = await fixture.seed([{ path: 'a.yaml', source: 'name: O\nontology: [{concept: A}]' }], 'Counted');
+    await publishFixture(fixture);
     const address = `sw1:${project.slug}/a.yaml#ontology:O/concept:A`;
     writeCounts(fixture.root, project.slug, address);
     const handler = createHandler(fixture.ws, { usageSettings: settings });
@@ -91,4 +96,66 @@ describe('in server mode', () => {
       handler.usage.close();
     }
   });
+});
+
+test('two readers see the counted address change only when its rename is published', async () => {
+  const fixture = await testWorkspace();
+  disposers.push(fixture.dispose);
+  const source = 'name: O\nontology: [{concept: Before}]';
+  const { slug } = await fixture.seed([{ path: 'a.yaml', source }], 'sales-contracts');
+  await publishFixture(fixture);
+  const oldAddress = `sw1:${slug}/a.yaml#ontology:O/concept:Before`;
+  const newAddress = `sw1:${slug}/a.yaml#ontology:O/concept:PrivateRename`;
+  writeCounts(fixture.root, slug, oldAddress);
+  const store = createUsageStore(fixture.ws.layout);
+  const access = createAccessControl(accessFixture());
+  const handlers = (['alice', 'dave'] as const).map(name =>
+    createHandler(fixture.ws, {
+      mode: 'server',
+      remoteCredentials: allowEveryRemote(),
+      access,
+      principal: () => access.principalFor(person(name)),
+      publicOrigin: 'http://localhost',
+      usageSettings: settings,
+    }),
+  );
+  async function checkBoth(address: string) {
+    for (const handler of handlers) {
+      const response = await handler(new Request(`http://localhost/api/projects/${slug}/usage`));
+      expect(response.status, await response.clone().text()).toBe(200);
+      expect((await response.json()).measures[0].items).toEqual([{ address, total: 3, byOperation: { 'agent.plan': 3 }, byOrigin: { http: 3 } }]);
+    }
+  }
+  try {
+    const file = await fixture.ws.readFile(slug, 'a.yaml', LOCAL_READER);
+    await fixture.ws.saveFile(
+      slug,
+      'a.yaml',
+      {
+        baseHash: file.hash,
+        source: source.replace('Before', 'PrivateRename'),
+        declaredMigrations: [{ kind: 'item', from: oldAddress, to: newAddress }],
+      },
+      LOCAL_READER,
+    );
+    await (await fixture.ws.scmFor(slug, LOCAL_READER)).commit(slug, 'Rename the concept', { paths: ['a.yaml'] });
+    await checkBoth(oldAddress);
+    const compact = () =>
+      compactUsage({
+        store,
+        today: today(),
+        retentionDays: 30,
+        migrationRecords: project => publishedMigrationRecords(fixture.ws.layout, project, fixture.ws.published.pin().commits.get(project)?.commit),
+      });
+    compact();
+    const privateDay = store.readDay(slug, today());
+    expect(privateDay.status === 'ok' && Object.keys(privateDay.file.counts)).toEqual([oldAddress]);
+    await fixture.ws.publish(slug, LOCAL_READER);
+    await checkBoth(newAddress);
+    compact();
+    const publicDay = store.readDay(slug, today());
+    expect(publicDay.status === 'ok' && Object.keys(publicDay.file.counts)).toEqual([newAddress]);
+  } finally {
+    for (const handler of handlers) await handler.usage.close();
+  }
 });

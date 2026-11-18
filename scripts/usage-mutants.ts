@@ -8,8 +8,8 @@ export const usageMutants: [string, string, string, string][] = [
   [
     'usage-recorder',
     'src/server/usage/usage-recorder.ts',
-    'increment(project, rule, input, itemAddresses(rule.items, { answer, models, target: input.target }));',
-    'const found = itemAddresses(rule.items, { answer, models, target: input.target });\n    increment(project, rule, input, [...found, ...found]);',
+    'increment(project, rule, input, itemAddresses(rule.items, { answer, models, target: input.target }), marker);',
+    'const found = itemAddresses(rule.items, { answer, models, target: input.target });\n    increment(project, rule, input, [...found, ...found], marker);',
   ],
   ['usage-items', 'src/server/usage/usage-items.ts', 'return [...texts].sort().slice(0, MAX_ITEMS_PER_REQUEST);', 'return [...texts, ...texts].sort().slice(0, MAX_ITEMS_PER_REQUEST);'],
   [
@@ -18,7 +18,12 @@ export const usageMutants: [string, string, string, string][] = [
     "return { action: 'write', file: { ...merged, migratedThrough: latest } };",
     "return { action: 'write', file: { ...merged, migratedThrough: latest, connection: 'connection-1' } };",
   ],
-  ['usage-read', 'src/server/usage/usage-read.ts', 'if (document === null || !input.canRead(document) || total === 0) continue;', 'if (document === null || total === 0) continue;'],
+  [
+    'usage-read',
+    'src/server/usage/usage-read.ts',
+    'if (document === null || total === 0 || !input.canRead(document) || !input.resolves(address)) continue;',
+    'if (document === null || total === 0 || !input.resolves(address)) continue;',
+  ],
   ['usage-migration', 'src/server/usage/usage-migration.ts', 'const target = currentAddress(address, pending);', 'const target = address;'],
   ['usage-migration', 'src/server/usage/usage-migration.ts', 'if (deletesAddress(record, address)) return null;', ''],
   ['usage-retention', 'src/server/usage/usage-retention.ts', 'return days.filter(day => isDay(day) && day < oldestKept);', 'return days.filter(day => isDay(day) && day < oldestKept && false);'],

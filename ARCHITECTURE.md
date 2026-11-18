@@ -320,6 +320,9 @@ concatenating project, document or item names.
 
 ### Usage counters
 
+Usage stages migrations against both sides of a publication and selects them by the published commit.
+Usage reads resolve addresses against the pinned model and the reader's file grants.
+
 - `src/server/usage/` owns counts of requests through the workbench, off unless `SW_USAGE_COUNTERS=on`.
   `usage-settings.ts` reads the two variables, `src/shared/usage/usage-counted-operations.ts` parses
   `src/shared/usage/counted-operations.json`, and `usage-items.ts` is the pure rule that finds the

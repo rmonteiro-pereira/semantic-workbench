@@ -90,19 +90,18 @@ stored.
 
 ## Renames and deletions
 
-Counts follow items through the address migration records that item addresses already use. When an
-item is renamed or moved, the counts of every retained day return under its new address; a deleted item
-loses its counts; items that meet are summed. Reads apply this at read time and compaction writes it, and
-applying it twice gives the same result. An external change that the workbench treats as a removal and an
-addition does not merge counts of different items: the removed item keeps its counts and the added item
-starts at none. A rename within the 30 seconds before a flush can leave those few counts under the old
-address.
+Counts follow items through migrations confirmed by the old and new published definitions when a
+publication moves. An unpublished rename leaves the published address and its counts in place.
+Reads apply the published history to in-memory and stored counts, and compaction writes it to the
+day files. Both use the commit recorded by the publication pointer. Migrations merge counts that
+meet and remove the counts of declared deletions. An item removed without a published migration
+disappears from answers, and a newly added item starts with no counts.
 
 ## Who sees counts
 
 `GET /api/projects/:slug/usage?days=N` is a project read with its own inventory entry, `usage.read`. A
 caller who may not read the project gets the answer for a project that does not exist. Every item is
-filtered through the caller's read access to its file before any sum, so an unreadable file leaves no
+resolved in the pinned published model and filtered through the caller's read access to its file before any sum, so an unreadable file leaves no
 trace in items, totals or the unaddressed total. An answer never includes another project, and it holds
 no identity. A day whose file is damaged is named in `unavailableDays` and the others are still shown; if
 the address history cannot be read, no counts are shown and every day is named unavailable.

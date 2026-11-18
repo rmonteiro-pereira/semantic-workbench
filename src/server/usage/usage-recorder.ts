@@ -68,7 +68,7 @@ export type UsageRecorderDeps = {
   store: UsageStore;
   models: PublishedModelSource;
   /** Address migration records of a project in order, or null when that history cannot be read. */
-  migrationRecords: (project: string) => MigrationRecord[] | null;
+  migrationRecords: (project: string, commit?: string) => MigrationRecord[] | null;
   now?: () => Date;
   flushIntervalMs?: number;
   warn?: (event: string, fields: Record<string, unknown>) => void;
@@ -127,16 +127,17 @@ export function createUsageRecorder(deps: UsageRecorderDeps): UsageRecorder {
     warn(event, fields);
   }
 
-  function dayInMemory(project: string, day: string): PendingDay {
+  function dayInMemory(project: string, day: string, marker: string | null): PendingDay {
     const days = memory.get(project) ?? new Map<string, PendingDay>();
     memory.set(project, days);
-    const existing = days.get(day) ?? { file: emptyDayFile(project, day), size: 0 };
-    days.set(day, existing);
+    const key = JSON.stringify([day, marker]);
+    const existing = days.get(key) ?? { file: { ...emptyDayFile(project, day), migratedThrough: marker }, size: 0 };
+    days.set(key, existing);
     return existing;
   }
 
-  function increment(project: string, rule: CountedOperation, input: UsageRecordInput, addresses: string[]) {
-    const day = dayInMemory(project, utcDay(now()));
+  function increment(project: string, rule: CountedOperation, input: UsageRecordInput, addresses: string[], marker: string | null) {
+    const day = dayInMemory(project, utcDay(now()), marker);
     const { file } = day;
     for (const address of addresses) {
       if (!Object.hasOwn(file.counts, address)) {
@@ -157,9 +158,10 @@ export function createUsageRecorder(deps: UsageRecorderDeps): UsageRecorder {
     const project = answerProject(rule.items, answer, input.target);
     if (!project) return;
     recording.project = project;
+    const marker = deps.migrationRecords(project, commit)?.at(-1)?.id ?? null;
     const models = await deps.models(project, commit);
     if (!models || recording.invalidated) return;
-    increment(project, rule, input, itemAddresses(rule.items, { answer, models, target: input.target }));
+    increment(project, rule, input, itemAddresses(rule.items, { answer, models, target: input.target }), marker);
   }
 
   function record(input: UsageRecordInput) {
@@ -179,11 +181,12 @@ export function createUsageRecorder(deps: UsageRecorderDeps): UsageRecorder {
     }
   }
 
-  function flushDay(project: string, day: string, days: Map<string, PendingDay>) {
-    const decision = decideFlush(deps.store.readDay(project, day), days.get(day)!.file, deps.migrationRecords(project));
+  function flushDay(project: string, key: string, days: Map<string, PendingDay>) {
+    const { file } = days.get(key)!;
+    const decision = decideFlush(deps.store.readDay(project, file.day), file, deps.migrationRecords(project));
     if (decision.action === 'keep-memory') return warnOncePerHour('usage.flush-deferred', { reason: decision.reason });
     deps.store.writeDay(decision.file);
-    days.delete(day);
+    days.delete(key);
   }
 
   /** Expires old days and updates the addresses of the rest, once for each UTC day. */

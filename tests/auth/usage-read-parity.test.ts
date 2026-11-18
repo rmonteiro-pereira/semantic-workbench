@@ -25,7 +25,10 @@ const RESTRICTED = 'finance/revenue-recognition.odcs.yaml';
 const ORDINARY = 'orders.odcs.yaml';
 const origin = 'http://localhost:5312';
 const settings = { enabled: true, retentionDays: 30 };
-const itemIn = (path: string) => `sw1:${PROJECT}/${path}#contract:orders/object:order`;
+const itemIn = (path: string) => {
+  if (path === ORDINARY) return `sw1:${PROJECT}/${path}#contract:1b0c6a52-3f0e-4c55-9d0e-6a1f2b3c4d01/object:orders`;
+  return `sw1:${PROJECT}/${path}#contract:1b0c6a52-3f0e-4c55-9d0e-6a1f2b3c4d02/object:recognized_revenue`;
+};
 
 async function setup() {
   const fixture = await authWorkspace();

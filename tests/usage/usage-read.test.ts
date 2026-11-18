@@ -18,7 +18,7 @@ function day(name: string, ...entries: [string, string, string, number][]): Coun
 
 function input(overrides: Partial<UsageReadInput> = {}, files: CounterDayFile[] = []): UsageReadInput {
   const dayReads = new Map<string, DayRead>(files.map(file => [file.day, { status: 'ok', file }]));
-  return { settings, project: 'shop', days: 3, today: '2026-11-17', dayReads, pending: [], records: [], canRead: () => true, readsWholeProject: true, ...overrides };
+  return { settings, project: 'shop', days: 3, today: '2026-11-17', dayReads, pending: [], records: [], canRead: () => true, resolves: () => true, readsWholeProject: true, ...overrides };
 }
 
 describe('readUsage', () => {

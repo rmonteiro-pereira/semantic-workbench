@@ -2,6 +2,7 @@
 // of truth; the SQLite cache can be rebuilt.
 import { upgradePublications } from '../auth/operation-execution';
 import type { PublicationObserver } from './local-publication';
+import { stagePublishedMigrations } from '../usage/usage-publication';
 import { readAddressMigrations } from './address-migrations';
 import { resolveForCaller } from './address-resolution';
 import { recordReconciliation, type ReconciliationRequest } from './address-reconciliation';
@@ -387,6 +388,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     directory: repository => join(layout.projects, repository),
     readable: candidate => snapshots.validate(candidate),
     supersede: () => snapshots.supersede(),
+    stageCandidate: candidate => stagePublishedMigrations({ layout, git, snapshots }, candidate),
     stage: options.publicationStage,
   });
   const localPublication = createLocalPublication({

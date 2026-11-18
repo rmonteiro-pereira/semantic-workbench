@@ -51,6 +51,8 @@ export type UsageReadInput = {
   records: readonly MigrationRecord[] | null;
   /** Whether the reader may read a document of the project, by its path. */
   canRead: (documentPath: string) => boolean;
+  /** Whether the item still resolves in the chosen published snapshot. */
+  resolves: (address: string) => boolean;
   /** Whether the reader may read every file of the project. */
   readsWholeProject: boolean;
 };
@@ -96,7 +98,7 @@ function collect(input: UsageReadInput, period: string[], records: readonly Migr
     if (read?.status === 'damaged') unavailable.push(day);
     else if (read?.status === 'ok') take(rekey(read.file, records));
   }
-  for (const file of input.pending) if (period.includes(file.day)) take(file);
+  for (const file of input.pending) if (period.includes(file.day)) take(rekey(file, records));
   return { merged, unavailable, other };
 }
 
@@ -109,7 +111,7 @@ function series(input: UsageReadInput, measure: UsageMeasure): UsageSeries {
   for (const address of Object.keys(merged).sort()) {
     const document = documentOf(address, input.project);
     const total = measureTotal(merged[address], measure);
-    if (document === null || !input.canRead(document) || total === 0) continue;
+    if (document === null || total === 0 || !input.canRead(document) || !input.resolves(address)) continue;
     items.push({ address, total, byOperation: sumBy(merged[address], measure, 'operation'), byOrigin: sumBy(merged[address], measure, 'origin') });
   }
   const shown = items.reduce((sum, item) => sum + item.total, 0);

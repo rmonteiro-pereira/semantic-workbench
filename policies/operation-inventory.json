@@ -604,7 +604,8 @@
       "exposure": {
         "increment": "never",
         "reason": "Agents do not need traffic counts to do their work; a later increment decides whether to show them."
-      }
+      },
+      "steps": ["snapshot.read"]
     },
     "POST /api/projects/:slug/metrics": {
       "id": "metrics.save",
