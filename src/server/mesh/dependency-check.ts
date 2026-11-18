@@ -37,7 +37,7 @@ function parseUnits(documents: readonly PublishedDocument[]) {
 }
 
 async function readProvider(source: FrozenDependencySource, pin: PublishedPin, candidate: Candidate, reader: Reader, provider: LockedProvider) {
-  const { project, ontology, repository } = provider;
+  const { project, repository } = provider;
   if ((reader.view && !reader.view.readableProjects.has(project)) || source.repositoryOf(project) !== repository) refuse('A locked provider is unavailable.');
   const sameRepository = repository === candidate.repo;
   if (provider.sameRepository !== sameRepository) refuse('A dependency uses the wrong repository resolution.');

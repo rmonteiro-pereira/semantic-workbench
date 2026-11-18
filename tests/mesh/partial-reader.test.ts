@@ -136,6 +136,7 @@ test('hidden and missing parts overlap in latency across 200 interleaved request
   await samplePairs(hidden, missing, 20);
   const idle = await samplePairs(hidden, missing, 100);
   const snapshot = hiddenFixture.ws.state.published().repositories.retail;
+  if (!snapshot.commit) throw new Error('The fixture has no published commit.');
   const entered = Promise.withResolvers<void>();
   const release = Promise.withResolvers<void>();
   const original = hiddenFixture.ws.git.catFileBatch;

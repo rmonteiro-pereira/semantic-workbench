@@ -156,24 +156,13 @@ The shared graph changes are confined to the imported field, origin mark and imp
 in full-node-data.ts, FullGraphNodes.tsx, NeighborhoodGraph.tsx, RelationshipEdge.tsx,
 GraphOptions.tsx and legend.css. Keep those blocks when integrating traffic and item history.
 
-T036 retains incomplete proof for exported concepts whose prerequisites are re-exported
-through another provider. Frozen dependency traversal validates authorization, history, depth and
-commit conflicts. Computing the full re-export closure and carrying canonical ownership across
-that closure still requires changes in public interface preparation and compiler translation.
-The current compiler handles a provider's local public prerequisites and refuses unavailable
-prerequisites. The refusal suite covers missing public prerequisites, base conflicts, qualified
-collisions, version conflicts, undefined provider translations and altered meaning.
+Canonical ownership now travels through frozen re-export closures. See the re-export,
+incomplete-set timing and refusal boundary proofs below. The dependency and compile checks
+continue to cover missing public prerequisites, base conflicts, qualification collisions,
+version conflicts, undefined translations and altered meaning.
 
 T045 has the allowed-fields proof on the real dependents route. Its cross-feature store
-boundary needs the usage-counter code. T046's task calls for a findings store, while the
-implementation computes findings per request. The paired test observes both call orders and
-identical responses for missing and hidden parts. It does not establish a statistical latency
-bound. Keeping computed findings request-local avoids cache keys for identity and grant changes.
-
-T055's uniform four-entry-point oracle does not match current contracts. A standalone validator
-and the scanner have no repository pin, provider interface or sibling file set. The tests exercise
-those contextual decisions at structure, dependency update, publication, reader and compiler
-boundaries. The exhaustive cross-surface fixture and one mutant per refusal class remain open.
+boundary needs the usage-counter code.
 
 ### MCP integration
 
@@ -204,9 +193,9 @@ same guard and refuses an invalid candidate.
 
 The publication guard never sends a hidden part path in the generic set refusal. The file GET,
 PUT, batch save and Adopt tests compare the missing and hidden responses byte for byte. The
-response-equivalence test is distinct from a latency test. Immutable snapshot construction
-still varies with tree shape and storage cache state, so timing equivalence across those
-conditions remains open. Complete-set findings are never cached across readers or accesses.
+response-equivalence test is distinct from the latency proof below. The comparison holds the
+visible files and policy constant. The publication trace captures which blobs are read before
+refusal. Complete-set findings are recomputed on every access.
 
 Provider file restrictions are tested through a signed-in caller who can compile an exported
 item from a private part and sees neither its private sibling concept nor the part path. A

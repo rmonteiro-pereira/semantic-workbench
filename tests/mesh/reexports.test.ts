@@ -45,12 +45,27 @@ async function update(fixture: Fixture, project: string) {
 
 const invoice = { project: 'finance', alias: 'fin', concepts: ['Invoice'] };
 
+async function checkCompiledOwner(fixture: Fixture, project: string, version: string) {
+  const route = `projects/${project}/compile`;
+  const file = { path: 'ontology.yaml', offset: 0 };
+  const response = await operation(fixture, route, { commit: version, file });
+  const result = await response.json();
+  expect(result.result).toBe('released');
+  const addresses = result.manifest.addressMap.filter((entry: { from: string }) => entry.from.includes('Invoice'));
+  expect(addresses).toEqual([{ from: 'sw1:finance/ontology.yaml#ontology:finance/concept:Invoice', to: `sw1:${project}/ontology.yaml#ontology:${project}/concept:finance~ontology%252Eyaml~Invoice` }]);
+  const compiled = Bun.YAML.parse(result.part.text) as { ontology: { concept: string }[] };
+  expect(compiled.ontology.map(item => item.concept)).toEqual(['Local', 'finance~ontology%2Eyaml~Invoice']);
+  expect(await (await operation(fixture, route, { commit: version, file })).text()).toBe(JSON.stringify(result));
+}
+
 test('canonical owners survive a two-level and three-level chain and a diamond through real operations', async () => {
   using fixture = await meshWorkspace('shared');
   fixture.addPersonalBranch('finance');
   await addRoots(fixture, [
     { path: 'wholesale', exports: ['fin.Invoice'], imports: [invoice] },
     { path: 'retailer', exports: ['wh.fin.Invoice'], imports: [{ project: 'wholesale', alias: 'wh', concepts: ['fin.Invoice'] }] },
+    { path: 'short-chain', exports: [], imports: [{ project: 'wholesale', alias: 'wh', concepts: ['fin.Invoice'] }] },
+    { path: 'long-chain', exports: [], imports: [{ project: 'retailer', alias: 'ret', concepts: ['wh.fin.Invoice'] }] },
     {
       path: 'consumer',
       exports: [],
@@ -60,24 +75,14 @@ test('canonical owners survive a two-level and three-level chain and a diamond t
       ],
     },
   ]);
-  for (const project of ['wholesale', 'retailer', 'consumer']) await update(fixture, project);
+  for (const project of ['wholesale', 'retailer', 'short-chain', 'long-chain', 'consumer']) await update(fixture, project);
   fixture.git('finance', ['add', '-A']);
   fixture.git('finance', ['commit', '-qm', 'Publish a diamond of re-exports']);
   const published = await operation(fixture, 'projects/finance/git/publish', {});
   if (!published.ok) throw new Error(await published.text());
 
   const version = fixture.git('finance', ['rev-parse', 'HEAD']);
-  const compile = await operation(fixture, 'projects/consumer/compile', {});
-  const result = await compile.json();
-  expect(result.result).toBe('released');
-  const addresses = result.manifest.addressMap.filter((entry: { from: string }) => entry.from.includes('Invoice'));
-  expect(addresses).toEqual([{ from: 'sw1:finance/ontology.yaml#ontology:finance/concept:Invoice', to: 'sw1:consumer/ontology.yaml#ontology:consumer/concept:finance~ontology%252Eyaml~Invoice' }]);
-  expect(await (await operation(fixture, 'projects/consumer/compile', {})).text()).toBe(JSON.stringify(result));
-  const file = { path: 'ontology.yaml', offset: 0 };
-  const output = await (await operation(fixture, 'projects/consumer/compile', { commit: version, file })).json();
-  const compiled = Bun.YAML.parse(output.part.text) as { ontology: { concept: string }[] };
-  expect(compiled.ontology.map(item => item.concept)).toEqual(['Local', 'finance~ontology%2Eyaml~Invoice']);
-  expect(await (await operation(fixture, 'projects/consumer/compile', { commit: version, file })).text()).toBe(JSON.stringify(output));
+  for (const project of ['short-chain', 'long-chain', 'consumer']) await checkCompiledOwner(fixture, project, version);
   const graph = await (await operation(fixture, 'mesh')).json();
 
   expect(graph.links.filter((link: { consumer: string }) => link.consumer === 'consumer')).toEqual([{ consumer: 'consumer', provider: 'finance', version, items: ['Invoice'] }]);

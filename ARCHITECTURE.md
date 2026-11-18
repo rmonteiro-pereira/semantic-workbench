@@ -168,6 +168,8 @@ concatenating project, document or item names.
   builds share one promise per repository, commit and folder digest; limits reject whole builds.
   Publication validation holds an active candidate pin through settlement, then releases it on success
   or refusal. The first published read reuses that index within the existing retention bound.
+  A request that needs set validation first projects the candidate tree to the caller's readable
+  definitions, before opening restricted blobs or building the shared index.
 - `publication.ts` is the single publication writer and repository queue for local Publish, server Publish,
   remote follow and adoption. It applies `publication-checks.ts`, writes intent, compare-and-swaps the ref,
   records the pointer and supersedes the resolver. A failed swap abandons intent. `recover` finishes or drops
@@ -563,7 +565,3 @@ the bundle outside the source trees.
 Use [the development guide](docs/development.md) for command syntax, fixture rules and validation.
 Keep configuration/API/operation details in their canonical guides instead of appending release
 history or per-control instructions to this architecture map.
-
-Publication checks the caller's visible ontology sets before building the shared
-candidate index. The preliminary Git read lists paths without opening restricted
-blobs. It loads only readable definitions and computes findings for that request.
