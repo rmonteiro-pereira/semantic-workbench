@@ -573,15 +573,21 @@ The original review archive contains 3,559 PNGs. A read-only count by folder mea
 
 Status: in progress. No visual pair is classified before both images have been opened.
 
-The gallery checkpoint of 713 rows includes 290 intended fixes, 33 expected merged-feature differences, 301 neutral changes and 11
-unchanged steps. The gallery retains 38 frames of fixed regressions and 40 frames flagged as possible or unresolved regressions. A frame count
-can include multiple actions that carry the same underlying issue. The manifest explains which actions could not be compared at a matched state.
+The gallery checkpoint of 728 rows includes 300 intended fixes, 33 expected merged-feature differences, 302 neutral changes and 11
+unchanged steps. It retains 42 frames of fixed regressions and 40 frames flagged as possible or unresolved regressions. A frame count
+can include multiple actions that carry the same underlying issue. The manifest records actions without matched captures.
 The counted Network heading and compact mapping correction pairs were opened at 390×844 in both themes.
 The 75-state phone replay (local, light, 390×844) was opened across 25 contact sheets. Both repetitions on all three versions
 opened the named mapping and its Source tab. The Source view preserves the empty concept list. The transient empty-bindings frame
 is timing noise, confirmed by the settled Identifier replay. The candidate also shows the full line-23 SQL warning and a green
 keyboard focus ring on the metric grouping control. The empty Trash dialog keeps its explanation and Close action.
-The local gallery publisher returned 713 rows with the counts above.
+- `bash .data/gate/pull-review-007.sh .data/gate/empty-mapping-confirmed local/light/390/empty-mapping` returned five strips, all opened.
+  The 390×844 linked control succeeded twice per version. Candidate shows 9 cards, no empty note, and enabled Mapping steps.
+  Both references show 2 cards and enabled steps. Unlinked Identifier renders one card and enabled steps in both references.
+  Candidate `c50a6823` renders zero cards, one complete explanation, and disabled Mapping steps in both repeats.
+  Candidate/main scores are 19.391481% linked, 12.067687% unlinked, and 12.089561%/12.080447% at 5 and 15 seconds.
+  The 1-second score is 79.550067%; both references still resolve the mapping while the candidate shows its empty state.
+- `bash .data/gate/publish-current-review.sh` returned 728 rows with the counts above.
 
 The Full Graph replay scored 43 steps, from two repetitions per version. The candidate Network first view and Fit show four named counted areas.
 Both full-screen selection paths open Order and keep it readable. After changing area visibility with Order selected, Layered can leave Order
