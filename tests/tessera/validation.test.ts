@@ -3,6 +3,7 @@ import { expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parse } from 'yaml';
+import { EXPECTED_FINDINGS } from '../helpers/tessera-refusals';
 import { tesseraIssues } from '../../src/shared/tessera/validate';
 import { validateInput } from '../../src/shared/validation/input';
 import { isNotValidated } from '../../src/shared/validation/validation';
@@ -18,30 +19,7 @@ function findings(name: string): string[] {
   return tesseraIssues(load(name)).issues.map(issue => `${issue.code} ${issue.path}`);
 }
 
-const EXPECTED: Record<string, string[]> = {
-  'valid.yaml': [],
-  'valid.json': [],
-  'notes-everywhere.yaml': [],
-  'nested-marker-key.yaml': [],
-  'lookalike-unmarked.yaml': [],
-  'marker-string.yaml': ['tessera-marker /tessera'],
-  'marker-zero.yaml': ['tessera-marker /tessera'],
-  'marker-fraction.yaml': ['tessera-marker /tessera'],
-  'revision-2.yaml': ['tessera-revision /tessera'],
-  'no-version.yaml': ['tessera-base /version'],
-  'other-version.yaml': ['tessera-base /version'],
-  'unknown-property.yaml': ['tessera-property /ontology/0/tessera_note'],
-  'reserved-governance.yaml': ['tessera-reserved /ontology/0/tessera_governance'],
-  'notes-on-dataset.yaml': ['tessera-kind /tessera', 'tessera-location /datasets/0/tessera_notes'],
-  'notes-in-embedded-model.yaml': ['tessera-location /ontology_mappings/0/semantic_model/datasets/0/tessera_notes'],
-  'notes-empty.yaml': ['schema /ontology/0/tessera_notes'],
-  'notes-too-long.yaml': ['schema /ontology/0/tessera_notes'],
-  'semantic-model-marked.yaml': ['tessera-kind /tessera'],
-  'mapping-marked.yaml': ['tessera-kind /tessera'],
-  'odcs-marked.yaml': ['tessera-kind /tessera'],
-};
-
-for (const [name, expected] of Object.entries(EXPECTED)) {
+for (const [name, expected] of Object.entries(EXPECTED_FINDINGS)) {
   test(`${name} gives ${expected.length ? expected.join(' and ') : 'no finding'}`, () => {
     expect(findings(name)).toEqual(expected);
   });
@@ -76,7 +54,7 @@ test('a prefixed key in the prefix map is ordinary data', () => {
 
 const STANDARD_ONLY = ['lookalike-unmarked.yaml'];
 
-for (const [name, expected] of Object.entries(EXPECTED)) {
+for (const [name, expected] of Object.entries(EXPECTED_FINDINGS)) {
   test(`${name} gives the same errors through the editor path`, () => {
     const text = readFileSync(join(folder, name), 'utf8');
     const result = validateInput(text, name);
