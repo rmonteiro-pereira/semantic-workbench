@@ -31,6 +31,7 @@ if (category === 'access-index') {
   scopes.assertReloadedReplay(replay.compareAccess);
   scopes.assertDeactivatedReplay(replay.scopeCache);
   scopes.assertReplayClock(replay.compareAccess, candidate.createAccessControl);
+  await (await import('../tests/auth/creation-route-assertions')).assertCreationRoutes(candidate.createAccessControl);
 }
 // Publication mutants load only the publication module, so working copies come from the real source.
 async function worktreeFactory(): Promise<typeof import('../src/server/projects/worktrees').createWorktrees> {

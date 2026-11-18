@@ -48,4 +48,5 @@ export const adminMutants: [string, string, string, string][] = [
     'const decision = decisionFor(snapshot, { principal, action, resource, context }, canRead); if (replay) decision.rules = decision.rules.slice(1);',
   ],
   ['access-index', 'src/server/auth/authorize.ts', '...(replay ? undefined : options.context?.()),', '...options.context?.(),'],
+  ['access-index', 'src/server/auth/authorize.ts', 'creationDecision(snapshot, principal, resource, contextInputs)', 'creationDecision(snapshot, principal, resource, supplied)'],
 ];

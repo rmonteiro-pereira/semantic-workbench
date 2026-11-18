@@ -28,6 +28,9 @@ not configure a production deployment.
 - Admin permission dry runs reuse policy preparation and equivalent authorization work, reducing
   the measured dev-server median below one second for the current access matrix.
   Proposals containing custom Cedar rules can take longer to simulate.
+- Project creation respects the server's default authorization hour. A Cedar time restriction can
+  return 403 for `POST /api/projects`, `POST /api/import`, and `POST /api/examples/:name`, and
+  can remove creation domains from `GET /api/me`.
 
 - Published reads, local Publish, outside adoption and browser previews share the operation boundary
   and its reviewed inventory. MCP callers consume published definitions independently of browser sessions.

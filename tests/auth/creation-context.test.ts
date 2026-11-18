@@ -2,6 +2,7 @@ import { expect, test } from 'bun:test';
 import { createAccessControl } from '../../src/server/auth/authorize';
 import { newProjectIn } from '../../src/server/auth/resource';
 import { accessFixture, person } from './access-fixture';
+import { assertCreationRoutes } from './creation-route-assertions';
 
 test('project creation evaluates the control and request context defaults', () => {
   const options = accessFixture();
@@ -16,4 +17,8 @@ test('project creation evaluates the control and request context defaults', () =
   expect(access.authorize(principal, 'createProject', workspace).status).toBe(403);
   expect(access.forRequest(principal, { hour: 12 }).authorize('createProject', prospective).status).toBe(200);
   expect(access.forRequest(principal, { hour: 12 }).authorize('createProject', prospective, { hour: 13 }).status).toBe(403);
+});
+
+test('a forbidden creation hour applies to project, import, example and identity routes', async () => {
+  await assertCreationRoutes(createAccessControl);
 });
