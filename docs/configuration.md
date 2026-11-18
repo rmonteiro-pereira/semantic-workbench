@@ -331,3 +331,9 @@ connection metadata and keyed hashes live in `state/connections/`. Back up the c
 The local stdio bridge still uses `DATA_DIR` and `SW_PORT`. Server-mode bridge credential storage
 is unresolved; do not configure undocumented bridge environment variables. See
 [agent connections](agent-connections.md) for the browser-flow limitation and client status.
+
+
+The stdio bridge uses `SW_SERVER_URL` for the server origin, `SW_CLIENT_ID` for the
+registered agent program and `SW_SETUP_CREDENTIAL` or `--setup-credential-file` for
+first use. See the [server stdio bridge guide](mcp.md#server-stdio-bridge) for permissions
+and sign-out.

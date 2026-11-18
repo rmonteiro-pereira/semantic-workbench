@@ -50,8 +50,8 @@ Server mode mounts `POST /api/mcp` for [person connections](agent-connections.md
 
 Connection records survive restarts while the browser session remains valid. An Admin manages
 registered programs and revocation; people can revoke only their own connections. The browser
-consent/setup flow currently fails because its no-referrer policy produces a null Origin; it is
-not release-ready. See [connection limits and client status](agent-connections.md).
+consent and setup forms require the exact public origin and the session’s CSRF token.
+See [connection limits and client status](agent-connections.md).
 
 ## Identity providers
 
@@ -404,3 +404,12 @@ personal drafts, Admin/session state, grouping state or trash. Stop the applicat
 removing a disposable SQLite cache, and expect it to rescan on startup. Keep the cache on local
 disk when the durable data root is on a share. Scale vertically first; horizontal scale requires
 repository partitioning or coordinated leases/storage and shared session handling.
+
+
+For stdio clients, select a registered agent program on the setup page. Configure the
+bridge with `SW_SERVER_URL`, `SW_CLIENT_ID` and an owner-only file containing the setup credential. The
+bridge keeps rotating client tokens under the person's configuration directory in
+`semantic-workbench/connections` (0700 directory, 0600 file, or a private Windows ACL).
+Sign out or revoke the connection in the workbench, then stop the bridge and use
+`--sign-out` with the same `SW_SERVER_URL` to erase the local file immediately.
+See the [MCP bridge guide](mcp.md#server-stdio-bridge).

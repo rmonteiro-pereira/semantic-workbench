@@ -63,7 +63,7 @@ Results are `{ "ok": true, "data": ... }` or `{ "ok": false, "error": { "code", 
 Changing files:
 
 - A save names the version it started from. A changed file answers `conflict` with the current version and says whether it already holds the proposed text. Invalid text is never saved. Patches change only the patched ranges and keep line endings. A rewrite by a content guard is reported in `stored`.
-- `delete_file`, `restore_file` and `git_commit` need an `idempotencyKey` of 16 to 128 characters (letters, digits, dash, underscore). A retry with the same key and arguments returns the original result. The same key with other arguments answers `key_reused`. After a crash that cannot be settled the answer is `uncertain`, which means: read the trash or the Git log before trying again. Receipts live under `data/state/mcp-receipts/` for seven days: an expired receipt is ignored at once, and expired ones are removed when the endpoint starts. A second call with a key whose first call is still running is answered `rate_limited` before anything is read. If a receipt file cannot be parsed, it is moved aside as `*.json.corrupt-<time>` (a warning is logged as `mcp.receipts-corrupt`), and until that file is older than the retention period every key that is not found is answered `uncertain`, because the lost file may have held it. To lift that sooner, check the trash and the Git log for anything a lost receipt may have covered, then delete the `*.json.corrupt-<time>` file from `data/state/mcp-receipts/`.
+- `delete_file`, `restore_file` and `git_commit` need an `idempotencyKey` of 16 to 128 characters (letters, digits, dash, underscore). A retry with the same key and arguments returns the original result after the operation boundary authorizes the current caller on the original targets. A receipt belongs to the person and connection that created it, or to the local capability caller. Other callers use an independent key. Receipts from older releases belong only to the local caller. The same key with other arguments answers `key_reused`. After a crash that cannot be settled the answer is `uncertain`, which means: read the trash or the Git log before trying again. Receipts live under `data/state/mcp-receipts/` for seven days: an expired receipt is ignored at once, and expired ones are removed when the endpoint starts. A second call with a key whose first call is still running is answered `rate_limited` before anything is read. If a receipt file cannot be parsed, it is moved aside as `*.json.corrupt-<time>` (a warning is logged as `mcp.receipts-corrupt`), and until that file is older than the retention period every key that is not found is answered `uncertain`, because the lost file may have held it. To lift that sooner, check the trash and the Git log for anything a lost receipt may have covered, then delete the `*.json.corrupt-<time>` file from `data/state/mcp-receipts/`.
 - `git_commit` takes `files` (path and version), `expectedBranch` and `expectedHead`. Exactly those files are committed, in the same step of the repository's queue that checks them, and other staged work stays staged. The commit holds the write lock of every project whose files it names (taken in sorted order), so a save of those projects waits for it. A commit that names no files, which commits the whole index, locks only its own project. If a hook or filter changed a listed file during the commit, the commit still happened and the answer carries `altered`, the paths whose committed bytes differ from what you listed; a retry with the same key returns that same answer. There is no push and no commit-all argument. A commit made while the default branch is checked out lands on the authoring branch (`work/local`) and the answer carries `movedFrom`; what agents and people read changes only when you publish from the browser. The commit carries the configured Git identity and no agent marker.
 - An agent's save never discards a person's unsaved draft of the same file, and open browsers refresh through the live events.
 
@@ -80,6 +80,27 @@ The tools, their twin routes and their hints are listed in [mcp-contract.md](mcp
 | Cursor lifetime | 10 minutes, bound to the query, the list's state and the caller |
 | Document size | 2,000,000 bytes, as in the browser |
 
+## Server stdio bridge
+
+In the workbench, open **Agent connections → Create a setup credential**, and select the
+registered program. Put the credential in a private file and start the bridge:
+
+```sh
+SW_SERVER_URL=https://workbench.example SW_CLIENT_ID=registered-program \
+  bun scripts/mcp-stdio.ts --setup-credential-file ./private-setup
+```
+
+Delete the one-use setup file after exchange. `SW_SETUP_CREDENTIAL` is an alternative
+for a launcher that supplies the environment privately. Later launches use the token
+cache and need only the server URL and program id. The bridge refreshes before expiry
+and removes the cache when the server refuses the grant as ended.
+
+To sign out, revoke the connection in **Agent connections** or sign out of the browser,
+then stop the bridge and run `SW_SERVER_URL=https://workbench.example bun scripts/mcp-stdio.ts --sign-out`
+to remove the local file immediately. If a bridge crashes while rotating a token, stop
+any other instance before removing the adjacent empty lock directory. A lost refresh
+reply can require a new setup credential.
+
 ## Threat model
 
 The capability protects against another page in your browser, a web page using DNS rebinding, another operating-system user without read access to the data folder, and a container that shares the network but not the files. Any `Origin` header is refused, `Host` must be exactly a loopback name with the server's port, and the checks run in this order, stopping at the first failure: method, `Origin`, `Host`, the capability (compared in constant time), then the content type.
@@ -90,16 +111,18 @@ Residual risk: file text is data from the project, but an agent reads it with it
 
 ### Server connections
 
-Server-mode sign-off is blocked: a completed idempotency receipt can return an earlier result
-for the same person/key/arguments through a connection whose scope no longer permits that
-operation. The effect is not repeated, but replay currently bypasses the operation boundary.
-Fresh calls obey the scope gate; receipt replay must also be authorized before release.
+The stdio bridge stores one credential file per server under
+`$XDG_CONFIG_HOME/semantic-workbench/connections/` (default `.config` in your home directory, or
+`LOCALAPPDATA` on Windows). Its filename is the SHA-256 hash of the server origin.
+The directory and file are owner-only (0700 and 0600 on Unix, private ACL on Windows).
+Anyone who can read that file can act as the person until the connection ends.
+Continued use of a receipt requires both a live connection and current authorization.
 
 The server endpoint accepts only opaque workbench connection tokens. Cookies cannot authenticate
 it, and identity-provider JWTs are refused. Checks run in order: method, any Origin header, JSON
 content type, bearer shape and live connection. Refusals disclose no credential failure reason;
 an invalid token receives an empty 401 with the protected-resource metadata challenge. Every
-admitted fresh invocation carries the current person, owning session, connection and scope effects to the
+admitted invocation carries the current person, owning session, connection and scope effects to the
 same operation boundary used by local tools. Connection revocation aborts work opened through it.
 
 Access tokens last ten minutes. Codes last sixty seconds; pending consent and setup credentials
