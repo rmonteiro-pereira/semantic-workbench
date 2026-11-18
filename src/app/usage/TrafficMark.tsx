@@ -5,17 +5,18 @@ import './usage.css';
 
 /**
  * Draws nothing unless Traffic is on and the item has requests, so a card without Traffic is exactly
- * what it was. The ring and the bar sit over the card's own box and never change its size.
+ * what it was. The ring and the bar sit over the card's own box and never change its size. The marks
+ * are not spans because the card styles every span inside it as a line of text.
  */
 export function TrafficMark({ address }: { address: string | undefined }) {
   const traffic = useItemTraffic(address);
   if (!traffic || traffic.level === 0) return null;
   const style = { '--traffic-level': traffic.level } as React.CSSProperties;
   return (
-    <span className="traffic-marks">
-      <span className="traffic-ring" style={style} aria-hidden="true" />
-      <span className="traffic-bar" style={style} aria-hidden="true" />
-      <span className="traffic-sr">{countWords(traffic.total, traffic.days)}</span>
-    </span>
+    <i className="traffic-marks">
+      <i className="traffic-ring" style={style} aria-hidden="true" />
+      <i className="traffic-bar" style={style} aria-hidden="true" />
+      <i className="traffic-sr">{countWords(traffic.total, traffic.days)}</i>
+    </i>
   );
 }

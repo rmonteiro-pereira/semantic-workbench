@@ -9,6 +9,12 @@
 .traffic-marks {
   display: contents;
 }
+.traffic-marks,
+.traffic-ring,
+.traffic-bar,
+.traffic-sr {
+  font-style: normal;
+}
 .traffic-ring {
   position: absolute;
   inset: 0;
