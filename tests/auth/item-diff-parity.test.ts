@@ -7,6 +7,7 @@ import { mintCaller } from '../../src/server/auth/caller';
 import { createSessionStore } from '../../src/server/auth/sessions';
 import { createHandler } from '../../src/server/handler';
 import { authWorkspace } from '../helpers/auth-workspace';
+import { sh } from '../helpers/scm';
 import { allowEveryRemote } from '../helpers/remote-credentials-fixture';
 import { accessFixture, person } from './access-fixture';
 
@@ -31,12 +32,8 @@ test('browser HTTP and the operation boundary agree on item comparison visibilit
   const file = join(fixture.root, 'projects', project, restricted);
   await Bun.write(file, 'unparseable: [');
   const repository = join(fixture.root, 'projects', project);
-  function git(...args: string[]) {
-    const result = Bun.spawnSync(['git', '-C', repository, ...args]);
-    if (result.exitCode) throw new Error(result.stderr.toString());
-  }
-  git('switch', '-c', 'visible-comparison');
-  git('commit', '-am', 'Introduce a restricted parse failure');
+  sh(repository, ['switch', '-c', 'visible-comparison']);
+  sh(repository, ['commit', '-am', 'Introduce a restricted parse failure']);
   for (const entry of cases) {
     const principal = access.principalFor(person(entry.username));
     const directory = join(fixture.root, 'item-parity', entry.username, entry.project);
