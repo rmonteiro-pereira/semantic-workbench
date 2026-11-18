@@ -450,8 +450,8 @@
   flex-wrap: wrap;
   gap: 0.5rem;
 }
-.agent-program-fields input:not([type='checkbox']),
 .agent-program-fields textarea {
+  field-sizing: content;
   width: 100%;
   min-width: 0;
   white-space: pre-wrap;

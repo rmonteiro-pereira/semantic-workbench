@@ -15,7 +15,9 @@ const sources = readdirSync('public/examples', { recursive: true, withFileTypes:
 const KPI = /KPI/;
 // ODCS schema entries are Tables in the interface; the standard's own name for them stays out.
 const CONTRACT_OBJECT = /contract objects?/i;
-const retiredTerm = (text: string) => KPI.test(text.replace(/kpi_bindings/g, '')) || CONTRACT_OBJECT.test(text);
+// Distinguish programs registered by an Admin from connections authorized by a person.
+const CONNECTION_TERMS = /\b(?:agent registrations?|delegated sessions?)\b/i;
+const retiredTerm = (text: string) => KPI.test(text.replace(/kpi_bindings/g, '')) || CONTRACT_OBJECT.test(text) || CONNECTION_TERMS.test(text);
 const allowed = (text: string) => {
   const t = text.trim();
   return !retiredTerm(t) || (t.length > 3 && sources.includes(t));
@@ -125,12 +127,12 @@ try {
       (found.get(key) ?? found.set(key, new Set()).get(key)!).add('README/docs');
     }
   if (found.size) {
-    console.log(`${found.size} texts use a retired term ("KPI" or "contract object"):`);
+    console.log(`${found.size} texts use a retired term:`);
     for (const [term, locations] of found) console.log(`  "${term}"  ← ${[...locations].slice(0, 3).join('; ')}`);
     throw Error('Terminology check failed.');
   }
   if (errors.length) throw Error(errors.join('\n'));
-  console.log(`Terminology check passed: no "KPI" or "contract object" in ${files.length} files' views, ` + `the metric detail, the wizard, README and docs (isolated data root ${api.root}).`);
+  console.log(`Terminology check passed: no retired terms in ${files.length} files' views, ` + `the metric detail, the wizard, README and docs (isolated data root ${api.root}).`);
 } finally {
   await browser.close();
   await api.stop();

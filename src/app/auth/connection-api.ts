@@ -13,7 +13,7 @@ export async function loadConnections(administrator = false): Promise<Connection
   return body.map(entry => {
     if (!entry || typeof entry !== 'object' || typeof entry.id !== 'string' || !entry.id.trim()) throw new Error('The server returned an invalid connection.');
     for (const key of ['clientId', 'programName', 'personName', 'createdAt', 'lastUsedAt']) {
-      if (typeof entry[key] !== 'string') throw new Error('The server returned invalid connection metadata.');
+      if (typeof entry[key] !== 'string' || !entry[key].trim()) throw new Error('The server returned invalid connection metadata.');
     }
     if (!['active', 'ended'].includes(entry.state) || !Array.isArray(entry.scopes) || !entry.scopes.every((scope: unknown) => typeof scope === 'string')) {
       throw new Error('The server returned an invalid connection state.');

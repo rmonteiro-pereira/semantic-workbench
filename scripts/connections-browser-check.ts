@@ -28,11 +28,12 @@ function sparePort(excluded: number[] = []): number {
 async function capture(page: Page, name: string) {
   const problems = await page.evaluate(() => {
     const failures: string[] = [];
-    for (const element of document.querySelectorAll<HTMLElement>('.agent-connections *, .agent-programs *, main *')) {
+    const area = location.pathname.startsWith('/oauth/') ? 'main *' : '.agent-connections *, .agent-programs *, [role=dialog] *';
+    for (const element of document.querySelectorAll<HTMLElement>(area)) {
       if (!element.getClientRects().length) continue;
       const style = getComputedStyle(element);
-      if (style.textOverflow === 'ellipsis' || (style.webkitLineClamp !== 'none' && style.webkitLineClamp !== '')) failures.push('clamped text');
-      if (element.scrollWidth > element.clientWidth + 2 && ['hidden', 'clip'].includes(style.overflowX)) failures.push('clipped text');
+      if (style.textOverflow === 'ellipsis' || (style.webkitLineClamp !== 'none' && style.webkitLineClamp !== '')) failures.push('clamped text on ' + element.tagName + ' ' + element.className);
+      if (element.scrollWidth > element.clientWidth + 2 && ['hidden', 'clip'].includes(style.overflowX)) failures.push('clipped text on ' + element.tagName + ' ' + element.className);
     }
     if (document.documentElement.scrollWidth > innerWidth + 2) failures.push('page overflow');
     return failures;
@@ -110,6 +111,12 @@ async function pageFlow(prefix: string) {
   await capture(page, prefix + '-error');
 }
 
+async function navigateAdmin(section: string) {
+  const destination = url + '/#/admin/' + section;
+  if (page.url() === destination) await page.reload();
+  else await page.goto(destination);
+}
+
 async function connectionStates(prefix: string, administrator: boolean) {
   const path = administrator ? '/api/admin/connections' : '/api/connections';
   const connection = {
@@ -134,20 +141,21 @@ async function connectionStates(prefix: string, administrator: boolean) {
     });
     try {
       if (administrator) {
-        await page.goto(url + '/#/admin/agent-connections');
+        await navigateAdmin('agent-connections');
         await expect(page.getByRole('heading', { name: 'Agent connections', exact: true })).toBeVisible();
       } else await openDialog();
-      if (state === 'empty') await expect(page.getByText('No agent connections.', { exact: true })).toBeVisible();
-      if (state === 'error') await expect(page.getByRole('alert').last()).toContainText('Connections could not be loaded');
+      const section = page.getByRole(administrator ? 'region' : 'dialog', { name: 'Agent connections', exact: true });
+      if (state === 'empty') await expect(section.getByText('No agent connections.', { exact: true })).toBeVisible();
+      if (state === 'error') await expect(section.getByRole('alert')).toContainText('Connections could not be loaded');
       if (state === 'long') {
-        await page.getByRole('button', { name: 'Revoke ' + program.name, exact: true }).click();
-        await expect(page.getByRole('region', { name: 'Confirm revocation' })).toContainText(program.clientId);
+        await section.getByRole('button', { name: 'Revoke ' + program.name, exact: true }).click();
+        await expect(section.getByRole('region', { name: 'Confirm revocation' })).toContainText(program.clientId);
       }
-      if (state === 'loading') await expect(page.getByRole('status').filter({ hasText: 'Loading connections' })).toBeVisible();
+      if (state === 'loading') await expect(section.getByRole('status').filter({ hasText: 'Loading connections' })).toBeVisible();
       await capture(page, `${prefix}-${administrator ? 'admin' : 'person'}-${state}`);
     } finally {
       release.resolve();
-      await page.unroute('**' + path);
+      await page.unrouteAll({ behavior: 'wait' });
     }
   }
 }
@@ -160,16 +168,16 @@ async function programStates(prefix: string) {
       await route.fulfill({ status: state === 'error' ? 500 : 200, json: { formatVersion: 1, version: 'version', programs: state === 'long' ? [program] : [] } });
     });
     try {
-      await page.goto(url + '/#/admin/agent-programs');
+      await navigateAdmin('agent-programs');
       await expect(page.getByRole('heading', { name: 'Agent programs', exact: true })).toBeVisible();
       if (state === 'empty') await expect(page.getByText('No agent programs registered.', { exact: true })).toBeVisible();
       if (state === 'error') await expect(page.getByRole('alert').last()).toBeVisible();
-      if (state === 'long') await expect(page.getByLabel('Client id', { exact: true })).toHaveValue(program.clientId);
+      if (state === 'long') await expect(page.getByRole('textbox', { name: 'Client id', exact: true })).toHaveValue(program.clientId);
       if (state === 'loading') await expect(page.getByRole('status').filter({ hasText: 'Loading agent programs' })).toBeVisible();
       await capture(page, prefix + '-programs-' + state);
     } finally {
       release.resolve();
-      await page.unroute('**/api/admin/programs');
+      await page.unrouteAll({ behavior: 'wait' });
     }
   }
 }

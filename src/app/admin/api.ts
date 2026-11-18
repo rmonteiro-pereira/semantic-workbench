@@ -180,7 +180,19 @@ export const adminApi = {
   async programs() {
     const value = fields<import('./types').ProgramsFile & { version: string }>(await request('/api/admin/programs'), { version: 'string', programs: 'array' });
     if (!value.version.trim() || value.formatVersion !== 1) throw new Error('Invalid agent program document.');
-    return value;
+    const programs = list<(typeof value.programs)[number]>(value.programs, {
+      clientId: 'string',
+      name: 'string',
+      description: 'string',
+      setupNote: 'string',
+      redirectUris: 'array',
+      scopes: 'array',
+    });
+    for (const program of programs) {
+      if (!program.clientId.trim() || !program.name.trim() || !program.redirectUris.length || !program.scopes.length) throw new Error('Invalid agent program metadata.');
+      if (![...program.redirectUris, ...program.scopes].every(field => typeof field === 'string' && field.trim())) throw new Error('Invalid agent program metadata.');
+    }
+    return { ...value, programs };
   },
   async users(search = '', access = '') {
     return list<AdminUser>(await request('/api/admin/users?' + query({ q: search, access })), {

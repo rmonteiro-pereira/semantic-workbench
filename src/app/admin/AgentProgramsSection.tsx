@@ -20,11 +20,11 @@ export function ProgramFields({ program, onChange }: { program: Program; onChang
       <legend>{program.name || 'New agent program'}</legend>
       <label>
         Client id
-        <input value={program.clientId} onChange={event => field('clientId', event.target.value)} />
+        <textarea rows={1} value={program.clientId} onChange={event => field('clientId', event.target.value)} />
       </label>
       <label>
         Name
-        <input value={program.name} onChange={event => field('name', event.target.value)} />
+        <textarea rows={1} value={program.name} onChange={event => field('name', event.target.value)} />
       </label>
       <label>
         Description
