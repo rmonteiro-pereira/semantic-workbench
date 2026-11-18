@@ -1,6 +1,9 @@
 // A promotion interrupted at each durable step ends with the proposal promoted only if the default
 // branch actually moved, and a damaged proposal is shown only to people who may promote.
 import { expect, test } from 'bun:test';
+import { createPromotions } from '../src/server/projects/proposal-promotion';
+import type { ProposalContext } from '../src/server/projects/proposal-context';
+import type { ProposalRecord } from '../src/shared/proposals/proposal';
 import { createGit } from '../src/server/projects/git';
 import { createProposalRefs } from '../src/server/projects/proposal-refs';
 import { openWorkspace } from '../src/server/projects/workspace';
@@ -91,4 +94,51 @@ test('a proposal whose ref is missing is damaged, shown only to people who may p
   const refused = await dave.call(proposalsPath(sales.slug, proposal.id) + '/promote', 'POST', { expectedTip: proposal.tip });
   expect(refused.status).toBe(409);
   expect(refused.body.error).toBe('damaged');
+});
+
+test('promotion recovery preserves both refs if writing the recovered records fails', async () => {
+  const records = ['first', 'second'].map(id => ({ id, status: 'open', base: 'base' }) as ProposalRecord);
+  let persisted = records;
+  const tips = new Map(records.map(record => [record.id, record.id + '-tip']));
+  let failWrite = true;
+  let failRemoval = false;
+  const context = {
+    timestamp: () => '2026-11-18T00:00:00Z',
+    deps: {
+      serialized: async (_repository: string, use: () => Promise<void>) => use(),
+      publishedCommit: () => 'published',
+      store: {
+        read: () => persisted,
+        write: (_repository: string, next: ProposalRecord[]) => {
+          if (failWrite) throw Error('Storage unavailable');
+          persisted = next;
+        },
+      },
+      refs: {
+        listTips: async () => ({ open: new Map(tips), closed: new Map() }),
+        mergedInto: async () => new Set(tips.keys()),
+        removeRef: async (_repository: string, id: string) => {
+          if (failRemoval && id === 'second') throw Error('Interrupted cleanup');
+          return tips.delete(id);
+        },
+      },
+    },
+  } as ProposalContext;
+  const recovery = createPromotions(context);
+  await expect(recovery.recover(['repo'])).rejects.toThrow('Storage unavailable');
+  expect([...tips.keys()]).toEqual(['first', 'second']);
+  expect(persisted.map(record => record.status)).toEqual(['open', 'open']);
+
+  failWrite = false;
+  failRemoval = true;
+  await expect(recovery.recover(['repo'])).rejects.toThrow('Interrupted cleanup');
+  expect(persisted.map(record => [record.status, record.outcome?.tip])).toEqual([
+    ['promoted', 'first-tip'],
+    ['promoted', 'second-tip'],
+  ]);
+  expect(tips.get('second')).toBe('second-tip');
+
+  failRemoval = false;
+  await recovery.recover(['repo']);
+  expect([...tips]).toEqual([]);
 });

@@ -516,6 +516,10 @@ the bundle outside the source trees.
 3. Promote dry-runs publication, then fast-forwards the default branch through the shared publication
    path. A tip inside published history reads as promoted.
 
+Startup persists recovered promotion outcomes and their expected tips before removing any
+open refs. Later startups retry a promoted proposal's cleanup only when its open ref still
+matches that tip.
+
 ### Access administration
 
 1. A typed proposal is validated and replayed against configured cases, recent audit and known

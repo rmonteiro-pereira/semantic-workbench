@@ -131,16 +131,18 @@ export function createPromotions(context: ProposalContext) {
         const merged = published ? await refs.mergedInto(repository, published) : new Set<string>();
         const tips = await refs.listTips(repository);
         const settled = new Map<string, ProposalRecord>();
+        const cleanup = new Map<string, string>();
         for (const record of records) {
           const tip = tips.open.get(record.id);
           const closedTip = tips.closed.get(record.id);
           const recovered = recoverClosing(record, tip, closedTip);
           if (recovered !== record) settled.set(record.id, recovered);
+          else if (record.status === 'promoted' && tip && !closedTip && tip === record.outcome?.tip) cleanup.set(record.id, tip);
           else if (record.status !== 'open') continue;
           else if (!tip || closedTip) log.warn('proposals.damaged', { repository, proposal: record.id });
           else if (published && merged.has(record.id) && tip !== record.base) {
             settled.set(record.id, { ...record, status: 'promoted', outcome: { by: 'recovery', at: context.timestamp(), tip, previousPublished: null, published } });
-            await refs.removeRef(repository, record.id, tip);
+            cleanup.set(record.id, tip);
           }
         }
         if (settled.size)
@@ -148,6 +150,7 @@ export function createPromotions(context: ProposalContext) {
             repository,
             records.map(record => settled.get(record.id) ?? record),
           );
+        for (const [id, tip] of cleanup) await refs.removeRef(repository, id, tip);
       });
     }
   }
