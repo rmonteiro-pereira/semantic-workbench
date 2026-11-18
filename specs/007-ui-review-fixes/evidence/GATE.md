@@ -201,6 +201,24 @@ The application revision includes `481d012b`. The retry of the browser history s
 - Keep the existing controls and let their row wrap around the natural search field size where the name needs the room.
 - Replay the frozen UBL Import at 390×844 and verify the full center name and the unchanged search and full-screen actions.
 
+### Phone regression replays
+
+- `sw-midgard-run -- bash scripts/ui-review/gate-007/lineage-anchor-launch.sh` returned 0 and launched serial verification. Candidate build and
+  both fresh frozen-data imports returned 0. The 390 px UBL Neighborhood picker replay measured 241 px of available input against 225.86 px for
+  the full placeholder in both repetitions. In the viewed pair `before/fixes/ubl-center-picker-390.png` and `after/fixes/ubl-center-picker-390.png`
+  the clipped name becomes “Center: Consignment aggregate roles”. Controls and Full screen move to the second row. Score 20.807206%. Fixed by
+  `9ec1cd45` for m13.
+- At 390×844, the UBL Consignment filter returns 8 of 103 columns in both repetitions. The earlier candidate keeps a negative left anchor and
+  cuts off the card heading and all eight row names. `0c756231` constrains the anchor in both axes. The inspected pair
+  `before/fixes/ubl-lineage-columns-390.png` and `after/fixes/ubl-lineage-columns-390.png` shows the whole header, search and eight names.
+  Score 25.741888%. The Mall Properties replay still loses the inspected card when repeated toolbar zoom targets the canvas midpoint.
+  A pointer-centered zoom replay is needed to establish whether the Mall column action is reachable.
+- The candidate `test:lineage` rerun passed the first nine Commerce checks and the Mall edge check. It failed at the same inherited UBL first-view
+  budget, this time at 3,528 ms versus 2,000 ms. No browser errors appeared in the log.
+- The comparison checkpoint contains 610 rows, with 155 intended fixes, 24 merged features, 166 neutral, 10 unchanged, 2 marked fixed regression,
+  20 other regression frames and 233 awaiting review. Most regression frames preserve the earlier candidate. Correction pairs give the corresponding
+  matched proof separately while affected matrix actions are replayed.
+
 ### Counted Mall graph on a phone
 
 - The Mall semantic Graph opens 11 counted areas after the full entity layout falls below the readable-name threshold.
