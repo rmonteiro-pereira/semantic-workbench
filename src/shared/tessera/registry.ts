@@ -11,6 +11,9 @@
 // 8. Add a mutant for the new decision in scripts/tessera-mutants.ts.
 // The marker reader, the validator and the loss report need no change.
 import { hasTesseraPrefix, TesseraNames } from './format';
+import { AI_CONTEXT_ADDITION } from './additions/ai-context';
+import { ATTRIBUTES_ADDITION } from './additions/attributes';
+import { GOVERNANCE_ADDITION } from './additions/governance';
 import { NOTES_ADDITION } from './additions/notes';
 import { RESERVED_NAMES, type ReservedName } from './reserved-names';
 
@@ -40,7 +43,7 @@ export type Registry = {
 };
 
 /** Every addition of every revision. */
-export const ADDITIONS: readonly AdditionEntry[] = [NOTES_ADDITION];
+export const ADDITIONS: readonly AdditionEntry[] = [NOTES_ADDITION, ATTRIBUTES_ADDITION, AI_CONTEXT_ADDITION, GOVERNANCE_ADDITION];
 
 /** Lists the mistakes in a list of additions: a repeated name, a missing prefix, a name that is also reserved or the marker key itself. */
 export function registryProblems(additions: readonly AdditionEntry[], reservedNames: readonly ReservedName[]): string[] {

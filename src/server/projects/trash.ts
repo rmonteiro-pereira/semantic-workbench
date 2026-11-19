@@ -1,7 +1,8 @@
 // Moves deleted files and project folders into journaled trash without rewriting Git history.
 // Restoration refuses occupied paths and suggests a free alternative.
 import { documentAddress } from '../../shared/core/item-address';
-import { archiveAddressMigrations, operationMigrations, stageAddressMigrations } from './address-migrations';
+import type { MigrationRecord } from '../../shared/core/address-migration';
+import { ADDRESS_HISTORY_FILE, historyEndpoints, isAddressHistoryBookkeeping, operationMigrations, stageAddressMigrations, stageHistoryRemoval, trashedAddressHistory } from './address-migrations';
 import { archiveUsage } from '../usage/usage-trash';
 import { archivePersonalState, clearPersonalDrafts } from './personal-state';
 import type { EventTags } from './events';
@@ -74,6 +75,8 @@ export type TrashContext = {
   layout: DataLayout;
   /** Reads the current local commit before history is staged. */
   head?: (files: DataLayout, project: string) => Promise<string>;
+  /** Reads the current commit's history, with absence distinct from an empty tracked file. */
+  committedAddressHistory?: (files: DataLayout, project: string) => Promise<readonly MigrationRecord[] | null>;
   /** Where a person's working copy keeps its files; absent where there are no copies. */
   copyLayout?: (copy: string) => DataLayout;
   state: State;
@@ -180,6 +183,7 @@ export function createTrash(ctx: TrashContext) {
   // protected property for someone who may not change them.
   async function deleteFile(slug: string, path: string, deletedBy: string | undefined, { guard }: Reader, copy: string | null = null, baseHash?: string) {
     const relativePath = projectPath(path);
+    if (posix.basename(relativePath).toLowerCase() === ADDRESS_HISTORY_FILE) throw new NotFoundError('File not found.');
     const project = registryEntry(assertSlug(slug));
     return lock(projectLockKey(slug, copy), async () => {
       const file = projectFile(filesOf(copy), slug, relativePath);
@@ -217,7 +221,7 @@ export function createTrash(ctx: TrashContext) {
       const from = documentAddress(slug, relativePath);
       const records = operationMigrations({ id: trashEntry.entryId, at: trashEntry.deletedAt, commit }, [{ kind: 'deleted', from }]);
       try {
-        steps.push(...stageAddressMigrations({ layout, project: slug, staging }, records));
+        steps.push(...stageAddressMigrations({ layout: filesOf(copy), project: slug, staging }, records));
         journal.run('delete', steps, [staging], trashEntry.entryId);
       } catch (err) {
         if (err instanceof JournalCrash) throw err;
@@ -238,6 +242,7 @@ export function createTrash(ctx: TrashContext) {
   // place. A file absent from the last commit goes to trash without a replacement.
   async function revertFile(slug: string, path: string, baseHash: string | null, committed: Uint8Array | null, { owner: deletedBy, guard }: Reader, copy: string | null = null) {
     const relativePath = projectPath(path);
+    if (posix.basename(relativePath).toLowerCase() === ADDRESS_HISTORY_FILE) throw new NotFoundError('File not found.');
     const project = registryEntry(assertSlug(slug));
     const files = filesOf(copy);
     return lock(projectLockKey(slug, copy), async () => {
@@ -282,6 +287,14 @@ export function createTrash(ctx: TrashContext) {
           atomicWrite(staged, committed);
           steps.push({ from: staged, to: file });
         }
+        if (ctx.committedAddressHistory) {
+          const committedHistory = await ctx.committedAddressHistory(files, slug);
+          const committedIds = new Set(committedHistory?.map(record => record.id));
+          const belongsToFile = (record: Parameters<typeof historyEndpoints>[0]) =>
+            !committedIds.has(record.id) && historyEndpoints(record, project => (project === slug ? '' : undefined)).includes(relativePath);
+          const keepEmpty = committedHistory !== null;
+          steps.push(...stageHistoryRemoval({ layout: files, project: slug, staging }, belongsToFile, { keepEmpty, archive: entryDir ? trashedAddressHistory(entryDir) : undefined }));
+        }
         steps.push(...clearPersonalDrafts(state, slug, [relativePath], staging, copy ?? undefined));
         journal.run('revert', steps, [staging], opId);
       } catch (err) {
@@ -316,7 +329,7 @@ export function createTrash(ctx: TrashContext) {
           const paths = deletedBy
             ? members.flatMap(project =>
                 readdirRecursive(projectDir(layout, project.slug))
-                  .filter(path => !path.startsWith('.git/'))
+                  .filter(path => !path.startsWith('.git/') && !isAddressHistoryBookkeeping(layout, project.slug, path))
                   .map(path => ({ project: project.slug, path })),
               )
             : [];
@@ -328,6 +341,7 @@ export function createTrash(ctx: TrashContext) {
           if (unpublished.length) trashEntry.unpublished = unpublished;
           archived.push(dir);
           atomicWriteJson(join(dir, 'entry.json'), trashEntry);
+          for (const member of members) steps.push(...stageAddressMigrations({ layout, project: member.slug, staging: stateStaging }, []));
           steps.push(...unitSteps(unit, dir));
           for (const member of members) {
             steps.push(...archivePersonalState(state, member.slug, undefined, join(dir, 'personal')));
@@ -347,6 +361,7 @@ export function createTrash(ctx: TrashContext) {
         for (const slug of slugs) ctx.forgetProject(slug);
         journal.run(batchId ? 'clear' : 'delete', steps, [stateStaging], opId);
       } catch (err) {
+        if (err instanceof JournalCrash) throw err;
         for (const entry of entries) rmSync(dirOf(entry.entryId), { recursive: true, force: true });
         rmSync(stateStaging, { recursive: true, force: true });
         for (const slug of slugs) if (existsSync(projectDir(layout, slug))) await ctx.adoptProject(slug);
@@ -391,7 +406,6 @@ export function createTrash(ctx: TrashContext) {
   function unitSteps(unit: DeletionUnit, dir: string) {
     const steps: { from: string; to: string }[] = [];
     const keepState = (slug: string, viewTo: string, draftsTo: string) => {
-      steps.push(...archiveAddressMigrations(layout, slug, dir));
       if (existsSync(state.viewFile(slug))) steps.push({ from: state.viewFile(slug), to: viewTo });
       if (existsSync(state.draftDir(slug))) steps.push({ from: state.draftDir(slug), to: draftsTo });
     };

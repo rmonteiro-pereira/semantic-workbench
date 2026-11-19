@@ -42,6 +42,9 @@ export function ValidationPanel({
     'tessera-property': 'Check the spelling against the registered properties the message lists, or remove the property.',
     'tessera-reserved': 'Remove the property; its name is kept for a later feature.',
     'tessera-location': 'Move the property to one of the places the message lists.',
+    'tessera-attribute-order': 'Keep each name once and only names of attributes of this concept, or remove the entry.',
+    'tessera-governance-value': 'Use only the keys and status words the message lists, and give the entry at least one key.',
+    'tessera-governance-deprecation': 'Set the status to deprecated, or remove the replacement and the reason.',
   };
   const formatLabel = format?.family === 'tessera' ? `${TesseraNames.product} ${format.revision} on Ossie ${format.base} · ` : '';
   return (

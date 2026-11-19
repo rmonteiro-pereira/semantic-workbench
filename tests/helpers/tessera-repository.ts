@@ -1,5 +1,5 @@
 // Builds a temporary Git repository holding one project of Tessera and standard documents, for compiler and command tests.
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { isolateGit } from './temp-data-dir';
@@ -95,6 +95,13 @@ export const COMMITTED_FILES: Record<string, string> = {
   '.gitignore': 'ignored.yaml\n',
 };
 
+const ADDITIONS_PROJECT_FIXTURES = 'tests/fixtures/tessera/additions/project';
+
+/** The project that uses every revision 2 addition at every place, with the committed path of each file. */
+export const ADDITIONS_PROJECT_FILES: Record<string, string> = Object.fromEntries(
+  ['ontology.yaml', 'semantic-model.yaml', 'mapping.yaml'].map(name => [`${PROJECT_FOLDER}/${name}`, readFileSync(`${ADDITIONS_PROJECT_FIXTURES}/${name}`, 'utf8')]),
+);
+
 /** A temporary repository and the operations the tests need on it. */
 export type TesseraRepository = {
   /** The repository folder. */
@@ -124,14 +131,14 @@ function writeFile(directory: string, path: string, text: string) {
   writeFileSync(join(directory, path), text);
 }
 
-/** Creates the repository with the committed files on `main`, an ignored file and a working tree that matches the commit. */
-export function createTesseraRepository(): TesseraRepository {
+/** Creates the repository with the given files (the retail project by default) on `main`, an ignored file and a working tree that matches the commit. */
+export function createTesseraRepository(files: Record<string, string> = COMMITTED_FILES): TesseraRepository {
   isolateGit();
   const base = mkdtempSync(join(tmpdir(), 'tessera-repository-'));
   const directory = join(base, 'repository');
   mkdirSync(directory);
   git(directory, ['init', '-q', '-b', 'main']);
-  for (const [path, text] of Object.entries(COMMITTED_FILES)) writeFile(directory, path, text);
+  for (const [path, text] of Object.entries(files)) writeFile(directory, path, text);
   git(directory, ['add', '-A']);
   git(directory, ['commit', '-q', '-m', 'Add the retail project']);
   writeFile(directory, 'ignored.yaml', 'name: ignored\n');

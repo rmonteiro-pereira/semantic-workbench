@@ -1,6 +1,7 @@
 import type { OperationOutcome } from '../auth/operation-outcome';
 // Connects project source control actions to Git and workspace updates. Checks after mutations
 // detect bytes rewritten by hooks or filters.
+import { ADDRESS_HISTORY_FILE, addressHistoryDifference, committedAddressHistoryFile, historyEndpoints, serializeAddressHistory, workingAddressHistoryFile } from './address-migrations';
 import type { AccessView } from '../auth/authorize';
 import { LOCAL_READER, type Reader } from './reader';
 import { BadRequestError, HiddenResourceError, PreconditionError } from './errors';
@@ -13,8 +14,6 @@ import { assertExactCase, assertNoLinks, projectPath, repoDir } from './paths';
 import { serializationOf } from './scanner';
 import { HIDDEN_LABEL, asText, createScmContext, type PathBase, type CredentialFor, type ScmDeps } from './scm-context';
 import { createScmRemote } from './scm-remote';
-import { bindAddressMigrations } from './address-commit';
-import { log } from '../observability/log';
 import { createScmBranches } from './scm-branches';
 export { BlockedError, HIDDEN_LABEL, blockers, type CredentialFor, type FollowRequest, type FollowResult, type PathBase, type ScmDeps } from './scm-context';
 /** What a commit was prepared against: the branch, the head and the version of each file it names. */
@@ -62,6 +61,7 @@ export function createScm(deps: ScmDeps) {
 
   function requireReadable(slug: string, path: string, view?: AccessView, base?: PathBase) {
     const repoPath = (base === 'repository' ? '' : prefix(slug)) + projectPath(path);
+    if (view && repoPath.split('/').at(-1)?.toLowerCase() === ADDRESS_HISTORY_FILE) throw new HiddenResourceError();
     assertExactCase(repoDir(layout, slug), repoPath);
     if (view && !readablePath(slug, path, view, base)) throw new HiddenResourceError();
   }
@@ -122,6 +122,7 @@ export function createScm(deps: ScmDeps) {
       identityConfigured: deps.signedCommits || (await git.identity(directory)),
       merging,
       hasCommits: gitStatus.hasCommits,
+      ...(gitStatus.head ? { head: gitStatus.head } : {}),
       remotes: Object.fromEntries([...(await git.remotes(directory))].map(([n, u]) => [n, redactCredentials(u)])),
       changes: view
         ? changes
@@ -164,7 +165,14 @@ export function createScm(deps: ScmDeps) {
       clean.filter(p => existsSync(join(directory, p))),
     );
     const parent = await git.head(directory);
-    await git.commit(directory, message, false, author);
+    const selected = staged.map(entry => entry.path);
+    const history = merging ? null : await selectedHistory(slug, selected, true);
+    if (history?.blobs.size) {
+      const extraPaths = history.paths.filter(path => !selected.includes(path));
+      await git.commitIndexWithBlobs(directory, extraPaths, history.blobs, message, author);
+    } else {
+      await git.commit(directory, message, false, author);
+    }
     const head = (await git.head(directory))!;
     const committed = await git.changedBetween(directory, parent, head);
     // A hook that rewrote a file, or a clean filter whose committed bytes differ from the saved
@@ -228,11 +236,55 @@ export function createScm(deps: ScmDeps) {
     }
     return chosen;
   }
+  async function selectedHistory(slug: string, chosen: string[], staged = false) {
+    const directory = dir(slug);
+    const selected = new Set(chosen);
+    const folders = new Map<string, string>();
+    for (const path of chosen) {
+      const owner = ownerOf(slug, path);
+      if (owner) folders.set(owner.project, owner.prefix);
+    }
+    const blobs = new Map<string, string>();
+    for (const [project, folder] of folders) {
+      const path = folder + ADDRESS_HISTORY_FILE;
+      const current = workingAddressHistoryFile(layout, project);
+      if (!current) continue;
+      const commit = await git.head(directory);
+      const base = commit ? await committedAddressHistoryFile(git, layout, project, commit) : null;
+      const previous = base ?? [];
+      const selectedRecord = (record: Parameters<typeof historyEndpoints>[0]) => historyEndpoints(record, project => folders.get(project)).some(endpoint => selected.has(endpoint));
+      const additions = addressHistoryDifference(previous, current).filter(selectedRecord);
+      const removals = new Set(
+        addressHistoryDifference(current, previous)
+          .filter(selectedRecord)
+          .map(record => record.id),
+      );
+      if (!additions.length && !removals.size) continue;
+      if (staged) {
+        const affected = [...additions, ...previous.filter(record => removals.has(record.id))];
+        const endpoints = new Set(affected.flatMap(record => historyEndpoints(record, project => folders.get(project))).filter(endpoint => selected.has(endpoint)));
+        await verifyStagedDefinitions(directory, [...endpoints]);
+      }
+      blobs.set(path, serializeAddressHistory([...previous.filter(record => !removals.has(record.id)), ...additions]));
+      if (!base) {
+        const attributes = folder + '.gitattributes';
+        if (existsSync(join(directory, attributes))) selected.add(attributes);
+      }
+    }
+    return { paths: [...selected].filter(path => !blobs.has(path)), blobs };
+  }
+  async function verifyStagedDefinitions(directory: string, endpoints: string[]) {
+    for (const endpoint of endpoints) {
+      const [staged, working] = await Promise.all([content(directory, 'index', endpoint), content(directory, 'worktree', endpoint)]);
+      if ((staged && sha256(staged)) !== (working && sha256(working))) throw new GitError('Stage the saved definition again so its address history matches the commit.');
+    }
+  }
   async function commitChosen(slug: string, message: string, chosen: string[], author?: CommitAuthor) {
     const directory = dir(slug);
     const clean = chosen.filter(p => existsSync(join(directory, p)));
     const before = await git.worktreeIds(directory, clean);
-    const commitPathsResult = await git.commitPaths(directory, chosen, message, author);
+    const selection = await selectedHistory(slug, chosen);
+    const commitPathsResult = await git.commitPaths(directory, selection.paths, message, author, selection.blobs);
     if (!commitPathsResult.committed) throw new GitRefusalError(NOT_COMMITTED_MESSAGE[commitPathsResult.reason]);
     const checked = clean.filter(p => before.has(p));
     const [disk, tree] = await Promise.all([
@@ -323,20 +375,8 @@ export function createScm(deps: ScmDeps) {
       const commitHere = async () => {
         if (options.expected) await assertExpected(slug, options.expected);
         const chosen = options.paths === undefined ? null : await commitSelection(slug, options.paths, options.base ?? 'project');
-        const directory = dir(slug);
-        const branch = deps.migrationLayout ? await symbolicBranch(git, directory) : null;
         const authoring = await deps.beforeCommit?.(slug);
-        const previous = branch ? await git.head(directory) : null;
         const committed = chosen === null ? await commitIndex(slug, message, author) : await commitChosen(slug, message, chosen, author);
-        if (branch && deps.migrationLayout) {
-          for (const project of lockedProjects(slug, options)) {
-            try {
-              await bindAddressMigrations(deps.migrationLayout, project, git, { directory, branch, previous, commit: committed.commit });
-            } catch {
-              log.warn('address-migration.commit-binding-failed', { project });
-            }
-          }
-        }
         return { ...committed, ...authoring };
       };
       // A commit takes the write lock of every project whose files it names, in sorted order so two commits cannot deadlock, and then its turn of the repository queue, so no save lands between the checks and the commit.

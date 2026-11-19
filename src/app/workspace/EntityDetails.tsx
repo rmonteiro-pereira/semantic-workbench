@@ -1,3 +1,5 @@
+import { BranchControl } from '../item-diff/BranchControl';
+import { ItemChangeAnnotation } from '../item-diff/ItemChangeAnnotation';
 /** Presentation and event handling for entity details. */
 import { Box, Braces, FileCode, Focus, Pencil, Plus, Trash2 } from 'lucide-react';
 import React from 'react';
@@ -8,6 +10,7 @@ import { editEntity } from '../../shared/core/model';
 import type { Doc } from '../projects/api';
 import { TrafficBadge } from '../usage/TrafficBadge';
 import { childAddressText, entityAddressText, relationshipAddressText } from '../usage/usage-addresses';
+import { ItemSections } from './ItemSections';
 import type { ItemTarget, RdfTarget, ValidatedModel } from './types';
 
 type Props = {
@@ -75,6 +78,8 @@ export function EntityDetails({
         <Box />
       </div>
       <h2>{entity.name}</h2>
+      <ItemChangeAnnotation document={current} item={entity} />
+      {current && 'address' in entity && <BranchControl name={entity.name} dirty={source !== current.source} />}
       <button className="inspect-neighborhood" onClick={() => showNeighborhood(entity.id)}>
         <Focus size={14} />
         Explore neighborhood
@@ -199,6 +204,15 @@ export function EntityDetails({
             );
           })}
       </div>
+      {(() => {
+        const target = entityTarget(entity);
+        if (!target) return null;
+        const selectConcept = (name: string) => {
+          const found = model?.entities.find(candidate => candidate.name === name);
+          if (found) setSelected(found.id);
+        };
+        return <ItemSections target={target} dirty={!!current && source !== current.source} openConcept={selectConcept} removeRelationship={setDeleting} />;
+      })()}
       {entity.definition && (
         <button className="view-definition" onClick={handleViewDefinitionClick}>
           <Braces size={13} />

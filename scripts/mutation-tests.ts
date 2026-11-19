@@ -1,10 +1,11 @@
+import { itemDiffMutants } from './item-diff-mutants';
 // Introduces faults into temporary source copies and checks that the test suite detects them.
 import { tmpdir } from 'node:os';
 import { operationBoundaryMutants } from './operation-boundary-mutants';
 import { connectionsMutants } from './connections-mutation-cases';
 import { mcpMutants } from './mcp-mutants';
 import { proposalsMutants } from './proposals-mutants';
-import { addressMutants, modelAddressMutants, migrationAddressMutants, serverAddressMutants, addressOperationMutants } from './address-mutants';
+import { addressMutants, modelAddressMutants, migrationAddressMutants, serverAddressMutants, addressOperationMutants, addressHistoryMutants } from './address-mutants';
 import { adminMutants } from './admin-mutants';
 import { sessionSecurityMutants } from './session-security-mutants';
 import { securityReviewMutants } from './security-review-mutants';
@@ -18,7 +19,7 @@ import { themeMutants } from './theme-mutants';
 import { brandMutants } from './brand-mutants';
 import { observabilityMutants } from './observability-mutants';
 import { usageMutants } from './usage-mutants';
-import { tesseraMutants } from './tessera-mutants';
+import { attributesMutants, tesseraMutants } from './tessera-mutants';
 import { chmod, mkdtemp, readdir, rm, symlink } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 const root = process.cwd();
@@ -584,8 +585,11 @@ mutants.push(...proposalsMutants);
 // Usage counters: what is counted, what is stored, who reads it, how it moves and when it expires.
 mutants.push(...usageMutants);
 // The Tessera format, its compiler and its command line.
-mutants.push(...tesseraMutants);
-// `--only <prefix>` runs the mutants of the categories that start with the prefix and nothing else.
+mutants.push(...tesseraMutants, ...attributesMutants);
+// Committed address history and the unpublished item comparison.
+mutants.push(...addressHistoryMutants, ...itemDiffMutants);
+// `--only <prefix>` runs the mutants of the categories that start with the prefix and nothing else,
+// for example `--only item-diff`, `--only address-history` or `--only attributes`.
 const only = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1] : undefined;
 if (only) mutants.splice(0, mutants.length, ...mutants.filter(mutant => mutant[0].startsWith(only)));
 

@@ -51,5 +51,15 @@ function RelationshipLabel({ edge, text, points, fallback, traffic }: LabelProps
     </>
   );
 }
+import { unpublishedEdge } from './edge-styles';
+import type { ChangeState } from '../../shared/item-diff/item-change';
 
-export const relationshipEdgeTypes = { relationship: RelationshipEdge };
+function OverlayRelationshipEdge(props: EdgeProps) {
+  const change = props.data?.change as ChangeState | undefined;
+  if (!change) return <RelationshipEdge {...props} />;
+  const relationships = props.data?.relationships as { label: string }[] | undefined;
+  const appearance = unpublishedEdge(props.label, relationships?.[0]?.label ?? 'Relationship', props.style, change);
+  return <RelationshipEdge {...props} {...appearance} />;
+}
+
+export const relationshipEdgeTypes = { relationship: OverlayRelationshipEdge };

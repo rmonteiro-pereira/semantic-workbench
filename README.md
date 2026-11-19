@@ -171,6 +171,7 @@ is disabled unless explicitly configured.
   evidence, ambiguity/refusal explanations, mapping graphs and composed query previews.
 - **Edit original files:** Source and item editors, YAML/JSON/RDF-aware changes, inline findings,
   stale-version conflicts, autosave, explicit multi-file saves and byte-preserving export.
+- **Review unpublished work:** compare saved branch definitions with the published version, mark changes in the graphs and review a branch before publishing. See [item comparison](docs/item-diff.md).
 - **Manage projects:** import, clone, sparse repository folders, shared-repository projects,
   Source Control, ZIP/Git-history export, trash, Undo and safe restore.
 - **Collaborate securely:** shared-server sign-in, scoped grants, protected content, personal Git
@@ -334,7 +335,7 @@ pending work on unmount. Geometry and raw browser-error tests cover these transi
 
 ```text
 DATA_DIR/
-  projects/       published/local definition repositories
+  projects/       published/local definition repositories and address history
   worktrees/      server-mode personal Git working copies
   state/          registry, drafts, views, sessions, journals and audit
   admin/          versioned roles, grants, policies and settings
@@ -389,7 +390,7 @@ authorization boundaries and invariants. It is the detailed reference for changi
 | Ossie ontology | YAML, JSON | Concepts, relationships, inheritance and IRIs |
 | Ossie semantic model | YAML, JSON | Datasets, fields, joins, expressions and metrics |
 | Ossie mappings | YAML, JSON | Standalone and deprecated embedded mappings |
-| Tessera ontology (authoring format that compiles to standard Ossie) | YAML, JSON | An Ossie ontology with the marker `tessera: 1` and `tessera_notes`; see [Tessera](#tessera-an-authoring-format-that-compiles-to-standard-ossie) |
+| Tessera ontology (authoring format that compiles to standard Ossie) | YAML, JSON | An Ossie ontology with a `tessera: 1` or `tessera: 2` marker; see [Tessera](#tessera-an-authoring-format-that-compiles-to-standard-ossie) |
 | RDF | Turtle, N-Triples, N3, RDF/XML | Resource inspection, safe item edits and Source |
 | OWL / SHACL | Turtle or RDF/XML | Definitions and selected structural checks; SHACL shapes also run against a chosen Turtle, N-Triples or N3 data file in the project |
 
@@ -417,10 +418,20 @@ See [validation coverage](docs/user-guide.md#validation-coverage-and-limits) and
 ## Tessera: an authoring format that compiles to standard Ossie
 
 Tessera is an authoring format that compiles to standard Ossie. A Tessera ontology is an Ossie
-ontology with the top-level key `tessera: 1` (the revision of the Tessera rules) and properties
+ontology with a top-level `tessera` revision marker and properties
 whose names start with `tessera_`. Revision 1 defines one such property, `tessera_notes`: free text
 for the people who edit an ontology, on the ontology root, on a concept or on a relationship of a
-concept, at most 10,000 characters. Everything else in the document is ordinary Ossie 0.2.0.dev0.
+concept, at most 10,000 characters. Revision 2 adds these properties on the same Ossie 0.2.0.dev0 base:
+
+- `tessera_attributes` orders a concept's existing attributes. An attribute is a single-role
+  relationship to a value type in the document or a built-in concept.
+- `tessera_ai_context` adds item instructions, synonyms and examples for agents.
+- `tessera_governance` records the status, owner, steward, classification and deprecation details
+  of a concept or relationship. Classification is a declaration. Server approval requires the
+  [separate ontology approval permission](docs/server-mode.md#governed-content).
+
+The editor asks before raising the revision. The [user guide](docs/user-guide.md#tessera-documents)
+describes the fields and controls.
 
 ```yaml
 tessera: 1
@@ -438,8 +449,10 @@ Ossie ontology. The validation panel names the format ("Tessera 1 on Ossie 0.2.0
 `tessera_` property, a reserved name, a marker on a file that is not an ontology or an unsupported
 Ossie `version` each give a finding with its own code (`tessera-marker`, `tessera-revision`,
 `tessera-base`, `tessera-kind`, `tessera-property`, `tessera-reserved`, `tessera-location`).
-The item inspector and access rules apply to Tessera files. Semantic agent context uses the published projection with notes removed.
-Authorized MCP authoring tools can read the stored source, including unpublished edits and notes. Tests: `tests/tessera/validation.test.ts`,
+The item inspector and access rules apply to Tessera files. Agents get item context and limited
+governance flags from the published snapshot, with notes removed. Notes, attribute order, owner,
+steward and classification stay in the workbench. Authorized MCP authoring tools can read the stored
+source, including unpublished edits and notes. Tests: `tests/tessera/validation.test.ts`,
 `tests/tessera/workbench-documents.test.ts`, `tests/tessera/agent-and-access.test.ts`.
 
 ### The compiler and its command line
@@ -452,11 +465,13 @@ Anywhere else, the manifest and loss report label the source `standalone-snapsho
 commit on the chosen branch whose publication the workbench cannot establish. Reserved `work/`,
 `proposal/` and `refs/workbench/` refs are refused in either case.
 
-The compiler removes the Tessera marker and notes, copies the other Ossie files byte for byte, and
+The compiler removes the Tessera marker and the additions, copies the other Ossie files byte for byte, and
 writes a bundle outside the repository and the data root’s project and working copy trees.
 The output check follows symlinks and treats names like `..exports` as ordinary child folders.
 The bundle contains the compiled files, `manifest.json` and
-`loss-report.json`. ODCS contracts, RDF files and other files are listed in the manifest as not
+`loss-report.json`. Report version 2 counts dropped governance entries by status when present.
+Standard ontology output carries no governance status. Accepting a loss report grants permission to
+release that output and has no effect on the approval of its content. ODCS contracts, RDF files and other files are listed in the manifest as not
 included. `bun run tessera check` runs the same validation and compilation in memory, for a
 committed snapshot or for a folder on disk (labelled unpublished), and writes nothing.
 

@@ -12,7 +12,7 @@ const base = SUPPORTED_BASES[0];
 
 test('the checked-in derived schema equals a fresh derivation byte for byte', () => {
   const files = derivedSchemaFiles();
-  expect(files.map(file => file.path)).toEqual([`schemas/${derivedSchemaFileName(base, 1)}`]);
+  expect(files.map(file => file.path)).toEqual([`schemas/${derivedSchemaFileName(base, 1)}`, `schemas/${derivedSchemaFileName(base, 2)}`]);
   for (const file of files) expect(readFileSync(file.path, 'utf8')).toBe(file.text);
 });
 

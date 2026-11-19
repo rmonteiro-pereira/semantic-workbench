@@ -1,3 +1,7 @@
+import { entityCardData } from './full-node-data';
+import { unpublishedEdge } from './edge-styles';
+import type { ChangeState } from '../../shared/item-diff/item-change';
+import { ChangeMark } from '../item-diff/ChangeMark';
 /** Displays the complete model graph with grouping, filtering and a detail inspector. */
 import { isStructuredEntity } from '../../shared/core/model';
 import { formatAddress } from '../../shared/core/item-address';
@@ -10,7 +14,7 @@ import { ReactFlow, getViewportForBounds, Background, MiniMap, MarkerType, type 
 import { SmartEdgeProvider, type SmartEdgeMetrics } from '@tisoap/react-flow-smart-edge';
 import { Crosshair, Maximize, Maximize2, Minimize2, RefreshCw } from 'lucide-react';
 import { useViewRestore, type Fullscreen } from './fullscreen';
-import { GraphOptions, OptionGroup, Segmented } from './GraphOptions';
+import { ModelGraphOptions, OptionGroup, Segmented } from './GraphOptions';
 import { ZoomButtons } from './ZoomButtons';
 import { MODEL_CARD_WIDTH, startsCollapsed, textSizesAt } from './overview-capacity';
 import { CompactControls } from './CompactControls';
@@ -46,6 +50,8 @@ type Props = {
   name: string;
   entities: Entity[];
   edges: Relationship[];
+  /** Saved item marks affect rendering without invalidating a layout of the same items. */
+  annotations?: { entities: Entity[]; edges: Relationship[] };
   selected: string;
   selectedEdge: string;
   search: string;
@@ -127,7 +133,26 @@ export function FullGraph(props: Props) {
       duration: 350,
     });
   };
-  const connections = useMemo(() => groupRelationships(display.edges), [display]);
+  const entityMarks = useMemo(() => {
+    const changes = new Map<string, ChangeState>();
+    for (const entity of props.annotations?.entities ?? []) {
+      if ('change' in entity) changes.set(entity.id, entity.change as ChangeState);
+    }
+    return changes;
+  }, [props.annotations]);
+  const connections = useMemo(() => {
+    if (!props.annotations) return groupRelationships(display.edges);
+    const marks = new Map<string, ChangeState>();
+    for (const edge of props.annotations.edges) {
+      if ('change' in edge.data) marks.set(edge.id, edge.data.change as ChangeState);
+    }
+    return groupRelationships(
+      display.edges.map(edge => {
+        const change = marks.get(edge.id);
+        return change ? { ...edge, data: { ...edge.data, change } } : edge;
+      }),
+    );
+  }, [display, props.annotations]);
   const entityById = useMemo(() => new Map(display.entities.map(e => [e.id, e])), [display]);
   const groupById = useMemo(() => new Map(overview.groups.map(g => [g.id, g])), [overview]);
   useEffect(() => {
@@ -256,24 +281,28 @@ export function FullGraph(props: Props) {
   }, [display, focus]);
   const renderedNodes = useMemo(
     () =>
-      nodes.map(node =>
-        node.type === 'entity'
-          ? {
-              ...node,
-              selected: node.id === props.selected,
-              data: {
-                ...node.data,
-                kind: entityById.get(node.id)?.kind,
-                address: entityAddress(entityById.get(node.id)),
-                kpis: props.kpiBadges?.get(String(node.data.name)),
-                focused: connected.has(node.id),
-                tooltip: node.id === hover || node.id === props.selected,
-              },
-              style: { ...node.style, opacity: focus && !connected.has(node.id) ? 0.32 : 1 },
-            }
-          : node,
-      ),
-    [nodes, connected, focus, props.selected, hover, entityById, props.kpiBadges],
+      nodes.map(node => {
+        if (node.type !== 'entity') return node;
+        const entity = entityById.get(node.id);
+        const change = entityMarks.get(node.id);
+        const geometry = change && entity ? entityCardData({ ...entity, change }, { width: node.style.width, height: node.style.height }) : undefined;
+        return {
+          ...node,
+          selected: node.id === props.selected,
+          data: {
+            ...node.data,
+            ...geometry,
+            ...(change ? { changeMark: <ChangeMark change={change} /> } : {}),
+            kind: entity?.kind,
+            address: entityAddress(entity),
+            kpis: props.kpiBadges?.get(String(node.data.name)),
+            focused: connected.has(node.id),
+            tooltip: node.id === hover || node.id === props.selected,
+          },
+          style: { ...node.style, opacity: focus && !connected.has(node.id) ? 0.32 : 1 },
+        };
+      }),
+    [nodes, connected, focus, props.selected, hover, entityById, entityMarks, props.kpiBadges],
   );
   const positions = useMemo(() => {
     const byId = new Map(nodes.map(n => [n.id, n]));
@@ -340,6 +369,13 @@ export function FullGraph(props: Props) {
         } else {
           label = undefined;
         }
+        const style = {
+          stroke: active || adjacent ? 'var(--color-edge-active)' : 'var(--color-edge-idle)',
+          strokeWidth: active ? 2 : 1.2,
+          strokeOpacity: relationshipOpacity(active || adjacent, Boolean(focus)),
+        };
+        const change = (connection.data as { change?: ChangeState }).change;
+        const appearance = unpublishedEdge(label, connection.label, style, change);
         return {
           ...connection,
           data: {
@@ -352,7 +388,7 @@ export function FullGraph(props: Props) {
           sourceHandle: 'source-' + source,
           targetHandle: 'target-' + target,
           selected: active,
-          label,
+          ...appearance,
           markerEnd: {
             type: MarkerType.ArrowClosed,
             color: active || adjacent ? 'var(--color-edge-active)' : 'var(--color-edge-idle)',
@@ -361,11 +397,6 @@ export function FullGraph(props: Props) {
           },
           zIndex: -2,
           interactionWidth: 24,
-          style: {
-            stroke: active || adjacent ? 'var(--color-edge-active)' : 'var(--color-edge-idle)',
-            strokeWidth: active ? 2 : 1.2,
-            strokeOpacity: relationshipOpacity(active || adjacent, Boolean(focus)),
-          },
         };
       }),
     [connections, positions, props.selectedEdge, focus, labels, hoverEdge, algorithm, layoutRoutes, viewport, size, dragging],
@@ -409,7 +440,7 @@ export function FullGraph(props: Props) {
         <CompactControls>
           {props.groupMenu}
           <ZoomButtons onZoomIn={() => void flow.current?.zoomIn({ duration: 150 })} onZoomOut={() => void flow.current?.zoomOut({ duration: 150 })} />
-          <GraphOptions>
+          <ModelGraphOptions>
             <OptionGroup title="Layout">
               <Segmented
                 label="Graph layout"
@@ -454,7 +485,7 @@ export function FullGraph(props: Props) {
                 ]}
               />
             </OptionGroup>
-          </GraphOptions>
+          </ModelGraphOptions>
           {props.fullscreen && <FullscreenButton fullscreen={props.fullscreen} />}
         </CompactControls>
       </ScrollStrip>

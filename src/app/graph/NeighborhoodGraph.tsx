@@ -299,6 +299,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
                   )}
                 </small>
                 <EntityName name={entity.name} />
+                {'change' in entity && typeof entity.change === 'string' && <span className="item-change-mark item-change-dashed">Not published: {entity.change}</span>}
                 <span title={entity.description || undefined}>
                   {entity.fields.length ? `${entity.fields.length} ${entity.fields.length === 1 ? 'field' : 'fields'}` : entity.description || 'Select to inspect'}
                 </span>

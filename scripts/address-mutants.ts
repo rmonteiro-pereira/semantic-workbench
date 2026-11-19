@@ -59,7 +59,7 @@ export const serverAddressMutants: [string, string, string, string][] = [
     'const parsed = parseAddress(text);',
     'const parsed = parseAddress(text);\n  if (parsed.ok && parsed.address.project) context.projectExists(parsed.address.project);',
   ],
-  ['address-store', 'src/server/projects/address-migrations.ts', '      continue;\n    }\n    records.push(record);', '    }\n    records.push(record);'],
+  ['address-store', 'src/server/projects/address-migrations.ts', 'if (!byId.has(record.id)) byId.set(record.id, record);', 'byId.set(record.id, record);'],
   ['address-server', 'src/server/projects/address-resolution.ts', 'const parsed = parseAddress(text);', "const parsed = parseAddress(text);\n  console.log('address.resolve', { address: text });"],
 ];
 
@@ -72,4 +72,10 @@ export const addressOperationMutants: [string, string, string, string][] = [
   ['address-operation', 'src/server/routes/item-addresses.ts', "typeof body.operationId !== 'string'", 'false'],
   ['address-operation', 'src/server/routes/item-addresses.ts', 'readJson(request, ITEM_ADDRESS_REQUEST_LIMIT)', 'readJson(request, ITEM_ADDRESS_REQUEST_LIMIT * 2)'],
   ['address-operation', 'src/server/routes/item-addresses.ts', "path !== undefined && parsed.address.document?.join('/') !== path", 'false'],
+];
+
+/** Faults in side provenance and definition-input filtering. */
+export const addressHistoryMutants: [string, string, string, string][] = [
+  ['address-history-difference', 'src/server/projects/address-migrations.ts', 'to.filter(record => !previous.has(record.id))', '[...to]'],
+  ['address-history-definition', 'src/server/tessera/disk-source.ts', ' || name.toLowerCase() === ADDRESS_HISTORY_FILE', ''],
 ];

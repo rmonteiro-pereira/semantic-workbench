@@ -7,6 +7,7 @@ import { findBase, SUPPORTED_BASES, type SupportedBase } from './bases';
 import { hasTesseraPrefix, SUPPORTED_REVISIONS, TesseraNames, type DocumentFormat } from './format';
 import { readMarker, type MarkerReading } from './marker';
 import { REGISTRY, type AdditionPlace, type Registry } from './registry';
+import { additionSemanticIssues } from './semantic-checks';
 
 /** What a Tessera check reads besides the document; tests replace these to try a later revision or base. */
 export type TesseraOptions = {
@@ -174,5 +175,6 @@ export function tesseraIssues(data: unknown, options: TesseraOptions = {}): Tess
     return { issues, format: null };
   }
   issues.push(...derivedSchemaIssues(document, base, declaredRevision, new Set(properties.map(issue => issue.path))));
+  issues.push(...additionSemanticIssues(document, declaredRevision));
   return { issues, format: documentFormat(data, options) };
 }

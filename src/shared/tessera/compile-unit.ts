@@ -7,7 +7,7 @@ import { compileDocument, type CompileFailure } from './compile-document';
 import { sha256Hex } from './digest';
 import { classifyFile, type ClassifiedFile, type UnitFile } from './document-kind';
 import { COMPILER_NAME, COMPILER_VERSION } from './format';
-import { buildLossReport, type LossEntry, type LossReport, type ReportInput, type ReportOutput } from './loss-report';
+import { buildLossReport, type GovernanceStatusKey, type LossEntry, type LossReport, type ReportInput, type ReportOutput } from './loss-report';
 import { documentMeaningFailures, summarizeItems, unitMeaningFailures, type DocumentReading } from './meaning-check';
 import { SUPPORTED_BASES, findBase } from './bases';
 import { REGISTRY } from './registry';
@@ -91,7 +91,7 @@ function checkOutput(path: string, text: string): OutputCheck {
   return { failures, reading: model ? { path, source: text, data: model.document, summary: summarizeItems(model) } : null };
 }
 
-type Compiled = { outputs: UnitFile[]; losses: LossEntry[]; failures: CompileFailure[]; treatments: Map<string, ReportInput['treatment']> };
+type Compiled = { outputs: UnitFile[]; losses: LossEntry[]; governanceStatuses: GovernanceStatusKey[]; failures: CompileFailure[]; treatments: Map<string, ReportInput['treatment']> };
 
 /** Compiles a Tessera ontology and checks its output against its source. */
 function compileOntology(entry: Extract<ClassifiedFile, { kind: 'tessera-ontology' }>, steps: UnitSteps, result: Compiled, readings: { sources: DocumentReading[]; outputs: DocumentReading[] }) {
@@ -102,6 +102,7 @@ function compileOntology(entry: Extract<ClassifiedFile, { kind: 'tessera-ontolog
   }
   result.outputs.push({ path: entry.file.path, bytes: encoder.encode(compiled.text) });
   result.losses.push(...compiled.losses);
+  result.governanceStatuses.push(...(compiled.governanceStatuses ?? []));
   const checked = checkOutput(entry.file.path, compiled.text);
   result.failures.push(...checked.failures);
   if (!checked.reading) return;
@@ -111,7 +112,7 @@ function compileOntology(entry: Extract<ClassifiedFile, { kind: 'tessera-ontolog
 }
 
 function compileFiles(classified: ClassifiedFile[], steps: UnitSteps): Compiled {
-  const result: Compiled = { outputs: [], losses: [], failures: [], treatments: new Map() };
+  const result: Compiled = { outputs: [], losses: [], governanceStatuses: [], failures: [], treatments: new Map() };
   const readings = { sources: [] as DocumentReading[], outputs: [] as DocumentReading[] };
   for (const entry of classified) {
     result.treatments.set(entry.file.path, TREATMENT_OF_KIND[entry.kind]);
@@ -141,7 +142,7 @@ export function compileUnit(files: UnitFile[], options: CompileOptions, steps: U
   const sorted = [...files].sort((first, second) => compareText(first.path, second.path));
   const limits = limitFailures(sorted);
   const base = findBase(SUPPORTED_BASES, OSSIE_SCHEMA_VERSION)!;
-  const empty = { outputs: [], losses: [], failures: [], treatments: new Map() } as Compiled;
+  const empty = { outputs: [], losses: [], governanceStatuses: [], failures: [], treatments: new Map() } as Compiled;
   const classified = limits.length ? [] : sorted.map(classifyFile);
   const compiled = limits.length ? empty : compileFiles(classified, steps);
   const collisions = collisionFailures(compiled.outputs);
@@ -155,6 +156,7 @@ export function compileUnit(files: UnitFile[], options: CompileOptions, steps: U
     inputs,
     outputs,
     losses: compiled.losses,
+    governanceStatuses: compiled.governanceStatuses,
   });
   const revisions = [...new Set(classified.flatMap(entry => (entry.kind === 'tessera-ontology' ? [entry.revision] : [])))].sort((first, second) => first - second);
   const findings = classified.filter(entry => entry.kind !== 'other').map(entry => ({ document: entry.file.path, issues: 'issues' in entry ? entry.issues : [] }));

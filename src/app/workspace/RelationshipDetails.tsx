@@ -1,3 +1,5 @@
+import { BranchControl } from '../item-diff/BranchControl';
+import { ItemChangeAnnotation } from '../item-diff/ItemChangeAnnotation';
 /** Presentation and event handling for relationship details. */
 import { Braces, Network, Pencil, Trash2 } from 'lucide-react';
 import React from 'react';
@@ -6,6 +8,7 @@ import { itemValue } from '../../shared/edit/yaml-patch';
 import type { Relationship } from '../../shared/core/model';
 import { editEntity } from '../../shared/core/model';
 import type { Doc } from '../projects/api';
+import { ItemSections } from './ItemSections';
 import type { ItemTarget, RdfTarget, ValidatedModel } from './types';
 import { TrafficBadge } from '../usage/TrafficBadge';
 import { relationshipAddressText } from '../usage/usage-addresses';
@@ -86,6 +89,8 @@ export function RelationshipDetails({
         </label>
       )}
       <h2>{relationship.label}</h2>
+      <ItemChangeAnnotation document={current} item={relationship} />
+      {current && 'address' in relationship && <BranchControl name={relationship.label} dirty={source !== current.source} />}
       <div className="badge">{relationship.data.kind}</div>
       <TrafficBadge address={relationshipAddressText(relationship)} />
       {(() => {
@@ -167,6 +172,12 @@ export function RelationshipDetails({
           <textarea aria-label="Relationship description" value={relationship.data.definition.description ?? ''} onChange={handleTextareaChange} />
         </label>
       )}
+      {(() => {
+        const target = relationshipTarget(relationship);
+        const whole = relationship.data.kind === 'Inheritance' || relationship.data.kind === 'Metric expression reference';
+        if (!target || whole) return null;
+        return <ItemSections target={target} dirty={!!current && source !== current.source} openConcept={() => {}} removeRelationship={setDeleting} />;
+      })()}
       <button className="view-definition" onClick={handleViewDefinitionClick}>
         <Braces size={13} />
         View definition

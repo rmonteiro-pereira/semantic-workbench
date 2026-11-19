@@ -46,3 +46,18 @@ export const tesseraMutants: Mutant[] = [
   ['tessera', bundleWriter, 'rmSync(temporary, { recursive: true, force: true });', 'void temporary;'],
   ['tessera', agentView, "if (readMarker(data).family === 'standard') return data;", 'return data;'],
 ];
+
+/** Candidate faults for the revision additions, run alone before the integrated mutation gate. */
+export const attributesMutants: Mutant[] = [
+  ['attributes-rules', 'src/shared/attributes/attribute-rule.ts', "lookup(targets[0]) === 'ValueType'", 'Boolean(lookup(targets[0]))'],
+  ['attributes-rules', 'src/shared/attributes/attribute-rule.ts', 'targets.length === 1', 'targets.length >= 1'],
+  ['attributes-revision', validate, 'declaredRevision !== undefined && entry.since > declaredRevision', 'false'],
+  ['attributes-approval', 'src/server/auth/guards.ts', 'const item = { status: metric.status, owner };', 'const item = { status: metric.status };'],
+  ['attributes-approval', 'src/server/auth/guards.ts', "if (kind === 'item-status' || kind === 'item-body')", 'if (false)'],
+  ['attributes-approval', 'src/server/auth/guards.ts', 'level: levelNumber(change.level)', 'level: 0'],
+  ['attributes-item-identity', 'src/shared/governance/ontology-guards.ts', 'JSON.stringify([concept.concept, relationship.name])', 'label'],
+  ['attributes-item-identity', 'src/shared/governance/ontology-guards.ts', "else if (oldStatus === 'approved' && status === '')", 'else if (false)'],
+  ['attributes-demotion', 'src/shared/governance/guards.ts', 'if (options.demote && guarded.demotable)', 'if (false)'],
+  ['attributes-publication', 'src/server/routes/agent.ts', 'const response = await use(documents);', 'const response = await editingAgentDocuments(workspace, request, project, use);'],
+  ['attributes-loss', lossReport, 'statusCounts: countStatuses(statuses)', 'statusCounts: countStatuses([])'],
+];

@@ -1,0 +1,25 @@
+tessera: 2
+version: 0.2.0.dev0
+name: Retail
+ontology:
+  - concept: LoyaltyTier
+    type: ValueType
+  - concept: Order
+    type: EntityType
+  - concept: Customer
+    type: EntityType
+    tessera_ai_context:
+      instructions: Prefer the tier over the email.
+      synonyms: [client, buyer]
+      examples: [How many customers are gold?]
+    relationships:
+      - name: email
+        roles: [{ concept: String }]
+        verbalizes: ["{Customer} has {email}"]
+        tessera_ai_context: The address people log in with.
+      - name: tier
+        roles: [{ concept: LoyaltyTier }]
+        verbalizes: ["{Customer} has {tier}"]
+      - name: places
+        roles: [{ concept: Order }]
+        verbalizes: ["{Customer} places {Order}"]

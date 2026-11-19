@@ -5,7 +5,8 @@ import { formatAddress } from '../core/item-address';
 import { addressAtModelPath } from '../core/model-addresses';
 import { sha256Hex } from './digest';
 import { hasTesseraPrefix, TesseraNames } from './format';
-import type { LossEntry } from './loss-report';
+import { GOVERNANCE_PROPERTY, GOVERNANCE_STATUSES } from './additions/governance';
+import type { GovernanceStatusKey, LossEntry } from './loss-report';
 import { lossyNumbers, printJson, printYaml, type DocumentSyntax } from './serialize';
 import type { AdditionPlace, Registry } from './registry';
 
@@ -22,7 +23,7 @@ export type SourceDocument = { path: string; source: string };
 export type AdditionSite = { path: (string | number)[]; name: string; place: AdditionPlace; value: unknown };
 
 /** A compiled document: its text and what was lost. The caller reads the text back to check it. */
-export type CompiledDocument = { ok: true; text: string; losses: LossEntry[] } | { ok: false; failures: CompileFailure[] };
+export type CompiledDocument = { ok: true; text: string; losses: LossEntry[]; governanceStatuses?: GovernanceStatusKey[] } | { ok: false; failures: CompileFailure[] };
 
 /** A parsed document: its data and, for YAML, the document that keeps comments and scalar spelling. */
 export type ParsedSource = { data: any; yaml?: Document.Parsed };
@@ -101,17 +102,31 @@ function keepHeaderComment(yaml: Document.Parsed) {
   if (first?.key?.value === TesseraNames.markerKey && first.key.commentBefore && !yaml.commentBefore) yaml.commentBefore = first.key.commentBefore;
 }
 
+/** The status a lost governance entry counts under. Anything outside the vocabulary counts as not set. */
+function governanceStatusOf(value: unknown): GovernanceStatusKey {
+  const status = isObject(value) ? value.status : undefined;
+  return (GOVERNANCE_STATUSES as readonly unknown[]).includes(status) ? (status as GovernanceStatusKey) : 'notSet';
+}
+
 /** Decides what each addition becomes: dropped additions are reported as losses, the others fail the compile. */
-function dispositions(document: SourceDocument, data: unknown, sites: AdditionSite[], registry: Registry): { losses: LossEntry[]; failures: CompileFailure[] } {
+function dispositions(
+  document: SourceDocument,
+  data: unknown,
+  sites: AdditionSite[],
+  registry: Registry,
+): { losses: LossEntry[]; failures: CompileFailure[]; governanceStatuses: GovernanceStatusKey[] } {
   const losses: LossEntry[] = [];
+  const governanceStatuses: GovernanceStatusKey[] = [];
   const failures: CompileFailure[] = [];
   for (const site of sites) {
     const entry = registry.byName(site.name);
     if (!entry) failures.push({ code: 'invalid-source', document: document.path, message: `${site.name} at ${pointerOf(site.path)} is not a registered ${TesseraNames.product} property.` });
-    else if (entry.disposition === 'drop') losses.push(lossOf(document.path, data, site));
-    else failures.push({ code: 'translation', document: document.path, message: `${site.name} at ${pointerOf(site.path)} cannot be compiled: its disposition is ${entry.disposition}.` });
+    else if (entry.disposition === 'drop') {
+      losses.push(lossOf(document.path, data, site));
+      if (site.name === GOVERNANCE_PROPERTY) governanceStatuses.push(governanceStatusOf(site.value));
+    } else failures.push({ code: 'translation', document: document.path, message: `${site.name} at ${pointerOf(site.path)} cannot be compiled: its disposition is ${entry.disposition}.` });
   }
-  return { losses, failures };
+  return { losses, failures, governanceStatuses };
 }
 
 /** Compiles one Tessera ontology into standard Ossie text, with the losses it caused, or says why it cannot. */
@@ -120,16 +135,16 @@ export function compileDocument(document: SourceDocument, registry: Registry): C
   const parsed = parseSourceDocument(document, syntax);
   if ('code' in parsed) return { ok: false, failures: [parsed] };
   const sites = additionSites(parsed.data);
-  const { losses, failures } = dispositions(document, parsed.data, sites, registry);
+  const { losses, failures, governanceStatuses } = dispositions(document, parsed.data, sites, registry);
   const lossy = lossyNumbers(syntax, document.source, parsed.yaml);
   for (const token of lossy) failures.push({ code: 'serialization', document: document.path, message: `The number ${token} cannot be written without changing its digits.` });
   if (failures.length) return { ok: false, failures };
   if (syntax === 'json') {
-    return { ok: true, text: printJson(withoutAdditions(parsed.data, sites)), losses };
+    return { ok: true, text: printJson(withoutAdditions(parsed.data, sites)), losses, governanceStatuses };
   }
   const yaml = parsed.yaml!;
   keepHeaderComment(yaml);
   yaml.delete(TesseraNames.markerKey);
   for (const site of sites) yaml.deleteIn(site.path);
-  return { ok: true, text: printYaml(yaml), losses };
+  return { ok: true, text: printYaml(yaml), losses, governanceStatuses };
 }

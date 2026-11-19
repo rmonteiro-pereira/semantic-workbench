@@ -4,7 +4,7 @@ import { ArrowLeft, ArrowRight, FileSymlink, Gauge, LocateFixed } from 'lucide-r
 import { ScrollStrip } from '../components/ScrollStrip';
 import { EntityName } from './EntityName';
 import { CompactControls } from './CompactControls';
-import { GraphOptions, OptionGroup, ShowToggle } from './GraphOptions';
+import { ModelGraphOptions, OptionGroup, ShowToggle } from './GraphOptions';
 import { useTrafficShowItem } from '../usage/traffic-show-item';
 import { ShowMenu } from './ShowMenu';
 import { PierceControls } from './PierceControls';
@@ -163,7 +163,7 @@ function NeighborhoodOptions({
 }: OptionsProps) {
   const trafficItem = useTrafficShowItem();
   return (
-    <GraphOptions>
+    <ModelGraphOptions>
       <OptionGroup title="Neighbors">
         {view.relationships.length > 1 && (
           <label>
@@ -202,7 +202,7 @@ function NeighborhoodOptions({
           Re-arrange
         </button>
       </OptionGroup>
-    </GraphOptions>
+    </ModelGraphOptions>
   );
 }
 

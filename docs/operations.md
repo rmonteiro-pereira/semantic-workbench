@@ -36,6 +36,7 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 | files.move | POST /api/projects/:slug/move | move | project | localWrite | PROJECT_REQUEST_LIMIT | local-edit |
 | files.import | POST /api/projects/:slug/import | import | project | localWrite | IMPORT_REQUEST_LIMIT | local-edit |
 | projects.export | GET /api/projects/:slug/export | export | project | read | none | local-edit |
+| items.diff | GET /api/projects/:slug/item-diff | history | project | read | ITEM_DIFF_QUERY_LIMIT | never |
 | files.saveBatch | POST /api/projects/:slug/save-batch | edit | project | localWrite | FILE_SAVE_REQUEST_LIMIT | local-edit |
 | itemAddresses.resolve | POST /api/projects/:slug/item-addresses/resolve | read | project | read | ITEM_ADDRESS_REQUEST_LIMIT | local-edit |
 | itemAddresses.reconcile | POST /api/projects/:slug/item-addresses/reconcile/* | edit | file | localWrite | ITEM_ADDRESS_REQUEST_LIMIT | local-edit |
@@ -180,6 +181,8 @@ These steps run inside the admitted route and share its authorization and audit 
 | proposals.promote | publication.advance, publication.abandon |
 | repositories.clone | publication.upgrade |
 | projects.export | snapshot.read |
+| items.diff | snapshot.read |
+| itemAddresses.resolve | snapshot.read |
 | metrics.list | snapshot.read |
 | usage.read | snapshot.read |
 | metrics.save | snapshot.read |
@@ -192,6 +195,15 @@ These steps run inside the admitted route and share its authorization and audit 
 | agent.context.read | snapshot.read |
 | agent.plan | snapshot.read |
 | git.adopt | publication.advance, publication.abandon |
+
+## Content guards
+
+These actions apply after the write operation is admitted.
+
+| Guard | Policy action |
+| --- | --- |
+| item-status | approveOntologyItem |
+| item-body | approveOntologyItem |
 
 ## Workspace lifecycle
 

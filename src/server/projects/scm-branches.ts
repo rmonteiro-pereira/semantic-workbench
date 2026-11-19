@@ -110,6 +110,7 @@ export function createScmBranches(ctx: ScmContext, remote: Pick<ScmRemote, 'choo
         if (blocked) throw blocked;
         authorizeBranch?.(local);
         await deps.assertBranchFree?.(slug, local);
+        if (create && (await git.branches(directory)).local.includes(local)) throw new BadRequestError(`Branch "${local}" already exists.`);
         const before = await git.head(directory);
         // Everyone works in one tree, so the branch's content is checked as if the person wrote it.
         if (!create) {

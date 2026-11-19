@@ -45,8 +45,7 @@ export type StructuredRelationship = Relationship & { address: Address };
 export function isStructuredEntity(entity: Entity): entity is StructuredEntity {
   return Object.hasOwn(entity, 'address');
 }
-/** Parses a document into model entities, relationships and validation findings. */
-export function inspect(source: string, filename = 'definition.yaml', options: ValidationOptions = {}) {
+function validateModelEnvelope(source: string, filename: string) {
   validateEnvelope(source, filename);
   if (/\.(trig|nq|jsonld|ofn|omn)$/i.test(filename))
     throw new InputError([
@@ -63,8 +62,9 @@ export function inspect(source: string, filename = 'definition.yaml', options: V
     } catch (error) {
       throw new InputError([{ severity: 'error', code: 'json', path: '/', message: (error as Error).message }]);
     }
-  const syntax = rdfSyntax(source, filename);
-  if (syntax) return inspectRdf(source, filename, syntax);
+}
+
+function parseModelObject(source: string) {
   const doc = parseDocument(source, { uniqueKeys: true });
   if (doc.errors.length)
     throw new InputError(
@@ -103,6 +103,29 @@ export function inspect(source: string, filename = 'definition.yaml', options: V
         message: 'Expected a YAML or JSON object.',
       },
     ]);
+  return { doc, data };
+}
+
+/** Reads a structured document before model validation, so ambiguous locators remain visible. */
+export function parseStructuredModel(source: string, filename: string): Record<string, unknown> | null {
+  validateModelEnvelope(source, filename);
+  if (rdfSyntax(source, filename)) return null;
+  const { data } = parseModelObject(source);
+  try {
+    JSON.stringify(data);
+  } catch (error) {
+    if (!(error instanceof TypeError)) throw error;
+    throw new InputError([{ severity: 'error', code: 'aliases', path: '/', message: 'Expected a document without recursive aliases.' }]);
+  }
+  return data;
+}
+
+/** Parses a document into model entities, relationships and validation findings. */
+export function inspect(source: string, filename = 'definition.yaml', options: ValidationOptions = {}) {
+  validateModelEnvelope(source, filename);
+  const syntax = rdfSyntax(source, filename);
+  if (syntax) return inspectRdf(source, filename, syntax);
+  const { doc, data } = parseModelObject(source);
   // A "not validated" notice is about the whole file, so it carries no line and the editor lists it above the text.
   const locate = (items: Issue[]) =>
     items.map(issue => {

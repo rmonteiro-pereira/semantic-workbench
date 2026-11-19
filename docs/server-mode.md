@@ -185,7 +185,7 @@ becoming readable through a broad workspace grant.
 | --- | --- |
 | Viewer | Read definitions/history, own view settings and project export |
 | Editor | Viewer actions plus file edits, imports, drafts and project Git |
-| Steward | Editor plus approvals, protected edits, publishing and project creation/rename |
+| Steward | Editor plus metric approvals, protected edits, publishing and project creation/rename |
 | Admin | Administration, all projects, purge/clear, remotes, clone and registration |
 
 Custom roles select actions and conditions; they cannot contain the `admin` action. Scope and
@@ -310,6 +310,20 @@ compare the before/after content under the appropriate repository lock.
   They refuse unauthorized guarded changes instead of silently demoting imported content.
 - A refusal rejects the whole operation before workspace bytes change. The response identifies
   guarded pointers only in readable files.
+
+Ontology concepts and relationships, including attributes, use the dedicated
+`approveOntologyItem` action for approval, deprecation, changing an approved item's owner or
+steward, and changing or removing its approved definition. The same owner check applies. An author
+without approval permission can save an eligible definition change as a proposal. Classification is
+a declaration and uses `editGuarded` for changes and protected content. If an ontology approval
+grant limits classification, the guard uses the higher of the previous and proposed levels.
+
+To grant ontology approval, an Admin opens **Admin → Roles**, creates or edits a custom role, and
+selects **Approve ontology item** in the Steward group. Under **Grants**, assign the role to the
+appropriate person or group at the project or domain scope, review the dry run and confirm. The
+person also needs permission to perform the underlying write. Existing roles, including Steward
+and Admin, need an explicit grant for ontology approval. Metric approval continues to use
+`approveMetric`.
 
 The metric detail explains disabled Approve/Deprecate actions. Deprecation uses a multiline reason
 with actions that remain together on phone screens. An owner who cannot be matched to a known

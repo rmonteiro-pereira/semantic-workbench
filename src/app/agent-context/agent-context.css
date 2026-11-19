@@ -1,0 +1,35 @@
+/* Agent context of an item in the details panel. Texts wrap and are never cut. */
+.agent-context-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.agent-context-fields {
+  grid-template-columns: minmax(0, 1fr);
+}
+.agent-context-preview pre {
+  margin: 0;
+  padding: 8px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 6px;
+  background: var(--color-surface-sunken);
+  font-size: var(--text-small);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.agent-context-placeholder {
+  min-height: 3em;
+  margin: 0;
+  color: var(--color-text-muted);
+}
+.agent-context-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.agent-context-error p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}

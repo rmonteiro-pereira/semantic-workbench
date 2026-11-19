@@ -36,6 +36,7 @@ if (category === 'access-index') {
   scopes.assertReplayClock(replay.compareAccess, candidate.createAccessControl);
   await (await import('../tests/auth/creation-route-assertions')).assertCreationRoutes(candidate.createAccessControl);
 }
+if (category.startsWith('item-diff-')) await (await import('./item-diff-mutation-cases')).itemDiffMutationCase(category, loadedModule);
 // Publication mutants load only the publication module, so working copies come from the real source.
 async function worktreeFactory(): Promise<typeof import('../src/server/projects/worktrees').createWorktrees> {
   return loadedModule.createWorktrees ?? (await import('../src/server/projects/worktrees')).createWorktrees;
@@ -48,6 +49,7 @@ if (category.startsWith('mcp-')) {
   await run(process.argv[2]);
 }
 if (category === 'proposals') await (await import('./proposals-mutation-cases')).proposalsCases(loadedModule);
+if (category.startsWith('attributes-')) await (await import('./attributes-mutation-cases')).attributesMutationCase(loadedModule);
 if (category === 'tessera') await (await import('./tessera-mutation-cases')).tesseraCase(loadedModule);
 if (category === 'operation-boundary') {
   const { operationBoundaryCases } = await import('./operation-boundary-mutation-cases');
@@ -56,6 +58,8 @@ if (category === 'operation-boundary') {
 if (category.startsWith('usage-')) await (await import('./usage-mutation-cases')).usageCase(category, loadedModule);
 if (category === 'address-operation') await (await import('./item-address-operation-cases')).itemAddressOperationCase(loadedModule as typeof import('../src/server/routes/item-addresses'));
 if (category === 'address-server') (await import('./server-address-cases')).serverAddressCase(loadedModule as typeof import('../src/server/projects/address-resolution'));
+if (category === 'address-history-definition') (await import('./server-address-cases')).addressHistoryDefinitionCase(loadedModule as typeof import('../src/server/tessera/disk-source'));
+if (category === 'address-history-difference') (await import('./server-address-cases')).addressHistoryDifferenceCase(loadedModule as typeof import('../src/server/projects/address-migrations'));
 if (category === 'address-store') (await import('./server-address-cases')).addressStoreCase(loadedModule as typeof import('../src/server/projects/address-migrations'));
 if (category === 'address-migration') addressMigrationCase(loadedModule as typeof import('../src/shared/core/address-migration'));
 if (category === 'address-model') modelAddressCase(loadedModule as typeof import('../src/shared/core/model-addresses'));

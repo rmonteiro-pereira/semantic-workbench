@@ -40,6 +40,7 @@ export const EntityNode = memo(({ data }: NodeProps) => (
       </small>
     )}
     <strong style={{ '--entity-name-cap': data.nameCap } as React.CSSProperties}>{shownName(String(data.name))}</strong>
+    {data.changeMark as React.ReactNode}
     {!!data.collapsedArea && (
       <small>
         {String(data.internalCount ?? 0)} internal relationship

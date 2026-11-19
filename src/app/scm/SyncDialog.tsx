@@ -1,3 +1,4 @@
+import { PublicationReview } from '../item-diff/PublicationReview';
 /** Dialog that holds the actions meeting the published branch of a server working copy: Pull,
  * Publish and Push. The remote actions sit on the Source control panel itself. */
 import { useState } from 'react';
@@ -19,7 +20,7 @@ type Props = {
 };
 
 /** Asks before the person's branch becomes the published branch for everyone. */
-function ConfirmPublish({ target, branch, onCancel, onConfirm }: { target: string; branch: string; onCancel: () => void; onConfirm: () => void }) {
+function ConfirmPublish({ project, target, branch, onCancel, onConfirm }: { project: string; target: string; branch: string; onCancel: () => void; onConfirm: () => void }) {
   return (
     <Modal
       title={`Publish to ${target}?`}
@@ -38,6 +39,7 @@ function ConfirmPublish({ target, branch, onCancel, onConfirm }: { target: strin
         {branch} becomes the published {target} on this server, so everyone who opens the project sees it.
       </p>
       <p className="scm-hint">This does not push to a remote. Push {target} does that.</p>
+      <PublicationReview project={project} branch={branch} />
     </Modal>
   );
 }
@@ -48,7 +50,7 @@ export function SyncDialog(props: Props) {
   const access = useCapabilities(props.project);
   const [confirming, setConfirming] = useState(false);
   if (confirming && copy) {
-    return <ConfirmPublish target={copy.defaultBranch} branch={status.branch} onCancel={() => setConfirming(false)} onConfirm={onPublish} />;
+    return <ConfirmPublish project={props.project} target={copy.defaultBranch} branch={status.branch} onCancel={() => setConfirming(false)} onConfirm={onPublish} />;
   }
   return (
     <Modal title="Sync" size="narrow" onCancel={onClose} className="scm-sync-dialog" footer={<button onClick={onClose}>Close</button>}>

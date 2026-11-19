@@ -21,6 +21,8 @@ export const IMPORT_REQUEST_LIMIT = 64_000_000;
 export const METRIC_REQUEST_LIMIT = 256_000;
 /** Maximum body for canonical item resolution and reconciliation. */
 export const ITEM_ADDRESS_REQUEST_LIMIT = 64_000;
+/** Maximum encoded length of a request for two comparison sides. */
+export const ITEM_DIFF_QUERY_LIMIT = 1_024;
 /** Maximum body for personal grouping corrections. */
 export const GROUPING_REQUEST_LIMIT = 256_000;
 /** Maximum body for a personal draft and its patches. */
@@ -44,6 +46,7 @@ export const REQUEST_LIMITS = {
   IMPORT_REQUEST_LIMIT,
   METRIC_REQUEST_LIMIT,
   ITEM_ADDRESS_REQUEST_LIMIT,
+  ITEM_DIFF_QUERY_LIMIT,
   GROUPING_REQUEST_LIMIT,
   DRAFT_REQUEST_LIMIT,
   TRASH_REQUEST_LIMIT,

@@ -90,7 +90,8 @@ function classificationCases(ws: Workspace): GuardCase[] {
   ];
 }
 
-function metricCase(ws: Workspace): GuardCase {
+/** An approved metric creation through the metric endpoint. */
+export function metricCase(ws: Workspace): GuardCase {
   const file = ws.readFile('sales-metrics', METRICS);
   return {
     name: 'metric save',
@@ -161,9 +162,29 @@ export function remoteWithReclassification(ws: Workspace, root: string) {
 
 const origin = 'http://localhost';
 
+/** Grants ontology approval explicitly to a test person in Sales. */
+export function ontologyApprover(name: TestUserName) {
+  const options = accessFixture();
+  options.config.roles.push({
+    id: 'r_ontology_approver',
+    name: 'Ontology approver',
+    description: 'Approves ontology items',
+    createdBy: 'fixture',
+    createdAt: '2026-10-21T09:00:00Z',
+    permissions: [{ actions: ['approveOntologyItem'] }],
+  });
+  options.config.grants.push({
+    ...options.config.grants[0],
+    id: 'g-ontology-approval',
+    roleId: 'r_ontology_approver',
+    member: { kind: 'email', email: person(name).verifiedEmail ?? person(name).username },
+  });
+  return options;
+}
+
 /** A server-mode handler acting as one fixture person. */
-export function guardHandler(ws: Workspace, name: TestUserName) {
-  const access = createAccessControl(accessFixture());
+export function guardHandler(ws: Workspace, name: TestUserName, options = accessFixture()) {
+  const access = createAccessControl(options);
   const principal = access.principalFor(person(name));
   return createHandler(ws, {
     mode: 'server',

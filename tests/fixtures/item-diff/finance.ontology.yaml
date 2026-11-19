@@ -1,0 +1,23 @@
+tessera: 2
+version: 0.2.0.dev0
+name: Finance
+ontology:
+  - concept: Customer
+    type: EntityType
+    description: A buyer.
+    relationships:
+      - name: email
+        roles: [{concept: String}]
+        verbalizes: [Customer has email]
+      - name: tier
+        roles: [{concept: Tier}]
+        verbalizes: [Customer has tier]
+      - name: purchases
+        roles: [{concept: Order}]
+        verbalizes: [Customer purchases Order]
+  - concept: Order
+    type: EntityType
+  - concept: Tier
+    type: ValueType
+  - concept: Retired
+    type: EntityType

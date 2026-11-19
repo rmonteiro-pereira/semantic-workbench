@@ -1,0 +1,90 @@
+/* The attribute list of a concept. Every text wraps; nothing is cut, and the row has no fixed label width. */
+.attribute-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.attribute-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  min-width: 0;
+}
+.attribute-row-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  min-width: 0;
+}
+.attribute-name {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.attribute-type,
+.attribute-multiplicity {
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+  overflow-wrap: anywhere;
+}
+.attribute-inherited {
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+.attribute-reading,
+.attribute-description {
+  margin: 0;
+  font-size: var(--text-small);
+  overflow-wrap: anywhere;
+}
+.attribute-reading {
+  color: var(--color-text-secondary);
+}
+.attribute-description {
+  color: var(--color-text-muted);
+}
+.attribute-row-extras {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 8px;
+}
+.attribute-annotations,
+.attribute-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.attribute-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.attribute-placeholder {
+  min-height: 3em;
+  margin: 0;
+  color: var(--color-text-muted);
+}
+.attribute-empty,
+.attribute-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.attribute-empty p,
+.attribute-error p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.attribute-actions button {
+  padding: 2px 6px;
+}

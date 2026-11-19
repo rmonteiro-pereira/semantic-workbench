@@ -55,7 +55,6 @@ export type FollowResult = {
 /** Workspace services needed to run Git actions and refresh project state. */
 export type ScmDeps = {
   layout: DataLayout;
-  migrationLayout?: DataLayout;
   git: Git;
   gitAvailable: boolean;
   /** Checks provenance in this project repository against published and personal ancestry. */

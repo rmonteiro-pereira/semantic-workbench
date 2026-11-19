@@ -1,0 +1,65 @@
+version: 0.2.0.dev0
+name: retail_model
+datasets:
+  - name: ORDERS
+    source: db.orders
+    fields:
+      - name: amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: ORDERS.amount
+      - name: customer_id
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: ORDERS.customer_id
+metrics:
+  - name: revenue_draft
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(ORDERS.amount)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {"schema": "semantic-workbench/metric/v1", "type": "simple", "owner": "Finance", "status": "draft"}
+  - name: revenue_proposed
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(ORDERS.amount)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {"schema": "semantic-workbench/metric/v1", "type": "simple", "owner": "Finance", "status": "proposed"}
+  - name: revenue
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(ORDERS.amount)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {"schema": "semantic-workbench/metric/v1", "type": "simple", "owner": "Finance", "status": "approved"}
+  - name: revenue_old
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(ORDERS.amount)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {"schema": "semantic-workbench/metric/v1", "type": "simple", "owner": "Finance", "status": "deprecated", "replaced_by": "revenue"}
+  - name: revenue_two_entries
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(ORDERS.amount)
+    custom_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {"schema": "semantic-workbench/metric/v1", "type": "simple", "owner": "Finance", "status": "approved"}
+      - vendor_name: SEMANTIC_WORKBENCH
+        data: |
+          {"schema": "semantic-workbench/metric/v1", "type": "simple", "owner": "Finance", "status": "proposed"}

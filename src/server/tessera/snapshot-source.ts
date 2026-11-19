@@ -2,6 +2,7 @@
 import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import type { UnitFile } from '../../shared/tessera/compile-unit';
+import { ADDRESS_HISTORY_FILE } from '../projects/address-migrations';
 import { commitOf, createGit, isBranchName, type Git } from '../projects/git';
 import { parsePublishedState } from '../projects/published-pointer';
 import { SNAPSHOT_LIMITS, type SnapshotLimits } from '../projects/snapshot-index';
@@ -128,7 +129,7 @@ export async function readSnapshot(request: SnapshotRequest, git: Git = gitFor(r
   const position = await snapshotPosition(git, request, directory, inside.stdout.trim());
   const { commit } = position;
   const prefix = folderPrefix(request.projectFolder);
-  const entries = await git.lsTree(directory, commit, prefix);
+  const entries = (await git.lsTree(directory, commit, prefix)).filter(entry => basename(entry.path).toLowerCase() !== ADDRESS_HISTORY_FILE);
   if (entries.length > limits.projectFiles) throw new TesseraRefusal(`The folder holds ${entries.length} files, and the limit is ${limits.projectFiles}.`);
   const tooLarge = entries.find(entry => entry.size > limits.documentBytes);
   if (tooLarge) throw new TesseraRefusal(`${tooLarge.path} holds ${tooLarge.size} bytes, and the limit is ${limits.documentBytes}.`);

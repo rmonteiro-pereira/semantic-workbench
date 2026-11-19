@@ -56,6 +56,8 @@ jobs:
           suite: test:editor
         item_edit:
           suite: test:item-edit
+        item_diff:
+          suite: test:item-diff
         addresses:
           suite: test:addresses
         mcp:

@@ -13,6 +13,7 @@ import ossie from '../schemas/ossie-0.2.0.dev0.json';
 import ontology from '../schemas/ossie-ontology-0.2.0.dev0.json';
 import mapping from '../schemas/ossie-mapping-0.2.0.dev0.json';
 import tesseraOntology from '../schemas/tessera-ontology-1-ossie-0.2.0.dev0.json';
+import tesseraOntologyRevisionTwo from '../schemas/tessera-ontology-2-ossie-0.2.0.dev0.json';
 import metric from '../schemas/semantic-workbench-metric-v1.json';
 import bindings from '../schemas/semantic-workbench-mapping-v1.json';
 
@@ -31,6 +32,7 @@ const ontologyId = 'https://raw.githubusercontent.com/apache/ossie/main/ontology
 mappings.addSchema(ossie, 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json');
 mappings.addSchema(ontology, ontologyId);
 mappings.addSchema(tesseraOntology, tesseraOntology.$id);
+mappings.addSchema(tesseraOntologyRevisionTwo, tesseraOntologyRevisionTwo.$id);
 const mappingRef = 'urn:semantic-workbench:mapping';
 const embeddedMappingRef = 'urn:semantic-workbench:embedded-mapping';
 const metricRef = 'urn:semantic-workbench:metric';
@@ -59,6 +61,7 @@ const outputs = [
       { name: 'ossieMapping', schema: mapping },
       { name: 'ossieOntology', schema: ontology },
       { name: 'tesseraOntology', schema: tesseraOntology },
+      { name: 'tesseraOntologyRevisionTwo', schema: tesseraOntologyRevisionTwo },
       { name: 'ossieSemanticModel', schema: ossie },
     ],
     validators: {
@@ -66,6 +69,7 @@ const outputs = [
       embedded: embeddedMappingRef,
       ontology: ontologyId,
       tessera: tesseraOntology.$id,
+      tesseraRevisionTwo: tesseraOntologyRevisionTwo.$id,
     },
   },
   {

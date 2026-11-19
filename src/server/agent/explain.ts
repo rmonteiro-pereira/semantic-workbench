@@ -23,7 +23,8 @@ import {
 } from '../../shared/metrics/extension';
 import { mappingExpressionBindings, resolveBindings, type ResolvedBinding } from '../../shared/metrics/bindings';
 import { documentsOfProject } from '../../shared/core/project-scope';
-import { documentForAgents } from '../../shared/tessera/agent-view';
+import { AGENT_GOVERNANCE_KEY, documentForAgents } from '../../shared/tessera/agent-view';
+import type { AgentGovernance } from '../../shared/governance/item-governance';
 import { modelContext, planQuery, type StoredDocument } from './runtime';
 import { BadRequestError } from '../projects/errors';
 type ProjectDocument = StoredDocument & { path: string };
@@ -136,6 +137,19 @@ export type SqlPreview =
       notExecuted: true;
     }
   | { refused: string; grain: Grain | null; dimensions: string[]; rollup: string | null };
+/** The status flag of each concept a metric is linked to, when the ontology gives the concept a governance entry. */
+function conceptGovernanceOf(parsed: Parsed[], links: ConceptLink[]): ({ concept: string } & AgentGovernance)[] {
+  const flags: ({ concept: string } & AgentGovernance)[] = [];
+  const seen = new Set<string>();
+  for (const link of links) {
+    if (!link.concept || seen.has(link.concept)) continue;
+    seen.add(link.concept);
+    const declared = parsed.flatMap(({ data }) => (Array.isArray(data?.ontology) ? data.ontology : [])).find((concept: any) => concept?.concept === link.concept);
+    if (declared?.[AGENT_GOVERNANCE_KEY]) flags.push({ concept: link.concept, ...declared[AGENT_GOVERNANCE_KEY] });
+  }
+  return flags;
+}
+
 /** Explains a metric’s formula, dependencies, aggregation rules, and SQL preview. */
 export type KpiExplanation = {
   kpi: KpiSummary;
@@ -150,6 +164,8 @@ export type KpiExplanation = {
   divisionText: string;
   missingValues: string;
   concepts: ConceptLink[];
+  /** The status flag of each linked concept that carries governance. Absent when none does. */
+  conceptGovernance?: ({ concept: string } & AgentGovernance)[];
   targets: any[];
   sqlPreview: SqlPreview;
   policy: string;
@@ -502,6 +518,7 @@ export function explainMetric(
         allowedGrains: (ext.time.allowed_grains ?? GRAINS.filter(g => !ext.time!.min_grain || GRAINS.indexOf(g) >= GRAINS.indexOf(ext.time!.min_grain))) as Grain[],
       }
     : null;
+  const conceptGovernance = conceptGovernanceOf(parsed, kpi.concepts);
   const division = divisionSafety(kpi.expression ?? '');
   const stocks = bases.filter(n => byName.get(n)!.additivity === 'semi_additive');
   let divisionText: string;
@@ -534,6 +551,7 @@ export function explainMetric(
       (division === 'handled' ? '. An empty result means the denominator was zero or missing.' : '.') +
       (stocks.length && stocks.length < bases.length ? ` ${stocks.join(', ')} ${stocks.length > 1 ? 'are' : 'is a'} point-in-time stock${stocks.length > 1 ? 's' : ''}.` : ''),
     concepts: kpi.concepts,
+    ...(conceptGovernance.length ? { conceptGovernance } : {}),
     targets: ext?.targets ?? [],
     sqlPreview: preview(projectDocuments, ref, kpi, byName, time, options),
     policy: 'Semantic Workbench explains metrics and previews SQL. It never executes queries.',

@@ -58,8 +58,18 @@ type Props = {
   relatedDocuments: Doc[];
   openDocument: (doc: Doc) => boolean;
 };
-/** Renders details panel. */
-export function DetailsPanel({
+import { ItemSectionSupportContext, type SectionSupport } from '../edit/section-context';
+
+/** Renders details and makes the workspace's editing support available to its sections. */
+export function DetailsPanel({ sections, ...props }: Props & { sections: SectionSupport }) {
+  return (
+    <ItemSectionSupportContext.Provider value={sections}>
+      <DetailsPanelContent {...props} />
+    </ItemSectionSupportContext.Provider>
+  );
+}
+
+function DetailsPanelContent({
   inspectorVisible,
   pageDetails,
   entity,

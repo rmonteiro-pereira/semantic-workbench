@@ -1,6 +1,7 @@
 /** Defines editable item kinds, field schemas and status rules for each document format. */
 import { VENDOR, GRAINS } from '../metrics/extension';
 import { isMapping } from '../mappings/mapping-schema';
+import { OSSIE_BUILTINS } from '../mappings/ossie-builtins';
 import { isObject } from './source-text';
 // Field paths address either the item or its workbench metric extension. Child lists and insertion
 // locations depend on the document format.
@@ -84,7 +85,18 @@ export function allowedStatuses(current?: string): string[] {
   return ['draft', 'proposed'];
 }
 /** Supplies concept, dataset and metric names for editor choices. */
-export type Choices = { concepts: string[]; datasets: string[]; metrics: string[] };
+export type Choices = {
+  concepts: string[];
+  /** The concepts a relationship may point at: the declared ones, then the built-in concepts. Falls back to `concepts` when absent. */
+  datasets: string[];
+  metrics: string[];
+};
+
+/** The declared concept names followed by the built-in concepts that no declared concept shares a name with. */
+export function relationshipTargetChoices(declared: readonly string[]): string[] {
+  const builtins = [...OSSIE_BUILTINS].sort().filter(name => !declared.includes(name));
+  return [...declared, ...builtins];
+}
 const ansi: Path = ['expression', 'dialects', 0, 'expression'];
 /** Returns the form fields supported by an item kind. */
 export function fieldsFor(kind: ItemKind, choices: Choices): FieldSpec[] {
@@ -111,7 +123,7 @@ export function fieldsFor(kind: ItemKind, choices: Choices): FieldSpec[] {
         field('name', 'Name', 'text', { required: true }),
         field('target', 'Related concept', 'select', {
           at: ['roles', 0, 'concept'],
-          options: choices.concepts,
+          options: relationshipTargetChoices(choices.concepts),
           required: true,
         }),
         field('role', 'Role name', 'text', { at: ['roles', 0, 'name'] }),
@@ -400,6 +412,7 @@ export function newItem(kind: ItemKind, values: Record<string, any>): any {
         type: values.type || 'EntityType',
         description: values.description,
         extends: values.extends,
+        iri: values.iri,
       });
     case 'ontology-relationship':
       return clean({

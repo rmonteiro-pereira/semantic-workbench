@@ -79,6 +79,19 @@ The integration view shows what the application reads and contacts, and what it 
 
 ## Code map
 
+- `src/server/projects/item-diff-sides.ts` takes comparison definitions and provenance from the same
+  published commit, saved working copy, visible branch tip or readable commit, using the snapshot size limits.
+  `src/server/auth/item-diff-access.ts` applies the project, file and branch visibility rules.
+  `src/server/projects/item-diff.ts` compares structured items with destination-only migrations and reports files it could not compare.
+- `src/shared/item-diff/` owns comparison side parsing, parsed model item extraction, field comparison and
+  address-based pairing independently of files, Git and browser state. Child item collections do not
+  cascade changes to their containers; relationship roles remain a named relationship field.
+
+- `src/shared/attributes/` owns the attribute rule, inheritance and display order over Ossie relationships.
+- `src/app/attributes/` renders and edits attribute rows and shows where value types are used.
+- `src/app/agent-context/` edits item context and labels the preview as working copy content.
+- `src/app/governance/` presents ontology and metric governance using the shared governance model.
+
 - `src/shared/core/address-kinds.ts` owns the versioned item-address kind registry and parent rules.
 - `src/shared/core/item-address.ts` owns canonical parsing, document locators, formatting, relative resolution and whole-segment prefix operations.
 - `src/shared/core/address-migration.ts` validates rename ownership, matches deletion prefixes and applies ordered records without I/O.
@@ -140,7 +153,7 @@ concatenating project, document or item names.
   copies and stages the file-store migration.
 - `address-key-stores.ts` locates active and archived grouping stores.
 - `address-key-conversion.ts` backs them up, verifies original hashes, and journals their one-time conversion.
-- `address-migrations.ts` validates request declarations for routes and stages bounded, ordered history without committing a separate transaction.
+- `address-migrations.ts` validates request declarations for routes and stages bounded, ordered history in the project’s Git working copy within the owning journal.
   Document-save services receive typed declarations and check their effect against the guarded source.
 - `address-resolution.ts` resolves current items and visible history behind the reader boundary.
 - `address-reconciliation.ts` receives an already-authorized reader and records explicit reconciliation through the project lock and journal.
@@ -349,10 +362,8 @@ Usage reads resolve addresses against the pinned model and the reader's file gra
   `usage-migration.ts`, `usage-retention.ts` and `usage-compaction.ts` move counts with item addresses and
   expire them, `usage-read.ts` builds the answer of `usage.read` for one reader, `usage-trash.ts` moves
   counts with a trashed project and `usage-workspace.ts` is the one module that knows the workspace.
-  `usage-publication.ts` is the one lookup of the address history that a published commit proves: it
-  replays the declarations that `src/server/projects/address-commit.ts` bound to a commit when that
-  commit was made in the same working copy with exactly the saved bytes. Every commit takes its turn
-  of the repository queue so that binding sees the same head as the commit.
+  `usage-publication.ts` reads the address history committed in the published commit, the same
+  history `src/server/projects/address-migrations.ts` gives published address resolution.
 - The operation boundary calls the recorder once after a counted answer exists. It never waits for the
   disk, changes an answer or reads the audit log; no usage module imports audit or telemetry code, and a
   test scans the imports. `state/usage/` is a durable store that is registered in the persisted-key
@@ -370,23 +381,26 @@ command line.
 - `src/shared/tessera/format.ts` holds the one definition of the name, the marker key, the property
   prefix, the supported revisions and the compiler version. No other module under `src` spells them.
 - `src/shared/tessera/registry.ts` is the one list of additions, built from the modules under
-  `src/shared/tessera/additions/` (`notes.ts` is the only one) and `reserved-names.ts`. Validation,
+  `src/shared/tessera/additions/` and `reserved-names.ts`. Validation,
   the derived schema, the compiler and the loss report all read it. Its header says how to add one.
 - `src/shared/tessera/bases.ts` is the table of supported Ossie bases and the check that a base
   leaves the Tessera names alone. Its pinned schema data is copied into `src/generated/` by
   `scripts/compile-schemas.ts`, keeping schema-file imports outside the shared layer.
   `schema-derivation.ts` derives the Tessera ontology schema from a pinned schema and the registry; `scripts/derive-tessera-schema.ts` writes it to
-  `schemas/tessera-ontology-1-ossie-0.2.0.dev0.json` and `scripts/compile-schemas.ts` compiles it.
+  `schemas/tessera-ontology-1-ossie-0.2.0.dev0.json` and the revision 2 counterpart. `scripts/compile-schemas.ts` compiles both.
 - `src/shared/tessera/marker.ts` reads the marker (top level only). `validate.ts` gives the Tessera
   findings and picks the derived schema by marker and base. `src/shared/validation/validation.ts`
   calls it at the top of `validateStructured`, and `src/shared/core/model.ts` returns the document
   `format` from `inspect`. That is the whole read path: the editor, the file scan, the save
   endpoints and agent context reach a Tessera document through those two functions, so no route
-  or operation was added. `agent-view.ts` removes the marker and additions before agent context
-  reads a document.
+  or operation was added. `agent-view.ts` projects item context and governance flags for agent context
+  and strips the remaining Tessera fields. Production agent handlers read the pinned publication.
+- `src/shared/governance/ontology-guards.ts` compares ontology items on the shared write paths.
+  The server guard binds approval to `approveOntologyItem` and classification to `editGuarded`.
 - `compile-document.ts` removes the marker and additions of one ontology by their disposition;
   `serialize.ts` prints the result; `meaning-check.ts` checks the output keeps the data, the items
-  and addresses and the name index; `loss-report.ts` builds the loss report, parses loss policies
+  and addresses, the name index and the attribute relationships. `loss-report.ts` builds the report
+  and counts lost governance entries by status, parses loss policies
   and decides acceptance; `manifest.ts` builds the manifest; `canonical-json.ts` and `digest.ts`
   give equal input equal bytes. `document-kind.ts` sorts the files of a project folder and
   `compile-unit.ts` compiles the whole folder.
@@ -618,3 +632,10 @@ The workbench never launches an agent, calls a model, supplies credentials to an
 a tool server. In server mode, `handler.ts` supplies the real person connection service to the panel; it owns
 setup exchange, token rotation and session-end notifications. Each transport binds tokens to its
 own caller origin before the shared operation boundary authorizes them.
+
+### Item comparison
+
+The browser-only `items.diff` operation uses the existing history permission and audit boundary.
+It compares structured items from authorized saved files and Git snapshots. The overlay is a
+display aid. Agent operations continue to build context, plans and explanations from the
+published snapshot and have no item comparison operation.

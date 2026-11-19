@@ -138,6 +138,7 @@ export function DeleteItem({ doc, base, path, kind, name, owner, projectDocs, on
             </li>
           ))}
       </ul>
+      {kind === 'concept' && <p className="item-note">Its relationships, including its attributes, are removed with it.</p>}
       {!plan && !error && <p role="status">Looking for what depends on {name}…</p>}
       {plan && plan.dependents.length > 0 && <p className="item-note">These depend on {name} and are removed with it. Cancel to keep everything.</p>}
       {plan && plan.breaking.length > 0 && (

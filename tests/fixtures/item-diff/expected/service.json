@@ -1,0 +1,110 @@
+{
+  "added": {
+    "changes": [
+      {
+        "kind": "concept",
+        "state": "added",
+        "name": "Invoice",
+        "ambiguous": 0
+      }
+    ],
+    "notCompared": []
+  },
+  "recorded-rename": {
+    "changes": [
+      {
+        "kind": "relationship",
+        "state": "changed",
+        "name": "buys",
+        "ambiguous": 0,
+        "previousAddress": "sw1:finance/finance.ontology.yaml#ontology:Finance/concept:Customer/relationship:purchases"
+      },
+      {
+        "kind": "role",
+        "state": "changed",
+        "name": "role at ontology/0/relationships/2/roles/0",
+        "ambiguous": 0,
+        "previousAddress": "sw1:finance/finance.ontology.yaml#ontology:Finance/concept:Customer/relationship:purchases/role:#0"
+      }
+    ],
+    "notCompared": []
+  },
+  "outside-rename": {
+    "changes": [
+      {
+        "kind": "concept",
+        "state": "added",
+        "name": "Former",
+        "ambiguous": 0
+      },
+      {
+        "kind": "concept",
+        "state": "removed",
+        "name": "Retired",
+        "ambiguous": 0
+      }
+    ],
+    "notCompared": []
+  },
+  "attribute": {
+    "changes": [
+      {
+        "kind": "attribute",
+        "state": "changed",
+        "name": "tier",
+        "ambiguous": 0
+      },
+      {
+        "kind": "role",
+        "state": "changed",
+        "name": "role at ontology/0/relationships/1/roles/0",
+        "ambiguous": 0
+      }
+    ],
+    "notCompared": []
+  },
+  "removed": {
+    "changes": [
+      {
+        "kind": "concept",
+        "state": "removed",
+        "name": "Retired",
+        "ambiguous": 0
+      }
+    ],
+    "notCompared": []
+  },
+  "comment": {
+    "changes": [],
+    "notCompared": []
+  },
+  "reorder": {
+    "changes": [],
+    "notCompared": []
+  },
+  "crlf": {
+    "changes": [],
+    "notCompared": []
+  },
+  "unparsable": {
+    "changes": [],
+    "notCompared": [
+      {
+        "path": "finance.ontology.yaml",
+        "side": "to",
+        "reason": "Could not read structured items."
+      }
+    ]
+  },
+  "ambiguous": {
+    "changes": [
+      {
+        "kind": "concept",
+        "state": "changed",
+        "name": "Order",
+        "ambiguous": 2
+      }
+    ],
+    "notCompared": []
+  }
+}

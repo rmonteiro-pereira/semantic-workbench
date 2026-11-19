@@ -1,3 +1,4 @@
+import type { ItemDiff } from '../../shared/item-diff/item-change';
 import type { PublishedStatus } from '../../shared/scm/published-status';
 import type { UsageAnswer } from '../../server/usage/usage-read';
 /** Defines browser requests and response types for project files, metrics and source control. */
@@ -297,6 +298,11 @@ const explainQuery = (query: ExplainQuery) => {
 export type AgentMapping = { id: string; name: string; filename: string; embedded: boolean; project?: string };
 /** The SQL preview the plan endpoint returns, with the rest of its fields left open. */
 export type AgentPlan = { sql: string } & Record<string, unknown>;
+/** Compares two sides through the browser operation boundary. */
+export function fetchItemDiff(project: string, from: string, to: string, signal?: AbortSignal): Promise<ItemDiff> {
+  const parameters = new URLSearchParams({ from, to });
+  return apiFetch(`/api/projects/${encodeURIComponent(project)}/item-diff?${parameters}`, { signal }).then(response => json<ItemDiff>(response));
+}
 /** Provides browser operations for projects, documents, imports and metrics. */
 export const api = {
   /** Lists the mappings of one project, from the saved authoring view. */

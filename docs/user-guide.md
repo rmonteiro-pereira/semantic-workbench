@@ -176,7 +176,8 @@ Published disables Git history and does not save or include the open draft.
 or null). This metadata and the Published export choice require no Git history permission.
 
 `GET /api/projects/:slug/export?source=published` instead archives exact committed snapshot bytes
-for the files the caller may read. `source=editing` is the default. Published exports never include
+for the files the caller may read. `source=editing` is the default. Both file exports omit the
+workbench’s address-history bookkeeping. Published exports never include
 unpublished work and reject `history=1` with “history is not available for the published source”.
 
 **Include Git history**, off by default, adds `git-history.bundle`. The bundle can be read by
@@ -185,8 +186,8 @@ unpublished work and reject `history=1` with “history is not available for the
 
 In server mode, exports include only readable files from the caller's view. The number omitted
 appears in `X-Export-Omitted`; omitted names are not disclosed. History is allowed only for a
-whole-repository project when its history never touched unreadable paths, and includes the
-checked-out branch rather than other people's working branches. Exports are audited.
+whole-repository project when the caller may read every path touched in Git and every address
+history endpoint in the exported branch. The bundle includes the checked-out branch. Exports are audited.
 
 ### Grouping suggestions
 
@@ -550,12 +551,12 @@ not supported inputs. See [schema provenance](../schemas/README.md).
 
 ### Tessera documents
 
-A Tessera document is an Ossie ontology that carries the marker `tessera: 1` and, if you want, the
+A Tessera document is an Ossie ontology that carries a `tessera` revision marker and, if you want, the
 property `tessera_notes`. It is an authoring format that compiles to standard Ossie: you edit it in the
 workbench like any ontology, and a release job compiles it into plain Ossie files.
 
 - **The marker.** Put `tessera: 1` at the top level of an ontology file (YAML or JSON). The number is
-  the revision of the Tessera rules; only revision 1 exists today. The file must also name its Ossie
+  the revision of the Tessera rules. The workbench supports revisions 1 and 2. The file must also name its Ossie
   base in `version`, which today is `0.2.0.dev0`. The marker is allowed on ontologies only, not on
   semantic models, mappings, data contracts or RDF files.
 - **Notes.** `tessera_notes` is free text for the people who edit the ontology: a non-empty string of
@@ -565,6 +566,21 @@ workbench like any ontology, and a release job compiles it into plain Ossie file
 - **The format label.** **Validation details** names the format, for example "Tessera 1 on Ossie
   0.2.0.dev0 · 0 errors · 0 warnings". A Tessera document is never shown as "Not validated".
 - **Removing the last note** keeps the marker. Only compiling, or you, removes it.
+
+Revision 2 adds three sections to the item details:
+
+- **Attributes** lets you add, edit, reorder and remove single-role relationships to a value type
+  or a built-in. `tessera_attributes` stores display order on the concept. Unlisted rows follow
+  in file order. Inherited rows link to their declaring concept, and a value type lists its uses.
+- **Agent context** uses `tessera_ai_context` for a concept or relationship. Enter instructions,
+  synonyms and examples and preview the working copy. Agents see the published context only.
+- **Governance** uses `tessera_governance` for a concept or relationship. Choose proposed, approved
+  or deprecated, or leave status unset. Replacement and reason belong to deprecated items. A
+  replacement must name an existing item of the same kind. Classification records a declaration.
+  In server mode approval requires permission and a different person from the owner. See
+  [governed content](server-mode.md#governed-content).
+
+When a change needs revision 2, the editor asks you to confirm the upgrade before saving.
 
 Each mistake gives one finding with a code and a place. `tessera-marker`: the marker is not a whole
 number of at least 1; write `tessera: 1`. `tessera-revision`: the document is newer than this
@@ -576,7 +592,12 @@ not exist, often a misspelling such as `tessera_note`; fix the spelling or remov
 property in a place that does not take it, such as a dataset; move it to the ontology root, a concept
 or a relationship. An empty or too long note is a `schema` finding on the note.
 
-What compiling drops: the marker and every note. The compile lists each dropped value in a loss
+An invalid order entry gives `tessera-attribute-order`. Invalid governance fields give
+`tessera-governance-value` and invalid deprecation details give `tessera-governance-deprecation`.
+
+Compiling drops the marker and the Tessera additions and preserves the attribute relationships.
+The standard ontology carries no governance status. Loss report version 2 includes status counts
+when governance was dropped. Accepting loss has no effect on content approval. The compile lists each dropped value in a loss
 report (by item and size, never the text) and writes a bundle only when you accept that report by its
 digest or by a loss policy. Comments and layout in a compiled file may not survive; values and key
 order do. The command line is described in the [README](../README.md#tessera-an-authoring-format-that-compiles-to-standard-ossie)
@@ -643,7 +664,9 @@ fewer** folds them again, and **Show N more concepts** works the same way. The t
 mappings of the open file's project, says so when that project has none, and asks you to open a
 project when no file is open. Search includes unbound concepts; empty views offer Source navigation
 for the selected mapping document. **Show query** selects mapped fields/metrics and previews a
-newly composed governed query without running it. **AI context** shows the same context
+newly composed governed query without running it. Metrics with a status other than approved show
+**Not approved** and their status; metrics without one show **Status not set**. These labels do not
+prevent selection or change the stored formula. **AI context** shows the same context
 `/api/agent/context?concept=` returns for the selected concept (or the whole mapping when none is
 selected), including any `ai_context` the documents declare. **Export agent context** downloads metadata.
 
@@ -685,3 +708,20 @@ session starts a new conversation. See [the panel guide](agent-panel.md) for sco
 
 - **Tessera**: an authoring format that compiles to standard Ossie. A Tessera document is an Ossie
   ontology with the marker `tessera: 1` and, optionally, `tessera_notes`.
+
+## Review unpublished work
+
+Open **Unpublished work** in the full graph or Neighborhood. On a phone, use **Controls**.
+The comparison follows your branch against the published snapshot. It starts on when Source
+Control reports unpublished work. A project with no published commit shows its saved items as
+added when you turn the overlay on.
+
+Grey surfaces, dashed outlines and text identify added, changed and removed items. Open
+**Comparison** for the branch, published commit, a grouped list of changed fields and any files
+the workbench could not compare. Turning the overlay off restores the ordinary graph display.
+The overlay is a display aid. Workbench access rules apply in either setting.
+
+In the details for a concept, relationship or attribute, choose **Start a branch for this item**
+to open the branch picker with a suggested name. The picker switches your saved working copy
+without pushing. In server mode, the publication confirmation shows what the branch's committed
+tip would change. You can continue publishing if the comparison fails.

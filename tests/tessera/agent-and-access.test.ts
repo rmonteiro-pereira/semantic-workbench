@@ -1,4 +1,4 @@
-// Proves agents never see Tessera additions, that access rules treat a Tessera ontology like its unmarked twin, and that an unmarked file with a lookalike property is judged by the pinned schema only.
+// Proves agents never see notes or the attribute order, see item context and the status flag only through the agent view, that access rules treat a Tessera ontology like its unmarked twin, and that an unmarked file with a lookalike property is judged by the pinned schema only.
 import { expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { parseDocument } from 'yaml';
@@ -35,6 +35,19 @@ function documents(ontology: string): StoredDocument[] {
   return files.map(file => ({ id: `p/${file.filename}`, project: 'p', path: file.filename, filename: file.filename, revision: 1, source: file.source }) as StoredDocument);
 }
 
+const ORDER_MARKER = 'region';
+
+/** The commerce ontology with an order list, an item context and a status, which the agent view treats differently. */
+function withAttributeOrderAndContext(source: string): string {
+  const document = parseDocument(source);
+  document.set('tessera', 2);
+  const customer = (document.toJS().ontology as any[]).findIndex(concept => concept.concept === 'Customer');
+  document.setIn(['ontology', customer, 'tessera_attributes'], [ORDER_MARKER, 'id']);
+  document.setIn(['ontology', customer, 'tessera_ai_context'], 'CONTEXT-FOR-AGENTS');
+  document.setIn(['ontology', customer, 'tessera_governance'], { status: 'proposed', owner: 'OWNER-FOR-AUTHORS-ONLY' });
+  return document.toString({ lineWidth: 0 });
+}
+
 const twin = documents(read('commerce.mapped-ontology.yaml'));
 const marked = documents(withNotes(read('commerce.mapped-ontology.yaml')));
 
@@ -42,6 +55,18 @@ test('the marked fixture really is a valid Tessera document with notes', () => {
   const result = validateInput(marked[1].source, marked[1].filename);
   expect(result.valid).toBe(true);
   expect(marked[1].source).toContain(NOTE_TEXT);
+});
+
+test('the order list never reaches an agent, while the item context and the status flag do', () => {
+  const docs = documents(withAttributeOrderAndContext(read('commerce.mapped-ontology.yaml')));
+  const context = buildContext(docs, docs[0].id);
+  const text = JSON.stringify(context);
+  expect(text).toContain('CONTEXT-FOR-AGENTS');
+  expect(text).toContain('"governance":{"status":"proposed"}');
+  expect(text).not.toContain('OWNER-FOR-AUTHORS-ONLY');
+  expect(text).not.toContain('tessera_attributes');
+  const customer = context.concepts.find(concept => concept.concept === 'Customer');
+  expect(Object.keys(customer).sort()).toEqual(['ai_context', 'concept', 'description', 'governance', 'identify_by', 'relationships', 'type']);
 });
 
 test('the agent catalog, context, selection, plan and metric explanation equal those of the unmarked twin and hold no note', () => {

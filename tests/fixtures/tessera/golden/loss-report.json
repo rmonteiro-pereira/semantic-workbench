@@ -5,12 +5,12 @@
   },
   "compiler": {
     "name": "tessera",
-    "version": "1.0.0"
+    "version": "1.1.0"
   },
   "counts": {
     "tessera_notes": 3
   },
-  "digest": "sha256:f68b53aa9e682505359c4b18eec08f697e2e8f120ca20aa3f9bf6a95235db748",
+  "digest": "sha256:ccf4fc013ecf8c5c65411f1673e4a59299ef488af52227ef9915b9784e9b991e",
   "inputs": [
     {
       "path": "contract.odcs.yaml",
@@ -81,5 +81,5 @@
       "sha256": "652a253bd806b1219aa39bc41465257d78a3c0a402de439b265e099058dc2ec7"
     }
   ],
-  "reportVersion": 1
+  "reportVersion": 2
 }

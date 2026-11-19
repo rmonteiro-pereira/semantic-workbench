@@ -2,8 +2,8 @@
 // of truth; the SQLite cache can be rebuilt.
 import { upgradePublications } from '../auth/operation-execution';
 import type { PublicationObserver } from './local-publication';
-import { readAddressMigrations } from './address-migrations';
-import { resolveForCaller } from './address-resolution';
+import { ADDRESS_HISTORY_FILE, committedAddressHistoryFile, readAddressMigrations, readCommittedAddressMigrations, trashHistoryChanges } from './address-migrations';
+import { resolveForCaller, resolvePublishedForCaller } from './address-resolution';
 import { recordReconciliation, type ReconciliationRequest } from './address-reconciliation';
 import { convertAddressKeys } from './address-key-conversion';
 import { inspect } from '../../shared/core/model';
@@ -28,9 +28,10 @@ import { createScm } from './scm';
 import { migrateLegacyPublicationNotices, scmPublishedStatus } from './scm-published';
 import { createPublication } from './publication';
 import { createPublishedPointers } from './published-pointer';
+import { createItemDiffSides } from './item-diff-sides';
 import { createPublishedSnapshots } from './published-snapshot';
 import { initializePublishedPointers } from './published-initialization';
-import { createWorktrees } from './worktrees';
+import { createWorktrees, personalBranch } from './worktrees';
 import { copyScmHooks, createWorkingCopies, projectLockKey, type Place, type RepositoryFacts } from './working-copies';
 import { createPublishing } from './publishing';
 import { createLocalPublication, LOCAL_AUTHORING_BRANCH, prepareLocalCommit } from './local-publication';
@@ -243,7 +244,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     layout,
     journal,
     lock,
-    head: (project: string, reader: Reader) => localCommit(copies.readPlace(reader, project).layout, project),
+    workingLayout: async (project: string, reader: Reader, precheck: () => void) => (await copies.writePlace(reader, project, precheck)).layout,
+    head: localCommit,
   };
   function groupingEntities(reference: { project: string; path: string }, reader: Reader) {
     const document = readFile(reference.project, reference.path, reader);
@@ -256,6 +258,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   }
   function readFile(slug: string, path: string, reader: Reader = LOCAL_READER) {
     entry(slug);
+    if (posix.basename(path).toLowerCase() === ADDRESS_HISTORY_FILE) throw new NotFoundError('File not found.');
     const place = copies.readPlace(reader, slug);
     const file = projectFile(place.layout, slug, path);
     let bytes: Uint8Array;
@@ -402,15 +405,15 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     publication,
   });
   // The repository paths of files that copy-less trash entries hold, per repository folder.
-  function trashedPaths(): Map<string, Set<string>> {
-    const byRepo = new Map<string, Set<string>>();
+  function trashedPaths(): Map<string, TrashEntry[]> {
+    const byRepo = new Map<string, TrashEntry[]>();
     for (const id of readdirSync(layout.trash)) {
       const kept = readJsonFile<TrashEntry>(join(layout.trash, id, 'entry.json'));
       const project = projects().find(item => item.slug === kept?.project);
       if (!kept || kept.kind !== 'file' || kept.copy || !kept.path || !project) continue;
       const repo = locationOf(project).repo;
-      const paths = byRepo.get(repo) ?? new Set<string>();
-      paths.add(projectPrefix(layout, project.slug) + kept.path);
+      const paths = byRepo.get(repo) ?? [];
+      paths.push(kept);
       byRepo.set(repo, paths);
     }
     return byRepo;
@@ -421,9 +424,27 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       const dir = join(layout.projects, repo);
       if (!existsSync(join(dir, '.git'))) continue;
       const report = options.log ?? ((line: string) => log.info('workspace.reconcile', { detail: line }));
-      const paths = trashed.get(repo) ?? new Set<string>();
-      await restoreTrashedDeletions({ git, dir, repo, trashed: paths, log: report });
+      const entries = trashed.get(repo) ?? [];
+      const paths = new Set(entries.map(kept => projectPrefix(layout, kept.project) + kept.path));
+      await restoreTrashedDeletions({
+        git,
+        dir,
+        repo,
+        trashed: paths,
+        log: report,
+        historyChanges: restored => restoredHistoryPaths(entries, new Set(restored)),
+      });
     }
+  }
+  async function restoredHistoryPaths(entries: TrashEntry[], restored: ReadonlySet<string>) {
+    const byProject = new Map<string, Set<string>>();
+    for (const kept of entries) {
+      if (!restored.has(projectPrefix(layout, kept.project) + kept.path)) continue;
+      const records = byProject.get(kept.project) ?? new Set<string>();
+      records.add(`d-${kept.entryId}-0`);
+      byProject.set(kept.project, records);
+    }
+    return (await Promise.all([...byProject].map(([project, records]) => trashHistoryChanges(git, layout, project, records)))).flat();
   }
   if (gitAvailable)
     await upgradePublications(async () => {
@@ -476,7 +497,6 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     const own = place.copy;
     return createScm({
       layout: place.layout,
-      migrationLayout: layout,
       git,
       gitAvailable,
       siblings: slug => projectsIn(repoOf(slug)),
@@ -579,6 +599,10 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   const trash = createTrash({
     layout,
     head: localCommit,
+    async committedAddressHistory(files, project) {
+      const commit = await localCommit(files, project);
+      return commit ? committedAddressHistoryFile(git, files, project, commit) : null;
+    },
     state,
     journal,
     lock,
@@ -857,7 +881,35 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     readFile,
     saveFile,
     validateFile: documentSave.validateFile,
-    resolveAddress: (address: string, reader: Reader) => resolveForCaller({ ...addressReads, readMigrations: (project, caller) => readAddressMigrations(layout, project, caller) }, address, reader),
+    itemDiffSides: createItemDiffSides({
+      git,
+      gitAvailable: () => gitAvailable,
+      layout,
+      snapshots,
+      workingLayout: (project, reader) => {
+        const place = copies.readPlace(reader, project);
+        return !reader.view || place.copy ? place.layout : null;
+      },
+      ownBranch: reader => {
+        const owner = copies.owners().find(candidate => candidate.key === reader.copy?.key);
+        return owner ? personalBranch(owner.handle) : null;
+      },
+    }),
+    resolveAddress: (address: string, reader: Reader) =>
+      resolveForCaller({ ...addressReads, readMigrations: (project, caller) => readAddressMigrations(copies.readPlace(caller, project).layout, project, caller) }, address, reader),
+    resolvePublishedAddress: (address: string, reader: Reader) =>
+      snapshots.withPin(pin =>
+        resolvePublishedForCaller(address, reader, async project => {
+          try {
+            const { commit, documents } = await snapshots.readableDocuments(pin, project, reader);
+            const records = await readCommittedAddressMigrations(git, layout, project, commit, reader);
+            return { documents, records };
+          } catch (error) {
+            if (error instanceof SnapshotUnavailableError) return null;
+            throw error;
+          }
+        }),
+      ),
     reconcileAddress: (declaration: ReconciliationRequest, reader: Reader) => recordReconciliation(addressReconciliation, declaration, reader),
     saveFiles: documentSave.saveFiles,
     documents: () => documentsFor(LOCAL_READER),

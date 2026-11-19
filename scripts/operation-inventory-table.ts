@@ -34,6 +34,8 @@ export function operationInventoryTable(inventory: OperationInventory = operatio
   for (const entry of Object.values(inventory.operations)) {
     if (entry.steps?.length) lines.push('| ' + [entry.id, entry.steps.join(', ')].map(cell).join(' | ') + ' |');
   }
+  lines.push('', '## Content guards', '', 'These actions apply after the write operation is admitted.', '', '| Guard | Policy action |', '| --- | --- |');
+  for (const [kind, action] of Object.entries(inventory.contentGuardActions)) lines.push(`| ${kind} | ${action} |`);
   lines.push('', '## Workspace lifecycle', '', '| Operation | Effects | Entry point | Dispatch |', '| --- | --- | --- | --- |');
   for (const entry of Object.values(inventory.lifecycleOperations)) {
     lines.push('| ' + [entry.id, entry.effects.join(', '), entry.entryPoint, entry.reason].map(cell).join(' | ') + ' |');

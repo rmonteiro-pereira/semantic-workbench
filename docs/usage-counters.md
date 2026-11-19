@@ -96,14 +96,14 @@ stored.
 
 ## Renames and deletions
 
-Usage follows renames whose saved edits are present in a published commit. The workbench matches
-the working copy and branch and verifies the committed bytes before binding a declaration to the
-commit. Reads and compaction replay the committed changes in order, including chains and deletions.
-An item that later reuses a deleted address starts with its own counts. A declaration for another
-branch or a save whose exact byte transition cannot be matched does not transfer counts. A squash or
-rebase gives the edits new commits that no declaration is bound to, so the renamed items start
-again from zero and their old counts are dropped as deletions. Publication itself does not depend
-on this usage history.
+Usage follows the renames and deletions in the address history committed in the published commit
+(`.semantic-workbench-address-migrations.jsonl`), the same history published address resolution
+reads. Reads and compaction replay it in order, including chains and deletions, and an item that
+later reuses a deleted address starts with its own counts. A rename saved but not yet published, or
+published only on another branch, moves no counts. An item renamed or deleted by editing the files
+outside the workbench has no history record, so its counts stay at the old address until they
+expire, and an item later created at that address shows them.
+Publication itself does not depend on this usage history.
 
 A day already rewritten with an unverified marker is reported partially unavailable when it also
 has fresh counts. The original day is preserved separately as `<day>.unverified.json` until expiry

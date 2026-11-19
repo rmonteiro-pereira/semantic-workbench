@@ -7,7 +7,8 @@ import { createAuditLog } from '../src/server/auth/audit';
 import { mintCaller } from '../src/server/auth/caller';
 import { buildTwinRequest } from '../src/server/auth/twin-request';
 import { addressMigrationFile, readAddressMigrations } from '../src/server/projects/address-migrations';
-import { dataLayout } from '../src/server/projects/paths';
+import { copyLayout } from '../src/server/projects/paths';
+import { requestReader } from '../src/server/auth/request-scope';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { accessFixture, person } from './auth/access-fixture';
 import { authWorkspace } from './helpers/auth-workspace';
@@ -49,7 +50,6 @@ test('HTTP and twin reads preserve opaque snapshots and audit the same resolved 
 test('a lost reconciliation reply replays through the twin with one migration and unchanged definitions', async () => {
   using workspace = await authWorkspace();
   const context = setup(workspace);
-  const layout = dataLayout(workspace.root);
   const original = workspace.ws.readFile(project, 'sales.semantic.yaml').source;
   const invoke = (body = declaration, scope?: ('read' | 'localWrite')[]) =>
     context.handler.boundary.operate({
@@ -57,13 +57,14 @@ test('a lost reconciliation reply replays through the twin with one migration an
       request: buildTwinRequest('itemAddresses.reconcile', { params: { slug: project, '*': 'sales.semantic.yaml' }, body }),
     });
   expect((await invoke(declaration, ['read'])).response.status).toBe(403);
-  const accepted = await context.handler(
-    new Request(`http://localhost/api/projects/${project}/item-addresses/reconcile/sales.semantic.yaml`, {
-      method: 'POST',
-      body: JSON.stringify(declaration),
-      headers: { Origin: 'http://localhost', 'X-SW-Request': '1' },
-    }),
-  );
+  const request = new Request(`http://localhost/api/projects/${project}/item-addresses/reconcile/sales.semantic.yaml`, {
+    method: 'POST',
+    body: JSON.stringify(declaration),
+    headers: { Origin: 'http://localhost', 'X-SW-Request': '1' },
+  });
+  const accepted = await context.handler(request);
+  const reader = requestReader(request);
+  const layout = copyLayout(workspace.ws.layout, reader.copy!.key);
   expect(accepted.status).toBe(200);
   const record = await accepted.json();
   const bytes = readFileSync(addressMigrationFile(layout, project));
@@ -72,7 +73,7 @@ test('a lost reconciliation reply replays through the twin with one migration an
   expect(await repeated.response.json()).toEqual(record);
   expect(readFileSync(addressMigrationFile(layout, project))).toEqual(bytes);
   expect(readAddressMigrations(layout, project, LOCAL_READER)).toEqual([record]);
-  expect(workspace.ws.resolveAddress(declaration.from, LOCAL_READER)).toMatchObject({ status: 'found', address: target });
+  expect(workspace.ws.resolveAddress(declaration.from, reader)).toMatchObject({ status: 'found', address: target });
   expect(workspace.ws.readFile(project, 'sales.semantic.yaml').source).toBe(original);
   expect((await invoke({ ...declaration, to: prefix + 'order_count' })).response.status).toBe(400);
   expect(context.audit.recent(10).filter(entry => entry.decision === 'allow' && entry.outcome === 'ok')).toHaveLength(2);

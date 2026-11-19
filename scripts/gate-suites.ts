@@ -23,6 +23,8 @@ export const gateSuites: string[] = [
   'test:rdf-edit',
   'test:validation',
   'test:tessera',
+  'test:item-diff',
+  'test:attributes',
   'test:scm',
   'test:odcs',
   'test:lineage',

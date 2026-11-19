@@ -35,7 +35,7 @@ const subject: ReportSubject = {
 test('the report has the shape of the contract', () => {
   const report = buildLossReport(subject);
   expect(Object.keys(report).sort()).toEqual(['base', 'compiler', 'counts', 'digest', 'inputs', 'losses', 'options', 'outputs', 'reportVersion']);
-  expect(report.reportVersion).toBe(1);
+  expect(report.reportVersion).toBe(2);
   expect(report.options).toEqual({ lossPolicy: null });
   expect(report.counts).toEqual({ tessera_notes: 2 });
   expect(report.digest).toMatch(/^sha256:[0-9a-f]{64}$/);
@@ -125,7 +125,7 @@ test('a malformed policy is refused', () => {
 });
 
 test('a registered reserved name cannot be allowed because it is not registered', () => {
-  expect(() => parseLossPolicy('{"policy":1,"allow":["tessera_governance"]}', registry)).toThrow('not a registered property');
+  expect(() => parseLossPolicy('{"policy":1,"allow":["tessera_imports"]}', registry)).toThrow('not a registered property');
 });
 
 // Every dropped note is listed.

@@ -13,6 +13,16 @@ not configure a production deployment.
 
 ### Added
 
+- Compare saved definitions by item address with the published snapshot, a branch or a commit.
+  The browser marks unpublished items and reviews the committed changes before publication.
+  Agent operations continue to use published definitions.
+
+- Tessera revision 2 adds attribute display order, item context for agents and ontology governance.
+  Agent context and governance flags come from published snapshots. Standard ontology output drops
+  the additions and loss report version 2 counts dropped governance entries by status.
+- The Admin role editor offers **Approve ontology item** as a separate permission. Grant it through
+  a custom role for the appropriate scope. Existing roles retain their metric permissions.
+
 - An agent panel, closed by default and opened from the person menu, connects to a person-run ACP
   relay. It shows streamed conversation, tool activity, the agent's task list, guarded edit diffs,
   Undo and permission questions. The workbench launches no agent and calls no model. Relay calls
@@ -39,7 +49,7 @@ not configure a production deployment.
 - Item-address resolution and explicit reconciliation share scoped, audited HTTP and in-process operations,
   with visibility checks and idempotent reconciliation retries.
 - Renames, moves and deletions record ordered address history atomically with definition changes. History follows
-  project trash/restore, preserves cross-project arrival order and remains uncompacted, bounded at 50,000 records per project.
+  the project’s Git working copy and project trash/restore. Each project holds up to 50,000 records.
   Reusing a deleted locator does not implicitly restore its earlier history.
 - Stable grouping assignments are backed up and converted to addresses while retaining unconvertible keys and existing API behavior.
 - Reviewed operation inventory and generated reference, trusted in-process operation dispatch,

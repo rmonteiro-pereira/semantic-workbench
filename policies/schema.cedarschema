@@ -157,6 +157,7 @@ namespace SW {
          "revert",
          "restoreOwn",
          "approveMetric",
+         "approveOntologyItem",
          "editGuarded",
          "restoreOthers",
          "publish",

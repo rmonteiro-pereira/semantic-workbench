@@ -12,6 +12,7 @@ export type ResourceRef =
       path: string;
       docType?: string;
       level?: Level;
+      ontologyItem?: { status: string; owner?: string };
       metric?: { name: string; status: string; owner?: string };
       /** Only for a file of a project being created: the domain the project will have. */
       domain?: string;
