@@ -254,3 +254,8 @@ item that held it (for the ontology root, the address of the ontology itself, su
 The workbench's item comparison uses the migration records in the destination side that are
 absent by ID from the source side. It applies those records in destination order. A rename
 without a record appears as a removal and an addition.
+
+An ontology unit can contain concepts from its root and its declared parts. Their addresses
+keep the source file path. Moving an unchanged concept between declared parts in a batch save
+records a migration from its previous address. A compiled mesh bundle records the output
+names alongside their source addresses in the version 2 bundle manifest.

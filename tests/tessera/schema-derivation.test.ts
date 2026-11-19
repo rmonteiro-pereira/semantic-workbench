@@ -12,7 +12,12 @@ const base = SUPPORTED_BASES[0];
 
 test('the checked-in derived schema equals a fresh derivation byte for byte', () => {
   const files = derivedSchemaFiles();
-  expect(files.map(file => file.path)).toEqual([`schemas/${derivedSchemaFileName(base, 1)}`, `schemas/${derivedSchemaFileName(base, 2)}`]);
+  expect(files.map(file => file.path)).toEqual([
+    `schemas/${derivedSchemaFileName(base, 1)}`,
+    `schemas/${derivedSchemaFileName(base, 2)}`,
+    `schemas/${derivedSchemaFileName(base, 3)}`,
+    `schemas/tessera-part-3-ossie-${base.version}.json`,
+  ]);
   for (const file of files) expect(readFileSync(file.path, 'utf8')).toBe(file.text);
 });
 
@@ -65,4 +70,18 @@ test('an addition that starts at a later revision is left out of the earlier sch
   expect(first.$defs.OntologyComponent.properties.tessera_later).toBeUndefined();
   expect(second.$defs.OntologyComponent.properties.tessera_later).toBeDefined();
   expect(printDerivedSchema(first)).toBe(printDerivedSchema(deriveTesseraSchema(base, registry, 1)));
+});
+
+test('the unit schemas distinguish a split root from a headerless part', async () => {
+  const { tesseraRevisionThree, tesseraPart, tesseraDependencies } = await import('../../src/generated/validators.js');
+  const concept = { concept: 'Order', type: 'EntityType' };
+  const root = { tessera: 3, version: '0.2.0.dev0', name: 'Retail', ontology: [], tessera_includes: ['order.yaml'] };
+  const part = { tessera: 3, tessera_part: true, ontology: [concept] };
+  expect(tesseraRevisionThree(root)).toBe(true);
+  expect(tesseraRevisionThree({ ...root, tessera_part: true })).toBe(false);
+  expect(tesseraRevisionThree({ ...root, tessera_includes: undefined })).toBe(false);
+  expect(tesseraPart(part)).toBe(true);
+  expect(tesseraPart({ ...part, version: root.version })).toBe(false);
+  expect(tesseraDependencies({ manifestVersion: 1, root: 'root.yaml', providers: [] })).toBe(true);
+  expect(tesseraDependencies({ manifestVersion: 2, root: 'root.yaml', providers: [] })).toBe(false);
 });

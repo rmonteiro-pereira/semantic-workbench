@@ -1,6 +1,7 @@
 /** Resolves editable targets and applies saved item changes across workspace views. */
 import React, { useRef, useState } from 'react';
 import type { KpiSummary } from '../../../server/agent/explain';
+import type { UnitItemSource } from '../../../shared/tessera/unit-model';
 import type { Issue } from '../../../shared/validation/diagnostics';
 import { openFragment } from '../../edit/fragment';
 import { itemKindAt, type Choices, type ItemKind, type Path } from '../../../shared/edit/item-model';
@@ -19,6 +20,8 @@ type Options = {
   current: Doc | null;
   source: string;
   model: ValidatedModel;
+  fileModel: ValidatedModel;
+  unitItemSources: ReadonlyMap<string, UnitItemSource> | undefined;
   docsRef: React.RefObject<Map<string, Doc>>;
   projectModels: Map<
     string,
@@ -54,6 +57,8 @@ export function useItemEditing({
   current,
   source,
   model,
+  fileModel,
+  unitItemSources,
   docsRef,
   projectModels,
   parsedDoc,
@@ -115,22 +120,27 @@ export function useItemEditing({
   const docText = (id: string) => (id === current?.id ? source : (docsRef.current.get(id)?.source ?? ''));
   const modelOf = (id: string) =>
     id === current?.id
-      ? model
+      ? fileModel
       : (projectModels.get(id) ??
         (() => {
           const doc = docsRef.current.get(id);
           return doc ? parsedDoc(doc).model : null;
         })());
   const documentOf = (id: string) => (modelOf(id) as any)?.document;
+  function targetAt(path: Path): ItemTarget | null {
+    if (!current || !path.length) return null;
+    const original = unitItemSources?.get(path.join('/'));
+    if (unitItemSources && !original) return null;
+    const docId = original ? `${current.project}/${original.file}` : current.id;
+    const sourcePath = original?.path ?? path;
+    const kind = itemKindAt(documentOf(docId), sourcePath);
+    return kind ? { docId, path: sourcePath, kind } : null;
+  }
   function entityTarget(entity: Entity): ItemTarget | null {
-    if (!current || entity.readOnlyForm || !entity.path.length) return null;
-    const kind = itemKindAt(documentOf(current.id), entity.path);
-    return kind ? { docId: current.id, path: entity.path, kind } : null;
+    return entity.readOnlyForm ? null : targetAt(entity.path);
   }
   function relationshipTarget(relationship: Relationship): ItemTarget | null {
-    if (!current || relationship.data.readOnlyForm || !relationship.data.path.length) return null;
-    const kind = itemKindAt(documentOf(current.id), relationship.data.path);
-    return kind ? { docId: current.id, path: relationship.data.path, kind } : null;
+    return relationship.data.readOnlyForm ? null : targetAt(relationship.data.path);
   }
   function choicesFor(id: string): Choices {
     const own = modelOf(id);

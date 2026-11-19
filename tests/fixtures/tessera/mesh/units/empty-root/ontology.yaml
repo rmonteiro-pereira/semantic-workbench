@@ -1,0 +1,9 @@
+{
+  "tessera": 3,
+  "version": "0.2.0.dev0",
+  "name": "Retail",
+  "ontology": [],
+  "tessera_includes": [
+    "concepts.yaml"
+  ]
+}

@@ -3,6 +3,7 @@ import { Box, FileCheck2, FileCode, Focus, Gauge, Layers, Network, Search } from
 import React from 'react';
 import type { KpiSummary } from '../../server/agent/explain';
 import type { Relationship } from '../../shared/core/model';
+import { MeshView } from '../mesh/MeshView';
 import { ScrollStrip } from '../components/ScrollStrip';
 
 type Props = {
@@ -36,6 +37,7 @@ export const WorkspaceToolbar = React.memo(function WorkspaceToolbar({
   kpis,
   search,
 }: Props) {
+  const [meshOpen, setMeshOpen] = React.useState(false);
   function handleButtonClick() {
     setTab('fullgraph');
     setSearch('');
@@ -52,6 +54,7 @@ export const WorkspaceToolbar = React.memo(function WorkspaceToolbar({
 
   return (
     <>
+      {meshOpen && <MeshView onClose={() => setMeshOpen(false)} />}
       <div className="toolbar">
         <ScrollStrip className="tabs" selection={tab}>
           {isContract && (
@@ -77,6 +80,9 @@ export const WorkspaceToolbar = React.memo(function WorkspaceToolbar({
           </button>
           <button className={tab === 'catalog' ? 'selected' : ''} aria-current={tab === 'catalog' ? 'page' : undefined} onClick={() => setTab('catalog')}>
             <Box size={16} /> Catalog
+          </button>
+          <button type="button" onClick={() => setMeshOpen(true)}>
+            <Network size={16} /> Mesh
           </button>
           <button className={tab === 'source' ? 'selected' : ''} aria-current={tab === 'source' ? 'page' : undefined} onClick={handleButtonClick3}>
             <FileCode size={16} /> Source

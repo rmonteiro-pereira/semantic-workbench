@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { Modal } from '../projects/Modal';
 import { useCapabilities } from '../auth/Capabilities';
 import type { GitStatus, WorkingCopyInfo } from '../projects/api';
+import { DisclosureNotice } from '../mesh/DisclosureNotice';
+import { useDependencyState } from '../mesh/use-mesh';
 import { DefaultBranchActions } from './DefaultBranchActions';
 
 type Props = {
@@ -15,12 +17,26 @@ type Props = {
   busy: boolean;
   onClose: () => void;
   onPullDefault: () => void;
-  onPublish: () => void;
+  onPublish: (disclosureShown: boolean) => void;
   onPushDefault: () => void;
 };
 
 /** Asks before the person's branch becomes the published branch for everyone. */
-function ConfirmPublish({ project, target, branch, onCancel, onConfirm }: { project: string; target: string; branch: string; onCancel: () => void; onConfirm: () => void }) {
+export function ConfirmPublish({
+  project,
+  target,
+  branch,
+  onCancel,
+  onConfirm,
+}: {
+  project: string;
+  target: string;
+  branch: string;
+  onCancel: () => void;
+  onConfirm: (disclosureShown: boolean) => void;
+}) {
+  const state = useDependencyState(project, undefined, '');
+  const disclose = state.status === 'ready' && Boolean(state.value?.imports.length);
   return (
     <Modal
       title={`Publish to ${target}?`}
@@ -29,7 +45,7 @@ function ConfirmPublish({ project, target, branch, onCancel, onConfirm }: { proj
       footer={
         <>
           <button onClick={onCancel}>Cancel</button>
-          <button className="primary" onClick={onConfirm}>
+          <button className="primary" disabled={state.status === 'loading'} onClick={() => onConfirm(disclose)}>
             Publish to {target}
           </button>
         </>
@@ -38,6 +54,7 @@ function ConfirmPublish({ project, target, branch, onCancel, onConfirm }: { proj
       <p>
         {branch} becomes the published {target} on this server, so everyone who opens the project sees it.
       </p>
+      {disclose && <DisclosureNotice />}
       <p className="scm-hint">This does not push to a remote. Push {target} does that.</p>
       <PublicationReview project={project} branch={branch} />
     </Modal>

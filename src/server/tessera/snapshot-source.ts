@@ -1,8 +1,8 @@
 // Reads one project folder as it is in a commit on the default branch, from Git objects only. The working tree, the index and other branches are never read.
+import { isAddressHistoryPath } from '../../shared/core/address-migration';
 import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import type { UnitFile } from '../../shared/tessera/compile-unit';
-import { ADDRESS_HISTORY_FILE } from '../projects/address-migrations';
 import { commitOf, createGit, isBranchName, type Git } from '../projects/git';
 import { parsePublishedState } from '../projects/published-pointer';
 import { SNAPSHOT_LIMITS, type SnapshotLimits } from '../projects/snapshot-index';
@@ -127,9 +127,15 @@ export async function readSnapshot(request: SnapshotRequest, git: Git = gitFor(r
   const inside = await git.run(directory, ['rev-parse', '--path-format=absolute', '--git-common-dir'], { readOnly: true, allowFailure: true });
   if (inside.code !== 0) throw new TesseraRefusal(`${request.repository} is not a Git repository.`);
   const position = await snapshotPosition(git, request, directory, inside.stdout.trim());
-  const { commit } = position;
-  const prefix = folderPrefix(request.projectFolder);
-  const entries = (await git.lsTree(directory, commit, prefix)).filter(entry => basename(entry.path).toLowerCase() !== ADDRESS_HISTORY_FILE);
+  const projectFolder = request.projectFolder || '.';
+  const files = await readCommitFolder(directory, position.commit, projectFolder, git, limits);
+  return { ...position, projectFolder: projectFolder === '' ? '.' : projectFolder, files };
+}
+
+/** Reads a bounded folder from an already authorized commit, without consulting working files. */
+export async function readCommitFolder(directory: string, commit: string, folder: string, git = gitFor(directory), limits = SNAPSHOT_LIMITS): Promise<UnitFile[]> {
+  const prefix = folderPrefix(folder);
+  const entries = (await git.lsTree(directory, commit, prefix)).filter(entry => !entry.link && !isAddressHistoryPath(entry.path));
   if (entries.length > limits.projectFiles) throw new TesseraRefusal(`The folder holds ${entries.length} files, and the limit is ${limits.projectFiles}.`);
   const tooLarge = entries.find(entry => entry.size > limits.documentBytes);
   if (tooLarge) throw new TesseraRefusal(`${tooLarge.path} holds ${tooLarge.size} bytes, and the limit is ${limits.documentBytes}.`);
@@ -140,6 +146,5 @@ export async function readSnapshot(request: SnapshotRequest, git: Git = gitFor(r
     entries.map(entry => entry.id),
     limits,
   );
-  const files = entries.map(entry => ({ path: entry.path.slice(prefix.length), bytes: blobs.get(entry.id)! }));
-  return { ...position, projectFolder: prefix ? prefix.slice(0, -1) : '.', files };
+  return entries.map(entry => ({ path: entry.path.slice(prefix.length), bytes: blobs.get(entry.id)! }));
 }

@@ -479,3 +479,13 @@ deactivation and revocation before later agent traffic can run. The relay never 
 idle activity. File requests remain ordinary authorized and guarded operations, and permission
 answers grant no extra scope. See [the panel guide](agent-panel.md), including its draft-content
 warning and threat model.
+### Ontology units and provider access
+
+A reader missing any required part sees the findings for the visible file and a set-not-checked
+notice. Saved changes and publication requiring that set are refused. A private draft remains
+available. Each reader's set findings are calculated on their own access.
+
+An importing project can use the published concepts it selected from a readable provider
+without accessing the provider's private files. A person who can publish the provider can
+see a published importing project's name and domain, its imported public items and the
+resolved version. The publish confirmation explains this disclosure.

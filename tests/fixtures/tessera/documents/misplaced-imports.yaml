@@ -4,3 +4,5 @@ name: Retail
 ontology:
   - concept: Order
     type: EntityType
+    tessera_imports:
+      - other.ontology.yaml

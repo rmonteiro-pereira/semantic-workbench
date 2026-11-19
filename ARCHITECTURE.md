@@ -176,6 +176,8 @@ concatenating project, document or item names.
   builds share one promise per repository, commit and folder digest; limits reject whole builds.
   Publication validation holds an active candidate pin through settlement, then releases it on success
   or refusal. The first published read reuses that index within the existing retention bound.
+  A request that needs set validation first projects the candidate tree to the caller's readable
+  definitions, before opening restricted blobs or building the shared index.
 - `publication.ts` is the single publication writer and repository queue for local Publish, server Publish,
   remote follow and adoption. It applies `publication-checks.ts`, writes intent, compare-and-swaps the ref,
   records the pointer and supersedes the resolver. A failed swap abandons intent. `recover` finishes or drops
@@ -374,6 +376,20 @@ Usage reads resolve addresses against the pinned model and the reader's file gra
 
 ### The Tessera format and compiler
 
+`src/server/tessera/unit-source.ts` owns the complete-unit seam; `workspace-unit-source.ts` binds
+it to pinned published bytes and the caller's saved working files. `compile-service.ts` reuses the
+shared compiler and acceptance/paging decisions. `bundle-files.ts` assembles identical CLI and HTTP
+bundle entries, while shared `compile-findings.ts` formats their findings. `workspace-conversion.ts`
+connects `convert-service.ts` to Git cleanliness and the existing guarded, hash-checked save pipeline.
+`src/server/routes/compile.ts` parses typed requests behind the operation boundary and inventory;
+`src/app/compile/` owns review, explicit acceptance, downloads and conversion states. The browser's
+one-file preview reuses the shared compiler; the server recomputes the complete unit before saving.
+The [compile guide](docs/compile.md) owns HTTP answers, usage and limits. MCP adapters await integration.
+
+The shared `src/shared/tessera/digest.ts` implements synchronous SHA-256 for both runtimes.
+The compiler and browser conversion preview use that same function without a bundler alias or
+Node imports. Native Bun hashes and browser Web Crypto verify its output at block boundaries.
+
 Tessera is an authoring format that compiles to standard Ossie. Its definitions are pure code in
 `src/shared/tessera/`; Git and the file system are touched only in `src/server/tessera/` and the
 command line.
@@ -388,6 +404,35 @@ command line.
   `scripts/compile-schemas.ts`, keeping schema-file imports outside the shared layer.
   `schema-derivation.ts` derives the Tessera ontology schema from a pinned schema and the registry; `scripts/derive-tessera-schema.ts` writes it to
   `schemas/tessera-ontology-1-ossie-0.2.0.dev0.json` and the revision 2 counterpart. `scripts/compile-schemas.ts` compiles both.
+- `src/shared/tessera/unit-structure.ts` resolves the root’s declared parts and reports structural
+  findings from parsed project files. It never follows links or reads the filesystem.
+  `unit-model.ts` combines the concepts in include order and maps item addresses to source files.
+  `export-closure.ts` checks the public concept list and computes its canonical interface hash.
+  `imports.ts` checks aliases and allow-lists against the resolved public interfaces.
+  `dependency-manifest.ts` reads the versioned dependency lock and compares it with the declared imports.
+  `qualify.ts` spells compiled concept names from their stable owner and rewrites their references.
+  `set-validation.ts` keeps complete-set findings separate from each reader’s visible single-file findings.
+  The shared validator selects the revision 3 root or part schema before checking a single file.
+  References outside that file are checked at the unit boundary.
+  Agent context composes roots with their declared parts from the caller’s pinned published files.
+  `src/server/mesh/provider-resolution.ts` reads public interfaces from pinned publication objects
+  after checking whether the caller can read the provider project.
+  The shared inspector connects allowed aliases to read-only concept nodes that retain the provider’s
+  project, ontology, and published version.
+  `src/server/routes/mesh.ts` serves provider discovery, dependency status and explicit dependency updates through the operation boundary.
+  `src/server/mesh/dependents-registry.ts` rebuilds the provider's dependents index from published lock files.
+  `src/server/mesh/mesh-graph.ts` projects the published graph to the reader's visible projects.
+  Dependency previews report interface changes. Cross-project links in this revision are workbench-local imports, and compatibility
+  verdicts, externally composed ontologies, organization-wide targets and release automation are outside the mesh boundary.
+  The shared publication guard checks locks against the immutable candidate tree and pinned provider history before advancing the ref.
+  The compile unit source passes root and declared part files, lock metadata and pinned public interfaces to the compiler.
+  Mesh bundles merge parts into their roots, qualify imported concepts, and record their provenance and address map in manifest version 2.
+  The inspector can build a composed graph with a source-file index. The scanner indexes the
+  dependency manifest as project metadata and keeps parse findings per file.
+  The workspace graph, catalog and grouping compose the active ontology from the reader’s files.
+  A selected concept keeps the address of its original file. Form edits patch that file at its source path.
+  When adding a concept, the form offers the root and its declared parts as destinations.
+  The journaled batch save checks duplicate concept declarations and records cross-file concept moves.
 - `src/shared/tessera/marker.ts` reads the marker (top level only). `validate.ts` gives the Tessera
   findings and picks the derived schema by marker and base. `src/shared/validation/validation.ts`
   calls it at the top of `validateStructured`, and `src/shared/core/model.ts` returns the document

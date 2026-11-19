@@ -294,6 +294,13 @@ function accessControl(options: AccessOptions, previous?: ActiveAccess) {
           protectedLevel: projects[project]?.protectedLevel ?? classification.protectedLevel,
         };
       },
+      /** Returns the configured display name of a project's domain. */
+      projectDomain: (project: string) => {
+        synchronize();
+        const { projects, domains } = snapshot.config.projects;
+        const id = projects[project]?.domain;
+        return domains.find(domain => domain.id === id)?.name ?? null;
+      },
       creationDomains: () => {
         synchronize();
         return snapshot.config.projects.domains.filter(domain => authorize('createProject', newProjectIn(domain.id)).allow);

@@ -675,8 +675,28 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
           </div>
         ) : (
           <ReactFlow
-            nodes={rendered}
-            edges={visibleEdges}
+            nodes={rendered.map(node => {
+              const imported = view.entities.find(entity => entity.id === node.id)?.imported;
+              if (!imported) return node;
+              return {
+                ...node,
+                data: {
+                  ...node.data,
+                  label: (
+                    <div className="mesh-neighborhood-imported">
+                      {node.data.label}
+                      <small className="mesh-imported-origin">
+                        Imported from {imported.project} · {imported.version.slice(0, 12)}
+                      </small>
+                    </div>
+                  ),
+                },
+              };
+            })}
+            edges={visibleEdges.map(edge => {
+              const usesImport = byId.get(edge.source)?.imported || byId.get(edge.target)?.imported;
+              return usesImport ? { ...edge, data: { ...edge.data, imported: true } } : edge;
+            })}
             edgeTypes={relationshipEdgeTypes}
             minZoom={0.05}
             maxZoom={2}

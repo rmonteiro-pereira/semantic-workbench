@@ -49,7 +49,7 @@ test('the three additions are registered at revision 2 with the places the forma
   expect(REGISTRY.byName('tessera_attributes')?.places).toEqual(['concept']);
   expect(REGISTRY.byName('tessera_ai_context')?.places).toEqual(['concept', 'relationship']);
   expect(REGISTRY.byName('tessera_governance')?.places).toEqual(['concept', 'relationship']);
-  expect(REGISTRY.reservedNames.map(entry => entry.name)).toEqual(['tessera_imports']);
+  expect(REGISTRY.byName('tessera_imports')?.since).toBe(3);
 });
 
 test('a revision 2 document with no additions is valid and described as revision 2', () => {
@@ -65,8 +65,8 @@ test('a revision 1 document that uses a revision 2 name is told which revision i
   expect(issues[0].message).toContain('needs Tessera revision 2 or higher');
 });
 
-test('a revision 3 document is still refused with the supported revisions listed', () => {
-  const issues = tesseraIssues({ tessera: 3, version: '0.2.0.dev0', name: 'Retail', ontology: [] }).issues;
+test('a revision two reader refuses a revision three document', () => {
+  const issues = tesseraIssues({ tessera: 3, version: '0.2.0.dev0', name: 'Retail', ontology: [] }, { revisions: [1, 2] }).issues;
   expect(issues[0].code).toBe('tessera-revision');
   expect(issues[0].message).toContain('Supported revisions: 1, 2');
 });

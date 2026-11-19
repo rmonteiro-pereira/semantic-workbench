@@ -83,6 +83,7 @@ export type TrashContext = {
   journal: Journal;
   lock: <T>(key: string, fn: () => Promise<T> | T) => Promise<T>;
   projects: () => ProjectEntry[];
+  projectsRemoved?: () => void;
   registrySteps: (stateStaging: string, next: ProjectEntry[]) => { from: string; to: string }[];
   afterFiles: (slug: string, copy: string | null) => Promise<unknown>;
   /**
@@ -367,6 +368,7 @@ export function createTrash(ctx: TrashContext) {
         for (const slug of slugs) if (existsSync(projectDir(layout, slug))) await ctx.adoptProject(slug);
         throw err;
       }
+      ctx.projectsRemoved?.();
       for (const dir of archived) ctx.removeCopies?.(dir);
       const { projects, entries: entryTags } = removal!;
       ctx.emit('projects', { added: [], removed: slugs, renamed: [] }, projects);
@@ -486,6 +488,7 @@ export function createTrash(ctx: TrashContext) {
 export type DeleteImpactDeps = {
   entry: (slug: string) => ProjectEntry;
   projects: () => ProjectEntry[];
+  projectsRemoved?: () => void;
   state: State;
   copies: Pick<WorkingCopies, 'readPlace'>;
   /** Every indexed definition file with its facts, unrestricted by any reader. */

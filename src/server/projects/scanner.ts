@@ -4,6 +4,7 @@ import { ADDRESS_HISTORY_FILE } from './address-migrations';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, posix } from 'node:path';
 import { Parser } from 'node-sql-parser';
+import { DEPENDENCY_MANIFEST_PATH, parseDependencyManifest } from '../../shared/tessera/dependency-manifest';
 import { validateInput } from '../../shared/validation/input';
 import { rdfSyntax } from '../../shared/validation/rdf';
 import type { Issue } from '../../shared/validation/diagnostics';
@@ -101,6 +102,7 @@ export function indexBytes(project: string, path: string, bytes: Uint8Array, git
       entities: [],
       findings: [],
     };
+  if (path === DEPENDENCY_MANIFEST_PATH) return indexDependencyManifest(base, source);
   const result = observeValidation(trigger, () => validateInput(source, posix.basename(path)));
   // SQL findings are warnings only and do not make a document invalid.
   const sql = serialization === 'yaml' || serialization === 'json' ? sqlFindings(source, posix.basename(path)) : [];
@@ -117,6 +119,18 @@ export function indexBytes(project: string, path: string, bytes: Uint8Array, git
     findings: [...result.issues, ...sql],
   };
 }
+function indexDependencyManifest(base: Pick<CachedFile, 'project' | 'path' | 'hash' | 'gitState' | 'indexedAt'>, source: string): Indexed {
+  const findings: Issue[] = [];
+  try {
+    parseDependencyManifest(source);
+  } catch (error) {
+    if (!(error instanceof Error)) throw error;
+    findings.push({ severity: 'error', code: 'tessera-dependency-manifest', path: '/', message: error.message });
+  }
+  const file: CachedFile = { ...base, serialization: 'json', docType: 'Tessera dependency manifest', layout: null, valid: findings.length === 0, visible: true };
+  return { file, entities: [], findings };
+}
+
 /** Lists a folder's files without Git, skipping the Git metadata folder. */
 export function walk(dir: string, prefix = '', out: string[] = []) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {

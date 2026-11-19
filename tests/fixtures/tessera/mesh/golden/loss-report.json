@@ -1,0 +1,50 @@
+{
+  "base": {
+    "label": "valid against the bundled Ossie 0.2.0.dev0 draft",
+    "version": "0.2.0.dev0"
+  },
+  "compiler": {
+    "name": "tessera",
+    "version": "1.1.0"
+  },
+  "counts": {},
+  "digest": "sha256:c0cc55294e3827353e7c59d8d6ee4f3cff89cea424090d341cae6ab573e10103",
+  "inputs": [
+    {
+      "path": "billing.json",
+      "sha256": "478b3ac9382b072ad0af3d8415d7215641773f99d9393028baa8397ffad3acba",
+      "treatment": "compiled"
+    },
+    {
+      "path": "orders.json",
+      "sha256": "4a0bc5f3b7db9f2262b1a5ee36b2a4d07bed84af0f0fa2afdad510dcda0f3c7f",
+      "treatment": "compiled"
+    },
+    {
+      "path": "returns.json",
+      "sha256": "f76bd317103825d927d3d402f78bcb393cc2eed03e332c54a86cacd74e0dc5d8",
+      "treatment": "compiled"
+    },
+    {
+      "path": "root.json",
+      "sha256": "62a6847a75a7cf889adff81b90a26053d9a065f114d7ed357a21ed0fb78e8a34",
+      "treatment": "compiled"
+    },
+    {
+      "path": "settlement.json",
+      "sha256": "eeca8347c79712b15bbdadbba96576b8cee624de83756f91bd882c845c312a89",
+      "treatment": "compiled"
+    }
+  ],
+  "losses": [],
+  "options": {
+    "lossPolicy": null
+  },
+  "outputs": [
+    {
+      "path": "root.json",
+      "sha256": "bc13bbcdd2979ed44a0ca6ecf0253774b85ae229d6f49df8a732defec63aa597"
+    }
+  ],
+  "reportVersion": 2
+}

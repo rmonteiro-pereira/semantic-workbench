@@ -166,6 +166,12 @@ repository groups so their history and unpublished work can be retained together
 
 ### Project export
 
+Choose **Files to export → Standard Ossie (compiled)** for a derived ZIP of the published snapshot.
+Review the dropped values, accept that exact report, then download. **Validation details** on a
+Tessera ontology offers an unpublished check of saved working files and a reviewed conversion of
+one clean, committed ontology. See [check, compile and convert](compile.md) for acceptance,
+conflicts and the distinction from byte-preserving export.
+
 **Export project…** downloads a streaming, uncompressed ZIP containing the project's stored files,
 relative folders and `.gitignore`. It excludes `.git/`, ignored files and unsaved drafts. The dialog
 names known unsaved edits and can offer **Save and export** for the open file. When a snapshot
@@ -582,13 +588,24 @@ Revision 2 adds three sections to the item details:
 
 When a change needs revision 2, the editor asks you to confirm the upgrade before saving.
 
+The Source view lists the visible files of a split ontology. Use the unit file buttons to open
+another part. Definition details show the current file’s role in the unit.
+
+For a revision 3 root, open **Imports** in Definition details. Choose a published provider,
+enter a local alias, and select the concepts the ontology can use. The version choice follows
+the latest publication or names a published commit or release tag.
+nImported concepts show the provider and version on graph cards. Definition details show the
+full commit and link the concept’s identity to the provider ontology.
+If a provider moves its exporting file, edit the import and choose the newly published file.
+Renaming the provider project keeps its stable identity.
+
 Each mistake gives one finding with a code and a place. `tessera-marker`: the marker is not a whole
 number of at least 1; write `tessera: 1`. `tessera-revision`: the document is newer than this
 workbench, or uses a property that needs a higher revision; use a supported revision. `tessera-base`:
 `version` is missing or not a supported Ossie base; set it to `0.2.0.dev0`. `tessera-kind`: the marker
 is on a file that is not an ontology; remove it. `tessera-property`: a `tessera_` property that does
 not exist, often a misspelling such as `tessera_note`; fix the spelling or remove it.
-`tessera-reserved`: the name is kept for a later feature; remove it. `tessera-location`: a known
+`tessera-location`: a known
 property in a place that does not take it, such as a dataset; move it to the ontology root, a concept
 or a relationship. An empty or too long note is a `schema` finding on the note.
 
@@ -725,3 +742,25 @@ In the details for a concept, relationship or attribute, choose **Start a branch
 to open the branch picker with a suggested name. The picker switches your saved working copy
 without pushing. In server mode, the publication confirmation shows what the branch's committed
 tip would change. You can continue publishing if the comparison fails.
+
+### Ontology units and imports
+
+Open a revision 3 ontology's root to see its concepts together. The root lists every part
+under `tessera_includes`. Each part has `tessera: 3`, `tessera_part: true` and an ontology list.
+When adding a concept, choose the root or a declared part.
+
+**Imports** lets you select a provider project in the workbench, give it an alias and choose
+the exported concepts you need. Refer to a chosen concept as `alias.Concept`. Use **Update
+dependencies** to review changes and explicitly write the dependency manifest before
+committing and publishing. A reported interface change leaves compatibility for the author
+to evaluate. **Mesh** shows the published connections. People with permission to publish a
+provider can select it and open **Used by**.
+
+A provider can re-export an imported concept by listing its alias-qualified name in
+`tessera_exports`, provided the original concept is public and on the provider's allow-list.
+Mesh and **Used by** show the original owner and version. Compile writes that owner's
+qualified concept once, even if several import paths reach it. Publication refuses a
+re-export cycle.
+
+See [Ontology unit validation](ontology-units.md) for the checks applied to a file, its
+complete unit and the committed dependency lock.

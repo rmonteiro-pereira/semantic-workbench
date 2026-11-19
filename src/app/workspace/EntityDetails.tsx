@@ -61,8 +61,10 @@ export function EntityDetails({
   setSelected,
   setDefinition,
 }: Props) {
+  const editTarget = entityTarget(entity);
+  const inlineTarget = editTarget?.docId === current?.id ? editTarget : null;
   function handleTextareaChange(event: React.ChangeEvent<HTMLTextAreaElement, HTMLTextAreaElement>) {
-    return setSource(editEntity(source, entity.path, event.target.value, current?.filename));
+    if (inlineTarget) setSource(editEntity(source, inlineTarget.path, event.target.value, current?.filename));
   }
 
   function handleViewDefinitionClick() {
@@ -86,6 +88,16 @@ export function EntityDetails({
       </button>
       <div className="badge">{entity.kind}</div>
       <TrafficBadge address={entityAddressText(entity)} />
+      {entity.imported && (
+        <dl className="mesh-imported-details">
+          <dt>Imported from</dt>
+          <dd>
+            {entity.imported.project} / {entity.imported.ontology}
+          </dd>
+          <dt>Published version</dt>
+          <dd>{entity.imported.version}</dd>
+        </dl>
+      )}
       {(() => {
         const rdfItem = rdfTarget(entity);
         if (rdfItem)
@@ -165,12 +177,14 @@ export function EntityDetails({
       })()}
       {entity.readOnlyForm ? (
         <p className="hint">
-          {entity.description || (rdfTarget(entity) ? 'Edit its statements with Edit; the file keeps its serialization and layout.' : 'A blank node is edited with the resource that contains it.')}
+          {entity.description ||
+            (entity.imported && 'Edit this concept in its provider ontology.') ||
+            (rdfTarget(entity) ? 'Edit its statements with Edit; the file keeps its serialization and layout.' : 'A blank node is edited with the resource that contains it.')}
         </p>
       ) : (
         <label>
           Description
-          <textarea value={entity.description} onChange={handleTextareaChange} />
+          <textarea value={entity.description} readOnly={!inlineTarget} onChange={handleTextareaChange} />
         </label>
       )}
       {relatedDocuments.length > 0 && (

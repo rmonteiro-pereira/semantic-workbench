@@ -22,6 +22,8 @@ import { fileRoutes } from './routes/files';
 import { itemAddressRoutes } from './routes/item-addresses';
 import { itemDiffRoutes } from './routes/item-diff';
 import { exportRoutes } from './routes/export';
+import { meshRoutes } from './routes/mesh';
+import { compileRoutes } from './routes/compile';
 import { draftRoutes } from './routes/drafts';
 import { trashRoutesWith } from './routes/trash';
 import { suggestionRoutes } from './routes/suggestions';
@@ -177,6 +179,8 @@ function workspaceRoutes(administration: AdminRepository, access: AccessControl,
     cloneRoutes(administration),
     repoRoutes,
     exportRoutes,
+    compileRoutes,
+    meshRoutes,
     itemAddressRoutes,
     itemDiffRoutes,
     fileRoutes,

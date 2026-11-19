@@ -41,6 +41,11 @@ export const EntityNode = memo(({ data }: NodeProps) => (
     )}
     <strong style={{ '--entity-name-cap': data.nameCap } as React.CSSProperties}>{shownName(String(data.name))}</strong>
     {data.changeMark as React.ReactNode}
+    {!!data.imported && typeof data.imported === 'object' && 'project' in data.imported && 'version' in data.imported && (
+      <small className="mesh-imported-origin">
+        Imported from {String(data.imported.project)} · {String(data.imported.version).slice(0, 12)}
+      </small>
+    )}
     {!!data.collapsedArea && (
       <small>
         {String(data.internalCount ?? 0)} internal relationship

@@ -36,10 +36,14 @@ export type AccessRequest = Request & {
   [requestSession]?: Session | null;
   [requestConnectionScope]?: Caller['scope'];
   [requestCallerOrigin]?: Caller['origin'];
+  [requestDisclosureShown]?: true;
   [requestPublicationRefusal]?: string;
   [requestPublication]?: { previous: string | null; commit: string | null };
   [requestProposal]?: ProposalAuditFacts;
 };
+/** Marks a publication whose browser confirmation included the mesh disclosure. */
+export const requestDisclosureShown = Symbol('requestDisclosureShown');
+
 /** The completed publication attached by its route for the one request audit record. */
 export const requestPublication = Symbol('requestPublication');
 /** The proposal, its declared projects and the commits a proposal operation touched. */
@@ -98,6 +102,7 @@ export function attachIdentity(
   attached[requestPublication] = undefined;
   attached[requestPublicationRefusal] = undefined;
   attached[requestProposal] = undefined;
+  attached[requestDisclosureShown] = undefined;
 }
 
 /**

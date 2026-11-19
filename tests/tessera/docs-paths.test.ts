@@ -45,8 +45,7 @@ test('every Tessera finding code the guides name is a code the validator gives',
 test('the user guide and the README name every Tessera finding code', () => {
   for (const document of ['README.md', 'docs/user-guide.md']) {
     const text = readFileSync(document, 'utf8');
-    for (const code of ['tessera-marker', 'tessera-revision', 'tessera-base', 'tessera-kind', 'tessera-property', 'tessera-reserved', 'tessera-location'])
-      expect(text, `${document}: ${code}`).toContain(code);
+    for (const code of ['tessera-marker', 'tessera-revision', 'tessera-base', 'tessera-kind', 'tessera-property', 'tessera-location']) expect(text, `${document}: ${code}`).toContain(code);
   }
 });
 

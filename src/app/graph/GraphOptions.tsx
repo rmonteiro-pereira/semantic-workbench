@@ -87,3 +87,8 @@ export function Segmented<Value extends string>({
     </span>
   );
 }
+
+/** Explains the imported graph marks when a model has imports. */
+export function ImportedGraphKey() {
+  return <span className="mesh-imported-key">Imported concepts show their owner and version</span>;
+}

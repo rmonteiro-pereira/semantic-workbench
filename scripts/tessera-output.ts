@@ -3,6 +3,7 @@ import type { CompileResult } from '../src/shared/tessera/compile-unit';
 import type { Acceptance } from '../src/shared/tessera/loss-report';
 import type { ManifestSource } from '../src/shared/tessera/manifest';
 import { canonicalJson } from '../src/shared/tessera/canonical-json';
+import { compileFindings, type CompileFinding } from '../src/shared/tessera/compile-findings';
 
 /** Exit statuses of the command. */
 export const EXIT = { success: 0, refused: 1, needsAcceptance: 2, misuse: 64 } as const;
@@ -22,9 +23,6 @@ export type RunOutcome = {
   bundle: { folder: string; files: string[] } | null;
 };
 
-/** The finding of one document as the JSON output lists it. */
-type OutputFinding = { document: string; severity: string; code: string; path: string; line?: number; column?: number; message: string };
-
 /** Maps a result to the exit status the contract documents. */
 export function exitStatusOf(result: RunResult): number {
   if (result === 'refused') return EXIT.refused;
@@ -33,15 +31,8 @@ export function exitStatusOf(result: RunResult): number {
 }
 
 /** Lists the findings of every document, then the failures that no document finding already says. */
-export function findingsOf(outcome: RunOutcome): OutputFinding[] {
-  const findings: OutputFinding[] = [];
-  for (const entry of outcome.compile?.findings ?? []) {
-    for (const issue of entry.issues)
-      findings.push({ document: entry.document, severity: issue.severity, code: issue.code, path: issue.path, line: issue.line, column: issue.column, message: issue.message });
-  }
-  for (const failure of outcome.compile?.failures ?? []) {
-    if (failure.code !== 'invalid-source') findings.push({ document: failure.document ?? '', severity: 'error', code: failure.code, path: '/', message: failure.message });
-  }
+export function findingsOf(outcome: RunOutcome): CompileFinding[] {
+  const findings = compileFindings(outcome.compile);
   if (outcome.result === 'refused' && !outcome.compile && outcome.message) findings.push({ document: '', severity: 'error', code: 'refused', path: '/', message: outcome.message });
   return findings;
 }
@@ -60,7 +51,7 @@ function sourceLine(source: RunOutcome['source']): string {
   return `Source: ${label} of ${source.branch} at ${source.commit}, folder ${source.projectFolder}`;
 }
 
-function findingLine(finding: OutputFinding): string {
+function findingLine(finding: CompileFinding): string {
   const place = finding.line ? `, line ${finding.line}, column ${finding.column ?? 1}` : '';
   const document = finding.document ? `${finding.document}: ` : '';
   return `  ${document}${finding.severity} ${finding.code} at ${finding.path}${place}: ${finding.message}`;

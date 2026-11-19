@@ -2,6 +2,14 @@
 import * as itemAddress from './item-address';
 import { parseAddress, replacePrefix, type Address } from './item-address';
 
+/** Names the workbench-owned file committed in each project root. */
+export const ADDRESS_HISTORY_FILE = '.semantic-workbench-address-migrations.jsonl';
+
+/** Uses the reserved history name across project-relative and repository-relative file listings. */
+export function isAddressHistoryPath(path: string): boolean {
+  return path.split('/').at(-1)?.toLowerCase() === ADDRESS_HISTORY_FILE;
+}
+
 /** Identifies the operation that changed a locator prefix. */
 export type MigrationKind = 'item' | 'scope' | 'document' | 'reconciliation' | 'deleted';
 /** Records an ordered prefix change, independently of any person identity. */

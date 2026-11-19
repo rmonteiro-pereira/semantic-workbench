@@ -1,0 +1,9 @@
+{
+  "code": "tessera-export-open",
+  "files": [
+    {
+      "path": "ontology.yaml",
+      "source": "{\"tessera\": 3, \"version\": \"0.2.0.dev0\", \"name\": \"Retail\", \"ontology\": [{\"concept\": \"Order\", \"type\": \"EntityType\", \"extends\": [\"Private\"]}, {\"concept\": \"Private\", \"type\": \"EntityType\"}], \"tessera_exports\": [\"Order\"]}"
+    }
+  ]
+}

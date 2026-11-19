@@ -4,6 +4,7 @@ import { inspect } from '../core/model';
 import { deepEqual, isObject } from '../edit/source-text';
 import { isMapping } from '../mappings/mapping-schema';
 import { conceptKindLookup, declaredAttributesOf, type ConceptShape } from '../attributes/attribute-rule';
+import type { CompiledAddress } from './mesh-address-map';
 import { additionSites, withoutAdditions, type CompileFailure } from './compile-document';
 
 function meaningFailure(document: string, message: string): CompileFailure {
@@ -77,4 +78,11 @@ export function unitMeaningFailures(sources: Pick<DocumentReading, 'path' | 'sou
     if (isMapping(source.data) && outputByPath.get(source.path) !== source.source) failures.push(meaningFailure(source.path, 'A mapping document was changed or left out of the compiled set.'));
   }
   return failures;
+}
+
+/** Compares the emitted ontology and address pairs with the translated source and its addresses. */
+export function meshMeaningFailures(document: string, expected: { data: unknown; addresses: CompiledAddress[] }, output: { data: unknown; addresses: CompiledAddress[] }): CompileFailure[] {
+  if (!deepEqual(expected.data, output.data)) return [meaningFailure(document, 'Compiled data differs from the merged ontology.')];
+  if (!deepEqual(expected.addresses, output.addresses)) return [meaningFailure(document, 'Compiled items do not match the source address map.')];
+  return [];
 }

@@ -60,8 +60,10 @@ export function RelationshipDetails({
   current,
   setDefinition,
 }: Props) {
+  const editTarget = relationshipTarget(relationship);
+  const inlineTarget = editTarget?.docId === current?.id ? editTarget : null;
   function handleTextareaChange(event: React.ChangeEvent<HTMLTextAreaElement, HTMLTextAreaElement>) {
-    return setSource(editEntity(source, relationship.data.path, event.target.value, current?.filename));
+    if (inlineTarget) setSource(editEntity(source, inlineTarget.path, event.target.value, current?.filename));
   }
 
   function handleViewDefinitionClick() {
@@ -107,7 +109,7 @@ export function RelationshipDetails({
           );
         if (!targetValue) return <p className="hint">Edit this relationship in Source.</p>;
         const whole = relationship.data.kind === 'Inheritance' || relationship.data.kind === 'Metric expression reference';
-        const owner = whole ? itemName(targetValue.kind, itemValue(source, targetValue.path)) : relationship.label;
+        const owner = whole && inlineTarget ? itemName(targetValue.kind, itemValue(source, targetValue.path)) : relationship.label;
         return (
           <div className="inspector-actions">
             <button className="primary" onClick={() => setEditing(targetValue)} aria-label={`Edit ${owner}`}>
@@ -169,7 +171,7 @@ export function RelationshipDetails({
       {relationship.data.kind !== 'Inheritance' && !relationship.data.readOnlyForm && (
         <label>
           Description
-          <textarea aria-label="Relationship description" value={relationship.data.definition.description ?? ''} onChange={handleTextareaChange} />
+          <textarea aria-label="Relationship description" value={relationship.data.definition.description ?? ''} readOnly={!inlineTarget} onChange={handleTextareaChange} />
         </label>
       )}
       {(() => {

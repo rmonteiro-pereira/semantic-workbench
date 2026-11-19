@@ -34,21 +34,19 @@ const OLDER = RETAIL.replace('tessera: 2', 'tessera: 1').replace('name: Retail',
 
 /** A document with 200 concepts, each with two attributes, to measure how long the details take to appear. */
 function largeOntology(): string {
-  const concepts = Array.from(
-    { length: 200 },
-    (_, index) =>
-      [
-        `  - concept: Thing${index}`,
-        '    type: EntityType',
-        '    relationships:',
-        '      - name: code',
-        '        roles: [{concept: String}]',
-        `        verbalizes: [Thing${index} has code]`,
-        '      - name: size',
-        '        roles: [{concept: Integer}]',
-        `        verbalizes: [Thing${index} has size]`,
-        '',
-      ].join('\n'),
+  const concepts = Array.from({ length: 200 }, (_, index) =>
+    [
+      `  - concept: Thing${index}`,
+      '    type: EntityType',
+      '    relationships:',
+      '      - name: code',
+      '        roles: [{concept: String}]',
+      `        verbalizes: [Thing${index} has code]`,
+      '      - name: size',
+      '        roles: [{concept: Integer}]',
+      `        verbalizes: [Thing${index} has size]`,
+      '',
+    ].join('\n'),
   );
   return `tessera: 2\nversion: 0.2.0.dev0\nname: Large\nontology:\n${concepts.join('')}`;
 }

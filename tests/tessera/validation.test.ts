@@ -35,15 +35,15 @@ test('a document without the marker is standard and gets no finding', () => {
 });
 
 test('a refused document has no format', () => {
-  expect(tesseraIssues(load('revision-3.yaml')).format).toBeNull();
+  expect(tesseraIssues(load('revision-4.yaml')).format).toBeNull();
 });
 
 test('messages name the property, say what is allowed and list the supported revisions', () => {
-  expect(tesseraIssues(load('revision-3.yaml')).issues[0].message).toContain('Supported revisions: 1, 2');
-  expect(tesseraIssues(load('marker-string.yaml')).issues[0].message).toContain('Supported revisions: 1, 2');
+  expect(tesseraIssues(load('revision-4.yaml')).issues[0].message).toContain('Supported revisions: 1, 2, 3');
+  expect(tesseraIssues(load('marker-string.yaml')).issues[0].message).toContain('Supported revisions: 1, 2, 3');
   expect(tesseraIssues(load('unknown-property.yaml')).issues[0].message).toContain('tessera_note is not');
   expect(tesseraIssues(load('unknown-property.yaml')).issues[0].message).toContain('Registered properties: tessera_notes');
-  expect(tesseraIssues(load('reserved-imports.yaml')).issues[0].message).toContain('reserved');
+  expect(tesseraIssues(load('misplaced-imports.yaml')).issues[0].message).toContain('allowed on: the ontology root');
   expect(tesseraIssues(load('notes-on-dataset.yaml')).issues[1].message).toContain('allowed on: the ontology root, a concept, a relationship of a concept');
 });
 

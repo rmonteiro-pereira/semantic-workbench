@@ -13,7 +13,7 @@ export const LOCAL_TIMEOUT_MS = 30_000;
 /** Default time limit for remote Git commands. */
 export const REMOTE_TIMEOUT_MS = 600_000;
 /** A blob entry listed from an immutable Git tree. */
-export type GitTreeEntry = { path: string; id: string; size: number };
+export type GitTreeEntry = { path: string; id: string; size: number; link?: true };
 /** Maximum bytes accepted when reading immutable definition objects. */
 export type GitObjectLimits = { documentBytes: number; totalBytes: number };
 const OBJECT_LIMITS: GitObjectLimits = { documentBytes: 2_000_000, totalBytes: 64_000_000 };
@@ -418,8 +418,8 @@ export function createGit(options: GitOptions) {
     const signed = authorship(author);
     await run(cwd, [...signed.config, 'commit', '-q', ...signed.trailer, '--only', '-F', '-', '--', ...list], { stdin: message, env: signed.env });
   }
-  async function lsTree(cwd: string, revision: string, prefix = ''): Promise<GitTreeEntry[]> {
-    const result = await run(cwd, ['ls-tree', '-r', '-l', '-z', revision, '--', ...(prefix ? [prefix] : [])], {
+  async function lsTree(cwd: string, revision: string, prefix = '', sizes = true): Promise<GitTreeEntry[]> {
+    const result = await run(cwd, ['ls-tree', '-r', ...(sizes ? ['-l'] : []), '-z', revision, '--', ...(prefix ? [prefix] : [])], {
       env: { GIT_NO_LAZY_FETCH: '1' },
     });
     return result.stdout
@@ -429,7 +429,7 @@ export function createGit(options: GitOptions) {
         const tab = entry.indexOf('\t');
         const fields = entry.slice(0, tab).trim().split(/\s+/);
         if (fields[1] !== 'blob') return [];
-        return [{ path: entry.slice(tab + 1), id: fields[2], size: Number(fields[3]) }];
+        return [{ path: entry.slice(tab + 1), id: fields[2], size: sizes ? Number(fields[3]) : 0, ...(fields[0] === '120000' ? { link: true as const } : {}) }];
       });
   }
   async function catFileBatch(cwd: string, ids: string[], limits = OBJECT_LIMITS) {
@@ -463,19 +463,19 @@ export function createGit(options: GitOptions) {
     catFileBatch,
     /** Tests commit ancestry without accepting other command failures as a negative answer. */
     async isAncestor(cwd: string, ancestor: string, descendant: string) {
-      const result = await run(cwd, ['merge-base', '--is-ancestor', ancestor, descendant], { allowFailure: true });
+      const result = await run(cwd, ['merge-base', '--is-ancestor', ancestor, descendant], { allowFailure: true, env: { GIT_NO_LAZY_FETCH: '1' } });
       if (result.code > 1) throw new GitError('Cannot determine Git ancestry.', result);
       return result.code === 0;
     },
     /** Resolves a revision to a full object id, or null when it does not exist. */
     async revParse(cwd: string, ref: string) {
-      const result = await run(cwd, ['rev-parse', '--verify', '--end-of-options', ref], { allowFailure: true });
+      const result = await run(cwd, ['rev-parse', '--verify', '--end-of-options', ref], { allowFailure: true, env: { GIT_NO_LAZY_FETCH: '1' } });
       return result.code === 0 ? result.stdout.trim() : null;
     },
     /** Resolves only a tag, peeling annotated tags to their commit. */
     async peelTag(cwd: string, name: string) {
       const ref = name.startsWith('refs/tags/') ? name : `refs/tags/${name}`;
-      const result = await run(cwd, ['rev-parse', '--verify', '--end-of-options', `${ref}^{commit}`], { allowFailure: true });
+      const result = await run(cwd, ['rev-parse', '--verify', '--end-of-options', `${ref}^{commit}`], { allowFailure: true, env: { GIT_NO_LAZY_FETCH: '1' } });
       return result.code === 0 ? result.stdout.trim() : null;
     },
     // Kill the running remote operation of this repository (the UI's Cancel).

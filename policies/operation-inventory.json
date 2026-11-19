@@ -542,6 +542,115 @@
       },
       "outcomeClassifier": "batchSave"
     },
+    "GET /api/mesh": {
+      "id": "mesh.graph",
+      "handlerChecks": [],
+      "limits": { "request": "none", "response": "bounded", "work": "scan" },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": { "increment": "later", "reason": "The interactive ontology mesh uses scoped published links." },
+      "steps": ["snapshot.read"]
+    },
+    "GET /api/mesh/providers": {
+      "id": "mesh.providers.list",
+      "handlerChecks": [],
+      "limits": { "request": "none", "response": "bounded", "work": "scan" },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": { "increment": "later", "reason": "Provider discovery is part of interactive import editing." },
+      "steps": ["snapshot.read"]
+    },
+    "GET /api/projects/:slug/dependencies": {
+      "id": "mesh.dependencies.read",
+      "handlerChecks": [],
+      "limits": { "request": "none", "response": "bounded", "work": "scan" },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": { "increment": "later", "reason": "Dependency status reads the person's workbench copy." },
+      "steps": ["snapshot.read"]
+    },
+    "POST /api/projects/:slug/dependencies/update": {
+      "id": "mesh.dependencies.update",
+      "handlerChecks": ["authorizeWrite"],
+      "limits": { "request": "FILE_SAVE_REQUEST_LIMIT", "response": "bounded", "work": "scan" },
+      "effects": ["read", "localWrite"],
+      "dispatch": "twin",
+      "exposure": { "increment": "later", "reason": "The update confirms a reviewed dependency preview and writes the lock." },
+      "steps": ["snapshot.read"]
+    },
+    "GET /api/projects/:slug/dependents": {
+      "id": "mesh.dependents.read",
+      "handlerChecks": ["authorizeWrite"],
+      "limits": { "request": "none", "response": "bounded", "work": "scan" },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": { "increment": "later", "reason": "Provider stewards can review published dependency disclosures." },
+      "steps": ["snapshot.read"]
+    },
+    "POST /api/projects/:slug/compile/check": {
+      "id": "compile.check",
+      "handlerChecks": [],
+      "limits": {
+        "request": "FILE_SAVE_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "scan"
+      },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      },
+      "steps": ["snapshot.read"]
+    },
+    "POST /api/projects/:slug/compile": {
+      "id": "compile.run",
+      "handlerChecks": [],
+      "limits": {
+        "request": "FILE_SAVE_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "scan"
+      },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      },
+      "steps": ["snapshot.read"]
+    },
+    "GET /api/projects/:slug/compile/bundle": {
+      "id": "compile.bundle",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "binary",
+        "work": "scan"
+      },
+      "effects": ["read"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "A binary download for the browser. Agents page compile.run instead."
+      },
+      "steps": ["snapshot.read"]
+    },
+    "POST /api/projects/:slug/compile/convert": {
+      "id": "compile.convert",
+      "handlerChecks": ["authorizeWrite"],
+      "limits": {
+        "request": "FILE_SAVE_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "scan"
+      },
+      "effects": ["localWrite"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "later",
+        "reason": "Rewrites a source file; not an agent operation yet."
+      },
+      "steps": ["snapshot.read"]
+    },
     "POST /api/projects/:slug/item-addresses/resolve": {
       "id": "itemAddresses.resolve",
       "handlerChecks": [],
@@ -726,13 +835,14 @@
       "limits": {
         "request": "none",
         "response": "bounded",
-        "work": "light"
+        "work": "scan"
       },
       "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
-      }
+      },
+      "steps": ["snapshot.read"]
     },
     "PUT /api/projects/:slug/files/*": {
       "id": "files.save",
@@ -1143,7 +1253,7 @@
         "increment": "workspace-scm"
       },
       "outcomeClassifier": "remote",
-      "steps": ["publication.advance", "publication.abandon"]
+      "steps": ["publication.advance", "publication.abandon", "snapshot.read"]
     },
     "POST /api/projects/:slug/git/pull": {
       "id": "git.pull",
@@ -1217,7 +1327,7 @@
       "exposure": {
         "increment": "workspace-scm"
       },
-      "steps": ["publication.advance", "publication.abandon"]
+      "steps": ["publication.advance", "publication.abandon", "snapshot.read"]
     },
     "POST /api/projects/:slug/git/pull-default": {
       "id": "git.pullDefault",
@@ -2046,7 +2156,7 @@
       "exposure": {
         "increment": "workspace-scm"
       },
-      "steps": ["publication.advance", "publication.abandon"]
+      "steps": ["publication.advance", "publication.abandon", "snapshot.read"]
     },
     "POST /api/projects/:slug/git/acknowledge-publication": {
       "id": "git.acknowledgePublication",

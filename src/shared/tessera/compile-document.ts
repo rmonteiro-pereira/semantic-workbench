@@ -109,33 +109,35 @@ function governanceStatusOf(value: unknown): GovernanceStatusKey {
 }
 
 /** Decides what each addition becomes: dropped additions are reported as losses, the others fail the compile. */
-function dispositions(
-  document: SourceDocument,
+export function additionDispositions(
+  documentPath: string,
   data: unknown,
   sites: AdditionSite[],
   registry: Registry,
+  translated: ReadonlySet<string>,
 ): { losses: LossEntry[]; failures: CompileFailure[]; governanceStatuses: GovernanceStatusKey[] } {
   const losses: LossEntry[] = [];
   const governanceStatuses: GovernanceStatusKey[] = [];
   const failures: CompileFailure[] = [];
   for (const site of sites) {
     const entry = registry.byName(site.name);
-    if (!entry) failures.push({ code: 'invalid-source', document: document.path, message: `${site.name} at ${pointerOf(site.path)} is not a registered ${TesseraNames.product} property.` });
+    if (!entry) failures.push({ code: 'invalid-source', document: documentPath, message: `${site.name} at ${pointerOf(site.path)} is not a registered ${TesseraNames.product} property.` });
     else if (entry.disposition === 'drop') {
-      losses.push(lossOf(document.path, data, site));
+      losses.push(lossOf(documentPath, data, site));
       if (site.name === GOVERNANCE_PROPERTY) governanceStatuses.push(governanceStatusOf(site.value));
-    } else failures.push({ code: 'translation', document: document.path, message: `${site.name} at ${pointerOf(site.path)} cannot be compiled: its disposition is ${entry.disposition}.` });
+    } else if (entry.disposition !== 'translate' || !translated.has(site.name))
+      failures.push({ code: 'translation', document: documentPath, message: `${site.name} at ${pointerOf(site.path)} cannot be compiled: its disposition is ${entry.disposition}.` });
   }
   return { losses, failures, governanceStatuses };
 }
 
 /** Compiles one Tessera ontology into standard Ossie text, with the losses it caused, or says why it cannot. */
-export function compileDocument(document: SourceDocument, registry: Registry): CompiledDocument {
+export function compileDocument(document: SourceDocument, registry: Registry, translated: ReadonlySet<string> = new Set()): CompiledDocument {
   const syntax = syntaxOf(document.path);
   const parsed = parseSourceDocument(document, syntax);
   if ('code' in parsed) return { ok: false, failures: [parsed] };
   const sites = additionSites(parsed.data);
-  const { losses, failures, governanceStatuses } = dispositions(document, parsed.data, sites, registry);
+  const { losses, failures, governanceStatuses } = additionDispositions(document.path, parsed.data, sites, registry, translated);
   const lossy = lossyNumbers(syntax, document.source, parsed.yaml);
   for (const token of lossy) failures.push({ code: 'serialization', document: document.path, message: `The number ${token} cannot be written without changing its digits.` });
   if (failures.length) return { ok: false, failures };

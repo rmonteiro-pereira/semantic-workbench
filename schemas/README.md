@@ -93,3 +93,12 @@ not replace the active schema files.
 The access schema also defines `programsFile` for `admin/programs.json`: pre-registered public
 agent programs, exact HTTPS or loopback redirect addresses and offered scopes. Unknown fields,
 duplicate ids, custom redirect schemes and the reserved administration scope are refused.
+The revision 3 workbench schemas distinguish ontology roots from headerless parts. The root schema
+allows an empty ontology list when the root declares parts. The dependency manifest has its own
+version 1 schema for recording resolved providers. Regenerate the derived ontology schemas before
+compiling the standalone validators.
+
+
+Revision 3 selects either the Tessera ontology root schema or the part schema. The root
+declares part paths, exports and imports. The dependency manifest schema validates the
+project's `tessera-dependencies.json` independently of definition files.

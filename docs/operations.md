@@ -38,6 +38,15 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 | projects.export | GET /api/projects/:slug/export | export | project | read | none | local-edit |
 | items.diff | GET /api/projects/:slug/item-diff | history | project | read | ITEM_DIFF_QUERY_LIMIT | never |
 | files.saveBatch | POST /api/projects/:slug/save-batch | edit | project | localWrite | FILE_SAVE_REQUEST_LIMIT | local-edit |
+| mesh.graph | GET /api/mesh | read | workspace | read | none | later |
+| mesh.providers.list | GET /api/mesh/providers | edit | body | read | none | later |
+| mesh.dependencies.read | GET /api/projects/:slug/dependencies | read | project | read | none | later |
+| mesh.dependencies.update | POST /api/projects/:slug/dependencies/update | edit | project | read, localWrite | FILE_SAVE_REQUEST_LIMIT | later |
+| mesh.dependents.read | GET /api/projects/:slug/dependents | read | body | read | none | later |
+| compile.check | POST /api/projects/:slug/compile/check | read | project | read | FILE_SAVE_REQUEST_LIMIT | local-edit |
+| compile.run | POST /api/projects/:slug/compile | export | project | read | FILE_SAVE_REQUEST_LIMIT | local-edit |
+| compile.bundle | GET /api/projects/:slug/compile/bundle | export | project | read | none | never |
+| compile.convert | POST /api/projects/:slug/compile/convert | edit | project | localWrite | FILE_SAVE_REQUEST_LIMIT | later |
 | itemAddresses.resolve | POST /api/projects/:slug/item-addresses/resolve | read | project | read | ITEM_ADDRESS_REQUEST_LIMIT | local-edit |
 | itemAddresses.reconcile | POST /api/projects/:slug/item-addresses/reconcile/* | edit | file | localWrite | ITEM_ADDRESS_REQUEST_LIMIT | local-edit |
 | files.ignore | POST /api/projects/:slug/gitignore | edit | project | localWrite | GIT_REQUEST_LIMIT | local-edit |
@@ -183,18 +192,28 @@ These steps run inside the admitted route and share its authorization and audit 
 | projects.export | snapshot.read |
 | items.diff | snapshot.read |
 | itemAddresses.resolve | snapshot.read |
+| mesh.graph | snapshot.read |
+| mesh.providers.list | snapshot.read |
+| mesh.dependencies.read | snapshot.read |
+| mesh.dependencies.update | snapshot.read |
+| mesh.dependents.read | snapshot.read |
+| compile.check | snapshot.read |
+| compile.run | snapshot.read |
+| compile.bundle | snapshot.read |
+| compile.convert | snapshot.read |
 | metrics.list | snapshot.read |
 | usage.read | snapshot.read |
 | metrics.save | snapshot.read |
 | metrics.preview | snapshot.read |
 | metrics.explain | snapshot.read |
-| git.fetch | publication.advance, publication.abandon |
-| git.publish | publication.advance, publication.abandon |
+| files.read | snapshot.read |
+| git.fetch | publication.advance, publication.abandon, snapshot.read |
+| git.publish | publication.advance, publication.abandon, snapshot.read |
 | repositories.registerProjects | publication.upgrade |
 | agent.catalog.read | snapshot.read |
 | agent.context.read | snapshot.read |
 | agent.plan | snapshot.read |
-| git.adopt | publication.advance, publication.abandon |
+| git.adopt | publication.advance, publication.abandon, snapshot.read |
 
 ## Content guards
 

@@ -11,6 +11,7 @@ export type DataLayout = {
   /** Per-person Git working copies in server mode: `worktrees/<userKey>/<repo>/`. */
   worktrees: string;
   state: string;
+  mesh: string;
   views: string;
   drafts: string;
   /** Identity-free usage counts, one folder per project; created only when counters are on. */
@@ -35,6 +36,7 @@ export function dataLayout(root = process.env.DATA_DIR || 'data', cacheDir: stri
     projects: join(rootDir, 'projects'),
     worktrees: join(rootDir, 'worktrees'),
     state,
+    mesh: join(state, 'mesh'),
     views: join(state, 'views'),
     drafts: join(state, 'drafts'),
     usage: join(state, 'usage'),

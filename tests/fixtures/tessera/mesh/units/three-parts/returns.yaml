@@ -1,0 +1,13 @@
+{
+  "tessera": 3,
+  "tessera_part": true,
+  "ontology": [
+    {
+      "concept": "Return",
+      "type": "EntityType",
+      "extends": [
+        "Order"
+      ]
+    }
+  ]
+}

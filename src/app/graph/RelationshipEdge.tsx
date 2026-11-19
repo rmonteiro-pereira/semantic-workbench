@@ -4,6 +4,8 @@ import { BaseEdge, EdgeLabelRenderer, useStore, type EdgeProps } from '@xyflow/r
 import type { ItemTraffic } from '../usage/use-usage';
 import { countWords } from '../usage/usage-wording';
 import { trafficStrokeWidth } from '../usage/usage-intensity';
+import { unpublishedEdge } from './edge-styles';
+import type { ChangeState } from '../../shared/item-diff/item-change';
 import { labelBox, labelInViewport, nearestRoutePoint, orthogonalPath, routePoints, type EdgeRoute } from './routes';
 /** Exports the shared relationship routing geometry and types. */
 export { assignRoutes, heightForEdgeEnds, placeLabels, routePoints, orthogonalPath, type EdgeRoute, type Box } from './routes';
@@ -12,13 +14,15 @@ export { assignRoutes, heightForEdgeEnds, placeLabels, routePoints, orthogonalPa
 export function RelationshipEdge(props: EdgeProps) {
   const { sourceX: sx, sourceY: sy, targetX: tx, targetY: ty, data } = props;
   const traffic = data?.traffic as ItemTraffic | null | undefined;
-  const style = traffic?.level ? { ...props.style, strokeWidth: trafficStrokeWidth(Number(props.style?.strokeWidth ?? 1.5), traffic.level) } : props.style;
+  // A relationship imported from another project is dashed, so it reads as not defined here.
+  const own = data?.imported ? { ...props.style, strokeDasharray: '5 3' } : props.style;
+  const style = traffic?.level ? { ...own, strokeWidth: trafficStrokeWidth(Number(own?.strokeWidth ?? 1.5), traffic.level) } : own;
   const route = (data?.route as EdgeRoute | undefined) ?? { route: 'short', bendX: (sx + tx) / 2 };
-  const { points, label: own } = routePoints({ x: sx, y: sy }, { x: tx, y: ty }, route);
+  const { points, label: routeLabel } = routePoints({ x: sx, y: sy }, { x: tx, y: ty }, route);
   return (
     <>
       <BaseEdge id={props.id} path={orthogonalPath(points)} markerEnd={props.markerEnd} style={style} interactionWidth={props.interactionWidth} />
-      {props.label && <RelationshipLabel edge={props} text={props.label} points={points} fallback={own} traffic={traffic} />}
+      {props.label && <RelationshipLabel edge={props} text={props.label} points={points} fallback={routeLabel} traffic={traffic} />}
     </>
   );
 }
@@ -51,8 +55,6 @@ function RelationshipLabel({ edge, text, points, fallback, traffic }: LabelProps
     </>
   );
 }
-import { unpublishedEdge } from './edge-styles';
-import type { ChangeState } from '../../shared/item-diff/item-change';
 
 function OverlayRelationshipEdge(props: EdgeProps) {
   const change = props.data?.change as ChangeState | undefined;

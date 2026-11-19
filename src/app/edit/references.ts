@@ -7,6 +7,9 @@ import { VENDOR } from '../../shared/metrics/extension';
 import { itemValue, removePatches, valuePatches, edit } from '../../shared/edit/yaml-patch';
 import type { ItemKind, Path } from '../../shared/edit/item-model';
 import type { Patch } from '../../shared/edit/source-text';
+import { IMPORTS_PROPERTY } from '../../shared/tessera/additions/imports';
+import { INCLUDES_PROPERTY } from '../../shared/tessera/additions/includes';
+import { rewriteConceptReferences } from '../../shared/tessera/qualify';
 import { ATTRIBUTE_ORDER_PROPERTY } from '../../shared/tessera/additions/attributes';
 // References to an item across the project's YAML/JSON files: what breaks when it is deleted (each
 // with the item that would be removed with it) and what still names it after a rename (each
@@ -345,4 +348,52 @@ export function rewriteReferences(docs: ProjectDoc[], refs: Reference[], newName
     }
     return { docId, source: out + projectDoc.source.slice(at) };
   });
+}
+
+/** Renames an import alias and updates concept references only in that ontology's declared files. */
+export function renameUnitAlias(root: ProjectDoc, documents: readonly ProjectDoc[], previous: string, next: string): { docId: string; source: string }[] {
+  if (previous === next) return [];
+  if (!/^[A-Za-z0-9_]+$/.test(next)) throw new Error('An import alias uses letters, digits and underscores.');
+  const data = parseDocument(root.source).toJS();
+  const declarations = data?.[IMPORTS_PROPERTY];
+  if (!Array.isArray(declarations)) throw new Error('The importing root is unavailable.');
+  const index = declarations.findIndex(entry => entry.alias === previous);
+  if (index < 0) throw new Error(`Import alias "${previous}" was not found.`);
+  if (declarations.some(entry => entry.alias === next)) throw new Error(`Import alias "${next}" already exists.`);
+  const names = new Set<string>(declarations[index].concepts.map((concept: string) => `${previous}.${concept}`));
+  const rewrite = (reference: string) => (names.has(reference) ? next + reference.slice(previous.length) : reference);
+  const parts: string[] = Array.isArray(data[INCLUDES_PROPERTY]) ? data[INCLUDES_PROPERTY].filter((path: unknown) => typeof path === 'string') : [];
+  const byPath = new Map(documents.map(document => [document.path, document]));
+  return [
+    root,
+    ...parts.map(path => {
+      const document = byPath.get(path);
+      if (!document) throw new Error('The ontology set is unavailable.');
+      return document;
+    }),
+  ].flatMap((document, documentIndex) => {
+    const steps = unitAliasPatches(document, rewrite);
+    if (documentIndex === 0) steps.push(text => valuePatches(text, [IMPORTS_PROPERTY, index, 'alias'], next, document.filename));
+    return steps.length ? [{ docId: document.id, source: edit(document.source, ...steps) }] : [];
+  });
+}
+
+function unitAliasPatches(document: ProjectDoc, rewrite: (reference: string) => string): ((text: string) => Patch[])[] {
+  const parsed = parseDocument(document.source);
+  const data = parsed.toJS();
+  const steps: ((text: string) => Patch[])[] = [];
+  const quote = (name: string) =>
+    name
+      .split('.')
+      .map(part => '"' + part.replaceAll('"', '""') + '"')
+      .join('.');
+  if (!Array.isArray(data?.ontology)) return [];
+  const updated = data.ontology.map((concept: Record<string, unknown>) => rewriteConceptReferences(concept, rewrite, quote));
+  for (const scalar of scalars(parsed)) {
+    if (scalar.path[0] !== 'ontology') continue;
+    const replacement = scalar.path.slice(1).reduce<unknown>((value, key) => (value && typeof value === 'object' ? Reflect.get(value, key) : undefined), updated);
+    if (typeof replacement !== 'string' || replacement === scalar.value) continue;
+    steps.push(text => valuePatches(text, scalar.path, replacement, document.filename));
+  }
+  return steps;
 }

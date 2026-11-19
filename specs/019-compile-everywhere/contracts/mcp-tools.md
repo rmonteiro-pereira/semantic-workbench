@@ -11,7 +11,7 @@ idempotent, not destructive and closed-world. Retry class `repeatable`. Request 
 
 ## `check_standard` answer
 
-`{ result, source, base, findings (bounded, with findingCount), report (summary: counts and digest, entries paged by cursor), files }`. For `source: working` the answer says `unpublished: true`.
+`{ result, source, base, accepted, findings (bounded, with findingCount), report (summary: counts and digest, entries paged by cursor), files }`. For `source: working` the answer says `unpublished: true`.
 
 ## `compile_standard` answer
 

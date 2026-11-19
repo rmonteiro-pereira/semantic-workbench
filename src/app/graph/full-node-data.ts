@@ -24,7 +24,9 @@ export function reservedNameHeight(entity: AnnotatedEntity): number {
 export function entityCardData(entity: AnnotatedEntity, size: { width: number; height: number }) {
   const reservedHeight = reservedNameHeight(entity);
   const nameCap = cardNameFontSize(entity.name, { ...size, reservedHeight }, LARGEST_ENTITY_NAME_PX);
-  return { nameCap: `${nameCap}px`, ...(entity.change ? { change: entity.change } : {}) };
+  const change = entity.change ? { change: entity.change } : {};
+  if (entity.imported) return { nameCap: `${Math.min(nameCap, 13)}px`, imported: entity.imported, ...change };
+  return { nameCap: `${nameCap}px`, ...change };
 }
 
 /** The data of an area tile: its title, the largest title size that fits, and its link summary. */

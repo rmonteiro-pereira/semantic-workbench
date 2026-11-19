@@ -1,0 +1,22 @@
+{
+  "name": "Retail",
+  "version": "0.2.0.dev0",
+  "ontology": [
+    {
+      "type": "EntityType",
+      "concept": "Part0"
+    },
+    {
+      "type": "EntityType",
+      "concept": "Part1"
+    },
+    {
+      "type": "EntityType",
+      "concept": "Part2"
+    },
+    {
+      "type": "EntityType",
+      "concept": "Part3"
+    }
+  ]
+}

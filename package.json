@@ -42,6 +42,8 @@
     "test:tessera": "bun scripts/tessera-browser-check.ts",
     "test:item-diff": "bun scripts/item-diff-browser-check.ts",
     "test:attributes": "bun scripts/attributes-governance-browser-check.ts",
+    "test:mesh": "bun scripts/mesh-browser-check.ts",
+    "test:compile": "bun scripts/compile-browser-check.ts",
     "tessera": "bun scripts/tessera.ts",
     "test:scm": "bun scripts/scm-browser-check.ts",
     "test:odcs": "bun scripts/odcs-browser-check.ts",

@@ -36,6 +36,8 @@ export type AuditInput = {
     resourceAttrs: Record<string, unknown>;
   };
   version?: string;
+  /** The publish confirmation showed the dependency disclosure. */
+  disclosureShown?: true;
   /** The settled and candidate commits of a publication or adoption attempt. */
   publication?: { previous: string | null; commit: string | null };
   /** The proposal a record is about, its declared projects and the commits involved. */
@@ -60,7 +62,7 @@ function pick(value: Record<string, unknown>, keys: string[]) {
 const resourceKeys = ['type', 'project', 'path', 'branch', 'metric', 'entry', 'area', 'role', 'grant'];
 function record(input: AuditInput, at: string, prev: string): AuditEntry {
   const entry = {
-    ...pick(input, ['requestId', 'action', 'decision', 'rules', 'reason', 'outcome', 'version', 'tool', 'connection', 'method', 'clientLabel', 'result']),
+    ...pick(input, ['requestId', 'action', 'decision', 'rules', 'reason', 'outcome', 'version', 'tool', 'connection', 'method', 'clientLabel', 'result', 'disclosureShown']),
     type: 'audit',
     at,
     prev,

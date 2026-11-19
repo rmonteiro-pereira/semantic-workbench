@@ -1,0 +1,38 @@
+{
+  "tessera": 3,
+  "tessera_part": true,
+  "ontology": [
+    {
+      "concept": "Shop",
+      "type": "EntityType"
+    },
+    {
+      "concept": "Order",
+      "type": "EntityType",
+      "relationships": [
+        {
+          "name": "customer",
+          "roles": [
+            {
+              "concept": "Customer"
+            }
+          ],
+          "verbalizes": [
+            "{Order} belongs to {customer}"
+          ]
+        }
+      ]
+    },
+    {
+      "concept": "Return",
+      "type": "EntityType",
+      "extends": [
+        "Order"
+      ]
+    },
+    {
+      "concept": "Customer",
+      "type": "EntityType"
+    }
+  ]
+}

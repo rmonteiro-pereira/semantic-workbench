@@ -1,5 +1,8 @@
 // Saves and reverts documents: a stale base is refused, the reader's guard judges the text, and the
 // swap is journaled so a crash leaves either the old or the new bytes.
+import { DEPENDENCY_MANIFEST_PATH } from '../../../shared/tessera/dependency-manifest';
+import { requireWritableOntologySet } from '../../mesh/unit-reader';
+import { unitEditMigrations } from './unit-edits';
 import type { DeclaredMigration } from '../../../shared/core/address-migration';
 import type { OperationOutcome } from '../../auth/operation-outcome';
 import { parseAddress } from '../../../shared/core/item-address';
@@ -11,7 +14,7 @@ import { InputError, MAX_INPUT_BYTES } from '../../../shared/validation/diagnost
 import { atomicWrite, decode, encode, sha256 } from '../atomic';
 import type { Git } from '../git';
 import { JournalCrash, type Journal } from '../journal';
-import { projectFile, projectPath, projectPrefix, repoDir, type DataLayout } from '../paths';
+import { PathError, projectFile, projectPath, projectPrefix, repoDir, type DataLayout } from '../paths';
 import { clearPersonalDrafts } from '../personal-state';
 import type { Reader } from '../reader';
 import { indexBytes } from '../scanner';
@@ -130,19 +133,52 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     const guard = demoted.length ? { outcome: 'rewritten' as const, demoted, storedSource: stored } : { outcome: 'accepted' as const };
     return { version, valid: indexed.file.valid, findings: indexed.findings, guard };
   }
+  function requireCompleteSet(place: Place, project: string, reader: Reader, path: string) {
+    const read = (name: string) => {
+      if (reader.view && !reader.view.canRead(project, name)) return null;
+      try {
+        return decode(readFileSync(projectFile(place.layout, project, name)));
+      } catch (error) {
+        if (error instanceof PathError || (error as NodeJS.ErrnoException).code === 'ENOENT') return null;
+        throw error;
+      }
+    };
+    const source = read(path);
+    if (source === null) return;
+    const rootPaths = () =>
+      place.cache
+        .files(project)
+        .filter(file => file.docType === 'Ossie ontology')
+        .map(file => file.path);
+    const available = (name: string) => {
+      const indexed = place.cache.file(project, name);
+      const readable = !reader.view || reader.view.canRead(project, name);
+      return Boolean(indexed?.visible && readable);
+    };
+    requireWritableOntologySet({ path, source }, { available, read, rootPaths });
+  }
   async function saveFile(
     slug: string,
     path: string,
     body: { baseHash: string | null; source?: string; patches?: Patch[]; declaredMigrations?: DeclaredMigration[]; deletedItems?: string[]; keepDrafts?: boolean },
     reader: Reader,
+    manifestRoots?: ReadonlyMap<string, string>,
   ) {
     const { guard } = reader;
     entry(slug);
     const relativePath = projectPath(path);
     if (relativePath.split('/').at(-1)?.toLowerCase() === ADDRESS_HISTORY_FILE) throw new BadRequestError('Address history is managed by the workbench.');
+    if (relativePath === DEPENDENCY_MANIFEST_PATH && !manifestRoots) throw new BadRequestError('Use Update dependencies to write the dependency manifest.');
     const declarations = body.declaredMigrations ?? [];
     const deletedItems = body.deletedItems ?? [];
     const check = async (at: Place) => {
+      if (manifestRoots) {
+        for (const [root, expectedHash] of manifestRoots) {
+          const bytes = readFileSync(projectFile(at.layout, slug, root));
+          if (sha256(bytes) !== expectedHash) throw new BadRequestError('The ontology changed. Review the dependency update again.');
+        }
+      }
+      if (!manifestRoots) requireCompleteSet(at, slug, reader, relativePath);
       const result = await guardedEdit(at, { slug, path: relativePath }, body, guard);
       const after = result.guarded?.changes[0].after ?? result.edited;
       verifyDeletedItems(deletedItems, { project: slug, path: relativePath, before: result.before ?? '', after });
@@ -151,10 +187,11 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     const place = await copies.writePlace(reader, slug, check);
     const file = projectFile(place.layout, slug, relativePath);
     return lock(projectLock(place, slug), async () => {
-      const { edited, guarded } = await check(place);
+      const { edited, before, guarded } = await check(place);
       const next = guarded?.changes[0].after ?? edited;
       const { bytes, indexed } = checkedBytes(slug, relativePath, next);
       if (!indexed.file.valid) throw new InputError(indexed.findings);
+      unitEditMigrations(place, slug, reader, [{ path: relativePath, before, after: next }]);
       const opId = journal.newId();
       const records = await saveMigrations(place.layout, slug, opId, declarations, deletedItems);
       const staging = join(layout.state, `.staging-${opId}`);
@@ -218,6 +255,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     if (!Array.isArray(writes) || !writes.length || writes.length > 50) throw new BadRequestError('Expected 1–50 files.');
     const files = writes.map(w => ({ ...w, path: projectPath(w.path) }));
     if (files.some(file => file.path.split('/').at(-1)?.toLowerCase() === ADDRESS_HISTORY_FILE)) throw new BadRequestError('Address history is managed by the workbench.');
+    if (files.some(file => file.path === DEPENDENCY_MANIFEST_PATH)) throw new BadRequestError('Use Update dependencies to write the dependency manifest.');
     const declarations = options.declaredMigrations ?? [];
     const deletedItems = options.deletedItems ?? [];
     if (new Set(files.map(f => f.path)).size !== files.length) throw new BadRequestError('Each file may appear once.');
@@ -225,6 +263,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
       throw new OccupiedError('The target is unavailable.', {});
     }
     const check = async (at: Place) => {
+      for (const file of files) requireCompleteSet(at, slug, reader, file.path);
       const result = await guardedEdits(at, slug, files, guard);
       result.edited.forEach((edit, index) => {
         const ownDeleted = deletedItems.filter(address => addressDocument(address) === edit.path);
@@ -270,6 +309,16 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
           rewritten,
         };
       });
+      const moves = unitEditMigrations(
+        place,
+        slug,
+        reader,
+        edited.map((edit, index) => ({
+          path: edit.path,
+          before: edit.before,
+          after: decode(prepared[index].bytes),
+        })),
+      );
       const opId = journal.newId();
       const staging = join(place.layout.projects, `.staging-${opId}`);
       try {
@@ -289,7 +338,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
             place.copy ?? undefined,
           ),
         );
-        const records = await saveMigrations(place.layout, slug, opId, declarations, deletedItems);
+        const records = await saveMigrations(place.layout, slug, opId, [...declarations, ...moves], deletedItems);
         steps.push(...stageAddressMigrations({ layout: place.layout, project: slug, staging }, records));
         journal.run(kind, steps, [staging], opId);
       } catch (error) {
@@ -318,6 +367,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     if (!gitAvailable) throw new GitUnavailableError();
     const relativePath = projectPath(path);
     if (relativePath.split('/').at(-1)?.toLowerCase() === ADDRESS_HISTORY_FILE) throw new BadRequestError('Address history is managed by the workbench.');
+    if (relativePath === DEPENDENCY_MANIFEST_PATH) throw new BadRequestError('Use Update dependencies to write the dependency manifest.');
     const committedIn = (at: Place) => git.blob(repoDir(at.layout, slug), 'HEAD', projectPrefix(layout, slug) + relativePath);
     const check = async (at: Place) => guardRevert(at.layout, { slug, path: relativePath }, await committedIn(at), reader.guard);
     const place = await copies.writePlace(reader, slug, check);
@@ -329,7 +379,11 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     } catch {}
     return reverted;
   }
-  return { saveFile, saveFiles, revertFile, validateFile };
+  /** Writes a planned lock after rechecking the roots and the previous lock under the save lock. */
+  function writeDependencyManifest(slug: string, body: { baseHash: string | null; source: string }, roots: ReadonlyMap<string, string>, reader: Reader) {
+    return saveFile(slug, DEPENDENCY_MANIFEST_PATH, body, reader, roots);
+  }
+  return { saveFile, saveFiles, revertFile, validateFile, writeDependencyManifest };
 }
 
 /** Classifies an atomic batch save and any governance demotions it reports. */

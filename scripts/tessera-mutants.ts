@@ -16,7 +16,7 @@ const command = 'scripts/tessera.ts';
 
 /** The faults of the Tessera format and compiler. */
 export const tesseraMutants: Mutant[] = [
-  ['tessera', validation, "const marked = !options.nested && readMarker(data).family !== 'standard';", 'const marked = false;'],
+  ['tessera', validation, "const marked = !options.nested && marker.family !== 'standard';", 'const marked = false;'],
   ['tessera', marker, '!Object.hasOwn(data, TesseraNames.markerKey)', '!JSON.stringify(data).includes(\'"tessera"\')'],
   ['tessera', validate, 'if (declaredRevision !== undefined && !revisions.includes(declaredRevision))', 'if (false)'],
   ['tessera', validate, '} else if (!entry) {', '} else if (!entry) {\n      continue;'],
@@ -26,7 +26,7 @@ export const tesseraMutants: Mutant[] = [
   ['tessera', validate, 'if (validate(data)) return [];', 'return [];'],
   ['tessera', compileDocument, 'for (const site of sites) yaml.deleteIn(site.path);', ''],
   ['tessera', compileDocument, 'yaml.delete(TesseraNames.markerKey);', ''],
-  ['tessera', compileDocument, 'losses.push(lossOf(document.path, data, site));', 'void site;'],
+  ['tessera', compileDocument, 'losses.push(lossOf(documentPath, data, site));', 'void site;'],
   ['tessera', lossReport, 'compiler: subject.compiler,', "compiler: { ...subject.compiler, version: '' },"],
   ['tessera', lossReport, 'offer.digest !== undefined && offer.digest === report.digest', 'offer.digest !== undefined'],
   ['tessera', lossReport, '.filter(property => !offer.policy!.allow.includes(property))', '.filter(() => false)'],
@@ -38,7 +38,7 @@ export const tesseraMutants: Mutant[] = [
     'function outputSchemaFailures(path: string, result: ReturnType<typeof validateInput>): CompileFailure[] {\n  if (path) return [];',
   ],
   ['tessera', compileUnit, 'if (earlier !== undefined)', 'if (false)'],
-  ['tessera', compileUnit, 'const sorted = [...files].sort((first, second) => compareText(first.path, second.path));', 'const sorted = [...files];'],
+  ['tessera', compileUnit, '.sort((first, second) => compareText(first.path, second.path))', ''],
   ['tessera', snapshotSource, 'bytes: blobs.get(entry.id)! }', 'bytes: new Uint8Array(readFileSync(join(directory, entry.path))) }'],
   ['tessera', snapshotSource, 'if (!(await git.isAncestor(directory, requested, tip)))', 'if (false)'],
   ['tessera', bundleWriter, 'write: FileWriter = writeFileDurably) {\n  checkTarget(target);', 'write: FileWriter = writeFileDurably) {'],
@@ -58,6 +58,11 @@ export const attributesMutants: Mutant[] = [
   ['attributes-item-identity', 'src/shared/governance/ontology-guards.ts', 'JSON.stringify([concept.concept, relationship.name])', 'label'],
   ['attributes-item-identity', 'src/shared/governance/ontology-guards.ts', "else if (oldStatus === 'approved' && status === '')", 'else if (false)'],
   ['attributes-demotion', 'src/shared/governance/guards.ts', 'if (options.demote && guarded.demotable)', 'if (false)'],
-  ['attributes-publication', 'src/server/routes/agent.ts', 'const response = await use(documents);', 'const response = await editingAgentDocuments(workspace, request, project, use);'],
+  [
+    'attributes-publication',
+    'src/server/routes/agent.ts',
+    'const response = await use(documents.map(file => (providers.has(file.path) ? { ...file, publishedInterfaces: providers.get(file.path) } : file)));',
+    'const response = await editingAgentDocuments(workspace, request, project, use);',
+  ],
   ['attributes-loss', lossReport, 'statusCounts: countStatuses(statuses)', 'statusCounts: countStatuses([])'],
 ];

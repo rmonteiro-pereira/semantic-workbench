@@ -1,4 +1,5 @@
 import type { ItemDiff } from '../../shared/item-diff/item-change';
+import type { ReaderValidation } from '../../shared/tessera/set-validation';
 import type { PublishedStatus } from '../../shared/scm/published-status';
 import type { UsageAnswer } from '../../server/usage/usage-read';
 /** Defines browser requests and response types for project files, metrics and source control. */
@@ -323,7 +324,7 @@ export const api = {
   projects: () => apiFetch('/api/projects').then(r => json<ProjectInfo[]>(r)),
   /** People a metric owner in this project can be chosen from; empty in local mode. */
   people: (project: string) => apiFetch(`/api/projects/${encodeURIComponent(project)}/people`).then(response => json<Person[]>(response)),
-  file: (project: string, path: string) => apiFetch(fileUrl(project, path)).then(r => json<{ path: string; source: string; hash: string; docType: string }>(r)),
+  file: (project: string, path: string) => apiFetch(fileUrl(project, path)).then(r => json<{ path: string; source: string; hash: string; docType: string; unitValidation?: ReaderValidation }>(r)),
   // A save sends patches against the version it started from when it has them, else the text.
   async save(
     project: string,
@@ -529,7 +530,7 @@ export const scm = {
   acknowledgePublication: (p: string) => gitPost<{ acknowledged: boolean }>(p, 'git/acknowledge-publication', {}),
   /** Adopts a checked outside fast-forward as the published snapshot. */
   adopt: (p: string) => gitPost<{ published: string; commit: string }>(p, 'git/adopt', {}),
-  publish: (p: string) => gitPost<{ published: string; commit: string }>(p, 'git/publish', {}),
+  publish: (p: string, disclosureShown = false) => gitPost<{ published: string; commit: string }>(p, 'git/publish', disclosureShown ? { disclosureShown } : {}),
   /** Server mode: merges the default branch into the person's branch. */
   pullDefault: (p: string) => gitPost<RemoteResult>(p, 'git/pull-default', {}),
   /** Server mode: pushes the default branch to the remote; Stewards and Admins only. */

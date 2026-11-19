@@ -1,4 +1,5 @@
 // Moves a file inside a project or into another one, together with its draft and view settings.
+import { DEPENDENCY_MANIFEST_PATH } from '../../../shared/tessera/dependency-manifest';
 import { documentAddress } from '../../../shared/core/item-address';
 import { ADDRESS_HISTORY_FILE, operationMigrations, stageAddressMigrations } from '../address-migrations';
 import { existsSync, readFileSync, rmSync } from 'node:fs';
@@ -10,7 +11,7 @@ import { movePersonalState } from '../personal-state';
 import type { Reader } from '../reader';
 import type { ProjectEntry, State } from '../state';
 import type { Place, WorkingCopies } from '../working-copies';
-import { NotFoundError, OccupiedError } from '../errors';
+import { BadRequestError, NotFoundError, OccupiedError } from '../errors';
 import type { ContentGuard } from '../../auth/guards';
 import { freeReadableName } from './import-batch';
 
@@ -56,6 +57,7 @@ export function createFileMove(ctx: FileMoveContext) {
     const from = projectPath(path);
     let to = projectPath(toPath ?? posix.basename(from));
     if ([from, to].some(path => posix.basename(path).toLowerCase() === ADDRESS_HISTORY_FILE)) throw new NotFoundError('File not found.');
+    if (from === DEPENDENCY_MANIFEST_PATH || to === DEPENDENCY_MANIFEST_PATH) throw new BadRequestError('Use Update dependencies to write the dependency manifest.');
     if (accessView && !accessView.canRead(toProject, to)) {
       throw new OccupiedError('The target is unavailable.', {});
     }

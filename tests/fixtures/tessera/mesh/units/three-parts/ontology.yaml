@@ -1,0 +1,16 @@
+{
+  "tessera": 3,
+  "version": "0.2.0.dev0",
+  "name": "Retail",
+  "ontology": [
+    {
+      "concept": "Shop",
+      "type": "EntityType"
+    }
+  ],
+  "tessera_includes": [
+    "orders.yaml",
+    "returns.yaml",
+    "customers.json"
+  ]
+}

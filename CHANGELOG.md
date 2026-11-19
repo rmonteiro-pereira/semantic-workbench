@@ -16,12 +16,28 @@ not configure a production deployment.
 - Compare saved definitions by item address with the published snapshot, a branch or a commit.
   The browser marks unpublished items and reviews the committed changes before publication.
   Agent operations continue to use published definitions.
+- Tessera revision 3 combines a root and its declared parts and preserves concept addresses across
+  part moves. See `tests/mesh/workbench-units.test.ts`.
+- Projects can freeze published provider interfaces using explicit imports and dependency
+  updates. Publication checks the lock against the candidate snapshot. See
+  `tests/mesh/atomic-publication.test.ts` and `tests/mesh/freeze.test.ts`.
+- Standard Ossie bundles qualify imported concept names and include an address map. See
+  `tests/mesh/compile-mesh.test.ts`.
+- Mesh shows the published connections visible to the reader. Provider publishers can see
+  the published importers and their selected items. See `tests/mesh/mesh-graph.test.ts` and
+  `tests/mesh/dependents-read.test.ts`.
 
 - Tessera revision 2 adds attribute display order, item context for agents and ontology governance.
   Agent context and governance flags come from published snapshots. Standard ontology output drops
   the additions and loss report version 2 counts dropped governance entries by status.
 - The Admin role editor offers **Approve ontology item** as a separate permission. Grant it through
   a custom role for the appropriate scope. Existing roles retain their metric permissions.
+- Browser and authorized HTTP check, compile and ZIP download of standard Ossie. Compile reads only
+  the published snapshot and requires export authority; working-copy checks are labelled unpublished
+  and return no compiled bytes. Exact report acceptance releases output whose files equal the CLI bundle.
+- Reviewed conversion of one clean, committed Tessera ontology through the ordinary guarded save,
+  with before/after comparison, whole-unit input hashes and loss digest. Stale reviews and dirty files
+  are refused; the success acknowledgement survives the workspace refresh after saving.
 
 - An agent panel, closed by default and opened from the person menu, connects to a person-run ACP
   relay. It shows streamed conversation, tool activity, the agent's task list, guarded edit diffs,

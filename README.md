@@ -364,6 +364,7 @@ owns the data root; merely increasing container replicas is not safe scaling.
 | `src/app/metrics/`, `src/app/mappings/`, `src/app/odcs/` | Metric, mapping and contract/lineage views |
 | `src/app/graph/` | Whole-model and neighborhood graphs, layout, traversal and workers |
 | `src/shared/` | Code the browser and server both import: model, parsers, validation, patches, metric bindings |
+| `src/server/mesh/` | Resolves public ontology imports and prepares dependency locks. In Imports, choose **Update dependencies**, review the public interface changes, then save the manifest. |
 | `src/shared/tessera/`, `src/server/tessera/`, `scripts/tessera.ts` | The Tessera format, its compiler, snapshot reading and bundle writing, and the command line |
 | `src/app/components/`, `src/app/theme/` | Cross-feature UI and theme palettes |
 | `schemas/`, `src/generated/` | Pinned schema sources and compiled browser validators |
@@ -390,7 +391,7 @@ authorization boundaries and invariants. It is the detailed reference for changi
 | Ossie ontology | YAML, JSON | Concepts, relationships, inheritance and IRIs |
 | Ossie semantic model | YAML, JSON | Datasets, fields, joins, expressions and metrics |
 | Ossie mappings | YAML, JSON | Standalone and deprecated embedded mappings |
-| Tessera ontology (authoring format that compiles to standard Ossie) | YAML, JSON | An Ossie ontology with a `tessera: 1` or `tessera: 2` marker; see [Tessera](#tessera-an-authoring-format-that-compiles-to-standard-ossie) |
+| Tessera ontology (authoring format that compiles to standard Ossie) | YAML, JSON | An Ossie ontology with a `tessera: 1`, `tessera: 2` or `tessera: 3` marker; see [Tessera](#tessera-an-authoring-format-that-compiles-to-standard-ossie) |
 | RDF | Turtle, N-Triples, N3, RDF/XML | Resource inspection, safe item edits and Source |
 | OWL / SHACL | Turtle or RDF/XML | Definitions and selected structural checks; SHACL shapes also run against a chosen Turtle, N-Triples or N3 data file in the project |
 
@@ -446,7 +447,7 @@ ontology:
 In the workbench a Tessera ontology opens, edits, saves and appears in the graph like any other
 Ossie ontology. The validation panel names the format ("Tessera 1 on Ossie 0.2.0.dev0 · 0 errors ·
 0 warnings"). A document is never "Not validated": a wrong marker, an unknown or misplaced
-`tessera_` property, a reserved name, a marker on a file that is not an ontology or an unsupported
+`tessera_` property, a marker on a file that is not an ontology or an unsupported
 Ossie `version` each give a finding with its own code (`tessera-marker`, `tessera-revision`,
 `tessera-base`, `tessera-kind`, `tessera-property`, `tessera-reserved`, `tessera-location`).
 The item inspector and access rules apply to Tessera files. Agents get item context and limited
@@ -454,6 +455,17 @@ governance flags from the published snapshot, with notes removed. Notes, attribu
 steward and classification stay in the workbench. Authorized MCP authoring tools can read the stored
 source, including unpublished edits and notes. Tests: `tests/tessera/validation.test.ts`,
 `tests/tessera/workbench-documents.test.ts`, `tests/tessera/agent-and-access.test.ts`.
+
+Browser and HTTP check, compile, bundle and reviewed one-file conversion are described in
+[Check, compile and convert](docs/compile.md). Export's **Standard Ossie (compiled)** option reviews
+only the published snapshot; **Validation details** checks saved working files without releasing bytes.
+
+Revision 3 lets a project divide one ontology into a root and its declared parts. Projects in the
+same workbench can export concepts and import a named selection from a provider. **Update
+dependencies** reviews and writes the project's committed `tessera-dependencies.json`. Projects
+can share a repository or publish independently. **Mesh** shows the published connections the
+reader may see. People with provider publication permission can open **Used by**. See
+[Ontology units and imports](docs/user-guide.md#ontology-units-and-imports).
 
 ### The compiler and its command line
 
@@ -474,6 +486,8 @@ Standard ontology output carries no governance status. Accepting a loss report g
 release that output and has no effect on the approval of its content. ODCS contracts, RDF files and other files are listed in the manifest as not
 included. `bun run tessera check` runs the same validation and compilation in memory, for a
 committed snapshot or for a folder on disk (labelled unpublished), and writes nothing.
+For mesh compiles, pass `--data-root` when a lock refers to another repository so the compiler can
+verify the provider's published history. Same-repository imports use the selected commit.
 
 ```sh
 bun run tessera compile --repository <dir> --project-folder retail --out <dir> [--accept-loss <digest>] [--loss-policy <file>] [--json]
@@ -504,7 +518,8 @@ Tests: `tests/tessera/compile.test.ts`, `tests/tessera/determinism.test.ts`,
 - Comments and layout of a compiled YAML or JSON document may not survive. Values and key order do,
   and so does a comment above the marker.
 - Notes are authoring-only: compiling drops them, and nothing recovers them. There is no
-  "convert to standard" operation and no reverse compiler. Source files are never rewritten.
+  reverse compiler. Only the separate reviewed **Convert to standard** operation rewrites one clean,
+  committed file through the guarded save path.
 - The command line is an operator tool. It is not an authorization boundary: it reads Git as the
   operating-system user and applies no workbench access rules.
 - The command line uses no network and needs no sign-in. Browser and HTTP export are not part of it.

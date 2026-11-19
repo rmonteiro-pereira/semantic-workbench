@@ -32,7 +32,7 @@ export function rejectIssues(issues: Issue[]) {
 }
 export const MAX_INPUT_BYTES = 2_000_000;
 /** Rejects oversized input and unsafe filenames before parsing. */
-export function validateEnvelope(source: string, filename: string) {
+export function validateEnvelope(source: string, filename: string, maxBytes = MAX_INPUT_BYTES) {
   const issues: Issue[] = [];
   const fail = (code: string, message: string) => issues.push({ severity: 'error', code, path: '/', message });
   if (
@@ -45,6 +45,6 @@ export function validateEnvelope(source: string, filename: string) {
   )
     fail('filename', 'Use a filename of 1–255 characters without directory separators or control characters.');
   if (typeof source !== 'string' || !source.trim()) fail('empty', 'The definition is empty. Paste or choose a supported definition.');
-  else if (new TextEncoder().encode(source).length > MAX_INPUT_BYTES) fail('size', 'The definition exceeds the 2 MB UTF-8 limit. Split it into smaller documents.');
+  else if (new TextEncoder().encode(source).length > maxBytes) fail('size', `The definition exceeds the ${maxBytes / 1_000_000} MB UTF-8 limit. Split it into smaller documents.`);
   rejectIssues(issues);
 }

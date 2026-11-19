@@ -3,17 +3,17 @@ import { closeSync, constants, fstatSync, openSync, readSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { compileUnit, type CompileResult, type UnitFile } from '../src/shared/tessera/compile-unit';
 import { sha256Hex } from '../src/shared/tessera/digest';
-import { LossPolicyError, acceptLoss, parseLossPolicy, printReport, type LossPolicy } from '../src/shared/tessera/loss-report';
-import { buildManifest, printManifest, type ManifestSource } from '../src/shared/tessera/manifest';
+import { LossPolicyError, acceptLoss, parseLossPolicy, type LossPolicy } from '../src/shared/tessera/loss-report';
+import type { ManifestSource } from '../src/shared/tessera/manifest';
 import { REGISTRY } from '../src/shared/tessera/registry';
+import { bundleFiles } from '../src/server/tessera/bundle-files';
 import { checkTarget, writeBundle } from '../src/server/tessera/bundle-writer';
 import { readFolder } from '../src/server/tessera/disk-source';
 import { TesseraRefusal } from '../src/server/tessera/refusal';
+import { readSnapshotMesh } from '../src/server/tessera/snapshot-mesh';
 import { readSnapshot } from '../src/server/tessera/snapshot-source';
 import { USAGE, UsageError, parseTesseraArguments, type CheckArguments, type CompileArguments } from './tessera-arguments';
 import { EXIT, exitStatusOf, renderJson, renderText, type RunOutcome } from './tessera-output';
-
-const encoder = new TextEncoder();
 
 type Policy = { policy: LossPolicy; sha256: string };
 
@@ -57,24 +57,21 @@ function refused(source: RunOutcome['source'], message: string, compile: Compile
   return { result: 'refused', source, compile, accepted: null, message, bundle: null };
 }
 
-function bundleFiles(result: CompileResult, source: ManifestSource, accepted: 'digest' | 'policy' | 'none'): UnitFile[] {
-  const manifest = buildManifest(result, source, accepted);
-  return [...result.outputs, { path: 'manifest.json', bytes: encoder.encode(printManifest(manifest)) }, { path: 'loss-report.json', bytes: encoder.encode(printReport(result.report, source)) }];
-}
-
 async function runCompile(args: CompileArguments): Promise<RunOutcome> {
   const policy = args.lossPolicy ? readPolicy(args.lossPolicy) : undefined;
   const target = { folder: args.out, repository: args.repository, dataRoot: args.dataRoot };
   let source: Awaited<ReturnType<typeof readSnapshot>>;
+  let meshRead: Awaited<ReturnType<typeof readSnapshotMesh>>;
   try {
     checkTarget(target);
     source = await readSnapshot({ repository: args.repository, projectFolder: args.projectFolder, branch: args.branch, commit: args.commit, dataRoot: args.dataRoot });
+    meshRead = await readSnapshotMesh(source, args.repository, args.dataRoot);
   } catch (error) {
     if (error instanceof TesseraRefusal) return refused({ kind: 'snapshot' }, error.message);
     throw error;
   }
   const manifestSource: ManifestSource = { kind: source.kind, branch: source.branch, commit: source.commit, projectFolder: source.projectFolder };
-  const result = compileUnit(source.files, { lossPolicySha256: policy?.sha256 ?? null });
+  const result = compileUnit(meshRead.mesh?.files ?? source.files, { lossPolicySha256: policy?.sha256 ?? null, providers: meshRead.mesh?.providers, project: meshRead.project });
   if (result.failures.length) return refused(manifestSource, 'The compile failed, and no acceptance can override that.', result);
   const acceptance = acceptLoss(result.report, { digest: args.acceptLoss, policy: policy?.policy });
   if ('refusal' in acceptance) return { result: 'needs-acceptance', source: manifestSource, compile: result, accepted: null, message: acceptance.refusal, bundle: null };

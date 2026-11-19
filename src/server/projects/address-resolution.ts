@@ -1,4 +1,6 @@
 /** Resolves structured items only after the caller's project and path visibility checks. */
+import { posix } from 'node:path';
+import { PART_PROPERTY } from '../../shared/tessera/additions/part';
 import { inspect } from '../../shared/core/model';
 import { resolveInModel, type AddressedItem } from '../../shared/core/model-addresses';
 import { formatAddress, parseAddress, type Address } from '../../shared/core/item-address';
@@ -12,6 +14,7 @@ import type { Reader } from './reader';
 export type AddressReadContext = {
   projectExists: (project: string) => boolean;
   readFile: (project: string, path: string, reader: Reader) => { source: string };
+  partOntologyName?: (project: string, path: string, reader: Reader) => string | undefined;
 };
 /** Returns source text only for a unique item the caller can already read. */
 export type CurrentItemResolution = { status: 'found'; item: AddressedItem; source: string } | { status: 'ambiguous'; items: AddressedItem[] } | { status: 'missing' };
@@ -27,9 +30,11 @@ export function resolveCurrentItem(context: AddressReadContext, address: Address
     projectPath(path);
     if (!context.projectExists(project)) return { status: 'missing' };
     const document = context.readFile(project, path, reader);
-    const model = inspect(document.source, path);
+    const model = inspect(document.source, posix.basename(path));
     if (!('document' in model)) return { status: 'missing' };
-    const result = resolveInModel(model.document, address, { project, document: address.document });
+    const name = model.document[PART_PROPERTY] === true ? context.partOntologyName?.(project, path, reader) : undefined;
+    const data = name ? { ...model.document, name } : model.document;
+    const result = resolveInModel(data, address, { project, document: address.document });
     return result.status === 'found' ? { ...result, source: document.source } : result;
   } catch (error) {
     if (error instanceof NotFoundError || error instanceof InputError || error instanceof PathError) return { status: 'missing' };

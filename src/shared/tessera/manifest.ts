@@ -1,14 +1,13 @@
 // The manifest that stands beside a bundle: where the sources came from, what was read and written, and how the loss was accepted.
 import { canonicalJson } from './canonical-json';
-import type { CompileResult } from './compile-unit';
+import type { CompileResult, MeshManifestFields } from './compile-unit';
 import type { Acceptance, LossReport } from './loss-report';
 
 /** Where the compiled files came from. Files on disk carry no commit and are never published. */
 export type ManifestSource = { kind: 'published-snapshot' | 'standalone-snapshot' | 'snapshot' | 'files-on-disk'; branch?: string; commit?: string; projectFolder?: string };
 
 /** The manifest of a bundle. It says nothing about approval of the exported content. */
-export type Manifest = {
-  manifestVersion: 1;
+export type Manifest = ({ manifestVersion: 1 } | ({ manifestVersion: 2 } & MeshManifestFields)) & {
   compiler: LossReport['compiler'];
   source: ManifestSource;
   base: LossReport['base'];
@@ -23,7 +22,7 @@ export type Manifest = {
 export function buildManifest(result: CompileResult, source: ManifestSource, accepted: Acceptance): Manifest {
   const { report } = result;
   return {
-    manifestVersion: 1,
+    ...(result.mesh ? { manifestVersion: 2 as const, ...result.mesh } : { manifestVersion: 1 as const }),
     compiler: report.compiler,
     source,
     base: report.base,

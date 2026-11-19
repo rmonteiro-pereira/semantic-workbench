@@ -7,7 +7,7 @@ import type { Publication } from '../publication';
 import { createProposalRefs } from '../proposal-refs';
 import { createProposalStore } from '../proposal-store';
 import { createProposals } from '../proposals';
-import { judgePublish, type Publishing } from '../publishing';
+import { judgePublish, type PublicationDependencyDeps, type Publishing } from '../publishing';
 import type { Place, WorkingCopies } from '../working-copies';
 import type { Worktrees } from '../worktrees';
 import type { ProjectEntry } from '../state';
@@ -25,6 +25,8 @@ export type WorkspaceProposalsContext = {
   entry: (slug: string) => ProjectEntry;
   repoOf: (slug: string) => string;
   projectsIn: (repository: string) => string[];
+  /** What a promotion's dependency check reads, the same as a publication's. */
+  publicationDependencies: PublicationDependencyDeps;
   now: () => number;
 };
 
@@ -48,7 +50,7 @@ export function createWorkspaceProposals(context: WorkspaceProposalsContext) {
     checkCandidate: async (slug, reader, move) => {
       const repository = context.repoOf(slug);
       const branch = await worktrees.defaultBranch(repository);
-      await publication.check(repository, branch, { previous: move.previous, next: move.next }, judgePublish(published, slug, reader.guard, move.paths));
+      await publication.check(repository, branch, { previous: move.previous, next: move.next }, judgePublish(context.publicationDependencies, published, slug, reader, move.paths));
     },
     promote: (slug, reader, move) => publishing.promote(slug, reader, move),
     serialized: (repository, use) => publication.serialized(repository, () => use()),
