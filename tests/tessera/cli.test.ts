@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { REGISTRY } from '../../src/shared/tessera/registry';
 import { validateInput } from '../../src/shared/validation/input';
 import { COMMITTED_FILES, ONTOLOGY_TEXT, PROJECT_FOLDER, createTesseraRepository, type TesseraRepository } from '../helpers/tessera-repository';
 
@@ -201,7 +202,11 @@ test('a malformed loss policy file is misuse', () => {
 
 test('loss policy input is bounded by bytes and registered property count', () => {
   const s = scene();
-  const policy = policyFile(s, ['tessera_notes', 'tessera_notes']);
+  // One entry more than the registry has properties, whatever their number.
+  const policy = policyFile(
+    s,
+    Array.from({ length: REGISTRY.additions.length + 1 }, () => 'tessera_notes'),
+  );
   const repeated = run(compileArgs(s, ['--loss-policy', policy]), s.home);
   expect(repeated.status).toBe(64);
   expect(repeated.stderr).toContain('registered properties');

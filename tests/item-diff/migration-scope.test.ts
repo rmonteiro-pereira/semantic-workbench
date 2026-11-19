@@ -1,6 +1,7 @@
 // Proves that two branches with identical definitions can have different rename provenance.
 import { expect, test } from 'bun:test';
-import { existsSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { atomicWriteJson } from '../../src/server/projects/atomic';
 import { itemDiffAgentAnswers, itemDiffBaselineWorkspace } from '../helpers/item-diff-baseline';
@@ -141,11 +142,18 @@ test('Git unions independently appended histories without adding a compile input
   expect(fixture.ws.resolveAddress(prefix + 'First', LOCAL_READER)).toMatchObject({ status: 'found', address: prefix + 'Customer' });
   expect(fixture.ws.resolveAddress(prefix + 'Second', LOCAL_READER)).toMatchObject({ status: 'found', address: prefix + 'Customer' });
   expect(readFolder(directory).files.map(file => file.path)).not.toContain(ADDRESS_HISTORY_FILE);
-  const snapshot = await readSnapshot({ repository: directory, branch: 'history-second' });
-  const compiled = compileUnit(snapshot.files, { lossPolicySha256: null });
-  expect(compiled.failures).toEqual([]);
-  expect(compiled.report.inputs.map(input => input.path)).not.toContain(ADDRESS_HISTORY_FILE);
-  expect(compiled.outputs.map(file => file.path)).not.toContain(ADDRESS_HISTORY_FILE);
+  // Inside a data root the compiler reads only the published default branch, so the merged branch is read from a clone outside it.
+  const outside = mkdtempSync(join(tmpdir(), 'history-union-'));
+  try {
+    git(outside, ['clone', '--quiet', '--branch', 'history-second', directory, 'clone']);
+    const snapshot = await readSnapshot({ repository: join(outside, 'clone'), branch: 'history-second' });
+    const compiled = compileUnit(snapshot.files, { lossPolicySha256: null });
+    expect(compiled.failures).toEqual([]);
+    expect(compiled.report.inputs.map(input => input.path)).not.toContain(ADDRESS_HISTORY_FILE);
+    expect(compiled.outputs.map(file => file.path)).not.toContain(ADDRESS_HISTORY_FILE);
+  } finally {
+    rmSync(outside, { recursive: true, force: true });
+  }
 });
 
 test('address resolution sees branch aliases in the editor and only published aliases for consumers', async () => {

@@ -148,6 +148,7 @@ the table above. The static page fallback row is not an operation and is left ou
 | `PUT /api/projects/:slug/git/remote` | later: Remaining workspace and source-control operations |  |
 | `DELETE /api/projects/:slug/git/remote` | later: Remaining workspace and source-control operations |  |
 | `GET /api/projects/:slug/usage` | later: Remaining workspace and source-control operations | a person reads usage counts in the browser; a tool for them is a later increment |
+| `GET /api/projects/:slug/item-diff` | not an agent operation | a browser display aid; agents read the published snapshot |
 | `GET /api/projects/:slug/proposals` | later: Remaining workspace and source-control operations |  |
 | `GET /api/projects/:slug/proposals/:id` | later: Remaining workspace and source-control operations |  |
 | `GET /api/projects/:slug/proposals/:id/diff` | later: Remaining workspace and source-control operations |  |

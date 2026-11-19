@@ -301,11 +301,14 @@ export function createGit(options: GitOptions) {
       return gitResult;
     };
     if (opts.readOnly) return exec();
-    const key = queueKey(dir);
-    // Work that holds the repository's turn runs its own commands inside that turn.
+    return inTurn(dir, exec);
+  }
+  /** Runs a task in the repository's queue; work that already holds the repository's turn runs it inside that turn. */
+  function inTurn<T>(directory: string, task: () => Promise<T>): Promise<T> {
+    const key = queueKey(directory);
     const turn = holding.getStore();
-    if (turn?.open && turn.key === key) return exec();
-    return enqueue(key, exec);
+    if (turn?.open && turn.key === key) return task();
+    return enqueue(key, task);
   }
   function enqueue<T>(key: string, task: () => Promise<T>): Promise<T> {
     const previous = queues.get(key) ?? Promise.resolve();
@@ -363,7 +366,7 @@ export function createGit(options: GitOptions) {
   }
   const merging = async (cwd: string) => (await read(cwd, ['rev-parse', '-q', '--verify', 'MERGE_HEAD'], true)).code === 0;
   async function commitWithBlobs(cwd: string, paths: string[], blobs: ReadonlyMap<string, string>, message: string, author?: CommitAuthor) {
-    return enqueue(insideProjects(cwd), () => commitIsolatedIndex(cwd, paths, blobs, message, author));
+    return inTurn(insideProjects(cwd), () => commitIsolatedIndex(cwd, paths, blobs, message, author));
   }
   async function commitIsolatedIndex(cwd: string, paths: string[], blobs: ReadonlyMap<string, string>, message: string, author?: CommitAuthor, staged = false) {
     const temporary = mkdtempSync(join(tmpdir(), 'sw-git-index-'));
@@ -523,7 +526,7 @@ export function createGit(options: GitOptions) {
     },
     /** Commits the staged definitions with their corresponding history blobs. */
     commitIndexWithBlobs(cwd: string, paths: string[], blobs: ReadonlyMap<string, string>, message: string, author?: CommitAuthor) {
-      return enqueue(insideProjects(cwd), () => commitIsolatedIndex(cwd, paths, blobs, message, author, true));
+      return inTurn(insideProjects(cwd), () => commitIsolatedIndex(cwd, paths, blobs, message, author, true));
     },
     // Tracked and untracked files, with .gitignore applied by Git itself.
     async lsFiles(cwd: string) {

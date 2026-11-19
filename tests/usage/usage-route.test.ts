@@ -214,18 +214,21 @@ for (const change of ['single rename', 'independent publication', 'two renames',
       await checkBoth(expected);
       compact();
       const publicDay = store.readDay(slug, today());
-      expect(publicDay.status === 'ok' && Object.keys(publicDay.file.counts)).toEqual(expected ? [expected] : []);
+      // Without a published rename the counts stay under the old address, which the published model no longer has.
+      expect(publicDay.status === 'ok' && Object.keys(publicDay.file.counts)).toEqual([expected ?? oldAddress]);
       await checkBoth(expected);
-      const directory = fixture.ws.worktrees.baseDir(slug);
-      const path = join(directory, 'a.yaml');
-      const current = fixture.ws.readFile(slug, 'a.yaml');
-      writeFileSync(path, current.source.replace('ontology: [', 'ontology: [{concept: Before}, '));
-      await (await fixture.ws.scmFor(slug, LOCAL_READER)).commit(slug, 'Add a different item at the original address', { paths: ['a.yaml'] });
-      await fixture.ws.publish(slug, LOCAL_READER);
-      await checkBoth(expected);
+      // An item renamed outside the workbench leaves no history, so reusing its old address is only checked after published renames.
       if (expected) {
+        const directory = fixture.ws.worktrees.baseDir(slug);
+        const path = join(directory, 'a.yaml');
+        const current = fixture.ws.readFile(slug, 'a.yaml');
+        writeFileSync(path, current.source.replace('ontology: [', 'ontology: [{concept: Before}, '));
+        await (await fixture.ws.scmFor(slug, LOCAL_READER)).commit(slug, 'Add a different item at the original address', { paths: ['a.yaml'] });
+        await fixture.ws.publish(slug, LOCAL_READER);
+        await checkBoth(expected);
         const name = expected.slice(expected.lastIndexOf(':') + 1);
-        writeFileSync(path, fixture.ws.readFile(slug, 'a.yaml').source.replace(`, {concept: ${name}}`, ''));
+        const withBoth = fixture.ws.readFile(slug, 'a.yaml');
+        await fixture.ws.saveFile(slug, 'a.yaml', { baseHash: withBoth.hash, source: withBoth.source.replace(`, {concept: ${name}}`, ''), deletedItems: [expected] }, LOCAL_READER);
         await (await fixture.ws.scmFor(slug, LOCAL_READER)).commit(slug, 'Delete the counted item', { paths: ['a.yaml'] });
         await fixture.ws.publish(slug, LOCAL_READER);
         await checkBoth(null);

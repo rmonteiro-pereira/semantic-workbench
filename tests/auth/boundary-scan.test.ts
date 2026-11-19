@@ -21,6 +21,7 @@ const fixtureScripts = new Set([
   'scripts/operation-boundary-mutation-cases.ts',
   'scripts/snapshot-mutation-cases.ts',
   'scripts/proposals-mutation-cases.ts',
+  'scripts/attributes-mutation-cases.ts',
 ]);
 // The agent panel may use these two pieces of the model-protocol surface and nothing else from it.
 const sharedMcpEntries = new Set(['call-limits', 'local-capability']);
