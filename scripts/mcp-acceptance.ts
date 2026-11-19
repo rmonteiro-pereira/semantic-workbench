@@ -29,13 +29,13 @@ const http = (path: string, init: RequestInit = {}) =>
 
 try {
   const tools = (await client.listTools()).tools;
-  assert.equal(tools.length, 21);
+  assert.equal(tools.length, 23);
   assert.deepEqual(
     tools.map(tool => tool.name),
     tools.map(tool => tool.name).sort(),
   );
   assert.equal(tools.find(tool => tool.name === 'read_file')?.annotations?.readOnlyHint, true);
-  pass('discovery and 21 sorted tools with hints');
+  pass('discovery and 23 sorted tools with hints');
 
   const projects = await call('list_projects', {});
   assert.equal(projects.data.items[0].project, PROJECT);
