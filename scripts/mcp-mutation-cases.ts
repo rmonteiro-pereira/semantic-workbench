@@ -178,11 +178,9 @@ export async function mcpAuditCase(target: string) {
   for (const field of ['method', 'clientLabel', 'result', 'tool', 'connection', 'origin']) assert.equal(Object.hasOwn(stored, field), true, `${field} is stored`);
 }
 
-/** The transport row leaves no record of its own and exists in local mode only. */
+/** The transport row leaves no record of its own in either mode; server mode reaches it through person connections. */
 export async function mcpRowsCase(target: string) {
   const folder = target.replace(/\/[^/]+$/, '');
   const { routeFor } = await import(join(folder, 'route-actions.ts'));
-  const local = routeFor('POST', '/api/mcp', 'local');
-  assert.equal(local.row.unaudited, true);
-  assert.equal(routeFor('POST', '/api/mcp', 'server'), null);
+  for (const mode of ['local', 'server'] as const) assert.equal(routeFor('POST', '/api/mcp', mode)?.row.unaudited, true, mode);
 }
