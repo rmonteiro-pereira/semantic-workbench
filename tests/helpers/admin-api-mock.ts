@@ -311,6 +311,33 @@ const fixedResponses: Record<string, unknown> = {
     version: VERSION,
     clients: [{ clientId: 'reporting-agent', name: 'Reporting agent', projects: [], domains: [] }],
   },
+  '/api/admin/programs': {
+    formatVersion: 1,
+    version: VERSION,
+    programs: [
+      {
+        clientId: 'desktop-agent',
+        name: 'Desktop agent',
+        description: 'An agent program people run on their own computer.',
+        setupNote: 'Install the program, then sign in from it.',
+        redirectUris: ['http://127.0.0.1/callback'],
+        scopes: ['read', 'edit'],
+      },
+    ],
+  },
+  '/api/admin/connections': [
+    {
+      id: 'connection-1',
+      clientId: 'desktop-agent',
+      programName: 'Desktop agent',
+      personName: 'Alice Andrade',
+      createdAt: '2026-10-22T07:00:00Z',
+      lastUsedAt: '2026-10-22T07:58:00Z',
+      origin: 'mcp',
+      state: 'active',
+      scopes: ['read'],
+    },
+  ],
   '/api/admin/policies': policies,
   '/api/admin/policies/validate': {
     ok: false,

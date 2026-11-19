@@ -14,7 +14,7 @@ export const sessionSecurityMutants: [string, string, string, string][] = [
   ['sec-rate-limit', 'src/server/auth/rate-limit.ts', "`${sourceIp ?? 'unknown'}|${reason}`", '`${reason}`'],
   ['sec-rate-limit', 'src/server/auth/rate-limit.ts', 'perSecond: 1 / 60', 'perSecond: 1'],
   ['sec-request-limits', 'src/server/auth/request-authentication.ts', 'return general.allowed ? null : refuseRateLimited(request, general.retryAfterSeconds);', 'return null;'],
-  ['sec-request-limits', 'src/server/auth/request-authentication.ts', 'if (SIGN_IN_PATHS.has(new URL(request.url).pathname)) {', 'if (false) {'],
+  ['sec-request-limits', 'src/server/auth/request-authentication.ts', 'if (SIGN_IN_PATHS.has(new URL(request.url).pathname) ||', 'if (false ||'],
   ['sec-request-limits', 'src/server/auth/request-authentication.ts', 'return signIn.allowed ? null : refuseRateLimited(request, signIn.retryAfterSeconds);', 'return null;'],
   ['sec-request-limits', 'src/server/auth/request-authentication.ts', "if (mode === 'server') {\n      const limited", 'if (false) {\n      const limited'],
   ['sec-request-limits', 'src/server/auth/request-authentication.ts', 'if (!record) return null;', ''],

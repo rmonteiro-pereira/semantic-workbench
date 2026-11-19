@@ -156,7 +156,7 @@ test('new identifiers match the access schema patterns and do not repeat', () =>
 });
 
 test('browser check names screenshots and enforces the three-minute limit', () => {
-  expect(ADMIN_AREAS.map(screenshotName)).toEqual(['access-grants', 'roles', 'users-groups', 'policies', 'projects-access', 'git-remotes', 'audit', 'settings', 'access-check']);
+  expect(ADMIN_AREAS.map(screenshotName)).toEqual(['agent-programs', 'agent-connections', 'access-grants', 'roles', 'users-groups', 'policies', 'projects-access', 'git-remotes', 'audit', 'settings', 'access-check']);
   expect(withinAdministrationTime(1_000, 1_000 + ADMINISTRATION_TIME_LIMIT_MS - 1)).toBe(true);
   expect(withinAdministrationTime(1_000, 1_000 + ADMINISTRATION_TIME_LIMIT_MS)).toBe(false);
 });

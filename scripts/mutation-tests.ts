@@ -123,7 +123,7 @@ const mutants: [string, string, string, string][] = [
   ['auth-admin-repo', 'src/server/auth/admin-repo.ts', ' || /[<>]/.test(value)', ''],
   ['auth-audit', 'src/server/auth/audit.ts', 'pick(input.resource, resourceKeys)', 'input.resource'],
   ['auth-middleware', 'src/server/auth/middleware.ts', "if (!found) return new Response('Not found', { status: 404 });", 'if (!found) return run(request);'],
-  ['auth-middleware', 'src/server/auth/request-authentication.ts', "mode === 'server' && !(await validCsrf(", 'false && !(await validCsrf('],
+  ['auth-middleware', 'src/server/auth/request-authentication.ts', "mode === 'server' && !(await crossSiteCheckPasses(", 'false && !(await crossSiteCheckPasses('],
   ['auth-middleware', 'src/server/auth/operation-boundary.ts', 'row.audited === true ||', ''],
 
   ['agent', 'src/server/agent/query-plan.ts', 'physical.parentheses = true', 'physical.parentheses=false'],
@@ -139,7 +139,7 @@ const mutants: [string, string, string, string][] = [
   ['validation', 'src/shared/validation/validation.ts', '!fieldNames.get(relationship[side])!.has(key)', 'false'],
   ['validation', 'src/shared/validation/validation.ts', 'if (from.length !== to.length) fail', 'if(false)fail'],
   ['validation', 'src/shared/validation/validation.ts', 'if (validator && !validator(data))', 'if(false)'],
-  ['validation', 'src/shared/validation/validation.ts', "if ('error' in iri) {\n        fail(pointer, iri.error);\n        return;\n      }", ''],
+  ['validation', 'src/shared/validation/validation.ts', "if ('error' in iri) {\n        if (!part || !iri.error.startsWith('Prefix ')) fail(pointer, iri.error);\n        return;\n      }", ''],
   ['validation', 'src/shared/validation/validation.ts', 'if (iris.has(iri)) fail', 'if(false)fail'],
   ['odcs', 'src/shared/odcs/foreign-keys.ts', 'if (target === undefined) {\n      issues.push', 'if(false){issues.push'],
   ['odcs', 'src/shared/odcs/foreign-keys.ts', 'keys.push({\n      from,\n      to: target', 'if(false)keys.push({from,to:target'],
@@ -150,7 +150,7 @@ const mutants: [string, string, string, string][] = [
   ['agent', 'src/server/agent/context-documents.ts', 'return Array.isArray(parsedDocument.data.semantic_model)\n      ?', 'return false?'],
   ['overview', 'src/app/graph/overview.ts', "if (mode === 'namespaces') return distinct(visible.map(e => e.namespace?.iri));", "if (mode === 'namespaces') return 0;"],
   ['overview', 'src/app/graph/overview.ts', "if (ns) {\n    const id = 'namespace:' + ns.iri", "if(false){const id='namespace:'+ns.iri;"],
-  ['diagnostics', 'src/shared/validation/diagnostics.ts', '> MAX_INPUT_BYTES', '> MAX_INPUT_BYTES * 10'],
+  ['diagnostics', 'src/shared/validation/diagnostics.ts', '.length > maxBytes)', '.length > maxBytes * 10)'],
   ['diagnostics', 'src/shared/validation/diagnostics.ts', '!filename.trim()', 'false'],
   ['diagnostics', 'src/shared/validation/diagnostics.ts', "if (issues.some(i => i.severity === 'error'))", 'if (false)'],
   ['rdf-validation', 'src/shared/validation/rdf-validation.ts', 'BigInt(lowValue.value) > BigInt(highValue.value)', 'false'],
@@ -175,7 +175,7 @@ const mutants: [string, string, string, string][] = [
   ['edge-path', 'src/app/graph/edge-path.ts', 'Math.abs(coordinates[0] - sourceX) <= tolerance', 'true'],
   ['edge-path', 'src/app/graph/edge-path.ts', 'Math.abs(coordinates[last] - targetX) <= tolerance', 'true'],
   ['graph', 'src/app/graph/graph-view.ts', 'limit = 8', 'limit=800'],
-  ['graph', 'src/app/graph/graph-view.ts', 'JSON.stringify([edge.source, edge.target])', 'edge.source'],
+  ['graph', 'src/app/graph/graph-view.ts', 'JSON.stringify(change ? [edge.source, edge.target, change] : [edge.source, edge.target])', 'edge.source'],
   ['graph', 'src/app/graph/graph-view.ts', 'options.center && byId.has(options.center) ? options.center :', ''],
   ['graph', 'src/app/graph/graph-view.ts', 'options.lateral !== false', 'false'],
   ['graph', 'src/app/graph/graph-view.ts', 'hidden: ranked.length - shownIds.length', 'hidden:0'],
@@ -358,7 +358,7 @@ const mutants: [string, string, string, string][] = [
 ];
 // Governance guards: approval, demotion, classification, and the write paths that apply them.
 mutants.push(
-  ['guard-decisions', 'src/server/auth/guards.ts', 'metric: { name: metric.name, status: metric.status, owner },', 'metric: { name: metric.name, status: metric.status, owner: undefined },'],
+  ['guard-decisions', 'src/server/auth/guards.ts', 'const item = { status: metric.status, owner };', 'const item = { status: metric.status, owner: undefined };'],
   ['guard-decisions', 'src/server/auth/guards.ts', "return binding.scope.authorize('editGuarded', resource, context);", "return binding.scope.authorize('edit', resource, context);"],
   ['guard-engine', 'src/shared/governance/guards.ts', "status === 'approved' &&", 'false &&'],
   ['guard-engine', 'src/shared/governance/guards.ts', 'if (options.demote && guarded.demotable) demoted.push(guarded);', 'if (false) demoted.push(guarded);'],

@@ -17,10 +17,12 @@ export async function publishedUnitInterfaces(ws: Workspace, pin: PublishedPin, 
   const result = new Map<string, ResolvedImportInterface[]>();
   const lock = documents.find(file => file.path === DEPENDENCY_MANIFEST_PATH);
   if (!lock && !requireAvailability) return result;
+  const structure = readUnitStructure(documents.flatMap(file => unitDocument(file.path, file.source) ?? []));
+  // Without an import there is nothing to resolve, so a pinned read never consults the live project list.
+  if (!structure.units.some(unit => declaredImports(unit.root.data).length)) return result;
   const repository = ws.repoOf(project);
   const commit = pin.commits.get(repository)?.commit;
   if (!commit) return result;
-  const structure = readUnitStructure(documents.flatMap(file => unitDocument(file.path, file.source) ?? []));
   const visible = new Set(documents.map(file => file.path));
   const registry = new Set(ws.state.registry().projects.map(entry => entry.slug));
   const source = {

@@ -104,6 +104,16 @@ jobs:
           suite: test:theme
         brand:
           suite: test:brand
+        connections:
+          suite: test:connections
+        attributes:
+          suite: test:attributes
+        compile:
+          suite: test:compile
+        mesh:
+          suite: test:mesh
+        acp:
+          suite: test:acp
     steps:
       - template: setup-steps.yml
       - bash: bun run ci:validate -- --step browser --suite $(suite)
