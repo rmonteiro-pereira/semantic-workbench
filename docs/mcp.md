@@ -28,10 +28,12 @@ Rotate the secret with `bun run mcp:rotate` (`scripts/mcp-rotate.ts`). The bridg
 
 ## What the tools do
 
-There are 21 tools. `tools/list` returns them sorted by name, and only the tools your caller may use. Reading tools are read-only; the others change files or Git history.
+There are 23 tools. `tools/list` returns them sorted by name, and only the tools your caller may use. Reading tools are read-only; the others change files or Git history.
 
 | Tool | What it does | Effect |
 |------|--------------|--------|
+| `check_standard` | Check that a project compiles to standard Ossie and list what it would drop, from the published snapshot or your working copy | read |
+| `compile_standard` | Compile the published snapshot to standard Ossie: the loss report and digest first, then the manifest, then files in parts | read |
 | `create_file` | Create a file; an existing path answers conflict | change |
 | `delete_file` | Move a file to the trash, from the version you read; needs an idempotency key | change |
 | `explain_metric` | Explain how a metric is computed in the published snapshot | read |
@@ -57,6 +59,8 @@ There are 21 tools. `tools/list` returns them sorted by name, and only the tools
 Each tool is the twin of an existing route and runs through the same operation boundary, so its authorization, content guards, version checks and audit record are the browser's own. `docs/operations.md` lists the routes.
 
 The four published-only tools (`get_mapping_catalog`, `get_mapping_context`, `plan_query`, `explain_metric`) answer from the immutable published snapshot, include its id and answer `not_published` until the project has been published from the browser. An unpublished edit never appears in them.
+
+The two standard Ossie tools are twins of the compile routes described in [compile.md](compile.md). `check_standard` returns findings and the loss report only, never compiled files; with `source: "working"` it reads your unpublished working copy and the answer says `unpublished: true`. `compile_standard` reads only the published snapshot. Without `acceptDigest`, a compile that drops anything answers `loss-needs-acceptance` with the report summary and its digest; the tool never accepts a loss on its own, so the digest must come back in your arguments. A released compile lists the manifest and files; read a file with `path`, `offset` and the commit in `source.commit`, at most 32,768 bytes of text per part. If the published commit moves between two calls the answer is `version_changed`; start again from the report. Converting a document to standard Ossie is not an agent operation yet.
 
 Results are `{ "ok": true, "data": ... }` or `{ "ok": false, "error": { "code", "message", "details" } }`, with
 the protocol error flag set on failure. The codes are `invalid_input`, `not_found` (a hidden file answers like a

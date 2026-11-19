@@ -30,6 +30,8 @@ nothing reaches outside the workbench.
 | `plan_query` | `POST /api/agent/plan` | read | true | false | true | false | repeatable |
 | `read_file` | `GET .../files/*` | read | true | false | true | false | repeatable |
 | `validate_text` | `POST .../files/*/validate` (new) | edit | true | false | true | false | repeatable |
+| `check_standard` | `POST .../compile/check` | read | true | false | true | false | repeatable |
+| `compile_standard` | `POST .../compile` | export | true | false | true | false | repeatable |
 | `create_file` | `PUT .../files/*` with null base | edit | false | false | true | false | precondition-protected |
 | `save_file` | `PUT .../files/*` | edit | false | true | true | false | precondition-protected |
 | `delete_file` | `DELETE .../files/*` | delete | false | false | true | false | receipt-backed |
@@ -153,10 +155,10 @@ the table above. The static page fallback row is not an operation and is left ou
 | `GET /api/projects/:slug/dependencies` | later: Remaining workspace and source-control operations |  |
 | `POST /api/projects/:slug/dependencies/update` | later: Remaining workspace and source-control operations | writes the dependency manifest after a person reviews it |
 | `GET /api/projects/:slug/dependents` | later: Remaining workspace and source-control operations |  |
-| `POST /api/projects/:slug/compile/check` | later: Remaining workspace and source-control operations | compiling to standard Ossie; agent access is a later increment |
-| `POST /api/projects/:slug/compile` | later: Remaining workspace and source-control operations |  |
-| `GET /api/projects/:slug/compile/bundle` | later: Remaining workspace and source-control operations |  |
-| `POST /api/projects/:slug/compile/convert` | later: Remaining workspace and source-control operations |  |
+| `POST /api/projects/:slug/compile/check` | tool: check_standard |  |
+| `POST /api/projects/:slug/compile` | tool: compile_standard |  |
+| `GET /api/projects/:slug/compile/bundle` | not an agent operation | a binary download for the browser; agents page `compile_standard` |
+| `POST /api/projects/:slug/compile/convert` | later: Remaining workspace and source-control operations | rewrites a source file; not an agent operation yet |
 | `GET /api/projects/:slug/item-diff` | not an agent operation | a browser display aid; agents read the published snapshot |
 | `GET /api/projects/:slug/proposals` | later: Remaining workspace and source-control operations |  |
 | `GET /api/projects/:slug/proposals/:id` | later: Remaining workspace and source-control operations |  |

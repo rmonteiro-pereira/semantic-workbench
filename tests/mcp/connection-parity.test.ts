@@ -54,6 +54,12 @@ test('each tool twin refuses missing effects for every offered combination and r
   }
 }, 600000);
 
+/** The standard Ossie tools take a source kind and a full commit, where the other tools take text and a revision name. */
+const STANDARD_OUTPUT_ARGUMENTS: Record<string, Record<string, unknown>> = {
+  check_standard: { source: 'published' },
+  compile_standard: { commit: 'a'.repeat(40) },
+};
+
 function argumentsFor(tool: ToolDefinition, operationKey: string): Record<string, unknown> {
   const candidates: Record<string, unknown> = {
     project: 'sales-contracts',
@@ -71,7 +77,8 @@ function argumentsFor(tool: ToolDefinition, operationKey: string): Record<string
     expectedHead: 'a'.repeat(40),
   };
   const properties = tool.inputSchema.properties as Record<string, unknown>;
-  return Object.fromEntries(Object.entries(candidates).filter(([name]) => name in properties));
+  const shared = Object.fromEntries(Object.entries(candidates).filter(([name]) => name in properties));
+  return { ...shared, ...STANDARD_OUTPUT_ARGUMENTS[tool.name] };
 }
 
 test('every tool accepts schema-valid direct calls under each role and scope ceiling without bypassing a refusal', async () => {

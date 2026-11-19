@@ -585,7 +585,7 @@ to its model provider. See [the panel guide and threat model](docs/agent-panel.m
 | `SW_ACP_CREDENTIAL` | Single-use server-mode setup credential, set only for the person-run relay; never store a real value in an environment file. Local mode reads the installation capability instead. Server mode uses the person connection service and an Admin-registered `acp-relay` program. |
 
 
-Local mode offers an endpoint, `POST /api/mcp`, for agents that speak the Model Context Protocol. A connected agent can read definitions, findings, Git history and the published mapping context, check proposed text, change files and commit exactly the files it names. It uses 21 tools, each the twin of an existing route, so access control, content guards, version checks and the audit record are the browser's own. The workbench only answers requests: it never runs a query plan, contacts a warehouse or calls a model.
+Local mode offers an endpoint, `POST /api/mcp`, for agents that speak the Model Context Protocol. A connected agent can read definitions, findings, Git history and the published mapping context, check proposed text, check and compile a project to standard Ossie, change files and commit exactly the files it names. It uses 23 tools, each the twin of an existing route, so access control, content guards, version checks and the audit record are the browser's own. The workbench only answers requests: it never runs a query plan, contacts a warehouse or calls a model.
 
 Semantic Workbench does not call a language model. When you connect an external agent, that agent can receive definitions you authorize and may send them to its model provider; its configuration and policies govern that onward use.
 

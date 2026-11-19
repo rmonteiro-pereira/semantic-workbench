@@ -15,7 +15,7 @@ function normalizedRoute(route: string): string {
 
 test('the registry lists the contract tools, sorted, with short names', () => {
   const rows = contractRows();
-  expect(rows).toHaveLength(21);
+  expect(rows).toHaveLength(23);
   expect(TOOLS.map(tool => tool.name)).toEqual(rows.map(row => row.name).sort());
   expect(TOOLS.map(tool => tool.name)).toEqual(TOOLS.map(tool => tool.name).sort());
   for (const tool of TOOLS) expect(tool.name.length).toBeLessThanOrEqual(40);

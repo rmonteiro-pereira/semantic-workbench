@@ -24,7 +24,8 @@ function convertRefusalResponse(error: ConvertRefusal): Response {
 
 /** Maps the refusals of the compile operations to the answers the contract names. Anything else is left to the shared error handling. */
 function refusalResponse(error: unknown): Response | null {
-  if (error instanceof SnapshotUnavailableError) return Response.json({ error: 'not-published' }, { status: 409 });
+  // The code is the one every route uses for a missing snapshot, so the agent endpoint answers not_published here too.
+  if (error instanceof SnapshotUnavailableError) return Response.json({ error: 'not-published', code: 'no-published-snapshot', reason: error.reason }, { status: 409 });
   if (error instanceof SnapshotChangedError) return Response.json({ error: 'snapshot-changed', current: error.current }, { status: 409 });
   if (error instanceof ConvertRefusal) return convertRefusalResponse(error);
   if (error instanceof UnitLimitError) return Response.json({ error: error.message }, { status: 413 });

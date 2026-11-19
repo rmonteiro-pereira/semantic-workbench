@@ -1,4 +1,4 @@
-// Tessera documents through the agent endpoint: the same findings as the browser's validator, byte-exact reads and patches, no note text in published answers, and no compiler among the tools.
+// Tessera documents through the agent endpoint: the same findings as the browser's validator, byte-exact reads and patches, no note text in published answers, and compiling only through the two read-only standard Ossie tools.
 import { afterAll, beforeAll, expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { parseDocument } from 'yaml';
@@ -139,11 +139,10 @@ test('the published context, plan and metric explanation of a Tessera ontology e
   expect(JSON.stringify(marked)).not.toContain('tessera');
 });
 
-test('no tool is a compiler and the validation and read tools say Tessera ontologies are accepted', () => {
-  for (const tool of TOOLS) {
-    expect(tool.name, tool.name).not.toMatch(/compile|loss/i);
-    expect(tool.description, tool.name).not.toMatch(/compil|loss report/i);
-  }
+test('only the two standard Ossie tools compile, both read only, and the validation and read tools say Tessera ontologies are accepted', () => {
+  const compilers = TOOLS.filter(tool => /compil|loss report/i.test(tool.name + ' ' + tool.description));
+  expect(compilers.map(tool => tool.name).sort()).toEqual(['check_standard', 'compile_standard']);
+  for (const tool of compilers) expect(tool.hints, tool.name).toEqual({ readOnly: true, destructive: false, idempotent: true, openWorld: false });
   for (const name of ['validate_text', 'get_findings']) {
     const description = TOOLS.find(tool => tool.name === name)!.description;
     expect(description, name).toContain('Tessera ontologies are accepted');

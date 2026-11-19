@@ -68,7 +68,7 @@ test('a project with no snapshot answers not-published for compile and check of 
   ] as const) {
     const response = await sendToCompile(workspace, path, body);
     expect(response.status).toBe(409);
-    expect(await response.json()).toEqual({ error: 'not-published' });
+    expect(await response.json()).toMatchObject({ error: 'not-published', code: 'no-published-snapshot' });
   }
   expect((await sendToCompile(workspace, `${draft}/check`, { source: 'working' })).status).toBe(200);
 });

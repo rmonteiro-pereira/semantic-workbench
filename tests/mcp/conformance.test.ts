@@ -96,7 +96,7 @@ test('a header naming a read tool with a body naming a write tool is refused bef
 test('a reference client lists and calls tools through the route', async () => {
   const client = await server.connect();
   const listed = await client.listTools();
-  expect(listed.tools).toHaveLength(21);
+  expect(listed.tools).toHaveLength(23);
   const called = (await client.callTool({ name: 'list_projects', arguments: {} })) as any;
   expect(called.structuredContent.data.items[0].project).toBe('mapped-commerce');
   const discovered = await client.getServerCapabilities();

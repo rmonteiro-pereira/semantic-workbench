@@ -13,6 +13,9 @@ not configure a production deployment.
 
 ### Added
 
+- Two agent tools, `check_standard` and `compile_standard`, check and compile a project to standard
+  Ossie through the compile routes. The compile tool needs the caller's digest to accept a loss and
+  reads output files in commit-bound parts. See `tests/mcp/standard-output.test.ts`.
 - Compare saved definitions by item address with the published snapshot, a branch or a commit.
   The browser marks unpublished items and reviews the committed changes before publication.
   Agent operations continue to use published definitions.
@@ -44,8 +47,8 @@ not configure a production deployment.
   Undo and permission questions. The workbench launches no agent and calls no model. Relay calls
   and file operations use the operation boundary with origin `acp`; transcripts stay in memory.
 
-- A local agent endpoint, `POST /api/mcp`, speaks the Model Context Protocol and offers 21 tools to read definitions, findings and Git history, check proposed text, save, create, delete and restore files, read the published mapping context and plans, and commit exactly the listed files. Each tool is the twin of an existing route, so access control, content guards, version checks and audit are unchanged. A per-installation capability in `data/state/mcp-capability` protects it, `bun run mcp:rotate` replaces it, and `scripts/mcp-stdio.ts` bridges clients that start a program. Server mode now requires a person connection at that endpoint. See `docs/mcp.md`.
-- Findings reported by the agent tools carry their `code`, and the tool descriptions say Tessera ontologies are accepted. No tool exposes the Tessera compiler.
+- A local agent endpoint, `POST /api/mcp`, speaks the Model Context Protocol and offers 23 tools to read definitions, findings and Git history, check proposed text, save, create, delete and restore files, read the published mapping context and plans, and commit exactly the listed files. Each tool is the twin of an existing route, so access control, content guards, version checks and audit are unchanged. A per-installation capability in `data/state/mcp-capability` protects it, `bun run mcp:rotate` replaces it, and `scripts/mcp-stdio.ts` bridges clients that start a program. Server mode now requires a person connection at that endpoint. See `docs/mcp.md`.
+- Findings reported by the agent tools carry their `code`, and the tool descriptions say Tessera ontologies are accepted. Only `check_standard` and `compile_standard` reach the Tessera compiler, and both are read only.
 - `POST /api/projects/:slug/files/*/validate` checks proposed text with the save pipeline and writes nothing.
 - The commit route accepts optional `files`, `expectedBranch` and `expectedHead`, checked in the same turn of the repository queue as the commit. Every commit now takes the project's write lock first, as a save does (and the lock of every sibling project whose files it names), so no save lands between the checks and the commit. Deleting a file accepts an optional `baseHash`. `GET /api/documents?project=` lists a project's files without their text.
 - Audit records of agent calls carry the protocol method, a client label and a result code, and the Admin audit view shows the tool beside the action.

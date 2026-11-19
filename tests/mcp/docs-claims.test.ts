@@ -22,7 +22,7 @@ test('docs/mcp.md lists exactly the registry tools, once each in its table', () 
 
 test('README, ARCHITECTURE and the changelog state the tool count that ships', () => {
   for (const file of ['README.md', 'CHANGELOG.md', 'docs/agent-runtime.md']) expect(read(file), file).toContain(`${TOOLS.length} tools`);
-  expect(read('ARCHITECTURE.md')).toContain('the 21 tools');
+  expect(read('ARCHITECTURE.md')).toContain('the 23 tools');
 });
 
 test('the model statement appears word for word where the specification requires it', () => {
