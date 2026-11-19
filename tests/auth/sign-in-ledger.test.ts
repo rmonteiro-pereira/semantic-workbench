@@ -91,11 +91,14 @@ test('server authentication prunes the ledger at start-up and on a timer, until 
   writeFileSync(join(ledgerDir, staleEntry(1)), '');
   const { started: auth, callbacks } = await recordingMinuteIntervals(() => createServerAuthentication(fixture.ws, transport.config, client));
   expect(readdirSync(ledgerDir)).toEqual([]);
-  expect(callbacks.size).toBe(1);
-  writeFileSync(join(ledgerDir, staleEntry(2)), '');
-  const [timer, prune] = [...callbacks.entries()][0];
-  prune();
-  expect(readdirSync(ledgerDir)).toEqual([]);
+  // The connection sweep shares the one-minute interval, so the ledger is pruned by one of these.
+  const pruning = [...callbacks.entries()].filter(([, callback]) => {
+    writeFileSync(join(ledgerDir, staleEntry(2)), '');
+    callback();
+    return readdirSync(ledgerDir).length === 0;
+  });
+  expect(pruning).toHaveLength(1);
+  const [timer] = pruning[0];
   const cleared: unknown[] = [];
   const clearInterval = spyOn(globalThis, 'clearInterval').mockImplementation(handle => {
     cleared.push(handle);
