@@ -46,5 +46,8 @@
       "sha256": "bc13bbcdd2979ed44a0ca6ecf0253774b85ae229d6f49df8a732defec63aa597"
     }
   ],
-  "reportVersion": 2
+  "reportVersion": 2,
+  "source": {
+    "kind": "snapshot"
+  }
 }

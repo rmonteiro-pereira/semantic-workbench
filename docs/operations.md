@@ -187,11 +187,11 @@ These steps run inside the admitted route and share its authorization and audit 
 
 | Operation | Internal steps |
 | --- | --- |
-| proposals.promote | publication.advance, publication.abandon |
+| proposals.check | snapshot.read |
+| proposals.promote | publication.advance, publication.abandon, snapshot.read |
 | repositories.clone | publication.upgrade |
 | projects.export | snapshot.read |
 | items.diff | snapshot.read |
-| itemAddresses.resolve | snapshot.read |
 | mesh.graph | snapshot.read |
 | mesh.providers.list | snapshot.read |
 | mesh.dependencies.read | snapshot.read |
@@ -201,6 +201,7 @@ These steps run inside the admitted route and share its authorization and audit 
 | compile.run | snapshot.read |
 | compile.bundle | snapshot.read |
 | compile.convert | snapshot.read |
+| itemAddresses.resolve | snapshot.read |
 | metrics.list | snapshot.read |
 | usage.read | snapshot.read |
 | metrics.save | snapshot.read |

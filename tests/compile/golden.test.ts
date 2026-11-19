@@ -7,10 +7,10 @@ import { COMPILE_PROJECT, compileWithCommandLine, compileWorkspace, digestFromCo
 const GOLDEN = 'tests/fixtures/compile/golden';
 const COMMIT_PLACEHOLDER = '<commit>';
 
-/** The commit differs on every run, so the recorded manifest holds a placeholder in its place. */
+/** The commit differs on every run, so the recorded manifest and loss report hold a placeholder in its place. */
 function withoutCommit(path: string, bytes: Uint8Array): string {
   const text = new TextDecoder().decode(bytes);
-  if (path !== 'manifest.json') return text;
+  if (path !== 'manifest.json' && path !== 'loss-report.json') return text;
   return text.replace(/"commit": "[0-9a-f]{40,64}"/, `"commit": "${COMMIT_PLACEHOLDER}"`);
 }
 

@@ -278,27 +278,39 @@
     {
       "case": "GET /api/mesh",
       "action": "read",
-      "resource": { "type": "workspace" }
+      "resource": {
+        "type": "workspace"
+      }
     },
     {
       "case": "GET /api/mesh/providers",
       "action": "edit",
-      "resource": { "type": "workspace" }
+      "resource": {
+        "type": "workspace"
+      }
     },
     {
       "case": "GET /api/projects/:slug/dependencies",
       "action": "read",
-      "resource": { "type": "project", "project": "sales-metrics" }
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
     },
     {
       "case": "POST /api/projects/:slug/dependencies/update",
       "action": "edit",
-      "resource": { "type": "project", "project": "sales-metrics" }
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
     },
     {
       "case": "GET /api/projects/:slug/dependents",
       "action": "read",
-      "resource": { "type": "workspace" }
+      "resource": {
+        "type": "workspace"
+      }
     },
     {
       "case": "POST /api/projects/:slug/compile/check",

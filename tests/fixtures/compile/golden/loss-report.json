@@ -122,5 +122,11 @@
       "sha256": "3db7e0fe565948eff82aeaa8fd571ce89b504211a1ba8f33dd58d3f1d0a53ee0"
     }
   ],
-  "reportVersion": 2
+  "reportVersion": 2,
+  "source": {
+    "branch": "main",
+    "commit": "<commit>",
+    "kind": "published-snapshot",
+    "projectFolder": "."
+  }
 }

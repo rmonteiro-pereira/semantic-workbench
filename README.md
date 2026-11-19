@@ -449,7 +449,7 @@ Ossie ontology. The validation panel names the format ("Tessera 1 on Ossie 0.2.0
 0 warnings"). A document is never "Not validated": a wrong marker, an unknown or misplaced
 `tessera_` property, a marker on a file that is not an ontology or an unsupported
 Ossie `version` each give a finding with its own code (`tessera-marker`, `tessera-revision`,
-`tessera-base`, `tessera-kind`, `tessera-property`, `tessera-reserved`, `tessera-location`).
+`tessera-base`, `tessera-kind`, `tessera-property`, `tessera-location`).
 The item inspector and access rules apply to Tessera files. Agents get item context and limited
 governance flags from the published snapshot, with notes removed. Notes, attribute order, owner,
 steward and classification stay in the workbench. Authorized MCP authoring tools can read the stored

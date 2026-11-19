@@ -148,6 +148,15 @@ the table above. The static page fallback row is not an operation and is left ou
 | `PUT /api/projects/:slug/git/remote` | later: Remaining workspace and source-control operations |  |
 | `DELETE /api/projects/:slug/git/remote` | later: Remaining workspace and source-control operations |  |
 | `GET /api/projects/:slug/usage` | later: Remaining workspace and source-control operations | a person reads usage counts in the browser; a tool for them is a later increment |
+| `GET /api/mesh` | later: Remaining workspace and source-control operations | the published mesh graph; agent access is a later increment |
+| `GET /api/mesh/providers` | later: Remaining workspace and source-control operations |  |
+| `GET /api/projects/:slug/dependencies` | later: Remaining workspace and source-control operations |  |
+| `POST /api/projects/:slug/dependencies/update` | later: Remaining workspace and source-control operations | writes the dependency manifest after a person reviews it |
+| `GET /api/projects/:slug/dependents` | later: Remaining workspace and source-control operations |  |
+| `POST /api/projects/:slug/compile/check` | later: Remaining workspace and source-control operations | compiling to standard Ossie; agent access is a later increment |
+| `POST /api/projects/:slug/compile` | later: Remaining workspace and source-control operations |  |
+| `GET /api/projects/:slug/compile/bundle` | later: Remaining workspace and source-control operations |  |
+| `POST /api/projects/:slug/compile/convert` | later: Remaining workspace and source-control operations |  |
 | `GET /api/projects/:slug/item-diff` | not an agent operation | a browser display aid; agents read the published snapshot |
 | `GET /api/projects/:slug/proposals` | later: Remaining workspace and source-control operations |  |
 | `GET /api/projects/:slug/proposals/:id` | later: Remaining workspace and source-control operations |  |

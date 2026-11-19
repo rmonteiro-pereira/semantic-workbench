@@ -1,5 +1,6 @@
 // Keeps every publication entry point on the same ordered validation path.
 import { NotFastForwardError, SnapshotUnreadableError } from './errors';
+import { GitError } from './git';
 
 /** The immutable commits participating in a proposed default-branch move. */
 export type PublicationCandidate = { repo: string; branch: string; previous: string | null; next: string };
@@ -21,7 +22,9 @@ export function publicationChecks(deps: PublicationCheckDeps): PublicationCheck[
         throw new NotFastForwardError(candidate.branch);
       }
     },
-    ...(deps.beforeReadable ? [deps.beforeReadable] : []),
+    // The visible-set check reads the candidate first; a candidate Git cannot read within the limits is
+    // unreadable here too, while the check's own refusals pass through unchanged.
+    ...(deps.beforeReadable ? [unreadableOnGitFailure(deps.beforeReadable)] : []),
     async candidate => {
       try {
         await deps.readable(candidate);
@@ -31,4 +34,15 @@ export function publicationChecks(deps: PublicationCheckDeps): PublicationCheck[
     },
     deps.guard,
   ];
+}
+
+function unreadableOnGitFailure(check: PublicationCheck): PublicationCheck {
+  return async candidate => {
+    try {
+      await check(candidate);
+    } catch (cause) {
+      if (cause instanceof GitError) throw new SnapshotUnreadableError(`Cannot publish the candidate snapshot: ${cause.message}`);
+      throw cause;
+    }
+  };
 }

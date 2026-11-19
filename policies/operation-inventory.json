@@ -149,7 +149,10 @@
       "exposure": {
         "increment": "later",
         "reason": "Shared proposal tools require a later agent increment."
-      }
+      },
+      "steps": [
+        "snapshot.read"
+      ]
     },
     "POST /api/projects/:slug/proposals/:id/promote": {
       "id": "proposals.promote",
@@ -171,7 +174,8 @@
       },
       "steps": [
         "publication.advance",
-        "publication.abandon"
+        "publication.abandon",
+        "snapshot.read"
       ]
     },
     "POST /api/projects/:slug/proposals/:id/close": {

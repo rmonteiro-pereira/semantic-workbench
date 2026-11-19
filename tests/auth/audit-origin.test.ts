@@ -22,6 +22,7 @@ export const attributedInput: AuditInput = {
   method: 'tools/call',
   clientLabel: 'reference client',
   result: 'ok',
+  disclosureShown: true,
   proposal: { proposal: 'reviewed-change', projects: ['sales'], commits: ['b'.repeat(40)] },
   publication: { previous: 'a'.repeat(40), commit: 'b'.repeat(40) },
   snapshot: { grants: ['grant'], roles: ['reader'], groups: ['group'], emailMatched: false, resourceAttrs: { type: 'project', project: 'sales' } },

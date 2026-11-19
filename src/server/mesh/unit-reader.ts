@@ -8,14 +8,21 @@ import { readMarker } from '../../shared/tessera/marker';
 import { requiredUnitFiles, setFindings, type ReaderValidation } from '../../shared/tessera/set-validation';
 import { readUnitStructure, type OntologyUnit, type UnitDocument, type UnitFinding } from '../../shared/tessera/unit-structure';
 import { validateInput } from '../../shared/validation/input';
+import type { Issue } from '../../shared/validation/diagnostics';
 import { MissingOntologySetError } from '../projects/errors';
 
-type UnitText = { path: string; source: string };
+/** A file's text, with the findings its index already holds when the caller has them. */
+type UnitText = { path: string; source: string; findings?: Issue[] };
 type ReadSource = { available: (path: string) => boolean; read: (path: string) => string | null; rootPaths: () => string[] };
+
+/** The revision-three marker as YAML or JSON writes it, with or without quotes around the key. */
+const MAY_BE_REVISION_THREE = /["']?tessera["']?\s*:\s*3\b/;
 
 /** Parses a revision-three root or part from an already readable source file. */
 export function unitDocument(path: string, source: string | null): UnitDocument | undefined {
   if (source === null) return undefined;
+  // Only a file that says `tessera: 3` can be a root or a part, so every other file skips the full validation.
+  if (!MAY_BE_REVISION_THREE.test(source)) return undefined;
   const parsed = validateInput(source, posix.basename(path)).model;
   if (!parsed || !('document' in parsed)) return undefined;
   const data = parsed.document;
@@ -43,7 +50,8 @@ function rootOf(file: UnitDocument, source: ReadSource): UnitDocument | undefine
 export async function readOntologySet(active: UnitText, source: ReadSource, checkDependencies: (unit: OntologyUnit) => Promise<UnitFinding[] | undefined>): Promise<ReaderValidation | undefined> {
   const file = unitDocument(active.path, active.source);
   if (!file) return undefined;
-  const individual = { [file.path]: validateInput(active.source, posix.basename(file.path)).issues };
+  // A read file already carries the findings of the same validation, so it is not run again on every read.
+  const individual = { [file.path]: active.findings ?? validateInput(active.source, posix.basename(file.path)).issues };
   const partial: ReaderValidation = { singleFile: individual, set: [], setNotChecked: true };
   const root = rootOf(file, source);
   if (!root) return partial;

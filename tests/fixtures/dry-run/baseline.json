@@ -81,6 +81,54 @@
       ]
     },
     {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/mesh",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/projects/:slug/dependencies",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/projects/:slug/dependents",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:POST /api/projects/:slug/compile/check",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:POST /api/projects/:slug/compile",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
+      "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:GET /api/projects/:slug/compile/bundle",
+      "before": true,
+      "after": false,
+      "rules": [
+        "F8-no-access"
+      ]
+    },
+    {
       "case": "4f6c2a10-8d3b-4e7a-b5c9-1a2b3c4d5e6f:a1100000-0000-4000-8000-000000000008:POST /api/projects/:slug/item-addresses/resolve",
       "before": true,
       "after": false,
@@ -433,7 +481,7 @@
       ]
     }
   ],
-  "matrixCases": 1305,
+  "matrixCases": 1386,
   "auditCases": 6,
   "people": [
     {

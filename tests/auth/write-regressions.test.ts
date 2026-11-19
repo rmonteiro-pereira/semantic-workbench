@@ -133,8 +133,9 @@ test('each body target row refuses hidden files before mutation and audits exact
       expect(snapshot(fixture.root), operation.path).toEqual(before);
       expect(auditLines(fixture.root, response)).toHaveLength(1);
     }
+    // Reads that pick their projects inside the handler, such as the mesh lists, take no body and mutate nothing.
     expect([...covered].sort()).toEqual(
-      ROUTE_ACTIONS.filter(row => row.targets === 'body')
+      ROUTE_ACTIONS.filter(row => row.targets === 'body' && !row.path.startsWith('GET '))
         .map(row => row.path)
         .sort(),
     );
