@@ -1966,6 +1966,10 @@ if (category.startsWith('read-')) {
       const workspace = await loadedModule.openWorkspace({ root: fixture.root });
       try {
         assert(!JSON.stringify(workspace.documentsFor({ view, owner: principal.id })).includes('LEAK-hr-'));
+        // The project list names only the files the reader may open, so a Finance-only folder stays out.
+        const projects = await workspace.listProjects({ view, owner: principal.id });
+        const sales = projects.find((project: { slug: string }) => project.slug === 'sales-contracts');
+        assert(sales && !sales.files.some((file: { path: string }) => file.path.startsWith('finance/')));
       } finally {
         workspace.close();
       }
