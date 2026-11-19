@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { parse } from 'yaml';
 import { InputError } from '../src/shared/validation/diagnostics';
-import { REGISTRY } from '../src/shared/tessera/registry';
+import { REGISTRY, createRegistry } from '../src/shared/tessera/registry';
 import { EXPECTED_FINDINGS } from '../tests/helpers/tessera-refusals';
 import { COMMITTED_FILES, ONTOLOGY_TEXT, PROJECT_FOLDER, createTesseraRepository } from '../tests/helpers/tessera-repository';
 
@@ -70,6 +70,12 @@ export const TESSERA_CASES: TesseraCase[] = [
         const found = candidate.tesseraIssues(data).issues.map((issue: { code: string; path: string }) => `${issue.code} ${issue.path}`);
         assert.deepEqual(found, expected, name);
       }
+      // No name is reserved today, so the reserved-name refusal is checked with a registry that holds one.
+      const reserved = 'tessera_future';
+      const registry = createRegistry(REGISTRY.additions, [{ name: reserved, owner: 'fixture' }]);
+      const document = { tessera: 3, version: '0.2.0.dev0', name: 'Retail', ontology: [{ concept: 'Order', type: 'EntityType' }], [reserved]: true };
+      const codes = candidate.tesseraIssues(document, { registry }).issues.map((issue: { code: string }) => issue.code);
+      assert.deepEqual(codes, ['tessera-reserved']);
     },
   },
   {
