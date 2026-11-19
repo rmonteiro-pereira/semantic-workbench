@@ -12,7 +12,7 @@ import type { AccessControl, AccessScope } from './authorize';
 import { auditableProjects, reportAuditFailure, type AuditLog } from './audit';
 import { assertMinted, type Caller, type CallerOrigin } from './caller';
 import { log } from '../observability/log';
-import { CALLER_ORIGINS, operationById, operationForRow } from './operation-inventory';
+import { CALLER_ORIGINS, operationById, operationForRow, type OperationEffect } from './operation-inventory';
 import { ROUTE_ACTIONS, routeFor, routeResourceKind, type RouteAction } from './route-actions';
 import type { ResourceRef, Decision } from './resource';
 import { WriteAccessError } from './write-access';
@@ -295,10 +295,10 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
     return { response, requestId };
   }
   /** Lists sorted operation ids admitted by effective policy and connection effects. */
-  function availableOperations(caller: Caller): string[] {
+  /** Yields, in route inventory order, each operation the caller may use, deciding each one only when asked. */
+  function* admittedOperations(caller: Caller): Generator<{ id: string; effects: readonly OperationEffect[] }> {
     assertMinted(caller);
     const scope = access.forRequest(caller.principal, { sourceIp: caller.sourceIp });
-    const ids: string[] = [];
     let projects: string[] | undefined;
     const probeProjects = () => (projects ??= scope.probeProjects());
     let auditProjects: Set<string> | null | undefined;
@@ -320,11 +320,14 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
         }
         permitted.set(key, admitted);
       }
-      if (permitted.get(key)) ids.push(entry.id);
+      if (permitted.get(key)) yield { id: entry.id, effects: entry.effects };
     }
-    return ids.sort();
   }
-  return { operate, availableOperations };
+  /** The ids of every operation the caller may use, sorted. */
+  function availableOperations(caller: Caller): string[] {
+    return [...admittedOperations(caller)].map(operation => operation.id).sort();
+  }
+  return { operate, availableOperations, admittedOperations };
 }
 
 /** The decision and execution boundary a transport adapter calls with an authenticated caller. */
