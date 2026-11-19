@@ -29,6 +29,9 @@ export const mcpMutants: [string, string, string, string][] = [
   ['mcp-tools', 'src/server/mcp/tools/source-control.ts', '...(committed.altered?.length ? { altered: committed.altered } : {}),', ''],
   ['mcp-tools', 'src/server/mcp/tools/source-control.ts', 'expectedHead: args.expectedHead };', 'expectedHead: undefined };'],
   ['mcp-tools', 'src/server/mcp/tools/source-control.ts', 'files: args.files, expectedBranch', 'files: [], expectedBranch'],
+  ['mcp-tools', 'src/server/mcp/tools/standard-output.ts', '...(args.acceptDigest !== undefined ? { accept: { digest: args.acceptDigest } } : {}),', ''],
+  ['mcp-tools', 'src/server/mcp/tools/standard-output.ts', '...(args.acceptDigest !== undefined ? { accept: { digest: args.acceptDigest } } : {}),', "accept: { digest: 'sha256:' + 'e'.repeat(64) },"],
+  ['mcp-tools', 'src/server/mcp/tools/standard-output.ts', 'return changedSnapshot(called.answer) ?? called.failure;', 'return called.failure;'],
   // Audit.
   ['mcp-audit', 'src/server/auth/audit.ts', "'version', 'tool', 'connection', 'method', 'clientLabel', 'result', 'disclosureShown']", "'version', 'tool', 'connection', 'disclosureShown']"],
   ['mcp-rows', 'src/server/auth/route-actions.ts', "methods: ['POST', 'GET', 'DELETE', 'PUT', 'PATCH'], unaudited: true }", "methods: ['POST', 'GET', 'DELETE', 'PUT', 'PATCH'] }"],

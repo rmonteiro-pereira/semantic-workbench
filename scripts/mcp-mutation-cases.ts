@@ -63,6 +63,8 @@ export async function mcpStateCase(target: string) {
 }
 
 const EXPECTED_OPERATIONS: Record<string, string> = {
+  check_standard: 'compile.check',
+  compile_standard: 'compile.run',
   create_file: 'files.save',
   delete_file: 'files.delete',
   explain_metric: 'metrics.explain',
@@ -131,12 +133,27 @@ export async function mcpToolsCase(target: string) {
   const altered = await tool('git_commit').run({ ...commitArgs, idempotencyKey: 'commit-key-00000002' }, context(alteredTwin.twin));
   assert.equal(altered.ok, true, 'a commit that was made is a success even when a hook altered a file');
   assert.deepEqual(altered.data.altered, ['a.yaml']);
+  await standardOutputCase(tool, context);
   const { mapTwinFailure } = await import(join(tree, 'twin-dispatch.ts'));
   const hidden = mapTwinFailure('files.read', { status: 404, body: { error: 'Not found.' }, headers: new Headers() });
   const missing = mapTwinFailure('files.read', { status: 404, body: { error: 'File not found.' }, headers: new Headers() });
   assert.deepEqual(hidden, missing);
   assert.equal(hidden.error.code, 'not_found');
   assert.equal(mapTwinFailure('files.save', { status: 409, body: { error: 'precondition', changed: {} }, headers: new Headers() }).error.code, 'precondition_failed');
+}
+
+/** The compile tool sends only the caller's own digest, and a moved published commit answers version_changed. */
+async function standardOutputCase(tool: (name: string) => any, context: (twin: unknown) => unknown) {
+  const digest = 'sha256:' + 'e'.repeat(64);
+  const released = { result: 'released', source: { kind: 'published-snapshot', commit: 'c'.repeat(40) }, manifest: {}, report: {}, files: [] };
+  const compiled = fakeTwin({ 'compile.run': released });
+  await tool('compile_standard').run({ project: 'p' }, context(compiled.twin));
+  await tool('compile_standard').run({ project: 'p', acceptDigest: digest }, context(compiled.twin));
+  assert.equal(compiled.calls[0].input.body.accept, undefined, "no loss is accepted without the caller's digest");
+  assert.deepEqual(compiled.calls[1].input.body.accept, { digest }, "the caller's digest reaches the compile");
+  const moved = async () => ({ ok: false as const, failure: { ok: false, error: { code: 'conflict' } }, answer: { status: 409, body: { error: 'snapshot-changed' }, headers: new Headers() } });
+  const answer = await tool('compile_standard').run({ project: 'p', acceptDigest: digest, commit: 'd'.repeat(40) }, context(moved));
+  assert.equal(answer.error.code, 'version_changed', 'a moved published commit is version_changed');
 }
 
 /** The serializer keeps the protocol fields of a record. */
