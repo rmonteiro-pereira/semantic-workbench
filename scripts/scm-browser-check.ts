@@ -1,6 +1,6 @@
 // Checks browser Source Control actions using isolated workspaces and local Git remotes.
 import { smallTextProblems, textCollisionProblems } from './helpers/text-geometry';
-import { openRemoteDialog, remoteActions, remoteButton, remoteDialog, runSyncAction } from './helpers/sync-dialog';
+import { openRemoteDialog, publishLocalCopy, remoteActions, remoteButton, remoteDialog, runSyncAction } from './helpers/sync-dialog';
 import { appUrl } from './helpers/base-url';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { chromium, expect, type Page } from '@playwright/test';
@@ -190,7 +190,7 @@ try {
     await page.screenshot({ path: '/tmp/workbench-scm-branch.png' });
   });
   async function publishBrowserSnapshot() {
-    await panel().getByLabel('Published snapshot').getByRole('button', { name: 'Publish', exact: true }).click();
+    await publishLocalCopy(page);
     await expect(panel().getByRole('status').filter({ hasText: 'Published to main.' })).toBeVisible();
   }
   await check('remote: publish locally, push published history, then pull a commit made elsewhere', async () => {

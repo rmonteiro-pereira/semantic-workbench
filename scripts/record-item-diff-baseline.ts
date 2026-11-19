@@ -1,8 +1,9 @@
 // Records rendered structures and published consumer answers without touching real workspace data.
-import { chromium, expect, type Locator } from '@playwright/test';
+import { chromium, expect } from '@playwright/test';
 import { writeFileSync } from 'node:fs';
 import { configureLogging } from '../src/server/observability/log';
 import { appUrl } from './helpers/base-url';
+import { itemDiffStructure as structure, itemDiffToggle } from './helpers/item-diff-browser';
 import { itemDiffAgentAnswers, itemDiffBaselineWorkspace } from '../tests/helpers/item-diff-baseline';
 
 configureLogging({ level: 'error', format: 'text' });
@@ -11,29 +12,6 @@ const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 const errors: string[] = [];
 page.on('pageerror', error => errors.push(error.message));
-
-async function structure(locator: Locator) {
-  return locator.evaluate(element => {
-    function visit(node: Element): unknown {
-      // Positions, selected state and generated SVG ids vary across valid layout runs.
-      const attributes = [...node.attributes]
-        .filter(attribute => ['class', 'role', 'aria-label', 'type'].includes(attribute.name))
-        .map(attribute => [
-          attribute.name,
-          attribute.value
-            .replace(/\b(selected|selectable|draggable|dragging|measured)\b/g, '')
-            .replace(/\s+/g, ' ')
-            .trim(),
-        ]);
-      const text = [...node.childNodes]
-        .filter(child => child.nodeType === Node.TEXT_NODE)
-        .map(child => child.textContent?.trim())
-        .filter(Boolean);
-      return { tag: node.tagName.toLowerCase(), attributes, text, children: [...node.children].map(visit) };
-    }
-    return visit(element);
-  });
-}
 
 try {
   await page.route('**/api/**', async route => {
@@ -56,6 +34,9 @@ try {
   await page.getByRole('tree', { name: 'Projects' }).getByRole('button', { name: 'finance.ontology.yaml', exact: true }).click();
   const tab = (name: string) => page.locator('.tabs').getByRole('button', { name, exact: true }).click();
   await tab('Graph');
+  // The structures are those of the overlay switched off, read the same way the browser check reads them.
+  const overlay = await itemDiffToggle(page);
+  if ((await overlay.getAttribute('aria-pressed')) === 'true') await overlay.click();
   await expect(page.locator('.full-graph .react-flow__node-entity')).toHaveCount(5, { timeout: 60000 });
   await expect(page.locator('.full-graph-loading')).toHaveCount(0);
   const fullGraph = await structure(page.locator('.full-graph'));

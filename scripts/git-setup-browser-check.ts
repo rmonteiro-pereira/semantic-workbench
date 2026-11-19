@@ -2,7 +2,7 @@
 // guide. Every remote is a local bare repository or a local test server; no network remote is used.
 import { expectDialogGeometry } from './helpers/dialog-geometry';
 import { lowContrastProblems, smallTextProblems } from './helpers/text-geometry';
-import { openRemoteDialog, remoteButton, remoteDialog, runSyncAction } from './helpers/sync-dialog';
+import { openRemoteDialog, publishLocalCopy, remoteButton, remoteDialog, runSyncAction } from './helpers/sync-dialog';
 import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Locator, type Route } from '@playwright/test';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -81,8 +81,7 @@ const panel = () => page.getByRole('region', { name: 'Source Control' });
 
 /** Publishes the committed authoring head before selecting the default branch for remote actions. */
 async function publishAndSwitchDefault() {
-  const publication = panel().getByLabel('Published snapshot');
-  await publication.getByRole('button', { name: 'Publish', exact: true }).click();
+  await publishLocalCopy(page);
   await expect(panel().getByRole('status').filter({ hasText: 'Published to main.' })).toBeVisible();
   await panel().getByLabel('Branch', { exact: true }).selectOption('main');
   await expect(panel().getByLabel('Branch', { exact: true })).toHaveValue('main');

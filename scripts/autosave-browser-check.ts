@@ -1,6 +1,6 @@
 // Checks automatic saves, stale drafts and commits using an isolated workspace and local remote.
 import { LOCAL_READER } from '../src/server/projects/reader';
-import { runSyncAction } from './helpers/sync-dialog';
+import { publishLocalCopy, runSyncAction } from './helpers/sync-dialog';
 import { appUrl } from './helpers/base-url';
 import { chromium, expect, type Page } from '@playwright/test';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -179,7 +179,7 @@ try {
     expect(sh(bare, ['branch', '--list', 'work/*']).trim()).toBe('');
     await page.getByRole('button', { name: /^Source control/ }).click();
     const panel = page.getByRole('region', { name: 'Source Control' });
-    await panel.getByLabel('Published snapshot').getByRole('button', { name: 'Publish', exact: true }).click();
+    await publishLocalCopy(page);
     await expect(panel.getByRole('status').filter({ hasText: 'Published to main.' })).toBeVisible();
     await panel.getByLabel('Branch', { exact: true }).selectOption('main');
     await runSyncAction(page, 'Publish branch');

@@ -546,179 +546,54 @@
                   "text": [],
                   "children": [
                     {
-                      "tag": "button",
+                      "tag": "span",
                       "attributes": [
                         [
                           "class",
-                          "show-toggle"
+                          "show-menu"
                         ]
                       ],
                       "text": [],
                       "children": [
                         {
-                          "tag": "span",
+                          "tag": "button",
                           "attributes": [
                             [
+                              "type",
+                              "button"
+                            ],
+                            [
                               "class",
-                              "show-toggle-face"
+                              "show-menu-trigger"
+                            ],
+                            [
+                              "aria-label",
+                              "Show: Value types"
                             ]
                           ],
                           "text": [
-                            "Labels"
-                          ],
-                          "children": []
-                        },
-                        {
-                          "tag": "span",
-                          "attributes": [
-                            [
-                              "class",
-                              "show-toggle-size"
-                            ]
-                          ],
-                          "text": [
-                            "Labels"
+                            "Show"
                           ],
                           "children": [
                             {
-                              "tag": "svg",
+                              "tag": "span",
                               "attributes": [
                                 [
                                   "class",
-                                  "lucide lucide-check"
+                                  "show-menu-on"
                                 ]
                               ],
-                              "text": [],
-                              "children": [
-                                {
-                                  "tag": "path",
-                                  "attributes": [],
-                                  "text": [],
-                                  "children": []
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "tag": "button",
-                      "attributes": [
-                        [
-                          "class",
-                          "show-toggle"
-                        ]
-                      ],
-                      "text": [],
-                      "children": [
-                        {
-                          "tag": "span",
-                          "attributes": [
-                            [
-                              "class",
-                              "show-toggle-face"
-                            ]
-                          ],
-                          "text": [
-                            "Value types"
-                          ],
-                          "children": [
-                            {
-                              "tag": "svg",
-                              "attributes": [
-                                [
-                                  "class",
-                                  "lucide lucide-check"
-                                ]
+                              "text": [
+                                "Value types"
                               ],
-                              "text": [],
-                              "children": [
-                                {
-                                  "tag": "path",
-                                  "attributes": [],
-                                  "text": [],
-                                  "children": []
-                                }
-                              ]
-                            }
-                          ]
-                        },
-                        {
-                          "tag": "span",
-                          "attributes": [
-                            [
-                              "class",
-                              "show-toggle-size"
-                            ]
-                          ],
-                          "text": [
-                            "Value types"
-                          ],
-                          "children": [
+                              "children": []
+                            },
                             {
                               "tag": "svg",
                               "attributes": [
                                 [
                                   "class",
-                                  "lucide lucide-check"
-                                ]
-                              ],
-                              "text": [],
-                              "children": [
-                                {
-                                  "tag": "path",
-                                  "attributes": [],
-                                  "text": [],
-                                  "children": []
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "tag": "button",
-                      "attributes": [
-                        [
-                          "class",
-                          "show-toggle"
-                        ]
-                      ],
-                      "text": [],
-                      "children": [
-                        {
-                          "tag": "span",
-                          "attributes": [
-                            [
-                              "class",
-                              "show-toggle-face"
-                            ]
-                          ],
-                          "text": [
-                            "Mini-map"
-                          ],
-                          "children": []
-                        },
-                        {
-                          "tag": "span",
-                          "attributes": [
-                            [
-                              "class",
-                              "show-toggle-size"
-                            ]
-                          ],
-                          "text": [
-                            "Mini-map"
-                          ],
-                          "children": [
-                            {
-                              "tag": "svg",
-                              "attributes": [
-                                [
-                                  "class",
-                                  "lucide lucide-check"
+                                  "lucide lucide-chevron-down"
                                 ]
                               ],
                               "text": [],
@@ -6023,7 +5898,7 @@
           "tag": "span",
           "attributes": [],
           "text": [
-            "Published: main @ fd0d99d"
+            "Published: main @ d97e482"
           ],
           "children": []
         },

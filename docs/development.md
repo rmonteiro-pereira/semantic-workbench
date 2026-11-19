@@ -100,8 +100,10 @@ for the options and exit statuses (0 success, 1 refused, 2 loss needs acceptance
   The integrated mutation gate runs these cases with the rest of its inventory.
 - `bun scripts/item-diff-planner-browser-check.ts` checks metric status labels, geometry and contrast
   in the query composer at phone and desktop widths in both themes, using an isolated API.
-- `bun scripts/record-item-diff-baseline.ts` records six rendered workbench structures and published
-  context, plan and explanation responses against isolated published and unpublished definitions.
+- `bun scripts/record-item-diff-baseline.ts` records six rendered workbench structures, with the
+  Unpublished work overlay switched off, and the published context, plan and explanation responses,
+  against isolated published and unpublished definitions. The browser check compares the same
+  overlay-off structures.
   Start an isolated frontend and set `SW_BASE_URL` first. `bun test tests/item-diff/baseline.test.ts`
   compares the consumer responses without a browser.
 - `bun scripts/record-standard-baseline.ts` records what the unchanged code does with every example

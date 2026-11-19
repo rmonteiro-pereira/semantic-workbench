@@ -185,7 +185,9 @@ export async function authGeometry(page: Page, name: string, scope?: string, reo
       await expect(summary).not.toHaveAttribute('role', 'menuitem');
       await expect(summary.locator('[tabindex], button, a')).toHaveCount(0);
       await expect(page.getByRole('menu')).toHaveAccessibleName('Person menu for Alice Andrade');
-      await expect(page.getByRole('menuitem')).toHaveCount(2);
+      // A signed-in person without Admin sees the agent panel, their agent connections, their accounts and Sign out.
+      for (const item of ['Agent panel', 'Agent connections', 'Connected accounts', 'Sign out']) await expect(page.getByRole('menuitem', { name: new RegExp(`^${item}`) })).toHaveCount(1);
+      await expect(page.getByRole('menuitem')).toHaveCount(4);
     }
     assert.deepEqual(errors, [], `Uncaught browser errors before ${name} at ${width}`);
     await page.screenshot({ path: screenshotPath(`/tmp/workbench-auth-${name}-${width}.png`) });

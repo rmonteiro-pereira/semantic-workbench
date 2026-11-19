@@ -72,7 +72,8 @@ const fingerprint = (): Promise<Fingerprint> =>
     const clean = (text: string | null | undefined) => (text ?? '').replace(/\s+/g, ' ').trim();
     const texts = (selector: string) => [...document.querySelectorAll(selector)].map(element => clean(element.textContent));
     const ids = (selector: string, attribute: string) => [...document.querySelectorAll(selector)].map(e => e.getAttribute(attribute)).sort();
-    const switches = [...document.querySelectorAll('.canvas [aria-pressed], .canvas [role=radio]')]
+    // The Show menu's checkboxes exist only while it is open, so its button's name stands for them.
+    const switches = [...document.querySelectorAll('.canvas [aria-pressed], .canvas [role=radio], .canvas .show-menu-trigger')]
       .map(element => {
         const label = clean(element.getAttribute('aria-label') ?? element.textContent);
         const state = element.getAttribute('aria-pressed') ?? element.getAttribute('aria-checked');
