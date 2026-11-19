@@ -77,5 +77,5 @@ export const addressOperationMutants: [string, string, string, string][] = [
 /** Faults in side provenance and definition-input filtering. */
 export const addressHistoryMutants: [string, string, string, string][] = [
   ['address-history-difference', 'src/server/projects/address-migrations.ts', 'to.filter(record => !previous.has(record.id))', '[...to]'],
-  ['address-history-definition', 'src/server/tessera/disk-source.ts', ' || name.toLowerCase() === ADDRESS_HISTORY_FILE', ''],
+  ['address-history-definition', 'src/server/tessera/disk-source.ts', ' || isAddressHistoryPath(name)', ''],
 ];

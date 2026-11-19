@@ -30,6 +30,6 @@ export const mcpMutants: [string, string, string, string][] = [
   ['mcp-tools', 'src/server/mcp/tools/source-control.ts', 'expectedHead: args.expectedHead };', 'expectedHead: undefined };'],
   ['mcp-tools', 'src/server/mcp/tools/source-control.ts', 'files: args.files, expectedBranch', 'files: [], expectedBranch'],
   // Audit.
-  ['mcp-audit', 'src/server/auth/audit.ts', "'version', 'tool', 'connection', 'method', 'clientLabel', 'result']", "'version', 'tool', 'connection']"],
-  ['mcp-rows', 'src/server/auth/route-actions.ts', 'localOnly: true, unaudited: true }', 'localOnly: true }'],
+  ['mcp-audit', 'src/server/auth/audit.ts', "'version', 'tool', 'connection', 'method', 'clientLabel', 'result', 'disclosureShown']", "'version', 'tool', 'connection', 'disclosureShown']"],
+  ['mcp-rows', 'src/server/auth/route-actions.ts', "methods: ['POST', 'GET', 'DELETE', 'PUT', 'PATCH'], unaudited: true }", "methods: ['POST', 'GET', 'DELETE', 'PUT', 'PATCH'] }"],
 ];
