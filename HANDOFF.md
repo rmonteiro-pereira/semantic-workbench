@@ -144,6 +144,31 @@ dev server through the approved scratch wrapper; the full suite remains deferred
   sufficiently old, evicted or pre-restart credentials can be refused without ending a surviving
   connection. No stronger replay-retention promise is made.
 
+## Later merges: batch 1, item diff, mesh and standard output
+
+After the panel merge, `batch-2` took `batch-1` (012, 014, 011), then `017-item-diff-and-wip`,
+then `018-multi-file-and-mesh`, which already held `019-compile-everywhere`. Features 016 and 020
+arrived through those branches.
+
+| Merge | Resolution |
+| --- | --- |
+| `61444d9e` batch 1 | The mutation runner's connection-only switch became the shared `--only` selector. |
+| `4ed7ff97` item diff | The committed address history file replaces batch 1's save-evidence binding, which was removed. Usage counts read the history file at the published commit (`usage-publication.ts`). Trash archives and restores usage. Catalog change marks and the Traffic sort share one view. |
+| `bc1bb1e1` mesh | Publication checks gained `beforeReadable` for the visible-set check, ahead of the readability check. Proposals pass the mesh dependency check. HEAD keeps its snapshot position and uses the exported `readCommitFolder`. Imported relationships are dashed under the traffic stroke. |
+
+Follow-up commits on `batch-2`:
+
+- `4a172282`: scope availability is computed in one pass over the admitted operations. The consent page went from 3.4 s to 0.35 s on the dev server.
+- `70e38d73`: the item diff's Git calls take their turn through `inTurn`, which removed a commit deadlock. Generated contracts were extended additively: the dry-run baseline went to 1,305 cases, and only the route bodies that changed on purpose were re-recorded.
+- `56f095e4`: the unit reader skips full validation for files without `tessera: 3`. MCP range reads went from 47 s to 9 s. A Git failure in the visible-set check now reports an unreadable snapshot.
+- `bdf47557`: the two agent tools `check_standard` and `compile_standard` (019 FR-031 to FR-037). They add rows to `docs/mcp-contract.md`, and the endpoint now has 23 tools. The compile route's not-published answer now carries the shared `no-published-snapshot` code.
+
+Accepted as they are:
+
+- `usage-publication.ts` reads the published history file with one synchronous, bounded Git call. The usage recorder flushes synchronously. The read is cached for the last three commits per project, so it runs once per publication.
+- The item diff has no agent tool. 017 scopes it to the browser.
+- The per-request cost of building the MCP tool server predates this batch.
+
 ## Remaining work and limits
 
 Admin deactivation already ends browser sessions with generic reason `admin`. The real connection
