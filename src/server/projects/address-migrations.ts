@@ -11,6 +11,17 @@ import type { Reader } from './reader';
 
 /** Maximum uncompacted records retained by one project's durable history. */
 export const ADDRESS_MIGRATION_LIMIT = 50_000;
+/** Identifies the saved bytes and working copy that can supply provenance for a declaration. */
+export type MigrationSave = {
+  id: string;
+  directory: string;
+  branch: string;
+  files: { path: string; before: string | null; after: string }[];
+};
+
+/** An authoring record with optional evidence from saving and committing its edit. */
+export type JournalMigration = MigrationRecord & { saved?: MigrationSave; committedAt?: string };
+
 const kinds = new Set<MigrationKind>(['item', 'scope', 'document', 'reconciliation', 'deleted']);
 
 /** Locates a project's migration file without opening its contents. */
@@ -25,8 +36,21 @@ function recordAddress(value: unknown) {
   return parsed.address;
 }
 
-function checkedRecord(input: unknown, project?: string): MigrationRecord {
-  const value = input as MigrationRecord | null;
+function validSave(save: MigrationSave): boolean {
+  const hash = /^[0-9a-f]{64}$/;
+  return (
+    !!save &&
+    typeof save.id === 'string' &&
+    typeof save.directory === 'string' &&
+    typeof save.branch === 'string' &&
+    Array.isArray(save.files) &&
+    save.files.length <= 2 &&
+    save.files.every(file => !!file && typeof file.path === 'string' && (file.before === null || hash.test(file.before)) && hash.test(file.after))
+  );
+}
+
+function checkedRecord(input: unknown, project?: string): JournalMigration {
+  const value = input as JournalMigration | null;
   if (
     !value ||
     typeof value !== 'object' ||
@@ -43,13 +67,26 @@ function checkedRecord(input: unknown, project?: string): MigrationRecord {
   const to = value.kind === 'deleted' ? null : recordAddress(value.to);
   if (value.kind === 'deleted' && value.to !== undefined) throw new BadRequestError('Deleted markers cannot redirect an address.');
   if (value.from === value.to) throw new BadRequestError('An address migration must change its prefix.');
+  if (value.saved !== undefined && !validSave(value.saved)) throw new BadRequestError('Invalid saved address migration evidence.');
+  if (value.committedAt !== undefined && !/^(?:[0-9a-f]{40}|[0-9a-f]{64})$/.test(value.committedAt)) throw new BadRequestError('Invalid address migration commit.');
+
   if (value.kind === 'document') {
     if (from.chain.length || to!.chain.length || (project !== undefined && from.project !== project && to!.project !== project)) throw new BadRequestError('Invalid document migration scope.');
   } else if ((project !== undefined && from.project !== project) || (to && to.project !== from.project)) throw new BadRequestError('Migration is outside its project.');
-  return { id: value.id, kind: value.kind, from: value.from, ...(to ? { to: value.to } : {}), at: value.at, commit: value.commit };
+  return {
+    id: value.id,
+    kind: value.kind,
+    from: value.from,
+    ...(to ? { to: value.to } : {}),
+    at: value.at,
+    commit: value.commit,
+    ...(value.saved ? { saved: value.saved } : {}),
+    ...(value.committedAt ? { committedAt: value.committedAt } : {}),
+  };
 }
 
-function loadRecords(layout: DataLayout, project: string): MigrationRecord[] {
+/** Loads the journal including local save evidence. */
+export function loadAddressJournal(layout: DataLayout, project: string): JournalMigration[] {
   const value = readJsonFile<MigrationFile>(addressMigrationFile(layout, project));
   if (value === null) return [];
   if (value.formatVersion !== 1 || !Array.isArray(value.records) || value.records.length > ADDRESS_MIGRATION_LIMIT) throw new BadRequestError('Unsupported address migration store.');
@@ -70,7 +107,9 @@ function readableRecord(record: MigrationRecord, reader: Reader): boolean {
 /** Reads history only after project visibility is established and filters every record's endpoints. */
 export function readAddressMigrations(layout: DataLayout, project: string, reader: Reader): MigrationRecord[] {
   if (reader.view && !reader.view.readableProjects.has(project)) return [];
-  return loadRecords(layout, project).filter(record => readableRecord(record, reader));
+  return loadAddressJournal(layout, project)
+    .filter(record => readableRecord(record, reader))
+    .map(({ saved: _saved, committedAt: _committedAt, ...record }) => record);
 }
 
 /** Assigns repeatable record identifiers from the journal's business operation identifier. */
@@ -85,10 +124,10 @@ export function operationMigrations(operation: { id: string; at: string; commit:
 }
 
 /** Prepares an idempotent append, refusing overflow before any existing file is moved. */
-export function stageAddressMigrations(context: { layout: DataLayout; project: string; staging: string }, appended: readonly MigrationRecord[]): { from: string; to: string }[] {
+export function stageAddressMigrations(context: { layout: DataLayout; project: string; staging: string }, appended: readonly JournalMigration[]): { from: string; to: string }[] {
   if (!appended.length) return [];
   const { layout, project, staging } = context;
-  const records = loadRecords(layout, project);
+  const records = loadAddressJournal(layout, project);
   const byId = new Map(records.map(record => [record.id, record]));
   for (const input of appended) {
     const record = checkedRecord(input, project);

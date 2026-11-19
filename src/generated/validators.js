@@ -23696,7 +23696,2060 @@ const generatedMappings = (() => {
   }
   validate21.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
 
-  return { standalone: validate20, embedded: validate73, ontology: validate21 };
+  const tesseraOntologySchema = {
+    $schema: 'https://json-schema.org/draft/2020-12/schema',
+    $id: 'urn:semantic-workbench:tessera-ontology:1:ossie-0.2.0.dev0',
+    title: 'Apache Ossie Ontology Metadata Specification',
+    description: 'JSON Schema for validating Apache Ossie ontology definitions',
+    type: 'object',
+    properties: {
+      version: { type: 'string', const: '0.2.0.dev0', description: 'Ontology specification version' },
+      name: { type: 'string', description: 'Unique identifier for the ontology' },
+      description: { type: 'string', description: 'Human-readable description' },
+      ai_context: { $ref: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext' },
+      requires: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that constrain the population of this ontology' },
+      ontology: { type: 'array', items: { $ref: '#/$defs/OntologyComponent' }, minItems: 1, description: 'Components that define the concepts and relationships in this ontology' },
+      ontology_mappings: {
+        type: 'array',
+        description:
+          'Deprecated. Embedded ontology maps, accepted only so existing documents continue to validate; write mappings as standalone documents validated against ontology/mapping.json instead.',
+        deprecated: true,
+        items: { $ref: '#/$defs/OntologyMap' },
+      },
+      prefixes: {
+        type: 'object',
+        description: "Maps namespace prefixes to the IRIs they abbreviate, enabling QName expansion (e.g., 'foaf' -> 'http://xmlns.com/foaf/0.1/').",
+        additionalProperties: { type: 'string', format: 'iri' },
+      },
+      tessera: { type: 'integer', const: 1, description: 'Marks the document as Tessera revision 1.' },
+      tessera_notes: { type: 'string', minLength: 1, maxLength: 10000, description: 'Tessera addition since revision 1: a non-empty string of at most 10,000 characters.' },
+    },
+    required: ['tessera', 'version', 'name', 'ontology'],
+    additionalProperties: false,
+    $defs: {
+      OntologyComponent: {
+        type: 'object',
+        description: 'Ontology component that defines a single concept and any relationships that are keyed primarily by that concept',
+        properties: {
+          concept: { type: 'string', description: 'Unique name of the concept defined by this component' },
+          type: { $ref: '#/$defs/ConceptType' },
+          description: { type: 'string', description: 'Human-readable description of the concept' },
+          extends: { type: 'array', items: { type: 'string' }, description: 'Indicates that this concept extends one or more other concepts' },
+          derived_by: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that define how this concept is derived' },
+          identify_by: { type: 'array', items: { type: 'string' }, description: 'Names of relationships to use as the preferred identifier of this concept' },
+          requires: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that constrain the population of this concept' },
+          relationships: { type: 'array', items: { $ref: '#/$defs/Relationship' }, description: 'Defines relationships that pertain primarily to the concept defined in this component' },
+          iri: { type: 'string', description: "Optional global identifier for this concept, expressed as a full IRI or as a QName (prefix:local) resolved against the ontology-level 'prefixes' map." },
+          tessera_notes: { type: 'string', minLength: 1, maxLength: 10000, description: 'Tessera addition since revision 1: a non-empty string of at most 10,000 characters.' },
+        },
+        required: ['concept', 'type'],
+        additionalProperties: false,
+      },
+      Expression: { type: 'string', description: 'ANSI SQL expression' },
+      Relationship: {
+        type: 'object',
+        description: 'Relationship between concepts in the ontology',
+        properties: {
+          name: { type: 'string', description: 'Name of the relationship' },
+          description: { type: 'string', description: 'Human-readable description of the relationship' },
+          roles: { type: 'array', items: { $ref: '#/$defs/Role' }, description: 'Additional roles in this relationship' },
+          multiplicity: { $ref: '#/$defs/Multiplicity' },
+          derived_by: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that define how this concept is derived' },
+          requires: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that constrain the population of this relationship' },
+          verbalizes: { type: 'array', items: { type: 'string' }, description: 'Natural language expressions that verbalize this relationship' },
+          iri: {
+            type: 'string',
+            description: "Optional global identifier for this relationship, expressed as a full IRI or as a QName (prefix:local) resolved against the ontology-level 'prefixes' map.",
+          },
+          tessera_notes: { type: 'string', minLength: 1, maxLength: 10000, description: 'Tessera addition since revision 1: a non-empty string of at most 10,000 characters.' },
+        },
+        required: ['name', 'verbalizes'],
+        additionalProperties: false,
+      },
+      ConceptMapping: {
+        type: 'object',
+        description: 'Mappings from logical model constructs to some ontology component',
+        properties: {
+          concept: { type: 'string', description: 'Name of the concept whose part of the ontology we are mapping to' },
+          object_mappings: {
+            type: 'array',
+            minItems: 1,
+            items: { $ref: '#/$defs/ObjectMapping' },
+            description: 'Mappings from logical constructs that populate the concept in this component. Valid only when the concept is an entity type',
+          },
+          link_mappings: {
+            type: 'array',
+            minItems: 1,
+            items: { $ref: '#/$defs/LinkMapping' },
+            description: 'Mappings from logical model relationships to ontology relationships pertaining to the mapped concept',
+          },
+        },
+        required: ['concept'],
+        anyOf: [{ required: ['object_mappings'] }, { required: ['link_mappings'] }],
+        additionalProperties: false,
+      },
+      ConceptType: { type: 'string', enum: ['EntityType', 'ValueType'], description: 'A concept is either an entity type or a value type' },
+      ReferentMapping: {
+        type: 'object',
+        description: 'Mapping from logical model constructs to a relationship used to references some entity type in the ontology',
+        properties: {
+          relationship: { type: 'string', description: 'Name of referent relationship' },
+          expression: { $ref: '#/$defs/Expression' },
+          referent_mappings: { type: 'array', minItems: 1, items: { $ref: '#/$defs/ReferentMapping' } },
+        },
+        required: ['relationship'],
+        anyOf: [{ required: ['expression'] }, { required: ['referent_mappings'] }],
+        additionalProperties: false,
+      },
+      Role: {
+        type: 'object',
+        description: 'Role in some relationship (the container)',
+        properties: {
+          concept: { type: 'string', description: 'Name of the concept playing this role' },
+          name: { type: 'string', description: 'Optional name of this role, used when the same concept plays multiple roles in the same relationship' },
+        },
+        required: ['concept'],
+        additionalProperties: false,
+      },
+      ObjectMapping: {
+        type: 'object',
+        description: 'Pattern of logical-level expressions for identifying objects of some concept using the values in one or more fields',
+        properties: {
+          concept: { type: 'string', description: 'Name of the concept whose objects we are mapping to' },
+          referent_mappings: { type: 'array', minItems: 1, items: { $ref: '#/$defs/ReferentMapping' }, description: 'Maps logical-model constructs to referent relationships of this entity type' },
+          expression: { $ref: '#/$defs/Expression' },
+        },
+        anyOf: [{ required: ['expression'] }, { required: ['referent_mappings'] }],
+        additionalProperties: false,
+      },
+      LinkMapping: {
+        type: 'object',
+        description: 'Mapping from logical schema to the links of relationships in the ontology',
+        properties: {
+          relationship: { type: 'string', description: 'Name of relationship being populated by this mapping node' },
+          object_mapping: { $ref: '#/$defs/ObjectMapping' },
+          children: { type: 'array', items: { $ref: '#/$defs/LinkMapping' }, description: 'Relationship maps at the next level in this hierarchy' },
+        },
+        required: ['object_mapping'],
+        additionalProperties: false,
+      },
+      Multiplicity: { type: 'string', enum: ['ManyToOne', 'OneToOne'], description: 'Relationship multiplicity' },
+      OntologyMap: {
+        type: 'object',
+        description: 'Map from the constructs of some logical model to some ontology',
+        properties: {
+          name: { type: 'string', description: 'Name of this ontology map' },
+          description: { type: 'string', description: 'Human-readable description of this ontology map' },
+          semantic_model: { $ref: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json' },
+          concept_mappings: { type: 'array', items: { $ref: '#/$defs/ConceptMapping' }, description: 'Maps logical model constructs to some concept and its relationships in the ontology' },
+        },
+        required: ['semantic_model', 'concept_mappings'],
+        additionalProperties: false,
+      },
+    },
+    $comment:
+      'Workbench schema derived from the pinned Ossie 0.2.0.dev0 ontology schema for Tessera revision 1. It is not part of the Ossie standard. Regenerate it with scripts/derive-tessera-schema.ts.',
+  };
+  const tesseraOntologyExpressionSchema = { type: 'string', description: 'ANSI SQL expression' };
+  const OntologyComponentDefinesSingleSchema2 = {
+    type: 'object',
+    description: 'Ontology component that defines a single concept and any relationships that are keyed primarily by that concept',
+    properties: {
+      concept: { type: 'string', description: 'Unique name of the concept defined by this component' },
+      type: { $ref: '#/$defs/ConceptType' },
+      description: { type: 'string', description: 'Human-readable description of the concept' },
+      extends: { type: 'array', items: { type: 'string' }, description: 'Indicates that this concept extends one or more other concepts' },
+      derived_by: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that define how this concept is derived' },
+      identify_by: { type: 'array', items: { type: 'string' }, description: 'Names of relationships to use as the preferred identifier of this concept' },
+      requires: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that constrain the population of this concept' },
+      relationships: { type: 'array', items: { $ref: '#/$defs/Relationship' }, description: 'Defines relationships that pertain primarily to the concept defined in this component' },
+      iri: { type: 'string', description: "Optional global identifier for this concept, expressed as a full IRI or as a QName (prefix:local) resolved against the ontology-level 'prefixes' map." },
+      tessera_notes: { type: 'string', minLength: 1, maxLength: 10000, description: 'Tessera addition since revision 1: a non-empty string of at most 10,000 characters.' },
+    },
+    required: ['concept', 'type'],
+    additionalProperties: false,
+  };
+  const ConceptEitherEntityTypeSchema2 = { type: 'string', enum: ['EntityType', 'ValueType'], description: 'A concept is either an entity type or a value type' };
+  const RelationshipBetweenConceptsOntologySchema2 = {
+    type: 'object',
+    description: 'Relationship between concepts in the ontology',
+    properties: {
+      name: { type: 'string', description: 'Name of the relationship' },
+      description: { type: 'string', description: 'Human-readable description of the relationship' },
+      roles: { type: 'array', items: { $ref: '#/$defs/Role' }, description: 'Additional roles in this relationship' },
+      multiplicity: { $ref: '#/$defs/Multiplicity' },
+      derived_by: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that define how this concept is derived' },
+      requires: { type: 'array', items: { $ref: '#/$defs/Expression' }, description: 'Expressions that constrain the population of this relationship' },
+      verbalizes: { type: 'array', items: { type: 'string' }, description: 'Natural language expressions that verbalize this relationship' },
+      iri: {
+        type: 'string',
+        description: "Optional global identifier for this relationship, expressed as a full IRI or as a QName (prefix:local) resolved against the ontology-level 'prefixes' map.",
+      },
+      tessera_notes: { type: 'string', minLength: 1, maxLength: 10000, description: 'Tessera addition since revision 1: a non-empty string of at most 10,000 characters.' },
+    },
+    required: ['name', 'verbalizes'],
+    additionalProperties: false,
+  };
+  const RoleRelationshipContainerSchema2 = {
+    type: 'object',
+    description: 'Role in some relationship (the container)',
+    properties: {
+      concept: { type: 'string', description: 'Name of the concept playing this role' },
+      name: { type: 'string', description: 'Optional name of this role, used when the same concept plays multiple roles in the same relationship' },
+    },
+    required: ['concept'],
+    additionalProperties: false,
+  };
+  const RelationshipMultiplicitySchema2 = { type: 'string', enum: ['ManyToOne', 'OneToOne'], description: 'Relationship multiplicity' };
+
+  function validate80(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
+    let vErrors = null;
+    let errors = 0;
+    const evaluated0 = validate80.evaluated;
+    if (evaluated0.dynamicProps) {
+      evaluated0.props = undefined;
+    }
+    if (evaluated0.dynamicItems) {
+      evaluated0.items = undefined;
+    }
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.name === undefined) {
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'name' }, message: "must have required property '" + 'name' + "'" };
+        if (vErrors === null) {
+          vErrors = [err0];
+        } else {
+          vErrors.push(err0);
+        }
+        errors++;
+      }
+      if (data.verbalizes === undefined) {
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'verbalizes' }, message: "must have required property '" + 'verbalizes' + "'" };
+        if (vErrors === null) {
+          vErrors = [err1];
+        } else {
+          vErrors.push(err1);
+        }
+        errors++;
+      }
+      for (const key0 in data) {
+        if (!func14.call(RelationshipBetweenConceptsOntologySchema2.properties, key0)) {
+          const err2 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
+          if (vErrors === null) {
+            vErrors = [err2];
+          } else {
+            vErrors.push(err2);
+          }
+          errors++;
+        }
+      }
+      if (data.name !== undefined) {
+        if (typeof data.name !== 'string') {
+          const err3 = { instancePath: instancePath + '/name', schemaPath: '#/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err3];
+          } else {
+            vErrors.push(err3);
+          }
+          errors++;
+        }
+      }
+      if (data.description !== undefined) {
+        if (typeof data.description !== 'string') {
+          const err4 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err4];
+          } else {
+            vErrors.push(err4);
+          }
+          errors++;
+        }
+      }
+      if (data.roles !== undefined) {
+        let data2 = data.roles;
+        if (Array.isArray(data2)) {
+          const len0 = data2.length;
+          for (let i0 = 0; i0 < len0; i0++) {
+            let data3 = data2[i0];
+            if (data3 && typeof data3 == 'object' && !Array.isArray(data3)) {
+              if (data3.concept === undefined) {
+                const err5 = {
+                  instancePath: instancePath + '/roles/' + i0,
+                  schemaPath: '#/$defs/Role/required',
+                  keyword: 'required',
+                  params: { missingProperty: 'concept' },
+                  message: "must have required property '" + 'concept' + "'",
+                };
+                if (vErrors === null) {
+                  vErrors = [err5];
+                } else {
+                  vErrors.push(err5);
+                }
+                errors++;
+              }
+              for (const key1 in data3) {
+                if (!(key1 === 'concept' || key1 === 'name')) {
+                  const err6 = {
+                    instancePath: instancePath + '/roles/' + i0,
+                    schemaPath: '#/$defs/Role/additionalProperties',
+                    keyword: 'additionalProperties',
+                    params: { additionalProperty: key1 },
+                    message: 'must NOT have additional properties',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err6];
+                  } else {
+                    vErrors.push(err6);
+                  }
+                  errors++;
+                }
+              }
+              if (data3.concept !== undefined) {
+                if (typeof data3.concept !== 'string') {
+                  const err7 = {
+                    instancePath: instancePath + '/roles/' + i0 + '/concept',
+                    schemaPath: '#/$defs/Role/properties/concept/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err7];
+                  } else {
+                    vErrors.push(err7);
+                  }
+                  errors++;
+                }
+              }
+              if (data3.name !== undefined) {
+                if (typeof data3.name !== 'string') {
+                  const err8 = {
+                    instancePath: instancePath + '/roles/' + i0 + '/name',
+                    schemaPath: '#/$defs/Role/properties/name/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err8];
+                  } else {
+                    vErrors.push(err8);
+                  }
+                  errors++;
+                }
+              }
+            } else {
+              const err9 = { instancePath: instancePath + '/roles/' + i0, schemaPath: '#/$defs/Role/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
+              if (vErrors === null) {
+                vErrors = [err9];
+              } else {
+                vErrors.push(err9);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err10 = { instancePath: instancePath + '/roles', schemaPath: '#/properties/roles/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err10];
+          } else {
+            vErrors.push(err10);
+          }
+          errors++;
+        }
+      }
+      if (data.multiplicity !== undefined) {
+        let data6 = data.multiplicity;
+        if (typeof data6 !== 'string') {
+          const err11 = { instancePath: instancePath + '/multiplicity', schemaPath: '#/$defs/Multiplicity/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err11];
+          } else {
+            vErrors.push(err11);
+          }
+          errors++;
+        }
+        if (!(data6 === 'ManyToOne' || data6 === 'OneToOne')) {
+          const err12 = {
+            instancePath: instancePath + '/multiplicity',
+            schemaPath: '#/$defs/Multiplicity/enum',
+            keyword: 'enum',
+            params: { allowedValues: RelationshipMultiplicitySchema2.enum },
+            message: 'must be equal to one of the allowed values',
+          };
+          if (vErrors === null) {
+            vErrors = [err12];
+          } else {
+            vErrors.push(err12);
+          }
+          errors++;
+        }
+      }
+      if (data.derived_by !== undefined) {
+        let data7 = data.derived_by;
+        if (Array.isArray(data7)) {
+          const len1 = data7.length;
+          for (let i1 = 0; i1 < len1; i1++) {
+            if (typeof data7[i1] !== 'string') {
+              const err13 = { instancePath: instancePath + '/derived_by/' + i1, schemaPath: '#/$defs/Expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+              if (vErrors === null) {
+                vErrors = [err13];
+              } else {
+                vErrors.push(err13);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err14 = { instancePath: instancePath + '/derived_by', schemaPath: '#/properties/derived_by/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err14];
+          } else {
+            vErrors.push(err14);
+          }
+          errors++;
+        }
+      }
+      if (data.requires !== undefined) {
+        let data9 = data.requires;
+        if (Array.isArray(data9)) {
+          const len2 = data9.length;
+          for (let i2 = 0; i2 < len2; i2++) {
+            if (typeof data9[i2] !== 'string') {
+              const err15 = { instancePath: instancePath + '/requires/' + i2, schemaPath: '#/$defs/Expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+              if (vErrors === null) {
+                vErrors = [err15];
+              } else {
+                vErrors.push(err15);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err16 = { instancePath: instancePath + '/requires', schemaPath: '#/properties/requires/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err16];
+          } else {
+            vErrors.push(err16);
+          }
+          errors++;
+        }
+      }
+      if (data.verbalizes !== undefined) {
+        let data11 = data.verbalizes;
+        if (Array.isArray(data11)) {
+          const len3 = data11.length;
+          for (let i3 = 0; i3 < len3; i3++) {
+            if (typeof data11[i3] !== 'string') {
+              const err17 = {
+                instancePath: instancePath + '/verbalizes/' + i3,
+                schemaPath: '#/properties/verbalizes/items/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err17];
+              } else {
+                vErrors.push(err17);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err18 = { instancePath: instancePath + '/verbalizes', schemaPath: '#/properties/verbalizes/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err18];
+          } else {
+            vErrors.push(err18);
+          }
+          errors++;
+        }
+      }
+      if (data.iri !== undefined) {
+        if (typeof data.iri !== 'string') {
+          const err19 = { instancePath: instancePath + '/iri', schemaPath: '#/properties/iri/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err19];
+          } else {
+            vErrors.push(err19);
+          }
+          errors++;
+        }
+      }
+      if (data.tessera_notes !== undefined) {
+        let data14 = data.tessera_notes;
+        if (typeof data14 === 'string') {
+          if (func1(data14) > 10000) {
+            const err20 = {
+              instancePath: instancePath + '/tessera_notes',
+              schemaPath: '#/properties/tessera_notes/maxLength',
+              keyword: 'maxLength',
+              params: { limit: 10000 },
+              message: 'must NOT have more than 10000 characters',
+            };
+            if (vErrors === null) {
+              vErrors = [err20];
+            } else {
+              vErrors.push(err20);
+            }
+            errors++;
+          }
+          if (func1(data14) < 1) {
+            const err21 = {
+              instancePath: instancePath + '/tessera_notes',
+              schemaPath: '#/properties/tessera_notes/minLength',
+              keyword: 'minLength',
+              params: { limit: 1 },
+              message: 'must NOT have fewer than 1 characters',
+            };
+            if (vErrors === null) {
+              vErrors = [err21];
+            } else {
+              vErrors.push(err21);
+            }
+            errors++;
+          }
+        } else {
+          const err22 = { instancePath: instancePath + '/tessera_notes', schemaPath: '#/properties/tessera_notes/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err22];
+          } else {
+            vErrors.push(err22);
+          }
+          errors++;
+        }
+      }
+    } else {
+      const err23 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
+      if (vErrors === null) {
+        vErrors = [err23];
+      } else {
+        vErrors.push(err23);
+      }
+      errors++;
+    }
+    validate80.errors = vErrors;
+    return errors === 0;
+  }
+  validate80.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
+  function validate79(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
+    let vErrors = null;
+    let errors = 0;
+    const evaluated0 = validate79.evaluated;
+    if (evaluated0.dynamicProps) {
+      evaluated0.props = undefined;
+    }
+    if (evaluated0.dynamicItems) {
+      evaluated0.items = undefined;
+    }
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.concept === undefined) {
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'concept' }, message: "must have required property '" + 'concept' + "'" };
+        if (vErrors === null) {
+          vErrors = [err0];
+        } else {
+          vErrors.push(err0);
+        }
+        errors++;
+      }
+      if (data.type === undefined) {
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'type' }, message: "must have required property '" + 'type' + "'" };
+        if (vErrors === null) {
+          vErrors = [err1];
+        } else {
+          vErrors.push(err1);
+        }
+        errors++;
+      }
+      for (const key0 in data) {
+        if (!func14.call(OntologyComponentDefinesSingleSchema2.properties, key0)) {
+          const err2 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
+          if (vErrors === null) {
+            vErrors = [err2];
+          } else {
+            vErrors.push(err2);
+          }
+          errors++;
+        }
+      }
+      if (data.concept !== undefined) {
+        if (typeof data.concept !== 'string') {
+          const err3 = { instancePath: instancePath + '/concept', schemaPath: '#/properties/concept/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err3];
+          } else {
+            vErrors.push(err3);
+          }
+          errors++;
+        }
+      }
+      if (data.type !== undefined) {
+        let data1 = data.type;
+        if (typeof data1 !== 'string') {
+          const err4 = { instancePath: instancePath + '/type', schemaPath: '#/$defs/ConceptType/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err4];
+          } else {
+            vErrors.push(err4);
+          }
+          errors++;
+        }
+        if (!(data1 === 'EntityType' || data1 === 'ValueType')) {
+          const err5 = {
+            instancePath: instancePath + '/type',
+            schemaPath: '#/$defs/ConceptType/enum',
+            keyword: 'enum',
+            params: { allowedValues: ConceptEitherEntityTypeSchema2.enum },
+            message: 'must be equal to one of the allowed values',
+          };
+          if (vErrors === null) {
+            vErrors = [err5];
+          } else {
+            vErrors.push(err5);
+          }
+          errors++;
+        }
+      }
+      if (data.description !== undefined) {
+        if (typeof data.description !== 'string') {
+          const err6 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err6];
+          } else {
+            vErrors.push(err6);
+          }
+          errors++;
+        }
+      }
+      if (data.extends !== undefined) {
+        let data3 = data.extends;
+        if (Array.isArray(data3)) {
+          const len0 = data3.length;
+          for (let i0 = 0; i0 < len0; i0++) {
+            if (typeof data3[i0] !== 'string') {
+              const err7 = { instancePath: instancePath + '/extends/' + i0, schemaPath: '#/properties/extends/items/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+              if (vErrors === null) {
+                vErrors = [err7];
+              } else {
+                vErrors.push(err7);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err8 = { instancePath: instancePath + '/extends', schemaPath: '#/properties/extends/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err8];
+          } else {
+            vErrors.push(err8);
+          }
+          errors++;
+        }
+      }
+      if (data.derived_by !== undefined) {
+        let data5 = data.derived_by;
+        if (Array.isArray(data5)) {
+          const len1 = data5.length;
+          for (let i1 = 0; i1 < len1; i1++) {
+            if (typeof data5[i1] !== 'string') {
+              const err9 = { instancePath: instancePath + '/derived_by/' + i1, schemaPath: '#/$defs/Expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+              if (vErrors === null) {
+                vErrors = [err9];
+              } else {
+                vErrors.push(err9);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err10 = { instancePath: instancePath + '/derived_by', schemaPath: '#/properties/derived_by/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err10];
+          } else {
+            vErrors.push(err10);
+          }
+          errors++;
+        }
+      }
+      if (data.identify_by !== undefined) {
+        let data7 = data.identify_by;
+        if (Array.isArray(data7)) {
+          const len2 = data7.length;
+          for (let i2 = 0; i2 < len2; i2++) {
+            if (typeof data7[i2] !== 'string') {
+              const err11 = {
+                instancePath: instancePath + '/identify_by/' + i2,
+                schemaPath: '#/properties/identify_by/items/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err11];
+              } else {
+                vErrors.push(err11);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err12 = { instancePath: instancePath + '/identify_by', schemaPath: '#/properties/identify_by/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err12];
+          } else {
+            vErrors.push(err12);
+          }
+          errors++;
+        }
+      }
+      if (data.requires !== undefined) {
+        let data9 = data.requires;
+        if (Array.isArray(data9)) {
+          const len3 = data9.length;
+          for (let i3 = 0; i3 < len3; i3++) {
+            if (typeof data9[i3] !== 'string') {
+              const err13 = { instancePath: instancePath + '/requires/' + i3, schemaPath: '#/$defs/Expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+              if (vErrors === null) {
+                vErrors = [err13];
+              } else {
+                vErrors.push(err13);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err14 = { instancePath: instancePath + '/requires', schemaPath: '#/properties/requires/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err14];
+          } else {
+            vErrors.push(err14);
+          }
+          errors++;
+        }
+      }
+      if (data.relationships !== undefined) {
+        let data11 = data.relationships;
+        if (Array.isArray(data11)) {
+          const len4 = data11.length;
+          for (let i4 = 0; i4 < len4; i4++) {
+            if (!validate80(data11[i4], { instancePath: instancePath + '/relationships/' + i4, parentData: data11, parentDataProperty: i4, rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? validate80.errors : vErrors.concat(validate80.errors);
+              errors = vErrors.length;
+            }
+          }
+        } else {
+          const err15 = { instancePath: instancePath + '/relationships', schemaPath: '#/properties/relationships/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err15];
+          } else {
+            vErrors.push(err15);
+          }
+          errors++;
+        }
+      }
+      if (data.iri !== undefined) {
+        if (typeof data.iri !== 'string') {
+          const err16 = { instancePath: instancePath + '/iri', schemaPath: '#/properties/iri/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err16];
+          } else {
+            vErrors.push(err16);
+          }
+          errors++;
+        }
+      }
+      if (data.tessera_notes !== undefined) {
+        let data14 = data.tessera_notes;
+        if (typeof data14 === 'string') {
+          if (func1(data14) > 10000) {
+            const err17 = {
+              instancePath: instancePath + '/tessera_notes',
+              schemaPath: '#/properties/tessera_notes/maxLength',
+              keyword: 'maxLength',
+              params: { limit: 10000 },
+              message: 'must NOT have more than 10000 characters',
+            };
+            if (vErrors === null) {
+              vErrors = [err17];
+            } else {
+              vErrors.push(err17);
+            }
+            errors++;
+          }
+          if (func1(data14) < 1) {
+            const err18 = {
+              instancePath: instancePath + '/tessera_notes',
+              schemaPath: '#/properties/tessera_notes/minLength',
+              keyword: 'minLength',
+              params: { limit: 1 },
+              message: 'must NOT have fewer than 1 characters',
+            };
+            if (vErrors === null) {
+              vErrors = [err18];
+            } else {
+              vErrors.push(err18);
+            }
+            errors++;
+          }
+        } else {
+          const err19 = { instancePath: instancePath + '/tessera_notes', schemaPath: '#/properties/tessera_notes/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err19];
+          } else {
+            vErrors.push(err19);
+          }
+          errors++;
+        }
+      }
+    } else {
+      const err20 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
+      if (vErrors === null) {
+        vErrors = [err20];
+      } else {
+        vErrors.push(err20);
+      }
+      errors++;
+    }
+    validate79.errors = vErrors;
+    return errors === 0;
+  }
+  validate79.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
+  const MapConstructsLogicalModelSchema2 = {
+    type: 'object',
+    description: 'Map from the constructs of some logical model to some ontology',
+    properties: {
+      name: { type: 'string', description: 'Name of this ontology map' },
+      description: { type: 'string', description: 'Human-readable description of this ontology map' },
+      semantic_model: { $ref: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json' },
+      concept_mappings: { type: 'array', items: { $ref: '#/$defs/ConceptMapping' }, description: 'Maps logical model constructs to some concept and its relationships in the ontology' },
+    },
+    required: ['semantic_model', 'concept_mappings'],
+    additionalProperties: false,
+  };
+  const MappingsLogicalModelConstructsSchema2 = {
+    type: 'object',
+    description: 'Mappings from logical model constructs to some ontology component',
+    properties: {
+      concept: { type: 'string', description: 'Name of the concept whose part of the ontology we are mapping to' },
+      object_mappings: {
+        type: 'array',
+        minItems: 1,
+        items: { $ref: '#/$defs/ObjectMapping' },
+        description: 'Mappings from logical constructs that populate the concept in this component. Valid only when the concept is an entity type',
+      },
+      link_mappings: {
+        type: 'array',
+        minItems: 1,
+        items: { $ref: '#/$defs/LinkMapping' },
+        description: 'Mappings from logical model relationships to ontology relationships pertaining to the mapped concept',
+      },
+    },
+    required: ['concept'],
+    anyOf: [{ required: ['object_mappings'] }, { required: ['link_mappings'] }],
+    additionalProperties: false,
+  };
+  const PatternLogicalLevelExpressionsSchema2 = {
+    type: 'object',
+    description: 'Pattern of logical-level expressions for identifying objects of some concept using the values in one or more fields',
+    properties: {
+      concept: { type: 'string', description: 'Name of the concept whose objects we are mapping to' },
+      referent_mappings: { type: 'array', minItems: 1, items: { $ref: '#/$defs/ReferentMapping' }, description: 'Maps logical-model constructs to referent relationships of this entity type' },
+      expression: { $ref: '#/$defs/Expression' },
+    },
+    anyOf: [{ required: ['expression'] }, { required: ['referent_mappings'] }],
+    additionalProperties: false,
+  };
+  const MappingLogicalModelConstructsSchema2 = {
+    type: 'object',
+    description: 'Mapping from logical model constructs to a relationship used to references some entity type in the ontology',
+    properties: {
+      relationship: { type: 'string', description: 'Name of referent relationship' },
+      expression: { $ref: '#/$defs/Expression' },
+      referent_mappings: { type: 'array', minItems: 1, items: { $ref: '#/$defs/ReferentMapping' } },
+    },
+    required: ['relationship'],
+    anyOf: [{ required: ['expression'] }, { required: ['referent_mappings'] }],
+    additionalProperties: false,
+  };
+  const wrapper2 = { validate: validate87 };
+
+  function validate87(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
+    let vErrors = null;
+    let errors = 0;
+    const evaluated0 = validate87.evaluated;
+    if (evaluated0.dynamicProps) {
+      evaluated0.props = undefined;
+    }
+    if (evaluated0.dynamicItems) {
+      evaluated0.items = undefined;
+    }
+    const _errs1 = errors;
+    let valid0 = false;
+    const _errs2 = errors;
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.expression === undefined) {
+        const err0 = { instancePath, schemaPath: '#/anyOf/0/required', keyword: 'required', params: { missingProperty: 'expression' }, message: "must have required property '" + 'expression' + "'" };
+        if (vErrors === null) {
+          vErrors = [err0];
+        } else {
+          vErrors.push(err0);
+        }
+        errors++;
+      }
+    }
+    var _valid0 = _errs2 === errors;
+    valid0 = valid0 || _valid0;
+    const _errs3 = errors;
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.referent_mappings === undefined) {
+        const err1 = {
+          instancePath,
+          schemaPath: '#/anyOf/1/required',
+          keyword: 'required',
+          params: { missingProperty: 'referent_mappings' },
+          message: "must have required property '" + 'referent_mappings' + "'",
+        };
+        if (vErrors === null) {
+          vErrors = [err1];
+        } else {
+          vErrors.push(err1);
+        }
+        errors++;
+      }
+    }
+    var _valid0 = _errs3 === errors;
+    valid0 = valid0 || _valid0;
+    if (!valid0) {
+      const err2 = { instancePath, schemaPath: '#/anyOf', keyword: 'anyOf', params: {}, message: 'must match a schema in anyOf' };
+      if (vErrors === null) {
+        vErrors = [err2];
+      } else {
+        vErrors.push(err2);
+      }
+      errors++;
+    } else {
+      errors = _errs1;
+      if (vErrors !== null) {
+        if (_errs1) {
+          vErrors.length = _errs1;
+        } else {
+          vErrors = null;
+        }
+      }
+    }
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.relationship === undefined) {
+        const err3 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'relationship' }, message: "must have required property '" + 'relationship' + "'" };
+        if (vErrors === null) {
+          vErrors = [err3];
+        } else {
+          vErrors.push(err3);
+        }
+        errors++;
+      }
+      for (const key0 in data) {
+        if (!(key0 === 'relationship' || key0 === 'expression' || key0 === 'referent_mappings')) {
+          const err4 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
+          if (vErrors === null) {
+            vErrors = [err4];
+          } else {
+            vErrors.push(err4);
+          }
+          errors++;
+        }
+      }
+      if (data.relationship !== undefined) {
+        if (typeof data.relationship !== 'string') {
+          const err5 = { instancePath: instancePath + '/relationship', schemaPath: '#/properties/relationship/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err5];
+          } else {
+            vErrors.push(err5);
+          }
+          errors++;
+        }
+      }
+      if (data.expression !== undefined) {
+        if (typeof data.expression !== 'string') {
+          const err6 = { instancePath: instancePath + '/expression', schemaPath: '#/$defs/Expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err6];
+          } else {
+            vErrors.push(err6);
+          }
+          errors++;
+        }
+      }
+      if (data.referent_mappings !== undefined) {
+        let data2 = data.referent_mappings;
+        if (Array.isArray(data2)) {
+          if (data2.length < 1) {
+            const err7 = {
+              instancePath: instancePath + '/referent_mappings',
+              schemaPath: '#/properties/referent_mappings/minItems',
+              keyword: 'minItems',
+              params: { limit: 1 },
+              message: 'must NOT have fewer than 1 items',
+            };
+            if (vErrors === null) {
+              vErrors = [err7];
+            } else {
+              vErrors.push(err7);
+            }
+            errors++;
+          }
+          const len0 = data2.length;
+          for (let i0 = 0; i0 < len0; i0++) {
+            if (!wrapper2.validate(data2[i0], { instancePath: instancePath + '/referent_mappings/' + i0, parentData: data2, parentDataProperty: i0, rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? wrapper2.validate.errors : vErrors.concat(wrapper2.validate.errors);
+              errors = vErrors.length;
+            }
+          }
+        } else {
+          const err8 = { instancePath: instancePath + '/referent_mappings', schemaPath: '#/properties/referent_mappings/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err8];
+          } else {
+            vErrors.push(err8);
+          }
+          errors++;
+        }
+      }
+    } else {
+      const err9 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
+      if (vErrors === null) {
+        vErrors = [err9];
+      } else {
+        vErrors.push(err9);
+      }
+      errors++;
+    }
+    validate87.errors = vErrors;
+    return errors === 0;
+  }
+  validate87.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
+  function validate86(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
+    let vErrors = null;
+    let errors = 0;
+    const evaluated0 = validate86.evaluated;
+    if (evaluated0.dynamicProps) {
+      evaluated0.props = undefined;
+    }
+    if (evaluated0.dynamicItems) {
+      evaluated0.items = undefined;
+    }
+    const _errs1 = errors;
+    let valid0 = false;
+    const _errs2 = errors;
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.expression === undefined) {
+        const err0 = { instancePath, schemaPath: '#/anyOf/0/required', keyword: 'required', params: { missingProperty: 'expression' }, message: "must have required property '" + 'expression' + "'" };
+        if (vErrors === null) {
+          vErrors = [err0];
+        } else {
+          vErrors.push(err0);
+        }
+        errors++;
+      }
+    }
+    var _valid0 = _errs2 === errors;
+    valid0 = valid0 || _valid0;
+    const _errs3 = errors;
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.referent_mappings === undefined) {
+        const err1 = {
+          instancePath,
+          schemaPath: '#/anyOf/1/required',
+          keyword: 'required',
+          params: { missingProperty: 'referent_mappings' },
+          message: "must have required property '" + 'referent_mappings' + "'",
+        };
+        if (vErrors === null) {
+          vErrors = [err1];
+        } else {
+          vErrors.push(err1);
+        }
+        errors++;
+      }
+    }
+    var _valid0 = _errs3 === errors;
+    valid0 = valid0 || _valid0;
+    if (!valid0) {
+      const err2 = { instancePath, schemaPath: '#/anyOf', keyword: 'anyOf', params: {}, message: 'must match a schema in anyOf' };
+      if (vErrors === null) {
+        vErrors = [err2];
+      } else {
+        vErrors.push(err2);
+      }
+      errors++;
+    } else {
+      errors = _errs1;
+      if (vErrors !== null) {
+        if (_errs1) {
+          vErrors.length = _errs1;
+        } else {
+          vErrors = null;
+        }
+      }
+    }
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      for (const key0 in data) {
+        if (!(key0 === 'concept' || key0 === 'referent_mappings' || key0 === 'expression')) {
+          const err3 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
+          if (vErrors === null) {
+            vErrors = [err3];
+          } else {
+            vErrors.push(err3);
+          }
+          errors++;
+        }
+      }
+      if (data.concept !== undefined) {
+        if (typeof data.concept !== 'string') {
+          const err4 = { instancePath: instancePath + '/concept', schemaPath: '#/properties/concept/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err4];
+          } else {
+            vErrors.push(err4);
+          }
+          errors++;
+        }
+      }
+      if (data.referent_mappings !== undefined) {
+        let data1 = data.referent_mappings;
+        if (Array.isArray(data1)) {
+          if (data1.length < 1) {
+            const err5 = {
+              instancePath: instancePath + '/referent_mappings',
+              schemaPath: '#/properties/referent_mappings/minItems',
+              keyword: 'minItems',
+              params: { limit: 1 },
+              message: 'must NOT have fewer than 1 items',
+            };
+            if (vErrors === null) {
+              vErrors = [err5];
+            } else {
+              vErrors.push(err5);
+            }
+            errors++;
+          }
+          const len0 = data1.length;
+          for (let i0 = 0; i0 < len0; i0++) {
+            if (!validate87(data1[i0], { instancePath: instancePath + '/referent_mappings/' + i0, parentData: data1, parentDataProperty: i0, rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? validate87.errors : vErrors.concat(validate87.errors);
+              errors = vErrors.length;
+            }
+          }
+        } else {
+          const err6 = { instancePath: instancePath + '/referent_mappings', schemaPath: '#/properties/referent_mappings/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err6];
+          } else {
+            vErrors.push(err6);
+          }
+          errors++;
+        }
+      }
+      if (data.expression !== undefined) {
+        if (typeof data.expression !== 'string') {
+          const err7 = { instancePath: instancePath + '/expression', schemaPath: '#/$defs/Expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err7];
+          } else {
+            vErrors.push(err7);
+          }
+          errors++;
+        }
+      }
+    } else {
+      const err8 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
+      if (vErrors === null) {
+        vErrors = [err8];
+      } else {
+        vErrors.push(err8);
+      }
+      errors++;
+    }
+    validate86.errors = vErrors;
+    return errors === 0;
+  }
+  validate86.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
+  const MappingLogicalSchemaLinksSchema2 = {
+    type: 'object',
+    description: 'Mapping from logical schema to the links of relationships in the ontology',
+    properties: {
+      relationship: { type: 'string', description: 'Name of relationship being populated by this mapping node' },
+      object_mapping: { $ref: '#/$defs/ObjectMapping' },
+      children: { type: 'array', items: { $ref: '#/$defs/LinkMapping' }, description: 'Relationship maps at the next level in this hierarchy' },
+    },
+    required: ['object_mapping'],
+    additionalProperties: false,
+  };
+  const wrapper3 = { validate: validate90 };
+
+  function validate90(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
+    let vErrors = null;
+    let errors = 0;
+    const evaluated0 = validate90.evaluated;
+    if (evaluated0.dynamicProps) {
+      evaluated0.props = undefined;
+    }
+    if (evaluated0.dynamicItems) {
+      evaluated0.items = undefined;
+    }
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.object_mapping === undefined) {
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'object_mapping' }, message: "must have required property '" + 'object_mapping' + "'" };
+        if (vErrors === null) {
+          vErrors = [err0];
+        } else {
+          vErrors.push(err0);
+        }
+        errors++;
+      }
+      for (const key0 in data) {
+        if (!(key0 === 'relationship' || key0 === 'object_mapping' || key0 === 'children')) {
+          const err1 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
+          if (vErrors === null) {
+            vErrors = [err1];
+          } else {
+            vErrors.push(err1);
+          }
+          errors++;
+        }
+      }
+      if (data.relationship !== undefined) {
+        if (typeof data.relationship !== 'string') {
+          const err2 = { instancePath: instancePath + '/relationship', schemaPath: '#/properties/relationship/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err2];
+          } else {
+            vErrors.push(err2);
+          }
+          errors++;
+        }
+      }
+      if (data.object_mapping !== undefined) {
+        if (!validate86(data.object_mapping, { instancePath: instancePath + '/object_mapping', parentData: data, parentDataProperty: 'object_mapping', rootData, dynamicAnchors })) {
+          vErrors = vErrors === null ? validate86.errors : vErrors.concat(validate86.errors);
+          errors = vErrors.length;
+        }
+      }
+      if (data.children !== undefined) {
+        let data2 = data.children;
+        if (Array.isArray(data2)) {
+          const len0 = data2.length;
+          for (let i0 = 0; i0 < len0; i0++) {
+            if (!wrapper3.validate(data2[i0], { instancePath: instancePath + '/children/' + i0, parentData: data2, parentDataProperty: i0, rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? wrapper3.validate.errors : vErrors.concat(wrapper3.validate.errors);
+              errors = vErrors.length;
+            }
+          }
+        } else {
+          const err3 = { instancePath: instancePath + '/children', schemaPath: '#/properties/children/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err3];
+          } else {
+            vErrors.push(err3);
+          }
+          errors++;
+        }
+      }
+    } else {
+      const err4 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
+      if (vErrors === null) {
+        vErrors = [err4];
+      } else {
+        vErrors.push(err4);
+      }
+      errors++;
+    }
+    validate90.errors = vErrors;
+    return errors === 0;
+  }
+  validate90.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
+  function validate85(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
+    let vErrors = null;
+    let errors = 0;
+    const evaluated0 = validate85.evaluated;
+    if (evaluated0.dynamicProps) {
+      evaluated0.props = undefined;
+    }
+    if (evaluated0.dynamicItems) {
+      evaluated0.items = undefined;
+    }
+    const _errs1 = errors;
+    let valid0 = false;
+    const _errs2 = errors;
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.object_mappings === undefined) {
+        const err0 = {
+          instancePath,
+          schemaPath: '#/anyOf/0/required',
+          keyword: 'required',
+          params: { missingProperty: 'object_mappings' },
+          message: "must have required property '" + 'object_mappings' + "'",
+        };
+        if (vErrors === null) {
+          vErrors = [err0];
+        } else {
+          vErrors.push(err0);
+        }
+        errors++;
+      }
+    }
+    var _valid0 = _errs2 === errors;
+    valid0 = valid0 || _valid0;
+    const _errs3 = errors;
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.link_mappings === undefined) {
+        const err1 = {
+          instancePath,
+          schemaPath: '#/anyOf/1/required',
+          keyword: 'required',
+          params: { missingProperty: 'link_mappings' },
+          message: "must have required property '" + 'link_mappings' + "'",
+        };
+        if (vErrors === null) {
+          vErrors = [err1];
+        } else {
+          vErrors.push(err1);
+        }
+        errors++;
+      }
+    }
+    var _valid0 = _errs3 === errors;
+    valid0 = valid0 || _valid0;
+    if (!valid0) {
+      const err2 = { instancePath, schemaPath: '#/anyOf', keyword: 'anyOf', params: {}, message: 'must match a schema in anyOf' };
+      if (vErrors === null) {
+        vErrors = [err2];
+      } else {
+        vErrors.push(err2);
+      }
+      errors++;
+    } else {
+      errors = _errs1;
+      if (vErrors !== null) {
+        if (_errs1) {
+          vErrors.length = _errs1;
+        } else {
+          vErrors = null;
+        }
+      }
+    }
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.concept === undefined) {
+        const err3 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'concept' }, message: "must have required property '" + 'concept' + "'" };
+        if (vErrors === null) {
+          vErrors = [err3];
+        } else {
+          vErrors.push(err3);
+        }
+        errors++;
+      }
+      for (const key0 in data) {
+        if (!(key0 === 'concept' || key0 === 'object_mappings' || key0 === 'link_mappings')) {
+          const err4 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
+          if (vErrors === null) {
+            vErrors = [err4];
+          } else {
+            vErrors.push(err4);
+          }
+          errors++;
+        }
+      }
+      if (data.concept !== undefined) {
+        if (typeof data.concept !== 'string') {
+          const err5 = { instancePath: instancePath + '/concept', schemaPath: '#/properties/concept/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err5];
+          } else {
+            vErrors.push(err5);
+          }
+          errors++;
+        }
+      }
+      if (data.object_mappings !== undefined) {
+        let data1 = data.object_mappings;
+        if (Array.isArray(data1)) {
+          if (data1.length < 1) {
+            const err6 = {
+              instancePath: instancePath + '/object_mappings',
+              schemaPath: '#/properties/object_mappings/minItems',
+              keyword: 'minItems',
+              params: { limit: 1 },
+              message: 'must NOT have fewer than 1 items',
+            };
+            if (vErrors === null) {
+              vErrors = [err6];
+            } else {
+              vErrors.push(err6);
+            }
+            errors++;
+          }
+          const len0 = data1.length;
+          for (let i0 = 0; i0 < len0; i0++) {
+            if (!validate86(data1[i0], { instancePath: instancePath + '/object_mappings/' + i0, parentData: data1, parentDataProperty: i0, rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? validate86.errors : vErrors.concat(validate86.errors);
+              errors = vErrors.length;
+            }
+          }
+        } else {
+          const err7 = { instancePath: instancePath + '/object_mappings', schemaPath: '#/properties/object_mappings/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err7];
+          } else {
+            vErrors.push(err7);
+          }
+          errors++;
+        }
+      }
+      if (data.link_mappings !== undefined) {
+        let data3 = data.link_mappings;
+        if (Array.isArray(data3)) {
+          if (data3.length < 1) {
+            const err8 = {
+              instancePath: instancePath + '/link_mappings',
+              schemaPath: '#/properties/link_mappings/minItems',
+              keyword: 'minItems',
+              params: { limit: 1 },
+              message: 'must NOT have fewer than 1 items',
+            };
+            if (vErrors === null) {
+              vErrors = [err8];
+            } else {
+              vErrors.push(err8);
+            }
+            errors++;
+          }
+          const len1 = data3.length;
+          for (let i1 = 0; i1 < len1; i1++) {
+            if (!validate90(data3[i1], { instancePath: instancePath + '/link_mappings/' + i1, parentData: data3, parentDataProperty: i1, rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? validate90.errors : vErrors.concat(validate90.errors);
+              errors = vErrors.length;
+            }
+          }
+        } else {
+          const err9 = { instancePath: instancePath + '/link_mappings', schemaPath: '#/properties/link_mappings/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err9];
+          } else {
+            vErrors.push(err9);
+          }
+          errors++;
+        }
+      }
+    } else {
+      const err10 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
+      if (vErrors === null) {
+        vErrors = [err10];
+      } else {
+        vErrors.push(err10);
+      }
+      errors++;
+    }
+    validate85.errors = vErrors;
+    return errors === 0;
+  }
+  validate85.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
+  function validate83(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
+    let vErrors = null;
+    let errors = 0;
+    const evaluated0 = validate83.evaluated;
+    if (evaluated0.dynamicProps) {
+      evaluated0.props = undefined;
+    }
+    if (evaluated0.dynamicItems) {
+      evaluated0.items = undefined;
+    }
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.semantic_model === undefined) {
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'semantic_model' }, message: "must have required property '" + 'semantic_model' + "'" };
+        if (vErrors === null) {
+          vErrors = [err0];
+        } else {
+          vErrors.push(err0);
+        }
+        errors++;
+      }
+      if (data.concept_mappings === undefined) {
+        const err1 = {
+          instancePath,
+          schemaPath: '#/required',
+          keyword: 'required',
+          params: { missingProperty: 'concept_mappings' },
+          message: "must have required property '" + 'concept_mappings' + "'",
+        };
+        if (vErrors === null) {
+          vErrors = [err1];
+        } else {
+          vErrors.push(err1);
+        }
+        errors++;
+      }
+      for (const key0 in data) {
+        if (!(key0 === 'name' || key0 === 'description' || key0 === 'semantic_model' || key0 === 'concept_mappings')) {
+          const err2 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
+          if (vErrors === null) {
+            vErrors = [err2];
+          } else {
+            vErrors.push(err2);
+          }
+          errors++;
+        }
+      }
+      if (data.name !== undefined) {
+        if (typeof data.name !== 'string') {
+          const err3 = { instancePath: instancePath + '/name', schemaPath: '#/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err3];
+          } else {
+            vErrors.push(err3);
+          }
+          errors++;
+        }
+      }
+      if (data.description !== undefined) {
+        if (typeof data.description !== 'string') {
+          const err4 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err4];
+          } else {
+            vErrors.push(err4);
+          }
+          errors++;
+        }
+      }
+      if (data.semantic_model !== undefined) {
+        if (!validate22(data.semantic_model, { instancePath: instancePath + '/semantic_model', parentData: data, parentDataProperty: 'semantic_model', rootData, dynamicAnchors })) {
+          vErrors = vErrors === null ? validate22.errors : vErrors.concat(validate22.errors);
+          errors = vErrors.length;
+        }
+      }
+      if (data.concept_mappings !== undefined) {
+        let data3 = data.concept_mappings;
+        if (Array.isArray(data3)) {
+          const len0 = data3.length;
+          for (let i0 = 0; i0 < len0; i0++) {
+            if (!validate85(data3[i0], { instancePath: instancePath + '/concept_mappings/' + i0, parentData: data3, parentDataProperty: i0, rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? validate85.errors : vErrors.concat(validate85.errors);
+              errors = vErrors.length;
+            }
+          }
+        } else {
+          const err5 = { instancePath: instancePath + '/concept_mappings', schemaPath: '#/properties/concept_mappings/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err5];
+          } else {
+            vErrors.push(err5);
+          }
+          errors++;
+        }
+      }
+    } else {
+      const err6 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
+      if (vErrors === null) {
+        vErrors = [err6];
+      } else {
+        vErrors.push(err6);
+      }
+      errors++;
+    }
+    validate83.errors = vErrors;
+    return errors === 0;
+  }
+  validate83.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
+  function validate78(data, { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
+    /*# sourceURL="urn:semantic-workbench:tessera-ontology:1:ossie-0.2.0.dev0" */
+    let vErrors = null;
+    let errors = 0;
+    const evaluated0 = validate78.evaluated;
+    if (evaluated0.dynamicProps) {
+      evaluated0.props = undefined;
+    }
+    if (evaluated0.dynamicItems) {
+      evaluated0.items = undefined;
+    }
+    if (data && typeof data == 'object' && !Array.isArray(data)) {
+      if (data.tessera === undefined) {
+        const err0 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'tessera' }, message: "must have required property '" + 'tessera' + "'" };
+        if (vErrors === null) {
+          vErrors = [err0];
+        } else {
+          vErrors.push(err0);
+        }
+        errors++;
+      }
+      if (data.version === undefined) {
+        const err1 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'version' }, message: "must have required property '" + 'version' + "'" };
+        if (vErrors === null) {
+          vErrors = [err1];
+        } else {
+          vErrors.push(err1);
+        }
+        errors++;
+      }
+      if (data.name === undefined) {
+        const err2 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'name' }, message: "must have required property '" + 'name' + "'" };
+        if (vErrors === null) {
+          vErrors = [err2];
+        } else {
+          vErrors.push(err2);
+        }
+        errors++;
+      }
+      if (data.ontology === undefined) {
+        const err3 = { instancePath, schemaPath: '#/required', keyword: 'required', params: { missingProperty: 'ontology' }, message: "must have required property '" + 'ontology' + "'" };
+        if (vErrors === null) {
+          vErrors = [err3];
+        } else {
+          vErrors.push(err3);
+        }
+        errors++;
+      }
+      for (const key0 in data) {
+        if (!func14.call(tesseraOntologySchema.properties, key0)) {
+          const err4 = { instancePath, schemaPath: '#/additionalProperties', keyword: 'additionalProperties', params: { additionalProperty: key0 }, message: 'must NOT have additional properties' };
+          if (vErrors === null) {
+            vErrors = [err4];
+          } else {
+            vErrors.push(err4);
+          }
+          errors++;
+        }
+      }
+      if (data.version !== undefined) {
+        let data0 = data.version;
+        if (typeof data0 !== 'string') {
+          const err5 = { instancePath: instancePath + '/version', schemaPath: '#/properties/version/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err5];
+          } else {
+            vErrors.push(err5);
+          }
+          errors++;
+        }
+        if ('0.2.0.dev0' !== data0) {
+          const err6 = {
+            instancePath: instancePath + '/version',
+            schemaPath: '#/properties/version/const',
+            keyword: 'const',
+            params: { allowedValue: '0.2.0.dev0' },
+            message: 'must be equal to constant',
+          };
+          if (vErrors === null) {
+            vErrors = [err6];
+          } else {
+            vErrors.push(err6);
+          }
+          errors++;
+        }
+      }
+      if (data.name !== undefined) {
+        if (typeof data.name !== 'string') {
+          const err7 = { instancePath: instancePath + '/name', schemaPath: '#/properties/name/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err7];
+          } else {
+            vErrors.push(err7);
+          }
+          errors++;
+        }
+      }
+      if (data.description !== undefined) {
+        if (typeof data.description !== 'string') {
+          const err8 = { instancePath: instancePath + '/description', schemaPath: '#/properties/description/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err8];
+          } else {
+            vErrors.push(err8);
+          }
+          errors++;
+        }
+      }
+      if (data.ai_context !== undefined) {
+        let data3 = data.ai_context;
+        const _errs11 = errors;
+        let valid2 = false;
+        let passing0 = null;
+        const _errs12 = errors;
+        if (typeof data3 !== 'string') {
+          const err9 = {
+            instancePath: instancePath + '/ai_context',
+            schemaPath: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/0/type',
+            keyword: 'type',
+            params: { type: 'string' },
+            message: 'must be string',
+          };
+          if (vErrors === null) {
+            vErrors = [err9];
+          } else {
+            vErrors.push(err9);
+          }
+          errors++;
+        }
+        var _valid0 = _errs12 === errors;
+        if (_valid0) {
+          valid2 = true;
+          passing0 = 0;
+        }
+        const _errs14 = errors;
+        if (data3 && typeof data3 == 'object' && !Array.isArray(data3)) {
+          if (data3.instructions !== undefined) {
+            if (typeof data3.instructions !== 'string') {
+              const err10 = {
+                instancePath: instancePath + '/ai_context/instructions',
+                schemaPath: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/1/properties/instructions/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err10];
+              } else {
+                vErrors.push(err10);
+              }
+              errors++;
+            }
+          }
+          if (data3.synonyms !== undefined) {
+            let data5 = data3.synonyms;
+            if (Array.isArray(data5)) {
+              const len0 = data5.length;
+              for (let i0 = 0; i0 < len0; i0++) {
+                if (typeof data5[i0] !== 'string') {
+                  const err11 = {
+                    instancePath: instancePath + '/ai_context/synonyms/' + i0,
+                    schemaPath: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/1/properties/synonyms/items/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err11];
+                  } else {
+                    vErrors.push(err11);
+                  }
+                  errors++;
+                }
+              }
+            } else {
+              const err12 = {
+                instancePath: instancePath + '/ai_context/synonyms',
+                schemaPath: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/1/properties/synonyms/type',
+                keyword: 'type',
+                params: { type: 'array' },
+                message: 'must be array',
+              };
+              if (vErrors === null) {
+                vErrors = [err12];
+              } else {
+                vErrors.push(err12);
+              }
+              errors++;
+            }
+          }
+          if (data3.examples !== undefined) {
+            let data7 = data3.examples;
+            if (Array.isArray(data7)) {
+              const len1 = data7.length;
+              for (let i1 = 0; i1 < len1; i1++) {
+                if (typeof data7[i1] !== 'string') {
+                  const err13 = {
+                    instancePath: instancePath + '/ai_context/examples/' + i1,
+                    schemaPath: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/1/properties/examples/items/type',
+                    keyword: 'type',
+                    params: { type: 'string' },
+                    message: 'must be string',
+                  };
+                  if (vErrors === null) {
+                    vErrors = [err13];
+                  } else {
+                    vErrors.push(err13);
+                  }
+                  errors++;
+                }
+              }
+            } else {
+              const err14 = {
+                instancePath: instancePath + '/ai_context/examples',
+                schemaPath: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/1/properties/examples/type',
+                keyword: 'type',
+                params: { type: 'array' },
+                message: 'must be array',
+              };
+              if (vErrors === null) {
+                vErrors = [err14];
+              } else {
+                vErrors.push(err14);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err15 = {
+            instancePath: instancePath + '/ai_context',
+            schemaPath: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf/1/type',
+            keyword: 'type',
+            params: { type: 'object' },
+            message: 'must be object',
+          };
+          if (vErrors === null) {
+            vErrors = [err15];
+          } else {
+            vErrors.push(err15);
+          }
+          errors++;
+        }
+        var _valid0 = _errs14 === errors;
+        if (_valid0 && valid2) {
+          valid2 = false;
+          passing0 = [passing0, 1];
+        } else {
+          if (_valid0) {
+            valid2 = true;
+            passing0 = 1;
+          }
+        }
+        if (!valid2) {
+          const err16 = {
+            instancePath: instancePath + '/ai_context',
+            schemaPath: 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json#/$defs/AIContext/oneOf',
+            keyword: 'oneOf',
+            params: { passingSchemas: passing0 },
+            message: 'must match exactly one schema in oneOf',
+          };
+          if (vErrors === null) {
+            vErrors = [err16];
+          } else {
+            vErrors.push(err16);
+          }
+          errors++;
+        } else {
+          errors = _errs11;
+          if (vErrors !== null) {
+            if (_errs11) {
+              vErrors.length = _errs11;
+            } else {
+              vErrors = null;
+            }
+          }
+        }
+      }
+      if (data.requires !== undefined) {
+        let data9 = data.requires;
+        if (Array.isArray(data9)) {
+          const len2 = data9.length;
+          for (let i2 = 0; i2 < len2; i2++) {
+            if (typeof data9[i2] !== 'string') {
+              const err17 = { instancePath: instancePath + '/requires/' + i2, schemaPath: '#/$defs/Expression/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+              if (vErrors === null) {
+                vErrors = [err17];
+              } else {
+                vErrors.push(err17);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err18 = { instancePath: instancePath + '/requires', schemaPath: '#/properties/requires/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err18];
+          } else {
+            vErrors.push(err18);
+          }
+          errors++;
+        }
+      }
+      if (data.ontology !== undefined) {
+        let data11 = data.ontology;
+        if (Array.isArray(data11)) {
+          if (data11.length < 1) {
+            const err19 = {
+              instancePath: instancePath + '/ontology',
+              schemaPath: '#/properties/ontology/minItems',
+              keyword: 'minItems',
+              params: { limit: 1 },
+              message: 'must NOT have fewer than 1 items',
+            };
+            if (vErrors === null) {
+              vErrors = [err19];
+            } else {
+              vErrors.push(err19);
+            }
+            errors++;
+          }
+          const len3 = data11.length;
+          for (let i3 = 0; i3 < len3; i3++) {
+            if (!validate79(data11[i3], { instancePath: instancePath + '/ontology/' + i3, parentData: data11, parentDataProperty: i3, rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? validate79.errors : vErrors.concat(validate79.errors);
+              errors = vErrors.length;
+            }
+          }
+        } else {
+          const err20 = { instancePath: instancePath + '/ontology', schemaPath: '#/properties/ontology/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err20];
+          } else {
+            vErrors.push(err20);
+          }
+          errors++;
+        }
+      }
+      if (data.ontology_mappings !== undefined) {
+        let data13 = data.ontology_mappings;
+        if (Array.isArray(data13)) {
+          const len4 = data13.length;
+          for (let i4 = 0; i4 < len4; i4++) {
+            if (!validate83(data13[i4], { instancePath: instancePath + '/ontology_mappings/' + i4, parentData: data13, parentDataProperty: i4, rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? validate83.errors : vErrors.concat(validate83.errors);
+              errors = vErrors.length;
+            }
+          }
+        } else {
+          const err21 = { instancePath: instancePath + '/ontology_mappings', schemaPath: '#/properties/ontology_mappings/type', keyword: 'type', params: { type: 'array' }, message: 'must be array' };
+          if (vErrors === null) {
+            vErrors = [err21];
+          } else {
+            vErrors.push(err21);
+          }
+          errors++;
+        }
+      }
+      if (data.prefixes !== undefined) {
+        let data15 = data.prefixes;
+        if (data15 && typeof data15 == 'object' && !Array.isArray(data15)) {
+          for (const key1 in data15) {
+            let data16 = data15[key1];
+            if (typeof data16 === 'string') {
+              if (!formats0.test(data16)) {
+                const err22 = {
+                  instancePath: instancePath + '/prefixes/' + key1.replace(/~/g, '~0').replace(/\//g, '~1'),
+                  schemaPath: '#/properties/prefixes/additionalProperties/format',
+                  keyword: 'format',
+                  params: { format: 'iri' },
+                  message: 'must match format "' + 'iri' + '"',
+                };
+                if (vErrors === null) {
+                  vErrors = [err22];
+                } else {
+                  vErrors.push(err22);
+                }
+                errors++;
+              }
+            } else {
+              const err23 = {
+                instancePath: instancePath + '/prefixes/' + key1.replace(/~/g, '~0').replace(/\//g, '~1'),
+                schemaPath: '#/properties/prefixes/additionalProperties/type',
+                keyword: 'type',
+                params: { type: 'string' },
+                message: 'must be string',
+              };
+              if (vErrors === null) {
+                vErrors = [err23];
+              } else {
+                vErrors.push(err23);
+              }
+              errors++;
+            }
+          }
+        } else {
+          const err24 = { instancePath: instancePath + '/prefixes', schemaPath: '#/properties/prefixes/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
+          if (vErrors === null) {
+            vErrors = [err24];
+          } else {
+            vErrors.push(err24);
+          }
+          errors++;
+        }
+      }
+      if (data.tessera !== undefined) {
+        let data17 = data.tessera;
+        if (!(typeof data17 == 'number' && !(data17 % 1) && !isNaN(data17))) {
+          const err25 = { instancePath: instancePath + '/tessera', schemaPath: '#/properties/tessera/type', keyword: 'type', params: { type: 'integer' }, message: 'must be integer' };
+          if (vErrors === null) {
+            vErrors = [err25];
+          } else {
+            vErrors.push(err25);
+          }
+          errors++;
+        }
+        if (1 !== data17) {
+          const err26 = { instancePath: instancePath + '/tessera', schemaPath: '#/properties/tessera/const', keyword: 'const', params: { allowedValue: 1 }, message: 'must be equal to constant' };
+          if (vErrors === null) {
+            vErrors = [err26];
+          } else {
+            vErrors.push(err26);
+          }
+          errors++;
+        }
+      }
+      if (data.tessera_notes !== undefined) {
+        let data18 = data.tessera_notes;
+        if (typeof data18 === 'string') {
+          if (func1(data18) > 10000) {
+            const err27 = {
+              instancePath: instancePath + '/tessera_notes',
+              schemaPath: '#/properties/tessera_notes/maxLength',
+              keyword: 'maxLength',
+              params: { limit: 10000 },
+              message: 'must NOT have more than 10000 characters',
+            };
+            if (vErrors === null) {
+              vErrors = [err27];
+            } else {
+              vErrors.push(err27);
+            }
+            errors++;
+          }
+          if (func1(data18) < 1) {
+            const err28 = {
+              instancePath: instancePath + '/tessera_notes',
+              schemaPath: '#/properties/tessera_notes/minLength',
+              keyword: 'minLength',
+              params: { limit: 1 },
+              message: 'must NOT have fewer than 1 characters',
+            };
+            if (vErrors === null) {
+              vErrors = [err28];
+            } else {
+              vErrors.push(err28);
+            }
+            errors++;
+          }
+        } else {
+          const err29 = { instancePath: instancePath + '/tessera_notes', schemaPath: '#/properties/tessera_notes/type', keyword: 'type', params: { type: 'string' }, message: 'must be string' };
+          if (vErrors === null) {
+            vErrors = [err29];
+          } else {
+            vErrors.push(err29);
+          }
+          errors++;
+        }
+      }
+    } else {
+      const err30 = { instancePath, schemaPath: '#/type', keyword: 'type', params: { type: 'object' }, message: 'must be object' };
+      if (vErrors === null) {
+        vErrors = [err30];
+      } else {
+        vErrors.push(err30);
+      }
+      errors++;
+    }
+    validate78.errors = vErrors;
+    return errors === 0;
+  }
+  validate78.evaluated = { props: true, dynamicProps: false, dynamicItems: false };
+
+  return { standalone: validate20, embedded: validate73, ontology: validate21, tessera: validate78 };
 })();
 const generatedExtensions = (() => {
   const extensionsRuntime0 = extensionsRuntime0Module.default?.__esModule ? extensionsRuntime0Module.default : extensionsRuntime0Module;
@@ -26168,5 +28221,6 @@ export const semantic = generatedSemantic.semantic;
 export const standalone = generatedMappings.standalone;
 export const embedded = generatedMappings.embedded;
 export const ontology = generatedMappings.ontology;
+export const tessera = generatedMappings.tessera;
 export const metric = generatedExtensions.metric;
 export const mapping = generatedExtensions.mapping;

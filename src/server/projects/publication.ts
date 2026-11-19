@@ -21,12 +21,30 @@ export type PublicationDeps = {
   /** A successful validation may return a release callback for its active candidate index. */
   readable: (candidate: PublicationCandidate) => Promise<unknown>;
   supersede: () => void;
+  /** Persists side data indexed by the candidate commit before anything can publish it. */
   stage?: (stage: 'intent' | 'ref' | 'pointer') => void;
 };
 
 /** Creates one repository queue shared by publishing, remote following and outside adoption. */
 export function createPublication(deps: PublicationDeps) {
   const active = new Map<string, Promise<unknown>>();
+  // The ordered checks of a move, and the callback that releases the candidate index they build.
+  function prepare(repository: string, branch: string, move: PublicationMove, guard: PublicationGuard) {
+    const { git } = deps;
+    const { previous, next } = move;
+    const directory = deps.directory(repository);
+    const candidate = { repo: repository, branch, previous, next };
+    let release: (() => void) | undefined;
+    const checks = publicationChecks({
+      isAncestor: (_repository, from, to) => git.isAncestor(directory, from, to),
+      readable: async candidate => {
+        const validated = await deps.readable(candidate);
+        if (typeof validated === 'function') release = validated as () => void;
+      },
+      guard: () => guard(previous, next),
+    });
+    return { candidate, checks, release: () => release?.() };
+  }
   const advance: PublicationAdvance = (repository, branch, move, guard) =>
     operationStep('publication.advance', async () => {
       const { git, pointers } = deps;
@@ -34,16 +52,7 @@ export function createPublication(deps: PublicationDeps) {
       const directory = deps.directory(repository);
       const recorded = pointers.get(repository)?.commit;
       if (recorded && recorded !== previous) throw new PendingPublicationError(recorded);
-      const candidate = { repo: repository, branch, previous, next };
-      let release: (() => void) | undefined;
-      const checks = publicationChecks({
-        isAncestor: (_repository, from, to) => git.isAncestor(directory, from, to),
-        readable: async candidate => {
-          const validated = await deps.readable(candidate);
-          if (typeof validated === 'function') release = validated as () => void;
-        },
-        guard: () => guard(previous, next),
-      });
+      const { candidate, checks, release } = prepare(repository, branch, move, guard);
       try {
         for (const check of checks) await check(candidate);
         pointers.intent(repository, branch, next);
@@ -64,9 +73,18 @@ export function createPublication(deps: PublicationDeps) {
         deps.stage?.('pointer');
         return { published: branch, previous, commit: next };
       } finally {
-        release?.();
+        release();
       }
     });
+  // Runs the checks a publication would run and moves nothing, so a promotion can be judged first.
+  async function check(repository: string, branch: string, move: PublicationMove, guard: PublicationGuard) {
+    const { candidate, checks, release } = prepare(repository, branch, move, guard);
+    try {
+      for (const step of checks) await step(candidate);
+    } finally {
+      release();
+    }
+  }
   function serialized<T>(repository: string, use: (advance: PublicationAdvance) => Promise<T>): Promise<T> {
     const operation = (active.get(repository) ?? Promise.resolve()).catch(() => {}).then(() => use(advance));
     active.set(repository, operation);
@@ -88,6 +106,7 @@ export function createPublication(deps: PublicationDeps) {
         deps.pointers.complete(repository, branch, commit);
       }),
     serialized,
+    check,
     advance: (repository: string, branch: string, move: PublicationMove, guard: PublicationGuard) => serialized(repository, advance => advance(repository, branch, move, guard)),
   };
 }

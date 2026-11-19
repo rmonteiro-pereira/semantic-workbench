@@ -4,16 +4,27 @@ import { BadRequestError, NothingToPublishError } from './errors';
 import type { EventTags } from './events';
 import type { ContentGuard } from '../auth/guards';
 import { WriteAccessError } from '../auth/write-access-error';
+import type { PublicationResult } from './publication';
 import type { Reader } from './reader';
 import type { PublicationObserver } from './local-publication';
 import type { FollowRequest, FollowResult } from './scm';
 import type { Place, WorkingCopies } from './working-copies';
 import type { Worktrees } from './worktrees';
 
+/** The proposal tip to publish, the files it changes, and what to do inside the queue around the move. */
+export type PromotionRequest = {
+  tip: string;
+  paths: (previous: string | null, next: string) => Promise<string[]>;
+  before?: (previous: string | null) => Promise<void>;
+  after?: (result: PublicationResult) => Promise<void>;
+};
+
 /** What publishing needs from the workspace that composes it. */
 export type PublishingDeps = {
   worktrees: Worktrees;
   copies: WorkingCopies;
+  /** The published place, which judges what a promotion brings without a working copy. */
+  published: Place;
   repoOf: (slug: string) => string;
   projectsIn: (repo: string) => string[];
   /** Rescans one project of the published state and announces what changed. */
@@ -29,10 +40,10 @@ export type PublishingDeps = {
  * an approval reaches the default branch only through someone allowed to make it, whether it
  * comes from a copy or from the remote.
  */
-export function judgePublish(place: Place, slug: string, guard: ContentGuard | undefined) {
+export function judgePublish(place: Place, slug: string, guard: ContentGuard | undefined, listPaths?: (previous: string | null, next: string) => Promise<string[]>) {
   return async (previous: string | null, next: string) => {
     if (!guard) return;
-    const changes = await place.scm.changesBetween(slug, previous, next);
+    const changes = await place.scm.changesBetween(slug, previous, next, await listPaths?.(previous, next));
     guard(changes, { operation: 'publish' });
   };
 }
@@ -64,6 +75,18 @@ async function publish(deps: PublishingDeps, slug: string, reader: Reader) {
   await announce(deps, slug, result.published, result.commit);
   await place.scm.refresh(slug);
   return { published: result.published, previous: result.previous, commit: result.commit };
+}
+
+/**
+ * Moves the default branch to the tip of a proposal through the publication path, judged as the
+ * promoter's own change on the published checkout, so a promoter needs no working copy. `before`
+ * and `after` run inside the repository queue around the move.
+ */
+async function promote(deps: PublishingDeps, slug: string, reader: Reader, move: PromotionRequest) {
+  const check = judgePublish(deps.published, slug, reader.guard, move.paths);
+  const result = await deps.worktrees.promote(deps.repoOf(slug), move.tip, check, { before: move.before, after: move.after });
+  await announce(deps, slug, result.published, result.commit);
+  return result;
 }
 
 /**
@@ -101,6 +124,10 @@ export function createPublishing(deps: PublishingDeps) {
       return result;
     },
     publish: (slug: string, reader: Reader) => publish(deps, slug, reader),
+    promote: (slug: string, reader: Reader, move: PromotionRequest) => promote(deps, slug, reader, move),
     followRemote: (slug: string, remote: string, follow: FollowRequest) => followRemote(deps, slug, remote, follow),
   };
 }
+
+/** The publishing operations of one workspace. */
+export type Publishing = ReturnType<typeof createPublishing>;

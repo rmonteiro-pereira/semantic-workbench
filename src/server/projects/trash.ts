@@ -2,6 +2,7 @@
 // Restoration refuses occupied paths and suggests a free alternative.
 import { documentAddress } from '../../shared/core/item-address';
 import { archiveAddressMigrations, operationMigrations, stageAddressMigrations } from './address-migrations';
+import { archiveUsage } from '../usage/usage-trash';
 import { archivePersonalState, clearPersonalDrafts } from './personal-state';
 import type { EventTags } from './events';
 import type { Reader } from './reader';
@@ -339,6 +340,10 @@ export function createTrash(ctx: TrashContext) {
           ),
         );
         removal = removalTags(slugs, entries);
+        for (const trashEntry of entries) {
+          const members = trashEntry.projects?.map(project => project.slug) ?? [trashEntry.project];
+          for (const slug of members) steps.push(...archiveUsage(layout, slug, dirOf(trashEntry.entryId)));
+        }
         for (const slug of slugs) ctx.forgetProject(slug);
         journal.run(batchId ? 'clear' : 'delete', steps, [stateStaging], opId);
       } catch (err) {

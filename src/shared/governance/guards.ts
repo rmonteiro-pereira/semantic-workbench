@@ -327,7 +327,7 @@ export type ContentGuard = (changes: FileChange[], options?: GuardOptions) => Gu
 
 /** Writes that bring in text the person did not type; they never demote, and a refusal asks a
  * Steward to do them instead. */
-export type GuardOperation = 'pull' | 'revert' | 'delete' | 'restore' | 'import' | 'move' | 'switch' | 'publish';
+export type GuardOperation = 'pull' | 'revert' | 'delete' | 'restore' | 'import' | 'move' | 'switch' | 'publish' | 'contribute';
 
 /** How a write applies the guards: saves demote approved metrics, other operations name
  * themselves so a refusal can say who may do them. */

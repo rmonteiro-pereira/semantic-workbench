@@ -13,6 +13,8 @@ import { assertExactCase, assertNoLinks, projectPath, repoDir } from './paths';
 import { serializationOf } from './scanner';
 import { HIDDEN_LABEL, asText, createScmContext, type PathBase, type CredentialFor, type ScmDeps } from './scm-context';
 import { createScmRemote } from './scm-remote';
+import { bindAddressMigrations } from './address-commit';
+import { log } from '../observability/log';
 import { createScmBranches } from './scm-branches';
 export { BlockedError, HIDDEN_LABEL, blockers, type CredentialFor, type FollowRequest, type FollowResult, type PathBase, type ScmDeps } from './scm-context';
 /** What a commit was prepared against: the branch, the head and the version of each file it names. */
@@ -109,6 +111,7 @@ export function createScm(deps: ScmDeps) {
     }));
     return {
       branch: gitStatus.branch,
+      head: gitStatus.head,
       upstream: gitStatus.upstream,
       ...(await pullSource(slug, directory, gitStatus)),
       ahead: gitStatus.ahead,
@@ -306,6 +309,7 @@ export function createScm(deps: ScmDeps) {
       options: {
         paths?: unknown;
         push?: boolean;
+        pushBranch?: string;
         base?: PathBase;
         credentialFor?: CredentialFor;
         author?: CommitAuthor;
@@ -319,18 +323,30 @@ export function createScm(deps: ScmDeps) {
       const commitHere = async () => {
         if (options.expected) await assertExpected(slug, options.expected);
         const chosen = options.paths === undefined ? null : await commitSelection(slug, options.paths, options.base ?? 'project');
+        const directory = dir(slug);
+        const branch = deps.migrationLayout ? await symbolicBranch(git, directory) : null;
         const authoring = await deps.beforeCommit?.(slug);
+        const previous = branch ? await git.head(directory) : null;
         const committed = chosen === null ? await commitIndex(slug, message, author) : await commitChosen(slug, message, chosen, author);
+        if (branch && deps.migrationLayout) {
+          for (const project of lockedProjects(slug, options)) {
+            try {
+              await bindAddressMigrations(deps.migrationLayout, project, git, { directory, branch, previous, commit: committed.commit });
+            } catch {
+              log.warn('address-migration.commit-binding-failed', { project });
+            }
+          }
+        }
         return { ...committed, ...authoring };
       };
       // A commit takes the write lock of every project whose files it names, in sorted order so two commits cannot deadlock, and then its turn of the repository queue, so no save lands between the checks and the commit.
       // A commit of the whole index names no paths, so it locks only this project; files staged for a sibling project in a shared repository are not covered.
-      const inTurn = () => (options.expected ? git.exclusive(dir(slug), commitHere) : commitHere());
+      const inTurn = () => git.exclusive(dir(slug), commitHere);
       const result = await lockAll(lockedProjects(slug, options), inTurn);
       if (!options.push) return result;
       let pushed: { ok: boolean; message: string };
       try {
-        const action = await remoteAction(slug, 'push', { choice });
+        const action = await remoteAction(slug, 'push', { choice }, result.branch ?? options.pushBranch, result.commit);
         pushed = {
           ok: action.ok,
           message: action.stderr || (action.ok ? 'Pushed.' : 'Push failed.'),

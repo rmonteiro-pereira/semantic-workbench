@@ -229,6 +229,9 @@ are serialized across its worktrees.
 | Fetch/Pull/Sync/Push | Explicit remote action from your copy with your credential |
 | Push default | Sends already published state to the remote; does not publish first |
 
+The push turn verifies the configured remote still has the addresses used for credential selection
+and exactly one push destination. Sync verifies the addresses before pulling.
+
 Publishing checks the exact proposed commits, requires a fast-forward and uses compare-and-swap.
 An outside default-branch move remains pending until someone with the same publication right
 uses **Adopt** (`POST /api/projects/:slug/git/adopt`). Adoption validates the entire candidate
@@ -261,6 +264,33 @@ Copies idle for thirty minutes stop being watched but retain their files, index 
 Deleting a project can archive each person's unpublished work and drafts in the trash entry.
 Copy-local file deletions restore to the same owner's copy. Admin repository manifests are also
 written into the Admin's copy and need publication to reach readers.
+
+## Shared proposals
+
+A proposal lets several people build one change before it is published. It is an open Git ref at
+`refs/workbench/proposals/<id>`; closed ones move to `refs/workbench/closed-proposals/<id>`. The
+record at `state/proposals/<repo>.json` stores the name, declared projects and base but never the tip,
+so the status (open, closed, promoted, or damaged and unregistered when the ref and record disagree)
+is derived from Git. A tip already inside published history counts as promoted.
+
+| Action | Needs | Effect |
+| --- | --- | --- |
+| Create | `branch` and `edit` on every declared project | Registers the proposal at the published commit |
+| Work on it | `branch` and `pull` | Selects your branch `work/<handle>.<id>` |
+| Synchronize | `pull` | Merges the proposal tip into your branch |
+| Contribute | `commit` on `proposal/<id>` | Moves the tip to your branch if it descends from the tip |
+| Check | `publish` on every project in the repository | Dry run of publication |
+| Promote | `publish` on every project in the repository | Fast-forwards the default branch through the publication path |
+| Close, restore | `publish` on every project in the repository | Moves the ref between the open and closed namespaces |
+
+Contributing is a compare-and-swap: a stale tip or a branch that does not descend from it is refused.
+Changed paths must belong to the declared projects, the person needs `edit` on each path, and content
+guards run with the operation `contribute`. Contribution branches are shown only to their owner. Limits are
+50 open proposals per repository, names of 80 characters and identifiers of 40. Hidden proposals
+answer 404 like missing ones. Local mode answers 404 for every proposal route. Audit records carry a
+`proposal` object with the identifier, projects and commits, and a `proposal` event refreshes Source
+control. The guarantee is the application's: it does not stop someone with shell access to the data
+root. Push and Sync refuse `work/` and `proposal/` branches in both modes.
 
 ## Governed content
 
@@ -317,7 +347,7 @@ confirmation rather than nesting whole administration screens.
 Access changes require a **Dry run** followed by **Confirm**. The review is bound to the proposal
 and current version. Editing the proposal invalidates it; a stale version must be reopened and
 reviewed again. The server replays configured matrix cases, recent audit snapshots and known
-identities without changing live policies during preview.
+identities without changing live policies during preview. Custom policy text takes longer to simulate.
 
 Each accepted change makes one Admin-authored commit in `DATA_DIR/admin/`. History compares
 versions. Rollback is a new reviewed commit, not a history rewrite. Any number of people can be
@@ -380,6 +410,14 @@ Outbound traffic is limited to configured identity/directory integrations, manag
 assertions, explicit Git/GitHub/Azure DevOps operations, and enabled telemetry export. Identity
 refresh and telemetry are background-capable; remote repository synchronization is not automatic.
 No database source is contacted and no previewed SQL is executed.
+
+Usage counters are a separate, opt-in store: `SW_USAGE_COUNTERS=on` counts requests through the
+workbench per published item and UTC day under `state/usage/`, and `SW_USAGE_RETENTION_DAYS` (default
+30) sets how long counts are kept. They hold no identity and are never derived from the audit log or
+telemetry. Counts are written every 30 seconds and at a clean stop, so a crash loses at most 30 seconds.
+Browser views are not counted, and a small team may infer who asked from a low count, so they are not
+anonymous. People read counts only for files they may read; Admin Settings shows whether counters are
+on. See [usage counters](usage-counters.md).
 
 ## Operating limits and recovery
 

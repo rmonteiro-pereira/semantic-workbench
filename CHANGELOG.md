@@ -19,9 +19,21 @@ not configure a production deployment.
   and file operations use the operation boundary with origin `acp`; transcripts stay in memory.
 
 - A local agent endpoint, `POST /api/mcp`, speaks the Model Context Protocol and offers 21 tools to read definitions, findings and Git history, check proposed text, save, create, delete and restore files, read the published mapping context and plans, and commit exactly the listed files. Each tool is the twin of an existing route, so access control, content guards, version checks and audit are unchanged. A per-installation capability in `data/state/mcp-capability` protects it, `bun run mcp:rotate` replaces it, and `scripts/mcp-stdio.ts` bridges clients that start a program. Server mode now requires a person connection at that endpoint. See `docs/mcp.md`.
+- Findings reported by the agent tools carry their `code`, and the tool descriptions say Tessera ontologies are accepted. No tool exposes the Tessera compiler.
 - `POST /api/projects/:slug/files/*/validate` checks proposed text with the save pipeline and writes nothing.
 - The commit route accepts optional `files`, `expectedBranch` and `expectedHead`, checked in the same turn of the repository queue as the commit. Every commit now takes the project's write lock first, as a save does (and the lock of every sibling project whose files it names), so no save lands between the checks and the commit. Deleting a file accepts an optional `baseHash`. `GET /api/documents?project=` lists a project's files without their text.
 - Audit records of agent calls carry the protocol method, a client label and a result code, and the Admin audit view shows the tool beside the action.
+- The Tessera format: an authoring format that compiles to standard Ossie. An Ossie ontology with the
+  marker `tessera: 1` and the property `tessera_notes` (on the ontology root, a concept or a relationship)
+  opens, saves and validates like any ontology, with its own finding codes, and the validation panel
+  names the format. Authorized MCP authoring tools read stored bytes, including unpublished changes
+  and Tessera notes. Semantic agent context, plans and explanations use the published projection
+  with the marker and notes removed.
+- `bun run tessera compile` writes a bundle of standard Ossie from the committed snapshot of a project
+  folder, with a manifest and a loss report that lists every dropped value by item, size and hash and
+  carries a digest. A compile with loss is released only for that exact digest or a loss policy; exit
+  statuses are 0, 1, 2 and 64. `bun run tessera check` shows the same result for a snapshot or a folder
+  on disk and writes nothing.
 - Canonical `sw1` item addresses identify structured definitions, nested ODCS properties and mapping items.
   Inspector results, canvas cards and agent context use them; unnamed items have volatile positional addresses.
 - Item-address resolution and explicit reconciliation share scoped, audited HTTP and in-process operations,
@@ -33,7 +45,32 @@ not configure a production deployment.
 - Reviewed operation inventory and generated reference, trusted in-process operation dispatch,
   connection effect restrictions, audit attribution fields and origin/tool filters.
 - Independent dry-run samples retain write and denial evidence during non-HTTP read floods.
+- Shared proposals: people with branch and edit rights can start a named proposal, work on it in their own
+  copy, and contribute commits to it. Contributions are checked against the declared projects, per-path edit
+  rights and content guards. Stewards and Admins check a proposal against the published state and promote it
+  through the normal publication path, or close and restore it. A Proposals section in Source control
+  (server mode only) lists, creates and shows proposals. Limits: 50 open proposals per repository, names up to
+  80 characters, identifiers up to 40.
+- Opt-in usage counters (`SW_USAGE_COUNTERS=on`, `SW_USAGE_RETENTION_DAYS`, default 30) count requests through
+  the workbench per published item, day, operation and origin. They hold no identity, never read the audit log,
+  exclude browser views, expire with the retention and follow a project through the trash. Counts stay at their
+  original address unless the published transition proves the rename. The project operation `usage.read` serves them within each reader's file access.
+  The agent endpoint's `get_mapping_context`, `plan_query` and `explain_metric` tools are counted with the origin `mcp`.
+- A **Traffic** option on the graphs shades entities and relationships by request count with weight rather than
+  colour alone, shows counts with their period in details, sorts the catalog and metrics lists by traffic, and
+  Admin Settings shows whether counters are on. The option is off by default.
+
 ### Changed
+
+- Push and Sync now refuse any `work/` or `proposal/` branch, in local and server mode. Work in progress stays in
+  the workbench: publish it, then use Push default. A commit with push requested keeps the commit and reports
+  that the push was refused.
+- Admin permission dry runs reuse policy preparation and equivalent authorization work, reducing
+  the measured dev-server median below one second for the current access matrix.
+  Proposals containing custom Cedar rules can take longer to simulate.
+- Project creation respects the server's default authorization hour. A Cedar time restriction can
+  return 403 for `POST /api/projects`, `POST /api/import`, and `POST /api/examples/:name`, and
+  can remove creation domains from `GET /api/me`.
 
 - Published reads, local Publish, outside adoption and browser previews share the operation boundary
   and its reviewed inventory. MCP callers consume published definitions independently of browser sessions.

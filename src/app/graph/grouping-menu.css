@@ -1,4 +1,4 @@
-/* Styles the Group menu in the graph toolbar. */
+/* Styles the drop-down menus of the graph toolbars: the Group menu and the Show menu. */
 .grouping-controls {
   position: relative;
   display: flex;
@@ -77,4 +77,33 @@
 .grouping-controls > [role='alert'] {
   color: var(--color-danger-text);
   max-width: 200px;
+}
+.show-menu {
+  position: relative;
+  display: inline-flex;
+}
+.show-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+/* The names of the switches that are on, so the state shows without opening the menu. */
+.show-menu-on {
+  color: var(--color-accent-text);
+}
+/* The menu sits inside the toolbar, whose button rules (border, background, padding, no wrapping)
+   would otherwise make each row a bordered button and cut long summaries at the menu's edge. */
+.show-menu .grouping-menu > button.grouping-item {
+  justify-content: flex-start;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  color: var(--color-text-secondary);
+}
+.show-menu .grouping-menu > button.grouping-item[aria-checked='true'] {
+  background: var(--color-accent-soft);
 }

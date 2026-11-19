@@ -23,6 +23,19 @@ for (const name of [...entryModules, ...authModules]) Object.assign(composed, aw
 const loadedModule = { ...composed, ...mutatedModule };
 const category = process.argv[3];
 if (category.startsWith('acp-')) await (await import('./acp-mutation-cases')).acpMutationCase(process.argv[2], category);
+if (category === 'access-index') {
+  const candidate = await import(resolve(dirname(process.argv[2]), 'authorize.ts'));
+  const replay = await import(resolve(dirname(process.argv[2]), 'dry-run.ts'));
+  (await import('../tests/auth/access-index-assertions')).assertAccessIndexes(candidate.createAccessControl);
+  const scopes = await import('../tests/auth/dry-run-scope-assertions');
+  scopes.assertDryRunScopes(replay.compareAccess);
+  scopes.assertReloadedReplay(replay.compareAccess);
+  scopes.assertDeactivatedReplay(replay.scopeCache);
+  scopes.assertReplayScopeSnapshot(replay.scopeCache);
+  scopes.assertReplaySurvivesReload(replay.scopeCache);
+  scopes.assertReplayClock(replay.compareAccess, candidate.createAccessControl);
+  await (await import('../tests/auth/creation-route-assertions')).assertCreationRoutes(candidate.createAccessControl);
+}
 // Publication mutants load only the publication module, so working copies come from the real source.
 async function worktreeFactory(): Promise<typeof import('../src/server/projects/worktrees').createWorktrees> {
   return loadedModule.createWorktrees ?? (await import('../src/server/projects/worktrees')).createWorktrees;
@@ -34,10 +47,13 @@ if (category.startsWith('mcp-')) {
   if (!run) throw new Error(`Unknown agent endpoint case ${category}.`);
   await run(process.argv[2]);
 }
+if (category === 'proposals') await (await import('./proposals-mutation-cases')).proposalsCases(loadedModule);
+if (category === 'tessera') await (await import('./tessera-mutation-cases')).tesseraCase(loadedModule);
 if (category === 'operation-boundary') {
   const { operationBoundaryCases } = await import('./operation-boundary-mutation-cases');
   await operationBoundaryCases(process.argv[2]);
 }
+if (category.startsWith('usage-')) await (await import('./usage-mutation-cases')).usageCase(category, loadedModule);
 if (category === 'address-operation') await (await import('./item-address-operation-cases')).itemAddressOperationCase(loadedModule as typeof import('../src/server/routes/item-addresses'));
 if (category === 'address-server') (await import('./server-address-cases')).serverAddressCase(loadedModule as typeof import('../src/server/projects/address-resolution'));
 if (category === 'address-store') (await import('./server-address-cases')).addressStoreCase(loadedModule as typeof import('../src/server/projects/address-migrations'));

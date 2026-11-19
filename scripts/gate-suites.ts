@@ -22,6 +22,7 @@ export const gateSuites: string[] = [
   'test:connections',
   'test:rdf-edit',
   'test:validation',
+  'test:tessera',
   'test:scm',
   'test:odcs',
   'test:lineage',
@@ -36,6 +37,8 @@ export const gateSuites: string[] = [
   'test:clipping',
   'test:mapping-graph',
   'test:back-history',
+  'test:usage-traffic',
+  'test:proposals',
   'test:theme',
   'test:brand',
 ];

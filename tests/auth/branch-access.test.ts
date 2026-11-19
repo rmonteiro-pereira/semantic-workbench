@@ -68,3 +68,25 @@ test('a name that is not a branch is refused before Git acts on it', async () =>
   }
   expect(gitOutput(copy, ['branch', '--show-current']).text).toBe('work/frank');
 });
+
+test('contribution branches are listed for their owner only and only the owner may switch to one', async () => {
+  using fixture = await authWorkspace();
+  const as = signedIn(fixture.ws);
+  const alice = as(person('alice'));
+  const frank = as(person('frank'));
+  expect((await openCopy(alice.call, 'sales-contracts')).status).toBe(200);
+  expect((await openCopy(frank.call, 'sales-contracts')).status).toBe(200);
+  const base = copyFolder(fixture.ws, alice.principal.key, 'sales-contracts');
+  gitOutput(base, ['branch', 'work/alice.rename']);
+  gitOutput(base, ['update-ref', 'refs/remotes/origin/work/alice.rename', 'HEAD']);
+
+  const branchesOf = async (who: typeof alice) => (await who.call(`${PROJECT}/git/branches`)).body as { local: string[]; remote: string[] };
+  const seenByAlice = await branchesOf(alice);
+  expect(seenByAlice.local).toContain('work/alice.rename');
+  expect(seenByAlice.remote).toContain('origin/work/alice.rename');
+  const seenByFrank = await branchesOf(frank);
+  expect(seenByFrank.local).not.toContain('work/alice.rename');
+  expect(seenByFrank.remote).not.toContain('origin/work/alice.rename');
+  expect((await frank.call(...switchTo('work/alice.rename'))).status).toBe(403);
+  expect((await alice.call(...switchTo('work/alice.rename'))).status).toBe(200);
+});

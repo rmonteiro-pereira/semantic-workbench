@@ -261,6 +261,25 @@ Git rejects because the remote has newer commits shows a plain summary and **Pul
 Git's own output is under **Show details**. Server-mode credentials work differently; see
 [remote Git on a shared server](server-mode.md#remote-git).
 
+### Shared proposals
+
+In server mode, **Source control** has a **Proposals** section. **New proposal** asks for a name and the
+projects it touches. **Work on it** moves your copy onto your own branch for that proposal, **Synchronize**
+brings in what others contributed, and **Contribute** sends your commits to the shared proposal.
+If another tab changes your branch or its last commit while you choose Work or Synchronize, reload
+the copy and try again. Stewards
+and Admins use **Check**, **Promote**, **Close proposal** and **Restore**. A repository holds up to 50
+open proposals, and a name has up to 80 characters. Local mode has no proposals.
+
+Push, Sync and Push default send only commits in the published default branch’s history. The
+destination must be outside `work/`, `proposal/` and `refs/workbench/`. To send new changes, publish
+first, then use **Push default**. Sync checks before pulling and checks the resulting commit again
+before sending it. If the pull adds unpublished history, Sync keeps the pull and reports that the
+push was refused.
+
+If you can read at least one declared project, you can see the proposal name, creator, contributors
+and tip. The list of declared projects shows only the projects you can read.
+
 ### Clone a repository
 
 Choose **Add project → Clone a repository** (the Import dialog also links to it). Supply a URL or local path, an optional name and,
@@ -343,7 +362,8 @@ Links inside an area are drawn; each area says "links to N areas", and those lin
 for the entity you select. Switch to **Layered (ELK)**, which preserves orthogonal routes while
 they match current handles, with the **Layered / Network** control in the graph toolbar. The
 toolbar also holds **Re-layout**, the crosshair select that zooms to an area (**Zoom to group**; a long area name ends in an ellipsis and hovering the select shows the full name),
-**Collapse areas**, **Expand all**, and switches for **Labels**, **Value types**, **Metrics** and **Mini-map**; a check mark shows which
+**Collapse areas**, **Expand all**, and the **Show** menu with switches for **Labels**, **Value types**, **Metrics**,
+**Mini-map** and **Traffic**. The **Show** button names the switches that are on, and in the menu a check mark shows which
 are on. On a phone these controls fold behind **Controls**. The canvas supports grouped areas,
 dragging, area zoom and selection. Resizing the window or the sidebar does not rearrange the
 graph or undo your drags; **Re-layout** plans it again for the current window. Network detail routing uses a shared background worker;
@@ -353,6 +373,19 @@ The first view shows every entity by name; models above 250 visible business ent
 one counted card per area. Expand an area or choose **Expand all** to
 show every entity. Internal relationships remain available when the area opens. **Fit model**
 returns the complete layout to view. A finite viewport cannot show unlimited full-size labels.
+
+### Traffic
+
+When an operator has turned usage counters on, **Traffic** in the **Show** menu of the graph toolbar (Graph and
+Neighborhood; on a phone, behind **Controls**) shades entities and relationships by how many requests
+through this workbench asked about them in the last 30 days: a heavier outline, a longer bar and a
+relationship line that grows. The legend below the graph names what is counted. Selecting an item shows
+its count with the period and the split by operation, for example "1,200 requests through this workbench
+in the last 30 days", and on **Catalog** and **Metrics** a **Sort by traffic** switch lists the busiest
+first. Browser views are not counted, so opening an item here never raises its count. Traffic is off by
+default and remembered for each model in this browser. If counters are off it says "Not collected" (an
+Admin is told how to turn them on); it also says when nothing was counted yet, when counts are loading,
+failed (with **Retry**) or unavailable for some days. See [usage counters](usage-counters.md).
 
 ### Neighborhood and expansion
 
@@ -374,8 +407,9 @@ cancels the worker operation. Each run is one trail step, "All connected to <nam
 same run goes back to that step, and a run that adds nothing new adds no step. The Neighborhood, lineage and mapping views share the
 same bounded traversal and the same step wording.
 
-The toolbar filters neighbors by **Relationship** and switches **Links between neighbors**,
-**Technical resources**, **Labels**, **Value types** and **Metrics** on or off. **Re-arrange** puts
+The toolbar filters neighbors by **Relationship** and switches **Links between neighbors** and
+**Technical resources** on or off; its **Show** menu switches **Labels**, **Value types**, **Metrics**
+and **Traffic**. **Re-arrange** puts
 dragged nodes back in their columns. OWL opens with classes only unless technical resources are
 requested. Graph names and labels compensate for zoom; names retain full-name tooltips, and long
 identifiers wrap at natural separators without changing their spelling.
@@ -514,6 +548,40 @@ Results describe the text as it is now and clear when either file changes. Data 
 Turtle, N-Triples or N3; convert RDF/XML first. JSON-LD, TriG, N-Quads, OWL/XML, Functional Syntax and Manchester syntax are
 not supported inputs. See [schema provenance](../schemas/README.md).
 
+### Tessera documents
+
+A Tessera document is an Ossie ontology that carries the marker `tessera: 1` and, if you want, the
+property `tessera_notes`. It is an authoring format that compiles to standard Ossie: you edit it in the
+workbench like any ontology, and a release job compiles it into plain Ossie files.
+
+- **The marker.** Put `tessera: 1` at the top level of an ontology file (YAML or JSON). The number is
+  the revision of the Tessera rules; only revision 1 exists today. The file must also name its Ossie
+  base in `version`, which today is `0.2.0.dev0`. The marker is allowed on ontologies only, not on
+  semantic models, mappings, data contracts or RDF files.
+- **Notes.** `tessera_notes` is free text for the people who edit the ontology: a non-empty string of
+  at most 10,000 characters, allowed on the ontology root, on a concept and on a relationship of a
+  concept. Notes appear nowhere else: not in the graph, the inspector, agent context or the compiled
+  output.
+- **The format label.** **Validation details** names the format, for example "Tessera 1 on Ossie
+  0.2.0.dev0 · 0 errors · 0 warnings". A Tessera document is never shown as "Not validated".
+- **Removing the last note** keeps the marker. Only compiling, or you, removes it.
+
+Each mistake gives one finding with a code and a place. `tessera-marker`: the marker is not a whole
+number of at least 1; write `tessera: 1`. `tessera-revision`: the document is newer than this
+workbench, or uses a property that needs a higher revision; use a supported revision. `tessera-base`:
+`version` is missing or not a supported Ossie base; set it to `0.2.0.dev0`. `tessera-kind`: the marker
+is on a file that is not an ontology; remove it. `tessera-property`: a `tessera_` property that does
+not exist, often a misspelling such as `tessera_note`; fix the spelling or remove it.
+`tessera-reserved`: the name is kept for a later feature; remove it. `tessera-location`: a known
+property in a place that does not take it, such as a dataset; move it to the ontology root, a concept
+or a relationship. An empty or too long note is a `schema` finding on the note.
+
+What compiling drops: the marker and every note. The compile lists each dropped value in a loss
+report (by item and size, never the text) and writes a bundle only when you accept that report by its
+digest or by a loss policy. Comments and layout in a compiled file may not survive; values and key
+order do. The command line is described in the [README](../README.md#tessera-an-authoring-format-that-compiles-to-standard-ossie)
+and in [development](development.md#the-tessera-command).
+
 ### SQL expressions
 
 Ossie semantic fields, metrics and mapping expressions, ODCS SQL quality rules and transform logic
@@ -612,3 +680,8 @@ tool activity and task list, permission questions and diffs of saved changes. **
 ordinary version-checked save; it reports a conflict if another edit intervened. **Cancel turn**
 cancels pending questions too. **End session** or closing the panel ends the conversation. A new
 session starts a new conversation. See [the panel guide](agent-panel.md) for scopes and limits.
+
+## Glossary
+
+- **Tessera**: an authoring format that compiles to standard Ossie. A Tessera document is an Ossie
+  ontology with the marker `tessera: 1` and, optionally, `tessera_notes`.

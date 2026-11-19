@@ -7,7 +7,7 @@ import { EDIT_ARGUMENTS, PATCHES, READ_HINTS, VERSION } from './tool-arguments';
 const validateText: ToolDefinition = {
   name: 'validate_text',
   description:
-    'Check proposed text for a file exactly as saving would, without saving. Send the full source, or patches with the version they were made against. Browser-only checks such as SHACL are not covered.',
+    'Check proposed text for a file exactly as saving would, without saving. Send the full source, or patches with the version they were made against. Tessera ontologies are accepted, and their findings carry the Tessera codes. Browser-only checks such as SHACL are not covered.',
   inputSchema: {
     type: 'object',
     properties: { ...EDIT_ARGUMENTS, source: { type: 'string', maxLength: 2_000_000 }, patches: PATCHES, baseVersion: VERSION },

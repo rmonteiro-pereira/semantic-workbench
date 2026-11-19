@@ -27,6 +27,7 @@ import { suggestionRoutes } from './routes/suggestions';
 import { metricRoutes } from './routes/metrics';
 import { kpiRoutes } from './routes/kpis';
 import { createGitRoutes } from './routes/git';
+import { createProposalRoutes } from './routes/proposals';
 import { cloneRoutes } from './routes/clone';
 import { repoRoutes } from './routes/repos';
 import { peopleRoutes } from './routes/people';
@@ -42,6 +43,9 @@ import { TOOLS } from './mcp/tool-registry';
 import type { OperationBoundary } from './auth/operation-boundary';
 import { agentPanelAbsentRoute, mountAgentPanel } from './acp/mount';
 import { join } from 'node:path';
+import { trackUsageRecorder } from './usage/usage-trash';
+import { createWorkspaceUsage } from './usage/usage-workspace';
+import { usageRoutes } from './routes/usage';
 /** Local browser origins allowed to call the API. */
 export const ALLOWED_ORIGINS = allowedOrigins(4310);
 /** Includes the configured API origin and the Vite development server. */
@@ -164,9 +168,11 @@ function workspaceRoutes(administration: AdminRepository, access: AccessControl,
     suggestionRoutes,
     projectRoutes(administration),
     metricRoutes,
+    usageRoutes(options.usage!, options.usageSettings, options.now),
     peopleRoutes(access),
     kpiRoutes,
     createGitRoutes(options),
+    createProposalRoutes(options),
     cloneRoutes(administration),
     repoRoutes,
     exportRoutes,
@@ -197,6 +203,7 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
     access,
     administration,
     audit: options.audit ?? defaultAudit(ws, options.mode ?? 'local', administration),
+    usage: trackUsageRecorder(ws.layout, options.usage ?? createWorkspaceUsage(ws, options.usageSettings)),
   };
   let accessAdmin: Promise<AccessAdmin> | undefined;
   // The service shares the process's one administration repository, whose commits reload the
@@ -356,5 +363,5 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
     if (!response.headers.has('Cache-Control')) response.headers.set('Cache-Control', 'no-store');
     return response;
   };
-  return Object.assign(httpHandler, { boundary: boundary.boundary, agentPanel: agentPanel?.service });
+  return Object.assign(httpHandler, { boundary: boundary.boundary, usage: boundary.usage, agentPanel: agentPanel?.service });
 }

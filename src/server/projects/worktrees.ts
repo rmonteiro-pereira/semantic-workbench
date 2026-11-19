@@ -3,13 +3,14 @@
 // default branch and holds the published state; only publishing moves it.
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { type Publication, type PublicationAdvance, type PublicationGuard } from './publication';
+import { type Publication, type PublicationAdvance, type PublicationGuard, type PublicationResult } from './publication';
 import type { PublicationObserver } from './local-publication';
 import { BranchInUseError, NotFastForwardError, PublicationRefChangedError, PublicationAdoptionError } from './errors';
 import { authorship, commitOf, GitError, isBranchName, symbolicBranch, type CommitAuthor, type Git } from './git';
 import { USER_KEY, type DataLayout } from './paths';
 import { log } from '../observability/log';
 import { checkOutFolders, sparseFolders } from './sparse-folder';
+import { ownsContributionBranch } from '../../shared/proposals/contribution-branch';
 
 /** One entry of `git worktree list --porcelain`. */
 export type WorktreeEntry = {
@@ -50,10 +51,14 @@ export const isPersonalBranch = (branch: string) => foldBranch(branch).startsWit
 /**
  * Whether a branch is shown to someone whose own personal branch is `own`, or to someone who has
  * none. A remote branch is judged by the name it has on the remote, `origin/work/x` as `work/x`.
+ * A contribution branch, the personal branch name and a dot and a proposal identifier, is shown
+ * to its owner only.
  */
 export function branchShownTo(branch: string, own: string | null, remote = false) {
   const name = remote ? branch.slice(branch.indexOf('/') + 1) : branch;
-  return !isPersonalBranch(name) || (own !== null && sameBranchName(name, own));
+  if (!isPersonalBranch(name)) return true;
+  if (own === null) return false;
+  return sameBranchName(name, own) || ownsContributionBranch(own, name);
 }
 
 /** The existing branch a new spelling of a name would be taken for, or undefined. */
@@ -316,6 +321,24 @@ async function publish(context: WorktreeContext, repo: string, key: string, chec
   return moveDefault(context, repo, { branch, previous, next }, check, advance);
 }
 
+/** What a promotion does inside the repository queue, before and after the default branch moves. */
+export type PromotionHooks = { before?: (previous: string | null) => Promise<void>; after?: (result: PublicationResult) => Promise<void> };
+
+/**
+ * Moves the default branch to a commit that is not in anyone's copy, the tip of a proposal, through
+ * the same move a publish makes. `before` runs first in the queue and may refuse; `after` runs in
+ * the queue once the branch has moved, so nothing else can interleave with the bookkeeping.
+ */
+async function promote(context: WorktreeContext, repo: string, tip: string, check: PublicationGuard, advance: PublicationAdvance, hooks: PromotionHooks) {
+  const { git } = context;
+  const branch = await defaultBranch(context, repo);
+  const previous = await commitOf(git, baseDir(context, repo), 'refs/heads/' + branch);
+  await hooks.before?.(previous);
+  const result = await moveDefault(context, repo, { branch, previous, next: tip }, check, advance);
+  await hooks.after?.(result);
+  return result;
+}
+
 /**
  * The move a fetch could make: the default branch to the remote's, when that is a fast-forward.
  * Null when the remote is not ahead or has diverged.
@@ -353,24 +376,34 @@ async function followRemote(context: WorktreeContext, repo: string, remote: stri
   }
 }
 
-/** Merges the default branch into the person's branch, authored by the person. */
-async function mergeDefault(context: WorktreeContext, repo: string, key: string, author: CommitAuthor | undefined, check: (tip: string) => Promise<void>) {
+/** A commit merged into a person's branch, and the name it is shown under in the merge message. */
+export type MergeSource = { tip: string; label: string };
+
+/**
+ * Merges a commit into the person's branch, authored by the person. The commit judged by `check`
+ * is the one merged, even if someone moves the branch it came from in between.
+ */
+async function mergeCommit(context: WorktreeContext, repo: string, key: string, author: CommitAuthor | undefined, source: MergeSource, check: (tip: string) => Promise<void>) {
   const { git } = context;
-  const branch = await defaultBranch(context, repo);
   const copy = copyDir(context, key, repo);
-  // The commit judged is the one merged, even if someone publishes in between.
-  const tip = (await git.run(copy, ['rev-parse', 'refs/heads/' + branch])).stdout.trim();
-  await check(tip);
+  await check(source.tip);
   const signed = authorship(author);
   const current = (await symbolicBranch(git, copy)) ?? 'HEAD';
-  const message = ['-m', `Merge ${branch} into ${current}`];
+  const message = ['-m', `Merge ${source.label} into ${current}`];
   // A merge cannot take --trailer, so the trailer is the message's last paragraph.
   if (author) message.push('-m', signed.trailer[1]);
   const merge = [...signed.config, 'merge', '--no-ff', '--no-edit', ...message];
-  return git.run(copy, [...merge, tip], {
+  return git.run(copy, [...merge, source.tip], {
     allowFailure: true,
     env: signed.env,
   });
+}
+
+/** Merges the default branch into the person's branch, authored by the person. */
+async function mergeDefault(context: WorktreeContext, repo: string, key: string, author: CommitAuthor | undefined, check: (tip: string) => Promise<void>) {
+  const branch = await defaultBranch(context, repo);
+  const tip = (await context.git.run(copyDir(context, key, repo), ['rev-parse', 'refs/heads/' + branch])).stdout.trim();
+  return mergeCommit(context, repo, key, author, { tip, label: branch }, check);
 }
 
 /**
@@ -417,11 +450,13 @@ export function createWorktrees(options: Omit<WorktreeContext, 'listings'>) {
     assertFree: (repo: string, key: string, branch: string) => assertFree(context, repo, key, branch),
     publish: (repo: string, key: string, check: (previous: string | null, next: string) => Promise<void>) =>
       context.publication.serialized(repo, advance => publish(context, repo, key, check, advance)),
+    promote: (repo: string, tip: string, check: PublicationGuard, hooks: PromotionHooks) => context.publication.serialized(repo, advance => promote(context, repo, tip, check, advance, hooks)),
     adopt: (repo: string, guard: PublicationGuard, observe?: PublicationObserver) => context.publication.serialized(repo, advance => adopt(context, repo, guard, advance, observe)),
     remoteAhead: (repo: string, remote: string) => remoteAhead(context, repo, remote),
     followRemote: (repo: string, remote: string, check: (previous: string | null, next: string) => Promise<void>) =>
       context.publication.serialized(repo, advance => followRemote(context, repo, remote, check, advance)),
     mergeDefault: (repo: string, key: string, author: CommitAuthor | undefined, check: (tip: string) => Promise<void>) => mergeDefault(context, repo, key, author, check),
+    mergeCommit: (repo: string, key: string, author: CommitAuthor | undefined, source: MergeSource, check: (tip: string) => Promise<void>) => mergeCommit(context, repo, key, author, source, check),
     remove: (repo: string, key: string) => remove(context, repo, key),
   };
 }

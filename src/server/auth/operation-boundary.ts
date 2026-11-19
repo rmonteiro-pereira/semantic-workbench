@@ -18,10 +18,13 @@ import type { ResourceRef, Decision } from './resource';
 import { WriteAccessError } from './write-access';
 import { GuardedChangeError } from './guards';
 import { READ_ACTIONS } from '../../shared/auth/actions';
-import { attachIdentity, requestPublication, requestPublicationRefusal, type AccessRequest } from './request-scope';
+import { attachIdentity, requestProposal, requestPublication, requestPublicationRefusal, type AccessRequest } from './request-scope';
 import { hiddenResponses, requestAuditId } from '../request';
 import { actorPseudonym, setRequestActor } from '../observability/request-context';
 import { auditDenial, agentRefusal } from './refusal';
+import { requestSurface } from './request-surface';
+import { routeTarget } from '../usage/usage-items';
+import type { UsageRecorder } from '../usage/usage-recorder';
 
 /** Dependencies needed to decide and execute authenticated operations. */
 export type OperationBoundaryOptions = {
@@ -29,6 +32,8 @@ export type OperationBoundaryOptions = {
   access: AccessControl;
   audit: AuditLog;
   remoteCredentials?: RemoteCredentials;
+  /** Counts the items of successful counted answers; absent or no-op when counters are off. */
+  usage?: UsageRecorder;
 };
 
 /** The original resource metadata a restore receipt carries across retries. */
@@ -188,12 +193,14 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
     try {
       const publication = input.request[requestPublication];
       const reason = input.request[requestPublicationRefusal];
+      const proposal = input.request[requestProposal];
       input.audit.append({
         ...record,
         decision: 'allow',
         outcome: semanticOutcome,
         ...(result ? { result } : {}),
         ...(publication ? { publication } : {}),
+        ...(proposal ? { proposal } : {}),
         ...(reason ? { reason } : {}),
       });
     } catch (error) {
@@ -266,6 +273,24 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
     } catch (error) {
       // A telemetry exporter cannot make a completed write appear retryable.
       log.warn('operation.metrics-failed', { requestId, operation: entry?.id, errorMessage: error instanceof Error ? error.message : String(error) });
+    }
+    // Counting happens after the answer exists and never waits for the disk or changes the answer.
+    try {
+      // A tool call runs inside the agent endpoint's own operation, which does not own the snapshot read that
+      // counting does, so counting runs as the counted operation itself.
+      if (entry?.usage) {
+        const counted = {
+          operationId: entry.id,
+          origin: caller.origin,
+          surface: requestSurface(request),
+          outcome: observation.outcome ?? responseOutcome,
+          target: routeTarget(row.resource(found.match, url)),
+          response,
+        };
+        executeOperation(entry, () => options.usage?.record(counted));
+      }
+    } catch {
+      log.warn('usage.record-failed', { requestId });
     }
     return { response, requestId };
   }

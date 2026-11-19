@@ -86,31 +86,46 @@ export function createScmBranches(ctx: ScmContext, remote: Pick<ScmRemote, 'choo
       };
     },
     // The caller authorizes the branch actually checked out: `origin/x` becomes the local `x`.
-    async switchBranch(slug: string, branch: unknown, create: boolean, { guard }: Reader, authorizeBranch?: (local: string) => void, credentialFor?: CredentialFor) {
-      // Trimmed before any check, so a leading space cannot smuggle an option such as `--detach`.
-      const name = typeof branch === 'string' ? branch.trim() : '';
-      if (!name || name.startsWith('-') || name.length > 200) throw new BadRequestError('Give a branch name.');
-      const directory = dir(slug);
-      const { local, ref } = await branchTarget(directory, name, create);
-      const gitStatus = await git.status(directory);
-      const blocked = blockers(deps.drafts(slug), gitStatus.entries);
-      if (blocked) throw blocked;
-      authorizeBranch?.(local);
-      await deps.assertBranchFree?.(slug, local);
-      const before = await git.head(directory);
-      // Everyone works in one tree, so the branch's content is checked as if the person wrote it.
-      if (!create) {
-        const exists = (await git.branches(directory)).local.includes(local);
-        const tip = exists ? 'refs/heads/' + local : ref;
-        await assertBranchHasFolder(slug, directory, tip, local);
-        if (guard) await judgeSwitch(slug, directory, { tip, before, guard, credentialFor });
-      }
-      await git.run(directory, create ? ['switch', '-c', local] : ['switch', '--end-of-options', local]);
-      deps.branchesMoved?.(slug);
-      const head = await git.head(directory);
-      const altered = head && head !== before ? await alteredAfter(directory, await git.changedBetween(directory, before, head)) : [];
-      await after(slug, altered);
-      return { branch: local, altered };
+    async switchBranch(
+      slug: string,
+      branch: unknown,
+      create: boolean,
+      { guard }: Reader,
+      authorizeBranch?: (local: string) => void,
+      credentialFor?: CredentialFor,
+      verifyPosition?: () => Promise<{ branch: string | null }>,
+    ) {
+      const switchHere = async () => {
+        // Trimmed before any check, so a leading space cannot smuggle an option such as `--detach`.
+        const name = typeof branch === 'string' ? branch.trim() : '';
+        if (!name || name.startsWith('-') || name.length > 200) throw new BadRequestError('Give a branch name.');
+        const directory = dir(slug);
+        if (verifyPosition) {
+          const current = await verifyPosition();
+          if (current.branch === name) return { branch: name, altered: [] };
+        }
+        const { local, ref } = await branchTarget(directory, name, create);
+        const gitStatus = await git.status(directory);
+        const blocked = blockers(deps.drafts(slug), gitStatus.entries);
+        if (blocked) throw blocked;
+        authorizeBranch?.(local);
+        await deps.assertBranchFree?.(slug, local);
+        const before = await git.head(directory);
+        // Everyone works in one tree, so the branch's content is checked as if the person wrote it.
+        if (!create) {
+          const exists = (await git.branches(directory)).local.includes(local);
+          const tip = exists ? 'refs/heads/' + local : ref;
+          await assertBranchHasFolder(slug, directory, tip, local);
+          if (guard) await judgeSwitch(slug, directory, { tip, before, guard, credentialFor });
+        }
+        await git.run(directory, create ? ['switch', '-c', local] : ['switch', '--end-of-options', local]);
+        deps.branchesMoved?.(slug);
+        const head = await git.head(directory);
+        const altered = head && head !== before ? await alteredAfter(directory, await git.changedBetween(directory, before, head)) : [];
+        await after(slug, altered);
+        return { branch: local, altered };
+      };
+      return verifyPosition ? ctx.inWriteTurn(slug, switchHere) : switchHere();
     },
   };
 }

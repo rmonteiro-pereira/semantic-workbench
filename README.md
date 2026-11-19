@@ -20,6 +20,7 @@ Semantic Workbench does not call a language model. When you connect an external 
 - [What you can do](#what-you-can-do)
 - [How the software works](#how-the-software-works)
 - [Supported formats and boundaries](#supported-formats-and-boundaries)
+- [Tessera: an authoring format that compiles to standard Ossie](#tessera-an-authoring-format-that-compiles-to-standard-ossie)
 - [Example workspaces](#example-workspaces)
 - [Local and shared-server modes](#local-and-shared-server-modes)
 - [Connect an agent](#connect-an-agent)
@@ -362,6 +363,7 @@ owns the data root; merely increasing container replicas is not safe scaling.
 | `src/app/metrics/`, `src/app/mappings/`, `src/app/odcs/` | Metric, mapping and contract/lineage views |
 | `src/app/graph/` | Whole-model and neighborhood graphs, layout, traversal and workers |
 | `src/shared/` | Code the browser and server both import: model, parsers, validation, patches, metric bindings |
+| `src/shared/tessera/`, `src/server/tessera/`, `scripts/tessera.ts` | The Tessera format, its compiler, snapshot reading and bundle writing, and the command line |
 | `src/app/components/`, `src/app/theme/` | Cross-feature UI and theme palettes |
 | `schemas/`, `src/generated/` | Pinned schema sources and compiled browser validators |
 | `src/server/routes/`, `src/server/handler.ts` | HTTP request parsing and service dispatch |
@@ -369,6 +371,7 @@ owns the data root; merely increasing container replicas is not safe scaling.
 | `src/server/auth/`, `policies/` | Identity, sessions, Cedar decisions, access review and audit |
 | `src/shared/governance/` | Shared pure metric/classification protection rules |
 | `src/server/agent/` | Filtered metadata, metric explanations and SQL planning |
+| `src/server/usage/`, `src/app/usage/` | Opt-in, identity-free counts of requests through the workbench, and the Traffic display |
 | `src/server/observability/`, `src/app/observability/` | Operational diagnostics and optional reporting |
 | `public/brand/`, `src/server/brand/`, `src/shared/theme/theme.css` | Product identity and semantic theme tokens |
 | `scripts/`, `tests/`, `patches/` | Tooling, isolated verification and locked dependency fixes |
@@ -386,6 +389,7 @@ authorization boundaries and invariants. It is the detailed reference for changi
 | Ossie ontology | YAML, JSON | Concepts, relationships, inheritance and IRIs |
 | Ossie semantic model | YAML, JSON | Datasets, fields, joins, expressions and metrics |
 | Ossie mappings | YAML, JSON | Standalone and deprecated embedded mappings |
+| Tessera ontology (authoring format that compiles to standard Ossie) | YAML, JSON | An Ossie ontology with the marker `tessera: 1` and `tessera_notes`; see [Tessera](#tessera-an-authoring-format-that-compiles-to-standard-ossie) |
 | RDF | Turtle, N-Triples, N3, RDF/XML | Resource inspection, safe item edits and Source |
 | OWL / SHACL | Turtle or RDF/XML | Definitions and selected structural checks; SHACL shapes also run against a chosen Turtle, N-Triples or N3 data file in the project |
 
@@ -409,6 +413,86 @@ MDX remain plain with a not-checked note. Syntax warnings do not block autosave.
 refuses unsupported or ambiguous semantics rather than inventing joins, grains or aggregation.
 See [validation coverage](docs/user-guide.md#validation-coverage-and-limits) and
 [agent planning limits](docs/agent-runtime.md#deliberate-limits).
+
+## Tessera: an authoring format that compiles to standard Ossie
+
+Tessera is an authoring format that compiles to standard Ossie. A Tessera ontology is an Ossie
+ontology with the top-level key `tessera: 1` (the revision of the Tessera rules) and properties
+whose names start with `tessera_`. Revision 1 defines one such property, `tessera_notes`: free text
+for the people who edit an ontology, on the ontology root, on a concept or on a relationship of a
+concept, at most 10,000 characters. Everything else in the document is ordinary Ossie 0.2.0.dev0.
+
+```yaml
+tessera: 1
+version: 0.2.0.dev0
+name: Retail
+ontology:
+  - concept: Order
+    type: EntityType
+    tessera_notes: Ask finance before adding a Return concept.
+```
+
+In the workbench a Tessera ontology opens, edits, saves and appears in the graph like any other
+Ossie ontology. The validation panel names the format ("Tessera 1 on Ossie 0.2.0.dev0 · 0 errors ·
+0 warnings"). A document is never "Not validated": a wrong marker, an unknown or misplaced
+`tessera_` property, a reserved name, a marker on a file that is not an ontology or an unsupported
+Ossie `version` each give a finding with its own code (`tessera-marker`, `tessera-revision`,
+`tessera-base`, `tessera-kind`, `tessera-property`, `tessera-reserved`, `tessera-location`).
+The item inspector and access rules apply to Tessera files. Semantic agent context uses the published projection with notes removed.
+Authorized MCP authoring tools can read the stored source, including unpublished edits and notes. Tests: `tests/tessera/validation.test.ts`,
+`tests/tessera/workbench-documents.test.ts`, `tests/tessera/agent-and-access.test.ts`.
+
+### The compiler and its command line
+
+`bun run tessera compile` reads one project folder from Git objects. In a workbench data root,
+the configured default branch and the publication record select the commit. An explicit `--branch`
+or `--commit` must match that selection. An explicit `--data-root` must contain the repository.
+A repository elsewhere inside a workbench data root, such as a trash archive, is refused.
+Anywhere else, the manifest and loss report label the source `standalone-snapshot`, meaning a Git
+commit on the chosen branch whose publication the workbench cannot establish. Reserved `work/`,
+`proposal/` and `refs/workbench/` refs are refused in either case.
+
+The compiler removes the Tessera marker and notes, copies the other Ossie files byte for byte, and
+writes a bundle outside the repository and the data root’s project and working copy trees.
+The output check follows symlinks and treats names like `..exports` as ordinary child folders.
+The bundle contains the compiled files, `manifest.json` and
+`loss-report.json`. ODCS contracts, RDF files and other files are listed in the manifest as not
+included. `bun run tessera check` runs the same validation and compilation in memory, for a
+committed snapshot or for a folder on disk (labelled unpublished), and writes nothing.
+
+```sh
+bun run tessera compile --repository <dir> --project-folder retail --out <dir> [--accept-loss <digest>] [--loss-policy <file>] [--json]
+bun run tessera check --repository <dir> --project-folder retail
+bun run tessera check --files <dir>
+```
+
+Exit statuses: 0 success (the bundle was written, or `check` found no error); 1 refused (findings, a
+failed output check, an invalid source, a refused commit or output folder); 2 the compile drops
+values and the loss is not accepted, so nothing was written and the report was printed; 64 misuse.
+
+Dropped values are never silent. The loss report lists each one by document, item address, property,
+JSON pointer, byte length and SHA-256, never the value, and ends with a digest. Source provenance
+is carried alongside the loss report and excluded from its digest. A compile with loss
+is released only when you pass that exact digest (`--accept-loss`) or a loss policy file
+(`{ "policy": 1, "allow": ["tessera_notes"] }`). A policy continues to allow loss when the values of allowed properties change.
+An exact digest applies only to the report it identifies. A policy must be a regular file of at most
+65,536 bytes, with no more allow-list entries than there are registered properties. A failure of the compile itself, such as an output
+that does not pass the pinned schema, a changed meaning or two files that would write the same
+path, can never be accepted. Accepting a loss report is not approval of the exported content.
+Tests: `tests/tessera/compile.test.ts`, `tests/tessera/determinism.test.ts`,
+`tests/tessera/loss-report.test.ts`, `tests/tessera/cli.test.ts`.
+
+### Limits
+
+- The compiled output is "valid against the bundled Ossie 0.2.0.dev0 draft". That Ossie version is an
+  unreleased draft; the workbench pins its own copy.
+- Comments and layout of a compiled YAML or JSON document may not survive. Values and key order do,
+  and so does a comment above the marker.
+- Notes are authoring-only: compiling drops them, and nothing recovers them. There is no
+  "convert to standard" operation and no reverse compiler. Source files are never rewritten.
+- The command line is an operator tool. It is not an authorization boundary: it reads Git as the
+  operating-system user and applies no workbench access rules.
+- The command line uses no network and needs no sign-in. Browser and HTTP export are not part of it.
 
 ## Example workspaces
 
@@ -558,6 +642,13 @@ state, audit/session records, the Admin repository, trash and migration backups.
 - Local mode supports Git helpers/SSH; server mode uses HTTPS allowed hosts and personal tokens
   retained only in encrypted sessions.
 
+- Server mode also has shared proposals: a named, reviewable line of work that several people can
+  contribute to before a Steward or Admin promotes it. A repository holds at most 50 open proposals;
+  names are up to 80 characters and identifiers up to 40. The guarantee is enforced by the application,
+  not by the operating system, so anyone with shell access to the data root can bypass it.
+- Push and Sync refuse any `work/` or `proposal/` branch in both modes. Publish the work, then use
+  **Push default**.
+
 The [user guide](docs/user-guide.md) documents autosave/conflicts, imports, project export,
 trash/Undo, sparse folders and multi-project repositories. The
 [server guide](docs/server-mode.md#personal-working-copies-and-publishing) explains working copies
@@ -628,6 +719,13 @@ inventory `tool` id and optional opaque `connection`. Protocol lifecycle records
 HTTP audit selection and existing hash chains remain unchanged. Admin and Steward audit queries
 can filter by origin and tool within their existing visibility; CSV exports append these fields.
 The [audit contract](specs/003-authn-authz/contracts/audit-log.md) defines the stored fields.
+
+Usage counters are off unless an operator sets `SW_USAGE_COUNTERS=on`. They count requests through
+this workbench (mapping contexts, query plans and metric explanations asked for by agent and
+application clients) per published item and day, keep 30 days by default
+(`SW_USAGE_RETENTION_DAYS`), and store no person, client, connection or text. They do not count queries
+run in a warehouse, and browser views are excluded. They are not anonymous: in a small team a low count
+may let people infer who asked. See [usage counters](docs/usage-counters.md).
 
 [Agent clients](docs/agent-runtime.md) use Entra application tokens only on `/api/agent/*`, with
 explicit project grants. The API exposes metadata, explanations and query plans, not execution.
@@ -742,6 +840,7 @@ by the locally recorded quality gate.
 | [Architecture](ARCHITECTURE.md) | Module responsibilities, flows and invariants |
 | [Graph design](docs/graph-design.md) | Rendering/layout engines and graph measurement rules |
 | [Agent runtime](docs/agent-runtime.md) | Metadata APIs, token setup, planning and limits |
+| [Usage counters](docs/usage-counters.md) | What is counted and stored, retention, the Traffic display and its limits |
 | [Theme and branding](docs/theme.md) | Tokens, light/dark and white-label bundles |
 | [Operation inventory](docs/operations.md) | Reviewed operations, effects, limits and browser capabilities |
 | [Audit integrity](docs/audit-tamper-evidence.md) | Hash-chain checks, anchors and limitations |

@@ -136,14 +136,14 @@ export function createAccessAdmin(options: AccessAdminOptions) {
   }
   function proposal(area: string, body: Record<string, unknown>): Proposal {
     const files = repository.files();
-    const config = repository.load();
+    const config = repository.load(access.validatePolicy);
     if (area === 'policies') policyFiles(files, body.rules, config);
     else documentFiles(area, body, files, config);
     return checkedProposal(files, area);
   }
   /** Every proposal, edited or restored from an earlier version, passes these checks. */
   function checkedProposal(files: Record<string, string>, area: string): Proposal {
-    const validated = repository.validate(files);
+    const validated = repository.validate(files, access.validatePolicy);
     validateAgentReferences(validated);
     const known = new Set(access.snapshot().knownProjects());
     for (const slug of Object.keys(validated.projects.projects)) {
@@ -157,7 +157,7 @@ export function createAccessAdmin(options: AccessAdminOptions) {
   function compare(next: AccessConfig) {
     const audit = replaySample(options.audit);
     const names = identityNames(next.agents.clients);
-    return compareAccess(access.snapshot(), next, { users: users(), audit, names });
+    return compareAccess(access.snapshot(), next, { users: users(), audit, names, access });
   }
   function storeReceipt(receipt: Receipt): string {
     const dryRunId = randomUUID();

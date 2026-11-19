@@ -182,6 +182,11 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
   }
   return {
     pin,
+    /** Returns the immutable commit that a request pin chose for a project. */
+    commitOf(requestPin: PublishedPin, project: string) {
+      const entry = registries.get(requestPin)?.find(entry => entry.slug === project);
+      return entry ? requestPin.commits.get(locationOf(entry).repo)?.commit : undefined;
+    },
     /** Invalidates cached ancestry and counts when the repository reports a Git change. */
     invalidateStatus(repository: string) {
       statuses.delete(repository);
@@ -232,8 +237,8 @@ export function createPublishedSnapshots(deps: PublishedSnapshotDeps) {
     async documentsAt(commit: string, project: string) {
       if (!deps.gitAvailable()) throw absence();
       const requestPin = pin();
-      if (!(await resolveRevision(commit))) throw new SnapshotUnavailableError('unavailable');
       const repository = projectRepository(project, requestPin);
+      if (!(await resolveRevision(commit, repository))) throw new SnapshotUnavailableError('unavailable');
       const pointer = deps.pointers.get(repository);
       if (!pointer?.commit || !(await deps.git.isAncestor(deps.directory(repository), commit, pointer.commit))) throw new SnapshotUnavailableError('unavailable');
       const historical = { commits: new Map([[repository, { branch: pointer.branch, commit }]]) };

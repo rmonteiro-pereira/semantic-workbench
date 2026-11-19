@@ -60,7 +60,8 @@
               "creationDomain",
               "remoteAddress",
               "trashTarget",
-              "bodyTargets"
+              "bodyTargets",
+              "authorizeProposal"
             ]
           }
         },
@@ -194,6 +195,9 @@
               }
             }
           ]
+        },
+        "usage": {
+          "const": true
         },
         "outcomeClassifier": {
           "enum": [

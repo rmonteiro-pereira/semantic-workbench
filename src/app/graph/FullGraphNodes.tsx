@@ -3,10 +3,14 @@ import { memo } from 'react';
 import { BaseEdge, BezierEdge, Handle, NodeToolbar, Position, type EdgeProps, type NodeProps } from '@xyflow/react';
 import { Gauge } from 'lucide-react';
 import { pointAtHalf, roundedPath, type Point } from '../odcs/edge-route';
+import type { Relationship } from '../../shared/core/model';
 import { pathMatchesEndpoints } from './edge-path';
 import { edgeAppearance } from './edge-styles';
 import { RoutedEdge } from './RoutedEdge';
 import { shownName } from './text-fit';
+import { TrafficMark } from '../usage/TrafficMark';
+import { useBundleTraffic } from '../usage/use-usage';
+import { trafficStrokeWidth } from '../usage/usage-intensity';
 
 const sides = [
   ['n', Position.Top],
@@ -28,6 +32,7 @@ export const EntityNode = memo(({ data }: NodeProps) => (
       <Handle key={'t' + id} id={'target-' + id} type="target" position={position} />,
     ])}
     <span className="entity-color" />
+    <TrafficMark address={data.address as string | undefined} />
     {data.kind === 'Metric' && (
       <small className="kpi-kind">
         <Gauge size={11} />
@@ -57,7 +62,10 @@ export const AreaNode = memo(({ data }: NodeProps) => (
     {Boolean(data.linksText) && <em className="area-links">{String(data.linksText)}</em>}
   </div>
 ));
-export const GraphEdge = memo((props: EdgeProps) => {
+export const GraphEdge = memo((plainProps: EdgeProps) => {
+  // With Traffic off the line is drawn from the props it always had.
+  const traffic = useBundleTraffic(plainProps.data?.relationships as Relationship[] | undefined);
+  const props = traffic?.level ? { ...plainProps, style: { ...plainProps.style, strokeWidth: trafficStrokeWidth(Number(plainProps.style?.strokeWidth ?? 1.2), traffic.level) } } : plainProps;
   const appearance = edgeAppearance(props);
   const points = props.data?.layoutRoute as Point[] | undefined;
   const path = points && roundedPath(points, 8);

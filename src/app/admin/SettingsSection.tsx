@@ -7,6 +7,7 @@ import { adminApi, problemText } from './api';
 import { useAdminData } from './useAdminData';
 import { VersionHistory } from './VersionHistory';
 import type { Provider, Settings } from './types';
+import { UsageCountersStatus } from '../usage/UsageCountersStatus';
 
 /** Shows public provider health, editable session lifetimes and revocable active sessions. */
 export function SettingsSection() {
@@ -49,6 +50,7 @@ export function SettingsSection() {
       <h3>Provider status</h3>
       {local && <p>Provider settings apply in server mode.</p>}
       {data?.provider && <ProviderFacts provider={data.provider} />}
+      <UsageCountersStatus />
       {data && (
         <>
           <SettingsEditor key={data.version} initial={data.settings} version={data.version} onSaved={reload} />

@@ -19,6 +19,7 @@ import { SyncDialog } from './SyncDialog';
 import { RemoteActions } from './RemoteActions';
 import { changesOfProject, elsewhereLine } from './project-changes';
 import { PublishedSnapshot } from './PublishedSnapshot';
+import { ProposalsSection } from '../proposals/ProposalsSection';
 import './scm.css';
 
 /** Names the remote, branch and folder a sparse project lives in. */
@@ -414,6 +415,7 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
           onAdopt={adoptPublication}
           onAcknowledge={acknowledgePublication}
         />
+        <ProposalsSection project={project} projects={projects} version={version + tick} />
         <div className="scm-remote">
           {remoteNames.length ? (
             <span className="scm-remote-url" title={status.remotes[remoteNames[0]]}>

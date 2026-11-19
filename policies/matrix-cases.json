@@ -309,6 +309,14 @@
       }
     },
     {
+      "case": "GET /api/projects/:slug/usage",
+      "action": "read",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
       "case": "POST /api/projects/:slug/metrics",
       "action": "edit",
       "resource": {
@@ -687,6 +695,94 @@
     {
       "case": "PUT /api/projects/:slug/git/folder",
       "action": "setRemote",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "GET /api/projects/:slug/proposals",
+      "action": "read",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "GET /api/projects/:slug/proposals/:id",
+      "action": "read",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "GET /api/projects/:slug/proposals/:id/diff",
+      "action": "history",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/proposals",
+      "action": "branch",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/proposals/:id/work",
+      "action": "branch",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/proposals/:id/synchronize",
+      "action": "pull",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/proposals/:id/contribute",
+      "action": "commit",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "GET /api/projects/:slug/proposals/:id/promotion-check",
+      "action": "publish",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/proposals/:id/promote",
+      "action": "publish",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/proposals/:id/close",
+      "action": "publish",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/proposals/:id/restore",
+      "action": "publish",
       "resource": {
         "type": "project",
         "project": "sales-metrics"

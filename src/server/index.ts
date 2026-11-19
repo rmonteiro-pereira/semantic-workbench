@@ -83,6 +83,7 @@ async function initializeWorkspace() {
     clientAddress: request => clientAddress(server.requestIP(request)?.address, request.headers.get('x-forwarded-for'), config.mode === 'server' ? config.trustedProxyHops : 0),
     keepOpen: request => server.timeout(request, 0),
     browserReports: telemetry.status.enabled,
+    usageSettings: config.usage,
   });
   await logWorkspace(workspace);
 }
@@ -121,6 +122,7 @@ function close() {
       await pending;
     } finally {
       authentication?.close();
+      await handler?.usage.close();
       workspace?.close();
       await lock.close();
       await telemetry.shutdown();

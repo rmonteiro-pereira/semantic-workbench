@@ -45,7 +45,7 @@ export function signedIn(ws: Workspace, access = createAccessControl(accessFixtu
       const text = await response.text();
       return { status: response.status, body: text ? JSON.parse(text) : null };
     };
-    return { principal, call };
+    return { principal, call, handler };
   };
 }
 

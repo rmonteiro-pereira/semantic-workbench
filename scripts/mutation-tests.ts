@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { operationBoundaryMutants } from './operation-boundary-mutants';
 import { connectionsMutants } from './connections-mutation-cases';
 import { mcpMutants } from './mcp-mutants';
+import { proposalsMutants } from './proposals-mutants';
 import { addressMutants, modelAddressMutants, migrationAddressMutants, serverAddressMutants, addressOperationMutants } from './address-mutants';
 import { adminMutants } from './admin-mutants';
 import { sessionSecurityMutants } from './session-security-mutants';
@@ -16,6 +17,8 @@ import { exampleMetricMutants } from './example-metric-mutants';
 import { themeMutants } from './theme-mutants';
 import { brandMutants } from './brand-mutants';
 import { observabilityMutants } from './observability-mutants';
+import { usageMutants } from './usage-mutants';
+import { tesseraMutants } from './tessera-mutants';
 import { chmod, mkdtemp, readdir, rm, symlink } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 const root = process.cwd();
@@ -109,7 +112,7 @@ const mutants: [string, string, string, string][] = [
   ['auth-compiler', 'src/server/auth/role-compiler.ts', '...clauses(permission.conditions ?? {})]', '...clauses({})]'],
   ['auth-compiler', 'src/server/auth/role-compiler.ts', "role.id.startsWith('r_') && (action === 'admin' || action === 'agentRead')", "role.id.startsWith('r_') && action === 'agentRead'"],
   ['auth-decision', 'src/server/auth/authorize.ts', "status: 404, reason: 'not-readable'", "status: 403, reason: 'not-readable'"],
-  ['auth-decision', 'src/server/auth/authorize.ts', 'adminRules: validated.adminRules,', 'adminRules: {},'],
+  ['auth-decision', 'src/server/auth/authorize.ts', 'loadPolicySet(policyInputs(validated))', 'loadPolicySet({ ...policyInputs(validated), adminRules: {} })'],
   ['auth-admin-guard', 'src/server/auth/admin-guard.ts', 'if (allowed) return { ok: true };', 'if (true) return { ok: true };'],
   ['auth-middleware', 'src/server/auth/operation-boundary.ts', "const failure = auditDenial(audit, { ...record, decision: 'deny' });", 'const failure = null;'],
 
@@ -576,8 +579,15 @@ mutants.push(...operationBoundaryMutants);
 mutants.push(...mcpMutants);
 mutants.push(...(await import('./acp-mutants')).acpMutants);
 mutants.push(...connectionsMutants);
-const connectionsOnly = process.argv.includes('connections');
-if (connectionsOnly) mutants.splice(0, mutants.length, ...connectionsMutants);
+// Shared proposals: scope, authority, the publication path and the push rule.
+mutants.push(...proposalsMutants);
+// Usage counters: what is counted, what is stored, who reads it, how it moves and when it expires.
+mutants.push(...usageMutants);
+// The Tessera format, its compiler and its command line.
+mutants.push(...tesseraMutants);
+// `--only <prefix>` runs the mutants of the categories that start with the prefix and nothing else.
+const only = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1] : undefined;
+if (only) mutants.splice(0, mutants.length, ...mutants.filter(mutant => mutant[0].startsWith(only)));
 
 // Split modules import their siblings, so a mutant runs inside a copy of the whole folder: only
 // imports that leave the folder point back at the real sources.
@@ -585,6 +595,7 @@ const SPLIT_PROJECT_MODULES = /^src\/server\/projects\/(workspace\.ts|workspace\
 function copiedFolderOf(category: string, file: string) {
   if (category === 'connections-domain') return 'src/server/connections';
   if (category === 'connections-gate') return 'src/server/mcp';
+  if (category === 'access-index') return 'src/server/auth';
   if (category === 'agent') return 'src/server/agent';
   if (['mcp-gate', 'mcp-state', 'mcp-tools'].includes(category)) return 'src/server/mcp';
   if (['auth-middleware', 'sec-request-limits', 'signin-redirect', 'bearer-cookie', 'observability-unaudited', 'operation-boundary', 'mcp-audit', 'mcp-rows'].includes(category))
@@ -699,9 +710,9 @@ try {
     killed++;
     console.log(`KILLED ${category}: ${before} → ${after}`);
   }
-  if (connectionsOnly) {
-    console.log(`${killed}/${mutants.length} connection mutants killed; all baselines passed.`);
+  if (only) {
     await rm(temp, { recursive: true, force: true });
+    console.log(`${killed}/${mutants.length} ${only} mutants killed; their baselines passed.`);
     process.exit(0);
   }
   await askpassCases();

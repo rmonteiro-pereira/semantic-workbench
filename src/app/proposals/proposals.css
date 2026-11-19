@@ -1,0 +1,157 @@
+/* Styles the Proposals section of Source Control and its dialogs. Text wraps everywhere: nothing here
+   clips, shortens or hides a name, a path or a reason. */
+.proposals {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.proposal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.proposal-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 8px;
+  width: 100%;
+  min-width: 0;
+  padding: 6px 8px;
+  text-align: left;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 7px;
+  color: var(--color-text);
+}
+.proposal-row:hover {
+  background: var(--color-accent-soft);
+}
+.proposal-name {
+  font-weight: 600;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.proposal-meta {
+  grid-column: 1 / -1;
+  color: var(--text-muted);
+  font-size: var(--text-small);
+  overflow-wrap: anywhere;
+}
+.proposal-status {
+  align-self: start;
+  padding: 0 7px;
+  border-radius: 9px;
+  font-size: var(--text-small);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-secondary);
+}
+.proposal-status.status-open {
+  background: var(--color-accent-soft);
+  color: var(--color-accent-text);
+}
+.proposal-status.status-promoted {
+  background: var(--color-accent-soft-strong);
+  color: var(--color-accent-text);
+}
+.proposal-status.status-damaged {
+  background: var(--color-warning-soft);
+  color: var(--color-warning-text);
+}
+.proposal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.proposal-field textarea {
+  min-width: 0;
+  resize: none;
+  overflow-wrap: anywhere;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 6px;
+}
+.proposal-projects {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  min-width: 0;
+}
+.proposal-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  overflow-wrap: anywhere;
+}
+.proposal-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.proposal-detail p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.proposal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.proposal-reasons-title {
+  font-weight: 600;
+}
+.proposal-check-ok {
+  border-color: var(--color-accent-border);
+  background: var(--color-accent-soft);
+}
+.proposal-changes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.proposal-changes h4 {
+  margin: 0 0 4px;
+  font-size: 13px;
+}
+.proposal-changes ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.proposal-file {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px 8px;
+  width: 100%;
+  padding: 4px 6px;
+  text-align: left;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  color: var(--color-text);
+}
+.proposal-file span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.proposal-file:hover,
+.proposal-file.selected {
+  background: var(--color-accent-soft);
+}
+
+.proposal-detail .proposal-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 4px 8px;
+}
+.proposal-summary > span:last-child {
+  flex: 1 1 200px;
+  min-width: 0;
+}

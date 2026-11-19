@@ -50,11 +50,12 @@ export async function authorizeGitPaths(target: GitTarget, action: Action, { pat
 }
 
 /** Checks push separately, including a commit or sync that requests a push. */
-export async function authorizeGitPush(target: GitTarget): Promise<void> {
+export async function authorizeGitPush(target: GitTarget): Promise<string> {
   requireEffect(target.request, 'remote');
   const scm = target.ws.pendingScm(target.slug, requestReader(target.request));
   const status = await scm.status(target.slug, LOCAL_READER);
   authorizeRepository(target, 'push', { branch: status.branch });
+  return status.branch;
 }
 
 /**
@@ -84,13 +85,14 @@ export async function mayPublish(target: GitTarget): Promise<boolean> {
 }
 
 /** Publishing moves the default branch, so it needs `publish` there on every sharing project. */
-export async function authorizePublish(target: GitTarget, branch: unknown, { push = false }: { push?: boolean } = {}): Promise<void> {
+export async function authorizePublish(target: GitTarget, branch: unknown, { push = false }: { push?: boolean } = {}): Promise<string> {
   requireEffect(target.request, 'publish');
   if (push) requireEffect(target.request, 'remote');
   const { ws, slug } = target;
   const published = await ws.worktrees.defaultBranch(ws.repoOf(slug));
   if (branch !== undefined && branch !== published) throw new BadRequestError(`Publishing goes to the default branch, ${published}.`);
   authorizeRepository(target, 'publish', { branch: published });
+  return published;
 }
 
 /** Checks every project affected by a command on the shared repository. */

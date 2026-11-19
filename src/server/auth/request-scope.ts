@@ -38,9 +38,14 @@ export type AccessRequest = Request & {
   [requestCallerOrigin]?: Caller['origin'];
   [requestPublicationRefusal]?: string;
   [requestPublication]?: { previous: string | null; commit: string | null };
+  [requestProposal]?: ProposalAuditFacts;
 };
 /** The completed publication attached by its route for the one request audit record. */
 export const requestPublication = Symbol('requestPublication');
+/** The proposal, its declared projects and the commits a proposal operation touched. */
+export const requestProposal = Symbol('requestProposal');
+/** What an audit record says about a proposal operation; never the proposal's free-text name. */
+export type ProposalAuditFacts = { proposal: string; projects: string[]; commits: string[] };
 /** A bounded refusal reason attached by the adoption route for its audit outcome. */
 export const requestPublicationRefusal = Symbol('requestPublicationRefusal');
 
@@ -57,6 +62,10 @@ export function recordPublicationAttempt(request: Request, previous: string | nu
 /** Records immutable publication identifiers after the ref and durable pointer have settled. */
 export function recordPublication(request: Request, publication: { previous: string | null; commit: string }) {
   (request as AccessRequest)[requestPublication] = { previous: publication.previous, commit: publication.commit };
+}
+/** Records the proposal operation's facts for the one request audit record. */
+export function recordProposal(request: Request, facts: ProposalAuditFacts) {
+  (request as AccessRequest)[requestProposal] = facts;
 }
 /**
  * The projects whose audit records an audit request may read, decided once by the access
@@ -88,6 +97,7 @@ export function attachIdentity(
   // A reused request must not carry a previous operation's publication outcome.
   attached[requestPublication] = undefined;
   attached[requestPublicationRefusal] = undefined;
+  attached[requestProposal] = undefined;
 }
 
 /**

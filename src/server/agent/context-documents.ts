@@ -2,13 +2,14 @@
 import { inspect } from '../../shared/core/model';
 import { rdfSyntax } from '../../shared/validation/rdf';
 import { isMapping } from '../../shared/mappings/mapping-schema';
+import { documentForAgents } from '../../shared/tessera/agent-view';
 import type { StoredDocument } from './context-types';
 export function parseDocuments(documents: StoredDocument[]) {
   return documents.map(doc => {
     try {
       if (rdfSyntax(doc.source, doc.filename)) return { doc, data: null };
       const model = inspect(doc.source, doc.filename);
-      return { doc, data: 'document' in model ? model.document : null };
+      return { doc, data: 'document' in model ? documentForAgents(model.document) : null };
     } catch {
       return { doc, data: null };
     }

@@ -32,7 +32,7 @@ export type PathBase = 'project' | 'repository';
 /** Picks the credential for the remote a command reaches; server mode only. */
 export type CredentialFor = (remote: RemoteAddresses) => Promise<RemoteCredential>;
 // The remote a request uses, chosen once, with the credential for it.
-export type RemoteChoice = { name: string; credential?: RemoteCredential };
+export type RemoteChoice = RemoteAddresses & { credential?: RemoteCredential };
 // A remote command's chosen remote, and the content guard that checks what a pull brings in.
 export type RemoteRequest = {
   choice: RemoteChoice | null;
@@ -55,6 +55,7 @@ export type FollowResult = {
 /** Workspace services needed to run Git actions and refresh project state. */
 export type ScmDeps = {
   layout: DataLayout;
+  migrationLayout?: DataLayout;
   git: Git;
   gitAvailable: boolean;
   /** Checks provenance in this project repository against published and personal ancestry. */
@@ -78,6 +79,8 @@ export type ScmDeps = {
   untrackedPull?: (slug: string, branch: string) => Promise<string | null>;
   /** The repository's default branch, which Push <default> sends. */
   defaultBranch?: (slug: string) => Promise<string>;
+  /** The branch and commit recorded by publication, independent of the live branch ref. */
+  publishedPosition?: (slug: string) => { branch: string; commit?: string } | undefined;
   /** After a successful fetch, so the published default branch can follow the remote. */
   fetched?: (slug: string, remote: string, follow: FollowRequest) => Promise<FollowResult | null>;
   /** After a branch switch, so the record of who holds which branch is read again. */
@@ -93,6 +96,8 @@ export type ScmDeps = {
    * the exact commit before it is merged.
    */
   mergeDefault?: (slug: string, author: CommitAuthor | undefined, check: (tip: string) => Promise<void>) => Promise<GitResult>;
+  /** Merges any commit, such as a proposal's tip, into a working copy's branch; absent in local mode. */
+  mergeCommit?: (slug: string, author: CommitAuthor | undefined, source: { tip: string; label: string }, check: (tip: string) => Promise<void>) => Promise<GitResult>;
 };
 /** The helpers every Source Control module shares: Git access, repository paths and refreshes. */
 export type ScmContext = {
@@ -104,8 +109,10 @@ export type ScmContext = {
   prefix: (slug: string) => string;
   ownerOf: (slug: string, path: string) => { project: string; prefix: string } | undefined;
   sparseProjectFolder: (slug: string, directory: string) => Promise<{ folder?: string }>;
-  fetchFolderContents: (directory: string, tip: string, chooseRemote: () => Promise<RemoteChoice | null>) => Promise<void>;
+  fetchFolderContents: (directory: string, tip: string, chooseRemote: () => Promise<Pick<RemoteChoice, 'name' | 'credential'> | null>) => Promise<void>;
   after: (slug: string, altered?: string[]) => Promise<Awaited<ReturnType<Git['status']>>>;
+  /** Holds the project write lock before taking a repository queue turn, as a commit does. */
+  inWriteTurn: <T>(slug: string, work: () => Promise<T>) => Promise<T>;
   alteredAfter: (directory: string, changed: string[]) => Promise<string[]>;
 };
 
@@ -153,7 +160,7 @@ export function createScmContext(deps: ScmDeps): ScmContext {
   }
   // Downloads what a judged change brings before it is read, when the repository holds only a
   // folder; a full clone has every file already.
-  async function fetchFolderContents(directory: string, tip: string, chooseRemote: () => Promise<RemoteChoice | null>) {
+  async function fetchFolderContents(directory: string, tip: string, chooseRemote: () => Promise<Pick<RemoteChoice, 'name' | 'credential'> | null>) {
     const folders = await sparseFolders(git, directory);
     if (!folders.length) return;
     const choice = await chooseRemote();
@@ -196,5 +203,9 @@ export function createScmContext(deps: ScmDeps): ScmContext {
     const [disk, tree] = await Promise.all([git.worktreeIds(directory, candidates), git.treeIds(directory, 'HEAD', candidates)]);
     return candidates.filter(p => tree.has(p) && disk.get(p) !== tree.get(p));
   }
-  return { deps, layout, git, dir, prefix, ownerOf, sparseProjectFolder, fetchFolderContents, after, alteredAfter };
+  function inWriteTurn<T>(slug: string, work: () => Promise<T>) {
+    const inQueue = () => git.exclusive(dir(slug), work);
+    return deps.withProjectLock ? deps.withProjectLock(slug, inQueue) : inQueue();
+  }
+  return { deps, layout, git, dir, prefix, ownerOf, sparseProjectFolder, fetchFolderContents, after, alteredAfter, inWriteTurn };
 }

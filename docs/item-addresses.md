@@ -144,6 +144,7 @@ reconciliation.
 | Project and personal trash views | Archived `view.json` and `views/<project>.json` use the same view shape; archived definitions supply conversion context. |
 | Browser mapping/lineage center preferences | Uniquely matched stable card keys convert with a backup; unconvertible values stay unchanged. Other navigation preferences contain no item keys. |
 | Browser action history | Selection/centers use addresses in memory; serialized history holds a session/cursor. Reload does not restore a recording. |
+| Usage counters `state/usage/<project>/<day>.json` | `counts` keys are absolute item addresses. They are converted by replay: reads and compaction apply the address migration records after `migratedThrough`, so no backup is needed. The file holds counts only. |
 
 Shared views live at `state/views/<project>.json`; personal views live at
 `state/users/<owner>/views/<project>.json`. Browser center keys are `workbench:mapping-center:*`
@@ -229,3 +230,14 @@ visible migration endpoints. Cross-project replay resumes after the move marker 
 arrival order even when a document moves back. Deletions follow the history-cut rule above. Snapshot suffixes remain
 opaque and are preserved during prefix replacement; until published-snapshot integration, this resolver reads the
 current definition and makes no historical-version claim.
+
+## Tessera documents
+
+A Tessera ontology has the same items and the same addresses as the Ossie ontology you get by
+removing its marker and its `tessera_` properties. The marker and the additions create no item, edge
+or field, and `inspect` keeps the kind `Ossie ontology`. Compiling a Tessera document changes no
+address: the document-relative address of every item in the source names the same item in the
+compiled output. The loss report names each dropped value by the document-relative address of the
+item that held it (for the ontology root, the address of the ontology itself, such as
+`sw1:#ontology:Retail`). Tests: `tests/tessera/workbench-documents.test.ts` and
+`tests/tessera/determinism.test.ts`.

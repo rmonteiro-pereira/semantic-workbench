@@ -33,7 +33,18 @@ test('an Editor’s guarded pull and sync fetch with her own Azure DevOps token'
   const clone = await publishSalesBranch(setup, alice, 'alice-incoming');
   const notes = join(dirname(salesFile(clone, 'orders.odcs.yaml')), 'incoming-notes.md');
 
-  pushIncoming(clone, notes, () => 'First incoming note.\n');
+  const firstTip = pushIncoming(clone, notes, () => 'First incoming note.\n');
+  const beforeSync = setup.azureDevOps.requests.length;
+  const synced = await setup.call(alice, 'POST', sales + '/git/sync');
+  expect(synced.status).toBe(200);
+  expect(synced.body).toMatchObject({ ok: false, stderr: expect.stringContaining('Work in progress') });
+  const syncFetches = fetchIdentitiesSince(beforeSync);
+  expect(syncFetches.length).toBeGreaterThan(0);
+  expect(new Set(syncFetches)).toEqual(new Set([TEST_USERS.alice.oid]));
+  expect(setup.azureDevOps.requests.slice(beforeSync).some(request => request.service === 'git-receive-pack')).toBe(false);
+  expect(headOf('alice-incoming')).toBe(firstTip);
+
+  const tip = pushIncoming(clone, notes, text => text + 'Second incoming note.\n');
   const beforePull = setup.azureDevOps.requests.length;
   const pulled = await setup.call(alice, 'POST', sales + '/git/pull');
   expect(pulled.status).toBe(200);
@@ -41,15 +52,6 @@ test('an Editor’s guarded pull and sync fetch with her own Azure DevOps token'
   const pullFetches = fetchIdentitiesSince(beforePull);
   expect(pullFetches.length).toBeGreaterThan(0);
   expect(new Set(pullFetches)).toEqual(new Set([TEST_USERS.alice.oid]));
-
-  const tip = pushIncoming(clone, notes, text => text + 'Second incoming note.\n');
-  const beforeSync = setup.azureDevOps.requests.length;
-  const synced = await setup.call(alice, 'POST', sales + '/git/sync');
-  expect(synced.status).toBe(200);
-  expect(synced.body.ok).toBe(true);
-  const syncFetches = fetchIdentitiesSince(beforeSync);
-  expect(syncFetches.length).toBeGreaterThan(0);
-  expect(new Set(syncFetches)).toEqual(new Set([TEST_USERS.alice.oid]));
   expect(headOf('alice-incoming')).toBe(tip);
 });
 

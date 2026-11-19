@@ -350,6 +350,7 @@ export function adminMockResponse(url: URL, method: string, state: AdminMockStat
   }
   if (method === 'PUT') return { status: 200, body: { version: 'saved' } };
   if (path === '/api/me') return { status: 200, body: state.me };
+  if (/^\/api\/projects\/[^/]+\/usage$/.test(path)) return { status: 200, body: { counters: { enabled: false }, measures: [] } };
   if (path === '/api/audit') return { status: 200, body: auditPage(url) };
   if (path.startsWith('/api/admin/groups/')) {
     const id = decodeURIComponent(path.slice('/api/admin/groups/'.length));

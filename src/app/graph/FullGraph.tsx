@@ -10,7 +10,7 @@ import { ReactFlow, getViewportForBounds, Background, MiniMap, MarkerType, type 
 import { SmartEdgeProvider, type SmartEdgeMetrics } from '@tisoap/react-flow-smart-edge';
 import { Crosshair, Maximize, Maximize2, Minimize2, RefreshCw } from 'lucide-react';
 import { useViewRestore, type Fullscreen } from './fullscreen';
-import { GraphOptions, OptionGroup, Segmented, ShowToggle } from './GraphOptions';
+import { GraphOptions, OptionGroup, Segmented } from './GraphOptions';
 import { ZoomButtons } from './ZoomButtons';
 import { MODEL_CARD_WIDTH, startsCollapsed, textSizesAt } from './overview-capacity';
 import { CompactControls } from './CompactControls';
@@ -21,6 +21,9 @@ import { VALUE_KINDS, kpisKey, readFlag, readHideValues, writeFlag, writeHideVal
 import type { Entity, Relationship } from '../../shared/core/model';
 import { edgeTypes, nodeTypes } from './FullGraphNodes';
 import { useFullGraphLayout } from './useFullGraphLayout';
+import { useTrafficShowItem } from '../usage/traffic-show-item';
+import { ShowMenu } from './ShowMenu';
+import { TrafficLegend } from '../usage/TrafficLegend';
 
 function entityAddress(entity: import('../../shared/core/model').Entity | undefined) {
   return entity && isStructuredEntity(entity) ? formatAddress(entity.address) : undefined;
@@ -74,6 +77,7 @@ export function FullGraph(props: Props) {
   const [miniMap, setMiniMap] = useRecordedState('graph.miniMap', () => readFlag(MINI_MAP_KEY));
   useEffect(() => writeFlag(MINI_MAP_KEY, miniMap), [miniMap]);
   const toggleMiniMap = () => setMiniMap(shown => !shown);
+  const trafficItem = useTrafficShowItem();
   const [routeMetrics, setRouteMetrics] = useState<SmartEdgeMetrics | null>(null);
   // Value types (including built-ins) can be hidden with their edges; the choice is remembered per
   // model in this browser.
@@ -440,22 +444,15 @@ export function FullGraph(props: Props) {
               </button>
             </OptionGroup>
             <OptionGroup title="Show">
-              <ShowToggle on={labels} onToggle={() => setLabels(shown => !shown)}>
-                Labels
-              </ShowToggle>
-              {valueIds.size > 0 && (
-                <ShowToggle on={!hideValues} onToggle={toggleValues} title={`${valueIds.size} value types and their relationships`}>
-                  Value types
-                </ShowToggle>
-              )}
-              {kpiIds.size > 0 && (
-                <ShowToggle on={!hideKpis} onToggle={toggleKpis} title={`${kpiIds.size} metric nodes and their relationships`}>
-                  Metrics
-                </ShowToggle>
-              )}
-              <ShowToggle on={miniMap} onToggle={toggleMiniMap} title="Mini-map of the whole model">
-                Mini-map
-              </ShowToggle>
+              <ShowMenu
+                items={[
+                  { name: 'Labels', summary: 'Relationship names on the lines', on: labels, onToggle: () => setLabels(shown => !shown) },
+                  valueIds.size > 0 ? { name: 'Value types', summary: `${valueIds.size} value types and their relationships`, on: !hideValues, onToggle: toggleValues } : null,
+                  kpiIds.size > 0 ? { name: 'Metrics', summary: `${kpiIds.size} metric nodes and their relationships`, on: !hideKpis, onToggle: toggleKpis } : null,
+                  { name: 'Mini-map', summary: 'A small map of the whole model in the corner', on: miniMap, onToggle: toggleMiniMap },
+                  trafficItem,
+                ]}
+              />
             </OptionGroup>
           </GraphOptions>
           {props.fullscreen && <FullscreenButton fullscreen={props.fullscreen} />}
@@ -530,6 +527,7 @@ export function FullGraph(props: Props) {
           Arranging {display.entities.length} graph nodes…
         </div>
       )}
+      <TrafficLegend />
       <div className="full-graph-status" data-entity-count={overview.entities.length} data-relationship-count={overview.links.length} data-routing={routeMetrics?.executedOn ?? 'pending'}>
         {hideValues && <span>{valueIds.size} value types hidden</span>}
         {hideKpis && <span>{kpiIds.size} metrics hidden</span>}

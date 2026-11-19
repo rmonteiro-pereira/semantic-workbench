@@ -5,6 +5,17 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 
 | Operation | Route | Action | Targets | Effects | Request limit | Exposure |
 | --- | --- | --- | --- | --- | --- | --- |
+| proposals.list | GET /api/projects/:slug/proposals | read | project | read | none | later |
+| proposals.read | GET /api/projects/:slug/proposals/:id | read | project | read | none | later |
+| proposals.diff | GET /api/projects/:slug/proposals/:id/diff | history | project | read | none | later |
+| proposals.create | POST /api/projects/:slug/proposals | branch | project | localWrite | GIT_REQUEST_LIMIT | later |
+| proposals.work | POST /api/projects/:slug/proposals/:id/work | branch | project | localWrite | GIT_REQUEST_LIMIT | later |
+| proposals.synchronize | POST /api/projects/:slug/proposals/:id/synchronize | pull | project | localWrite | GIT_REQUEST_LIMIT | later |
+| proposals.contribute | POST /api/projects/:slug/proposals/:id/contribute | commit | project | commit | GIT_REQUEST_LIMIT | later |
+| proposals.check | GET /api/projects/:slug/proposals/:id/promotion-check | publish | project | read | none | later |
+| proposals.promote | POST /api/projects/:slug/proposals/:id/promote | publish | project | publish | GIT_REQUEST_LIMIT | later |
+| proposals.close | POST /api/projects/:slug/proposals/:id/close | publish | project | localWrite | GIT_REQUEST_LIMIT | later |
+| proposals.restore | POST /api/projects/:slug/proposals/:id/restore | publish | project | localWrite | GIT_REQUEST_LIMIT | later |
 | identity.read | GET /api/me | read | workspace | read | none | never |
 | auth.styles | GET /auth/style.css | read | workspace | read | none | never |
 | events.subscribe | GET /api/events | read | workspace | read | none | never |
@@ -31,6 +42,7 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 | files.ignore | POST /api/projects/:slug/gitignore | edit | project | localWrite | GIT_REQUEST_LIMIT | local-edit |
 | metrics.list | GET /api/projects/:slug/metrics | read | project | read | none | local-edit |
 | projects.deleteImpact | GET /api/projects/:slug/delete-impact | read | project | read | none | local-edit |
+| usage.read | GET /api/projects/:slug/usage | read | project | read | none | never |
 | metrics.save | POST /api/projects/:slug/metrics | edit | project | localWrite | METRIC_REQUEST_LIMIT | local-edit |
 | people.list | GET /api/projects/:slug/people | edit | project | read | none | local-edit |
 | metrics.preview | POST /api/projects/:slug/metrics/preview | read | project | read | METRIC_REQUEST_LIMIT | local-edit |
@@ -165,9 +177,11 @@ These steps run inside the admitted route and share its authorization and audit 
 
 | Operation | Internal steps |
 | --- | --- |
+| proposals.promote | publication.advance, publication.abandon |
 | repositories.clone | publication.upgrade |
 | projects.export | snapshot.read |
 | metrics.list | snapshot.read |
+| usage.read | snapshot.read |
 | metrics.save | snapshot.read |
 | metrics.preview | snapshot.read |
 | metrics.explain | snapshot.read |

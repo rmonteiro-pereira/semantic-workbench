@@ -124,7 +124,7 @@ export const createGitRoutes =
           paths: requestBody.repoPaths ?? requestBody.paths,
           repository: requestBody.repoPaths !== undefined,
         });
-        if (requestBody.push === true) await authorizeGitPush(gitTarget);
+        const pushBranch = requestBody.push === true ? await authorizeGitPush(gitTarget) : undefined;
         if ((req as ReceiptReplayRequest)[receiptReplay]) return new Response(null, { status: 204 });
         const chosen = requestBody.paths === undefined && requestBody.repoPaths === undefined ? null : chosenPaths(requestBody);
         const scm = await sourceControl();
@@ -133,6 +133,7 @@ export const createGitRoutes =
             paths: chosen?.list,
             base: chosen?.base,
             push: requestBody.push === true,
+            pushBranch,
             credentialFor: delegatedCredentials(req),
             author: reader.copy?.author,
             expected,
@@ -182,10 +183,10 @@ export const createGitRoutes =
       }
       // Pushing the default branch changes what everyone pulls, so it needs the right to publish.
       if (action === 'git/push-default') {
-        await authorizePublish(gitTarget, undefined, { push: true });
+        const branch = await authorizePublish(gitTarget, undefined, { push: true });
         // The default branch is shared, so pushing it needs no copy and never starts one.
         const scm = ws.readScm(slug, reader);
-        return Response.json(await scm.pushDefault(slug, delegatedCredentials(req)));
+        return Response.json(await scm.pushDefault(slug, delegatedCredentials(req), branch));
       }
       // Cancel stops what is running and never starts a copy.
       if (action === 'git/cancel') return Response.json(ws.readScm(slug, reader).cancel(slug));
@@ -193,7 +194,7 @@ export const createGitRoutes =
       if (action === 'git/pull' || action === 'git/sync') {
         authorizeRepository(gitTarget, 'pull');
       }
-      if (action === 'git/push' || action === 'git/sync') await authorizeGitPush(gitTarget);
+      const pushBranch = action === 'git/push' || action === 'git/sync' ? await authorizeGitPush(gitTarget) : undefined;
       const remote = ['git/fetch', 'git/pull', 'git/push', 'git/sync'];
       const scm = remote.includes(action) ? await sourceControl() : null;
       // Remote commands run in the person's own copy with their own credential for the remote.
@@ -203,8 +204,8 @@ export const createGitRoutes =
         return Response.json(await scm!.fetch(slug, credentialFor, follow));
       }
       if (action === 'git/pull') return Response.json(await scm!.pull(slug, reader, credentialFor));
-      if (action === 'git/push') return Response.json(await scm!.push(slug, credentialFor));
-      if (action === 'git/sync') return Response.json(await scm!.sync(slug, reader, credentialFor));
+      if (action === 'git/push') return Response.json(await scm!.push(slug, credentialFor, pushBranch));
+      if (action === 'git/sync') return Response.json(await scm!.sync(slug, reader, credentialFor, pushBranch));
       // Use the hash-checked save so concurrent edits are detected and the project is rescanned.
       if (action === 'gitignore') {
         const requestBody = await body(['pattern']);

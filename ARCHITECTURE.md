@@ -28,7 +28,7 @@ flowchart TB
         Access["Identity and access boundary<br/>[Component]<br/>sessions, grants and Cedar"]
         Routes["Resource routes<br/>[Component]<br/>typed requests and dispatch"]
         Workspace["Workspace services<br/>[Component]<br/>files, Git, journals and events"]
-        Models["Definition model and validation<br/>[Component]<br/>parsers, schemas and guards"]
+        Models["Definition model and validation<br/>[Component]<br/>parsers, schemas, guards and the Tessera format"]
         Planner["Agent and metric planner<br/>[Component]<br/>filtered metadata and SQL previews"]
         Admin["Access administration<br/>[Component]<br/>review, replay and versioned activation"]
         Audit["Security audit<br/>[Component]<br/>durable hash-chained records"]
@@ -197,6 +197,21 @@ concatenating project, document or item names.
 - `project-export.ts` selects permitted files/history and checks limits before streaming;
   `zip.ts` writes the archive. Export logic must not bypass a Reader's permissions.
 
+- Shared proposals: `shared/proposals/` holds the pure model (names, identifiers, derived status, contribution
+  branch names and scope judging). `proposal-store.ts` writes `state/proposals/<repo>.json` atomically and
+  `proposal-refs.ts` owns the Git refs. A failed ref transaction checks the expected refs again.
+  A mismatch is stale state, while a storage failure returns a generic operation error.
+  `proposals.ts` creates, lists and views; `proposal-contribution.ts`,
+  `proposal-promotion.ts` (also startup recovery) and `proposal-closing.ts` do the rest, all inside the
+  repository publication queue. Startup reconciles a close or restore when the Git transaction moved
+  the ref but the proposal record still holds the earlier state. An interrupted close records
+  recovery as the closer because the actor is unavailable. Promotion reuses `moveDefault` through `worktrees.promote`.
+  `work-in-progress-push.ts` refuses pushing work and proposal branches. `routes/proposals.ts` exposes the
+  routes and `auth/proposal-access.ts` decides authority. The browser side is `app/proposals/`.
+  The proposal visibility boundary allows a reader of any declared project to see the name, creator,
+  contributors and tip. Unreadable project names are filtered. These shared metadata fields can
+  disclose information across declared projects if the author includes it in the proposal name.
+
 ### Identity, authorization, governance and administration
 
 - `src/server/connections/` owns program registrations, consent grants, token rotation and session-bound connections.
@@ -266,7 +281,14 @@ concatenating project, document or item names.
   controls but cannot authorize a write.
 - `admin-repo.ts`, `access-admin.ts`, `dry-run.ts`, `admin-guard.ts`, `policies.ts` and
   `change-summary.ts` own versioned access documents, reviewed proposals, replay, last-Admin
-  protection and activation. Requested rollback is a new reviewed commit.
+  protection and activation. Requested rollback is a new reviewed commit. The Admin path reuses active
+  policy preparation only when roles and administrator policy text match. Proposal boundaries own
+  their entities and grants. Replay scopes share unchanged principal policy inputs within one
+  comparison; arbitrary administrator rules retain independent evaluation.
+  Cedar builds policy-derived action applicability indexes lazily on the first replay, by role,
+  principal kind and resource kind. Replay scopes use these indexes and reuse readability decisions; ordinary HTTP scopes
+  retain their per-action keys. Both use the same decision function. Reloads replace policy
+  indexes and clear scope decisions. Cedar remains the decision authority.
 - `remote-hosts.ts`, `remote-credentials.ts` and `github-oauth.ts` choose permitted remote hosts
   and command-scoped credentials. `src/server/bin/sw-askpass` is the final host-specific credential
   boundary; Git filters and local merge steps must not inherit remote tokens.
@@ -313,6 +335,75 @@ concatenating project, document or item names.
   `context-selection.ts`); `query-plan.ts` builds the SQL preview;
   `runtime.ts` re-exports both as the public entry point. They never execute a plan or
   call an LLM. Synthetic example execution belongs only to verification scripts/tests.
+
+### Usage counters
+
+Usage stages migrations against both sides of a publication and selects them by the published commit.
+Usage reads resolve addresses against the pinned model and the reader's file grants.
+
+- `src/server/usage/` owns counts of requests through the workbench, off unless `SW_USAGE_COUNTERS=on`.
+  `usage-settings.ts` reads the two variables, `src/shared/usage/usage-counted-operations.ts` parses
+  `src/shared/usage/counted-operations.json`, and `usage-items.ts` is the pure rule that finds the
+  addresses a counted answer names. `usage-recorder.ts` counts in memory (a no-op object when off) and
+  flushes every 30 seconds through `usage-flush.ts` to day files that only `usage-store.ts` touches;
+  `usage-migration.ts`, `usage-retention.ts` and `usage-compaction.ts` move counts with item addresses and
+  expire them, `usage-read.ts` builds the answer of `usage.read` for one reader, `usage-trash.ts` moves
+  counts with a trashed project and `usage-workspace.ts` is the one module that knows the workspace.
+  `usage-publication.ts` is the one lookup of the address history that a published commit proves: it
+  replays the declarations that `src/server/projects/address-commit.ts` bound to a commit when that
+  commit was made in the same working copy with exactly the saved bytes. Every commit takes its turn
+  of the repository queue so that binding sees the same head as the commit.
+- The operation boundary calls the recorder once after a counted answer exists. It never waits for the
+  disk, changes an answer or reads the audit log; no usage module imports audit or telemetry code, and a
+  test scans the imports. `state/usage/` is a durable store that is registered in the persisted-key
+  inventory and holds counts only.
+- `src/app/usage/` is the Traffic display: `traffic-store.ts` asks the server only when the option is on,
+  `use-usage.ts` connects it to React, and the badge, mark, legend, toggle and sort components render
+  from it. With the option off they render nothing.
+
+### The Tessera format and compiler
+
+Tessera is an authoring format that compiles to standard Ossie. Its definitions are pure code in
+`src/shared/tessera/`; Git and the file system are touched only in `src/server/tessera/` and the
+command line.
+
+- `src/shared/tessera/format.ts` holds the one definition of the name, the marker key, the property
+  prefix, the supported revisions and the compiler version. No other module under `src` spells them.
+- `src/shared/tessera/registry.ts` is the one list of additions, built from the modules under
+  `src/shared/tessera/additions/` (`notes.ts` is the only one) and `reserved-names.ts`. Validation,
+  the derived schema, the compiler and the loss report all read it. Its header says how to add one.
+- `src/shared/tessera/bases.ts` is the table of supported Ossie bases and the check that a base
+  leaves the Tessera names alone. Its pinned schema data is copied into `src/generated/` by
+  `scripts/compile-schemas.ts`, keeping schema-file imports outside the shared layer.
+  `schema-derivation.ts` derives the Tessera ontology schema from a pinned schema and the registry; `scripts/derive-tessera-schema.ts` writes it to
+  `schemas/tessera-ontology-1-ossie-0.2.0.dev0.json` and `scripts/compile-schemas.ts` compiles it.
+- `src/shared/tessera/marker.ts` reads the marker (top level only). `validate.ts` gives the Tessera
+  findings and picks the derived schema by marker and base. `src/shared/validation/validation.ts`
+  calls it at the top of `validateStructured`, and `src/shared/core/model.ts` returns the document
+  `format` from `inspect`. That is the whole read path: the editor, the file scan, the save
+  endpoints and agent context reach a Tessera document through those two functions, so no route
+  or operation was added. `agent-view.ts` removes the marker and additions before agent context
+  reads a document.
+- `compile-document.ts` removes the marker and additions of one ontology by their disposition;
+  `serialize.ts` prints the result; `meaning-check.ts` checks the output keeps the data, the items
+  and addresses and the name index; `loss-report.ts` builds the loss report, parses loss policies
+  and decides acceptance; `manifest.ts` builds the manifest; `canonical-json.ts` and `digest.ts`
+  give equal input equal bytes. `document-kind.ts` sorts the files of a project folder and
+  `compile-unit.ts` compiles the whole folder.
+- `src/server/tessera/snapshot-source.ts` reads a committed project folder through the Git helper
+  (`src/server/projects/git.ts`), `disk-source.ts` reads a folder for `check`, and
+  `bundle-writer.ts` writes the bundle to a temporary folder and renames it.
+  `scripts/tessera.ts` is the command line; `scripts/tessera-arguments.ts` and
+  `scripts/tessera-output.ts` read its options and print its results.
+- Tests live in `tests/tessera/`. The mutation gate adds `scripts/tessera-mutants.ts` and
+  `scripts/tessera-mutation-cases.ts`, and the browser check is `scripts/tessera-browser-check.ts`.
+
+Compile flow: read the project folder at a full commit on the default branch (with a data root, the
+commit must equal the published one); classify each file as Tessera ontology, standard Ossie or
+other; validate every Ossie document with the shared validator; compile the Tessera ones and copy
+the others; validate every output with the pinned schema and no notice; run the meaning check;
+build the loss report; release only when there is no failure and the loss is accepted exactly; write
+the bundle outside the source trees.
 
 ### Browser shell and graph rendering
 
@@ -362,7 +453,9 @@ concatenating project, document or item names.
   `useNeighborhoodView.ts` (filtering, walk canvas, shown entities and edges), `useNeighborhoodNodes.ts`
   (positions, chunked reveal, separation by measured size) and `NeighborhoodToolbar.tsx`. `FullGraph.tsx` composes `useFullGraphLayout.ts` (layout cache, the Network worker
   and ELK layout) and `FullGraphNodes.tsx` (entity, area and relationship renderers). `overview.ts` and `communities.ts`
-  decide display grouping, not standard semantics.
+  decide display grouping, not standard semantics. The toolbars' drop-down menus, the Group menu
+  (`GroupingControls.tsx`) and the Show menu (`ShowMenu.tsx`), share placement, dismissal and keyboard
+  focus through `toolbar-menu.ts`.
 - `src/app/odcs/lineage.ts` builds declared column dependencies; `LineageCanvas.tsx`, `LineageCard.tsx`
   and `LineageColumnList.tsx` draw row ports, selection and windowed column lists. Mapping canvases
   reuse this infrastructure with resolver-derived cards/lines. `LineageCanvas.tsx` composes
@@ -432,6 +525,18 @@ concatenating project, document or item names.
 3. `operation-boundary.ts` decides and audits the call as the twin with the `mcp` origin, and the route runs unchanged. The tool maps the HTTP answer to a result.
 4. Delete, restore and commit write a receipt before and after the effect, so a retry returns the original result. A commit also checks the branch, head and file versions in the same turn of the repository queue that commits.
 
+### Proposal contribution and promotion
+
+1. Create registers a proposal ref at the published commit; Work on it gives the caller `work/<handle>.<id>`.
+2. Contribute checks the tip is not stale, the branch descends from it, the declared-project scope,
+   per-path `edit` and the content guards, then moves the ref by compare-and-swap.
+3. Promote dry-runs publication, then fast-forwards the default branch through the shared publication
+   path. A tip inside published history reads as promoted.
+
+Startup persists recovered promotion outcomes and their expected tips before removing any
+open refs. Later startups retry a promoted proposal's cleanup only when its open ref still
+matches that tip.
+
 ### Access administration
 
 1. A typed proposal is validated and replayed against configured cases, recent audit and known
@@ -482,8 +587,10 @@ concatenating project, document or item names.
 | Content protection | `src/shared/governance/`, then server/client bindings |
 | Item address kind | `shared/core/address-kinds.ts`, model derivation, conformance fixtures, properties and `docs/item-addresses.md` |
 | Definition syntax | `src/shared/core/model.ts`, `src/shared/validation/`, `src/shared/odcs/` and pinned schemas |
+| Tessera addition, base or compiler | `src/shared/tessera/registry.ts` (read its header), `bases.ts`, `compile-document.ts`; the command line in `scripts/tessera.ts` |
 | Byte-preserving item edit | `src/shared/edit/`, `src/app/edit/` and `src/shared/editor/patch.ts` |
 | Metrics/bindings/plans | `src/shared/metrics/`, `src/app/metrics/`, `src/server/agent/` |
+| Usage counts and the Traffic display | `src/server/usage/`, `src/shared/usage/counted-operations.json`, `src/app/usage/`, `docs/usage-counters.md` |
 | Graph layout/routing | `FullGraph.tsx`, `src/app/graph/`, `src/app/odcs/` |
 | Git/repository behavior | `src/server/projects/git.ts`, `scm.ts`, working-copy modules |
 | Theme/brand | Tokens and `public/brand/`; server sanitation under `src/server/brand/` |

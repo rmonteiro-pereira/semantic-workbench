@@ -43,6 +43,7 @@ import { createImportBatch, freeReadableName, preflight } from './workspace/impo
 import { createDocumentSave, applyPatches } from './workspace/document-save';
 import { createFileMove } from './workspace/file-move';
 import { createGitIdentity } from './workspace/git-identity';
+import { createWorkspaceProposals } from './workspace/proposals';
 import { MANIFEST_FILE } from './repositories';
 import { LOCAL_READER, type Reader } from './reader';
 import { BadRequestError, HiddenResourceError, SnapshotUnavailableError } from './errors';
@@ -68,6 +69,8 @@ export type WorkspaceOptions = {
   copyIdleMs?: number;
   migrationHooks?: Parameters<typeof migrateLegacy>[1];
   journalHooks?: JournalHooks;
+  /** Tests stop a publication after one of its durable steps to prove restart recovery. */
+  publicationStage?: (stage: 'intent' | 'ref' | 'pointer') => void;
   /**
    * Server mode: at start-up, restores files that local-mode deletions left deleted in the
    * published checkout, and refuses to start on any other change there.
@@ -384,6 +387,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     directory: repository => join(layout.projects, repository),
     readable: candidate => snapshots.validate(candidate),
     supersede: () => snapshots.supersede(),
+    stage: options.publicationStage,
   });
   const localPublication = createLocalPublication({
     git,
@@ -472,6 +476,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     const own = place.copy;
     return createScm({
       layout: place.layout,
+      migrationLayout: layout,
       git,
       gitAvailable,
       siblings: slug => projectsIn(repoOf(slug)),
@@ -485,6 +490,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       rescan: slug => rescanIn(place, slug),
       emit: (e, d, tags) => events.emit(e, d, place.tags(tags)),
       defaultBranch: slug => worktrees.defaultBranch(repoOf(slug)),
+      publishedPosition: slug => publication.pointer(repoOf(slug)),
       beforeCommit: !own && !options.reconcilePublished ? slug => prepareLocalCommit(git, repoDir(place.layout, slug)) : undefined,
       isReadableRevision: (slug, revision, head) => snapshots.isReadableRevision(revision, head, repoOf(slug)),
       publishedStatus: (slug, reader) => scmPublishedStatus({ git, snapshots, state }, repoOf(slug), slug, repoDir(place.layout, slug), reader),
@@ -530,11 +536,15 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     localPublish: async (slug, reader) => localPublication.publishLocal(repoOf(slug), await worktrees.defaultBranch(repoOf(slug)), judgePublish(published, slug, reader.guard)),
     worktrees,
     copies,
+    published,
     repoOf,
     projectsIn,
     rescan,
     emit: (e, d, tags) => events.emit(e, d, tags),
   });
+  const proposals = createWorkspaceProposals({ layout, git, worktrees, publication, publishing, published, copies, events, entry, repoOf, projectsIn, now: options.now ?? Date.now });
+  // A promotion that stopped before its bookkeeping finished is completed here.
+  if (gitAvailable) await proposals.recover([...new Set(projects().map(project => locationOf(project).repo))].filter(repo => existsSync(join(layout.projects, repo, '.git'))));
   const unpublished = createUnpublishedWork({
     git,
     gitAvailable,
@@ -838,6 +848,8 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     /** Releases copies idle longer than the idle period; their files and drafts stay. */
     releaseIdleCopies: () => copies.releaseIdle(),
     worktrees,
+    /** Shared proposals: what several people prepare together before it is published. */
+    proposals,
     /** The repository folder of a registered project. */
     repoOf,
     project: entry,
