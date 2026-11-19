@@ -46,6 +46,11 @@ const display = (spec: FieldSpec, value: any) => {
   }
   return String(value);
 };
+/** One reference a rename cannot rewrite, as the refusal message names it. */
+function unqualifiedReference(blocker: { file: string; line: number; excerpt: string }, oldName: string) {
+  return `${blocker.file}:${blocker.line} names "${oldName}" without saying which concept defines it (${blocker.excerpt})`;
+}
+
 /** Edits an item's fields or source and validates the draft before saving. */
 export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClose, onSaved, onOpenItem, onAddChild, onDelete, onOpenSource }: Props) {
   const access = useCapabilities(doc.project);
