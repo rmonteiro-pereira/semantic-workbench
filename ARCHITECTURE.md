@@ -514,7 +514,9 @@ the bundle outside the source trees.
   and ELK layout) and `FullGraphNodes.tsx` (entity, area and relationship renderers). `overview.ts` and `communities.ts`
   decide display grouping, not standard semantics. The toolbars' drop-down menus, the Group menu
   (`GroupingControls.tsx`) and the Show menu (`ShowMenu.tsx`), share placement, dismissal and keyboard
-  focus through `toolbar-menu.ts`.
+  focus through `toolbar-menu.ts`. Features add their own Show menu entries through a hook that returns
+  a `ShowItem` or null: Traffic (`src/app/usage/traffic-show-item.ts`) and Unpublished work
+  (`src/app/item-diff/unpublished-work-show-item.ts`).
 - `src/app/odcs/lineage.ts` builds declared column dependencies; `LineageCanvas.tsx`, `LineageCard.tsx`
   and `LineageColumnList.tsx` draw row ports, selection and windowed column lists. Mapping canvases
   reuse this infrastructure with resolver-derived cards/lines. `LineageCanvas.tsx` composes
