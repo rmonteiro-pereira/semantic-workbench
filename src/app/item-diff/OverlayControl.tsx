@@ -2,7 +2,7 @@ import { Modal } from '../projects/Modal';
 import { ChangeMark } from './ChangeMark';
 import { ChangeList } from './ChangeList';
 import { useEffect, useRef, useState } from 'react';
-import { useItemDiffContext } from './ItemDiffContext';
+import { canCompareHistory, useItemDiffContext } from './ItemDiffContext';
 import type { ComparisonState } from './use-item-diff';
 
 /** Describes the current comparison even when the overlay has no marks to show. */
@@ -44,7 +44,7 @@ export function OverlayControl() {
     }
     previous.current = { project, branch, head: head ?? (before?.branch === branch ? before.head : undefined) };
   }, [project, branch, head]);
-  if (!overlay || (overlay.project.actions && !overlay.project.actions.includes('history'))) return null;
+  if (!overlay || !canCompareHistory(overlay.project)) return null;
   return (
     <span className="item-overlay-control">
       <button type="button" aria-expanded={open} onClick={() => setOpen(value => !value)} aria-label="Unpublished comparison details">

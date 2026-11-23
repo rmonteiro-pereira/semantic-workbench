@@ -32,7 +32,7 @@ export function ShowMenu({ items }: { items: (ShowItem | null)[] }) {
         Show
         <ChevronDown size={14} aria-hidden="true" />
         {onNames.length > 0 && (
-          <span className="tab-count show-menu-on" aria-hidden="true">
+          <span className="show-menu-count" aria-hidden="true">
             {onNames.length}
           </span>
         )}

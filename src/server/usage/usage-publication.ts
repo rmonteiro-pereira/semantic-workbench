@@ -7,7 +7,7 @@ import { ADDRESS_HISTORY_FILE, ADDRESS_MIGRATION_LIMIT, parseAddressHistory } fr
 import { gitEnv } from '../projects/git';
 import { projectPrefix, repoDir, type DataLayout } from '../projects/paths';
 
-/** The largest history file read, the same bound the committed history reader applies. */
+/** The largest history file read, the same bound the committed history reader applies. A worst-case ceiling for the output buffer, not an expected size. */
 const MAX_HISTORY_BYTES = ADDRESS_MIGRATION_LIMIT * 9_000;
 const objectId = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/;
 /** The last few published commits read for each project, since publication moves rarely. */

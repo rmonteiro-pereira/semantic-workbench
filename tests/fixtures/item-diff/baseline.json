@@ -598,7 +598,7 @@
                               "attributes": [
                                 [
                                   "class",
-                                  "tab-count show-menu-on"
+                                  "show-menu-count"
                                 ]
                               ],
                               "text": [

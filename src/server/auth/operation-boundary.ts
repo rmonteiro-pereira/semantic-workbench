@@ -296,7 +296,6 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
     }
     return { response, requestId };
   }
-  /** Lists sorted operation ids admitted by effective policy and connection effects. */
   /** Yields, in route inventory order, each operation the caller may use, deciding each one only when asked. */
   function* admittedOperations(caller: Caller): Generator<{ id: string; effects: readonly OperationEffect[] }> {
     assertMinted(caller);

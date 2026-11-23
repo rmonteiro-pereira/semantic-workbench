@@ -8,13 +8,18 @@ const Context = createContext<(ReturnType<typeof useItemDiff> & { project: Proje
 const emptyChanges: ItemChange[] = [];
 
 /** Makes one saved comparison available across the current project workspace. */
+/** Whether a reader may compare this project's saved items with its history. A project that lists no actions is the local one, where everything is allowed. */
+export function canCompareHistory(project: Pick<ProjectInfo, 'actions'> | undefined): boolean {
+  return !project?.actions || project.actions.includes('history');
+}
+
 export function ItemDiffProvider({ project, docs, revision, children, refreshBranch }: { project?: ProjectInfo; docs: Doc[]; revision: number; children: ReactNode; refreshBranch: () => void }) {
   const [removedAddress, setRemovedAddress] = useState('');
   const slug = project?.slug;
   const published = project?.published?.commit;
   const [loaded, setLoaded] = useState<{ slug: string; revision: number; status: GitStatus }>();
   useEffect(() => {
-    if (!slug || !published || (project?.actions && !project.actions.includes('history'))) return;
+    if (!slug || !published || !canCompareHistory(project)) return;
     let cancelled = false;
     void scm.status(slug).then(
       status => {

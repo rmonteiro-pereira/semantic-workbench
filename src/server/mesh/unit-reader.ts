@@ -15,14 +15,15 @@ import { MissingOntologySetError } from '../projects/errors';
 type UnitText = { path: string; source: string; findings?: Issue[] };
 type ReadSource = { available: (path: string) => boolean; read: (path: string) => string | null; rootPaths: () => string[] };
 
-/** The revision-three marker as YAML or JSON writes it, with or without quotes around the key. */
-const MAY_BE_REVISION_THREE = /["']?tessera["']?\s*:\s*3\b/;
+/** A Tessera marker key as YAML or JSON writes it, with or without quotes. Its value is left to the full parse, since YAML can spell 3 in several ways. */
+const MAY_HAVE_TESSERA_MARKER = /["']?tessera["']?\s*:/;
 
 /** Parses a revision-three root or part from an already readable source file. */
 export function unitDocument(path: string, source: string | null): UnitDocument | undefined {
   if (source === null) return undefined;
-  // Only a file that says `tessera: 3` can be a root or a part, so every other file skips the full validation.
-  if (!MAY_BE_REVISION_THREE.test(source)) return undefined;
+  // Only a file with a Tessera marker can be a root or a part, so every other file skips the full validation.
+  // The check errs towards parsing: a match in a comment or a nested key only costs a full validation.
+  if (!MAY_HAVE_TESSERA_MARKER.test(source)) return undefined;
   const parsed = validateInput(source, posix.basename(path)).model;
   if (!parsed || !('document' in parsed)) return undefined;
   const data = parsed.document;

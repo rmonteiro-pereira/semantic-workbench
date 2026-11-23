@@ -71,7 +71,7 @@ the full commit. File-list `bytes` in a released compile is a byte count, not fi
 A `file` part requires `commit`; each part has `path`, `version`, `offset`, `nextOffset` and `text`.
 Continue at `nextOffset` until it is null. A changed published commit answers 409 `snapshot-changed`.
 
-No published snapshot answers 409 `not-published`. Invalid requests answer 400; unreadable or
+No published snapshot answers 409 `not-published`, with `code: "no-published-snapshot"` and the `reason`, as other routes answer a missing snapshot. Invalid requests answer 400; unreadable or
 missing units answer 404. A bundle needing acceptance answers 409 `acceptance-required`; compile
 findings refuse a bundle with 422 `refused` before any ZIP bytes. Conversion conflicts answer 409
 `version-changed`, `dirty`, `no-history`, `not-tessera` or `digest-mismatch`; compile refusal answers

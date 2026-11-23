@@ -11,7 +11,7 @@ Result on the release candidate: all ten steps pass.
 ## Server-mode reference transport
 
 Command: `bun run test:mcp -- --server-mode`. On 2026-11-18, the reference client
-`@modelcontextprotocol/client` 2.4.0 with server library 2.4.0 passed discovery of 21 tools,
+`@modelcontextprotocol/client` 2.4.0 with server library 2.4.0 passed discovery of the 21 tools the endpoint had on that date,
 an authenticated project read and a 401 challenge after connection revocation over a real
 loopback HTTP listener. The fixture uses an isolated identity provider and sends consent
 requests directly; it does not establish browser authorization compatibility.

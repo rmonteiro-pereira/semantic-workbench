@@ -36,6 +36,7 @@ export function publicationChecks(deps: PublicationCheckDeps): PublicationCheck[
   ];
 }
 
+/** Reports a Git failure inside a check as an unreadable candidate, like the readability check itself does. Only the visible-set check needs this: it is the one check that reads the candidate before readability is proven. */
 function unreadableOnGitFailure(check: PublicationCheck): PublicationCheck {
   return async candidate => {
     try {

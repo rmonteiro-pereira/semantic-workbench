@@ -90,3 +90,21 @@ test('the inventory refuses every operation with a missing effect, including des
     }
   }
 });
+
+test('consent availability equals asking the boundary once per offered scope', async () => {
+  const { scopeAvailability } = await import('../../src/server/connections/scope-availability');
+  const { createAccessControl } = await import('../../src/server/auth/authorize');
+  const { accessFixture, person } = await import('./access-fixture');
+  const server = await open();
+  const boundary = server.handler.boundary;
+  const access = createAccessControl(accessFixture());
+  // A sales editor, a viewer of another domain, a workspace Admin and a person with no grant.
+  for (const name of ['alice', 'carol', 'dave', 'erin'] as const) {
+    const principal = access.principalFor(person(name));
+    const availability = scopeAvailability(boundary, principal);
+    for (const scope of offeredScopes()) {
+      const perScope = boundary.availableOperations(mintCaller({ principal, origin: 'mcp', scope: effectsOf([scope]) })).length > 0;
+      expect(availability[scope], `${name} ${scope}`).toBe(perScope);
+    }
+  }
+}, 30000);
