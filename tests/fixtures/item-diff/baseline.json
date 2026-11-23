@@ -576,19 +576,6 @@
                           ],
                           "children": [
                             {
-                              "tag": "span",
-                              "attributes": [
-                                [
-                                  "class",
-                                  "show-menu-on"
-                                ]
-                              ],
-                              "text": [
-                                "Value types"
-                              ],
-                              "children": []
-                            },
-                            {
                               "tag": "svg",
                               "attributes": [
                                 [
@@ -605,6 +592,19 @@
                                   "children": []
                                 }
                               ]
+                            },
+                            {
+                              "tag": "span",
+                              "attributes": [
+                                [
+                                  "class",
+                                  "tab-count show-menu-on"
+                                ]
+                              ],
+                              "text": [
+                                "1"
+                              ],
+                              "children": []
                             }
                           ]
                         }
@@ -5898,7 +5898,7 @@
           "tag": "span",
           "attributes": [],
           "text": [
-            "Published: main @ d97e482"
+            "Published: main @ 9ca0eb0"
           ],
           "children": []
         },

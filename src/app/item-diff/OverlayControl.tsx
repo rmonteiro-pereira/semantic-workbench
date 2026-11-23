@@ -2,7 +2,6 @@ import { Modal } from '../projects/Modal';
 import { ChangeMark } from './ChangeMark';
 import { ChangeList } from './ChangeList';
 import { useEffect, useRef, useState } from 'react';
-import { Layers } from 'lucide-react';
 import { useItemDiffContext } from './ItemDiffContext';
 import type { ComparisonState } from './use-item-diff';
 
@@ -26,7 +25,7 @@ export function branchChangeNotice(previous: string, next: string, previousHead?
   return '';
 }
 
-/** Puts the overlay toggle, branch information and comparison summary in the graph controls. */
+/** Puts the comparison details in the graph controls. The overlay itself is switched from the Show menu. */
 export function OverlayControl() {
   const overlay = useItemDiffContext();
   const [open, setOpen] = useState(false);
@@ -48,10 +47,6 @@ export function OverlayControl() {
   if (!overlay || (overlay.project.actions && !overlay.project.actions.includes('history'))) return null;
   return (
     <span className="item-overlay-control">
-      <button type="button" aria-pressed={overlay.enabled} onClick={() => overlay.setEnabled(!overlay.enabled)}>
-        <Layers size={13} aria-hidden="true" />
-        Unpublished work
-      </button>
       <button type="button" aria-expanded={open} onClick={() => setOpen(value => !value)} aria-label="Unpublished comparison details">
         Comparison
       </button>

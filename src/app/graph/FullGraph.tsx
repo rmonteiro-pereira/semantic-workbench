@@ -26,6 +26,7 @@ import type { Entity, Relationship } from '../../shared/core/model';
 import { edgeTypes, nodeTypes } from './FullGraphNodes';
 import { useFullGraphLayout } from './useFullGraphLayout';
 import { useTrafficShowItem } from '../usage/traffic-show-item';
+import { useUnpublishedWorkShowItem } from '../item-diff/unpublished-work-show-item';
 import { ShowMenu } from './ShowMenu';
 import { TrafficLegend } from '../usage/TrafficLegend';
 
@@ -84,6 +85,7 @@ export function FullGraph(props: Props) {
   useEffect(() => writeFlag(MINI_MAP_KEY, miniMap), [miniMap]);
   const toggleMiniMap = () => setMiniMap(shown => !shown);
   const trafficItem = useTrafficShowItem();
+  const unpublishedWorkItem = useUnpublishedWorkShowItem();
   const [routeMetrics, setRouteMetrics] = useState<SmartEdgeMetrics | null>(null);
   // Value types (including built-ins) can be hidden with their edges; the choice is remembered per
   // model in this browser.
@@ -482,6 +484,7 @@ export function FullGraph(props: Props) {
                   valueIds.size > 0 ? { name: 'Value types', summary: `${valueIds.size} value types and their relationships`, on: !hideValues, onToggle: toggleValues } : null,
                   kpiIds.size > 0 ? { name: 'Metrics', summary: `${kpiIds.size} metric nodes and their relationships`, on: !hideKpis, onToggle: toggleKpis } : null,
                   { name: 'Mini-map', summary: 'A small map of the whole model in the corner', on: miniMap, onToggle: toggleMiniMap },
+                  unpublishedWorkItem,
                   trafficItem,
                 ]}
               />

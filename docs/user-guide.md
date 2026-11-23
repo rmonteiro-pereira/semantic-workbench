@@ -728,7 +728,8 @@ session starts a new conversation. See [the panel guide](agent-panel.md) for sco
 
 ## Review unpublished work
 
-Open **Unpublished work** in the full graph or Neighborhood. On a phone, use **Controls**.
+Switch on **Unpublished work** in the **Show** menu of the full graph or Neighborhood, and open
+**Comparison** next to it for the list of changes. On a phone, use **Controls**.
 The comparison follows your branch against the published snapshot. It starts on when Source
 Control reports unpublished work. A project with no published commit shows its saved items as
 added when you turn the overlay on.
@@ -753,7 +754,7 @@ When adding a concept, choose the root or a declared part.
 the exported concepts you need. Refer to a chosen concept as `alias.Concept`. Use **Update
 dependencies** to review changes and explicitly write the dependency manifest before
 committing and publishing. A reported interface change leaves compatibility for the author
-to evaluate. **Mesh** shows the published connections. People with permission to publish a
+to evaluate. **Mesh**, in the sidebar under Source control, shows the published connections. People with permission to publish a
 provider can select it and open **Used by**.
 
 A provider can re-export an imported concept by listing its alias-qualified name in

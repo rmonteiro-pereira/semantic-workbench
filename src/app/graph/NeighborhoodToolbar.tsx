@@ -6,6 +6,7 @@ import { EntityName } from './EntityName';
 import { CompactControls } from './CompactControls';
 import { ModelGraphOptions, OptionGroup, ShowToggle } from './GraphOptions';
 import { useTrafficShowItem } from '../usage/traffic-show-item';
+import { useUnpublishedWorkShowItem } from '../item-diff/unpublished-work-show-item';
 import { ShowMenu } from './ShowMenu';
 import { PierceControls } from './PierceControls';
 import { ZoomButtons } from './ZoomButtons';
@@ -162,6 +163,7 @@ function NeighborhoodOptions({
   onRearrange,
 }: OptionsProps) {
   const trafficItem = useTrafficShowItem();
+  const unpublishedWorkItem = useUnpublishedWorkShowItem();
   return (
     <ModelGraphOptions>
       <OptionGroup title="Neighbors">
@@ -193,6 +195,7 @@ function NeighborhoodOptions({
             { name: 'Labels', summary: 'Relationship names on the lines', on: labels, onToggle: () => setLabels(shown => !shown) },
             valueCount > 0 ? { name: 'Value types', summary: `${valueCount} value types and built-in concepts`, on: !hideValues, onToggle: onToggleValueTypes } : null,
             kpiCount > 0 ? { name: 'Metrics', summary: `${kpiCount} metric nodes`, on: !hideKpis, onToggle: () => setHideKpis(hidden => !hidden) } : null,
+            unpublishedWorkItem,
             trafficItem,
           ]}
         />

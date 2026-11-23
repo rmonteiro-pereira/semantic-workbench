@@ -131,7 +131,7 @@ try {
     await page.goto(appUrl());
     await editImport(page);
     await publish(page, api, retail);
-    await page.locator('.tabs').getByRole('button', { name: 'Mesh', exact: true }).click();
+    await page.getByRole('complementary', { name: 'Workspace documents' }).getByRole('button', { name: 'Mesh', exact: true }).click();
     for (const width of [1440, 768, 390]) {
       await page.setViewportSize({ width, height: 900 });
       for (const theme of ['light', 'dark'] as const) await checkMesh(page, theme);

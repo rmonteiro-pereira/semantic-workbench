@@ -3,7 +3,7 @@ import { chromium, expect } from '@playwright/test';
 import { writeFileSync } from 'node:fs';
 import { configureLogging } from '../src/server/observability/log';
 import { appUrl } from './helpers/base-url';
-import { itemDiffStructure as structure, itemDiffToggle } from './helpers/item-diff-browser';
+import { itemDiffStructure as structure, setItemDiffOverlay } from './helpers/item-diff-browser';
 import { itemDiffAgentAnswers, itemDiffBaselineWorkspace } from '../tests/helpers/item-diff-baseline';
 
 configureLogging({ level: 'error', format: 'text' });
@@ -35,8 +35,7 @@ try {
   const tab = (name: string) => page.locator('.tabs').getByRole('button', { name, exact: true }).click();
   await tab('Graph');
   // The structures are those of the overlay switched off, read the same way the browser check reads them.
-  const overlay = await itemDiffToggle(page);
-  if ((await overlay.getAttribute('aria-pressed')) === 'true') await overlay.click();
+  await setItemDiffOverlay(page, false);
   await expect(page.locator('.full-graph .react-flow__node-entity')).toHaveCount(5, { timeout: 60000 });
   await expect(page.locator('.full-graph-loading')).toHaveCount(0);
   const fullGraph = await structure(page.locator('.full-graph'));

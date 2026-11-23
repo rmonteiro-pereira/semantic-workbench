@@ -1,7 +1,7 @@
 import { chromium, expect, type Page } from '@playwright/test';
 import { appUrl } from './base-url';
 import { routeApi, startIsolatedApi } from './isolated-api';
-import { itemDiffTab, itemDiffToggle } from './item-diff-browser';
+import { itemDiffTab, setItemDiffOverlay } from './item-diff-browser';
 import { measurementFixture } from './item-diff-measurement-fixture';
 
 /** Measures the middle observed elapsed time in a sample of comparable runs. */
@@ -40,9 +40,7 @@ export async function measureBrowserGraph(path: string) {
     const off: number[] = [];
     const on: number[] = [];
     for (const enabled of [false, true, false, true, false, true]) {
-      const toggle = await itemDiffToggle(page);
-      await toggle.click();
-      await expect(toggle).toHaveAttribute('aria-pressed', String(enabled));
+      await setItemDiffOverlay(page, enabled);
       await itemDiffTab(page, 'Catalog');
       const duration = await graphShown(page, enabled);
       (enabled ? on : off).push(duration);

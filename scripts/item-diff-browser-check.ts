@@ -3,7 +3,7 @@ import { chromium, expect, type Locator, type Page, type Route } from '@playwrig
 import { itemDiffBaselineWorkspace } from '../tests/helpers/item-diff-baseline';
 import { appUrl } from './helpers/base-url';
 import { editorValue, fillEditor } from './helpers/code-editor';
-import { checkItemMarks, itemDiffCardGeometry, itemDiffStructure, itemDiffTab, itemDiffToggle } from './helpers/item-diff-browser';
+import { checkItemMarks, itemDiffCardGeometry, itemDiffStructure, itemDiffTab, expectItemDiffOverlay, setItemDiffOverlay } from './helpers/item-diff-browser';
 import { routeApi, startIsolatedApi, type IsolatedApi } from './helpers/isolated-api';
 import { openSyncDialog } from './helpers/sync-dialog';
 import { LOCAL_READER } from '../src/server/projects/reader';
@@ -75,9 +75,8 @@ async function serveBrowser(page: Page, publishControls = false) {
 
 async function compareRecordedGraph(page: Page) {
   await itemDiffTab(page, 'Graph');
-  const toggle = await itemDiffToggle(page);
-  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
-  await toggle.click();
+  await expectItemDiffOverlay(page, true);
+  await setItemDiffOverlay(page, false);
   await expect(page.locator('.full-graph .react-flow__node-entity')).toHaveCount(5, { timeout: 60000 });
   await expect(page.locator('.full-graph-loading')).toHaveCount(0);
   await expect.poll(() => itemDiffStructure(page.locator('.full-graph'))).toEqual(recorded.dom.fullGraph);
@@ -122,14 +121,13 @@ async function checkViewport(width: number, scheme: 'light' | 'dark') {
     await serveBrowser(page);
     await itemDiffTab(page, 'Graph');
     await checkItemMarks(page);
-    const toggle = await itemDiffToggle(page);
-    await toggle.click();
+    await setItemDiffOverlay(page, false);
     await expect(page.locator('.full-graph .item-change-mark')).toHaveCount(0);
     await expect(page.locator('.full-graph-loading')).toHaveCount(0);
     const off = await itemDiffCardGeometry(page);
-    await (await itemDiffToggle(page)).click();
+    await setItemDiffOverlay(page, true);
     await checkItemMarks(page);
-    await (await itemDiffToggle(page)).click();
+    await setItemDiffOverlay(page, false);
     await expect(page.locator('.full-graph-loading')).toHaveCount(0);
     await expect.poll(() => itemDiffCardGeometry(page)).toEqual(off);
     console.log(`PASS ${width}px ${scheme} labels, dashed outlines, text geometry and stable unmarked cards`);
@@ -195,7 +193,7 @@ async function branchAndPublish(page: Page) {
   await branch.selectOption(primary);
   await expect(branch).toHaveValue(primary);
   await itemDiffTab(page, 'Graph');
-  await expect(await itemDiffToggle(page)).toHaveAttribute('aria-pressed', 'false');
+  await expectItemDiffOverlay(page, false);
   await expect(page.locator('.full-graph .item-change-mark')).toHaveCount(0);
   expect(unexpectedPush).toEqual([]);
   console.log('PASS item branches, held names, overlay refresh and publication review with retry and no push');

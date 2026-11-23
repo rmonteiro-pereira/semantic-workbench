@@ -1,16 +1,21 @@
 import { expect, type Locator, type Page } from '@playwright/test';
+import { expectShown, setShown, viewOptions } from './graph-options';
 
 /** Shows a model tab using its ordinary workspace controls. */
 export function itemDiffTab(page: Page, name: string) {
   return page.locator('.tabs').getByRole('button', { name, exact: true }).click();
 }
 
-/** Opens the comparison toolbar on phones and gets the current overlay toggle. */
-export async function itemDiffToggle(page: Page) {
-  const toggle = page.getByRole('button', { name: 'Unpublished work', exact: true });
-  if (!(await toggle.isVisible())) await page.getByRole('button', { name: 'Controls', exact: true }).first().click();
-  await expect(toggle).toBeVisible();
-  return toggle;
+const OVERLAY = 'Unpublished work';
+
+/** Switches the Unpublished work overlay on or off from the graph toolbar's Show menu. */
+export function setItemDiffOverlay(page: Page, on: boolean) {
+  return viewOptions(page, options => setShown(options, OVERLAY, on));
+}
+
+/** Checks whether the Unpublished work overlay is on, as the Show menu reports it. */
+export function expectItemDiffOverlay(page: Page, on: boolean) {
+  return viewOptions(page, options => expectShown(options, OVERLAY, on));
 }
 
 /** Normalizes the rendered contents measured by the recorded base, excluding the new controls. */

@@ -463,7 +463,7 @@ only the published snapshot; **Validation details** checks saved working files w
 Revision 3 lets a project divide one ontology into a root and its declared parts. Projects in the
 same workbench can export concepts and import a named selection from a provider. **Update
 dependencies** reviews and writes the project's committed `tessera-dependencies.json`. Projects
-can share a repository or publish independently. **Mesh** shows the published connections the
+can share a repository or publish independently. **Mesh**, in the sidebar, shows the published connections the
 reader may see. People with provider publication permission can open **Used by**. See
 [Ontology units and imports](docs/user-guide.md#ontology-units-and-imports).
 
