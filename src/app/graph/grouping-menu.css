@@ -85,12 +85,14 @@
 .show-menu-trigger {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   white-space: nowrap;
 }
-/* The names of the switches that are on, so the state shows without opening the menu. */
+/* The count of switches that are on uses the tab count badge, narrower and without its left margin, so the
+   button grows as little as possible and the neighborhood legend stays on the toolbar's row. */
 .show-menu-on {
-  color: var(--color-accent-text);
+  margin-left: 0;
+  padding: 0 5px;
 }
 /* The menu sits inside the toolbar, whose button rules (border, background, padding, no wrapping)
    would otherwise make each row a bordered button and cut long summaries at the menu's edge. */

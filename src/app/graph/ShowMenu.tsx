@@ -8,10 +8,10 @@ import './grouping-menu.css';
 export type ShowItem = { name: string; summary: string; on: boolean; onToggle: () => void };
 
 // These switches used to sit side by side in the toolbar, which pushed the toolbar onto another
-// row each time one was added. The button names every switch that is on, so the state stays
-// visible without opening the menu. The menu stays open while choosing, as a list of check boxes.
-// With nothing switched on the button is about as wide as the Labels switch it replaced, so a
-// toolbar that fitted before still fits.
+// row each time one was added. The button shows how many switches are on in a small badge, so the
+// state stays visible without opening the menu and the button keeps one width whatever is on.
+// Its accessible name still lists the switches that are on. The menu stays open while choosing,
+// as a list of check boxes.
 /** Lists the kinds of content a graph can show, each with a one-line reason to switch it on. */
 export function ShowMenu({ items }: { items: (ShowItem | null)[] }) {
   const wrapper = useRef<HTMLSpanElement>(null);
@@ -30,8 +30,12 @@ export function ShowMenu({ items }: { items: (ShowItem | null)[] }) {
     <span className="show-menu" ref={wrapper}>
       <button ref={button} type="button" className="show-menu-trigger" aria-haspopup="menu" aria-expanded={opened} aria-label={label} onClick={() => setOpened(!opened)}>
         Show
-        {onNames.length > 0 && <span className="show-menu-on">{onNames.join(', ')}</span>}
         <ChevronDown size={14} aria-hidden="true" />
+        {onNames.length > 0 && (
+          <span className="tab-count show-menu-on" aria-hidden="true">
+            {onNames.length}
+          </span>
+        )}
       </button>
       {opened && (
         <div className="grouping-menu" role="menu" aria-label="Show" style={position} ref={menu} onKeyDown={moveFocusWithArrows}>
