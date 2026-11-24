@@ -1041,6 +1041,11 @@
     max-width: var(--content-max-width);
     justify-self: center;
   }
+  /* With a metric open, the list and its detail together take the shared content width, so the
+     list starts at the same left edge as every other text page. */
+  .metrics-view.has-detail {
+    padding-inline: max(0px, calc((100% - var(--content-max-width)) / 2));
+  }
   .metrics-filters {
     max-width: 1100px;
   }

@@ -251,7 +251,6 @@ export function NeighborhoodTools({
   options,
   fullscreen,
 }: ToolsProps) {
-  const { lateral } = options;
   const foldControls = useCompactToolbar(1440);
   return (
     <ScrollStrip className="neighborhood-tools">
@@ -271,14 +270,23 @@ export function NeighborhoodTools({
         />
         <ZoomButtons onZoomIn={onZoomIn} onZoomOut={onZoomOut} />
         <NeighborhoodOptions {...options} />
-        <span className="neighborhood-legend" aria-hidden="true">
-          <span className="in">Incoming</span>
-          <span className="out">Outgoing</span>
-          {lateral && <span className="lateral">Between neighbors</span>}
-        </span>
       </CompactControls>
       {fullscreen && <FullscreenButton fullscreen={fullscreen} />}
     </ScrollStrip>
+  );
+}
+
+/**
+ * Names the line colours under the canvas. It sits there at every width, so it never takes a toolbar
+ * row and stays visible when the toolbar folds its controls away.
+ */
+export function NeighborhoodLegend({ lateral }: { lateral: boolean }) {
+  return (
+    <p className="neighborhood-legend" aria-hidden="true">
+      <span className="in">Incoming</span>
+      <span className="out">Outgoing</span>
+      {lateral && <span className="lateral">Between neighbors</span>}
+    </p>
   );
 }
 

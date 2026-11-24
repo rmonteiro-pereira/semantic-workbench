@@ -421,7 +421,7 @@ failed (with **Retry**) or unavailable for some days. See [usage counters](usage
 
 ### Neighborhood and expansion
 
-Incoming neighbors appear left of the center; outgoing neighbors appear right. The initial view centers the current card at readable zoom and
+Incoming neighbors appear left of the center; outgoing neighbors appear right, and a legend under the canvas names the line colors. The initial view centers the current card at readable zoom and
 shows up to twelve neighbors, on a phone too, with a shown/hidden count and **N more neighbors**.
 Cards keep their type (in words, such as "Entity type"), their whole description, wrapped to as many
 lines as it needs, and metric count at every zoom. Cards never overlap, links stop at the card border

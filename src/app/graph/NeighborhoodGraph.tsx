@@ -20,7 +20,7 @@ import { assignRoutes, heightForEdgeEnds, placeLabels, routePoints, relationship
 import type { Walk, WalkStep } from './walk';
 import { type Fullscreen } from './fullscreen';
 import { useNeighborhoodViewport } from './useNeighborhoodViewport';
-import { NeighborhoodLinks, NeighborhoodTools } from './NeighborhoodToolbar';
+import { NeighborhoodLegend, NeighborhoodLinks, NeighborhoodTools } from './NeighborhoodToolbar';
 import { NODE, useNeighborhoodNodes } from './useNeighborhoodNodes';
 import { useNeighborhoodView } from './useNeighborhoodView';
 import { TrafficMark } from '../usage/TrafficMark';
@@ -651,6 +651,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
           </ReactFlow>
         )}
       </div>
+      <NeighborhoodLegend lateral={lateral} />
       <TrafficLegend />
     </div>
   );

@@ -1,5 +1,16 @@
 # Integration and regression gate
 
+## Layout decisions after merging main da54cf17
+
+- The neighborhood legend (Incoming, Outgoing, Between neighbors) sits under the canvas at every width, beside the Traffic
+  legend. In the toolbar it took a row of its own at 1280 px, and below 1440 px it folded behind Controls with the other
+  secondary controls. Under the canvas it is always visible and the toolbar keeps two rows. Main chose the place for 1280 px;
+  using it at every width keeps one place for the legend.
+- Metric detail aligns to the common left edge. At 1920 px and wider the list and the open metric together take the shared
+  content width (`--content-max-width`), centred like Catalog, Overview, Mappings and the metrics list. The side-by-side list
+  and detail is kept. The responsive content-width check measures the list and the detail as one page.
+
+
 ## Focused regressions and suite retries
 
 ### Lineage detail camera

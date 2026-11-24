@@ -441,12 +441,12 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: List those files under their project name with a switch link, use the `danger` class on Empty trash, and keep the confirmation naming what it removes.
   - Proof: Before `states/local-trash--populated-1440.png`, `followup/local-trash--populated-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/followup-trash.ts <out_root>`; check: `bun run test:trash` plus `tests/trash-sections.test.ts`; the confirmed answer from the previous task is quoted in the dialog's confirmation text.
 
-- [ ] T064 [US5] [E] Apply one content width to every tab and fix the sidebar gap.
+- [x] T064 [US5] [E] Apply one content width to every tab and fix the sidebar gap.
   - Findings: M23, M22 · Requirements: FR-058, FR-060
   - Files: src/app/style.css (`.workspace-content*` and page selectors only), `src/app/workspace/WorkspaceCanvas.tsx`, `src/app/workspace/WorkspaceSidebar.tsx`, `src/app/workspace/WorkspaceSidebar.css`, `src/app/metrics/metrics.css`
   - Change: Define one `--content-max` and use it for Catalog, Overview, Metrics list, Metric detail and Mappings; keep the same top spacing under the logo when **Add project** is absent.
   - Proof: Before `local-light/local-catalog-2560.png`, `local-light/local-ontology-overview-2560.png`, `local-light/local-metric-detail-2560.png`, `server-personas/server-carol-source-control-1440.png` (review baseline); after: same state recaptured with `scripts/ui-review/capture-tour.ts <out> local light` at 2560 and `scripts/ui-review/server-pages.ts <out_root>`; check: `bun run test:responsive` asserts the same left edge (within 2 px) of the main content in the five tabs at 2560 and `bun run test:sidebar`.
-  - Gate disposition: The shared cap and sidebar spacing are implemented. Moving Metric detail to the common left edge remains an owner decision because the view keeps the approved side-by-side list and detail.
+  - Gate disposition: The shared cap and sidebar spacing are implemented. Metric detail now aligns to the common left edge with the side-by-side list and detail kept (decided on 24 Nov 2026, recorded in `evidence/GATE.md`).
 
 - [x] T065 [P] [US5] [E] Make Mappings usable on a phone and fill the desktop pane.
   - Findings: M24 · Requirements: FR-059

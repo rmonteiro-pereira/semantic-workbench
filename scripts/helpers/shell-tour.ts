@@ -78,12 +78,17 @@ export async function contentWidthProblems(page: Page, width: number): Promise<s
     const limit = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--content-max-width'));
     const textPage = document.querySelector<HTMLElement>('.odcs-page, .mapping-explorer, .catalog, .metrics-view .metrics-list');
     if (!textPage) return found;
-    const box = textPage.getBoundingClientRect();
-    const canvas = textPage.parentElement!.getBoundingClientRect();
+    // An open metric shares the width with the list, so the pair is measured as one page.
+    const detail = document.querySelector<HTMLElement>('.metrics-view.has-detail .metrics-detail');
+    const listBox = textPage.getBoundingClientRect();
+    const right = detail ? detail.getBoundingClientRect().right : listBox.right;
+    const box = { left: listBox.left, right, width: right - listBox.left };
+    const canvasElement = detail ? textPage.closest<HTMLElement>('.metrics-view')!.parentElement! : textPage.parentElement!;
+    const canvas = canvasElement.getBoundingClientRect();
     if (box.width > limit + 1) found.push(`the page is ${box.width}px wide, over ${limit}px`);
-    const left = box.left - canvas.left;
-    const right = canvas.right - box.right;
-    if (Math.abs(left - right) > 40) found.push(`the page is not centred (${left} and ${right})`);
+    const leftGap = box.left - canvas.left;
+    const rightGap = canvas.right - box.right;
+    if (Math.abs(leftGap - rightGap) > 40) found.push(`the page is not centred (${leftGap} and ${rightGap})`);
     return found;
   });
 }
