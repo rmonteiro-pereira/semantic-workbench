@@ -74,3 +74,15 @@
     display: none;
   }
 }
+
+/* On a very short window the navigation rows take the footer rows' height and the projects label
+   sits closer, so the tree keeps room for several complete rows under the four navigation rows. */
+@media (max-height: 600px) {
+  .workspace-sidebar > .nav {
+    margin-block: 1px;
+    padding: 9px 13px;
+  }
+  .workspace-sidebar > .section-label {
+    margin: 14px 10px 8px;
+  }
+}

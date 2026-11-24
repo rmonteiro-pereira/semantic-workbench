@@ -114,6 +114,13 @@ async function writeOverlayFixture(target: IsolatedApi) {
   await ws.saveFile(project, file, { baseHash: existing.hash, source }, LOCAL_READER);
 }
 
+// Switching a Show item lays the graph out again, and until that finishes every card waits at the
+// same starting point. The reference positions are read only once the cards have spread out.
+async function settledCardGeometry(page: Page) {
+  await expect.poll(async () => new Set((await itemDiffCardGeometry(page)).map(card => card[3])).size).toBeGreaterThan(1);
+  return itemDiffCardGeometry(page);
+}
+
 async function checkViewport(width: number, scheme: 'light' | 'dark') {
   const page = await browser.newPage({ viewport: { width, height: 900 }, colorScheme: scheme });
   try {
@@ -124,7 +131,7 @@ async function checkViewport(width: number, scheme: 'light' | 'dark') {
     await setItemDiffOverlay(page, false);
     await expect(page.locator('.full-graph .item-change-mark')).toHaveCount(0);
     await expect(page.locator('.full-graph-loading')).toHaveCount(0);
-    const off = await itemDiffCardGeometry(page);
+    const off = await settledCardGeometry(page);
     await setItemDiffOverlay(page, true);
     await checkItemMarks(page);
     await setItemDiffOverlay(page, false);
