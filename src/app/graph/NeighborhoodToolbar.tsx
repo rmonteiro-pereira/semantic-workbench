@@ -170,7 +170,7 @@ function NeighborhoodOptions({
         {view.relationships.length > 1 && (
           <label>
             Relationship
-            <select aria-label="Filter neighbors by relationship" value={relationship} onChange={e => setRelationship(e.target.value)}>
+            <select className="relationship-filter" aria-label="Filter neighbors by relationship" value={relationship} onChange={e => setRelationship(e.target.value)}>
               <option value="">All ({view.relationships.reduce((n, r) => n + r.count, 0)})</option>
               {view.relationships.map(relationship => (
                 <option key={relationship.label} value={relationship.label}>

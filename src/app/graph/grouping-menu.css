@@ -96,6 +96,9 @@
   border-radius: 8px;
   padding: 0 5px;
 }
+.show-menu-count[data-empty] {
+  visibility: hidden;
+}
 /* The menu sits inside the toolbar, whose button rules (border, background, padding, no wrapping)
    would otherwise make each row a bordered button and cut long summaries at the menu's edge. */
 .show-menu .grouping-menu > button.grouping-item {

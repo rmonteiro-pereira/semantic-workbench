@@ -9,7 +9,9 @@ export type ShowItem = { name: string; summary: string; on: boolean; onToggle: (
 
 // These switches used to sit side by side in the toolbar, which pushed the toolbar onto another
 // row each time one was added. The button shows how many switches are on in a small badge, so the
-// state stays visible without opening the menu and the button keeps one width whatever is on.
+// state stays visible without opening the menu. The badge keeps its place, hidden, when nothing is
+// on: a button that grew when a switch came on could wrap the toolbar, and the shorter canvas would
+// then refit and lose the zoom the person had chosen.
 // Its accessible name still lists the switches that are on. The menu stays open while choosing,
 // as a list of check boxes.
 /** Lists the kinds of content a graph can show, each with a one-line reason to switch it on. */
@@ -31,11 +33,9 @@ export function ShowMenu({ items }: { items: (ShowItem | null)[] }) {
       <button ref={button} type="button" className="show-menu-trigger" aria-haspopup="menu" aria-expanded={opened} aria-label={label} onClick={() => setOpened(!opened)}>
         Show
         <ChevronDown size={14} aria-hidden="true" />
-        {onNames.length > 0 && (
-          <span className="show-menu-count" aria-hidden="true">
-            {onNames.length}
-          </span>
-        )}
+        <span className="show-menu-count" data-empty={onNames.length === 0 || undefined} aria-hidden="true">
+          {onNames.length}
+        </span>
       </button>
       {opened && (
         <div className="grouping-menu" role="menu" aria-label="Show" style={position} ref={menu} onKeyDown={moveFocusWithArrows}>
