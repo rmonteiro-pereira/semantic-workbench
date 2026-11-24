@@ -1,0 +1,9 @@
+version: 0.2.0.dev0
+name: FinanceModel
+datasets:
+  - name: orders
+    source: db.orders
+    fields:
+      - name: amount
+        expression: {dialects: [{dialect: ANSI_SQL, expression: amount}]}
+        datatype: Decimal

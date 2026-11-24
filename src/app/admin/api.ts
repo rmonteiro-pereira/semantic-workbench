@@ -177,6 +177,23 @@ function settingsResponse(value: unknown): Settings {
 
 /** Typed administration requests; every request uses the shared cookie and CSRF wrapper. */
 export const adminApi = {
+  async programs() {
+    const value = fields<import('./types').ProgramsFile & { version: string }>(await request('/api/admin/programs'), { version: 'string', programs: 'array' });
+    if (!value.version.trim() || value.formatVersion !== 1) throw new Error('Invalid agent program document.');
+    const programs = list<(typeof value.programs)[number]>(value.programs, {
+      clientId: 'string',
+      name: 'string',
+      description: 'string',
+      setupNote: 'string',
+      redirectUris: 'array',
+      scopes: 'array',
+    });
+    for (const program of programs) {
+      if (!program.clientId.trim() || !program.name.trim() || !program.redirectUris.length) throw new Error('Invalid agent program metadata.');
+      if (![...program.redirectUris, ...program.scopes].every(field => typeof field === 'string' && field.trim())) throw new Error('Invalid agent program metadata.');
+    }
+    return { ...value, programs };
+  },
   async users(search = '', access = '') {
     return list<AdminUser>(await request('/api/admin/users?' + query({ q: search, access })), {
       id: 'string',
@@ -238,7 +255,7 @@ export const adminApi = {
     });
   },
   async dryRun(proposal: Proposal) {
-    return fields<DryRun>(await request('/api/admin/policies/dry-run', 'POST', proposal), {
+    return fields<DryRun>(await request('programs' in proposal ? '/api/admin/programs/preview' : '/api/admin/policies/dry-run', 'POST', proposal), {
       dryRunId: 'string',
       changed: 'array',
       people: 'array',

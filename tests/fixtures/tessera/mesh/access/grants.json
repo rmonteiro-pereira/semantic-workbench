@@ -1,0 +1,21 @@
+{
+  "formatVersion": 1,
+  "grants": [
+    {
+      "id": "retail-author",
+      "roleId": "editor",
+      "member": { "kind": "email", "email": "alice@example.org" },
+      "scope": { "kind": "projects", "projects": ["finance", "retail", "units"] },
+      "addedBy": "fixture",
+      "addedAt": "2026-11-17T00:00:00Z"
+    },
+    {
+      "id": "retail-steward",
+      "roleId": "steward",
+      "member": { "kind": "email", "email": "bob@example.org" },
+      "scope": { "kind": "projects", "projects": ["finance", "retail", "units"] },
+      "addedBy": "fixture",
+      "addedAt": "2026-11-17T00:00:00Z"
+    }
+  ]
+}

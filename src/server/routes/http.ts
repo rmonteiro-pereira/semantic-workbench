@@ -8,7 +8,7 @@ import { ConnectRequiredError } from '../auth/remote-credentials';
 import { RemoteHostError } from '../auth/remote-hosts';
 import { InputError } from '../../shared/validation/diagnostics';
 import { CaseVariantError, PathError } from '../projects/paths';
-import { GitError } from '../projects/git';
+import { GitError, GitRefusalError } from '../projects/git';
 import { BlockedError } from '../projects/scm';
 import type { Workspace } from '../projects/workspace';
 import { hiddenResponses, internalErrorResponse } from '../request';
@@ -16,6 +16,7 @@ import {
   HiddenResourceError,
   NotFoundError,
   StaleError,
+  PreconditionError,
   GoneError,
   MissingFolderError,
   OccupiedError,
@@ -32,6 +33,8 @@ import {
   SnapshotUnreadableError,
   PendingPublicationError,
   PublicationAdoptionError,
+  FAILURE_CODE_HEADER,
+  ProposalRefusalError,
 } from '../projects/errors';
 import { log } from '../observability/log';
 /** Handles a request or returns null so the next route can try it. */
@@ -45,14 +48,15 @@ export type ErrorContext = { serverMode?: boolean; requestId?: string };
  * on, such as conflicts or a rejected push, have their own error types and keep their answers.
  */
 function gitFailureResponse(gitError: GitError, context: ErrorContext) {
-  if (!context.serverMode) return Response.json({ error: gitError.message }, { status: 500 });
+  const headers = gitError instanceof GitRefusalError ? { [FAILURE_CODE_HEADER]: 'git-refused' } : undefined;
+  if (!context.serverMode) return Response.json({ error: gitError.message }, { status: 500, headers });
   const output = gitError.result?.stderr.trim();
   log.error('http.git-failed', {
     requestId: context.requestId ?? 'unknown',
     errorMessage: gitError.message,
     gitOutput: output,
   });
-  return Response.json({ error: 'Git failed.' }, { status: 500 });
+  return Response.json({ error: 'Git failed.' }, { status: 500, headers });
 }
 
 /**
@@ -79,6 +83,7 @@ export function errorResponse(error: unknown, publicUrl?: string, context: Error
   if (error instanceof AdminStaleError) return Response.json({ error: 'stale', message: error.message }, { status: 409 });
   if (error instanceof AdminConfigError || error instanceof AccessConfigError) return Response.json({ error: error.message }, { status: 400 });
   if (error instanceof StaleError) return Response.json({ error: 'stale', currentHash: error.currentHash, currentSource: error.currentSource }, { status: 409 });
+  if (error instanceof PreconditionError) return Response.json({ error: 'precondition', message: error.message, changed: error.changed }, { status: 409 });
   if (error instanceof ConnectRequiredError) return Response.json({ error: error.message, connect: error.connect }, { status: 428 });
   if (error instanceof RemoteHostError) return Response.json({ error: error.message, allowedHosts: error.allowedHosts }, { status: 400 });
   if (error instanceof GoneError) return Response.json({ error: error.message }, { status: 410 });
@@ -88,6 +93,7 @@ export function errorResponse(error: unknown, publicUrl?: string, context: Error
   if (error instanceof BranchInUseError) return Response.json({ error: error.message, inUseBy: error.inUseBy }, { status: 409 });
   if (error instanceof PersonalBranchError) return Response.json({ error: error.message, branch: error.branch }, { status: 403 });
   if (error instanceof PublicationAdoptionError) return Response.json({ error: error.message }, { status: 409 });
+  if (error instanceof ProposalRefusalError) return Response.json({ error: error.code, message: error.message }, { status: error.status });
   if (error instanceof PendingPublicationError) return Response.json({ error: error.message }, { status: 409 });
   if (error instanceof NotFastForwardError || error instanceof PublicationRefChangedError) return Response.json({ error: error.message, notFastForward: true }, { status: 409 });
   if (error instanceof NothingToPublishError) return Response.json({ error: error.message, nothingToPublish: true }, { status: 409 });
@@ -97,7 +103,10 @@ export function errorResponse(error: unknown, publicUrl?: string, context: Error
   if (error instanceof InputError) return Response.json({ error: error.message, issues: error.issues }, { status: 400 });
   if (error instanceof BlockedError) return Response.json({ error: error.reason, message: error.message, paths: error.paths }, { status: 409 });
   if (error instanceof GitError) return gitFailureResponse(error, context);
-  if (error instanceof PathError || error instanceof BadRequestError) {
+  if (error instanceof BadRequestError) {
+    return Response.json({ error: error.message }, { status: 400, headers: error.code ? { [FAILURE_CODE_HEADER]: error.code } : undefined });
+  }
+  if (error instanceof PathError) {
     return Response.json({ error: error.message }, { status: 400 });
   }
   if (context.serverMode) return internalErrorResponse(error, context.requestId);

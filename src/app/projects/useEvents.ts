@@ -15,6 +15,8 @@ export const EVENT_TYPES = [
   'identity',
   // Server mode: the default branch moved, so the published state and branch lists changed.
   'published',
+  // Server mode: a shared proposal was created, changed, promoted, closed or restored.
+  'proposal',
   'resync',
   'access',
 ] as const;

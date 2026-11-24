@@ -68,7 +68,7 @@ export type RemoteCredentialDependencies = RemoteCredentialOptions & {
   config: ServerConfig;
   client: Pick<SignInProvider, 'onBehalfOf'>;
   session: (request: Request) => Promise<Session | null>;
-  sessions: Pick<SessionStore, 'updateRemote'>;
+  sessions: Pick<SessionStore, 'updateRemote' | 'updateRemoteByReference'>;
   settings: () => WorkbenchSettings;
   /** Records a failure without its secrets. */
   log: (message: string) => void;
@@ -103,7 +103,7 @@ export function createRemoteCredentials(deps: RemoteCredentialDependencies) {
   const github = deps.config.github;
   const allowedHosts = () => deps.settings().remote?.allowedHosts ?? [];
   const save: SaveRemote = async (session, change) => {
-    const remote = await deps.sessions.updateRemote(session.id, change);
+    const remote = session.reference ? await deps.sessions.updateRemoteByReference(session.reference, change) : await deps.sessions.updateRemote(session.id, change);
     if (!remote) throw new BadRequestError('The session has ended.');
     session.remote = remote;
   };

@@ -1,3 +1,5 @@
+import { BranchControl } from '../item-diff/BranchControl';
+import { ItemChangeAnnotation } from '../item-diff/ItemChangeAnnotation';
 /** Presentation and event handling for relationship details. */
 import { Braces, Network, Pencil, Trash2 } from 'lucide-react';
 import React from 'react';
@@ -6,7 +8,10 @@ import { itemValue } from '../../shared/edit/yaml-patch';
 import type { Relationship } from '../../shared/core/model';
 import { editEntity } from '../../shared/core/model';
 import type { Doc } from '../projects/api';
+import { ItemSections } from './ItemSections';
 import type { ItemTarget, RdfTarget, ValidatedModel } from './types';
+import { TrafficBadge } from '../usage/TrafficBadge';
+import { relationshipAddressText } from '../usage/usage-addresses';
 
 type Props = {
   activeGroup:
@@ -55,8 +60,10 @@ export function RelationshipDetails({
   current,
   setDefinition,
 }: Props) {
+  const editTarget = relationshipTarget(relationship);
+  const inlineTarget = editTarget?.docId === current?.id ? editTarget : null;
   function handleTextareaChange(event: React.ChangeEvent<HTMLTextAreaElement, HTMLTextAreaElement>) {
-    return setSource(editEntity(source, relationship.data.path, event.target.value, current?.filename));
+    if (inlineTarget) setSource(editEntity(source, inlineTarget.path, event.target.value, current?.filename));
   }
 
   function handleViewDefinitionClick() {
@@ -84,7 +91,10 @@ export function RelationshipDetails({
         </label>
       )}
       <h2>{relationship.label}</h2>
+      <ItemChangeAnnotation document={current} item={relationship} />
+      {current && 'address' in relationship && <BranchControl name={relationship.label} dirty={source !== current.source} />}
       <div className="badge">{relationship.data.kind}</div>
+      <TrafficBadge address={relationshipAddressText(relationship)} />
       {(() => {
         const targetValue = relationshipTarget(relationship);
         const rdfItem = targetValue ? null : rdfEdgeTarget(relationship);
@@ -99,7 +109,7 @@ export function RelationshipDetails({
           );
         if (!targetValue) return <p className="hint">Edit this relationship in Source.</p>;
         const whole = relationship.data.kind === 'Inheritance' || relationship.data.kind === 'Metric expression reference';
-        const owner = whole ? itemName(targetValue.kind, itemValue(source, targetValue.path)) : relationship.label;
+        const owner = whole && inlineTarget ? itemName(targetValue.kind, itemValue(source, targetValue.path)) : relationship.label;
         return (
           <div className="inspector-actions">
             <button className="primary" onClick={() => setEditing(targetValue)} aria-label={`Edit ${owner}`}>
@@ -161,9 +171,15 @@ export function RelationshipDetails({
       {relationship.data.kind !== 'Inheritance' && !relationship.data.readOnlyForm && (
         <label>
           Description
-          <textarea aria-label="Relationship description" value={relationship.data.definition.description ?? ''} onChange={handleTextareaChange} />
+          <textarea aria-label="Relationship description" value={relationship.data.definition.description ?? ''} readOnly={!inlineTarget} onChange={handleTextareaChange} />
         </label>
       )}
+      {(() => {
+        const target = relationshipTarget(relationship);
+        const whole = relationship.data.kind === 'Inheritance' || relationship.data.kind === 'Metric expression reference';
+        if (!target || whole) return null;
+        return <ItemSections target={target} dirty={!!current && source !== current.source} openConcept={() => {}} removeRelationship={setDeleting} />;
+      })()}
       <button className="view-definition" onClick={handleViewDefinitionClick}>
         <Braces size={13} />
         View definition

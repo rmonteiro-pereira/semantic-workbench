@@ -37,6 +37,8 @@ export type RemoteTokens = {
 /** A decrypted session with its browser identifier supplied separately from disk. */
 export type Session = {
   id: string;
+  /** Store reference for delegated callers that do not possess the browser cookie. */
+  reference?: string;
   principal: Principal;
   tokens: SessionTokens;
   csrf: string;
@@ -55,6 +57,8 @@ export type SessionOptions = {
   absoluteHours?: number;
   ended?: (session: Session, reason: string) => void;
 };
+/** Hears that a session ended. It receives the session's reference, the hash of its id, never the id. */
+export type SessionEndListener = (reference: string, reason: string) => void;
 
 /** Selects the development cookie exception only for loopback HTTP. */
 export function cookieName(publicUrl: string, kind = 'session'): string {
@@ -104,6 +108,7 @@ export function createSessionStore(options: SessionOptions) {
   const listeners = new Map<string, Set<(reason?: 'changed' | 'session-ended') => void>>();
   const pending = new Map<string, Promise<unknown>>();
   const persistedAt = new Map<string, number>();
+  const endListeners = new Set<SessionEndListener>();
   function serialize<T>(hash: string, work: () => Promise<T>): Promise<T> {
     const next = (pending.get(hash) ?? Promise.resolve()).then(work);
     const settled = next
@@ -135,7 +140,7 @@ export function createSessionStore(options: SessionOptions) {
   }
 
   async function persist(hash: string, session: Session) {
-    const { id: _id, ...payload } = session;
+    const { id: _id, reference: _reference, ...payload } = session;
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const bytes = new TextEncoder().encode(JSON.stringify(payload));
     const encrypted = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv, additionalData: new TextEncoder().encode(hash) }, await key, bytes));
@@ -200,6 +205,17 @@ export function createSessionStore(options: SessionOptions) {
     return structuredClone(session);
   }
 
+  // A listener that fails must not stop the others or the removal, which is already done.
+  function notifyEnded(reference: string, reason: string) {
+    for (const listener of endListeners) {
+      try {
+        listener(reference, reason);
+      } catch (error) {
+        log.failure('auth.session-end-listener-failed', error);
+      }
+    }
+  }
+
   async function remove(hash: string, reason: string): Promise<Session | null> {
     const session = await load(hash);
     if (!session) return null;
@@ -214,6 +230,7 @@ export function createSessionStore(options: SessionOptions) {
     } catch (error) {
       log.failure('auth.session-end-audit-failed', error);
     }
+    notifyEnded(hash, reason);
     return session;
   }
   async function get(id: string, touch = true) {
@@ -234,6 +251,23 @@ export function createSessionStore(options: SessionOptions) {
         }
       }
       return session;
+    });
+  }
+  /**
+   * Looks a session up by the hash of its id, the form other records keep. It never updates the
+   * last-seen time, so a program using a session through this call cannot keep it alive. The
+   * returned session has no id, because the hash cannot give it back.
+   */
+  async function getByReference(reference: string) {
+    if (!/^[a-f0-9]{64}$/.test(reference)) return null;
+    return serialize(reference, async () => {
+      const session = await load(reference);
+      if (!session) return null;
+      if (sessionExpired(session, now(), idle, absolute)) {
+        await remove(reference, 'expired');
+        return null;
+      }
+      return { ...session, reference };
     });
   }
   async function sweep(principalId?: string) {
@@ -296,6 +330,22 @@ export function createSessionStore(options: SessionOptions) {
     }
     return ended;
   }
+  /** Changes delegated credentials without touching the session's idle clock. */
+  async function updateRemoteByReference(reference: string, change: (remote: RemoteTokens) => RemoteTokens) {
+    if (!/^[a-f0-9]{64}$/.test(reference)) return null;
+    return serialize(reference, async () => {
+      const current = await load(reference);
+      if (!current) return null;
+      if (sessionExpired(current, now(), idle, absolute)) {
+        await remove(reference, 'expired');
+        return null;
+      }
+      current.remote = change(current.remote ?? {});
+      await persist(reference, current);
+      return current.remote;
+    });
+  }
+
   return {
     list,
     indexStored,
@@ -306,6 +356,12 @@ export function createSessionStore(options: SessionOptions) {
     },
     notifyAccessChanged,
     get,
+    getByReference,
+    /** Calls the listener once for every session that ends, whatever ended it. Returns a function that stops listening. */
+    onEnded(listener: SessionEndListener) {
+      endListeners.add(listener);
+      return () => endListeners.delete(listener);
+    },
     sweep: () => sweep(),
     endPrincipal: (principalId: string) => sweep(principalId),
     end: (id: string, reason = 'sign-out') => serialize(sha256(id), () => remove(sha256(id), reason)),
@@ -335,20 +391,9 @@ export function createSessionStore(options: SessionOptions) {
         await persist(hash, session);
         return true;
       }),
-    /** Changes the remote tokens of the latest stored session; null when it has ended. */
-    updateRemote: (id: string, change: (remote: RemoteTokens) => RemoteTokens) =>
-      serialize(sha256(id), async () => {
-        const hash = sha256(id);
-        const current = await load(hash, id);
-        if (!current) return null;
-        if (sessionExpired(current, now(), idle, absolute)) {
-          await remove(hash, 'expired');
-          return null;
-        }
-        current.remote = change(current.remote ?? {});
-        await persist(hash, current);
-        return current.remote;
-      }),
+    /** Changes remote credentials through a browser identifier. */
+    updateRemote: (id: string, change: (remote: RemoteTokens) => RemoteTokens) => updateRemoteByReference(sha256(id), change),
+    updateRemoteByReference,
     subscribe(id: string, listener: (reason?: 'changed' | 'session-ended') => void) {
       const hash = sha256(id);
       const subscribers = listeners.get(hash) ?? new Set();

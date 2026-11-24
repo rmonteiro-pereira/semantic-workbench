@@ -1,4 +1,4 @@
-/* Styles the Group menu in the graph toolbar. */
+/* Styles the drop-down menus of the graph toolbars: the Group menu and the Show menu. */
 .grouping-controls {
   position: relative;
   display: flex;
@@ -77,4 +77,40 @@
 .grouping-controls > [role='alert'] {
   color: var(--color-danger-text);
   max-width: 200px;
+}
+.show-menu {
+  position: relative;
+  display: inline-flex;
+}
+.show-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+/* The count of switches that are on: the tab count badge's colours, narrower so the button grows as little as possible. */
+.show-menu-count {
+  font-size: var(--text-small);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-text);
+  border-radius: 8px;
+  padding: 0 5px;
+}
+.show-menu-count[data-empty] {
+  visibility: hidden;
+}
+/* The menu sits inside the toolbar, whose button rules (border, background, padding, no wrapping)
+   would otherwise make each row a bordered button and cut long summaries at the menu's edge. */
+.show-menu .grouping-menu > button.grouping-item {
+  justify-content: flex-start;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  color: var(--color-text-secondary);
+}
+.show-menu .grouping-menu > button.grouping-item[aria-checked='true'] {
+  background: var(--color-accent-soft);
 }

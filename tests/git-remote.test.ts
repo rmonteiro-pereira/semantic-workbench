@@ -22,7 +22,7 @@ test('push to a local bare remote sets the upstream; pull merges a commit made e
     sh(project.other, ['push', '-q']);
     const fetched = await ok(call(project.t, 'POST', project.base + '/git/fetch'));
     expect(fetched).toMatchObject({ ok: true, behind: 1, ahead: 0 });
-    sh(project.dir, ['switch', 'work/local']);
+    sh(project.dir, ['switch', '-q', '-c', 'notes']);
     sh(project.dir, ['branch', '--set-upstream-to=origin/main']);
     const pulled = await ok(call(project.t, 'POST', project.base + '/git/pull'));
     expect(pulled).toMatchObject({ ok: true, conflicted: [], altered: [], behind: 0 });
@@ -31,9 +31,10 @@ test('push to a local bare remote sets the upstream; pull merges a commit made e
     await ok(call(project.t, 'POST', project.base + '/git/stage', { all: true }));
     await ok(call(project.t, 'POST', project.base + '/git/commit', { message: 'Local' }));
     expect((await ok(call(project.t, 'GET', project.base + '/git/status'))).ahead).toBe(1);
+    await ok(call(project.t, 'POST', project.base + '/git/publish', {}));
     const pushed = await ok(call(project.t, 'POST', project.base + '/git/sync'));
     expect(pushed).toMatchObject({ ok: true, ahead: 0, behind: 0 });
-    sh(project.other, ['pull', '-q', '--no-rebase', 'origin', 'work/local']);
+    sh(project.other, ['pull', '-q', '--no-rebase', 'origin', 'notes']);
     expect(readFileSync(join(project.other, 'shop.yaml'), 'utf8')).toBe(ontology('Local.'));
   } finally {
     project.dispose();
@@ -222,3 +223,91 @@ test('an upstream whose remote was removed reports that the project has no remot
     project.dispose();
   }
 });
+
+test('push and sync refuse an ordinary branch whose commit is unpublished before contacting its remote', async () => {
+  const project = await scmProject();
+  try {
+    sh(project.dir, ['switch', '-qc', 'ordinary']);
+    sh(project.dir, ['commit', '-q', '--allow-empty', '-m', 'Private work']);
+    const remotelyVisible = () => sh(project.bare, ['for-each-ref', '--format=%(refname) %(objectname)']);
+    const before = remotelyVisible();
+    const git = project.t.ws.git;
+    const run = git.run;
+    const attempts: string[] = [];
+    git.run = async (directory, args, options) => {
+      if (options?.remote) attempts.push(args[0]);
+      return run(directory, args, options);
+    };
+    try {
+      for (const action of ['push', 'sync']) {
+        const result = await call(project.t, 'POST', project.base + '/git/' + action);
+        expect(result.status).toBe(400);
+        expect(result.body.error).toContain('Work in progress');
+      }
+      expect(attempts).toEqual([]);
+      expect(remotelyVisible()).toBe(before);
+    } finally {
+      git.run = run;
+    }
+  } finally {
+    project.dispose();
+  }
+});
+
+test('push refuses a checkout that changes the copy after its branch is observed', async () => {
+  const project = await scmProject();
+  try {
+    sh(project.dir, ['switch', '-qc', 'reviewed']);
+    sh(project.dir, ['switch', '-qc', 'other']);
+    sh(project.dir, ['commit', '-q', '--allow-empty', '-m', 'Private work']);
+    sh(project.dir, ['switch', '-q', 'reviewed']);
+    const git = project.t.ws.git;
+    const status = git.status;
+    let switched = false;
+    git.status = async directory => {
+      const observed = await status(directory);
+      if (directory === project.dir && !switched) {
+        switched = true;
+        await git.run(directory, ['switch', 'other']);
+      }
+      return observed;
+    };
+    try {
+      const result = await call(project.t, 'POST', project.base + '/git/push');
+      expect(switched).toBe(true);
+      expect(result.status).toBe(400);
+      expect(result.body.error).toContain('changed');
+      expect(sh(project.bare, ['branch', '--list', 'reviewed', 'other'])).toBe('');
+    } finally {
+      git.status = status;
+    }
+  } finally {
+    project.dispose();
+  }
+});
+
+for (const action of ['push', 'sync', 'pushDefault'] as const) {
+  test(`${action} refuses a remote repointed after credential selection`, async () => {
+    const project = await scmProject();
+    try {
+      const replacement = join(project.t.root, 'replacement.git');
+      sh(project.t.root, ['init', '-q', '--bare', replacement]);
+      const scm = await project.t.ws.scmFor(project.slug, LOCAL_READER);
+      const original = sh(project.bare, ['for-each-ref', '--format=%(refname) %(objectname)']);
+      let selected = false;
+      const credentialFor = async (remote: { pushUrl: string }) => {
+        expect(remote.pushUrl).toBe(project.bare);
+        selected = true;
+        sh(project.dir, ['remote', 'set-url', 'origin', replacement]);
+        return { kind: 'none' } as const;
+      };
+      const call = action === 'sync' ? scm.sync(project.slug, LOCAL_READER, credentialFor) : scm[action](project.slug, credentialFor);
+      await expect(call).rejects.toThrow('remote addresses changed');
+      expect(selected).toBe(true);
+      expect(sh(project.bare, ['for-each-ref', '--format=%(refname) %(objectname)'])).toBe(original);
+      expect(sh(replacement, ['for-each-ref'])).toBe('');
+    } finally {
+      project.dispose();
+    }
+  });
+}

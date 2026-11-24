@@ -249,6 +249,61 @@ async function sparseProjectStaysInItsFolder(root: string, alice: Person, frank:
   await authGeometry(alice.page, 'two-editors-sparse-source-control', '.scm');
 }
 
+const proposalApi = (path = '') => projectApi(`proposals${path}`);
+
+/** The branch and HEAD of a person's copy, as the interface reads them. */
+async function copyPosition(person: Person) {
+  const status = await branchOf(person);
+  return { expectedBranch: status.branch, expectedHead: status.head };
+}
+
+async function contributeTo(person: Person, id: string) {
+  const view = await person.call(proposalApi(`/${id}`));
+  const contributed = await person.call(proposalApi(`/${id}/contribute`), 'POST', { expectedTip: view.body.tip, branchHead: (await copyPosition(person)).expectedHead });
+  assert.equal(contributed.status, 200, `${person.username} contributes: ${JSON.stringify(contributed.body)}`);
+}
+
+/**
+ * Two Editors prepare one proposal on their own contribution branches, a Steward checks and promotes
+ * it, and a Viewer of the project reads the change only after promotion.
+ */
+async function proposalReachesThePublishedState(alice: Person, frank: Person, bob: Person, carol: Person) {
+  // Alice's unsaved draft from the earlier checks would block switching her copy, so she discards it.
+  assert.equal((await alice.call(`/api/drafts/${PROJECT}/people.mapping.yaml`, 'DELETE')).status, 204);
+  const created = await alice.call(proposalApi(), 'POST', { name: 'Journey proposal', projects: [PROJECT] });
+  assert.equal(created.status, 201, JSON.stringify(created.body));
+  const id = created.body.id;
+  for (const person of [alice, frank]) {
+    const worked = await person.call(proposalApi(`/${id}/work`), 'POST', await copyPosition(person));
+    assert.equal(worked.status, 200, `${person.username} works on the proposal: ${JSON.stringify(worked.body)}`);
+    assert.equal(worked.body.branch, `work/${person.username}.${id}`);
+  }
+  await appendLine(alice, ORDERS, 'proposal edit by alice');
+  await commitFile(alice, ORDERS, 'Alice contributes to the proposal');
+  await contributeTo(alice, id);
+  // Frank's branch lacks Alice's contribution until he synchronizes.
+  assert.equal((await frank.call(proposalApi(`/${id}`))).body.mine.behind, true);
+  const synchronized = await frank.call(proposalApi(`/${id}/synchronize`), 'POST', await copyPosition(frank));
+  assert.equal(synchronized.status, 200);
+  assert.equal(synchronized.body.merged, true);
+  await appendLine(frank, MAPPING, 'proposal edit by frank');
+  await commitFile(frank, MAPPING, 'Frank contributes to the proposal');
+  await contributeTo(frank, id);
+  const view = (await frank.call(proposalApi(`/${id}`))).body;
+  assert.deepEqual(view.contributors.sort(), ['Alice Andrade', 'Frank Freitas']);
+  assert((await readSource(carol, ORDERS)).includes('proposal edit by alice') === false, 'a Viewer does not read the proposal before promotion');
+  await openSourceControl(alice);
+  await expect(alice.page.getByRole('region', { name: 'Proposals' }).getByRole('button', { name: /Journey proposal/ })).toBeVisible();
+  await authGeometry(alice.page, 'two-editors-proposals', '.scm');
+  const check = await bob.call(proposalApi(`/${id}/promotion-check`));
+  assert.deepEqual(check.body, { ok: true, reasons: [], files: [] });
+  const promoted = await bob.call(proposalApi(`/${id}/promote`), 'POST', { expectedTip: view.tip });
+  assert.equal(promoted.status, 200, JSON.stringify(promoted.body));
+  assert((await readSource(carol, ORDERS)).includes('proposal edit by alice'));
+  assert((await readSource(carol, MAPPING)).includes('proposal edit by frank'));
+  assert.equal((await carol.call(proposalApi(`/${id}`))).body.status, 'promoted');
+}
+
 /** Runs the two-person check against its own API and mock identity provider. */
 export async function twoEditorsCheck() {
   const url = `http://127.0.0.1:${freeAuthPort()}`;
@@ -274,6 +329,7 @@ export async function twoEditorsCheck() {
         await check('a publish reaches the Viewer', () => publishReachesTheViewer(bob, carol));
         await check('pulls stay personal', () => pullsStayPersonal(alice, frank));
         await check('a sparse project stays in its folder', () => sparseProjectStaysInItsFolder(api.root, alice, frank));
+        await check('a proposal reaches the published state only when promoted', () => proposalReachesThePublishedState(alice, frank, bob, carol));
       } finally {
         await browser.close();
       }

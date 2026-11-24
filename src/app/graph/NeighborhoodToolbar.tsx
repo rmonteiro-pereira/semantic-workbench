@@ -4,7 +4,10 @@ import { ArrowLeft, ArrowRight, FileSymlink, Gauge, LocateFixed } from 'lucide-r
 import { ScrollStrip } from '../components/ScrollStrip';
 import { EntityName } from './EntityName';
 import { CompactControls, useCompactToolbar } from './CompactControls';
-import { GraphOptions, OptionGroup, ShowToggle } from './GraphOptions';
+import { ModelGraphOptions, OptionGroup, ShowToggle } from './GraphOptions';
+import { useTrafficShowItem } from '../usage/traffic-show-item';
+import { useUnpublishedWorkShowItem } from '../item-diff/unpublished-work-show-item';
+import { ShowMenu } from './ShowMenu';
 import { PierceControls } from './PierceControls';
 import { ZoomButtons } from './ZoomButtons';
 import { FullscreenButton } from './FullGraph';
@@ -161,13 +164,15 @@ function NeighborhoodOptions({
   setHideKpis,
   onRearrange,
 }: OptionsProps) {
+  const trafficItem = useTrafficShowItem();
+  const unpublishedWorkItem = useUnpublishedWorkShowItem();
   return (
-    <GraphOptions>
+    <ModelGraphOptions>
       <OptionGroup title="Neighbors">
         {view.relationships.length > 1 && (
           <label>
             Relationship
-            <select aria-label="Filter neighbors by relationship" value={relationship} onChange={e => setRelationship(e.target.value)}>
+            <select className="relationship-filter" aria-label="Filter neighbors by relationship" value={relationship} onChange={e => setRelationship(e.target.value)}>
               <option value="">All ({view.relationships.reduce((n, r) => n + r.count, 0)})</option>
               {view.relationships.map(relationship => (
                 <option key={relationship.label} value={relationship.label}>
@@ -187,26 +192,22 @@ function NeighborhoodOptions({
         ) : null}
       </OptionGroup>
       <OptionGroup title="Show">
-        <ShowToggle on={labels} onToggle={() => setLabels(shown => !shown)}>
-          Labels
-        </ShowToggle>
-        {valueCount > 0 && (
-          <ShowToggle on={!hideValues} onToggle={onToggleValueTypes} title={`${valueCount} value types and built-in concepts`}>
-            Value types
-          </ShowToggle>
-        )}
-        {kpiCount > 0 && (
-          <ShowToggle on={!hideKpis} onToggle={() => setHideKpis(hidden => !hidden)} title={`${kpiCount} metric nodes`}>
-            Metrics
-          </ShowToggle>
-        )}
+        <ShowMenu
+          items={[
+            { name: 'Labels', summary: 'Relationship names on the lines', on: labels, onToggle: () => setLabels(shown => !shown) },
+            valueCount > 0 ? { name: 'Value types', summary: `${valueCount} value types and built-in concepts`, on: !hideValues, onToggle: onToggleValueTypes } : null,
+            kpiCount > 0 ? { name: 'Metrics', summary: `${kpiCount} metric nodes`, on: !hideKpis, onToggle: () => setHideKpis(hidden => !hidden) } : null,
+            unpublishedWorkItem,
+            trafficItem,
+          ]}
+        />
       </OptionGroup>
       <OptionGroup title="Layout">
         <button onClick={onRearrange} title="Put every node back in its column">
           Re-arrange
         </button>
       </OptionGroup>
-    </GraphOptions>
+    </ModelGraphOptions>
   );
 }
 

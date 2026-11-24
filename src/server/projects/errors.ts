@@ -1,4 +1,11 @@
 // Defines workspace errors translated into HTTP responses by the route layer.
+/** Reports that the branch, the head or a file differs from what a commit was prepared against. */
+export class PreconditionError extends Error {
+  constructor(public changed: { branch?: { expected: string; actual: string | null }; head?: { expected: string | null; actual: string | null }; files?: string[] }) {
+    super('The repository changed since this commit was prepared.');
+    this.name = 'PreconditionError';
+  }
+}
 /** Reports a changed base version and carries the current hash and source for conflict handling. */
 export class StaleError extends Error {
   constructor(
@@ -14,9 +21,30 @@ export class StaleError extends Error {
  * the caller, so the HTTP boundary shows it. Any other error is unexpected and stays private.
  */
 export class BadRequestError extends Error {
-  constructor(message: string) {
+  constructor(
+    message: string,
+    /** A machine-readable reason sent in the answer, so a protocol caller never has to read the sentence. */
+    public code?: RequestFailureCode,
+  ) {
     super(message);
     this.name = 'BadRequestError';
+  }
+}
+/** The response header that carries a failure's reason, so the status and the body of a legacy answer stay as they were. */
+export const FAILURE_CODE_HEADER = 'X-Workbench-Failure';
+/** Reasons a route answer names in `FAILURE_CODE_HEADER` besides its status. */
+export type RequestFailureCode = 'not-found' | 'git-unavailable' | 'git-refused';
+/** The reason a route names for an error, or undefined when the error has no reason a caller may rely on. */
+export function failureCodeOf(error: unknown): RequestFailureCode | undefined {
+  if (error instanceof NotFoundError) return 'not-found';
+  if (error instanceof BadRequestError) return error.code;
+  return undefined;
+}
+/** Reports that Git is not installed or usable, for the operations that need it. */
+export class GitUnavailableError extends BadRequestError {
+  constructor() {
+    super('Git is not available on this machine.', 'git-unavailable');
+    this.name = 'GitUnavailableError';
   }
 }
 /** Reports a missing workspace resource. */
@@ -174,5 +202,41 @@ export class PublicationAdoptionError extends Error {
     };
     super(messages[reason]);
     this.name = 'PublicationAdoptionError';
+  }
+}
+
+/** The reasons a proposal operation is refused with a stable code the interface can word. */
+export type ProposalRefusalCode =
+  | 'stale-tip'
+  | 'not-descendant'
+  | 'outside-declared-projects'
+  | 'nothing-to-contribute'
+  | 'not-open'
+  | 'not-closed'
+  | 'limit'
+  | 'name-taken'
+  | 'no-published-commit'
+  | 'missing-project'
+  | 'work-first'
+  | 'wrong-branch'
+  | 'damaged';
+
+/** Refuses a proposal operation and says why; nothing has changed when it is thrown. */
+export class ProposalRefusalError extends Error {
+  constructor(
+    public code: ProposalRefusalCode,
+    message: string,
+    public status: 403 | 409 = 409,
+  ) {
+    super(message);
+    this.name = 'ProposalRefusalError';
+  }
+}
+
+/** Conceals which required file made the ontology set unavailable. */
+export class MissingOntologySetError extends BadRequestError {
+  constructor() {
+    super('The ontology set could not be checked.');
+    this.name = 'MissingOntologySetError';
   }
 }

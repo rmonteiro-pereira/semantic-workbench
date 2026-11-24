@@ -18,6 +18,7 @@
         "revert",
         "restoreOwn",
         "approveMetric",
+        "approveOntologyItem",
         "editGuarded",
         "restoreOthers",
         "publish",
@@ -57,6 +58,7 @@
         "revert",
         "restoreOwn",
         "approveMetric",
+        "approveOntologyItem",
         "editGuarded",
         "restoreOthers",
         "publish",
@@ -610,6 +612,79 @@
                   "$ref": "#/$defs/domainId"
                 },
                 "uniqueItems": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "programsFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "formatVersion",
+        "programs"
+      ],
+      "properties": {
+        "formatVersion": {
+          "const": 1
+        },
+        "programs": {
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "clientId",
+              "name",
+              "description",
+              "redirectUris",
+              "scopes",
+              "setupNote"
+            ],
+            "properties": {
+              "clientId": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9._-]{3,64}$"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "redirectUris": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 5,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 512
+                }
+              },
+              "scopes": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "enum": [
+                    "read",
+                    "validate",
+                    "edit",
+                    "commit",
+                    "remote",
+                    "publish"
+                  ]
+                }
+              },
+              "setupNote": {
+                "type": "string",
+                "maxLength": 1000
               }
             }
           }

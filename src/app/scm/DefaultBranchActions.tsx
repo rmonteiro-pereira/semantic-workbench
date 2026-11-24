@@ -1,6 +1,8 @@
 /** Server mode: the ways a person's working copy meets the published default branch. */
 import React from 'react';
 import { ArrowDown, ArrowUp, Upload } from 'lucide-react';
+import { DependencyUpdate } from '../mesh/DependencyUpdate';
+import { useDependencyState } from '../mesh/use-mesh';
 import type { WorkingCopyInfo } from '../projects/api';
 
 // Says what Publish does, or which role it needs, beside its button.
@@ -70,4 +72,13 @@ export function DefaultBranchActions({
       </ul>
     </section>
   );
+}
+
+/** Offers dependency review alongside a publication refusal about the lock. */
+export function PublicationDependencies({ project, onUpdated }: { project: string; onUpdated: () => void }) {
+  const state = useDependencyState(project, undefined, '');
+  if (state.status === 'loading') return <p role="status">Loading dependency status…</p>;
+  if (state.status === 'error') return <p role="alert">{state.message}</p>;
+  if (!state.value?.imports.length) return null;
+  return <DependencyUpdate project={project} baseHash={state.value.manifestHash ?? null} onUpdated={onUpdated} />;
 }

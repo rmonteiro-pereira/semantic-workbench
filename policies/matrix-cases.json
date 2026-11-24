@@ -260,7 +260,84 @@
       }
     },
     {
+      "case": "GET /api/projects/:slug/item-diff",
+      "action": "history",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
       "case": "POST /api/projects/:slug/save-batch",
+      "action": "edit",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "GET /api/mesh",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/mesh/providers",
+      "action": "edit",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/projects/:slug/dependencies",
+      "action": "read",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/dependencies/update",
+      "action": "edit",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "GET /api/projects/:slug/dependents",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/compile/check",
+      "action": "read",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/compile",
+      "action": "export",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "GET /api/projects/:slug/compile/bundle",
+      "action": "export",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/compile/convert",
       "action": "edit",
       "resource": {
         "type": "project",
@@ -302,6 +379,14 @@
     },
     {
       "case": "GET /api/projects/:slug/delete-impact",
+      "action": "read",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "GET /api/projects/:slug/usage",
       "action": "read",
       "resource": {
         "type": "project",
@@ -368,6 +453,15 @@
     },
     {
       "case": "PUT /api/projects/:slug/files/*",
+      "action": "edit",
+      "resource": {
+        "type": "file",
+        "project": "sales-metrics",
+        "path": "example.yaml"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/files/*/validate",
       "action": "edit",
       "resource": {
         "type": "file",
@@ -684,6 +778,94 @@
       }
     },
     {
+      "case": "GET /api/projects/:slug/proposals",
+      "action": "read",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "GET /api/projects/:slug/proposals/:id",
+      "action": "read",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "GET /api/projects/:slug/proposals/:id/diff",
+      "action": "history",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/proposals",
+      "action": "branch",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/proposals/:id/work",
+      "action": "branch",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/proposals/:id/synchronize",
+      "action": "pull",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/proposals/:id/contribute",
+      "action": "commit",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "GET /api/projects/:slug/proposals/:id/promotion-check",
+      "action": "publish",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/proposals/:id/promote",
+      "action": "publish",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/proposals/:id/close",
+      "action": "publish",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
+      "case": "POST /api/projects/:slug/proposals/:id/restore",
+      "action": "publish",
+      "resource": {
+        "type": "project",
+        "project": "sales-metrics"
+      }
+    },
+    {
       "case": "POST /api/clone/:operation/cancel",
       "action": "clone",
       "resource": {
@@ -966,6 +1148,125 @@
     {
       "case": "GET /api/audit/export",
       "action": "readAudit",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /oauth/authorize",
+      "action": "viewOwnState",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /oauth/consent",
+      "action": "viewOwnState",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /oauth/setup",
+      "action": "viewOwnState",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /oauth/setup",
+      "action": "viewOwnState",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/connections",
+      "action": "viewOwnState",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "DELETE /api/connections/:id",
+      "action": "viewOwnState",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/admin/connections",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "DELETE /api/admin/connections/:id",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/admin/programs",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "PUT /api/admin/programs",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/admin/programs/preview",
+      "action": "admin",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/acp/sessions",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "GET /api/acp/sessions/:id/events",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/acp/sessions/:id/prompt",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/acp/sessions/:id/cancel",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "POST /api/acp/sessions/:id/questions/:question",
+      "action": "read",
+      "resource": {
+        "type": "workspace"
+      }
+    },
+    {
+      "case": "DELETE /api/acp/sessions/:id",
+      "action": "read",
       "resource": {
         "type": "workspace"
       }

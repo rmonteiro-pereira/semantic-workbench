@@ -6,6 +6,7 @@ import { join, posix } from 'node:path';
 import { validateInput } from '../../../shared/validation/input';
 import { InputError, type Issue } from '../../../shared/validation/diagnostics';
 import { exampleSet } from '../../../shared/projects/examples';
+import { DEPENDENCY_MANIFEST_PATH } from '../../../shared/tessera/dependency-manifest';
 import { atomicWrite, decode, encode, sha256 } from '../atomic';
 import type { Cache } from '../cache';
 import type { Events } from '../events';
@@ -41,6 +42,7 @@ export function preflight(files: ImportFile[]) {
   for (const file of files) {
     if (!file || typeof file.path !== 'string' || typeof file.source !== 'string') throw new BadRequestError('Each file needs a path and source text.');
     const path = projectPath(file.path);
+    if (path === DEPENDENCY_MANIFEST_PATH) throw new BadRequestError('Use Update dependencies to write the dependency manifest.');
     if (paths.has(path)) throw new BadRequestError(`Duplicate path in batch: ${path}`);
     paths.add(path);
     const indexed = indexBytes('preflight', path, encode(file.source));

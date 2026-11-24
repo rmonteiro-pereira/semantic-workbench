@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:semantic-workbench:tessera-dependencies:1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "manifestVersion",
+    "root",
+    "providers"
+  ],
+  "properties": {
+    "manifestVersion": {
+      "const": 1
+    },
+    "root": {
+      "$ref": "#/$defs/rootPath"
+    },
+    "providers": {
+      "$ref": "#/$defs/providers"
+    },
+    "additionalRoots": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "root",
+          "providers"
+        ],
+        "properties": {
+          "root": {
+            "$ref": "#/$defs/rootPath"
+          },
+          "providers": {
+            "$ref": "#/$defs/providers"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "rootPath": {
+      "type": "string",
+      "minLength": 1
+    },
+    "providers": {
+      "type": "array",
+      "maxItems": 50,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "project",
+          "ontology",
+          "repository",
+          "sameRepository",
+          "tag",
+          "choice",
+          "interfaceHash",
+          "concepts",
+          "dependsOn"
+        ],
+        "properties": {
+          "project": {
+            "type": "string",
+            "minLength": 1
+          },
+          "ontology": {
+            "type": "string",
+            "minLength": 1
+          },
+          "repository": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sameRepository": {
+            "type": "boolean"
+          },
+          "commit": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+          },
+          "tag": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "choice": {
+            "enum": [
+              "latest",
+              "pin"
+            ]
+          },
+          "interfaceHash": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "concepts": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "dependsOn": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "project",
+                "commit",
+                "interfaceHash"
+              ],
+              "properties": {
+                "project": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "commit": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+                },
+                "interfaceHash": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "^sha256:[0-9a-f]{64}$"
+                }
+              }
+            }
+          }
+        },
+        "if": {
+          "properties": {
+            "sameRepository": {
+              "const": true
+            }
+          }
+        },
+        "then": {
+          "not": {
+            "required": [
+              "commit"
+            ]
+          },
+          "properties": {
+            "choice": {
+              "const": "latest"
+            },
+            "tag": {
+              "const": null
+            }
+          }
+        },
+        "else": {
+          "required": [
+            "commit"
+          ]
+        }
+      }
+    }
+  }
+}

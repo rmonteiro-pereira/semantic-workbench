@@ -66,7 +66,7 @@ const roleMatrix: Record<string, Action[]> = {
   viewer: viewerActions,
   editor: editorActions,
   steward: stewardActions,
-  admin: [...ACTIONS],
+  admin: ACTIONS.filter(action => action !== 'approveOntologyItem'),
 };
 
 test('every role matrix action holds for workspace domain and project scoped grants', () => {
@@ -88,7 +88,7 @@ test('every role matrix action holds for workspace domain and project scoped gra
       const access = createAccessControl(options);
       const principal = access.principalFor(person('alice'));
       for (const action of ACTIONS) {
-        expect(access.authorize(principal, action, project).allow).toBe(role.id === 'admin' || expected.has(action));
+        expect(access.authorize(principal, action, project).allow).toBe(expected.has(action));
       }
       expect(access.authorize(principal, 'read', { type: 'project', project: 'lab-notes' }).allow).toBe(role.id === 'admin');
     }

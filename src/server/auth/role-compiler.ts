@@ -63,7 +63,7 @@ export function compileRoles(roles: Role[]) {
   const pathGlobs = new Set<string>();
   for (const role of roles) {
     if (role.id === 'admin') {
-      policies['role:admin:1'] = '@id("role:admin:1")\npermit (principal in SW::RoleHolder::"admin@workspace", action, resource);';
+      policies['role:admin:1'] = '@id("role:admin:1")\npermit (principal in SW::RoleHolder::"admin@workspace", action, resource) unless { action == SW::Action::"approveOntologyItem" };';
       continue;
     }
     role.permissions.forEach((permission, index) => {

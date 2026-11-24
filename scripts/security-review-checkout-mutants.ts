@@ -8,10 +8,10 @@ export const checkoutMutants: [string, string, string, string][] = [
   ['secrev-scanner', 'src/server/projects/scanner.ts', 'if (error instanceof CaseVariantError) continue;', 'throw error;'],
   ['secrev-scanner', 'src/server/projects/scanner.ts', 'if (!listings.has(folder)) {', 'if (true) {'],
   // Start-up restores only deletions that the trash explains.
-  ['secrev-published', 'src/server/projects/published-checkout.ts', 'if (deletion && trashed.has(entry.path))', 'if (deletion)'],
+  ['secrev-published', 'src/server/projects/published-checkout.ts', 'return deletion && trashed.has(entry.path);', 'return deletion;'],
   ['secrev-published', 'src/server/projects/published-checkout.ts', "const isDeletion = (code: string) => code === 'D' || code === '.';", 'const isDeletion = () => true;'],
   ['secrev-published', 'src/server/projects/published-checkout.ts', 'if (unexplained.length) throw new PublishedCheckoutChangedError(repo, unexplained);', ''],
-  ['secrev-published', 'src/server/projects/published-checkout.ts', "['restore', '--staged', '--worktree', '--', ...explained]", "['restore', '--', ...explained]"],
+  ['secrev-published', 'src/server/projects/published-checkout.ts', "['restore', '--staged', '--worktree', '--', ...restorePaths]", "['restore', '--', ...restorePaths]"],
   ['secrev-published', 'src/server/projects/published-checkout.ts', 'if (!explained.length) return [];', ''],
   // The audit mirror is checked as well as the chain.
   ['secrev-audit-mirror', 'src/server/auth/audit.ts', 'if (month === undefined || month < oldest) continue;', 'if (month === undefined) continue;'],
@@ -26,7 +26,7 @@ export const checkoutMutants: [string, string, string, string][] = [
   ['secrev-audit-mirror', 'src/server/auth/audit.ts', 'if (lost) return { ok: false, ...lost };', ''],
   // Branch names are compared without regard to letter case.
   ['secrev-worktrees', 'src/server/projects/worktrees.ts', 'foldBranch(branch).startsWith(PERSONAL_BRANCH_PREFIX)', 'branch.startsWith(PERSONAL_BRANCH_PREFIX)'],
-  ['secrev-worktrees', 'src/server/projects/worktrees.ts', '(own !== null && sameBranchName(name, own))', '(own !== null && name === own)'],
+  ['secrev-worktrees', 'src/server/projects/worktrees.ts', 'sameBranchName(name, own)', 'name === own'],
   ['secrev-worktrees', 'src/server/projects/worktrees.ts', 'if (existing.includes(name)) return undefined;', ''],
   ['secrev-worktrees', 'src/server/projects/worktrees.ts', 'existing.find(other => sameBranchName(other, name))', 'existing.find(other => other === name)'],
   ['secrev-hooks', 'src/server/projects/working-copies.ts', 'sameBranchName(branch, mine)', 'branch === mine'],

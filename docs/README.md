@@ -11,6 +11,7 @@ specific tasks without duplicating the same instructions in several places.
 | Understand the product, architecture and stack | [Project README](../README.md) |
 | Edit definitions, inspect metrics or navigate graphs | [User guide](user-guide.md) |
 | Use Source Control, sparse folders, export or trash | [User guide](user-guide.md) |
+| Understand validation of ontology parts, imports and dependency locks | [Ontology unit validation](ontology-units.md) |
 | Run a team server and understand access | [Server operation](server-mode.md) |
 | Understand MSAL, Entra groups, managed identities and recovery | [OpenWiki](openwiki/README.md) |
 | Configure, enable or disable logs, Azure telemetry and React UI profiling | [Observability operations](openwiki/observability-operations.md) |
@@ -19,6 +20,7 @@ specific tasks without duplicating the same instructions in several places.
 | Find module owners and request boundaries | [Architecture map](../ARCHITECTURE.md) |
 | Understand graph engines, ports and measurements | [Graph design](graph-design.md) |
 | Integrate an agent or request a governed query plan | [Agent runtime](agent-runtime.md) |
+| Turn on and read counts of requests through the workbench | [Usage counters](usage-counters.md) |
 | Change colors, logos or deployment identity | [Theme and branding](theme.md) |
 | Review dispatchable operations and browser capabilities | [Operation inventory](operations.md) |
 | Verify the security audit chain | [Audit integrity](audit-tamper-evidence.md) |

@@ -90,7 +90,8 @@ function classificationCases(ws: Workspace): GuardCase[] {
   ];
 }
 
-function metricCase(ws: Workspace): GuardCase {
+/** An approved metric creation through the metric endpoint. */
+export function metricCase(ws: Workspace): GuardCase {
   const file = ws.readFile('sales-metrics', METRICS);
   return {
     name: 'metric save',
@@ -161,9 +162,29 @@ export function remoteWithReclassification(ws: Workspace, root: string) {
 
 const origin = 'http://localhost';
 
+/** Grants ontology approval explicitly to a test person in Sales. */
+export function ontologyApprover(name: TestUserName) {
+  const options = accessFixture();
+  options.config.roles.push({
+    id: 'r_ontology_approver',
+    name: 'Ontology approver',
+    description: 'Approves ontology items',
+    createdBy: 'fixture',
+    createdAt: '2026-10-21T09:00:00Z',
+    permissions: [{ actions: ['approveOntologyItem'] }],
+  });
+  options.config.grants.push({
+    ...options.config.grants[0],
+    id: 'g-ontology-approval',
+    roleId: 'r_ontology_approver',
+    member: { kind: 'email', email: person(name).verifiedEmail ?? person(name).username },
+  });
+  return options;
+}
+
 /** A server-mode handler acting as one fixture person. */
-export function guardHandler(ws: Workspace, name: TestUserName) {
-  const access = createAccessControl(accessFixture());
+export function guardHandler(ws: Workspace, name: TestUserName, options = accessFixture()) {
+  const access = createAccessControl(options);
   const principal = access.principalFor(person(name));
   return createHandler(ws, {
     mode: 'server',
@@ -414,6 +435,7 @@ export const GUARDED_ROUTES: Record<string, keyof typeof GUARD_CASES> = {
   'POST /api/projects/:slug/metrics': 'metric save',
   'POST /api/projects/:slug/kpis': 'metric save',
   'PUT /api/projects/:slug/files/*': 'Source save',
+  'POST /api/projects/:slug/compile/convert': 'Source save',
   'DELETE /api/projects/:slug/files/*': 'delete',
   'POST /api/trash/:entry/undo': 'restore',
   'POST /api/trash/:entry/restore': 'restore',
@@ -434,8 +456,21 @@ export const ADMIN_EXEMPTION = 'Admin panel: changes access rules and settings, 
 
 /** Routes beyond plain reads that are not content-guarded, and why. */
 export const GUARD_EXEMPTIONS: Record<string, string> = {
+  'POST /oauth/consent': 'authorizes a person-owned connection; subsequent content changes still pass their own operation guards',
+  'POST /oauth/setup': 'creates a single-use connection credential and writes no project content',
+  'DELETE /api/connections/:id': 'revokes the person’s own connection and writes no project content',
+  'POST /api/projects/:slug/files/*/validate': 'judges proposed text with the save pipeline and writes nothing; the guard outcome is reported, not applied',
+  'POST /api/acp/sessions': 'starts an agent panel session and writes no definition; each file the agent saves is guarded as the twin of its own route',
+  'POST /api/acp/sessions/:id/prompt': 'sends the person’s words to their own agent and writes no definition',
+  'POST /api/acp/sessions/:id/cancel': 'stops the agent’s running turn and writes no definition',
+  'POST /api/acp/sessions/:id/questions/:question': 'answers the agent’s question and widens nothing; every later request is decided again by the boundary',
+  'DELETE /api/acp/sessions/:id': 'ends the person’s own agent panel session and writes no definition',
   'POST /api/projects/:slug/item-addresses/resolve': 'resolves visible locators and writes no definitions or history',
   'POST /api/projects/:slug/item-addresses/reconcile/*': 'records history only; target edit authority and unchanged guarded source are checked without editing definitions',
+  'GET /api/mesh/providers': 'reads published public interfaces under the edit action for the import editor',
+  'POST /api/projects/:slug/dependencies/update': 'writes only the dependency lock, which holds provider identifiers and hashes',
+  'POST /api/projects/:slug/compile/check': 'reads a bounded unit and reports validation without writing files',
+  'POST /api/projects/:slug/compile': 'reads a published unit and releases only the accepted compiled bytes',
   'POST /api/telemetry/browser': 'records an error or timing report and writes no content',
   'POST /api/projects': 'creates an empty project; its files arrive through guarded saves',
   'POST /api/examples/:name': 'loads the shipped examples, which hold no person’s approvals',
@@ -468,6 +503,14 @@ export const GUARD_EXEMPTIONS: Record<string, string> = {
   'POST /api/projects/:slug/git/push': 'publishes local commits; the working copy does not change',
   'POST /api/projects/:slug/git/acknowledge-publication': 'stores only the person’s own publication notice acknowledgement',
   'POST /api/projects/:slug/git/cancel': 'stops a running Git operation',
+  'GET /api/projects/:slug/proposals/:id/promotion-check': 'judges a promotion with the content guard and moves nothing',
+  'POST /api/projects/:slug/proposals': 'starts a proposal at the published tip and holds no new text',
+  'POST /api/projects/:slug/proposals/:id/work': 'switches a copy to a branch under the branch-switch guard',
+  'POST /api/projects/:slug/proposals/:id/synchronize': 'merges the proposal under the same guard as a pull',
+  'POST /api/projects/:slug/proposals/:id/contribute': 'applies the content guard as the contributor in the proposal service; the contribution tests prove it',
+  'POST /api/projects/:slug/proposals/:id/promote': 'applies the content guard as the promoter through publication; the promotion tests prove it',
+  'POST /api/projects/:slug/proposals/:id/close': 'moves a proposal tip between ref namespaces and changes no file',
+  'POST /api/projects/:slug/proposals/:id/restore': 'moves a proposal tip between ref namespaces and changes no file',
   'PUT /api/projects/:slug/git/remote': 'Admin only; names a remote, whose text a guarded pull checks',
   'DELETE /api/projects/:slug/git/remote': 'Admin only; removes a remote and changes no file',
   'PUT /api/projects/:slug/git/folder': 'Admin only and refused in server mode; moves a project’s files inside its repository and changes no text',

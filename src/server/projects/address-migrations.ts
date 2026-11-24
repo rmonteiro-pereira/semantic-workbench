@@ -1,20 +1,27 @@
 /** Stages bounded ordered address history inside the journal that owns the definition change. */
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseAddress } from '../../shared/core/item-address';
 import { validateDeclaredMigrations, type DeclaredMigration } from '../../shared/core/address-migration';
 import type { MigrationFile, MigrationKind, MigrationRecord } from '../../shared/core/address-migration';
-import { atomicWriteJson, readJsonFile } from './atomic';
-import { BadRequestError, OccupiedError } from './errors';
-import { assertSlug, type DataLayout } from './paths';
+import { atomicWrite, decode, readJsonFile } from './atomic';
+import { BadRequestError } from './errors';
+import { assertSlug, projectFile, projectPrefix, repoDir, type DataLayout } from './paths';
 import type { Reader } from './reader';
+import type { Git } from './git';
 
 /** Maximum uncompacted records retained by one project's durable history. */
 export const ADDRESS_MIGRATION_LIMIT = 50_000;
 const kinds = new Set<MigrationKind>(['item', 'scope', 'document', 'reconciliation', 'deleted']);
 
-/** Locates a project's migration file without opening its contents. */
-export const addressMigrationFile = (layout: DataLayout, project: string) => join(layout.state, 'address-migrations', assertSlug(project) + '.json');
+/** Names the repository bookkeeping file in each project folder. */
+export const ADDRESS_HISTORY_FILE = '.semantic-workbench-address-migrations.jsonl';
+const HISTORY_MERGE_RULE = `/${ADDRESS_HISTORY_FILE} merge=union`;
+
+/** Locates a project's history in the selected working copy. */
+export const addressMigrationFile = (layout: DataLayout, project: string) => projectFile(layout, project, ADDRESS_HISTORY_FILE);
+
+const legacyFile = (layout: DataLayout, project: string) => join(layout.state, 'address-migrations', assertSlug(project) + '.json');
 
 function recordAddress(value: unknown) {
   if (typeof value !== 'string') throw new BadRequestError('Invalid migration address.');
@@ -49,11 +56,55 @@ function checkedRecord(input: unknown, project?: string): MigrationRecord {
   return { id: value.id, kind: value.kind, from: value.from, ...(to ? { to: value.to } : {}), at: value.at, commit: value.commit };
 }
 
-function loadRecords(layout: DataLayout, project: string): MigrationRecord[] {
-  const value = readJsonFile<MigrationFile>(addressMigrationFile(layout, project));
+function legacyRecords(layout: DataLayout, project: string): MigrationRecord[] {
+  const value = readJsonFile<MigrationFile>(legacyFile(layout, project));
   if (value === null) return [];
   if (value.formatVersion !== 1 || !Array.isArray(value.records) || value.records.length > ADDRESS_MIGRATION_LIMIT) throw new BadRequestError('Unsupported address migration store.');
   return value.records.map(record => checkedRecord(record));
+}
+
+/** Reads merged lines, preserving the first record for each id. */
+export function parseAddressHistory(source: string): MigrationRecord[] {
+  const byId = new Map<string, MigrationRecord>();
+  for (const line of source.split('\n')) {
+    if (!line.trim()) continue;
+    let value: unknown;
+    try {
+      value = JSON.parse(line);
+    } catch (error) {
+      if (!(error instanceof SyntaxError)) throw error;
+      throw new BadRequestError('Invalid address history JSON line.');
+    }
+    const record = checkedRecord(value);
+    if (!byId.has(record.id)) byId.set(record.id, record);
+    if (byId.size > ADDRESS_MIGRATION_LIMIT) throw new BadRequestError('Address migration history reached its 50,000-record limit.');
+  }
+  return [...byId.values()].sort(compareRecordSequence);
+}
+
+function compareRecordSequence(left: MigrationRecord, right: MigrationRecord): number {
+  const time = Date.parse(left.at) - Date.parse(right.at);
+  if (time) return time;
+  const operationSequence = /^[dmr]-(.+)-(\d+)$/;
+  const leftSequence = operationSequence.exec(left.id);
+  const rightSequence = operationSequence.exec(right.id);
+  const operationOrder = (leftSequence?.[1] ?? left.id).localeCompare(rightSequence?.[1] ?? right.id, 'en', { numeric: true });
+  if (operationOrder) return operationOrder;
+  const recordOrder = Number(leftSequence?.[2] ?? 0) - Number(rightSequence?.[2] ?? 0);
+  return recordOrder || left.id.localeCompare(right.id, 'en', { numeric: true });
+}
+
+/** Reads the working history file for a commit, without inventing a file from legacy state. */
+export function workingAddressHistoryFile(layout: DataLayout, project: string): MigrationRecord[] | null {
+  const file = addressMigrationFile(layout, project);
+  if (!existsSync(file)) return null;
+  return parseAddressHistory(readFileSync(file, 'utf8'));
+}
+
+/** Selects records introduced on the destination side in its replay order. */
+export function addressHistoryDifference(from: readonly MigrationRecord[], to: readonly MigrationRecord[]): MigrationRecord[] {
+  const previous = new Set(from.map(record => record.id));
+  return to.filter(record => !previous.has(record.id));
 }
 
 function readableRecord(record: MigrationRecord, reader: Reader): boolean {
@@ -70,7 +121,43 @@ function readableRecord(record: MigrationRecord, reader: Reader): boolean {
 /** Reads history only after project visibility is established and filters every record's endpoints. */
 export function readAddressMigrations(layout: DataLayout, project: string, reader: Reader): MigrationRecord[] {
   if (reader.view && !reader.view.readableProjects.has(project)) return [];
-  return loadRecords(layout, project).filter(record => readableRecord(record, reader));
+  return (workingAddressHistoryFile(layout, project) ?? legacyRecords(layout, project)).filter(record => readableRecord(record, reader));
+}
+
+/** Reads a history from an already-authorized immutable Git commit. */
+export async function readCommittedAddressMigrations(git: Git, layout: DataLayout, project: string, commit: string, reader: Reader): Promise<MigrationRecord[]> {
+  if (reader.view && !reader.view.readableProjects.has(project)) return [];
+  const records = (await committedAddressHistoryFile(git, layout, project, commit)) ?? legacyRecords(layout, project);
+  return records.filter(record => readableRecord(record, reader));
+}
+
+/** Reads the history file from a verified commit, retaining its absence for commit planning. */
+export async function committedAddressHistoryFile(git: Git, layout: DataLayout, project: string, commit: string): Promise<MigrationRecord[] | null> {
+  const directory = repoDir(layout, project);
+  const path = projectPrefix(layout, project) + ADDRESS_HISTORY_FILE;
+  const entry = (await git.lsTree(directory, commit, path)).find(candidate => candidate.path === path);
+  if (!entry) return null;
+  const maximumBytes = ADDRESS_MIGRATION_LIMIT * 9_000;
+  const blobs = await git.catFileBatch(directory, [entry.id], { documentBytes: maximumBytes, totalBytes: maximumBytes });
+  const bytes = blobs.get(entry.id);
+  if (!bytes) throw new BadRequestError('Address history is unavailable.');
+  return parseAddressHistory(decode(bytes));
+}
+
+/** Checks every reachable history version before a scoped Git bundle can carry it. */
+export async function historyBundleEndpointsReadable(git: Git, directory: string, revision: string, paths: string[], reader: Reader, maximumBytes: number): Promise<boolean> {
+  const result = await git.run(directory, ['rev-list', '--objects', '--full-history', revision, '--', ...paths.map(path => ':(literal)' + path)], { readOnly: true, env: { GIT_NO_LAZY_FETCH: '1' } });
+  const ids = result.stdout
+    .split('\n')
+    .filter(line => paths.includes(line.slice(line.indexOf(' ') + 1)) && line.includes(' '))
+    .map(line => line.slice(0, line.indexOf(' ')));
+  if (!ids.length) return true;
+  if (ids.length > ADDRESS_MIGRATION_LIMIT) return false;
+  const blobs = await git.catFileBatch(directory, ids, { documentBytes: maximumBytes, totalBytes: maximumBytes });
+  return ids.every(id => {
+    const bytes = blobs.get(id);
+    return bytes !== undefined && parseAddressHistory(decode(bytes)).every(record => readableRecord(record, reader));
+  });
 }
 
 /** Assigns repeatable record identifiers from the journal's business operation identifier. */
@@ -86,9 +173,14 @@ export function operationMigrations(operation: { id: string; at: string; commit:
 
 /** Prepares an idempotent append, refusing overflow before any existing file is moved. */
 export function stageAddressMigrations(context: { layout: DataLayout; project: string; staging: string }, appended: readonly MigrationRecord[]): { from: string; to: string }[] {
-  if (!appended.length) return [];
   const { layout, project, staging } = context;
-  const records = loadRecords(layout, project);
+  const legacy = legacyFile(layout, project);
+  if (!appended.length && !existsSync(legacy)) return [];
+  const destination = addressMigrationFile(layout, project);
+  const existed = existsSync(destination);
+  const previousSource = existed ? readFileSync(destination, 'utf8') : '';
+  const records = existed ? parseAddressHistory(previousSource) : legacyRecords(layout, project);
+  const additions = existed ? [] : [...records];
   const byId = new Map(records.map(record => [record.id, record]));
   for (const input of appended) {
     const record = checkedRecord(input, project);
@@ -97,14 +189,61 @@ export function stageAddressMigrations(context: { layout: DataLayout; project: s
       if (JSON.stringify(previous) !== JSON.stringify(record)) throw new BadRequestError('A migration operation was replayed with different content.');
       continue;
     }
-    records.push(record);
+    additions.push(record);
     byId.set(record.id, record);
   }
-  if (records.length > ADDRESS_MIGRATION_LIMIT) throw new BadRequestError('Address migration history reached its 50,000-record limit. Definitions were not changed.');
-  const destination = addressMigrationFile(layout, project);
-  const staged = join(staging, `address-migrations-${project}.json`);
-  atomicWriteJson(staged, { formatVersion: 1, records });
-  return [...(existsSync(destination) ? [{ from: destination, to: staged + '.previous' }] : []), { from: staged, to: destination }];
+  if (byId.size > ADDRESS_MIGRATION_LIMIT) throw new BadRequestError('Address migration history reached its 50,000-record limit. Definitions were not changed.');
+  if (!additions.length && existed && !existsSync(legacy)) return [];
+  const staged = join(staging, `address-migrations-${project}.jsonl`);
+  const steps = [];
+  if (existed) steps.push({ from: destination, to: staged + '.previous' });
+  const separator = previousSource && !previousSource.endsWith('\n') ? '\n' : '';
+  atomicWrite(staged, previousSource + separator + additions.map(record => JSON.stringify(record) + '\n').join(''));
+  steps.push({ from: staged, to: destination });
+  if (!existed) steps.push(...stageHistoryAttributes(layout, project, staging));
+  if (existsSync(legacy)) steps.push({ from: legacy, to: staged + '.legacy' });
+  return steps;
+}
+
+function stageHistoryAttributes(layout: DataLayout, project: string, staging: string) {
+  const destination = projectFile(layout, project, '.gitattributes');
+  const existed = existsSync(destination);
+  const previous = existed ? readFileSync(destination, 'utf8') : '';
+  if (previous.split(/\r?\n/).includes(HISTORY_MERGE_RULE)) return [];
+  const staged = join(staging, `attributes-${project}`);
+  const separator = previous && !previous.endsWith('\n') ? '\n' : '';
+  atomicWrite(staged, previous + separator + HISTORY_MERGE_RULE + '\n');
+  return [...(existed ? [{ from: destination, to: staged + '.previous' }] : []), { from: staged, to: destination }];
+}
+
+/** Identifies files created solely to hold address history and its merge rule. */
+export function isAddressHistoryBookkeeping(layout: DataLayout, project: string, path: string): boolean {
+  if (path === ADDRESS_HISTORY_FILE) return true;
+  if (path !== '.gitattributes') return false;
+  return readFileSync(projectFile(layout, project, path), 'utf8').trim() === HISTORY_MERGE_RULE;
+}
+
+/** Identifies working bookkeeping explained entirely by the deletions being restored. */
+export async function trashHistoryChanges(git: Git, layout: DataLayout, project: string, restoredIds: ReadonlySet<string>): Promise<string[]> {
+  const folder = projectPrefix(layout, project);
+  const directory = repoDir(layout, project);
+  const commit = await git.head(directory);
+  const working = workingAddressHistoryFile(layout, project);
+  if (!commit || !working) return [];
+  const committed = await committedAddressHistoryFile(git, layout, project, commit);
+  const previous = committed ?? [];
+  const added = addressHistoryDifference(previous, working);
+  if (!added.length || added.some(record => record.kind !== 'deleted' || !restoredIds.has(record.id))) return [];
+  const retained = working.filter(record => !restoredIds.has(record.id));
+  if (serializeAddressHistory(retained) !== serializeAddressHistory(previous)) return [];
+  const explained = [folder + ADDRESS_HISTORY_FILE];
+  if (committed) return explained;
+  const source = await git.blob(directory, commit, folder + '.gitattributes');
+  const previousRule = source ? decode(source) : '';
+  const rulePath = projectFile(layout, project, '.gitattributes');
+  const separator = previousRule && !previousRule.endsWith('\n') ? '\n' : '';
+  if (existsSync(rulePath) && readFileSync(rulePath, 'utf8') === previousRule + separator + HISTORY_MERGE_RULE + '\n') explained.push(folder + '.gitattributes');
+  return explained;
 }
 
 /** Validates an optional save declaration list without exposing locator text in refusal errors. */
@@ -112,21 +251,6 @@ export function declaredAddressMigrations(input: unknown, project: string, docum
   const result = validateDeclaredMigrations(input, project, documents);
   if (!result.ok) throw new BadRequestError(`Invalid declared migrations: ${result.reason}.`);
   return result.migrations;
-}
-
-/** Moves a project's complete history into the same archive as its definitions. */
-export function archiveAddressMigrations(layout: DataLayout, project: string, archive: string): { from: string; to: string }[] {
-  const from = addressMigrationFile(layout, project);
-  return existsSync(from) ? [{ from, to: join(archive, 'address-migrations', assertSlug(project) + '.json') }] : [];
-}
-
-/** Restores archived history without rewriting its original endpoints or overwriting another store. */
-export function restoreAddressMigrations(layout: DataLayout, originalProject: string, targetProject: string, archive: string): { from: string; to: string }[] {
-  const from = join(archive, 'address-migrations', assertSlug(originalProject) + '.json');
-  if (!existsSync(from)) return [];
-  const to = addressMigrationFile(layout, targetProject);
-  if (existsSync(to)) throw new OccupiedError('Address history already exists for the restored project.', {});
-  return [{ from, to }];
 }
 
 /** Validates explicit item-deletion prefixes within the files owned by a save request. */
@@ -142,4 +266,75 @@ export function declaredDeletedItems(input: unknown, project: string, documents:
   });
   if (new Set(addresses).size !== addresses.length) throw new BadRequestError('Each deleted item may be declared once.');
   return addresses;
+}
+
+/** Matches a record to the definition paths it describes within a repository. */
+export function historyEndpoints(record: MigrationRecord, prefix: (project: string) => string | undefined): string[] {
+  return [record.from, record.to].flatMap(value => {
+    if (!value) return [];
+    const parsed = parseAddress(value);
+    if (!parsed.ok || !parsed.address.project || !parsed.address.document) return [];
+    const folder = prefix(parsed.address.project);
+    return folder === undefined ? [] : [folder + parsed.address.document.join('/')];
+  });
+}
+
+/** Serializes replay records for a Git index entry. */
+export function serializeAddressHistory(records: readonly MigrationRecord[]): string {
+  return records.map(record => JSON.stringify(record) + '\n').join('');
+}
+
+/** Prepares a working history rewrite for the same journal as a discard or restore. */
+export function stageHistoryRemoval(
+  context: { layout: DataLayout; project: string; staging: string },
+  discard: (record: MigrationRecord) => boolean,
+  options: { archive?: string; keepEmpty: boolean },
+): { from: string; to: string }[] {
+  const { layout, project, staging } = context;
+  const destination = addressMigrationFile(layout, project);
+  if (!existsSync(destination)) return [];
+  const records = parseAddressHistory(readFileSync(destination, 'utf8'));
+  const removed = records.filter(discard);
+  if (!removed.length) return [];
+  const excluded = new Set(removed.map(record => record.id));
+  const staged = join(staging, 'remaining-address-history');
+  const remaining = records.filter(record => !excluded.has(record.id));
+  const steps = [{ from: destination, to: staged + '.previous' }];
+  if (remaining.length || options.keepEmpty) {
+    atomicWrite(staged, serializeAddressHistory(remaining));
+    steps.push({ from: staged, to: destination });
+  } else {
+    steps.push(...stageHistoryRuleRemoval(layout, project, staging));
+  }
+  if (options.archive) {
+    const archived = staged + '.removed';
+    atomicWrite(archived, serializeAddressHistory(removed));
+    steps.push({ from: archived, to: options.archive });
+  }
+  return steps;
+}
+
+function stageHistoryRuleRemoval(layout: DataLayout, project: string, staging: string) {
+  const destination = projectFile(layout, project, '.gitattributes');
+  if (!existsSync(destination)) return [];
+  const source = readFileSync(destination, 'utf8');
+  const lines = source.match(/[^\r\n]*(?:\r\n|\n|$)/g) ?? [];
+  const retained = lines.filter(line => line.trimEnd() !== HISTORY_MERGE_RULE).join('');
+  if (retained === source) return [];
+  const staged = join(staging, 'remaining-attributes');
+  const steps = [{ from: destination, to: staged + '.previous' }];
+  if (retained) {
+    atomicWrite(staged, retained);
+    steps.push({ from: staged, to: destination });
+  }
+  return steps;
+}
+
+/** Location of the undo payload for records removed with a reverted definition. */
+export const trashedAddressHistory = (entry: string) => join(entry, 'address-history.jsonl');
+
+/** Reads the undo payload for a reverted definition, if it had any records. */
+export function readTrashedAddressHistory(entry: string): MigrationRecord[] {
+  const path = trashedAddressHistory(entry);
+  return existsSync(path) ? parseAddressHistory(readFileSync(path, 'utf8')) : [];
 }

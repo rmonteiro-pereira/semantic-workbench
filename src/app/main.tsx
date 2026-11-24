@@ -1,3 +1,4 @@
+import { ItemDiffProvider } from './item-diff/ItemDiffContext';
 /** Application entry point and composition of the workspace views. */
 import { Capabilities } from './auth/Capabilities';
 import { BrandProvider } from './brand/BrandContext';
@@ -141,6 +142,11 @@ function App() {
   async function openProject(slug: string) {
     await workspaceEvents.refresh();
     fileNavigation.selectProject(slug);
+  }
+
+  function refreshComparisonBranch() {
+    workspaceEvents.setGitVersion(value => value + 1);
+    void refresh().catch(error => setMessage(error instanceof Error ? error.message : 'Could not reload the branch.'));
   }
 
   const content = (
@@ -422,6 +428,7 @@ function App() {
                 setAdding={itemEditing.setAdding}
                 relatedDocuments={references.relatedDocuments}
                 openDocument={openDocument}
+                sections={{ documentOf: itemEditing.documentOf, projectDocsOf: itemEditing.projectDocsOf, applySaved: itemEditing.applySaved }}
               />
             </UiProfiler>
           </div>
@@ -445,7 +452,9 @@ function App() {
   );
   return (
     <Capabilities projects={projects}>
-      <AdminHost>{content}</AdminHost>
+      <ItemDiffProvider project={projects.find(item => item.slug === selectedProject)} docs={docs} revision={workspaceEvents.gitVersion} refreshBranch={refreshComparisonBranch}>
+        <AdminHost>{content}</AdminHost>
+      </ItemDiffProvider>
     </Capabilities>
   );
 }

@@ -311,6 +311,33 @@ const fixedResponses: Record<string, unknown> = {
     version: VERSION,
     clients: [{ clientId: 'reporting-agent', name: 'Reporting agent', projects: [], domains: [] }],
   },
+  '/api/admin/programs': {
+    formatVersion: 1,
+    version: VERSION,
+    programs: [
+      {
+        clientId: 'desktop-agent',
+        name: 'Desktop agent',
+        description: 'An agent program people run on their own computer.',
+        setupNote: 'Install the program, then sign in from it.',
+        redirectUris: ['http://127.0.0.1/callback'],
+        scopes: ['read', 'edit'],
+      },
+    ],
+  },
+  '/api/admin/connections': [
+    {
+      id: 'connection-1',
+      clientId: 'desktop-agent',
+      programName: 'Desktop agent',
+      personName: 'Alice Andrade',
+      createdAt: '2026-10-22T07:00:00Z',
+      lastUsedAt: '2026-10-22T07:58:00Z',
+      origin: 'mcp',
+      state: 'active',
+      scopes: ['read'],
+    },
+  ],
   '/api/admin/policies': policies,
   '/api/admin/policies/validate': {
     ok: false,
@@ -350,6 +377,7 @@ export function adminMockResponse(url: URL, method: string, state: AdminMockStat
   }
   if (method === 'PUT') return { status: 200, body: { version: 'saved' } };
   if (path === '/api/me') return { status: 200, body: state.me };
+  if (/^\/api\/projects\/[^/]+\/usage$/.test(path)) return { status: 200, body: { counters: { enabled: false }, measures: [] } };
   if (path === '/api/audit') return { status: 200, body: auditPage(url) };
   if (path.startsWith('/api/admin/groups/')) {
     const id = decodeURIComponent(path.slice('/api/admin/groups/'.length));

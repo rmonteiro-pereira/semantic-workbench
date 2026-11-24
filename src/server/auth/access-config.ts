@@ -4,6 +4,7 @@ import addFormats from 'ajv-formats';
 import schema from '../../../schemas/semantic-workbench-access-v1.json';
 import { LEVELS, BUILTIN_ROLE_IDS, type Action, type Level } from '../../shared/auth/actions';
 import { validateCustomRole } from './role-compiler';
+import { emptyProgramsFile, programsIssues, type ProgramsFile } from '../connections/programs';
 
 /** The workspace, domains, or named projects covered by a grant. */
 export type GrantScope = { kind: 'workspace' } | { kind: 'domains'; domains: string[] } | { kind: 'projects'; projects: string[] };
@@ -63,6 +64,8 @@ export type AccessConfig = {
   projects: ProjectsConfig;
   agents: AgentsConfig;
   deactivated: DeactivatedConfig;
+  /** The agent programs people may connect. */
+  programs: ProgramsFile;
 };
 /** An administration document that does not satisfy its schema or references. */
 export class AccessConfigError extends Error {}
@@ -83,11 +86,15 @@ export function validateAccessDocument(name: string, value: unknown): void {
 /** Copies and validates configuration so later caller mutations cannot change decisions. */
 export function validateAccessConfig(input: AccessConfig): AccessConfig {
   const config = structuredClone(input);
+  config.programs ??= emptyProgramsFile();
   validateAccessDocument('rolesFile', { formatVersion: 1, roles: config.roles });
   validateAccessDocument('grantsFile', { formatVersion: 1, grants: config.grants });
   validateAccessDocument('projectsFile', { formatVersion: 1, ...config.projects });
   validateAccessDocument('agentsFile', { formatVersion: 1, ...config.agents });
   validateAccessDocument('deactivatedFile', { formatVersion: 1, ...config.deactivated });
+  validateAccessDocument('programsFile', config.programs);
+  const programIssues = programsIssues(config.programs);
+  if (programIssues.length) throw new AccessConfigError(`programs.json: ${programIssues[0].field}: ${programIssues[0].message}`);
   const roleIds = new Set([...BUILTIN_ROLE_IDS, ...config.roles.map(role => role.id)]);
   const names = new Set<string>(BUILTIN_ROLE_IDS);
   const ids = new Set<string>(BUILTIN_ROLE_IDS);
@@ -124,6 +131,7 @@ export function emptyAccessConfig(): AccessConfig {
     adminRules: {},
     agents: { clients: [] },
     deactivated: { principals: [] },
+    programs: emptyProgramsFile(),
     projects: {
       domains: [],
       projects: {},

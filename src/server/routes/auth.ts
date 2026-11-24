@@ -9,7 +9,8 @@ import { securityHeaders } from '../static';
 import { authStylesheet } from './auth-stylesheet';
 import { activeBrand } from '../brand/bundle';
 
-function escapeHtml(value: string): string {
+/** Escapes text for an HTML body or a quoted attribute. */
+export function escapeHtml(value: string): string {
   return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
 }
 
@@ -67,12 +68,12 @@ function pageContent(page: AuthPageKind, options: AuthPageOptions) {
   return { title, content };
 }
 
-/** Renders minimal authentication pages without scripts or workspace information. */
-export function authPage(page: AuthPageKind, options: AuthPageOptions = {}, status = 200) {
-  const { title, content } = pageContent(page, options);
+/** Wraps a title and body in the sign-in pages' document: the same head, stylesheet and card, no script. */
+export function authDocument(title: string, content: string, status = 200, extraHeaders: Record<string, string> = {}) {
   const headers = securityHeaders();
   headers.set('Content-Type', 'text/html; charset=utf-8');
   headers.set('Cache-Control', 'no-store');
+  for (const [name, value] of Object.entries(extraHeaders)) headers.set(name, value);
   return new Response(
     '<!doctype html><html lang="en"><head><meta charset="utf-8">' +
       '<meta name="viewport" content="width=device-width, initial-scale=1">' +
@@ -92,6 +93,12 @@ export function authPage(page: AuthPageKind, options: AuthPageOptions = {}, stat
       '</main></body></html>',
     { headers, status },
   );
+}
+
+/** Renders minimal authentication pages without scripts or workspace information. */
+export function authPage(page: AuthPageKind, options: AuthPageOptions = {}, status = 200) {
+  const { title, content } = pageContent(page, options);
+  return authDocument(title, content, status);
 }
 
 /** Where the identity provider ends a workbench session after signing the person out. */

@@ -3,7 +3,7 @@ import { expect, test } from 'bun:test';
 import { createAccessControl } from '../src/server/auth/authorize';
 import { requestAccess, requestReader } from '../src/server/auth/request-scope';
 import { addressMigrationFile, readAddressMigrations } from '../src/server/projects/address-migrations';
-import { dataLayout } from '../src/server/projects/paths';
+import { copyLayout, dataLayout } from '../src/server/projects/paths';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { createHandler } from '../src/server/handler';
 import { allowEveryRemote } from './helpers/remote-credentials-fixture';
@@ -24,9 +24,9 @@ const declaration = { operationId: 'reconcile-one', from: prefix + 'old_revenue'
 
 test('an editor reconciles an approved guarded metric without changing it and retries the same operation once', async () => {
   using workspace = await authWorkspace();
-  const layout = dataLayout(workspace.root);
   const original = workspace.ws.readFile('sales-metrics', 'sales.semantic.yaml').source;
   const request = requestFor('alice');
+  const layout = copyLayout(workspace.ws.layout, requestReader(request).copy!.key);
   const record = await workspace.ws.reconcileAddress(declaration, requestReader(request));
   expect(record).toMatchObject({ id: 'r-reconcile-one-0', kind: 'reconciliation', from: declaration.from, to: declaration.to });
   const stored = readFileSync(addressMigrationFile(layout, 'sales-metrics'));

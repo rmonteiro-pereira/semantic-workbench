@@ -15,6 +15,13 @@ export const requestConnectionScope = Symbol('requestConnectionScope');
 /** Delegated-credential session supplied by the caller, including an explicit absence. */
 export const requestSession = Symbol('requestSession');
 
+/** The transport that authenticated the request's caller. */
+export const requestCallerOrigin = Symbol('requestCallerOrigin');
+/** The transport that authenticated a request, which is `http` for a request that was not attached to a caller. */
+export function callerOriginOf(request: Request): Caller['origin'] {
+  return (request as AccessRequest)[requestCallerOrigin] ?? 'http';
+}
+
 /** Request scope attached after identity resolution, so routes never resolve identity again. */
 export const requestAccess = Symbol('requestAccess');
 /** Server mode's per-person remote Git credentials, or `local`, attached before routes run. */
@@ -28,11 +35,21 @@ export type AccessRequest = Request & {
   [requestRemote]?: RemoteCredentials | 'local';
   [requestSession]?: Session | null;
   [requestConnectionScope]?: Caller['scope'];
+  [requestCallerOrigin]?: Caller['origin'];
+  [requestDisclosureShown]?: true;
   [requestPublicationRefusal]?: string;
   [requestPublication]?: { previous: string | null; commit: string | null };
+  [requestProposal]?: ProposalAuditFacts;
 };
+/** Marks a publication whose browser confirmation included the mesh disclosure. */
+export const requestDisclosureShown = Symbol('requestDisclosureShown');
+
 /** The completed publication attached by its route for the one request audit record. */
 export const requestPublication = Symbol('requestPublication');
+/** The proposal, its declared projects and the commits a proposal operation touched. */
+export const requestProposal = Symbol('requestProposal');
+/** What an audit record says about a proposal operation; never the proposal's free-text name. */
+export type ProposalAuditFacts = { proposal: string; projects: string[]; commits: string[] };
 /** A bounded refusal reason attached by the adoption route for its audit outcome. */
 export const requestPublicationRefusal = Symbol('requestPublicationRefusal');
 
@@ -49,6 +66,10 @@ export function recordPublicationAttempt(request: Request, previous: string | nu
 /** Records immutable publication identifiers after the ref and durable pointer have settled. */
 export function recordPublication(request: Request, publication: { previous: string | null; commit: string }) {
   (request as AccessRequest)[requestPublication] = { previous: publication.previous, commit: publication.commit };
+}
+/** Records the proposal operation's facts for the one request audit record. */
+export function recordProposal(request: Request, facts: ProposalAuditFacts) {
+  (request as AccessRequest)[requestProposal] = facts;
 }
 /**
  * The projects whose audit records an audit request may read, decided once by the access
@@ -76,9 +97,12 @@ export function attachIdentity(
   attached[requestAuditProjects] = context.auditProjects;
   attached[requestSession] = caller.session ?? null;
   attached[requestConnectionScope] = caller.scope;
+  attached[requestCallerOrigin] = caller.origin;
   // A reused request must not carry a previous operation's publication outcome.
   attached[requestPublication] = undefined;
   attached[requestPublicationRefusal] = undefined;
+  attached[requestProposal] = undefined;
+  attached[requestDisclosureShown] = undefined;
 }
 
 /**

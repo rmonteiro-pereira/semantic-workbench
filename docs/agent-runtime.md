@@ -179,6 +179,11 @@ All client calls are audited as `client:<clientId>`. Refused tokens are anonymou
 and are never copied into logs. Context resolution cannot widen the caller's readable project or
 path scope.
 
+For a published revision 3 ontology, roots and their declared parts contribute to the same
+ontology in agent context. Imported concepts come from the published provider versions
+recorded in the consumer's committed dependency manifest. Editing a provider's working
+files does not change agent context.
+
 ## Agent tools
 
 Use the local API origin in local mode or the configured HTTPS origin on a shared server.
@@ -302,6 +307,17 @@ full n-ary tuple population execution are not implemented. There is no ontology 
 check or OWL reasoner. SHACL shapes run only in the workbench's validation details, in the browser,
 and are not part of the agent runtime.
 
+## Tessera documents
+
+The agent API reads Tessera definitions from the published snapshot. A concept or relationship's
+`tessera_ai_context` appears as `ai_context` at the item's address in context output. Governed items
+carry their status, including “not set” when the entry has no status. The flag includes replacement
+and reason when available for a deprecated item. Plans and metric explanations flag governed
+items they use. The API includes published items at every approval status.
+
+The Tessera marker, notes, attribute order, owner, steward and classification stay out of agent
+responses. The browser preview can show a saved working copy and identifies its source.
+
 ## Verification and provenance
 
 Unit/API/browser tests cover reference resolution, nested/inherited mappings, immutable governed
@@ -333,3 +349,7 @@ Server preview requires the person’s session and existing read authorization. 
 must not be represented as published context. Historical inputs accept full published-history ids
 or tags within that history, not branches or abbreviated ids. Publication does not create release
 tags, validate a whole definition set or supply dependency manifests; diverged history is not adopted.
+
+## Agent tools
+
+Local mode also serves the Model Context Protocol at `POST /api/mcp`, with 23 tools described in [the agent endpoint guide](mcp.md). Four of them (`get_mapping_catalog`, `get_mapping_context`, `plan_query` and `explain_metric`) call the routes described above and so read only the published snapshot. `check_standard` and `compile_standard` call the compile routes: compiling reads only the published snapshot, while a check may read the caller's working copy when asked and says so. The others list, read and validate files, inspect Git, change files and commit. No tool executes a plan, contacts a warehouse or calls a model.

@@ -9,13 +9,16 @@ import { signIn, type SignInTarget } from './helpers/sign-in';
 import { ADMIN_AREAS, adminGeometry, adminArea, leaveAdmin, screenshotName, withinAdministrationTime } from './helpers/admin-browser';
 import { openSettings } from './helpers/sidebar-menus';
 
+/** Six seconds leaves about 1.7 seconds for rendering above the 4,336 ms dev-server Admin-suite peak; see docs/development.md. */
+const DRY_RUN_RESULT_TIMEOUT_MS = 6_000;
+
 /**
  * Runs the dry run in `scope`, checks the result and confirms. The result is in a dialog for a
  * form and inside the scope for a confirmation dialog, so the buttons are found on the page.
  */
 async function review(page: Page, scope: Locator, name = 'save changes', previewName = 'Review change') {
   await scope.getByRole('button', { name: previewName, exact: true }).click();
-  await expect(page.getByRole('region', { name: 'Dry-run result', exact: true })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Dry-run result', exact: true })).toBeVisible({ timeout: DRY_RUN_RESULT_TIMEOUT_MS });
   const confirm = page.getByRole('button', { name: `Confirm ${name}`, exact: true });
   await confirm.click();
   await expect(confirm).toHaveCount(0);
@@ -188,7 +191,7 @@ async function policyHistory(page: Page) {
   await history.getByRole('button', { name: 'Roll back', exact: true }).click();
   // The rollback is reviewed like any other change before it can be confirmed.
   const rollback = page.getByRole('dialog', { name: 'Confirm rollback', exact: true });
-  await expect(rollback.getByRole('region', { name: 'Dry-run result', exact: true })).toBeVisible();
+  await expect(rollback.getByRole('region', { name: 'Dry-run result', exact: true })).toBeVisible({ timeout: DRY_RUN_RESULT_TIMEOUT_MS });
   await adminGeometry(page, 'rollback');
   await rollback.getByRole('button', { name: 'Confirm rollback', exact: true }).click();
   await expect(history.getByRole('alert')).toHaveCount(0);

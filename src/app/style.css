@@ -1,4 +1,5 @@
 /* Styles the workbench shell, graph controls and responsive project navigation. */
+@import './item-diff/item-diff.css';
 :root {
   /* Smallest text size and softest text colour the interface uses. The colour keeps at least 4.5:1
      contrast on white and on the page background. */
@@ -3807,6 +3808,14 @@ main > .status {
   min-width: 0;
   max-width: 100px;
   text-overflow: ellipsis;
+}
+/* The relationship filter is as wide as the relationship it shows rather than the longest one in
+   the list, so the neighborhood toolbar keeps two rows at 1280 px. Nothing is capped, so a long
+   name stays whole. */
+.option-group .relationship-filter {
+  field-sizing: content;
+  width: auto;
+  min-width: 0;
 }
 .full-graph .option-group:has(.zoom-to-group) {
   flex-wrap: wrap;

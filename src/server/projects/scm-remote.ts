@@ -3,6 +3,7 @@ import { type Reader } from './reader';
 import { BadRequestError } from './errors';
 import { GitError, redactCredentials, remoteAddress, remoteName, type Git, type GitResult, type RemoteAddresses, type RemoteCredential } from './git';
 import { sparseFolders } from './sparse-folder';
+import { outgoingRefspec } from './work-in-progress-push';
 import type { ContentGuard, FileChange } from '../auth/guards';
 import { asText, blockers, type CredentialFor, type FollowRequest, type FollowResult, type RemoteChoice, type RemoteRequest, type ScmContext } from './scm-context';
 
@@ -45,12 +46,21 @@ export function createScmRemote(ctx: ScmContext) {
   async function chooseRemote(slug: string, credentialFor?: CredentialFor): Promise<RemoteChoice | null> {
     const chosen = await chosenRemoteAddresses(slug);
     if (!chosen) return null;
-    const choice: RemoteChoice = { name: chosen.name, credential: await credentialFor?.(chosen) };
+    const choice: RemoteChoice = { ...chosen, credential: await credentialFor?.(chosen) };
     return choice;
   }
   function chosenName(choice: RemoteChoice | null) {
     if (!choice) throw new GitError('This project has no remote. Add one under Remote first.');
     return choice.name;
+  }
+  async function verifyOutgoingRemote(directory: string, choice: RemoteChoice | null) {
+    const name = chosenName(choice);
+    const addresses = await git.remoteAddresses(directory);
+    const current = addresses.find(remote => remote.name === name);
+    const destinations = await git.run(directory, ['remote', 'get-url', '--push', '--all', name], { readOnly: true, allowFailure: true });
+    if (!current || current.fetchUrl !== choice?.fetchUrl || destinations.code !== 0 || destinations.stdout.trim() !== choice?.pushUrl) {
+      throw new BadRequestError('The remote addresses changed or there is more than one push destination. Review the remote and try again.');
+    }
   }
   // Text of a document at a revision, or null when it is absent or not directory.
   async function textAt(directory: string, rev: string | null, path: string) {
@@ -61,10 +71,11 @@ export function createScmRemote(ctx: ScmContext) {
     return text.binary ? null : text.text;
   }
   // What moving from `base` to `tip` would bring into each project of the repository: every
-  // file changed between them, as `base` has it and as `tip` has it.
-  async function incomingChanges(slug: string, directory: string, base: string | null, tip: string): Promise<FileChange[]> {
+  // file changed between them, as `base` has it and as `tip` has it. A caller that already lists
+  // the changed paths, with renames split into two, names them in `paths`.
+  async function incomingChanges(slug: string, directory: string, base: string | null, tip: string, paths?: string[]): Promise<FileChange[]> {
     const changes: FileChange[] = [];
-    for (const path of await git.changedBetween(directory, base, tip)) {
+    for (const path of paths ?? (await git.changedBetween(directory, base, tip))) {
       const owner = ownerOf(slug, path);
       if (!owner) continue;
       changes.push({
@@ -125,6 +136,17 @@ export function createScmRemote(ctx: ScmContext) {
     const altered = head && head !== before ? await alteredAfter(directory, await git.changedBetween(directory, before, head)) : [];
     return { ok: gitResult.code === 0, conflicted, altered, stderr: gitResult.stderr.trim() };
   }
+  // A merge into the person's branch: the commit is judged as the person's own change before it is
+  // merged, uncommitted work blocks it, and conflicts are reported while the merge stays on the branch.
+  async function mergeFromCommit(slug: string, { guard }: Reader, merge: (check: (tip: string) => Promise<void>) => Promise<GitResult>) {
+    const directory = dir(slug);
+    const check = async (tip: string) => {
+      if (guard) await guardMerge(slug, directory, tip, guard);
+    };
+    const result = await mergeIn(slug, directory, () => merge(check));
+    const gitStatus = await after(slug, result.altered);
+    return { ...result, ahead: gitStatus.ahead, behind: gitStatus.behind };
+  }
   const pullIn = (slug: string, directory: string, { choice, guard }: RemoteRequest) =>
     mergeIn(slug, directory, async gitStatus => {
       const remote = chosenName(choice);
@@ -149,12 +171,57 @@ export function createScmRemote(ctx: ScmContext) {
     const tip = `refs/remotes/${chosenName(choice)}/${await deps.defaultBranch(slug)}`;
     await fetchFolderContents(directory, tip, async () => choice);
   }
+  async function approvedRefspec(slug: string, source: string | null, branch: string) {
+    const pointer = deps.publishedPosition?.(slug);
+    const defaultBranch = await deps.defaultBranch?.(slug);
+    const published = pointer?.branch === defaultBranch ? pointer?.commit : null;
+    return outgoingRefspec(git, dir(slug), source, branch, published);
+  }
+  function pushRef(directory: string, choice: RemoteChoice | null, refspec: string) {
+    return git.run(directory, ['push', '--no-mirror', '--no-follow-tags', '--recurse-submodules=no', '--end-of-options', chosenName(choice), refspec], {
+      remote: true,
+      allowFailure: true,
+      credential: choice?.credential,
+    });
+  }
+
   // Remote actions report Git's result instead of throwing, so the panel can show stderr; Cancel
   // (or the 10-minute limit) ends them.
-  async function remoteAction(slug: string, kind: 'fetch' | 'pull' | 'push' | 'sync', request: RemoteRequest) {
+  async function remoteAction(slug: string, kind: 'fetch' | 'pull' | 'push' | 'sync', request: RemoteRequest, expectedBranch?: string, expectedHead?: string) {
     const directory = dir(slug);
     const choice = request.choice;
     const credential = choice?.credential;
+    if (kind === 'push' || kind === 'sync') {
+      const initial = await git.status(directory);
+      const branch = expectedBranch ?? initial.branch;
+      const head = expectedHead ?? (await git.head(directory));
+      return ctx
+        .inWriteTurn(slug, async () => {
+          await verifyOutgoingRemote(directory, choice);
+          const current = await git.status(directory);
+          if (current.branch !== branch || (await git.head(directory)) !== head) throw new BadRequestError('The checked-out branch or commit changed. Reload it and try again.');
+          let refspec = await approvedRefspec(slug, head, branch);
+          const result = kind === 'sync' && current.upstream ? await pullIn(slug, directory, request) : { ok: true, conflicted: [], altered: [], stderr: '' };
+          if (kind === 'sync' && current.upstream && result.ok) {
+            try {
+              refspec = await approvedRefspec(slug, await git.head(directory), branch);
+            } catch (error) {
+              if (!(error instanceof BadRequestError)) throw error;
+              result.ok = false;
+              result.stderr = error.message;
+            }
+          }
+          if (result.ok) {
+            const pushed = await pushRef(directory, choice, refspec);
+            result.ok = pushed.code === 0;
+            result.stderr = [result.stderr, pushed.stderr.trim()].filter(Boolean).join('\n');
+            if (result.ok) await git.run(directory, ['branch', `--set-upstream-to=${chosenName(choice)}/${branch}`, '--', branch]);
+          }
+          const updated = await after(slug, result.altered);
+          return { ...result, ahead: updated.ahead, behind: updated.behind };
+        })
+        .catch(error => recoverCancellation(slug, error));
+    }
     try {
       let result = { ok: true, conflicted: [] as string[], altered: [] as string[], stderr: '' };
       let follow: FollowResult | null = null;
@@ -170,61 +237,43 @@ export function createScmRemote(ctx: ScmContext) {
           follow = await deps.fetched(slug, chosenName(choice), request.follow);
         }
       }
-      if (kind === 'pull' || kind === 'sync') {
-        const gitStatus = await git.status(directory);
-        if (kind === 'pull' || gitStatus.upstream) result = await pullIn(slug, directory, request);
-      }
-      if ((kind === 'push' || kind === 'sync') && result.ok) {
-        const gitStatus = await git.status(directory);
-        const gitResult = await git.run(directory, ['push', '-u', '--end-of-options', chosenName(choice), gitStatus.branch], {
-          remote: true,
-          allowFailure: true,
-          credential,
-        });
-        result = {
-          ...result,
-          ok: gitResult.code === 0,
-          stderr: [result.stderr, gitResult.stderr.trim()].filter(Boolean).join('\n'),
-        };
-      }
+      if (kind === 'pull') result = await pullIn(slug, directory, request);
       const gitStatus = await after(slug, result.altered);
       return { ...result, ahead: gitStatus.ahead, behind: gitStatus.behind, ...(follow ? { follow } : {}) };
     } catch (error) {
-      if (error instanceof GitError && error.cancelled) {
-        const gitStatus = await after(slug);
-        return {
-          ok: false,
-          cancelled: true,
-          conflicted: [],
-          altered: [],
-          stderr: error.message,
-          ahead: gitStatus.ahead,
-          behind: gitStatus.behind,
-        };
-      }
-      throw error;
+      return recoverCancellation(slug, error);
     }
+  }
+
+  async function recoverCancellation(slug: string, error: unknown) {
+    if (!(error instanceof GitError) || !error.cancelled) throw error;
+    const gitStatus = await after(slug);
+    return { ok: false, cancelled: true, conflicted: [], altered: [], stderr: error.message, ahead: gitStatus.ahead, behind: gitStatus.behind };
   }
   const actions = {
     async setRemote(slug: string, requestedName: unknown, url: unknown) {
       const name = remoteName(requestedName);
       const directory = dir(slug);
-      const remotes = await git.remotes(directory);
-      const current = remotes.get(name);
-      // The panel shows addresses with credentials masked; saving one unchanged keeps the original.
-      if (current !== undefined && typeof url === 'string' && url.trim() === redactCredentials(current)) return { name, url: url.trim() };
-      const address = remoteAddress(url);
-      await git.run(directory, remotes.has(name) ? ['remote', 'set-url', name, address] : ['remote', 'add', name, address]);
-      await after(slug);
-      return { name, url: address };
+      return ctx.inWriteTurn(slug, async () => {
+        const remotes = await git.remotes(directory);
+        const current = remotes.get(name);
+        // The panel shows addresses with credentials masked, so a saved match keeps the original.
+        if (current !== undefined && typeof url === 'string' && url.trim() === redactCredentials(current)) return { name, url: url.trim() };
+        const address = remoteAddress(url);
+        await git.run(directory, remotes.has(name) ? ['remote', 'set-url', name, address] : ['remote', 'add', name, address]);
+        await after(slug);
+        return { name, url: address };
+      });
     },
     async removeRemote(slug: string, requestedName: unknown) {
       const name = remoteName(requestedName);
       const directory = dir(slug);
-      if (!(await git.remotes(directory)).has(name)) throw new BadRequestError(`There is no remote named ${name}.`);
-      await git.run(directory, ['remote', 'remove', name]);
-      await after(slug);
-      return { removed: name };
+      return ctx.inWriteTurn(slug, async () => {
+        if (!(await git.remotes(directory)).has(name)) throw new BadRequestError(`There is no remote named ${name}.`);
+        await git.run(directory, ['remote', 'remove', name]);
+        await after(slug);
+        return { removed: name };
+      });
     },
     chosenRemoteAddresses,
     /** Every remote of the project's repository with its fetch and push addresses. */
@@ -233,18 +282,21 @@ export function createScmRemote(ctx: ScmContext) {
      * Server mode: pushes the local default branch, which only publishing moves, to the remote
      * with the person's credential. Its full ref name keeps it from being read as an option.
      */
-    async pushDefault(slug: string, credentialFor?: CredentialFor) {
+    async pushDefault(slug: string, credentialFor?: CredentialFor, expectedBranch?: string) {
       if (!deps.defaultBranch) throw new BadRequestError('This workspace has no default branch to push.');
-      const ref = 'refs/heads/' + (await deps.defaultBranch(slug));
       const choice = await chooseRemote(slug, credentialFor);
-      const pushed = await git.run(dir(slug), ['push', '--end-of-options', chosenName(choice), `${ref}:${ref}`], {
-        remote: true,
-        allowFailure: true,
-        credential: choice?.credential,
-      });
-      const gitStatus = await after(slug);
-      const result = { ok: pushed.code === 0, conflicted: [], altered: [] };
-      return { ...result, stderr: pushed.stderr.trim(), ahead: gitStatus.ahead, behind: gitStatus.behind };
+      return ctx
+        .inWriteTurn(slug, async () => {
+          const pointer = deps.publishedPosition?.(slug);
+          const branch = await deps.defaultBranch!(slug);
+          if (expectedBranch !== undefined && branch !== expectedBranch) throw new BadRequestError('The default branch changed. Reload it and try again.');
+          await verifyOutgoingRemote(dir(slug), choice);
+          const refspec = await approvedRefspec(slug, pointer?.commit ?? null, branch);
+          const pushed = await pushRef(dir(slug), choice, refspec);
+          const gitStatus = await after(slug);
+          return { ok: pushed.code === 0, conflicted: [], altered: [], stderr: pushed.stderr.trim(), ahead: gitStatus.ahead, behind: gitStatus.behind };
+        })
+        .catch(error => recoverCancellation(slug, error));
     },
     /** Fetches; `follow` lets the published default branch follow the remote in server mode. */
     fetch: async (slug: string, credentialFor?: CredentialFor, follow?: FollowRequest) => remoteAction(slug, 'fetch', { choice: await chooseRemote(slug, credentialFor), follow }),
@@ -252,28 +304,32 @@ export function createScmRemote(ctx: ScmContext) {
      * Merges the default branch into the person's branch, as a pull does: the exact commit
      * merged is the one the guard judged.
      */
-    async pullDefault(slug: string, { guard, copy }: Reader) {
+    async pullDefault(slug: string, reader: Reader) {
       const merge = deps.mergeDefault;
       if (!merge) throw new BadRequestError('Pull from the default branch works on a personal working copy.');
-      const directory = dir(slug);
-      const check = async (tip: string) => {
-        if (guard) await guardMerge(slug, directory, tip, guard);
+      return mergeFromCommit(slug, reader, check => merge(slug, reader.copy?.author, check));
+    },
+    /** Merges a commit, such as a proposal's tip, into the person's branch with the guards of a pull. */
+    async mergeCommit(slug: string, reader: Reader, source: { tip: string; label: string }, verifyPosition?: () => Promise<unknown>) {
+      const merge = deps.mergeCommit;
+      if (!merge) throw new BadRequestError('Merging a commit works on a personal working copy.');
+      const mergeHere = async () => {
+        await verifyPosition?.();
+        return mergeFromCommit(slug, reader, check => merge(slug, reader.copy?.author, source, check));
       };
-      const result = await mergeIn(slug, directory, () => merge(slug, copy?.author, check));
-      const gitStatus = await after(slug, result.altered);
-      return { ...result, ahead: gitStatus.ahead, behind: gitStatus.behind };
+      return verifyPosition ? ctx.inWriteTurn(slug, mergeHere) : mergeHere();
     },
     /** What moving the repository from `base` to `tip` changes, file by file, per project. */
-    changesBetween: (slug: string, base: string | null, tip: string) => incomingChanges(slug, dir(slug), base, tip),
+    changesBetween: (slug: string, base: string | null, tip: string, paths?: string[]) => incomingChanges(slug, dir(slug), base, tip, paths),
     // The reader's guard, given in server mode, refuses a pull that brings in a guarded change.
     pull: async (slug: string, reader: Reader, credentialFor?: CredentialFor) => {
       const choice = await chooseRemote(slug, credentialFor);
       return remoteAction(slug, 'pull', { choice, guard: reader.guard });
     },
-    push: async (slug: string, credentialFor?: CredentialFor) => remoteAction(slug, 'push', { choice: await chooseRemote(slug, credentialFor) }),
-    sync: async (slug: string, reader: Reader, credentialFor?: CredentialFor) => {
+    push: async (slug: string, credentialFor?: CredentialFor, expectedBranch?: string) => remoteAction(slug, 'push', { choice: await chooseRemote(slug, credentialFor) }, expectedBranch),
+    sync: async (slug: string, reader: Reader, credentialFor?: CredentialFor, expectedBranch?: string) => {
       const choice = await chooseRemote(slug, credentialFor);
-      return remoteAction(slug, 'sync', { choice, guard: reader.guard });
+      return remoteAction(slug, 'sync', { choice, guard: reader.guard }, expectedBranch);
     },
   };
   return { chosenRemote, chooseRemote, incomingChanges, remoteAction, actions };

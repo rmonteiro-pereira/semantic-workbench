@@ -54,8 +54,16 @@ export const DEFAULT_REQUEST_LIMITS: RequestLimits = {
   signIn: { burst: 60, perSecond: 2 },
 };
 
-/** Paths whose handling calls the identity provider on behalf of an anonymous visitor. */
-export const SIGN_IN_PATHS: ReadonlySet<string> = new Set(['/auth/login', '/auth/callback']);
+/** Paths whose handling calls the identity provider, or answers a program, on behalf of an anonymous visitor. */
+export const SIGN_IN_PATHS: ReadonlySet<string> = new Set([
+  '/auth/login',
+  '/auth/callback',
+  // The agent connection endpoints that anyone can reach: each one is limited by source address like a sign-in.
+  '/oauth/token',
+  '/.well-known/oauth-protected-resource',
+  '/.well-known/oauth-protected-resource/api/mcp',
+  '/.well-known/oauth-authorization-server',
+]);
 
 /** How many refusals of one kind from one source are recorded before the gate slows down. */
 export const ANONYMOUS_AUDIT_BURST = 20;

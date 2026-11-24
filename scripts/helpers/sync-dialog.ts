@@ -34,3 +34,11 @@ export async function closeSyncDialog(dialog: Locator) {
   await dialog.getByRole('button', { name: 'Close', exact: true }).click();
   await expect(dialog).toHaveCount(0);
 }
+
+/** Publishes the local working copy from the Published snapshot line: Publish, then the confirmation that names the default branch. */
+export async function publishLocalCopy(page: Page) {
+  await page.getByRole('region', { name: 'Source Control' }).getByLabel('Published snapshot').getByRole('button', { name: 'Publish', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: /^Publish to / });
+  await dialog.getByRole('button', { name: /^Publish to / }).click();
+  await expect(dialog).toHaveCount(0);
+}

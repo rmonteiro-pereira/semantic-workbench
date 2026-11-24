@@ -1,0 +1,17 @@
+version: 0.2.0.dev0
+name: retail_mapping
+ontology_ref:
+  name: Retail
+semantic_model_ref:
+  name: retail_model
+concept_mappings:
+  - concept: Order
+    link_mappings:
+      - relationship: placed_by
+        object_mapping:
+          concept: Customer
+          expression: ORDERS.customer_id
+      - relationship: total
+        object_mapping:
+          concept: Decimal
+          expression: ORDERS.amount

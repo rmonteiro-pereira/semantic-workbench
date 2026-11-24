@@ -4,7 +4,7 @@ import { supportedImportFile } from './hooks/useImport';
 import { useCapabilities } from '../auth/Capabilities';
 import { useMe } from '../auth/useMe';
 import { useGitSetup } from '../scm/GitSetup';
-import { FileCode, GitBranch, Network, Trash2, X } from 'lucide-react';
+import { FileCode, GitBranch, Network, Trash2, Waypoints, X } from 'lucide-react';
 import { BrandLogo } from '../brand/BrandContext';
 import React from 'react';
 import type { Doc, ProjectInfo, Suggestion } from '../projects/api';
@@ -14,6 +14,7 @@ import type { TreeAction } from '../projects/Sidebar';
 import { ProjectTree } from '../projects/Sidebar';
 import { Suggestions } from '../projects/Suggestions';
 import { AddProjectMenu } from './AddProjectMenu';
+import { MeshView } from '../mesh/MeshView';
 import { SettingsPanel } from './SettingsPanel';
 
 type Props = {
@@ -111,6 +112,7 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
   const { me } = useMe();
   const access = useCapabilities();
   const openGitSetup = useGitSetup();
+  const [meshOpen, setMeshOpen] = React.useState(false);
   function handleButtonClick() {
     setTab('fullgraph');
     if (compact) closeWorkspace();
@@ -124,6 +126,13 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
   function handleButtonClick3() {
     setHistoryPath(undefined);
     setTab('scm');
+    if (compact) closeWorkspace();
+  }
+
+  // The mesh shows every readable project and how they import each other, so it opens from the
+  // workspace navigation rather than from one file's view tabs.
+  function openMesh() {
+    setMeshOpen(true);
     if (compact) closeWorkspace();
   }
 
@@ -173,6 +182,7 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
 
   return (
     <>
+      {meshOpen && <MeshView onClose={() => setMeshOpen(false)} />}
       {compact && sidebarOpen && <button className="workspace-scrim" aria-label="Dismiss workspace drawer" tabIndex={-1} onClick={closeWorkspace} />}
       <aside
         id="workspace-sidebar"
@@ -215,6 +225,9 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
               )
             );
           })()}
+        </button>
+        <button className="nav" aria-haspopup="dialog" onClick={openMesh}>
+          <Waypoints size={18} /> Mesh
         </button>
         <div className="section-label">
           PROJECTS <span>{projects.length}</span>

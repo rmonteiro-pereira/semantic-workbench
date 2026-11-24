@@ -22,16 +22,45 @@ const composed = {};
 for (const name of [...entryModules, ...authModules]) Object.assign(composed, await import(resolve(treeRoot!, name)));
 const loadedModule = { ...composed, ...mutatedModule };
 const category = process.argv[3];
+if (category.startsWith('acp-')) await (await import('./acp-mutation-cases')).acpMutationCase(process.argv[2], category);
+if (category === 'access-index') {
+  const candidate = await import(resolve(dirname(process.argv[2]), 'authorize.ts'));
+  const replay = await import(resolve(dirname(process.argv[2]), 'dry-run.ts'));
+  (await import('../tests/auth/access-index-assertions')).assertAccessIndexes(candidate.createAccessControl);
+  const scopes = await import('../tests/auth/dry-run-scope-assertions');
+  scopes.assertDryRunScopes(replay.compareAccess);
+  scopes.assertReloadedReplay(replay.compareAccess);
+  scopes.assertDeactivatedReplay(replay.scopeCache);
+  scopes.assertReplayScopeSnapshot(replay.scopeCache);
+  scopes.assertReplaySurvivesReload(replay.scopeCache);
+  scopes.assertReplayClock(replay.compareAccess, candidate.createAccessControl);
+  await (await import('../tests/auth/creation-route-assertions')).assertCreationRoutes(candidate.createAccessControl);
+}
+if (category.startsWith('item-diff-')) await (await import('./item-diff-mutation-cases')).itemDiffMutationCase(category, loadedModule);
 // Publication mutants load only the publication module, so working copies come from the real source.
 async function worktreeFactory(): Promise<typeof import('../src/server/projects/worktrees').createWorktrees> {
   return loadedModule.createWorktrees ?? (await import('../src/server/projects/worktrees')).createWorktrees;
 }
+if (category.startsWith('connections-')) await (await import('./connections-mutation-cases')).connectionsCase(process.argv[2], category);
+if (category.startsWith('mcp-')) {
+  const cases = await import('./mcp-mutation-cases');
+  const run = { 'mcp-gate': cases.mcpGateCase, 'mcp-state': cases.mcpStateCase, 'mcp-tools': cases.mcpToolsCase, 'mcp-audit': cases.mcpAuditCase, 'mcp-rows': cases.mcpRowsCase }[category];
+  if (!run) throw new Error(`Unknown agent endpoint case ${category}.`);
+  await run(process.argv[2]);
+}
+if (category === 'proposals') await (await import('./proposals-mutation-cases')).proposalsCases(loadedModule);
+if (category.startsWith('attributes-')) await (await import('./attributes-mutation-cases')).attributesMutationCase(loadedModule);
+if (category === 'tessera') await (await import('./tessera-mutation-cases')).tesseraCase(loadedModule);
+if (category === 'compile') await (await import('./compile-mutation-cases')).compileCase(loadedModule);
 if (category === 'operation-boundary') {
   const { operationBoundaryCases } = await import('./operation-boundary-mutation-cases');
   await operationBoundaryCases(process.argv[2]);
 }
+if (category.startsWith('usage-')) await (await import('./usage-mutation-cases')).usageCase(category, loadedModule);
 if (category === 'address-operation') await (await import('./item-address-operation-cases')).itemAddressOperationCase(loadedModule as typeof import('../src/server/routes/item-addresses'));
 if (category === 'address-server') (await import('./server-address-cases')).serverAddressCase(loadedModule as typeof import('../src/server/projects/address-resolution'));
+if (category === 'address-history-definition') (await import('./server-address-cases')).addressHistoryDefinitionCase(loadedModule as typeof import('../src/server/tessera/disk-source'));
+if (category === 'address-history-difference') (await import('./server-address-cases')).addressHistoryDifferenceCase(loadedModule as typeof import('../src/server/projects/address-migrations'));
 if (category === 'address-store') (await import('./server-address-cases')).addressStoreCase(loadedModule as typeof import('../src/server/projects/address-migrations'));
 if (category === 'address-migration') addressMigrationCase(loadedModule as typeof import('../src/shared/core/address-migration'));
 if (category === 'address-model') modelAddressCase(loadedModule as typeof import('../src/shared/core/model-addresses'));
@@ -1937,6 +1966,10 @@ if (category.startsWith('read-')) {
       const workspace = await loadedModule.openWorkspace({ root: fixture.root });
       try {
         assert(!JSON.stringify(workspace.documentsFor({ view, owner: principal.id })).includes('LEAK-hr-'));
+        // The project list names only the files the reader may open, so a Finance-only folder stays out.
+        const projects = await workspace.listProjects({ view, owner: principal.id });
+        const sales = projects.find((project: { slug: string }) => project.slug === 'sales-contracts');
+        assert(sales && !sales.files.some((file: { path: string }) => file.path.startsWith('finance/')));
       } finally {
         workspace.close();
       }

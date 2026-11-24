@@ -111,7 +111,14 @@ project and files. It returns typed declarations or a closed validation reason.
 
 Migrations remain uncompacted because collapsing interleaved ancestor and descendant rewrites can change replay results.
 The store must refuse writes exceeding 50,000 records atomically. The server store stages uncompacted appends in the
-owning journal.
+owning journal. Each project holds its history at its root in
+`.semantic-workbench-address-migrations.jsonl`. Each line holds one record. The first occurrence
+of each ID wins, and replay uses the record timestamp and operation ID to order merged lines.
+The workbench writes a `merge=union` rule in the project’s `.gitattributes`.
+
+Before the first history write, an existing legacy state file supplies the history for sides
+without a Git history file. The first write consumes the legacy file in the same journal. The
+legacy store was never released, so there is no compatibility path beyond that import.
 Operation-derived record IDs use separate `m-` (save/move), `d-` (deletion) and `r-` (reconciliation) namespaces to make replay idempotent, and conflicting reuse of an operation ID is refused.
 
 ```sh
@@ -144,6 +151,7 @@ reconciliation.
 | Project and personal trash views | Archived `view.json` and `views/<project>.json` use the same view shape; archived definitions supply conversion context. |
 | Browser mapping/lineage center preferences | Uniquely matched stable card keys convert with a backup; unconvertible values stay unchanged. Other navigation preferences contain no item keys. |
 | Browser action history | Selection/centers use addresses in memory; serialized history holds a session/cursor. Reload does not restore a recording. |
+| Usage counters `state/usage/<project>/<day>.json` | `counts` keys are absolute item addresses. They are converted by replay: reads and compaction apply the address migration records after `migratedThrough`, so no backup is needed. The file holds counts only. |
 
 Shared views live at `state/views/<project>.json`; personal views live at
 `state/users/<owner>/views/<project>.json`. Browser center keys are `workbench:mapping-center:*`
@@ -190,9 +198,9 @@ Positional or ambiguous scopes/items never enter history. Save acknowledgements 
 order, contain valid SHA-256 hashes, and report HTTP 200 completion before the editor accepts a new base.
 
 File moves, including accepted move suggestions, append document-prefix records with the file move. Cross-project moves
-stage the same record in both stores. Project deletion archives the store beside view state; restoration returns it in
-the same journal, preserving every historical endpoint byte-for-byte. Restoring under a different slug carries the
-history file to the restored project but does not rewrite old locators or infer identity at a reused project address.
+stage the same record in both stores. Project deletion and restoration carry the history file
+inside the project folder. Restoring under a different slug preserves all historical endpoints
+and leaves old locators as written.
 
 Deletion markers cut history through the last matching item or document deletion, using `historySinceDeletion` before
 replay. Recreating a locator never restores prior history implicitly; a later explicit reconciliation remains visible
@@ -226,6 +234,28 @@ is added. Trusted adapters use `buildTwinRequest` and `handler.boundary.operate`
 The workspace resolver returns the same missing result for unreadable and absent items. It checks project and path
 visibility before opening definitions or history, resolves current items before applying history, and follows only
 visible migration endpoints. Cross-project replay resumes after the move marker shared by both stores, preserving
-arrival order even when a document moves back. Deletions follow the history-cut rule above. Snapshot suffixes remain
-opaque and are preserved during prefix replacement; until published-snapshot integration, this resolver reads the
-current definition and makes no historical-version claim.
+arrival order even when a document moves back. Deletions follow the history-cut rule above.
+The browser editor reads saved definitions and history from the working copy. Consumers read
+both at the published commit. Prefix replacement preserves opaque snapshot suffixes.
+
+## Tessera documents
+
+A Tessera ontology has the same items and the same addresses as the Ossie ontology you get by
+removing its marker and its `tessera_` properties. The marker and the additions create no item, edge
+or field, and `inspect` keeps the kind `Ossie ontology`. An attribute uses its relationship
+address. Display order leaves addresses unchanged. The context and governance flag of a published
+concept or relationship attach to that item's address. Compiling a Tessera document changes no
+address: the document-relative address of every item in the source names the same item in the
+compiled output. The loss report names each dropped value by the document-relative address of the
+item that held it (for the ontology root, the address of the ontology itself, such as
+`sw1:#ontology:Retail`). Tests: `tests/tessera/workbench-documents.test.ts` and
+`tests/tessera/determinism.test.ts`.
+
+The workbench's item comparison uses the migration records in the destination side that are
+absent by ID from the source side. It applies those records in destination order. A rename
+without a record appears as a removal and an addition.
+
+An ontology unit can contain concepts from its root and its declared parts. Their addresses
+keep the source file path. Moving an unchanged concept between declared parts in a batch save
+records a migration from its previous address. A compiled mesh bundle records the output
+names alongside their source addresses in the version 2 bundle manifest.

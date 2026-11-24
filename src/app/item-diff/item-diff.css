@@ -1,0 +1,102 @@
+.item-change-mark {
+  box-sizing: border-box;
+  display: inline-block;
+  max-width: 100%;
+  padding: 2px 5px;
+  background: var(--color-surface-sunken);
+  color: var(--color-text);
+  font-size: var(--text-small);
+  line-height: 1.2;
+  text-align: start;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.item-change-dashed {
+  border: 1px dashed var(--color-text-muted);
+  border-radius: 4px;
+}
+
+:where(.full-entity, .node, .item-change-surface, .catalog-card):has(> .item-change-mark),
+.attribute-row:has(.item-change-mark) {
+  outline: 2px dashed var(--color-text-muted);
+  outline-offset: 2px;
+  background: var(--color-surface-sunken);
+}
+
+.item-overlay-control {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  position: relative;
+}
+
+.item-overlay-status,
+.item-change-list {
+  display: grid;
+  gap: 6px;
+  overflow-wrap: anywhere;
+}
+
+.item-change-list h3 {
+  text-transform: capitalize;
+}
+
+.item-change-list ul {
+  display: grid;
+  gap: 8px;
+  padding-inline-start: 20px;
+}
+
+.item-change-list .item-change-surface {
+  padding: 6px;
+}
+
+.item-change-list .item-change-mark {
+  margin-inline-start: 8px;
+}
+
+.item-change-list dd {
+  margin-inline-start: 10px;
+  white-space: pre-wrap;
+}
+
+.item-change-list dl > div + div {
+  margin-block-start: 5px;
+}
+
+.item-branch-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.item-branch-control button {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.full-entity:has(> .item-change-mark) {
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.full-entity.focused:has(> .item-change-mark),
+.node:has(> .item-change-mark) {
+  background: var(--color-surface-sunken);
+}
+
+.node:has(> .item-change-mark) > span {
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: anywhere;
+}
+
+.node > .item-change-mark {
+  color: var(--color-text);
+}

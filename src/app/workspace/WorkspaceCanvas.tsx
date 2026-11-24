@@ -24,7 +24,9 @@ import { ContractView } from './ContractView';
 import { GraphViews } from './GraphViews';
 import { MetricsPanel } from './MetricsPanel';
 import { SourceControlView } from './SourceControlView';
+import { activeOntologyUnit, ontologyPartSelection } from './ontologyUnit';
 import { SourceView } from './SourceView';
+import { useTrafficScope } from '../usage/use-usage';
 import type { ItemTarget, RdfTarget, ValidatedModel } from './types';
 
 type Props = {
@@ -199,6 +201,7 @@ export function WorkspaceCanvas({
   // "Show all" on an Overview card opens the Catalog filtered to that area. The filter ends when
   // the user leaves the Catalog or opens another file, because the area lists the old file's entities.
   const [catalogArea, setCatalogArea] = useState<AreaFilter | null>(null);
+  useTrafficScope(current?.project, current?.path, model?.name);
   useEffect(() => {
     if (tab !== 'catalog') setCatalogArea(null);
   }, [tab]);
@@ -303,10 +306,18 @@ export function WorkspaceCanvas({
       );
     }
     if (tab === 'source') {
+      const unit = activeOntologyUnit(current, model, docs);
+      const partSelection = ontologyPartSelection(current, model, unit?.unitFiles);
+      function openPart(path: string) {
+        const target = docs.find(file => file.project === current?.project && file.path === path);
+        if (target) openDocument(target);
+      }
       return (
         <SourceView
           sourceEditor={sourceEditor}
           current={current}
+          partSelection={partSelection}
+          openPart={openPart}
           source={source}
           setSource={setSource}
           setEditorIssues={setEditorIssues}
@@ -336,6 +347,7 @@ export function WorkspaceCanvas({
     if (tab === 'catalog') {
       return (
         <CatalogView
+          current={current}
           model={model}
           search={search}
           clearSearch={() => setSearch('')}

@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import type { AccessConfig, AccessView } from '../../src/server/auth/authorize';
 import type { ContentGuard } from '../../src/server/auth/guards';
 import type { Reader } from '../../src/server/projects/reader';
+import { emptyProgramsFile } from '../../src/server/connections/programs';
 import { normalizeClaims } from '../../src/server/auth/principal';
 import { TEST_USERS, TEST_TENANT_ID, type TestUserName } from '../helpers/auth-identities';
 import { AUTH_PROJECTS } from '../helpers/auth-workspace';
@@ -16,6 +17,7 @@ export function accessFixture() {
     projects: read('projects'),
     agents: read('agents'),
     deactivated: read('deactivated'),
+    programs: emptyProgramsFile(),
   };
   return {
     mode: 'server' as const,

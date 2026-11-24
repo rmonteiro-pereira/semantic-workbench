@@ -1,12 +1,13 @@
 import type { OperationOutcome } from '../auth/operation-outcome';
 // Connects project source control actions to Git and workspace updates. Checks after mutations
 // detect bytes rewritten by hooks or filters.
+import { ADDRESS_HISTORY_FILE, addressHistoryDifference, committedAddressHistoryFile, historyEndpoints, serializeAddressHistory, workingAddressHistoryFile } from './address-migrations';
 import type { AccessView } from '../auth/authorize';
 import { LOCAL_READER, type Reader } from './reader';
-import { BadRequestError, HiddenResourceError } from './errors';
+import { BadRequestError, HiddenResourceError, PreconditionError } from './errors';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { GitError, redactCredentials, type CommitAuthor, type CommitPathsResult, type Git } from './git';
+import { GitError, GitRefusalError, redactCredentials, symbolicBranch, type CommitAuthor, type CommitPathsResult, type Git } from './git';
 import { MergingError } from './errors';
 import { decode, sha256 } from './atomic';
 import { assertExactCase, assertNoLinks, projectPath, repoDir } from './paths';
@@ -15,6 +16,8 @@ import { HIDDEN_LABEL, asText, createScmContext, type PathBase, type CredentialF
 import { createScmRemote } from './scm-remote';
 import { createScmBranches } from './scm-branches';
 export { BlockedError, HIDDEN_LABEL, blockers, type CredentialFor, type FollowRequest, type FollowResult, type PathBase, type ScmDeps } from './scm-context';
+/** What a commit was prepared against: the branch, the head and the version of each file it names. */
+export type CommitExpectation = { branch: string; head: string | null; files: { path: string; version: string }[] };
 const REV = /^(HEAD|[0-9a-f]{7,64})$/;
 const NOT_COMMITTED_MESSAGE: Record<Extract<CommitPathsResult, { committed: false }>['reason'], string> = {
   'no-identity': 'Not committed: set your Git identity (user.name and user.email) for this repository.',
@@ -58,6 +61,7 @@ export function createScm(deps: ScmDeps) {
 
   function requireReadable(slug: string, path: string, view?: AccessView, base?: PathBase) {
     const repoPath = (base === 'repository' ? '' : prefix(slug)) + projectPath(path);
+    if (view && repoPath.split('/').at(-1)?.toLowerCase() === ADDRESS_HISTORY_FILE) throw new HiddenResourceError();
     assertExactCase(repoDir(layout, slug), repoPath);
     if (view && !readablePath(slug, path, view, base)) throw new HiddenResourceError();
   }
@@ -107,6 +111,7 @@ export function createScm(deps: ScmDeps) {
     }));
     return {
       branch: gitStatus.branch,
+      head: gitStatus.head,
       upstream: gitStatus.upstream,
       ...(await pullSource(slug, directory, gitStatus)),
       ahead: gitStatus.ahead,
@@ -117,6 +122,7 @@ export function createScm(deps: ScmDeps) {
       identityConfigured: deps.signedCommits || (await git.identity(directory)),
       merging,
       hasCommits: gitStatus.hasCommits,
+      ...(gitStatus.head ? { head: gitStatus.head } : {}),
       remotes: Object.fromEntries([...(await git.remotes(directory))].map(([n, u]) => [n, redactCredentials(u)])),
       changes: view
         ? changes
@@ -142,7 +148,7 @@ export function createScm(deps: ScmDeps) {
   async function commitIndex(slug: string, message: string, author?: CommitAuthor) {
     const directory = dir(slug);
     const gitStatus = await git.status(directory);
-    if (gitStatus.entries.some(e => e.conflicted)) throw new GitError('Resolve the conflicted files and stage them before committing.');
+    if (gitStatus.entries.some(e => e.conflicted)) throw new GitRefusalError('Resolve the conflicted files and stage them before committing.');
     const staged = gitStatus.entries.filter(e => e.index !== '.' && !e.untracked);
     const merging = await git.merging(directory);
     // A merge commit holds everything the merge brought in, so only a plain commit is limited.
@@ -152,14 +158,21 @@ export function createScm(deps: ScmDeps) {
         directory,
         staged.map(e => e.path),
       );
-    if (!staged.length && !merging) throw new GitError('Nothing is staged. Stage the changes to include, then commit.');
+    if (!staged.length && !merging) throw new GitRefusalError('Nothing is staged. Stage the changes to include, then commit.');
     const clean = staged.filter(e => e.worktree === '.').map(e => e.path);
     const before = await git.worktreeIds(
       directory,
       clean.filter(p => existsSync(join(directory, p))),
     );
     const parent = await git.head(directory);
-    await git.commit(directory, message, false, author);
+    const selected = staged.map(entry => entry.path);
+    const history = merging ? null : await selectedHistory(slug, selected, true);
+    if (history?.blobs.size) {
+      const extraPaths = history.paths.filter(path => !selected.includes(path));
+      await git.commitIndexWithBlobs(directory, extraPaths, history.blobs, message, author);
+    } else {
+      await git.commit(directory, message, false, author);
+    }
     const head = (await git.head(directory))!;
     const committed = await git.changedBetween(directory, parent, head);
     // A hook that rewrote a file, or a clean filter whose committed bytes differ from the saved
@@ -176,6 +189,43 @@ export function createScm(deps: ScmDeps) {
     await after(slug, altered);
     return { commit: head, altered };
   }
+  // Compares the repository with what a commit was prepared against, inside the repository's own turn.
+  async function assertExpected(slug: string, expected: CommitExpectation) {
+    const directory = dir(slug);
+    const [branch, head] = await Promise.all([symbolicBranch(git, directory), git.head(directory)]);
+    const changed: ConstructorParameters<typeof PreconditionError>[0] = {};
+    if (branch !== expected.branch) changed.branch = { expected: expected.branch, actual: branch };
+    if (head !== expected.head) changed.head = { expected: expected.head, actual: head };
+    const repositoryPaths = paths(
+      slug,
+      expected.files.map(file => file.path),
+      'project',
+    );
+    const files = expected.files.filter((file, index) => {
+      const absolute = join(directory, repositoryPaths[index]);
+      return !existsSync(absolute) || sha256(readFileSync(absolute)) !== file.version;
+    });
+    if (files.length) changed.files = files.map(file => file.path);
+    if (Object.keys(changed).length) throw new PreconditionError(changed);
+  }
+  /** The projects whose files a commit names, this one included, in the order their locks are taken. */
+  function lockedProjects(slug: string, options: { paths?: unknown; base?: PathBase }): string[] {
+    const projects = new Set([slug]);
+    if (options.paths !== undefined) {
+      for (const path of paths(slug, options.paths, options.base ?? 'project')) {
+        const owner = ownerOf(slug, path);
+        if (owner) projects.add(owner.project);
+      }
+    }
+    return [...projects].sort();
+  }
+  /** Runs the work holding the write lock of each project, the first of the list outermost. */
+  function lockAll<T>(projects: string[], work: () => Promise<T>): Promise<T> {
+    const [first, ...rest] = projects;
+    if (first === undefined) return work();
+    const inner = () => lockAll(rest, work);
+    return deps.withProjectLock ? deps.withProjectLock(first, inner) : inner();
+  }
   async function commitSelection(slug: string, list: unknown, base: PathBase) {
     const directory = dir(slug);
     const chosen = paths(slug, list, base);
@@ -186,12 +236,56 @@ export function createScm(deps: ScmDeps) {
     }
     return chosen;
   }
+  async function selectedHistory(slug: string, chosen: string[], staged = false) {
+    const directory = dir(slug);
+    const selected = new Set(chosen);
+    const folders = new Map<string, string>();
+    for (const path of chosen) {
+      const owner = ownerOf(slug, path);
+      if (owner) folders.set(owner.project, owner.prefix);
+    }
+    const blobs = new Map<string, string>();
+    for (const [project, folder] of folders) {
+      const path = folder + ADDRESS_HISTORY_FILE;
+      const current = workingAddressHistoryFile(layout, project);
+      if (!current) continue;
+      const commit = await git.head(directory);
+      const base = commit ? await committedAddressHistoryFile(git, layout, project, commit) : null;
+      const previous = base ?? [];
+      const selectedRecord = (record: Parameters<typeof historyEndpoints>[0]) => historyEndpoints(record, project => folders.get(project)).some(endpoint => selected.has(endpoint));
+      const additions = addressHistoryDifference(previous, current).filter(selectedRecord);
+      const removals = new Set(
+        addressHistoryDifference(current, previous)
+          .filter(selectedRecord)
+          .map(record => record.id),
+      );
+      if (!additions.length && !removals.size) continue;
+      if (staged) {
+        const affected = [...additions, ...previous.filter(record => removals.has(record.id))];
+        const endpoints = new Set(affected.flatMap(record => historyEndpoints(record, project => folders.get(project))).filter(endpoint => selected.has(endpoint)));
+        await verifyStagedDefinitions(directory, [...endpoints]);
+      }
+      blobs.set(path, serializeAddressHistory([...previous.filter(record => !removals.has(record.id)), ...additions]));
+      if (!base) {
+        const attributes = folder + '.gitattributes';
+        if (existsSync(join(directory, attributes))) selected.add(attributes);
+      }
+    }
+    return { paths: [...selected].filter(path => !blobs.has(path)), blobs };
+  }
+  async function verifyStagedDefinitions(directory: string, endpoints: string[]) {
+    for (const endpoint of endpoints) {
+      const [staged, working] = await Promise.all([content(directory, 'index', endpoint), content(directory, 'worktree', endpoint)]);
+      if ((staged && sha256(staged)) !== (working && sha256(working))) throw new GitError('Stage the saved definition again so its address history matches the commit.');
+    }
+  }
   async function commitChosen(slug: string, message: string, chosen: string[], author?: CommitAuthor) {
     const directory = dir(slug);
     const clean = chosen.filter(p => existsSync(join(directory, p)));
     const before = await git.worktreeIds(directory, clean);
-    const commitPathsResult = await git.commitPaths(directory, chosen, message, author);
-    if (!commitPathsResult.committed) throw new GitError(NOT_COMMITTED_MESSAGE[commitPathsResult.reason]);
+    const selection = await selectedHistory(slug, chosen);
+    const commitPathsResult = await git.commitPaths(directory, selection.paths, message, author, selection.blobs);
+    if (!commitPathsResult.committed) throw new GitRefusalError(NOT_COMMITTED_MESSAGE[commitPathsResult.reason]);
     const checked = clean.filter(p => before.has(p));
     const [disk, tree] = await Promise.all([
       git.worktreeIds(
@@ -267,23 +361,32 @@ export function createScm(deps: ScmDeps) {
       options: {
         paths?: unknown;
         push?: boolean;
+        pushBranch?: string;
         base?: PathBase;
         credentialFor?: CredentialFor;
         author?: CommitAuthor;
+        expected?: CommitExpectation;
       } = {},
     ) {
       if (typeof message !== 'string' || !message.trim()) throw new GitError('A commit message is required.');
       // A missing credential stops the request before the commit, so a retry commits only once.
       const choice = options.push ? await chooseRemote(slug, options.credentialFor) : null;
       const { author } = options;
-      const chosen = options.paths === undefined ? null : await commitSelection(slug, options.paths, options.base ?? 'project');
-      const authoring = await deps.beforeCommit?.(slug);
-      const committed = chosen === null ? await commitIndex(slug, message, author) : await commitChosen(slug, message, chosen, author);
-      const result = { ...committed, ...authoring };
+      const commitHere = async () => {
+        if (options.expected) await assertExpected(slug, options.expected);
+        const chosen = options.paths === undefined ? null : await commitSelection(slug, options.paths, options.base ?? 'project');
+        const authoring = await deps.beforeCommit?.(slug);
+        const committed = chosen === null ? await commitIndex(slug, message, author) : await commitChosen(slug, message, chosen, author);
+        return { ...committed, ...authoring };
+      };
+      // A commit takes the write lock of every project whose files it names, in sorted order so two commits cannot deadlock, and then its turn of the repository queue, so no save lands between the checks and the commit.
+      // A commit of the whole index names no paths, so it locks only this project; files staged for a sibling project in a shared repository are not covered.
+      const inTurn = () => git.exclusive(dir(slug), commitHere);
+      const result = await lockAll(lockedProjects(slug, options), inTurn);
       if (!options.push) return result;
       let pushed: { ok: boolean; message: string };
       try {
-        const action = await remoteAction(slug, 'push', { choice });
+        const action = await remoteAction(slug, 'push', { choice }, result.branch ?? options.pushBranch, result.commit);
         pushed = {
           ok: action.ok,
           message: action.stderr || (action.ok ? 'Pushed.' : 'Push failed.'),

@@ -1,6 +1,6 @@
 /** Presentation and event handling for structured item dialogs. */
 import React from 'react';
-import { AddItem } from '../edit/AddItem';
+import { AddItem, type ItemDestination } from '../edit/AddItem';
 import { DeleteItem } from '../edit/DeleteItem';
 import type { Choices, ItemKind, Path } from '../../shared/edit/item-model';
 import { itemName } from '../../shared/edit/item-model';
@@ -9,6 +9,8 @@ import { ItemEditor } from '../edit/ItemEditor';
 import { itemValue } from '../../shared/edit/yaml-patch';
 import type { Doc } from '../projects/api';
 import type { ItemTarget } from './types';
+import { activeOntologyUnit } from './ontologyUnit';
+import { parsedDoc } from './parsedDocument';
 
 type Props = {
   editing: ItemTarget | null;
@@ -100,6 +102,17 @@ export function StructuredItemDialogs({
     }
   }
 
+  function destinationsFor(doc: Doc): ItemDestination[] | undefined {
+    if (!adding || adding.owner || (adding.kind && adding.kind !== 'concept')) return undefined;
+    const unit = activeOntologyUnit(doc, parsedDoc(doc).model, projectDocsOf(doc.id));
+    if (!unit) return undefined;
+    return unit.unitFiles.flatMap(path => {
+      const file = docsRef.current.get(`${doc.project}/${path}`);
+      if (!file) return [];
+      return [{ doc: file, base: docText(file.id), document: documentOf(file.id) }];
+    });
+  }
+
   return (
     <>
       {editing && docsRef.current.get(editing.docId) && (
@@ -127,6 +140,7 @@ export function StructuredItemDialogs({
           doc={docsRef.current.get(adding.docId)!}
           base={docText(adding.docId)}
           document={documentOf(adding.docId)}
+          destinations={destinationsFor(docsRef.current.get(adding.docId)!)}
           kind={adding.kind}
           owner={adding.owner}
           preset={adding.preset}

@@ -1,24 +1,27 @@
 // Saves and reverts documents: a stale base is refused, the reader's guard judges the text, and the
 // swap is journaled so a crash leaves either the old or the new bytes.
+import { DEPENDENCY_MANIFEST_PATH } from '../../../shared/tessera/dependency-manifest';
+import { requireWritableOntologySet } from '../../mesh/unit-reader';
+import { unitEditMigrations } from './unit-edits';
 import type { DeclaredMigration } from '../../../shared/core/address-migration';
 import type { OperationOutcome } from '../../auth/operation-outcome';
 import { parseAddress } from '../../../shared/core/item-address';
 import { deletedItemAddresses } from '../../../shared/edit/address-changes';
-import { operationMigrations, stageAddressMigrations } from '../address-migrations';
+import { ADDRESS_HISTORY_FILE, operationMigrations, stageAddressMigrations } from '../address-migrations';
 import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { InputError, MAX_INPUT_BYTES } from '../../../shared/validation/diagnostics';
 import { atomicWrite, decode, encode, sha256 } from '../atomic';
 import type { Git } from '../git';
 import { JournalCrash, type Journal } from '../journal';
-import { projectFile, projectPath, projectPrefix, repoDir, type DataLayout } from '../paths';
+import { PathError, projectFile, projectPath, projectPrefix, repoDir, type DataLayout } from '../paths';
 import { clearPersonalDrafts } from '../personal-state';
 import type { Reader } from '../reader';
 import { indexBytes } from '../scanner';
 import type { Patch, ProjectEntry, State } from '../state';
 import { guardRevert, type GuardedFile, type Trash } from '../trash';
 import type { Place, WorkingCopies } from '../working-copies';
-import { BadRequestError, OccupiedError, StaleError } from '../errors';
+import { BadRequestError, GitUnavailableError, OccupiedError, StaleError } from '../errors';
 import { demotionsOf, type ContentGuard } from '../../auth/guards';
 
 /** Applies ordered UTF-16 ranges from the end, preserving untouched source text exactly. */
@@ -33,6 +36,17 @@ export function applyPatches(base: string, patches: Patch[]) {
   let out = base;
   for (const patch of [...patches].reverse()) out = out.slice(0, patch.from) + patch.insert + out.slice(patch.to);
   return out;
+}
+
+/** The checks a definition passes before any byte is stored: its size, its type and, through the index, its syntax. */
+function checkedBytes(slug: string, relativePath: string, text: string) {
+  const bytes = encode(text);
+  if (bytes.length > MAX_INPUT_BYTES) {
+    throw new InputError([{ severity: 'error', code: 'size', path: '/', message: 'The definition exceeds the 2 MB UTF-8 limit. Split it into smaller documents.' }]);
+  }
+  const indexed = indexBytes(slug, relativePath, bytes);
+  if (!indexed.file.visible) throw new InputError([{ severity: 'error', code: 'unsupported', path: '/', message: 'Unsupported file type.' }]);
+  return { bytes, indexed };
 }
 
 // The file as the last commit has it, so an owner handed over in an earlier save still counts
@@ -100,18 +114,71 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     const change = { project: slug, path, before, after: edited, committed };
     return { edited, before, guarded: guard?.([change]) };
   }
+  // Judges proposed text exactly as a save would, through the same edit, guard and index steps, and stores nothing.
+  async function validateFile(slug: string, path: string, body: { baseHash?: string | null; source?: string; patches?: Patch[] }, reader: Reader) {
+    entry(slug);
+    const relativePath = projectPath(path);
+    const place = copies.readPlace(reader, slug);
+    let current: Uint8Array | null = null;
+    try {
+      current = readFileSync(projectFile(place.layout, slug, relativePath));
+    } catch {}
+    const version = current ? sha256(current) : null;
+    // Proposed full text needs no base, and a patch is refused against any base other than the current one.
+    const base = body.baseHash === undefined && body.source !== undefined ? version : (body.baseHash ?? null);
+    const { edited, guarded } = await guardedEdit(place, { slug, path: relativePath }, { baseHash: base, source: body.source, patches: body.patches }, reader.guard);
+    const stored = guarded?.changes[0].after ?? edited;
+    const { indexed } = checkedBytes(slug, relativePath, stored);
+    const demoted = guarded ? demotionsOf(guarded) : [];
+    const guard = demoted.length ? { outcome: 'rewritten' as const, demoted, storedSource: stored } : { outcome: 'accepted' as const };
+    return { version, valid: indexed.file.valid, findings: indexed.findings, guard };
+  }
+  function requireCompleteSet(place: Place, project: string, reader: Reader, path: string) {
+    const read = (name: string) => {
+      if (reader.view && !reader.view.canRead(project, name)) return null;
+      try {
+        return decode(readFileSync(projectFile(place.layout, project, name)));
+      } catch (error) {
+        if (error instanceof PathError || (error as NodeJS.ErrnoException).code === 'ENOENT') return null;
+        throw error;
+      }
+    };
+    const source = read(path);
+    if (source === null) return;
+    const rootPaths = () =>
+      place.cache
+        .files(project)
+        .filter(file => file.docType === 'Ossie ontology')
+        .map(file => file.path);
+    const available = (name: string) => {
+      const indexed = place.cache.file(project, name);
+      const readable = !reader.view || reader.view.canRead(project, name);
+      return Boolean(indexed?.visible && readable);
+    };
+    requireWritableOntologySet({ path, source }, { available, read, rootPaths });
+  }
   async function saveFile(
     slug: string,
     path: string,
-    body: { baseHash: string | null; source?: string; patches?: Patch[]; declaredMigrations?: DeclaredMigration[]; deletedItems?: string[] },
+    body: { baseHash: string | null; source?: string; patches?: Patch[]; declaredMigrations?: DeclaredMigration[]; deletedItems?: string[]; keepDrafts?: boolean },
     reader: Reader,
+    manifestRoots?: ReadonlyMap<string, string>,
   ) {
     const { guard } = reader;
     entry(slug);
     const relativePath = projectPath(path);
+    if (relativePath.split('/').at(-1)?.toLowerCase() === ADDRESS_HISTORY_FILE) throw new BadRequestError('Address history is managed by the workbench.');
+    if (relativePath === DEPENDENCY_MANIFEST_PATH && !manifestRoots) throw new BadRequestError('Use Update dependencies to write the dependency manifest.');
     const declarations = body.declaredMigrations ?? [];
     const deletedItems = body.deletedItems ?? [];
     const check = async (at: Place) => {
+      if (manifestRoots) {
+        for (const [root, expectedHash] of manifestRoots) {
+          const bytes = readFileSync(projectFile(at.layout, slug, root));
+          if (sha256(bytes) !== expectedHash) throw new BadRequestError('The ontology changed. Review the dependency update again.');
+        }
+      }
+      if (!manifestRoots) requireCompleteSet(at, slug, reader, relativePath);
       const result = await guardedEdit(at, { slug, path: relativePath }, body, guard);
       const after = result.guarded?.changes[0].after ?? result.edited;
       verifyDeletedItems(deletedItems, { project: slug, path: relativePath, before: result.before ?? '', after });
@@ -120,31 +187,21 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     const place = await copies.writePlace(reader, slug, check);
     const file = projectFile(place.layout, slug, relativePath);
     return lock(projectLock(place, slug), async () => {
-      const { edited, guarded } = await check(place);
+      const { edited, before, guarded } = await check(place);
       const next = guarded?.changes[0].after ?? edited;
-      const bytes = encode(next);
-      if (bytes.length > MAX_INPUT_BYTES)
-        throw new InputError([
-          {
-            severity: 'error',
-            code: 'size',
-            path: '/',
-            message: 'The definition exceeds the 2 MB UTF-8 limit. Split it into smaller documents.',
-          },
-        ]);
-      const indexed = indexBytes(slug, relativePath, bytes);
-      if (!indexed.file.visible) throw new InputError([{ severity: 'error', code: 'unsupported', path: '/', message: 'Unsupported file type.' }]);
+      const { bytes, indexed } = checkedBytes(slug, relativePath, next);
       if (!indexed.file.valid) throw new InputError(indexed.findings);
+      unitEditMigrations(place, slug, reader, [{ path: relativePath, before, after: next }]);
       const opId = journal.newId();
       const records = await saveMigrations(place.layout, slug, opId, declarations, deletedItems);
       const staging = join(layout.state, `.staging-${opId}`);
       const staged = join(staging, 'source');
       const hash = atomicWrite(staged, bytes);
-      const steps = clearPersonalDrafts(state, slug, [relativePath], staging, place.copy ?? undefined);
+      const steps = body.keepDrafts ? [] : clearPersonalDrafts(state, slug, [relativePath], staging, place.copy ?? undefined);
       if (existsSync(file)) steps.push({ from: file, to: join(staging, 'previous') });
       steps.push({ from: staged, to: file });
       try {
-        steps.push(...stageAddressMigrations({ layout, project: slug, staging }, records));
+        steps.push(...stageAddressMigrations({ layout: place.layout, project: slug, staging }, records));
         journal.run('save', steps, [staging], opId);
       } catch (error) {
         if (!(error instanceof JournalCrash)) rmSync(staging, { recursive: true, force: true });
@@ -197,6 +254,8 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     entry(slug);
     if (!Array.isArray(writes) || !writes.length || writes.length > 50) throw new BadRequestError('Expected 1–50 files.');
     const files = writes.map(w => ({ ...w, path: projectPath(w.path) }));
+    if (files.some(file => file.path.split('/').at(-1)?.toLowerCase() === ADDRESS_HISTORY_FILE)) throw new BadRequestError('Address history is managed by the workbench.');
+    if (files.some(file => file.path === DEPENDENCY_MANIFEST_PATH)) throw new BadRequestError('Use Update dependencies to write the dependency manifest.');
     const declarations = options.declaredMigrations ?? [];
     const deletedItems = options.deletedItems ?? [];
     if (new Set(files.map(f => f.path)).size !== files.length) throw new BadRequestError('Each file may appear once.');
@@ -204,6 +263,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
       throw new OccupiedError('The target is unavailable.', {});
     }
     const check = async (at: Place) => {
+      for (const file of files) requireCompleteSet(at, slug, reader, file.path);
       const result = await guardedEdits(at, slug, files, guard);
       result.edited.forEach((edit, index) => {
         const ownDeleted = deletedItems.filter(address => addressDocument(address) === edit.path);
@@ -249,6 +309,16 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
           rewritten,
         };
       });
+      const moves = unitEditMigrations(
+        place,
+        slug,
+        reader,
+        edited.map((edit, index) => ({
+          path: edit.path,
+          before: edit.before,
+          after: decode(prepared[index].bytes),
+        })),
+      );
       const opId = journal.newId();
       const staging = join(place.layout.projects, `.staging-${opId}`);
       try {
@@ -268,8 +338,8 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
             place.copy ?? undefined,
           ),
         );
-        const records = await saveMigrations(place.layout, slug, opId, declarations, deletedItems);
-        steps.push(...stageAddressMigrations({ layout, project: slug, staging }, records));
+        const records = await saveMigrations(place.layout, slug, opId, [...declarations, ...moves], deletedItems);
+        steps.push(...stageAddressMigrations({ layout: place.layout, project: slug, staging }, records));
         journal.run(kind, steps, [staging], opId);
       } catch (error) {
         if (!(error instanceof JournalCrash)) rmSync(staging, { recursive: true, force: true });
@@ -294,8 +364,10 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
   async function revertFile(slug: string, path: string, baseHash: unknown, reader: Reader) {
     entry(slug);
     if (baseHash !== null && (typeof baseHash !== 'string' || !/^[0-9a-f]{64}$/.test(baseHash))) throw new BadRequestError('baseHash must be a SHA-256 hex digest or null.');
-    if (!gitAvailable) throw new BadRequestError('Git is not available on this machine.');
+    if (!gitAvailable) throw new GitUnavailableError();
     const relativePath = projectPath(path);
+    if (relativePath.split('/').at(-1)?.toLowerCase() === ADDRESS_HISTORY_FILE) throw new BadRequestError('Address history is managed by the workbench.');
+    if (relativePath === DEPENDENCY_MANIFEST_PATH) throw new BadRequestError('Use Update dependencies to write the dependency manifest.');
     const committedIn = (at: Place) => git.blob(repoDir(at.layout, slug), 'HEAD', projectPrefix(layout, slug) + relativePath);
     const check = async (at: Place) => guardRevert(at.layout, { slug, path: relativePath }, await committedIn(at), reader.guard);
     const place = await copies.writePlace(reader, slug, check);
@@ -307,7 +379,11 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
     } catch {}
     return reverted;
   }
-  return { saveFile, saveFiles, revertFile };
+  /** Writes a planned lock after rechecking the roots and the previous lock under the save lock. */
+  function writeDependencyManifest(slug: string, body: { baseHash: string | null; source: string }, roots: ReadonlyMap<string, string>, reader: Reader) {
+    return saveFile(slug, DEPENDENCY_MANIFEST_PATH, body, reader, roots);
+  }
+  return { saveFile, saveFiles, revertFile, validateFile, writeDependencyManifest };
 }
 
 /** Classifies an atomic batch save and any governance demotions it reports. */

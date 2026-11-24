@@ -1,10 +1,11 @@
 /** The Group menu in the graph toolbar: lists only the ways of grouping that work for the open file. */
-import { useState, useRef, useLayoutEffect, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, ChevronDown, LayoutGrid } from 'lucide-react';
 import { GROUPING_LABELS, usableGroupingModes } from './overview';
 import type { modelOverview, GroupingOptions, GroupingMode, ConcreteGroupingMode } from './overview';
 import { AdjustGroupingDialog } from './AdjustGroupingDialog';
+import { moveFocusWithArrows, useDismiss, useFocusCheckedItem, useMenuPosition } from './toolbar-menu';
 import './grouping-menu.css';
 
 type Overview = ReturnType<typeof modelOverview>;
@@ -22,73 +23,6 @@ const MENU: [ConcreteGroupingMode, string][] = [
   ['suggested', 'Found from the links'],
   ['types', 'Concepts, metrics, dimensions'],
 ];
-
-// Places the menu under its button and inside the window.
-function useMenuPosition(button: React.RefObject<HTMLButtonElement | null>, opened: boolean) {
-  const [position, setPosition] = useState({ left: 0, top: 0, maxHeight: 0 });
-  useLayoutEffect(() => {
-    if (!opened) return;
-    const place = () => {
-      const rect = button.current!.getBoundingClientRect();
-      const width = Math.min(320, window.innerWidth - 20);
-      setPosition({
-        left: Math.max(10, Math.min(rect.left, window.innerWidth - width - 10)),
-        top: rect.bottom + 4,
-        maxHeight: Math.max(0, window.innerHeight - rect.bottom - 14),
-      });
-    };
-    place();
-    window.addEventListener('resize', place);
-    window.addEventListener('scroll', place, true);
-    return () => {
-      window.removeEventListener('resize', place);
-      window.removeEventListener('scroll', place, true);
-    };
-  }, [opened]);
-  return position;
-}
-
-// Closes the menu on Escape or on a click anywhere outside it. Escape also puts focus back on the
-// button that opened the menu, as a menu is expected to.
-function useDismiss(container: React.RefObject<HTMLElement | null>, opened: boolean, close: () => void, trigger: React.RefObject<HTMLElement | null>) {
-  useEffect(() => {
-    if (!opened) return;
-    const onPointerDown = (event: PointerEvent) => {
-      if (!container.current?.contains(event.target as Node)) close();
-    };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
-      close();
-      trigger.current?.focus();
-    };
-    document.addEventListener('pointerdown', onPointerDown);
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown);
-      document.removeEventListener('keydown', onKeyDown);
-    };
-  }, [opened]);
-}
-
-// Focuses the checked item when the menu opens, so the arrow keys start from the current choice.
-function useFocusCheckedItem(menu: React.RefObject<HTMLElement | null>, opened: boolean) {
-  useEffect(() => {
-    if (!opened) return;
-    const checked = menu.current?.querySelector<HTMLElement>('[aria-checked="true"]');
-    const firstItem = menu.current?.querySelector<HTMLElement>('button');
-    (checked ?? firstItem)?.focus();
-  }, [opened]);
-}
-
-// ArrowDown and ArrowUp move focus between the menu's buttons and wrap around at either end.
-function moveFocusWithArrows(event: React.KeyboardEvent<HTMLElement>) {
-  if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
-  event.preventDefault();
-  const items = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('button'));
-  const step = event.key === 'ArrowDown' ? 1 : -1;
-  const next = (items.indexOf(document.activeElement as HTMLElement) + step + items.length) % items.length;
-  items[next].focus();
-}
 
 type ItemProps = { label: string; summary: string; checked: boolean; onChoose: () => void };
 

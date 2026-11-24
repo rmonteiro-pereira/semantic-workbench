@@ -1,3 +1,5 @@
+import { useItemDiffContext } from '../item-diff/ItemDiffContext';
+import { useGraphChanges } from '../item-diff/graph-changes';
 /** Presentation and event handling for graph views. */
 import React, { useCallback, useMemo } from 'react';
 import { FullGraph } from '../graph/FullGraph';
@@ -9,6 +11,7 @@ import { NeighborhoodGraph } from '../graph/NeighborhoodGraph';
 import { LineageCanvas } from '../odcs/LineageCanvas';
 import type { LineageCard } from '../odcs/lineage';
 import type { AreaFilter, modelOverview } from '../graph/overview';
+import { useTrafficScope } from '../usage/use-usage';
 
 type GroupLook = { name: string; color: string };
 
@@ -121,6 +124,21 @@ export function GraphViews({
   crossFile,
   crossTo,
 }: Props) {
+  useTrafficScope(current?.project, current?.path, model?.name);
+  const graph = useGraphChanges(model, current);
+  const overlay = useItemDiffContext();
+  function selectFullEntity(id: string) {
+    if (!overlay?.openRemoved(id)) selectEntity(id);
+  }
+  function selectFullEdge(id: string) {
+    if (!overlay?.openRemoved(id)) handleFullGraphSelectEdge(id);
+  }
+  function selectNeighborhoodEntity(id: string) {
+    if (!overlay?.openRemoved(id)) handleNeighborhoodGraphSelectEntity(id);
+  }
+  function selectNeighborhoodEdge(id: string) {
+    if (!overlay?.openRemoved(id)) setSelectedEdge(id);
+  }
   const looks = useMemo(() => groupLooks(groupingOverview), [groupingOverview]);
   // The Group menu sits in the graph's own tool row, beside Fit and the layout controls.
   const groupMenu = groupingOverview ? <GroupingControls overview={groupingOverview} value={grouping.value} onChange={grouping.change} error={grouping.error} /> : null;
@@ -163,7 +181,7 @@ export function GraphViews({
       />
     );
   }
-  if (tab === 'fullgraph' && model) {
+  if (tab === 'fullgraph' && model && graph) {
     return (
       <FullGraph
         toolbarExtra={graphViewSwitch}
@@ -173,13 +191,14 @@ export function GraphViews({
         grouping={grouping.value}
         key={current?.id}
         name={model.name}
-        entities={model.entities}
-        edges={model.edges}
+        entities={graph.entities.length === model.entities.length ? model.entities : graph.entities}
+        edges={graph.edges.length === model.edges.length ? model.edges : graph.edges}
+        annotations={graph === model ? undefined : graph}
         selected={selected}
         selectedEdge={selectedEdge}
         search={search}
-        onSelectEntity={selectEntity}
-        onSelectEdge={handleFullGraphSelectEdge}
+        onSelectEntity={selectFullEntity}
+        onSelectEdge={selectFullEdge}
       />
     );
   }
@@ -212,8 +231,8 @@ export function GraphViews({
       key={current?.id}
       docId={current!.id}
       docLabel={id => docsRef.current.get(id)?.path ?? id}
-      entities={model?.entities ?? []}
-      edges={model?.edges ?? []}
+      entities={graph?.entities ?? []}
+      edges={graph?.edges ?? []}
       search={search}
       walk={walk}
       selected={selected}
@@ -221,10 +240,8 @@ export function GraphViews({
       onWalk={handleNeighborhoodGraphWalk}
       onWalkTo={walkTo}
       onClearSearch={() => setSearch('')}
-      onSelectEntity={handleNeighborhoodGraphSelectEntity}
-      onSelectEdge={id => {
-        setSelectedEdge(id);
-      }}
+      onSelectEntity={selectNeighborhoodEntity}
+      onSelectEdge={selectNeighborhoodEdge}
       onOpenKpis={handleNeighborhoodGraphOpenKpis}
       crossFile={crossFile}
       onCrossFile={crossTo}

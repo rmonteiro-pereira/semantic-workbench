@@ -44,6 +44,15 @@ validity before workspace traffic is served. Server mode serves the built `dist/
 CSP and security headers. A non-loopback HTTP public URL is refused. Loopback HTTP is a development
 exception, not a production transport.
 
+## Agent endpoint
+
+Server mode mounts `POST /api/mcp` for [person connections](agent-connections.md). It requires a workbench-issued connection token on every request and ignores cookies. Identity-provider tokens remain limited to `/api/agent/*`. Any Origin header is refused; invalid credentials receive an empty 401 with protected-resource discovery in `WWW-Authenticate`.
+
+Connection records survive restarts while the browser session remains valid. An Admin manages
+registered programs and revocation; people can revoke only their own connections. The browser
+consent and setup forms require the exact public origin and the session’s CSRF token.
+See [connection limits and client status](agent-connections.md).
+
 ## Identity providers
 
 ### Microsoft Entra ID
@@ -179,7 +188,7 @@ becoming readable through a broad workspace grant.
 | --- | --- |
 | Viewer | Read definitions/history, own view settings and project export |
 | Editor | Viewer actions plus file edits, imports, drafts and project Git |
-| Steward | Editor plus approvals, protected edits, publishing and project creation/rename |
+| Steward | Editor plus metric approvals, protected edits, publishing and project creation/rename |
 | Admin | Administration, all projects, purge/clear, remotes, clone and registration |
 
 Custom roles select actions and conditions; they cannot contain the `admin` action. Scope and
@@ -223,6 +232,9 @@ are serialized across its worktrees.
 | Fetch/Pull/Sync/Push | Explicit remote action from your copy with your credential |
 | Push default | Sends already published state to the remote; does not publish first |
 
+The push turn verifies the configured remote still has the addresses used for credential selection
+and exactly one push destination. Sync verifies the addresses before pulling.
+
 Publishing checks the exact proposed commits, requires a fast-forward and uses compare-and-swap.
 An outside default-branch move remains pending until someone with the same publication right
 uses **Adopt** (`POST /api/projects/:slug/git/adopt`). Adoption validates the entire candidate
@@ -256,6 +268,33 @@ Deleting a project can archive each person's unpublished work and drafts in the 
 Copy-local file deletions restore to the same owner's copy. Admin repository manifests are also
 written into the Admin's copy and need publication to reach readers.
 
+## Shared proposals
+
+A proposal lets several people build one change before it is published. It is an open Git ref at
+`refs/workbench/proposals/<id>`; closed ones move to `refs/workbench/closed-proposals/<id>`. The
+record at `state/proposals/<repo>.json` stores the name, declared projects and base but never the tip,
+so the status (open, closed, promoted, or damaged and unregistered when the ref and record disagree)
+is derived from Git. A tip already inside published history counts as promoted.
+
+| Action | Needs | Effect |
+| --- | --- | --- |
+| Create | `branch` and `edit` on every declared project | Registers the proposal at the published commit |
+| Work on it | `branch` and `pull` | Selects your branch `work/<handle>.<id>` |
+| Synchronize | `pull` | Merges the proposal tip into your branch |
+| Contribute | `commit` on `proposal/<id>` | Moves the tip to your branch if it descends from the tip |
+| Check | `publish` on every project in the repository | Dry run of publication |
+| Promote | `publish` on every project in the repository | Fast-forwards the default branch through the publication path |
+| Close, restore | `publish` on every project in the repository | Moves the ref between the open and closed namespaces |
+
+Contributing is a compare-and-swap: a stale tip or a branch that does not descend from it is refused.
+Changed paths must belong to the declared projects, the person needs `edit` on each path, and content
+guards run with the operation `contribute`. Contribution branches are shown only to their owner. Limits are
+50 open proposals per repository, names of 80 characters and identifiers of 40. Hidden proposals
+answer 404 like missing ones. Local mode answers 404 for every proposal route. Audit records carry a
+`proposal` object with the identifier, projects and commits, and a `proposal` event refreshes Source
+control. The guarantee is the application's: it does not stop someone with shell access to the data
+root. Push and Sync refuse `work/` and `proposal/` branches in both modes.
+
 ## Governed content
 
 Content guards apply to direct saves, item edits, imports, multi-file operations, pull/revert,
@@ -274,6 +313,20 @@ compare the before/after content under the appropriate repository lock.
   They refuse unauthorized guarded changes instead of silently demoting imported content.
 - A refusal rejects the whole operation before workspace bytes change. The response identifies
   guarded pointers only in readable files.
+
+Ontology concepts and relationships, including attributes, use the dedicated
+`approveOntologyItem` action for approval, deprecation, changing an approved item's owner or
+steward, and changing or removing its approved definition. The same owner check applies. An author
+without approval permission can save an eligible definition change as a proposal. Classification is
+a declaration and uses `editGuarded` for changes and protected content. If an ontology approval
+grant limits classification, the guard uses the higher of the previous and proposed levels.
+
+To grant ontology approval, an Admin opens **Admin → Roles**, creates or edits a custom role, and
+selects **Approve ontology item** in the Steward group. Under **Grants**, assign the role to the
+appropriate person or group at the project or domain scope, review the dry run and confirm. The
+person also needs permission to perform the underlying write. Existing roles, including Steward
+and Admin, need an explicit grant for ontology approval. Metric approval continues to use
+`approveMetric`.
 
 The metric detail explains disabled Approve/Deprecate actions. Deprecation uses a multiline reason
 with actions that remain together on phone screens. An owner who cannot be matched to a known
@@ -311,7 +364,7 @@ confirmation rather than nesting whole administration screens.
 Access changes require **Review change** followed by **Confirm**. The review is bound to the proposal
 and current version. Editing the proposal invalidates it; a stale version must be reopened and
 reviewed again. The server replays configured matrix cases, recent audit snapshots and known
-identities without changing live policies during preview.
+identities without changing live policies during preview. Custom policy text takes longer to simulate.
 
 Each accepted change makes one Admin-authored commit in `DATA_DIR/admin/`. History compares
 versions. Rollback is a new reviewed commit, not a history rewrite. Any number of people can be
@@ -375,6 +428,14 @@ assertions, explicit Git/GitHub/Azure DevOps operations, and enabled telemetry e
 refresh and telemetry are background-capable; remote repository synchronization is not automatic.
 No database source is contacted and no previewed SQL is executed.
 
+Usage counters are a separate, opt-in store: `SW_USAGE_COUNTERS=on` counts requests through the
+workbench per published item and UTC day under `state/usage/`, and `SW_USAGE_RETENTION_DAYS` (default
+30) sets how long counts are kept. They hold no identity and are never derived from the audit log or
+telemetry. Counts are written every 30 seconds and at a clean stop, so a crash loses at most 30 seconds.
+Browser views are not counted, and a small team may infer who asked from a low count, so they are not
+anonymous. People read counts only for files they may read; Admin Settings shows whether counters are
+on. See [usage counters](usage-counters.md).
+
 ## Operating limits and recovery
 
 Run exactly one active application replica per data root. Git ownership, administration locks,
@@ -398,3 +459,36 @@ personal drafts, Admin/session state, grouping state or trash. Stop the applicat
 removing a disposable SQLite cache, and expect it to rescan on startup. Keep the cache on local
 disk when the durable data root is on a share. Scale vertically first; horizontal scale requires
 repository partitioning or coordinated leases/storage and shared session handling.
+
+
+For stdio clients, select a registered agent program on the setup page. Configure the
+bridge with `SW_SERVER_URL`, `SW_CLIENT_ID` and an owner-only file containing the setup credential. The
+bridge keeps rotating client tokens under the person's configuration directory in
+`semantic-workbench/connections` (0700 directory, 0600 file, or a private Windows ACL).
+Sign out or revoke the connection in the workbench, then stop the bridge and use
+`--sign-out` with the same `SW_SERVER_URL` to erase the local file immediately.
+See the [MCP bridge guide](mcp.md#server-stdio-bridge).
+## Agent panel connections
+
+The panel's server-mode adapter expects the connection service to create a single-use setup
+credential for the current browser session, with origin `acp` and named scopes `read` and `edit`.
+In **Admin → Agent programs**, register client id `acp-relay`, name `ACP relay`, scopes `read`
+and `edit`, and redirect `http://127.0.0.1:8765/callback`; review the dry run and confirm.
+The setup grant uses no callback listener. The program is not built in. The relay exchanges the
+credential at `/oauth/token`. The handler supplies the real connection service to the panel.
+
+The connection service's end notification closes the bound panel session on sign-out, expiry,
+deactivation and revocation before later agent traffic can run. The relay never renews browser
+idle activity. File requests remain ordinary authorized and guarded operations, and permission
+answers grant no extra scope. See [the panel guide](agent-panel.md), including its draft-content
+warning and threat model.
+### Ontology units and provider access
+
+A reader missing any required part sees the findings for the visible file and a set-not-checked
+notice. Saved changes and publication requiring that set are refused. A private draft remains
+available. Each reader's set findings are calculated on their own access.
+
+An importing project can use the published concepts it selected from a readable provider
+without accessing the provider's private files. A person who can publish the provider can
+see a published importing project's name and domain, its imported public items and the
+resolved version. The publish confirmation explains this disclosure.

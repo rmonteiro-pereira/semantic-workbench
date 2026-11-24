@@ -1,5 +1,7 @@
 // Classifiers see a bounded copy after existence hiding has been settled.
 import { OPERATION_OUTCOMES, type OperationOutcome } from '../../shared/observability/operation';
+import { FAILURE_CODE_HEADER } from '../projects/errors';
+import type { ToolErrorCode } from './call-attribution';
 /** Semantic result of an authorized operation. */
 export type { OperationOutcome } from '../../shared/observability/operation';
 /** Closed outcomes accepted by audit classification and operation metrics. */
@@ -44,5 +46,43 @@ export async function classifyOutcome(response: Response, classifier: OutcomeCla
   } catch {
     // Classification cannot turn a completed operation into a retryable failure response.
     return 'failed';
+  }
+}
+
+/**
+ * The one decision of what a failed call is: the code a protocol caller is told and the result an
+ * audit record carries. It reads the operation, the HTTP status, the route's failure header and the fields of its JSON body, never its sentence, so
+ * the answer and the record cannot disagree.
+ */
+export function classifyCallFailure(operationId: string, status: number, body: unknown, failureCode?: string | null): ToolErrorCode {
+  const record = body && typeof body === 'object' ? (body as Record<string, unknown>) : {};
+  if (status === 404) return 'not_found';
+  if (status === 403) return Array.isArray(record.guarded) ? 'guard_refused' : 'refused';
+  if (status === 409 && record.code === 'no-published-snapshot') return 'not_published';
+  if (status === 409 && record.error === 'precondition') return 'precondition_failed';
+  if (status === 409) return 'conflict';
+  if (status === 413) return 'limit_exceeded';
+  if (status === 400 && failureCode === 'git-unavailable') return 'unavailable';
+  if (status === 400 && failureCode === 'not-found') return 'not_found';
+  if (status === 400) return 'invalid_input';
+  if (status === 500 && operationId.startsWith('git.')) return failureCode === 'git-refused' ? 'refused' : 'unavailable';
+  if (status >= 500) return 'internal';
+  return 'refused';
+}
+
+/** The result of a call that has an answer: `ok` for a success, otherwise the classified failure. */
+export function callResult(operationId: string, status: number, body: unknown, failureCode?: string | null): string {
+  if (status >= 200 && status < 300) return 'ok';
+  return classifyCallFailure(operationId, status, body, failureCode);
+}
+
+/** The result of a call read from its response, without consuming the response. A body that cannot be read is classified by status alone. */
+export async function callResultOf(operationId: string, response: Response): Promise<string> {
+  if (response.ok) return 'ok';
+  try {
+    const copy = await boundedCopy(response);
+    return callResult(operationId, response.status, JSON.parse(await copy.text()), response.headers.get(FAILURE_CODE_HEADER));
+  } catch {
+    return callResult(operationId, response.status, undefined, response.headers.get(FAILURE_CODE_HEADER));
   }
 }

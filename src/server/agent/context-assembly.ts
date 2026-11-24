@@ -74,7 +74,7 @@ function resolveReference(assembly: Assembly, ref: any, kind: 'ontology' | 'sema
 /** Finds the ontology and semantic model a mapping reads: embedded ones directly, referenced ones by logical name. */
 function resolveTargets(assembly: Assembly): ResolvedTargets {
   const { entry } = assembly;
-  const ontologyTarget = entry.ontology ? { doc: entry.ontology.doc, data: entry.ontology.data, path: [] } : resolveReference(assembly, entry.data.ontology_ref, 'ontology');
+  const ontologyTarget = entry.ontology ? { ...entry.ontology, path: [] } : resolveReference(assembly, entry.data.ontology_ref, 'ontology');
   const semanticTarget: Target | null = entry.ontology
     ? {
         doc: entry.doc,
@@ -142,6 +142,11 @@ function definitionLabel(scope: Address, model: any, path: (string | number)[] =
   const relative = addressAtModelPath(model, path);
   return formatAddress({ ...scope, chain: [...scope.chain, ...relative.chain.slice(1)] });
 }
+function ontologyItemEvidence(target: Target, path: (string | number)[]): Evidence {
+  const source = target.unitEvidence?.get(path.join('/'));
+  return source ? evidence(source.doc, source.path) : evidence(target.doc, path);
+}
+
 function addAiContext(context: RuntimeContext, definition: any, scope: string, definitionEvidence: Evidence) {
   if (definition?.ai_context !== undefined) context.aiContext.push({ scope, value: definition.ai_context, evidence: definitionEvidence });
 }
@@ -152,7 +157,11 @@ function collectFields(context: RuntimeContext, catalog: Catalog, { ontologyTarg
   addAiContext(context, semanticTarget.data, formatAddress(context.semanticModel.address), evidence(semanticTarget.doc, semanticPrefix));
   context.concepts.forEach((concept, i) => {
     if (concept.ai_context !== undefined)
-      addAiContext(context, concept, definitionLabel(context.ontology.address, ontologyTarget.data, ['ontology', i]), evidence(ontologyTarget.doc, ['ontology', i]));
+      addAiContext(context, concept, definitionLabel(context.ontology.address, ontologyTarget.data, ['ontology', i]), ontologyItemEvidence(ontologyTarget, ['ontology', i]));
+    (concept.relationships ?? []).forEach((relationship: any, j: number) => {
+      const path = ['ontology', i, 'relationships', j];
+      if (relationship?.ai_context !== undefined) addAiContext(context, relationship, definitionLabel(context.ontology.address, ontologyTarget.data, path), ontologyItemEvidence(ontologyTarget, path));
+    });
   });
   context.datasets.forEach((dataset, i) => {
     addAiContext(context, dataset, definitionLabel(context.semanticModel.address, semanticTarget.data, ['datasets', i]), evidence(semanticTarget.doc, [...semanticPrefix, 'datasets', i]));

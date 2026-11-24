@@ -1,4 +1,5 @@
 // Builds bounded, immutable project indexes from Git objects without consulting a checkout.
+import { isAddressHistoryPath } from '../../shared/core/address-migration';
 import { posix } from 'node:path';
 import { decode, sha256 } from './atomic';
 import type { Git, GitTreeEntry } from './git';
@@ -40,10 +41,14 @@ export function folderDigest(projects: ProjectEntry[]): string {
   return sha256(JSON.stringify(projects.map(project => [project.slug, locationOf(project).folder]).sort((left, right) => left[0].localeCompare(right[0]))));
 }
 
-function projectEntries(tree: GitTreeEntry[], project: ProjectEntry, limits: SnapshotLimits) {
+function projectEntries(tree: GitTreeEntry[], project: ProjectEntry, limits: SnapshotLimits, visible?: (project: string, path: string) => boolean) {
   const { folder, repo } = locationOf(project);
   const prefix = folder === repo ? '' : folder.slice(repo.length + 1) + '/';
-  const entries = tree.filter(entry => entry.path.startsWith(prefix)).map(entry => ({ ...entry, path: entry.path.slice(prefix.length) }));
+  const entries = tree.flatMap(entry => {
+    if (entry.link || !entry.path.startsWith(prefix) || isAddressHistoryPath(entry.path)) return [];
+    const path = entry.path.slice(prefix.length);
+    return !visible || visible(project.slug, path) ? [{ ...entry, path }] : [];
+  });
   if (entries.length > limits.projectFiles) throw new SnapshotUnavailableError('unavailable');
   const spellings = new Map<string, string>();
   for (const entry of entries) {
@@ -77,11 +82,11 @@ function indexedFile(deps: SnapshotIndexDeps, project: string, path: string, byt
   return Object.freeze({ metadata, document, bytes });
 }
 
-async function buildIndex(deps: SnapshotIndexDeps, repository: string, commit: string, projects: ProjectEntry[]): Promise<SnapshotIndex> {
+async function buildIndex(deps: SnapshotIndexDeps, repository: string, commit: string, projects: ProjectEntry[], visible?: (project: string, path: string) => boolean): Promise<SnapshotIndex> {
   const limits = deps.limits ?? SNAPSHOT_LIMITS;
   const directory = deps.directory(repository);
-  const tree = await deps.git.lsTree(directory, commit);
-  const entries = projects.map(project => ({ project, files: projectEntries(tree, project, limits) }));
+  const tree = await deps.git.lsTree(directory, commit, '', !visible);
+  const entries = projects.map(project => ({ project, files: projectEntries(tree, project, limits, visible) }));
   const files = entries.flatMap(entry => entry.files);
   if (files.reduce((total, file) => total + file.size, 0) > limits.totalBytes) throw new SnapshotUnavailableError('unavailable');
   const blobs = await deps.git.catFileBatch(
@@ -96,7 +101,7 @@ async function buildIndex(deps: SnapshotIndexDeps, repository: string, commit: s
       Object.freeze(
         files.map(file => {
           const bytes = blobs.get(file.id);
-          if (!bytes || bytes.length !== file.size) throw new SnapshotUnavailableError('unavailable');
+          if (!bytes || (!visible && bytes.length !== file.size)) throw new SnapshotUnavailableError('unavailable');
           return indexedFile(deps, project.slug, file.path, bytes);
         }),
       ),
@@ -109,6 +114,10 @@ async function buildIndex(deps: SnapshotIndexDeps, repository: string, commit: s
 export function createSnapshotIndexes(deps: SnapshotIndexDeps) {
   const building = new Map<string, Promise<SnapshotIndex>>();
   return {
+    /** Builds a request-local projection without inspecting unreadable blobs or sharing findings. */
+    visible(repository: string, commit: string, projects: ProjectEntry[], canRead: (project: string, path: string) => boolean) {
+      return buildIndex(deps, repository, commit, projects, canRead);
+    },
     build(repository: string, commit: string, projects: ProjectEntry[]) {
       const key = JSON.stringify([repository, commit, folderDigest(projects)]);
       const existing = building.get(key);

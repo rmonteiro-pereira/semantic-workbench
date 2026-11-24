@@ -26,17 +26,17 @@ export function agentCatalog(documents: StoredDocument[]) {
 export function buildContext(documents: StoredDocument[], mappingId: string): RuntimeContext {
   const parsed = parseDocuments(documents);
   const entry = mappingEntries(parsed).find(m => m.id === mappingId);
-  if (!entry) throw new BadRequestError('Mapping not found. Import a standalone mapping or an ontology with embedded mappings.');
+  if (!entry) throw new BadRequestError('Mapping not found. Import a standalone mapping or an ontology with embedded mappings.', 'not-found');
   return assemble(parsed, entry);
 }
 /** Builds context for a model at a document path when no mapping is required. */
 export function modelContext(documents: StoredDocument[], documentId: string, path: (string | number)[] = []): RuntimeContext {
   const parsed = parseDocuments(documents);
   const parsedDocument = parsed.find(x => x.doc.id === documentId);
-  if (!parsedDocument?.data) throw new BadRequestError('Semantic model not found.');
+  if (!parsedDocument?.data) throw new BadRequestError('Semantic model not found.', 'not-found');
   let model: any = parsedDocument.data;
   for (const segment of path) model = model?.[segment];
-  if (!model || !Array.isArray(model.datasets)) throw new BadRequestError('Semantic model not found.');
+  if (!model || !Array.isArray(model.datasets)) throw new BadRequestError('Semantic model not found.', 'not-found');
   const entry: Entry = {
     id: `${documentId}#model`,
     doc: parsedDocument.doc,

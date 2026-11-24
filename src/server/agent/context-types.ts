@@ -1,5 +1,6 @@
 // Types of the resolved agent context, the planning policy and the evidence helpers every context step shares.
 import { formatAddress, type Address } from '../../shared/core/item-address';
+import type { ResolvedImportInterface } from '../../shared/tessera/imports';
 import type { ConceptRef } from '../../shared/metrics/bindings';
 /** Stored source text with its identifier, revision, and optional project. */
 export type StoredDocument = {
@@ -8,6 +9,7 @@ export type StoredDocument = {
   source: string;
   revision: number;
   project?: string;
+  publishedInterfaces?: readonly ResolvedImportInterface[];
 };
 /** Locates a definition within a particular document revision. */
 export type Evidence = {

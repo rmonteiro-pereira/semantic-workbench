@@ -1,3 +1,5 @@
+import { BranchControl } from '../item-diff/BranchControl';
+import { ItemChangeAnnotation } from '../item-diff/ItemChangeAnnotation';
 /** Presentation and event handling for entity details. */
 import { Box, Braces, FileCode, Focus, Pencil, Plus, Trash2 } from 'lucide-react';
 import React from 'react';
@@ -6,6 +8,9 @@ import { type ItemKind } from '../../shared/edit/item-model';
 import type { Entity } from '../../shared/core/model';
 import { editEntity } from '../../shared/core/model';
 import type { Doc } from '../projects/api';
+import { TrafficBadge } from '../usage/TrafficBadge';
+import { childAddressText, entityAddressText, relationshipAddressText } from '../usage/usage-addresses';
+import { ItemSections } from './ItemSections';
 import type { ItemTarget, RdfTarget, ValidatedModel } from './types';
 
 type Props = {
@@ -56,8 +61,10 @@ export function EntityDetails({
   setSelected,
   setDefinition,
 }: Props) {
+  const editTarget = entityTarget(entity);
+  const inlineTarget = editTarget?.docId === current?.id ? editTarget : null;
   function handleTextareaChange(event: React.ChangeEvent<HTMLTextAreaElement, HTMLTextAreaElement>) {
-    return setSource(editEntity(source, entity.path, event.target.value, current?.filename));
+    if (inlineTarget) setSource(editEntity(source, inlineTarget.path, event.target.value, current?.filename));
   }
 
   function handleViewDefinitionClick() {
@@ -73,11 +80,24 @@ export function EntityDetails({
         <Box />
       </div>
       <h2>{entity.name}</h2>
+      <ItemChangeAnnotation document={current} item={entity} />
+      {current && 'address' in entity && <BranchControl name={entity.name} dirty={source !== current.source} />}
       <button className="inspect-neighborhood" onClick={() => showNeighborhood(entity.id)}>
         <Focus size={14} />
         Explore neighborhood
       </button>
       <div className="badge">{entity.kind}</div>
+      <TrafficBadge address={entityAddressText(entity)} />
+      {entity.imported && (
+        <dl className="mesh-imported-details">
+          <dt>Imported from</dt>
+          <dd>
+            {entity.imported.project} / {entity.imported.ontology}
+          </dd>
+          <dt>Published version</dt>
+          <dd>{entity.imported.version}</dd>
+        </dl>
+      )}
       {(() => {
         const rdfItem = rdfTarget(entity);
         if (rdfItem)
@@ -157,12 +177,14 @@ export function EntityDetails({
       })()}
       {entity.readOnlyForm ? (
         <p className="hint">
-          {entity.description || (rdfTarget(entity) ? 'Edit its statements with Edit; the file keeps its serialization and layout.' : 'A blank node is edited with the resource that contains it.')}
+          {entity.description ||
+            (entity.imported && 'Edit this concept in its provider ontology.') ||
+            (rdfTarget(entity) ? 'Edit its statements with Edit; the file keeps its serialization and layout.' : 'A blank node is edited with the resource that contains it.')}
         </p>
       ) : (
         <label>
           Description
-          <textarea value={entity.description} onChange={handleTextareaChange} />
+          <textarea value={entity.description} readOnly={!inlineTarget} onChange={handleTextareaChange} />
         </label>
       )}
       {relatedDocuments.length > 0 && (
@@ -186,13 +208,25 @@ export function EntityDetails({
               setSelected('');
             }
             return (
-              <button key={edge.id} onClick={handleAddChildClick2}>
-                <span>{edge.label}</span>
-                <small>{model.entities.find(n => n.id === (edge.source === entity.id ? edge.target : edge.source))?.name}</small>
-              </button>
+              <React.Fragment key={edge.id}>
+                <button onClick={handleAddChildClick2}>
+                  <span>{edge.label}</span>
+                  <small>{model.entities.find(n => n.id === (edge.source === entity.id ? edge.target : edge.source))?.name}</small>
+                </button>
+                <TrafficBadge compact address={edge.source === entity.id ? relationshipAddressText(edge) : undefined} />
+              </React.Fragment>
             );
           })}
       </div>
+      {(() => {
+        const target = entityTarget(entity);
+        if (!target) return null;
+        const selectConcept = (name: string) => {
+          const found = model?.entities.find(candidate => candidate.name === name);
+          if (found) setSelected(found.id);
+        };
+        return <ItemSections target={target} dirty={!!current && source !== current.source} openConcept={selectConcept} removeRelationship={setDeleting} />;
+      })()}
       {entity.definition && (
         <button className="view-definition" onClick={handleViewDefinitionClick}>
           <Braces size={13} />
@@ -203,9 +237,10 @@ export function EntityDetails({
         <>
           <div className="section-label">FIELDS</div>
           {entity.fields.map((field, i) => (
-            <div className="field" key={i}>
-              {field}
-            </div>
+            <React.Fragment key={i}>
+              <div className="field">{field}</div>
+              <TrafficBadge compact address={entity.kind === 'Dataset' ? childAddressText(entity, 'field', field) : undefined} />
+            </React.Fragment>
           ))}
         </>
       )}

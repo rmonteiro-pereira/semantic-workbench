@@ -11,8 +11,11 @@
   border-radius: 8px;
   background: var(--color-surface);
 }
+/* A button centres its content vertically, so the open button keeps its own height and a card
+   stretched by a taller neighbor in its row puts the spare room above Edit instead; every card's
+   text then starts at the top. */
 .catalog-card > button:first-child {
-  flex: 1 1 auto;
+  flex: none;
   width: 100%;
   border: 0;
   background: transparent;
@@ -24,6 +27,7 @@
   display: inline-flex;
   align-items: center;
   align-self: flex-end;
+  margin-top: auto;
   margin-right: 10px;
   font-size: var(--text-small);
   padding: 4px 8px;
@@ -109,4 +113,19 @@
 }
 .catalog-empty button {
   padding: 9px 13px;
+}
+/* The status and the attribute names under a card's text wrap like the rest of the card. */
+.catalog-marks {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 0 10px;
+  min-width: 0;
+}
+.catalog-attributes {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
 }

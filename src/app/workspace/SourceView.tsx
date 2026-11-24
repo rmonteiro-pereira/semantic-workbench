@@ -4,11 +4,14 @@ import React from 'react';
 import type { Issue } from '../../shared/validation/diagnostics';
 import type { CodeEditorHandle } from '../editor/CodeEditor';
 import { CodeEditor } from '../editor/CodeEditor';
+import { PartPicker, type PartSelection } from '../mesh/PartPicker';
 import type { Doc } from '../projects/api';
 
 type Props = {
   sourceEditor: React.RefObject<CodeEditorHandle | null>;
   current: Doc | null;
+  partSelection?: PartSelection;
+  openPart?: (path: string) => void;
   source: string;
   setSource: React.Dispatch<React.SetStateAction<string>>;
   setEditorIssues: React.Dispatch<
@@ -22,21 +25,24 @@ type Props = {
   validateAsShippedVersion: () => void;
 };
 /** Renders source view. */
-export function SourceView({ sourceEditor, current, source, setSource, setEditorIssues, assumeOssieVersion, validateAsShippedVersion }: Props) {
+export function SourceView({ sourceEditor, current, partSelection, openPart, source, setSource, setEditorIssues, assumeOssieVersion, validateAsShippedVersion }: Props) {
   const access = useCapabilities(current?.project);
   return (
-    <CodeEditor
-      disabled={!access.can('edit')}
-      ref={sourceEditor}
-      ariaLabel="Definition source"
-      className="code"
-      documentId={current?.id}
-      filename={current?.filename ?? 'definition.yaml'}
-      value={source}
-      onChange={setSource}
-      onIssues={(issues, text) => setEditorIssues({ id: current?.id, issues, text })}
-      assumeOssieVersion={assumeOssieVersion}
-      onValidateAsShippedVersion={validateAsShippedVersion}
-    />
+    <>
+      {partSelection && <PartPicker selection={partSelection} open={openPart} />}
+      <CodeEditor
+        disabled={!access.can('edit')}
+        ref={sourceEditor}
+        ariaLabel="Definition source"
+        className="code"
+        documentId={current?.id}
+        filename={current?.filename ?? 'definition.yaml'}
+        value={source}
+        onChange={setSource}
+        onIssues={(issues, text) => setEditorIssues({ id: current?.id, issues, text })}
+        assumeOssieVersion={assumeOssieVersion}
+        onValidateAsShippedVersion={validateAsShippedVersion}
+      />
+    </>
   );
 }

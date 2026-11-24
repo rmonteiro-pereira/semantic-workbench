@@ -21,6 +21,8 @@ export const IMPORT_REQUEST_LIMIT = 64_000_000;
 export const METRIC_REQUEST_LIMIT = 256_000;
 /** Maximum body for canonical item resolution and reconciliation. */
 export const ITEM_ADDRESS_REQUEST_LIMIT = 64_000;
+/** Maximum encoded length of a request for two comparison sides. */
+export const ITEM_DIFF_QUERY_LIMIT = 1_024;
 /** Maximum body for personal grouping corrections. */
 export const GROUPING_REQUEST_LIMIT = 256_000;
 /** Maximum body for a personal draft and its patches. */
@@ -31,6 +33,10 @@ export const TRASH_REQUEST_LIMIT = 4096;
 export const ADMIN_REQUEST_LIMIT = 1_000_000;
 /** Maximum body for a browser diagnostic report. */
 export const BROWSER_REPORT_REQUEST_LIMIT = MAX_REPORT_BODY_BYTES;
+/** Maximum body for the token endpoint and the connection forms, which hold a few short fields. Assumed. */
+export const OAUTH_REQUEST_LIMIT = 4096;
+/** Maximum body of one agent panel request: a protocol frame of 1 MiB and the envelope around it. */
+export const AGENT_PANEL_REQUEST_LIMIT = 1_048_576 + 16_384;
 /** Named byte limits consumed by route parsers and the operation inventory. */
 export const REQUEST_LIMITS = {
   FILE_SAVE_REQUEST_LIMIT,
@@ -40,11 +46,14 @@ export const REQUEST_LIMITS = {
   IMPORT_REQUEST_LIMIT,
   METRIC_REQUEST_LIMIT,
   ITEM_ADDRESS_REQUEST_LIMIT,
+  ITEM_DIFF_QUERY_LIMIT,
   GROUPING_REQUEST_LIMIT,
   DRAFT_REQUEST_LIMIT,
   TRASH_REQUEST_LIMIT,
   ADMIN_REQUEST_LIMIT,
   BROWSER_REPORT_REQUEST_LIMIT,
+  OAUTH_REQUEST_LIMIT,
+  AGENT_PANEL_REQUEST_LIMIT,
 } as const;
 
 /** Parses a body within maxBytes, using empty for an absent or empty optional body. */

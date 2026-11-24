@@ -1,8 +1,11 @@
 /** Displays validation findings and lets users repair an import before accepting it. */
+import { UnitSetNotice } from '../mesh/UnitSetNotice';
+import type { ReaderValidation } from '../../shared/tessera/set-validation';
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import type { Issue } from '../../shared/validation/diagnostics';
 import { validateInput } from '../../shared/validation/input';
 import { OSSIE_SCHEMA_VERSION, isNotValidated } from '../../shared/validation/validation';
+import { TesseraNames, type DocumentFormat } from '../../shared/tessera/format';
 import { featureLabeler } from '../editor/feature';
 import { CodeEditor, type CodeEditorHandle } from '../editor/CodeEditor';
 import './validation-editor.css';
@@ -11,11 +14,21 @@ export function ValidationPanel({
   issues: allIssues,
   onLocate,
   onValidateAsShippedVersion,
+  onCheckStandard,
+  onConvertToStandard,
   source,
+  format,
+  unitValidation,
 }: {
   issues: Issue[];
+  unitValidation?: ReaderValidation;
+  format?: DocumentFormat;
   onLocate?: (issue: Issue) => void;
   onValidateAsShippedVersion?: () => void;
+  /** Offered for a Tessera document: opens the check against standard Ossie. */
+  onCheckStandard?: () => void;
+  /** Offered for a Tessera document to a person who may edit it: opens the reviewed conversion. */
+  onConvertToStandard?: () => void;
   source?: string;
 }) {
   const notValidated = allIssues.find(isNotValidated);
@@ -32,9 +45,22 @@ export function ValidationPanel({
     empty: 'Provide a definition before continuing.',
     filename: 'Use a filename without directory separators or control characters.',
     size: 'Split this definition into files smaller than 2 MB.',
+    'tessera-marker': `Write the marker as a whole number of at least 1, for example ${TesseraNames.markerKey}: 1.`,
+    'tessera-revision': 'Use a revision this workbench supports, and only the properties that revision defines.',
+    'tessera-base': 'Set version to one of the supported Ossie bases the message lists.',
+    'tessera-kind': `Remove the ${TesseraNames.markerKey} key; ${TesseraNames.product} applies to ontology documents only.`,
+    'tessera-property': 'Check the spelling against the registered properties the message lists, or remove the property.',
+    'tessera-reserved': 'Remove the property; its name is kept for a later feature.',
+    'tessera-location': 'Move the property to one of the places the message lists.',
+    'tessera-attribute-order': 'Keep each name once and only names of attributes of this concept, or remove the entry.',
+    'tessera-governance-value': 'Use only the keys and status words the message lists, and give the entry at least one key.',
+    'tessera-governance-deprecation': 'Set the status to deprecated, or remove the replacement and the reason.',
   };
+  const showStandardControls = format?.family === 'tessera';
+  const formatLabel = format?.family === 'tessera' ? `${TesseraNames.product} ${format.revision} on Ossie ${format.base} · ` : '';
   return (
     <div className="validation-report" aria-label="Validation report">
+      <UnitSetNotice validation={unitValidation} />
       {notValidated && (
         <div className="validation-not-validated" role="status">
           <strong>Not validated</strong>
@@ -47,8 +73,23 @@ export function ValidationPanel({
           <span>Structure and reference checks still run; only the schema check is skipped.</span>
         </div>
       )}
+      {showStandardControls && (onCheckStandard || onConvertToStandard) && (
+        <div className="validation-standard-actions">
+          {onCheckStandard && (
+            <button type="button" onClick={onCheckStandard}>
+              Check as standard Ossie
+            </button>
+          )}
+          {onConvertToStandard && (
+            <button type="button" onClick={onConvertToStandard}>
+              Convert to standard
+            </button>
+          )}
+        </div>
+      )}
       {!notValidated && (
         <p>
+          {formatLabel}
           {errorCount} {errorCount === 1 ? 'error' : 'errors'} · {warningCount} {warningCount === 1 ? 'warning' : 'warnings'}
         </p>
       )}

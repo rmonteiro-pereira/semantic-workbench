@@ -1,6 +1,7 @@
 import { parseAddress } from '../../shared/core/item-address';
 import { authorizeWrite } from '../auth/write-access';
 import { requestReader } from '../auth/request-scope';
+import { requestSurface } from '../auth/request-surface';
 import { BadRequestError } from '../projects/errors';
 import { ITEM_ADDRESS_REQUEST_LIMIT, decodePath, decodeSegment, readJson } from '../request';
 import type { Route } from './http';
@@ -24,7 +25,10 @@ export const itemAddressRoutes: Route = async (workspace, request, url) => {
   if (!body || typeof body !== 'object' || Array.isArray(body)) throw new BadRequestError('Expected an item-address request object.');
   if (resolution) {
     if (!('address' in body) || Object.keys(body).some(key => key !== 'address')) throw new BadRequestError('Expected {address}.');
-    return Response.json(workspace.resolveAddress(projectItemAddress(body.address, project), requestReader(request)));
+    const address = projectItemAddress(body.address, project);
+    const reader = requestReader(request);
+    const result = requestSurface(request) === 'browser' ? workspace.resolveAddress(address, reader) : await workspace.resolvePublishedAddress(address, reader);
+    return Response.json(result);
   }
   if (!('operationId' in body) || typeof body.operationId !== 'string' || !('from' in body) || !('to' in body) || Object.keys(body).some(key => !['operationId', 'from', 'to'].includes(key))) {
     throw new BadRequestError('Expected {operationId, from, to}.');

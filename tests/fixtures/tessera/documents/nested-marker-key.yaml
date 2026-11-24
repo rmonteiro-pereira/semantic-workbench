@@ -1,0 +1,20 @@
+version: 0.2.0.dev0
+name: retail_model
+datasets:
+  - name: orders
+    source: db.orders
+    fields:
+      - name: amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount
+metrics:
+  - name: revenue
+    expression:
+      dialects:
+        - dialect: ANSI_SQL
+          expression: SUM(orders.amount)
+    custom_extensions:
+      - vendor_name: COMMON
+        data: '{"tessera": 1}'

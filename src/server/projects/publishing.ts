@@ -1,21 +1,38 @@
 // Publishes in server mode: moves the default branch to a person's working copy, or to what a
 // fetch brought from the remote, and then refreshes the published state every reader sees.
-import { BadRequestError, NothingToPublishError } from './errors';
+import { BadRequestError, MissingOntologySetError, NothingToPublishError } from './errors';
 import type { EventTags } from './events';
-import type { ContentGuard } from '../auth/guards';
+import { InputError } from '../../shared/validation/diagnostics';
 import { WriteAccessError } from '../auth/write-access-error';
+import type { PublicationResult } from './publication';
 import type { Reader } from './reader';
+import type { PublishedSnapshots } from './published-snapshot';
+import { checkPublicationDependencies, requireVisibleCandidateSets } from '../mesh/dependency-check';
+import type { PublicationGuard } from './publication';
 import type { PublicationObserver } from './local-publication';
 import type { FollowRequest, FollowResult } from './scm';
 import type { Place, WorkingCopies } from './working-copies';
 import type { Worktrees } from './worktrees';
 
+/** The proposal tip to publish, the files it changes, and what to do inside the queue around the move. */
+export type PromotionRequest = {
+  tip: string;
+  paths: (previous: string | null, next: string) => Promise<string[]>;
+  before?: (previous: string | null) => Promise<void>;
+  after?: (result: PublicationResult) => Promise<void>;
+};
+
 /** What publishing needs from the workspace that composes it. */
 export type PublishingDeps = {
   worktrees: Worktrees;
+  snapshots: PublishedSnapshots;
+  repositoryOf: (project: string) => string | null;
   copies: WorkingCopies;
+  /** The published place, which judges what a promotion brings without a working copy. */
+  published: Place;
   repoOf: (slug: string) => string;
   projectsIn: (repo: string) => string[];
+  publicationChanged: () => void;
   /** Rescans one project of the published state and announces what changed. */
   rescan: (slug: string) => Promise<unknown>;
   emit: (event: string, data: unknown, tags: EventTags) => void;
@@ -29,16 +46,24 @@ export type PublishingDeps = {
  * an approval reaches the default branch only through someone allowed to make it, whether it
  * comes from a copy or from the remote.
  */
-export function judgePublish(place: Place, slug: string, guard: ContentGuard | undefined) {
-  return async (previous: string | null, next: string) => {
-    if (!guard) return;
-    const changes = await place.scm.changesBetween(slug, previous, next);
-    guard(changes, { operation: 'publish' });
+/** The publishing services the dependency checks of a publication read. */
+export type PublicationDependencyDeps = Pick<PublishingDeps, 'snapshots' | 'projectsIn' | 'repositoryOf' | 'repoOf'>;
+
+export function judgePublish(deps: PublicationDependencyDeps, place: Place, slug: string, reader: Reader, listPaths?: (previous: string | null, next: string) => Promise<string[]>) {
+  const guard: PublicationGuard = async (previous, next) => {
+    if (reader.guard) {
+      const changes = await place.scm.changesBetween(slug, previous, next, await listPaths?.(previous, next));
+      reader.guard(changes, { operation: 'publish' });
+    }
+    await checkPublicationDependencies(deps, { repo: deps.repoOf(slug), next }, reader);
   };
+  if (reader.view) guard.beforeReadable = candidate => requireVisibleCandidateSets(deps.snapshots, candidate, reader);
+  return guard;
 }
 
 // Every reader's view of the repository's projects follows the new tip of the default branch.
 async function announce(deps: PublishingDeps, slug: string, branch: string, commit: string) {
+  deps.publicationChanged();
   const inRepo = deps.projectsIn(deps.repoOf(slug));
   for (const project of inRepo) await deps.rescan(project);
   deps.emit('published', { project: slug, branch, commit }, { projects: inRepo });
@@ -60,10 +85,22 @@ async function publish(deps: PublishingDeps, slug: string, reader: Reader) {
   }
   if (!deps.worktrees.exists(key, repo)) throw new NothingToPublishError();
   const place = await deps.copies.writePlace(reader, slug);
-  const result = await deps.worktrees.publish(repo, key, judgePublish(place, slug, reader.guard));
+  const result = await deps.worktrees.publish(repo, key, judgePublish(deps, place, slug, reader));
   await announce(deps, slug, result.published, result.commit);
   await place.scm.refresh(slug);
   return { published: result.published, previous: result.previous, commit: result.commit };
+}
+
+/**
+ * Moves the default branch to the tip of a proposal through the publication path, judged as the
+ * promoter's own change on the published checkout, so a promoter needs no working copy. `before`
+ * and `after` run inside the repository queue around the move.
+ */
+async function promote(deps: PublishingDeps, slug: string, reader: Reader, move: PromotionRequest) {
+  const check = judgePublish(deps, deps.published, slug, reader, move.paths);
+  const result = await deps.worktrees.promote(deps.repoOf(slug), move.tip, check, { before: move.before, after: move.after });
+  await announce(deps, slug, result.published, result.commit);
+  return result;
 }
 
 /**
@@ -80,14 +117,14 @@ async function followRemote(deps: PublishingDeps, slug: string, remote: string, 
   if (!(await mayPublish())) return { ...stays, reason: 'publish' };
   const place = await deps.copies.writePlace(reader, slug);
   try {
-    const check = judgePublish(place, slug, reader.guard);
+    const check = judgePublish(deps, place, slug, reader);
     const moved = await deps.worktrees.followRemote(repo, remote, check);
     if (!moved) return stays;
     onPublished?.(moved);
     await announce(deps, slug, moved.published, moved.commit);
     return { ...stays, followed: true };
   } catch (error) {
-    if (error instanceof WriteAccessError) return { ...stays, reason: 'guard' };
+    if (error instanceof WriteAccessError || error instanceof InputError || error instanceof MissingOntologySetError) return { ...stays, reason: 'guard' };
     throw error;
   }
 }
@@ -101,6 +138,10 @@ export function createPublishing(deps: PublishingDeps) {
       return result;
     },
     publish: (slug: string, reader: Reader) => publish(deps, slug, reader),
+    promote: (slug: string, reader: Reader, move: PromotionRequest) => promote(deps, slug, reader, move),
     followRemote: (slug: string, remote: string, follow: FollowRequest) => followRemote(deps, slug, remote, follow),
   };
 }
+
+/** The publishing operations of one workspace. */
+export type Publishing = ReturnType<typeof createPublishing>;

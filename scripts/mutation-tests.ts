@@ -1,7 +1,11 @@
+import { itemDiffMutants } from './item-diff-mutants';
 // Introduces faults into temporary source copies and checks that the test suite detects them.
 import { tmpdir } from 'node:os';
 import { operationBoundaryMutants } from './operation-boundary-mutants';
-import { addressMutants, modelAddressMutants, migrationAddressMutants, serverAddressMutants, addressOperationMutants } from './address-mutants';
+import { connectionsMutants } from './connections-mutation-cases';
+import { mcpMutants } from './mcp-mutants';
+import { proposalsMutants } from './proposals-mutants';
+import { addressMutants, modelAddressMutants, migrationAddressMutants, serverAddressMutants, addressOperationMutants, addressHistoryMutants } from './address-mutants';
 import { adminMutants } from './admin-mutants';
 import { sessionSecurityMutants } from './session-security-mutants';
 import { securityReviewMutants } from './security-review-mutants';
@@ -14,6 +18,10 @@ import { exampleMetricMutants } from './example-metric-mutants';
 import { themeMutants } from './theme-mutants';
 import { brandMutants } from './brand-mutants';
 import { observabilityMutants } from './observability-mutants';
+import { usageMutants } from './usage-mutants';
+import { attributesMutants, tesseraMutants } from './tessera-mutants';
+import { compileMutants } from './compile-mutants';
+import { killMeshMutants } from './mesh-mutants';
 import { chmod, mkdtemp, readdir, rm, symlink } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 // lane A imports
@@ -123,7 +131,7 @@ const mutants: [string, string, string, string][] = [
   ['auth-compiler', 'src/server/auth/role-compiler.ts', '...clauses(permission.conditions ?? {})]', '...clauses({})]'],
   ['auth-compiler', 'src/server/auth/role-compiler.ts', "role.id.startsWith('r_') && (action === 'admin' || action === 'agentRead')", "role.id.startsWith('r_') && action === 'agentRead'"],
   ['auth-decision', 'src/server/auth/authorize.ts', "status: 404, reason: 'not-readable'", "status: 403, reason: 'not-readable'"],
-  ['auth-decision', 'src/server/auth/authorize.ts', 'adminRules: validated.adminRules,', 'adminRules: {},'],
+  ['auth-decision', 'src/server/auth/authorize.ts', 'loadPolicySet(policyInputs(validated))', 'loadPolicySet({ ...policyInputs(validated), adminRules: {} })'],
   ['auth-admin-guard', 'src/server/auth/admin-guard.ts', 'if (allowed) return { ok: true };', 'if (true) return { ok: true };'],
   ['auth-middleware', 'src/server/auth/operation-boundary.ts', "const failure = auditDenial(audit, { ...record, decision: 'deny' });", 'const failure = null;'],
 
@@ -131,7 +139,7 @@ const mutants: [string, string, string, string][] = [
   ['auth-admin-repo', 'src/server/auth/admin-repo.ts', ' || /[<>]/.test(value)', ''],
   ['auth-audit', 'src/server/auth/audit.ts', 'pick(input.resource, resourceKeys)', 'input.resource'],
   ['auth-middleware', 'src/server/auth/middleware.ts', "if (!found) return new Response('Not found', { status: 404 });", 'if (!found) return run(request);'],
-  ['auth-middleware', 'src/server/auth/request-authentication.ts', "mode === 'server' && !(await validCsrf(", 'false && !(await validCsrf('],
+  ['auth-middleware', 'src/server/auth/request-authentication.ts', "mode === 'server' && !(await crossSiteCheckPasses(", 'false && !(await crossSiteCheckPasses('],
   ['auth-middleware', 'src/server/auth/operation-boundary.ts', 'row.audited === true ||', ''],
 
   ['agent', 'src/server/agent/query-plan.ts', 'physical.parentheses = true', 'physical.parentheses=false'],
@@ -147,7 +155,7 @@ const mutants: [string, string, string, string][] = [
   ['validation', 'src/shared/validation/validation.ts', '!fieldNames.get(relationship[side])!.has(key)', 'false'],
   ['validation', 'src/shared/validation/validation.ts', 'if (from.length !== to.length) fail', 'if(false)fail'],
   ['validation', 'src/shared/validation/validation.ts', 'if (validator && !validator(data))', 'if(false)'],
-  ['validation', 'src/shared/validation/validation.ts', "if ('error' in iri) {\n        fail(pointer, iri.error);\n        return;\n      }", ''],
+  ['validation', 'src/shared/validation/validation.ts', "if ('error' in iri) {\n        if (!part || !iri.error.startsWith('Prefix ')) fail(pointer, iri.error);\n        return;\n      }", ''],
   ['validation', 'src/shared/validation/validation.ts', 'if (iris.has(iri)) fail', 'if(false)fail'],
   ['odcs', 'src/shared/odcs/foreign-keys.ts', 'if (target === undefined) {\n      issues.push', 'if(false){issues.push'],
   ['odcs', 'src/shared/odcs/foreign-keys.ts', 'keys.push({\n      from,\n      to: target', 'if(false)keys.push({from,to:target'],
@@ -158,7 +166,7 @@ const mutants: [string, string, string, string][] = [
   ['agent', 'src/server/agent/context-documents.ts', 'return Array.isArray(parsedDocument.data.semantic_model)\n      ?', 'return false?'],
   ['overview', 'src/app/graph/overview.ts', "if (mode === 'namespaces') return distinct(visible.map(e => e.namespace?.iri));", "if (mode === 'namespaces') return 0;"],
   ['overview', 'src/app/graph/overview.ts', "if (ns) {\n    const id = 'namespace:' + ns.iri", "if(false){const id='namespace:'+ns.iri;"],
-  ['diagnostics', 'src/shared/validation/diagnostics.ts', '> MAX_INPUT_BYTES', '> MAX_INPUT_BYTES * 10'],
+  ['diagnostics', 'src/shared/validation/diagnostics.ts', '.length > maxBytes)', '.length > maxBytes * 10)'],
   ['diagnostics', 'src/shared/validation/diagnostics.ts', '!filename.trim()', 'false'],
   ['diagnostics', 'src/shared/validation/diagnostics.ts', "if (issues.some(i => i.severity === 'error'))", 'if (false)'],
   ['rdf-validation', 'src/shared/validation/rdf-validation.ts', 'BigInt(lowValue.value) > BigInt(highValue.value)', 'false'],
@@ -183,7 +191,7 @@ const mutants: [string, string, string, string][] = [
   ['edge-path', 'src/app/graph/edge-path.ts', 'Math.abs(coordinates[0] - sourceX) <= tolerance', 'true'],
   ['edge-path', 'src/app/graph/edge-path.ts', 'Math.abs(coordinates[last] - targetX) <= tolerance', 'true'],
   ['graph', 'src/app/graph/graph-view.ts', 'limit = 8', 'limit=800'],
-  ['graph', 'src/app/graph/graph-view.ts', 'JSON.stringify([edge.source, edge.target])', 'edge.source'],
+  ['graph', 'src/app/graph/graph-view.ts', 'JSON.stringify(change ? [edge.source, edge.target, change] : [edge.source, edge.target])', 'edge.source'],
   ['graph', 'src/app/graph/graph-view.ts', 'options.center && byId.has(options.center) ? options.center :', ''],
   ['graph', 'src/app/graph/graph-view.ts', 'options.lateral !== false', 'false'],
   ['graph', 'src/app/graph/graph-view.ts', 'hidden: ranked.length - shownIds.length', 'hidden:0'],
@@ -366,7 +374,7 @@ const mutants: [string, string, string, string][] = [
 ];
 // Governance guards: approval, demotion, classification, and the write paths that apply them.
 mutants.push(
-  ['guard-decisions', 'src/server/auth/guards.ts', 'metric: { name: metric.name, status: metric.status, owner },', 'metric: { name: metric.name, status: metric.status, owner: undefined },'],
+  ['guard-decisions', 'src/server/auth/guards.ts', 'const item = { status: metric.status, owner };', 'const item = { status: metric.status, owner: undefined };'],
   ['guard-decisions', 'src/server/auth/guards.ts', "return binding.scope.authorize('editGuarded', resource, context);", "return binding.scope.authorize('edit', resource, context);"],
   ['guard-engine', 'src/shared/governance/guards.ts', "status === 'approved' &&", 'false &&'],
   ['guard-engine', 'src/shared/governance/guards.ts', 'if (options.demote && guarded.demotable) demoted.push(guarded);', 'if (false) demoted.push(guarded);'],
@@ -379,7 +387,7 @@ mutants.push(
   ],
   ['guard-pull', 'src/server/routes/git.ts', 'scm!.pull(slug, reader, credentialFor)', 'scm!.pull(slug, { ...reader, guard: undefined }, credentialFor)'],
   ['guard-revert', 'src/server/routes/git.ts', 'ws.revertFile(slug, requestBody.path, baseHash, reader)', 'ws.revertFile(slug, requestBody.path, baseHash, { ...reader, guard: undefined })'],
-  ['guard-delete', 'src/server/routes/trash.ts', 'decodePath(file[2]), reader)', 'decodePath(file[2]), { ...reader, guard: undefined })'],
+  ['guard-delete', 'src/server/routes/trash.ts', 'decodePath(file[2]), reader, body.baseHash)', 'decodePath(file[2]), { ...reader, guard: undefined }, body.baseHash)'],
   ['guard-restore', 'src/server/routes/trash.ts', 'ws.trash.undo(id, reader)', 'ws.trash.undo(id, { ...reader, guard: undefined })'],
   ['guard-restore', 'src/server/routes/trash.ts', 'ws.trash.restore(id, body, reader)', 'ws.trash.restore(id, body, { ...reader, guard: undefined })'],
   ['guard-import', 'src/server/routes/projects.ts', 'body.onConflict, reader, authorizePaths', 'body.onConflict, { ...reader, guard: undefined }, authorizePaths'],
@@ -602,13 +610,36 @@ mutants.push(...adminReviewMutants);
 mutants.push(...shellMutants);
 mutants.push(...fontMutants);
 // end lane E mutants
+// The local agent endpoint: access checks, cursors, receipts, tool twins, the commit tool and the audit fields.
+mutants.push(...mcpMutants);
+mutants.push(...(await import('./acp-mutants')).acpMutants);
+mutants.push(...connectionsMutants);
+// Shared proposals: scope, authority, the publication path and the push rule.
+mutants.push(...proposalsMutants);
+// Usage counters: what is counted, what is stored, who reads it, how it moves and when it expires.
+mutants.push(...usageMutants);
+// The Tessera format, its compiler and its command line.
+mutants.push(...tesseraMutants, ...attributesMutants);
+// Check, compile and convert: acceptance, published-only reading, unit completeness, conversion preconditions and part paging.
+mutants.push(...compileMutants);
+// Committed address history and the unpublished item comparison.
+mutants.push(...addressHistoryMutants, ...itemDiffMutants);
+// `--only <prefix>` runs the mutants of the categories that start with the prefix and nothing else,
+// for example `--only item-diff`, `--only address-history` or `--only attributes`.
+const only = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1] : undefined;
+if (only) mutants.splice(0, mutants.length, ...mutants.filter(mutant => mutant[0].startsWith(only)));
 
 // Split modules import their siblings, so a mutant runs inside a copy of the whole folder: only
 // imports that leave the folder point back at the real sources.
 const SPLIT_PROJECT_MODULES = /^src\/server\/projects\/(workspace\.ts|workspace\/|scm|trash)/;
 function copiedFolderOf(category: string, file: string) {
+  if (category === 'connections-domain') return 'src/server/connections';
+  if (category === 'connections-gate') return 'src/server/mcp';
+  if (category === 'access-index') return 'src/server/auth';
   if (category === 'agent') return 'src/server/agent';
-  if (['auth-middleware', 'sec-request-limits', 'signin-redirect', 'bearer-cookie', 'observability-unaudited', 'operation-boundary'].includes(category)) return 'src/server/auth';
+  if (['mcp-gate', 'mcp-state', 'mcp-tools'].includes(category)) return 'src/server/mcp';
+  if (['auth-middleware', 'sec-request-limits', 'signin-redirect', 'bearer-cookie', 'observability-unaudited', 'operation-boundary', 'mcp-audit', 'mcp-rows'].includes(category))
+    return 'src/server/auth';
   return SPLIT_PROJECT_MODULES.test(file) ? 'src/server/projects' : undefined;
 }
 async function writeFolderCopy(folder: string, file: string, mutatedSource: string, index: string) {
@@ -721,7 +752,14 @@ try {
     killed++;
     console.log(`KILLED ${category}: ${before} → ${after}`);
   }
+  if (only) {
+    await rm(temp, { recursive: true, force: true });
+    console.log(`${killed}/${mutants.length} ${only} mutants killed; their baselines passed.`);
+    process.exit(0);
+  }
   await askpassCases();
+  const meshMutantCount = await killMeshMutants();
+  killed += meshMutantCount;
   const ui = Bun.spawn([process.execPath, resolve(root, 'scripts/ui-tests.ts')], {
     env: { ...process.env, UI_MUTATION: 'clear-nodes' },
     stdout: 'pipe',
@@ -771,7 +809,7 @@ try {
     killed++;
     console.log('KILLED UI: ' + label);
   }
-  const total = mutants.length + askpassMutants.length + layoutMutantCount;
+  const total = mutants.length + askpassMutants.length + layoutMutantCount + meshMutantCount;
   console.log(`${killed}/${total} targeted mutants killed; all unmodified module baselines passed. ` + 'Run test:ui for the full browser baseline.');
 } finally {
   await rm(temp, { recursive: true, force: true });

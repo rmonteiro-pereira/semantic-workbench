@@ -1,5 +1,6 @@
 // Checks publication controls using isolated definitions and mocked publication responses.
 import { chromium, expect, type Page, type Locator } from '@playwright/test';
+import { publishLocalCopy } from './helpers/sync-dialog';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { appUrl } from './helpers/base-url';
@@ -98,7 +99,7 @@ try {
     await expect(publication.getByRole('button', { name: 'Got it' })).toHaveCount(0);
     expect(actions).toContain('acknowledge-publication');
     if (mode === 'local') {
-      await publication.getByRole('button', { name: 'Publish', exact: true }).click();
+      await publishLocalCopy(page);
       await expect(publication).toContainText('Published: main @ bbbbbbb');
       expect(actions).toContain('publish');
     } else await expect(publication.getByRole('button', { name: 'Publish', exact: true })).toHaveCount(0);

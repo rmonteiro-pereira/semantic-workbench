@@ -3,7 +3,7 @@
 // references match whole dataset names, so order.x never matches suborder.
 /** Identifies a column reference and its optional dataset qualifier. */
 export type ExprRef = { table: string | null; column: string };
-type Token = { kind: 'ident' | 'quoted' | 'punct' | 'other'; value: string };
+type Token = { kind: 'ident' | 'quoted' | 'punct' | 'other'; value: string; start?: number; end?: number };
 const KEYWORDS = new Set([
   'and',
   'or',
@@ -50,6 +50,7 @@ function tokenize(sql: string): Token[] {
   const out: Token[] = [];
   let i = 0;
   while (i < sql.length) {
+    const start = i;
     const char = sql[i];
     if (/\s/.test(char)) {
       i++;
@@ -96,13 +97,13 @@ function tokenize(sql: string): Token[] {
         }
         value += sql[i++];
       }
-      out.push({ kind: 'quoted', value });
+      out.push({ kind: 'quoted', value, start, end: i });
       continue;
     }
     if (/[A-Za-z_]/.test(char)) {
       let value = '';
       while (i < sql.length && /[\w$]/.test(sql[i])) value += sql[i++];
-      out.push({ kind: 'ident', value });
+      out.push({ kind: 'ident', value, start, end: i });
       continue;
     }
     if (/[0-9]/.test(char)) {
@@ -118,18 +119,22 @@ function tokenize(sql: string): Token[] {
 const isName = (t?: Token) => !!t && (t.kind === 'quoted' || t.kind === 'ident');
 /** Extracts SQL column references without treating literals or functions as dependencies. */
 export function expressionRefs(sql: string): ExprRef[] {
+  return expressionSites(sql).map(({ reference }) => reference);
+}
+
+function expressionSites(sql: string): { reference: ExprRef; parts: Token[] }[] {
   if (typeof sql !== 'string') return [];
   const tokens = tokenize(sql);
-  const refs: ExprRef[] = [];
+  const refs: { reference: ExprRef; parts: Token[] }[] = [];
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i];
     if (!isName(token)) continue;
     // A name chain a.b.c: the last part is the column, the rest the (dataset) qualifier.
     const start = i;
-    const parts = [token.value];
+    const parts = [token];
     let j = i;
     while (tokens[j + 1]?.value === '.' && tokens[j + 1].kind === 'punct' && isName(tokens[j + 2])) {
-      parts.push(tokens[j + 2].value);
+      parts.push(tokens[j + 2]);
       j += 2;
     }
     const previous = tokens[start - 1];
@@ -142,11 +147,38 @@ export function expressionRefs(sql: string): ExprRef[] {
     // EXTRACT(YEAR FROM x) and typed literals such as DATE '2024-01-01' are not references.
     if (parts.length === 1 && ((next?.kind === 'ident' && next.value.toLowerCase() === 'from') || (next?.kind === 'other' && next.value === 'string'))) continue;
     refs.push({
-      table: parts.length > 1 ? parts.slice(0, -1).join('.') : null,
-      column: parts.at(-1)!,
+      reference: {
+        table:
+          parts.length > 1
+            ? parts
+                .slice(0, -1)
+                .map(part => part.value)
+                .join('.')
+            : null,
+        column: parts.at(-1)!.value,
+      },
+      parts,
     });
   }
   return refs;
+}
+/** Replaces the longest matching SQL name prefix, preserving the rest of the expression. */
+export function rewriteExpressionRefs(sql: string, rewrite: (name: string) => string, quote: (name: string) => string = name => '"' + name.replaceAll('"', '""') + '"'): string {
+  let result = sql;
+  for (const { parts } of expressionSites(sql).reverse()) {
+    for (let count = parts.length; count > 0; count--) {
+      const name = parts
+        .slice(0, count)
+        .map(part => part.value)
+        .join('.');
+      const replacement = rewrite(name);
+      if (replacement === name) continue;
+      const quoted = quote(replacement);
+      result = result.slice(0, parts[0].start) + quoted + result.slice(parts[count - 1].end);
+      break;
+    }
+  }
+  return result;
 }
 /** Builds a comparable key for a qualified or unqualified expression reference. */
 export const refKey = (r: ExprRef) => `${r.table ?? ''}.${r.column}`;

@@ -12,7 +12,7 @@ import { validateInWorker } from '../editor/lint';
 import { itemValue } from '../../shared/edit/yaml-patch';
 import { openFragment, splice, fragmentValue, fragmentIssues, setField } from './fragment';
 import { allowedStatuses, childLists, extensionOf, fieldsFor, itemName, kindLabel, readField, type Choices, type FieldSpec, type ItemKind, type Path } from '../../shared/edit/item-model';
-import { findReferences, rewriteReferences, type Reference } from './references';
+import { findReferences, rewriteReferences, unrewritableReferences, type Reference } from './references';
 import './edit.css';
 import { SqlField } from '../editor/SqlField';
 // Item editor: the selected entity, relationship or metric only, as a form of its attributes or as
@@ -46,6 +46,11 @@ const display = (spec: FieldSpec, value: any) => {
   }
   return String(value);
 };
+/** One reference a rename cannot rewrite, as the refusal message names it. */
+function unqualifiedReference(blocker: { file: string; line: number; excerpt: string }, oldName: string) {
+  return `${blocker.file}:${blocker.line} names "${oldName}" without saying which concept defines it (${blocker.excerpt})`;
+}
+
 /** Edits an item's fields or source and validates the draft before saving. */
 export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClose, onSaved, onOpenItem, onAddChild, onDelete, onOpenSource }: Props) {
   const access = useCapabilities(doc.project);
@@ -83,7 +88,18 @@ export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClos
         : [],
     [renamed],
   );
-  useEffect(() => setConfirmed(new Set()), [renamed]);
+  // A renamed relationship rewrites every reference unless the person unticks it, because a half-renamed relationship breaks the ontology.
+  useEffect(() => setConfirmed(kind === 'ontology-relationship' ? new Set(references.map((_, index) => index)) : new Set()), [renamed]);
+  const blockers = useMemo(
+    () =>
+      renamed
+        ? unrewritableReferences(
+            { kind, name: oldName, docId: doc.id, path },
+            projectDocs.map(d => (d.id === doc.id ? { ...d, source: base } : d)),
+          )
+        : [],
+    [renamed],
+  );
   // Ticked rewrites in this file are part of the draft that is checked and saved.
   const effective = useMemo(() => {
     const own = references.filter((r, i) => confirmed.has(i) && r.docId === doc.id);
@@ -110,7 +126,7 @@ export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClos
     return () => clearTimeout(timer);
   }, [effective]);
 
-  const canSave = changed && !pending && !errors.length && !parsed.error && !saving;
+  const canSave = changed && !pending && !errors.length && !parsed.error && !saving && !blockers.length;
   const fields = fieldsFor(kind, choices);
   const extension = extensionOf(parsed.value)?.value;
   const status = extensionOf(original)?.value?.status;
@@ -374,6 +390,11 @@ export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClos
           )}
         </section>
       ))}
+      {blockers.length > 0 && (
+        <p role="alert" className="dialog-error">
+          {`This rename cannot be saved: ${blockers.map(blocker => unqualifiedReference(blocker, oldName)).join('; ')}. Qualify that reference with its concept first.`}
+        </p>
+      )}
       {renamed && (
         <section className="item-references" aria-label="References to the old name">
           <strong>{references.length ? `${references.length} reference${references.length === 1 ? '' : 's'} still name "${oldName}"` : `Nothing else in the project names "${oldName}".`}</strong>

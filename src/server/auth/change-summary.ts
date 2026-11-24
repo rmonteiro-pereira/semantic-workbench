@@ -60,6 +60,11 @@ function agentPhrases(before: AccessConfig, after: AccessConfig): string[] {
   return listPhrases(change, ['add client', 'remove client', 'change client']);
 }
 
+function programPhrases(before: AccessConfig, after: AccessConfig): string[] {
+  const change = compareLists(before.programs.programs, after.programs.programs, program => program.clientId);
+  return listPhrases(change, ['add agent program', 'remove agent program', 'change agent program']);
+}
+
 function policyPhrases(before: AccessConfig, after: AccessConfig): string[] {
   const change = compareLists(Object.entries(before.adminRules ?? {}), Object.entries(after.adminRules ?? {}), ([id]) => id);
   return listPhrases(change, ['add rule', 'remove rule', 'change rule']);
@@ -70,6 +75,7 @@ const AREA_PHRASES: Record<string, (before: AccessConfig, after: AccessConfig) =
   roles: rolePhrases,
   projects: projectPhrases,
   agents: agentPhrases,
+  programs: programPhrases,
   policies: policyPhrases,
 };
 

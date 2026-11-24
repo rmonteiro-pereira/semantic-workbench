@@ -1,4 +1,5 @@
 // Shares catalog, context and planning handlers across explicit definition sources.
+import { publishedUnitInterfaces } from '../mesh/published-unit-interfaces';
 import { documentsOfProject } from '../../shared/core/project-scope';
 import { agentCatalog, buildContext, selectContext, wholeContext, planQuery } from '../agent/runtime';
 import { requestSurface } from '../auth/request-surface';
@@ -22,8 +23,10 @@ export const editingAgentDocuments: AgentDocumentSource = async (workspace, requ
 /** Holds one immutable publication through the response and applies the caller's current visibility. */
 export const publishedAgentDocuments: AgentDocumentSource = (workspace, request, project, use) =>
   workspace.published.withPin(async pin => {
-    const { commit, documents } = await workspace.published.readableDocuments(pin, project, requestReader(request));
-    const response = await use(documents);
+    const reader = requestReader(request);
+    const { commit, documents } = await workspace.published.readableDocuments(pin, project, reader);
+    const providers = await publishedUnitInterfaces(workspace, pin, reader, project, documents, true);
+    const response = await use(documents.map(file => (providers.has(file.path) ? { ...file, publishedInterfaces: providers.get(file.path) } : file)));
     response.headers.set('X-Workbench-Snapshot', commit);
     return response;
   });
@@ -54,7 +57,7 @@ function requireMappingInProject(ws: Workspace, mappingId: string, project: stri
 }
 function requireProject(ws: Workspace, request: Request, project: unknown): asserts project is string {
   if (typeof project !== 'string' || !project) throw new BadRequestError('project is required. List projects at /api/agent/projects.');
-  if (!agentProjects(ws, request).some(known => known.slug === project)) throw new BadRequestError('Project not found.');
+  if (!agentProjects(ws, request).some(known => known.slug === project)) throw new BadRequestError('Project not found.', 'not-found');
 }
 
 /** Creates the agent route group using one explicit source of definition documents. */

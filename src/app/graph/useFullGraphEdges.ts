@@ -3,6 +3,8 @@ import { useMemo } from 'react';
 import { MarkerType } from '@xyflow/react';
 import type { groupRelationships } from './graph-view';
 import type { FullLayoutResult } from './full-layout';
+import { unpublishedEdge } from './edge-styles';
+import type { ChangeState } from '../../shared/item-diff/item-change';
 
 type Inputs = {
   connections: ReturnType<typeof groupRelationships>;
@@ -71,6 +73,14 @@ export function useFullGraphEdges({ connections, positions, selectedEdge, focus,
         } else {
           label = undefined;
         }
+        const style = {
+          stroke: active || adjacent ? 'var(--color-edge-active)' : 'var(--color-edge-idle)',
+          strokeWidth: active ? 2 : 1.2,
+          strokeOpacity: relationshipOpacity(active || adjacent, Boolean(focus)),
+        };
+        // A relationship with unsaved or unpublished changes is drawn with its change mark.
+        const change = (connection.data as { change?: ChangeState }).change;
+        const appearance = unpublishedEdge(label, connection.label, style, change);
         return {
           ...connection,
           data: {
@@ -83,7 +93,7 @@ export function useFullGraphEdges({ connections, positions, selectedEdge, focus,
           sourceHandle: 'source-' + source,
           targetHandle: 'target-' + target,
           selected: active,
-          label,
+          ...appearance,
           markerEnd: {
             type: MarkerType.ArrowClosed,
             color: active || adjacent ? 'var(--color-edge-active)' : 'var(--color-edge-idle)',
@@ -92,11 +102,6 @@ export function useFullGraphEdges({ connections, positions, selectedEdge, focus,
           },
           zIndex: -2,
           interactionWidth: 24,
-          style: {
-            stroke: active || adjacent ? 'var(--color-edge-active)' : 'var(--color-edge-idle)',
-            strokeWidth: active ? 2 : 1.2,
-            strokeOpacity: relationshipOpacity(active || adjacent, Boolean(focus)),
-          },
         };
       }),
     [connections, positions, selectedEdge, focus, labels, hoverEdge, algorithm, layoutRoutes, viewport, size, dragging],

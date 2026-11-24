@@ -3,7 +3,7 @@ import { repoDir, locationOf, type DataLayout } from '../paths';
 import type { Events } from '../events';
 import { hasControlCharacters, type Git } from '../git';
 import type { ProjectEntry } from '../state';
-import { BadRequestError } from '../errors';
+import { BadRequestError, GitUnavailableError } from '../errors';
 
 /** The workspace services identity handling runs on; the composition root supplies them. */
 export type GitIdentityContext = {
@@ -29,13 +29,13 @@ export function createGitIdentity(ctx: GitIdentityContext) {
   /** The identity a commit in this project's repository would use. */
   async function identity(slug: string) {
     entry(slug);
-    if (!gitAvailable) throw new BadRequestError('Git is not available on this machine.');
+    if (!gitAvailable) throw new GitUnavailableError();
     return git.identityOf(repoDir(layout, slug));
   }
   /** Writes user.name and user.email into this project's repository, or into every repository. */
   async function setIdentity(slug: string, name: unknown, email: unknown, allRepositories = false) {
     entry(slug);
-    if (!gitAvailable) throw new BadRequestError('Git is not available on this machine.');
+    if (!gitAvailable) throw new GitUnavailableError();
     const userName = checkIdentityText(name, 'The name', 1, 200);
     const userEmail = checkIdentityText(email, 'The email', 3, 320);
     const own = locationOf(entry(slug)).repo;

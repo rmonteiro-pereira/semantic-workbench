@@ -1,10 +1,21 @@
 # Operation inventory
 
-This reference describes the shared operation boundary. It does not imply that a protocol transport is available.
+This reference describes the shared operation boundary. Each tool of the local agent endpoint is the twin of one of these operations; see docs/mcp.md for the tools.
 Regenerate this page with `bun scripts/operation-inventory-table.ts` after reviewing the inventory.
 
 | Operation | Route | Action | Targets | Effects | Request limit | Exposure |
 | --- | --- | --- | --- | --- | --- | --- |
+| proposals.list | GET /api/projects/:slug/proposals | read | project | read | none | later |
+| proposals.read | GET /api/projects/:slug/proposals/:id | read | project | read | none | later |
+| proposals.diff | GET /api/projects/:slug/proposals/:id/diff | history | project | read | none | later |
+| proposals.create | POST /api/projects/:slug/proposals | branch | project | localWrite | GIT_REQUEST_LIMIT | later |
+| proposals.work | POST /api/projects/:slug/proposals/:id/work | branch | project | localWrite | GIT_REQUEST_LIMIT | later |
+| proposals.synchronize | POST /api/projects/:slug/proposals/:id/synchronize | pull | project | localWrite | GIT_REQUEST_LIMIT | later |
+| proposals.contribute | POST /api/projects/:slug/proposals/:id/contribute | commit | project | commit | GIT_REQUEST_LIMIT | later |
+| proposals.check | GET /api/projects/:slug/proposals/:id/promotion-check | publish | project | read | none | later |
+| proposals.promote | POST /api/projects/:slug/proposals/:id/promote | publish | project | publish | GIT_REQUEST_LIMIT | later |
+| proposals.close | POST /api/projects/:slug/proposals/:id/close | publish | project | localWrite | GIT_REQUEST_LIMIT | later |
+| proposals.restore | POST /api/projects/:slug/proposals/:id/restore | publish | project | localWrite | GIT_REQUEST_LIMIT | later |
 | identity.read | GET /api/me | read | workspace | read | none | never |
 | auth.styles | GET /auth/style.css | read | workspace | read | none | never |
 | events.subscribe | GET /api/events | read | workspace | read | none | never |
@@ -25,12 +36,23 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 | files.move | POST /api/projects/:slug/move | move | project | localWrite | PROJECT_REQUEST_LIMIT | local-edit |
 | files.import | POST /api/projects/:slug/import | import | project | localWrite | IMPORT_REQUEST_LIMIT | local-edit |
 | projects.export | GET /api/projects/:slug/export | export | project | read | none | local-edit |
+| items.diff | GET /api/projects/:slug/item-diff | history | project | read | ITEM_DIFF_QUERY_LIMIT | never |
 | files.saveBatch | POST /api/projects/:slug/save-batch | edit | project | localWrite | FILE_SAVE_REQUEST_LIMIT | local-edit |
+| mesh.graph | GET /api/mesh | read | workspace | read | none | later |
+| mesh.providers.list | GET /api/mesh/providers | edit | body | read | none | later |
+| mesh.dependencies.read | GET /api/projects/:slug/dependencies | read | project | read | none | later |
+| mesh.dependencies.update | POST /api/projects/:slug/dependencies/update | edit | project | read, localWrite | FILE_SAVE_REQUEST_LIMIT | later |
+| mesh.dependents.read | GET /api/projects/:slug/dependents | read | body | read | none | later |
+| compile.check | POST /api/projects/:slug/compile/check | read | project | read | FILE_SAVE_REQUEST_LIMIT | local-edit |
+| compile.run | POST /api/projects/:slug/compile | export | project | read | FILE_SAVE_REQUEST_LIMIT | local-edit |
+| compile.bundle | GET /api/projects/:slug/compile/bundle | export | project | read | none | never |
+| compile.convert | POST /api/projects/:slug/compile/convert | edit | project | localWrite | FILE_SAVE_REQUEST_LIMIT | later |
 | itemAddresses.resolve | POST /api/projects/:slug/item-addresses/resolve | read | project | read | ITEM_ADDRESS_REQUEST_LIMIT | local-edit |
 | itemAddresses.reconcile | POST /api/projects/:slug/item-addresses/reconcile/* | edit | file | localWrite | ITEM_ADDRESS_REQUEST_LIMIT | local-edit |
 | files.ignore | POST /api/projects/:slug/gitignore | edit | project | localWrite | GIT_REQUEST_LIMIT | local-edit |
 | metrics.list | GET /api/projects/:slug/metrics | read | project | read | none | local-edit |
 | projects.deleteImpact | GET /api/projects/:slug/delete-impact | read | project | read | none | local-edit |
+| usage.read | GET /api/projects/:slug/usage | read | project | read | none | never |
 | metrics.save | POST /api/projects/:slug/metrics | edit | project | localWrite | METRIC_REQUEST_LIMIT | local-edit |
 | people.list | GET /api/projects/:slug/people | edit | project | read | none | local-edit |
 | metrics.preview | POST /api/projects/:slug/metrics/preview | read | project | read | METRIC_REQUEST_LIMIT | local-edit |
@@ -39,6 +61,7 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 | metrics.explain | GET /api/projects/:slug/files/*/explain/:metric | read | file | read | none | local-edit |
 | files.read | GET /api/projects/:slug/files/* | read | file | read | none | local-edit |
 | files.save | PUT /api/projects/:slug/files/* | edit | file | localWrite | FILE_SAVE_REQUEST_LIMIT | local-edit |
+| files.validate | POST /api/projects/:slug/files/*/validate | edit | file | read | FILE_SAVE_REQUEST_LIMIT | local-edit |
 | files.delete | DELETE /api/projects/:slug/files/* | delete | file | localWrite | TRASH_REQUEST_LIMIT | local-edit |
 | drafts.list | GET /api/drafts | viewOwnState | workspace | read | none | local-edit |
 | drafts.read | GET /api/drafts/:slug/* | viewOwnState | file | read | none | local-edit |
@@ -131,6 +154,32 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 | preview.catalog | GET /api/preview/catalog | read | workspace | read | none | never |
 | preview.context | GET /api/preview/context | read | workspace | read | none | never |
 | preview.plan | POST /api/preview/plan | read | workspace | read | AGENT_PLAN_REQUEST_LIMIT | never |
+| connections.resourceMetadata | GET /.well-known/oauth-protected-resource/api/mcp | read | workspace | read | none | team-sign-in |
+| connections.resourceMetadataRoot | GET /.well-known/oauth-protected-resource | read | workspace | read | none | team-sign-in |
+| connections.serverMetadata | GET /.well-known/oauth-authorization-server | read | workspace | read | none | team-sign-in |
+| connections.token | POST /oauth/token | read | workspace | credential | OAUTH_REQUEST_LIMIT | team-sign-in |
+| connections.authorize | GET /oauth/authorize | viewOwnState | workspace | read | none | team-sign-in |
+| connections.consent | POST /oauth/consent | viewOwnState | workspace | credential | OAUTH_REQUEST_LIMIT | team-sign-in |
+| connections.setupForm | GET /oauth/setup | viewOwnState | workspace | read | none | team-sign-in |
+| connections.setupCreate | POST /oauth/setup | viewOwnState | workspace | credential | OAUTH_REQUEST_LIMIT | team-sign-in |
+| connections.list | GET /api/connections | viewOwnState | workspace | read | none | team-sign-in |
+| connections.revoke | DELETE /api/connections/:id | viewOwnState | workspace | localWrite | none | team-sign-in |
+| connections.adminList | GET /api/admin/connections | admin | workspace | administration | none | team-sign-in |
+| connections.adminRevoke | DELETE /api/admin/connections/:id | admin | workspace | administration | none | team-sign-in |
+| programs.read | GET /api/admin/programs | admin | workspace | administration | none | team-sign-in |
+| programs.save | PUT /api/admin/programs | admin | workspace | administration | ADMIN_REQUEST_LIMIT | team-sign-in |
+| programs.preview | POST /api/admin/programs/preview | admin | workspace | administration | ADMIN_REQUEST_LIMIT | team-sign-in |
+| mcp.transport | POST /api/mcp | read | workspace | read | FILE_SAVE_REQUEST_LIMIT | never |
+| agentPanel.start | POST /api/acp/sessions | read | workspace | localWrite | AGENT_PANEL_REQUEST_LIMIT | never |
+| agentPanel.events | GET /api/acp/sessions/:id/events | read | workspace | read | none | never |
+| agentPanel.prompt | POST /api/acp/sessions/:id/prompt | read | workspace | localWrite | AGENT_PANEL_REQUEST_LIMIT | never |
+| agentPanel.cancel | POST /api/acp/sessions/:id/cancel | read | workspace | localWrite | AGENT_PANEL_REQUEST_LIMIT | never |
+| agentPanel.answer | POST /api/acp/sessions/:id/questions/:question | read | workspace | localWrite | AGENT_PANEL_REQUEST_LIMIT | never |
+| agentPanel.end | DELETE /api/acp/sessions/:id | read | workspace | localWrite | AGENT_PANEL_REQUEST_LIMIT | never |
+| agentRelay.hello | POST /api/acp/relay/:session/hello | read | workspace | localWrite | AGENT_PANEL_REQUEST_LIMIT | never |
+| agentRelay.frames | POST /api/acp/relay/:session/frames | read | workspace | localWrite | AGENT_PANEL_REQUEST_LIMIT | never |
+| agentRelay.stream | GET /api/acp/relay/:session/stream | read | workspace | read | none | never |
+| agentRelay.bye | POST /api/acp/relay/:session/bye | read | workspace | localWrite | AGENT_PANEL_REQUEST_LIMIT | never |
 
 ## Internal publication steps
 
@@ -138,19 +187,43 @@ These steps run inside the admitted route and share its authorization and audit 
 
 | Operation | Internal steps |
 | --- | --- |
+| proposals.check | snapshot.read |
+| proposals.promote | publication.advance, publication.abandon, snapshot.read |
 | repositories.clone | publication.upgrade |
 | projects.export | snapshot.read |
+| items.diff | snapshot.read |
+| mesh.graph | snapshot.read |
+| mesh.providers.list | snapshot.read |
+| mesh.dependencies.read | snapshot.read |
+| mesh.dependencies.update | snapshot.read |
+| mesh.dependents.read | snapshot.read |
+| compile.check | snapshot.read |
+| compile.run | snapshot.read |
+| compile.bundle | snapshot.read |
+| compile.convert | snapshot.read |
+| itemAddresses.resolve | snapshot.read |
 | metrics.list | snapshot.read |
+| usage.read | snapshot.read |
 | metrics.save | snapshot.read |
 | metrics.preview | snapshot.read |
 | metrics.explain | snapshot.read |
-| git.fetch | publication.advance, publication.abandon |
-| git.publish | publication.advance, publication.abandon |
+| files.read | snapshot.read |
+| git.fetch | publication.advance, publication.abandon, snapshot.read |
+| git.publish | publication.advance, publication.abandon, snapshot.read |
 | repositories.registerProjects | publication.upgrade |
 | agent.catalog.read | snapshot.read |
 | agent.context.read | snapshot.read |
 | agent.plan | snapshot.read |
-| git.adopt | publication.advance, publication.abandon |
+| git.adopt | publication.advance, publication.abandon, snapshot.read |
+
+## Content guards
+
+These actions apply after the write operation is admitted.
+
+| Guard | Policy action |
+| --- | --- |
+| item-status | approveOntologyItem |
+| item-body | approveOntologyItem |
 
 ## Workspace lifecycle
 

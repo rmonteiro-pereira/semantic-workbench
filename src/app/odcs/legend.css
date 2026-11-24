@@ -68,3 +68,29 @@
     margin-top: 6px;
   }
 }
+.item-overlay-legend {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 5px;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.mesh-imported-key,
+.mesh-imported-origin {
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.full-entity:has(.mesh-imported-origin) {
+  display: grid;
+  align-content: center;
+  gap: 0.2rem;
+}
+
+.full-entity:has(.mesh-imported-origin) strong {
+  display: block;
+  overflow: visible;
+}

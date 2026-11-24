@@ -96,7 +96,7 @@
     {
       "id": "admin",
       "name": "Admin",
-      "description": "Every action in every project, including projects without a domain, and managing access. Granted only for the whole workspace.",
+      "description": "Manages access and has workspace-wide permissions, including projects without a domain. Ontology approval requires an explicit grant. This role is granted only for the whole workspace.",
       "permissions": [
         {
           "actions": [

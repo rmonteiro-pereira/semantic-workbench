@@ -1,6 +1,6 @@
 // Routes API requests and preserves the legacy document interface. Host and origin checks restrict
 // access to local clients.
-import { BadRequestError, HiddenResourceError, SnapshotUnavailableError, SnapshotUnreadableError } from './projects/errors';
+import { BadRequestError, failureCodeOf, FAILURE_CODE_HEADER, HiddenResourceError, SnapshotUnavailableError, SnapshotUnreadableError } from './projects/errors';
 import { requestReader } from './auth/request-scope';
 import { authorizeWrite, WriteAccessError } from './auth/write-access';
 import { createAccessMiddleware, defaultAccess, defaultAdministration, defaultAudit, type HandlerOptions } from './auth/middleware';
@@ -20,18 +20,35 @@ import { eventRoutes } from './routes/events';
 import { projectRoutes } from './routes/projects';
 import { fileRoutes } from './routes/files';
 import { itemAddressRoutes } from './routes/item-addresses';
+import { itemDiffRoutes } from './routes/item-diff';
 import { exportRoutes } from './routes/export';
+import { meshRoutes } from './routes/mesh';
+import { compileRoutes } from './routes/compile';
 import { draftRoutes } from './routes/drafts';
 import { trashRoutesWith } from './routes/trash';
 import { suggestionRoutes } from './routes/suggestions';
 import { metricRoutes } from './routes/metrics';
 import { kpiRoutes } from './routes/kpis';
 import { createGitRoutes } from './routes/git';
+import { createProposalRoutes } from './routes/proposals';
 import { cloneRoutes } from './routes/clone';
 import { repoRoutes } from './routes/repos';
 import { peopleRoutes } from './routes/people';
 import type { AccessControl } from './auth/authorize';
 import { browserReportRoutes } from './routes/browser-reports';
+import { createMcpRoute } from './routes/mcp';
+import { createOAuthRoutes } from './routes/oauth';
+import { createOAuthPageRoutes } from './routes/oauth-consent';
+import { createConnectionRoutes } from './routes/connections';
+import { createAdminConnectionRoutes } from './routes/admin-connections';
+import { createReceiptStore } from './mcp/receipts';
+import { TOOLS } from './mcp/tool-registry';
+import type { OperationBoundary } from './auth/operation-boundary';
+import { agentPanelAbsentRoute, mountAgentPanel } from './acp/mount';
+import { join } from 'node:path';
+import { trackUsageRecorder } from './usage/usage-trash';
+import { createWorkspaceUsage } from './usage/usage-workspace';
+import { usageRoutes } from './routes/usage';
 /** Local browser origins allowed to call the API. */
 export const ALLOWED_ORIGINS = allowedOrigins(4310);
 /** Includes the configured API origin and the Vite development server. */
@@ -78,11 +95,16 @@ const legacyRoutes: Route = async (ws, req, url) => {
       }
     } catch (error) {
       // Legacy local clients expect a 400; server mode answers a missing document like a hidden one.
-      if (error instanceof NotFoundError && !reader.view) throw new BadRequestError('Document not found.');
+      if (error instanceof NotFoundError && !reader.view) throw new BadRequestError('Document not found.', 'not-found');
       throw error;
     }
   }
-  if (url.pathname === '/api/documents' && req.method === 'GET') return Response.json(ws.documentsFor(requestReader(req)));
+  if (url.pathname === '/api/documents' && req.method === 'GET') {
+    // Naming a project lists its files without their text, which is how tools list large projects cheaply.
+    const project = url.searchParams.get('project');
+    if (project !== null) return Response.json(ws.documentIndexFor(project, requestReader(req)));
+    return Response.json(ws.documentsFor(requestReader(req)));
+  }
   if (url.pathname === '/api/documents' && req.method === 'POST') {
     // Bound the request stream before parsing; JSON escaping can expand a 2 MB source.
     const reader = req.body?.getReader();
@@ -137,7 +159,7 @@ const legacyRoutes: Route = async (ws, req, url) => {
       return Response.json(await ws.saveDocument(body.filename, body.source, requestReader(req), body.id, version, authorizeTargets));
     } catch (error) {
       if (error instanceof StaleError) throw new BadRequestError('Document changed. Reload before saving.');
-      if (error instanceof NotFoundError) throw new BadRequestError('Document not found.');
+      if (error instanceof NotFoundError) throw new BadRequestError('Document not found.', 'not-found');
       throw error;
     }
   }
@@ -149,13 +171,18 @@ function workspaceRoutes(administration: AdminRepository, access: AccessControl,
     suggestionRoutes,
     projectRoutes(administration),
     metricRoutes,
+    usageRoutes(options.usage!, options.usageSettings, options.now),
     peopleRoutes(access),
     kpiRoutes,
     createGitRoutes(options),
+    createProposalRoutes(options),
     cloneRoutes(administration),
     repoRoutes,
     exportRoutes,
+    compileRoutes,
+    meshRoutes,
     itemAddressRoutes,
+    itemDiffRoutes,
     fileRoutes,
     draftRoutes,
     createAgentRoutes(publishedAgentDocuments),
@@ -182,6 +209,7 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
     access,
     administration,
     audit: options.audit ?? defaultAudit(ws, options.mode ?? 'local', administration),
+    usage: trackUsageRecorder(ws.layout, options.usage ?? createWorkspaceUsage(ws, options.usageSettings)),
   };
   let accessAdmin: Promise<AccessAdmin> | undefined;
   // The service shares the process's one administration repository, whose commits reload the
@@ -204,7 +232,60 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
     });
     return accessAdmin;
   }
+  let operationBoundary: OperationBoundary | undefined;
+  // Each mode supplies its own credential gate to the shared protocol transport.
+  const serverEndpoint = options.mode === 'server' && options.connections ? { service: options.connections.service, publicUrl: options.publicOrigin! } : undefined;
+  const absentAgentEndpoint: Route = (_workspace, _request, url) => (url.pathname === '/api/mcp' ? new Response(null, { status: 404 }) : null);
+  const agentEndpoint =
+    serverEndpoint || (options.mode !== 'server' && options.mcp)
+      ? [
+          createMcpRoute({
+            capability: options.mcp?.capability,
+            server: serverEndpoint,
+            port: options.port ?? 4310,
+            boundary: () => operationBoundary!,
+            audit: options.audit!,
+            tools: TOOLS,
+            receipts: createReceiptStore(join(ws.layout.state, 'mcp-receipts')),
+            limits: options.mcp?.limits,
+            now: options.now,
+          }),
+        ]
+      : [absentAgentEndpoint];
+  // Agent connections: discovery, the token endpoint and the browser pages exist in server mode only.
+  const connectionRoutes: Route[] =
+    options.mode === 'server' && options.connections && options.authentication
+      ? [
+          createOAuthRoutes({ publicUrl: options.publicOrigin!, service: options.connections.service, now: options.now }),
+          createOAuthPageRoutes({
+            publicUrl: options.publicOrigin!,
+            service: options.connections.service,
+            grants: options.connections.grants,
+            programs: () => access.programs(),
+            session: request => options.authentication!.session(request),
+            boundary: () => operationBoundary!,
+          }),
+          createConnectionRoutes(options.connections.service),
+          createAdminConnectionRoutes(adminService, options.connections.service),
+        ]
+      : [];
+  // The agent panel needs the local capability in local mode and the connection service in server mode; without them it has no routes.
+  const agentPanel = mountAgentPanel({
+    mode: options.mode ?? 'local',
+    port: options.port ?? 4310,
+    publicOrigin: options.publicOrigin,
+    capability: options.mcp?.capability,
+    connections: options.connections?.service ?? options.acp?.connections,
+    boundary: () => operationBoundary!,
+    audit: options.audit!,
+    keepOpen: options.keepOpen,
+    now: options.now,
+  });
+  options = { ...options, agentPanel: agentPanel !== undefined };
   const routes: Route[] = [
+    ...agentEndpoint,
+    ...connectionRoutes,
+    ...(agentPanel?.routes ?? [agentPanelAbsentRoute]),
     adminRoutes(adminService, options),
     auditRoutes(options),
     ...(options.authentication ? [authRoutes(options.authentication, options.remoteCredentials)] : []),
@@ -248,12 +329,13 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
       }
       const legacyClient = url.pathname.startsWith('/api/documents') || url.pathname.startsWith('/api/agent/');
       if (legacyClient && !serverMode) {
+        const code = failureCodeOf(error);
         return Response.json(
           {
             error: (error as Error).message,
             ...(error instanceof InputError ? { issues: error.issues } : {}),
           },
-          { status: 400 },
+          { status: 400, headers: code ? { [FAILURE_CODE_HEADER]: code } : undefined },
         );
       }
       return errorResponse(error, options.publicOrigin, context);
@@ -265,7 +347,8 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
       requestId,
     });
   const boundary = createAccessMiddleware(ws, options, localCheck, run, failure);
-  if (options.mode !== 'server') return boundary;
+  operationBoundary = boundary.boundary;
+  if (options.mode !== 'server') return Object.assign(boundary, { agentPanel: agentPanel?.service });
   const httpHandler = async (request: Request) => {
     const response = await boundary(request);
     // Only the provider's sign-out page may frame the front-channel logout route.
@@ -278,10 +361,13 @@ export function createHandler(ws: Workspace, options: HandlerOptions = {}) {
         const brandAsset = new URL(request.url).pathname.startsWith('/brand/');
         if (brandAsset && response.headers.has(name)) continue;
       }
+      // The connection pages set their own policy and referrer rule: the form must be allowed to send its answer to the program.
+      const connectionPage = new URL(request.url).pathname.startsWith('/oauth/') && response.headers.has('X-Frame-Options');
+      if (connectionPage && ['content-security-policy', 'referrer-policy'].includes(name.toLowerCase())) continue;
       if (name.toLowerCase() !== 'cache-control') response.headers.set(name, value);
     }
     if (!response.headers.has('Cache-Control')) response.headers.set('Cache-Control', 'no-store');
     return response;
   };
-  return Object.assign(httpHandler, { boundary: boundary.boundary });
+  return Object.assign(httpHandler, { boundary: boundary.boundary, usage: boundary.usage, agentPanel: agentPanel?.service });
 }

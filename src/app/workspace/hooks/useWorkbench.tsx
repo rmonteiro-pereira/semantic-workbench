@@ -10,6 +10,10 @@ import { type DeleteTarget } from '../../projects/DeleteDialog';
 import { useGrouping } from '../../graph/useGrouping';
 import { type ImportDraft } from '../../validation/ValidationPanel';
 import { parsedDoc } from '../parsedDocument';
+import { usePublishedInterfaces } from '../../mesh/use-mesh';
+import { formatOfInspection } from '../../../shared/tessera/format';
+import { DEPENDENCY_MANIFEST_PATH } from '../../../shared/tessera/dependency-manifest';
+import { activeOntologyUnit } from '../ontologyUnit';
 import { sample } from '../sample';
 import { useExamples } from './useExamples';
 import { useFileNavigation } from './useFileNavigation';
@@ -107,7 +111,14 @@ export function useWorkbench({ setMessage }: Options) {
     source,
     tab,
   });
-  const { model, editorIssuesRef } = validationState;
+  const { model: singleFileModel, editorIssuesRef } = validationState;
+  const unitFormat = formatOfInspection(singleFileModel);
+  const unitProject = unitFormat?.family === 'tessera' && unitFormat.revision === 3 ? current?.project : undefined;
+  const lockHash = docs.find(file => file.project === unitProject && file.path === DEPENDENCY_MANIFEST_PATH)?.hash ?? '';
+  const unitInterfaces = usePublishedInterfaces(unitProject, current?.hash ?? '', lockHash);
+  const providers = unitInterfaces.status === 'ready' ? unitInterfaces.value : undefined;
+  const unitModel = useMemo(() => (tab === 'source' ? null : activeOntologyUnit(current, singleFileModel, docs, providers)), [current, singleFileModel, docs, providers, tab]);
+  const model = unitModel ?? singleFileModel;
   const selectionDocument = (id: string) => {
     const document = id === current?.id ? current : docsRef.current.get(id);
     if (!document) return null;
@@ -221,6 +232,8 @@ export function useWorkbench({ setMessage }: Options) {
     current,
     source,
     model,
+    fileModel: singleFileModel,
+    unitItemSources: unitModel?.itemSources,
     docsRef,
     projectModels,
     parsedDoc,
@@ -338,7 +351,7 @@ export function useWorkbench({ setMessage }: Options) {
     anchor.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
-  const creationMenu = useNewItems({ model, current, currentIsRdf, setAdding, setRdfAdding });
+  const creationMenu = useNewItems({ model: singleFileModel, current, currentIsRdf, setAdding, setRdfAdding });
 
   return {
     sample,
@@ -382,7 +395,7 @@ export function useWorkbench({ setMessage }: Options) {
     setTrashVersion,
     showValidation,
     setShowValidation,
-    validationState,
+    validationState: { ...validationState, model },
     sourceEditor,
     definition,
     setDefinition,

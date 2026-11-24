@@ -1,5 +1,8 @@
 /** Runs focused caller-boundary and durable-replay assertions against candidate modules. */
 import assert from 'node:assert/strict';
+import { writeFileSync } from 'node:fs';
+import { ADDRESS_HISTORY_FILE } from '../src/server/projects/address-migrations';
+import type * as DiskSource from '../src/server/tessera/disk-source';
 import { join } from 'node:path';
 import { configureLogging } from '../src/server/observability/log';
 import { boundaryReader } from '../tests/auth/access-fixture';
@@ -125,6 +128,38 @@ export function addressStoreCase(candidate: typeof Store) {
       journal.run('save', steps, [staging]);
     }
     assert.deepEqual(candidate.readAddressMigrations(layout, 'p', LOCAL_READER), record);
+    const duplicate = { ...record[0], to: record[0].to + 'Duplicate' };
+    assert.deepEqual(candidate.parseAddressHistory([record[0], duplicate].map(entry => JSON.stringify(entry)).join('\n')), record);
+  } finally {
+    temporary.cleanup();
+  }
+}
+
+/** Proves that only new destination records reach the item comparison. */
+export function addressHistoryDifferenceCase(candidate: typeof Store) {
+  const from = 'sw1:p/a.yaml#ontology:O/concept:A';
+  const to = 'sw1:p/a.yaml#ontology:O/concept:B';
+  const [shared, introduced, discarded] = ['shared', 'introduced', 'discarded'].map(id => ({
+    id,
+    kind: 'item' as const,
+    from,
+    to,
+    at: '2025-01-01T00:00:00Z',
+    commit: '',
+  }));
+  assert.deepEqual(candidate.addressHistoryDifference([shared, discarded], [shared, introduced]), [introduced]);
+}
+
+/** Proves that history is absent even before the compiler applies its input limits. */
+export function addressHistoryDefinitionCase(candidate: typeof DiskSource) {
+  const temporary = tempDataDir('compile-input-mutant-');
+  try {
+    writeFileSync(join(temporary.root, ADDRESS_HISTORY_FILE), '{}\n');
+    writeFileSync(join(temporary.root, 'model.yaml'), 'name: O\n');
+    assert.deepEqual(
+      candidate.readFolder(temporary.root).files.map(file => file.path),
+      ['model.yaml'],
+    );
   } finally {
     temporary.cleanup();
   }

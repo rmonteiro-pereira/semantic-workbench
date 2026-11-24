@@ -19,7 +19,14 @@ import { createRemoteCredentials, type RemoteCredentialOptions } from './remote-
 import { log } from '../observability/log';
 import { recordAuthFailure } from '../observability/metrics';
 import { withSpan } from '../observability/tracing';
+import { openConnectionStore } from '../connections/connection-store';
+import { createConnectionService } from '../connections/connection-service';
+import { createPendingGrants } from '../connections/pending-grants';
+import { mcpResource } from '../connections/server-metadata';
+import { deriveConnectionKey } from '../connections/token-keys';
 
+/** How often connections whose session, person or program no longer allows them are ended. Assumed: a person who is deactivated or loses every grant sees the list truthful within a minute. */
+const CONNECTION_SWEEP_INTERVAL_MS = 60_000;
 /** How often expired entries leave the sign-in replay ledger. */
 const ATTEMPT_PRUNE_INTERVAL_MS = 60_000;
 
@@ -98,6 +105,20 @@ export async function createServerAuthentication(ws: Workspace, config: ServerCo
     ended: (session, reason) => record({ action: 'sessionEnded', principal: session.principal, outcome: 'ok', reason }),
   });
   await sessions.indexStored();
+  const connectionKey = deriveConnectionKey(config.sessionKey);
+  const connectionGrants = createPendingGrants({ key: connectionKey });
+  // Connections end with the session they belong to, so the service listens to the session store. It never calls the provider.
+  const connections = createConnectionService({
+    store: openConnectionStore(join(ws.layout.state, 'connections')),
+    grants: connectionGrants,
+    key: connectionKey,
+    sessions,
+    principalFor: principal => access.principalFor({ ...principal, deactivated: false }),
+    programs: () => access.programs(),
+    audit,
+    resource: mcpResource(config.publicUrl),
+  });
+  await connections.sweep();
   const attempts = createAttemptStore(new Uint8Array(hkdfSync('sha256', config.sessionKey, '', 'sw-attempt', 32)), join(ws.layout.state, 'auth-attempts'));
   function logFailure(request: Request | undefined, error: Error) {
     const requestId = (request as AuditRequest | undefined)?.[requestAuditId] ?? 'startup';
@@ -367,6 +388,10 @@ export async function createServerAuthentication(ws: Workspace, config: ServerCo
     void sessions.sweep().catch(() => logFailure(undefined, new Error('session-sweep-failed')));
   }, 1000);
   timer.unref();
+  const connectionTimer = setInterval(() => {
+    void connections.sweep().catch(() => logFailure(undefined, new Error('connection-sweep-failed')));
+  }, CONNECTION_SWEEP_INTERVAL_MS);
+  connectionTimer.unref();
   attempts.prune();
   const pruneTimer = setInterval(attempts.prune, ATTEMPT_PRUNE_INTERVAL_MS);
   pruneTimer.unref();
@@ -401,8 +426,10 @@ export async function createServerAuthentication(ws: Workspace, config: ServerCo
     principal: async (request: Request) => (await session(request))?.principal ?? null,
     remoteCredentials,
     authentication,
+    connections: { service: connections, grants: connectionGrants },
     close: () => {
       clearInterval(timer);
+      clearInterval(connectionTimer);
       clearInterval(pruneTimer);
     },
   };

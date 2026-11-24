@@ -229,6 +229,9 @@ try {
       },
       LOCAL_READER,
     );
+    await page.reload();
+    await openMapping('commerce.mapping.yaml', loaded['mapped-commerce'].name);
+    await expect(marker).toHaveCount(0);
   });
   await check('Expand, Collapse and Show all connected work on the mapping canvas: Show all connected from Customer opens exactly the cards its mappings reach', async () => {
     await page.reload();

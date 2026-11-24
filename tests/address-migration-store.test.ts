@@ -4,8 +4,8 @@ import { parseAddress } from '../src/shared/core/item-address';
 import { expect, test } from 'bun:test';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { addressMigrationFile, ADDRESS_MIGRATION_LIMIT, operationMigrations, readAddressMigrations, stageAddressMigrations } from '../src/server/projects/address-migrations';
-import { atomicWrite, atomicWriteJson } from '../src/server/projects/atomic';
+import { addressMigrationFile, ADDRESS_HISTORY_FILE, ADDRESS_MIGRATION_LIMIT, operationMigrations, readAddressMigrations, stageAddressMigrations } from '../src/server/projects/address-migrations';
+import { atomicWrite } from '../src/server/projects/atomic';
 import { createJournal } from '../src/server/projects/journal';
 import { dataLayout } from '../src/server/projects/paths';
 import { LOCAL_READER } from '../src/server/projects/reader';
@@ -47,7 +47,7 @@ test('the uncompacted limit permits replay but rejects an overflowing file opera
   const context = fixture();
   try {
     const full = Array.from({ length: ADDRESS_MIGRATION_LIMIT }, (_, index) => ({ ...records[0], id: `record-${index}` }));
-    atomicWriteJson(addressMigrationFile(context.layout, 'sample'), { formatVersion: 1, records: full });
+    atomicWrite(addressMigrationFile(context.layout, 'sample'), full.map(record => JSON.stringify(record) + '\n').join(''));
     append(context, [full[0]]);
     const old = readFileSync(addressMigrationFile(context.layout, 'sample'));
     const document = join(context.layout.projects, 'sample/a.yaml');
@@ -83,7 +83,7 @@ for (const phase of ['before', 'after'] as const) {
     for (let interruption = 0; interruption < 8; interruption++) {
       const context = fixture();
       try {
-        atomicWriteJson(addressMigrationFile(context.layout, 'sample'), { formatVersion: 1, records: [] });
+        atomicWrite(addressMigrationFile(context.layout, 'sample'), '');
         const staging = join(context.layout.state, '.interrupted');
         const steps: { from: string; to: string }[] = [];
         const documents = Array.from({ length: 3 }, (_, index) => join(context.layout.projects, `sample/${index}.yaml`));
@@ -114,7 +114,7 @@ for (const phase of ['before', 'after'] as const) {
 test('recovery rolls back definitions and history together if an uninstalled source disappeared', () => {
   const context = fixture();
   try {
-    atomicWriteJson(addressMigrationFile(context.layout, 'sample'), { formatVersion: 1, records: [] });
+    atomicWrite(addressMigrationFile(context.layout, 'sample'), '');
     const staging = join(context.layout.state, '.rollback');
     const document = join(context.layout.projects, 'sample/a.yaml');
     const next = join(staging, 'new');
@@ -151,7 +151,7 @@ test('moves record document prefixes in both projects and history follows projec
   const bytes = readFileSync(addressMigrationFile(layout, second.slug));
   const removed = await workspace.ws.trash.deleteProject(second.slug);
   expect(existsSync(addressMigrationFile(layout, second.slug))).toBe(false);
-  expect(readFileSync(join(layout.trash, removed.entryId, 'address-migrations', second.slug + '.json'))).toEqual(bytes);
+  expect(readFileSync(join(layout.trash, removed.entryId, 'payload', second.slug, ADDRESS_HISTORY_FILE))).toEqual(bytes);
   await workspace.ws.trash.restore(removed.entryId, {}, LOCAL_READER);
   expect(readFileSync(addressMigrationFile(layout, second.slug))).toEqual(bytes);
   const archived = await workspace.ws.trash.deleteProject(second.slug);

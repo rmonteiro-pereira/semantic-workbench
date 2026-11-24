@@ -1,5 +1,221 @@
 {
+  "contentGuardActions": {
+    "item-status": "approveOntologyItem",
+    "item-body": "approveOntologyItem"
+  },
   "operations": {
+    "GET /api/projects/:slug/proposals": {
+      "id": "proposals.list",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "later",
+        "reason": "Shared proposal tools require a later agent increment."
+      }
+    },
+    "GET /api/projects/:slug/proposals/:id": {
+      "id": "proposals.read",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "later",
+        "reason": "Shared proposal tools require a later agent increment."
+      }
+    },
+    "GET /api/projects/:slug/proposals/:id/diff": {
+      "id": "proposals.diff",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "later",
+        "reason": "Shared proposal tools require a later agent increment."
+      }
+    },
+    "POST /api/projects/:slug/proposals": {
+      "id": "proposals.create",
+      "handlerChecks": [
+        "authorizeProposal"
+      ],
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "later",
+        "reason": "Shared proposal tools require a later agent increment."
+      }
+    },
+    "POST /api/projects/:slug/proposals/:id/work": {
+      "id": "proposals.work",
+      "handlerChecks": [
+        "authorizeProposal",
+        "authorizeCheckout"
+      ],
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "later",
+        "reason": "Shared proposal tools require a later agent increment."
+      }
+    },
+    "POST /api/projects/:slug/proposals/:id/synchronize": {
+      "id": "proposals.synchronize",
+      "handlerChecks": [
+        "authorizeProposal"
+      ],
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "later",
+        "reason": "Shared proposal tools require a later agent increment."
+      }
+    },
+    "POST /api/projects/:slug/proposals/:id/contribute": {
+      "id": "proposals.contribute",
+      "handlerChecks": [
+        "authorizeProposal"
+      ],
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "commit"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "later",
+        "reason": "Shared proposal tools require a later agent increment."
+      }
+    },
+    "GET /api/projects/:slug/proposals/:id/promotion-check": {
+      "id": "proposals.check",
+      "handlerChecks": [
+        "authorizeProposal"
+      ],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "read"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "later",
+        "reason": "Shared proposal tools require a later agent increment."
+      },
+      "steps": [
+        "snapshot.read"
+      ]
+    },
+    "POST /api/projects/:slug/proposals/:id/promote": {
+      "id": "proposals.promote",
+      "handlerChecks": [
+        "authorizeProposal"
+      ],
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "publish"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "later",
+        "reason": "Shared proposal tools require a later agent increment."
+      },
+      "steps": [
+        "publication.advance",
+        "publication.abandon",
+        "snapshot.read"
+      ]
+    },
+    "POST /api/projects/:slug/proposals/:id/close": {
+      "id": "proposals.close",
+      "handlerChecks": [
+        "authorizeProposal"
+      ],
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "later",
+        "reason": "Shared proposal tools require a later agent increment."
+      }
+    },
+    "POST /api/projects/:slug/proposals/:id/restore": {
+      "id": "proposals.restore",
+      "handlerChecks": [
+        "authorizeProposal"
+      ],
+      "limits": {
+        "request": "GIT_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "git"
+      },
+      "effects": [
+        "localWrite"
+      ],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "later",
+        "reason": "Shared proposal tools require a later agent increment."
+      }
+    },
     "GET /api/me": {
       "id": "identity.read",
       "handlerChecks": [],
@@ -297,6 +513,24 @@
       },
       "steps": ["snapshot.read"]
     },
+    "GET /api/projects/:slug/item-diff": {
+      "id": "items.diff",
+      "handlerChecks": [],
+      "limits": {
+        "request": "ITEM_DIFF_QUERY_LIMIT",
+        "response": "bounded",
+        "work": "scan"
+      },
+      "effects": ["read"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The comparison can include unpublished definitions for the browser editor."
+      },
+      "steps": ["snapshot.read"]
+    },
     "POST /api/projects/:slug/save-batch": {
       "id": "files.saveBatch",
       "handlerChecks": ["authorizeWrite", "bodyTargets"],
@@ -312,6 +546,115 @@
       },
       "outcomeClassifier": "batchSave"
     },
+    "GET /api/mesh": {
+      "id": "mesh.graph",
+      "handlerChecks": [],
+      "limits": { "request": "none", "response": "bounded", "work": "scan" },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": { "increment": "later", "reason": "The interactive ontology mesh uses scoped published links." },
+      "steps": ["snapshot.read"]
+    },
+    "GET /api/mesh/providers": {
+      "id": "mesh.providers.list",
+      "handlerChecks": [],
+      "limits": { "request": "none", "response": "bounded", "work": "scan" },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": { "increment": "later", "reason": "Provider discovery is part of interactive import editing." },
+      "steps": ["snapshot.read"]
+    },
+    "GET /api/projects/:slug/dependencies": {
+      "id": "mesh.dependencies.read",
+      "handlerChecks": [],
+      "limits": { "request": "none", "response": "bounded", "work": "scan" },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": { "increment": "later", "reason": "Dependency status reads the person's workbench copy." },
+      "steps": ["snapshot.read"]
+    },
+    "POST /api/projects/:slug/dependencies/update": {
+      "id": "mesh.dependencies.update",
+      "handlerChecks": ["authorizeWrite"],
+      "limits": { "request": "FILE_SAVE_REQUEST_LIMIT", "response": "bounded", "work": "scan" },
+      "effects": ["read", "localWrite"],
+      "dispatch": "twin",
+      "exposure": { "increment": "later", "reason": "The update confirms a reviewed dependency preview and writes the lock." },
+      "steps": ["snapshot.read"]
+    },
+    "GET /api/projects/:slug/dependents": {
+      "id": "mesh.dependents.read",
+      "handlerChecks": ["authorizeWrite"],
+      "limits": { "request": "none", "response": "bounded", "work": "scan" },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": { "increment": "later", "reason": "Provider stewards can review published dependency disclosures." },
+      "steps": ["snapshot.read"]
+    },
+    "POST /api/projects/:slug/compile/check": {
+      "id": "compile.check",
+      "handlerChecks": [],
+      "limits": {
+        "request": "FILE_SAVE_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "scan"
+      },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      },
+      "steps": ["snapshot.read"]
+    },
+    "POST /api/projects/:slug/compile": {
+      "id": "compile.run",
+      "handlerChecks": [],
+      "limits": {
+        "request": "FILE_SAVE_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "scan"
+      },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      },
+      "steps": ["snapshot.read"]
+    },
+    "GET /api/projects/:slug/compile/bundle": {
+      "id": "compile.bundle",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "binary",
+        "work": "scan"
+      },
+      "effects": ["read"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "A binary download for the browser. Agents page compile.run instead."
+      },
+      "steps": ["snapshot.read"]
+    },
+    "POST /api/projects/:slug/compile/convert": {
+      "id": "compile.convert",
+      "handlerChecks": ["authorizeWrite"],
+      "limits": {
+        "request": "FILE_SAVE_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "scan"
+      },
+      "effects": ["localWrite"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "later",
+        "reason": "Rewrites a source file; not an agent operation yet."
+      },
+      "steps": ["snapshot.read"]
+    },
     "POST /api/projects/:slug/item-addresses/resolve": {
       "id": "itemAddresses.resolve",
       "handlerChecks": [],
@@ -324,7 +667,8 @@
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
-      }
+      },
+      "steps": ["snapshot.read"]
     },
     "POST /api/projects/:slug/item-addresses/reconcile/*": {
       "id": "itemAddresses.reconcile",
@@ -382,6 +726,22 @@
       "exposure": {
         "increment": "local-edit"
       }
+    },
+    "GET /api/projects/:slug/usage": {
+      "id": "usage.read",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "never",
+        "reason": "Agents do not need traffic counts to do their work; a later increment decides whether to show them."
+      },
+      "steps": ["snapshot.read"]
     },
     "POST /api/projects/:slug/metrics": {
       "id": "metrics.save",
@@ -466,6 +826,7 @@
         "work": "light"
       },
       "effects": ["read"],
+      "usage": true,
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -478,13 +839,14 @@
       "limits": {
         "request": "none",
         "response": "bounded",
-        "work": "light"
+        "work": "scan"
       },
       "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
-      }
+      },
+      "steps": ["snapshot.read"]
     },
     "PUT /api/projects/:slug/files/*": {
       "id": "files.save",
@@ -500,6 +862,20 @@
         "increment": "local-edit"
       },
       "outcomeClassifier": "fileSave"
+    },
+    "POST /api/projects/:slug/files/*/validate": {
+      "id": "files.validate",
+      "handlerChecks": [],
+      "limits": {
+        "request": "FILE_SAVE_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["read"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "local-edit"
+      }
     },
     "DELETE /api/projects/:slug/files/*": {
       "id": "files.delete",
@@ -881,7 +1257,7 @@
         "increment": "workspace-scm"
       },
       "outcomeClassifier": "remote",
-      "steps": ["publication.advance", "publication.abandon"]
+      "steps": ["publication.advance", "publication.abandon", "snapshot.read"]
     },
     "POST /api/projects/:slug/git/pull": {
       "id": "git.pull",
@@ -955,7 +1331,7 @@
       "exposure": {
         "increment": "workspace-scm"
       },
-      "steps": ["publication.advance", "publication.abandon"]
+      "steps": ["publication.advance", "publication.abandon", "snapshot.read"]
     },
     "POST /api/projects/:slug/git/pull-default": {
       "id": "git.pullDefault",
@@ -1110,6 +1486,7 @@
         "work": "light"
       },
       "effects": ["read"],
+      "usage": true,
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1125,6 +1502,7 @@
         "work": "light"
       },
       "effects": ["read"],
+      "usage": true,
       "dispatch": "twin",
       "exposure": {
         "increment": "local-edit"
@@ -1782,7 +2160,7 @@
       "exposure": {
         "increment": "workspace-scm"
       },
-      "steps": ["publication.advance", "publication.abandon"]
+      "steps": ["publication.advance", "publication.abandon", "snapshot.read"]
     },
     "POST /api/projects/:slug/git/acknowledge-publication": {
       "id": "git.acknowledgePublication",
@@ -1850,6 +2228,448 @@
       "exposure": {
         "increment": "never",
         "reason": "Browser authoring preview or personal notice."
+      }
+    },
+    "GET /.well-known/oauth-protected-resource/api/mcp": {
+      "id": "connections.resourceMetadata",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["read"],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "A discovery or token answer of the agent connection flow; it never carries an agent operation."
+      }
+    },
+    "GET /.well-known/oauth-protected-resource": {
+      "id": "connections.resourceMetadataRoot",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["read"],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "A discovery or token answer of the agent connection flow; it never carries an agent operation."
+      }
+    },
+    "GET /.well-known/oauth-authorization-server": {
+      "id": "connections.serverMetadata",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["read"],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "A discovery or token answer of the agent connection flow; it never carries an agent operation."
+      }
+    },
+    "POST /oauth/token": {
+      "id": "connections.token",
+      "handlerChecks": [],
+      "limits": {
+        "request": "OAUTH_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["credential"],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "A discovery or token answer of the agent connection flow; it never carries an agent operation."
+      }
+    },
+    "GET /oauth/authorize": {
+      "id": "connections.authorize",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["read"],
+      "dispatch": {
+        "no": "page"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "A page of the agent connection flow, for the person's browser only."
+      }
+    },
+    "POST /oauth/consent": {
+      "id": "connections.consent",
+      "handlerChecks": [],
+      "limits": {
+        "request": "OAUTH_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["credential"],
+      "dispatch": {
+        "no": "page"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "A page of the agent connection flow, for the person's browser only."
+      }
+    },
+    "GET /oauth/setup": {
+      "id": "connections.setupForm",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["read"],
+      "dispatch": {
+        "no": "page"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "A page of the agent connection flow, for the person's browser only."
+      }
+    },
+    "POST /oauth/setup": {
+      "id": "connections.setupCreate",
+      "handlerChecks": [],
+      "limits": {
+        "request": "OAUTH_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["credential"],
+      "dispatch": {
+        "no": "page"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "A page of the agent connection flow, for the person's browser only."
+      }
+    },
+    "GET /api/connections": {
+      "id": "connections.list",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["read"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "Connection or registration management for a browser; an agent never manages its own connection."
+      }
+    },
+    "DELETE /api/connections/:id": {
+      "id": "connections.revoke",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["localWrite"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "Connection or registration management for a browser; an agent never manages its own connection."
+      }
+    },
+    "GET /api/admin/connections": {
+      "id": "connections.adminList",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["administration"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "Connection or registration management for a browser; an agent never manages its own connection."
+      }
+    },
+    "DELETE /api/admin/connections/:id": {
+      "id": "connections.adminRevoke",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["administration"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "Connection or registration management for a browser; an agent never manages its own connection."
+      }
+    },
+    "GET /api/admin/programs": {
+      "id": "programs.read",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["administration"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "Connection or registration management for a browser; an agent never manages its own connection."
+      }
+    },
+    "PUT /api/admin/programs": {
+      "id": "programs.save",
+      "handlerChecks": [],
+      "limits": {
+        "request": "ADMIN_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["administration"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "Connection or registration management for a browser; an agent never manages its own connection."
+      }
+    },
+    "POST /api/admin/programs/preview": {
+      "id": "programs.preview",
+      "handlerChecks": [],
+      "limits": {
+        "request": "ADMIN_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["administration"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "team-sign-in",
+        "reason": "Connection or registration management for a browser; an agent never manages its own connection."
+      }
+    },
+    "POST /api/mcp": {
+      "id": "mcp.transport",
+      "handlerChecks": [],
+      "limits": {
+        "request": "FILE_SAVE_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["read"],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The authenticated protocol transport hands each tool call to the twin of an ordinary route; it is not itself an operation."
+      }
+    },
+    "POST /api/acp/sessions": {
+      "id": "agentPanel.start",
+      "handlerChecks": [],
+      "limits": {
+        "request": "AGENT_PANEL_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["localWrite"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The browser-only route belongs to the agent panel, which acts for the signed-in person; the agent's own file requests run as twins of ordinary routes."
+      }
+    },
+    "GET /api/acp/sessions/:id/events": {
+      "id": "agentPanel.events",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "stream",
+        "work": "light"
+      },
+      "effects": ["read"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The browser-only route belongs to the agent panel, which acts for the signed-in person; the agent's own file requests run as twins of ordinary routes."
+      }
+    },
+    "POST /api/acp/sessions/:id/prompt": {
+      "id": "agentPanel.prompt",
+      "handlerChecks": [],
+      "limits": {
+        "request": "AGENT_PANEL_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["localWrite"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The browser-only route belongs to the agent panel, which acts for the signed-in person; the agent's own file requests run as twins of ordinary routes."
+      }
+    },
+    "POST /api/acp/sessions/:id/cancel": {
+      "id": "agentPanel.cancel",
+      "handlerChecks": [],
+      "limits": {
+        "request": "AGENT_PANEL_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["localWrite"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The browser-only route belongs to the agent panel, which acts for the signed-in person; the agent's own file requests run as twins of ordinary routes."
+      }
+    },
+    "POST /api/acp/sessions/:id/questions/:question": {
+      "id": "agentPanel.answer",
+      "handlerChecks": [],
+      "limits": {
+        "request": "AGENT_PANEL_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["localWrite"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The browser-only route belongs to the agent panel, which acts for the signed-in person; the agent's own file requests run as twins of ordinary routes."
+      }
+    },
+    "DELETE /api/acp/sessions/:id": {
+      "id": "agentPanel.end",
+      "handlerChecks": [],
+      "limits": {
+        "request": "AGENT_PANEL_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["localWrite"],
+      "dispatch": {
+        "no": "browser-only"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The browser-only route belongs to the agent panel, which acts for the signed-in person; the agent's own file requests run as twins of ordinary routes."
+      }
+    },
+    "POST /api/acp/relay/:session/hello": {
+      "id": "agentRelay.hello",
+      "handlerChecks": [],
+      "limits": {
+        "request": "AGENT_PANEL_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["localWrite"],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The relay authenticates with its own credential and carries the agent's protocol messages; each file request inside them runs as the twin of an ordinary route."
+      }
+    },
+    "POST /api/acp/relay/:session/frames": {
+      "id": "agentRelay.frames",
+      "handlerChecks": [],
+      "limits": {
+        "request": "AGENT_PANEL_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["localWrite"],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The relay authenticates with its own credential and carries the agent's protocol messages; each file request inside them runs as the twin of an ordinary route."
+      }
+    },
+    "GET /api/acp/relay/:session/stream": {
+      "id": "agentRelay.stream",
+      "handlerChecks": [],
+      "limits": {
+        "request": "none",
+        "response": "stream",
+        "work": "light"
+      },
+      "effects": ["read"],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The relay authenticates with its own credential and carries the agent's protocol messages; each file request inside them runs as the twin of an ordinary route."
+      }
+    },
+    "POST /api/acp/relay/:session/bye": {
+      "id": "agentRelay.bye",
+      "handlerChecks": [],
+      "limits": {
+        "request": "AGENT_PANEL_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "light"
+      },
+      "effects": ["localWrite"],
+      "dispatch": {
+        "no": "public"
+      },
+      "exposure": {
+        "increment": "never",
+        "reason": "The relay authenticates with its own credential and carries the agent's protocol messages; each file request inside them runs as the twin of an ordinary route."
       }
     }
   },

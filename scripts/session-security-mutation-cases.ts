@@ -470,10 +470,10 @@ async function authenticationCase(candidate: any) {
   mkdirSync(ledger, { recursive: true });
   const stale = `${Date.now() - 700_000}-${sha256('stale')}`;
   writeFileSync(join(ledger, stale), '');
-  const intervals: number[] = [];
+  const intervals: { milliseconds: number; callback: () => void }[] = [];
   const realSetInterval = globalThis.setInterval;
   globalThis.setInterval = ((callback: () => void, milliseconds: number) => {
-    intervals.push(milliseconds);
+    intervals.push({ milliseconds, callback });
     return realSetInterval(callback, milliseconds);
   }) as typeof setInterval;
   const logged = console.error;
@@ -486,7 +486,16 @@ async function authenticationCase(candidate: any) {
   }
   try {
     assert.deepEqual(readdirSync(ledger), []);
-    assert(intervals.includes(60_000));
+    // The connection sweep also runs every minute, so the ledger's own timer is the one whose callback prunes it.
+    const prunesLedger = intervals.filter(interval => {
+      writeFileSync(join(ledger, stale), '');
+      interval.callback();
+      return readdirSync(ledger).length === 0;
+    });
+    assert.deepEqual(
+      prunesLedger.map(interval => interval.milliseconds),
+      [60_000],
+    );
     let source = '203.0.113.7';
     const origin = transport.config.publicUrl;
     const handler = createHandler(fixture.ws, { ...auth, sourceIp: () => source });

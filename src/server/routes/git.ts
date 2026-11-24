@@ -1,8 +1,9 @@
 // Exposes project source control operations. Remote actions run only through explicit requests.
 import { GIT_REQUEST_LIMIT } from '../request';
-import { requestReader, recordPublication, recordPublicationAttempt, recordPublicationRefusal } from '../auth/request-scope';
+import { requestDisclosureShown, type AccessRequest, requestReader, recordPublication, recordPublicationAttempt, recordPublicationRefusal } from '../auth/request-scope';
 import { authorizeCheckout, authorizeGitPaths, authorizeGitPush, authorizePublish, authorizeRepository, mayPublish } from '../auth/git-access';
 import { checkRemoteAddress, delegatedCredentials } from '../auth/remote-credentials';
+import { receiptReplay, type ReceiptReplayRequest } from '../auth/receipt-replay';
 import { authorizeWrite } from '../auth/write-access';
 import { existsSync, readFileSync } from 'node:fs';
 import { decodeSegment, readJson } from '../request';
@@ -12,12 +13,29 @@ import type { Route } from './http';
 import type { HandlerOptions } from '../auth/middleware';
 import { BadRequestError, PublicationAdoptionError, SnapshotUnreadableError } from '../projects/errors';
 import { acknowledgePublication } from '../projects/scm-published';
+import type { CommitExpectation } from '../projects/scm';
 // Files are named relative to the project (`paths`) or to its repository root (`repoPaths`), the
 // latter for files of sibling projects in a shared repository.
 function chosenPaths(body: { paths?: unknown; repoPaths?: unknown }) {
   if (body.paths !== undefined && body.repoPaths !== undefined) throw new BadRequestError('Send paths or repoPaths, not both.');
   if (body.repoPaths !== undefined) return { list: body.repoPaths, base: 'repository' as const };
   return { list: body.paths, base: 'project' as const };
+}
+const FILE_VERSION = /^[0-9a-f]{64}$/;
+/**
+ * The branch, head and file versions a commit was prepared against, when the request names them.
+ * They come as a set: naming files without the branch and head, or the reverse, is a mistake.
+ */
+function commitExpectation(body: { files?: unknown; expectedBranch?: unknown; expectedHead?: unknown; paths?: unknown; repoPaths?: unknown }): CommitExpectation | undefined {
+  const named = [body.files, body.expectedBranch, body.expectedHead].filter(value => value !== undefined);
+  if (!named.length) return undefined;
+  if (named.length !== 3) throw new BadRequestError('Send files, expectedBranch and expectedHead together.');
+  if (body.paths !== undefined || body.repoPaths !== undefined) throw new BadRequestError('Send files or paths, not both.');
+  const { files, expectedBranch, expectedHead } = body;
+  const wellFormed = Array.isArray(files) && files.length > 0 && files.length <= 200 && files.every(file => file && typeof file.path === 'string' && FILE_VERSION.test(file.version));
+  if (!wellFormed || typeof expectedBranch !== 'string' || (expectedHead !== null && typeof expectedHead !== 'string'))
+    throw new BadRequestError('Expected files [{path, version}], expectedBranch and expectedHead.');
+  return { branch: expectedBranch, head: expectedHead, files };
 }
 // Commands that talk to the remote can run longer than the server's idle timeout without sending
 // a byte, so their connections are kept open.
@@ -98,13 +116,16 @@ export const createGitRoutes =
         return Response.json(await change(slug, list, base, reader));
       }
       if (action === 'git/commit') {
-        const requestBody = await body(['message', 'paths', 'repoPaths', 'push']);
+        const requestBody = await body(['message', 'paths', 'repoPaths', 'push', 'files', 'expectedBranch', 'expectedHead']);
+        const expected = commitExpectation(requestBody);
+        if (expected) requestBody.paths = expected.files.map(file => file.path);
         if (requestBody.push !== undefined && typeof requestBody.push !== 'boolean') throw new BadRequestError('push must be true or false.');
         await authorizeGitPaths(gitTarget, 'commit', {
           paths: requestBody.repoPaths ?? requestBody.paths,
           repository: requestBody.repoPaths !== undefined,
         });
-        if (requestBody.push === true) await authorizeGitPush(gitTarget);
+        const pushBranch = requestBody.push === true ? await authorizeGitPush(gitTarget) : undefined;
+        if ((req as ReceiptReplayRequest)[receiptReplay]) return new Response(null, { status: 204 });
         const chosen = requestBody.paths === undefined && requestBody.repoPaths === undefined ? null : chosenPaths(requestBody);
         const scm = await sourceControl();
         return Response.json(
@@ -112,8 +133,10 @@ export const createGitRoutes =
             paths: chosen?.list,
             base: chosen?.base,
             push: requestBody.push === true,
+            pushBranch,
             credentialFor: delegatedCredentials(req),
             author: reader.copy?.author,
+            expected,
           }),
         );
       }
@@ -147,8 +170,10 @@ export const createGitRoutes =
         }
       }
       if (action === 'git/publish') {
-        const requestBody = await body(['branch']);
+        const requestBody = await body(['branch', 'disclosureShown']);
+        if (requestBody.disclosureShown !== undefined && requestBody.disclosureShown !== true) throw new BadRequestError('Expected a confirmed disclosure.');
         await authorizePublish(gitTarget, requestBody.branch);
+        if (requestBody.disclosureShown) (req as AccessRequest)[requestDisclosureShown] = true;
         const publication = await ws.publish(slug, reader);
         recordPublication(req, publication);
         return Response.json(publication);
@@ -160,10 +185,10 @@ export const createGitRoutes =
       }
       // Pushing the default branch changes what everyone pulls, so it needs the right to publish.
       if (action === 'git/push-default') {
-        await authorizePublish(gitTarget, undefined, { push: true });
+        const branch = await authorizePublish(gitTarget, undefined, { push: true });
         // The default branch is shared, so pushing it needs no copy and never starts one.
         const scm = ws.readScm(slug, reader);
-        return Response.json(await scm.pushDefault(slug, delegatedCredentials(req)));
+        return Response.json(await scm.pushDefault(slug, delegatedCredentials(req), branch));
       }
       // Cancel stops what is running and never starts a copy.
       if (action === 'git/cancel') return Response.json(ws.readScm(slug, reader).cancel(slug));
@@ -171,7 +196,7 @@ export const createGitRoutes =
       if (action === 'git/pull' || action === 'git/sync') {
         authorizeRepository(gitTarget, 'pull');
       }
-      if (action === 'git/push' || action === 'git/sync') await authorizeGitPush(gitTarget);
+      const pushBranch = action === 'git/push' || action === 'git/sync' ? await authorizeGitPush(gitTarget) : undefined;
       const remote = ['git/fetch', 'git/pull', 'git/push', 'git/sync'];
       const scm = remote.includes(action) ? await sourceControl() : null;
       // Remote commands run in the person's own copy with their own credential for the remote.
@@ -181,8 +206,8 @@ export const createGitRoutes =
         return Response.json(await scm!.fetch(slug, credentialFor, follow));
       }
       if (action === 'git/pull') return Response.json(await scm!.pull(slug, reader, credentialFor));
-      if (action === 'git/push') return Response.json(await scm!.push(slug, credentialFor));
-      if (action === 'git/sync') return Response.json(await scm!.sync(slug, reader, credentialFor));
+      if (action === 'git/push') return Response.json(await scm!.push(slug, credentialFor, pushBranch));
+      if (action === 'git/sync') return Response.json(await scm!.sync(slug, reader, credentialFor, pushBranch));
       // Use the hash-checked save so concurrent edits are detected and the project is rescanned.
       if (action === 'gitignore') {
         const requestBody = await body(['pattern']);

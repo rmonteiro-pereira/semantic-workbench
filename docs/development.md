@@ -53,6 +53,8 @@ bun run test:projects
 `SW_BASE_URL` defaults to `http://127.0.0.1:5173`; `UI_URL` is a legacy fallback. Browser drivers
 route API requests to their temporary fixtures. They must not point a mutation or write scenario
 at an unisolated production workspace.
+The mapping graph check reloads the restored mapping and verifies that the injected resolver
+finding clears before testing navigation.
 
 ## Fast checks
 
@@ -76,6 +78,62 @@ bun run build
 Generated standalone schema validators are checked in and formatted with the project rules.
 Regenerate with `bun run schemas:compile`; tests verify reproducible output. The browser uses these
 validators without eval under the CSP. Do not edit pinned upstream schemas to make a fixture pass.
+
+## The tessera command
+
+`bun run tessera compile` and `bun run tessera check` compile a project folder of a Git repository
+to standard Ossie; see the [README](../README.md#tessera-an-authoring-format-that-compiles-to-standard-ossie)
+for the options and exit statuses (0 success, 1 refused, 2 loss needs acceptance, 64 misuse).
+
+- `bun test tests/tessera/` runs the feature's own tests. The command-line tests start the command as a
+  child process against a temporary Git repository built by `tests/helpers/tessera-repository.ts`.
+- `bun run test:tessera` is the browser check (`scripts/tessera-browser-check.ts`); it runs on an
+  isolated API and never touches the real workspace.
+- `bun scripts/derive-tessera-schema.ts` regenerates `schemas/tessera-ontology-1-ossie-0.2.0.dev0.json`
+  and `bun scripts/derive-tessera-schema.ts --check` verifies it; run `bun run schemas:compile` after a
+  change. The script generates both revision schemas. Add an addition by following the header of
+  `src/shared/tessera/registry.ts`.
+- `bun test tests/attributes tests/governance` checks attribute editing and the governance rules.
+  `bun run test:attributes` exercises the details panels, the revision confirmation and the time
+  to open the details of a concept in a 200-concept document.
+- `bun scripts/mutation-tests.ts --attributes` checks the targeted faults for the revision additions.
+  The integrated mutation gate runs these cases with the rest of its inventory.
+- `bun scripts/item-diff-planner-browser-check.ts` checks metric status labels, geometry and contrast
+  in the query composer at phone and desktop widths in both themes, using an isolated API.
+- `bun scripts/record-item-diff-baseline.ts` records six rendered workbench structures, with the
+  Unpublished work overlay switched off, and the published context, plan and explanation responses,
+  against isolated published and unpublished definitions. The browser check compares the same
+  overlay-off structures.
+  Start an isolated frontend and set `SW_BASE_URL` first. `bun test tests/item-diff/baseline.test.ts`
+  compares the consumer responses without a browser.
+- `bun scripts/record-standard-baseline.ts` records what the unchanged code does with every example
+  and fixture file (`tests/fixtures/tessera/standard-baseline.json`); `tests/tessera/standard-unchanged.test.ts`
+  compares against it. Run it only when a change to ordinary Ossie handling is intended.
+- Golden compiler output is in `tests/fixtures/tessera/golden/`. After a deliberate change to the
+  compiler or its version, regenerate it with `UPDATE_TESSERA_GOLDEN=1 bun test tests/tessera/determinism.test.ts`.
+- The mutation gate has a `tessera` category (`scripts/tessera-mutants.ts`, `scripts/tessera-mutation-cases.ts`).
+- Scale: `tests/tessera/compile-scale.test.ts` compiles 200 documents and about 20 MB (60 Tessera
+  ontologies, 60 standard ontologies, 40 semantic models and 40 data contracts). Measured on the
+  shared development server it took 20 s (limit 30 s), and 6 s on a workstation. Validating one
+  1,000-concept ontology with the marker took between 1.0 and 1.1 times as long as without it.
+
+## Compile in the browser and over HTTP
+
+The compile routes, the unit source and the browser dialog are described in [compile](compile.md).
+`bun run test:compile` covers review, exact acceptance, download, unpublished check and one-file
+conversion on desktop and phone widths against an isolated API. It also compares the shared digest
+with Bun SHA-256 and browser Web Crypto. Start the frontend on a free test port and set `SW_BASE_URL`;
+the check supplies its own temporary backend and cleans it up.
+
+
+- `bun test tests/compile/ tests/auth/compile-parity.test.ts` runs the feature's own tests. The
+  helper `tests/helpers/compile-workspace.ts` builds a published workspace with Tessera and standard
+  files, a project that was never published and a folder only some people may read.
+- The golden bundle in `tests/fixtures/compile/golden/` is what `bun run tessera compile` writes for that
+  workspace. After a deliberate change to the compiler, regenerate it with `UPDATE_GOLDEN=1 bun test tests/compile/golden.test.ts`.
+- Scale: `tests/compile/compile-scale.test.ts` publishes 200 documents and about 20 MB (60 Tessera
+  ontologies and 140 standard ones), then reads the snapshot, compiles and builds the zip. Measured on the
+  shared development server it took 20 s (limit 30 s), and 8 s on a workstation.
 
 ## Profiling the React UI
 
@@ -170,6 +228,7 @@ suites use `SW_BASE_URL`. The full runner supplies fresh frontend processes as n
 | `test:responsive` | Viewport/theme tours, geometry, text, focus and raw resize errors |
 | `test:edges` | Rendered edge endpoints during movement and zoom |
 | `test:grouping-validation` | Grouping transitions, attachment, provenance and repair |
+| `test:item-diff` | Unpublished comparison, graph marks and branch and publication journeys in an isolated workspace |
 | `test:published-snapshot` | Published status, local Publish and Adopt, migration notice, Mappings preview label and published export in both modes |
 | `test:overview-areas` | Group menu only in Graph, Overview grouping note, cards packed into columns and capped at eight with Show all, Catalog area filter ending on leaving Catalog or changing file |
 | `test:examples:ui` | Example loading, mappings and governed metric presentation |
@@ -178,6 +237,7 @@ suites use `SW_BASE_URL`. The full runner supplies fresh frontend processes as n
 | `test:sidebar` | Sidebar footer visibility and project list fill at short heights, resize and delete |
 | `test:metrics` | Metric list, definitions, explanations and graph navigation |
 | `test:addresses` | Canonical selection, reload, unchanged source bytes and declared rename with ticked references |
+| `test:mcp:browser` | An agent's save through the local endpoint refreshing an open editor, the person's unsaved draft kept, and agent records with their tool in the Admin audit view |
 | `test:graph` | Named UBL and counted Mall first views, neighborhood walk, expansion, scale and response budget |
 | `test:editor` | Serialization colors, located findings, byte preservation and typing |
 | `test:item-edit` | Forms, new items, rename/delete and metric wizard |
@@ -190,8 +250,10 @@ suites use `SW_BASE_URL`. The full runner supplies fresh frontend processes as n
 | `test:sql` | Embedded SQL coloring, warning locations and unchanged bytes |
 | `test:git-setup` | Identity, remotes, sparse folders, clone and credential guidance |
 | `test:monorepo` | Shared repository registration, workspace removal and folder deletion |
-| `test:dialogs` | Fit, keyboard focus and return across six viewport sizes |
+| `test:dialogs` | Fit, keyboard focus and return across six viewport sizes. A five-second workspace-readiness failure includes the page state and pending and failed requests. |
 | `test:telemetry` | Bounded error/timing reports, redaction and export-off behavior |
+| `test:attributes` | Attribute editing, agent context, governance and revision confirmation |
+| `test:tessera` | The Tessera format in the browser: format label, finding and fix |
 | `test:terminology` | Metric/table naming across the interface and current guides |
 | `test:mappings-layout` | Binding presentation, geometry and selected-document Source |
 | `test:clipping` | Nothing cut on Mappings, header and entity details at 1280 and 390 px; Commit tooltip; no sideways scroll in details (Admin: `tests/admin-clipping.test.tsx`) |
@@ -244,11 +306,21 @@ that removing a fallback, breaking a local font URL or removing a family licence
 bun run test:mutation
 ```
 
+The mutation runner checks that each target still exists before starting. The authorization mutant
+removes custom rules from the inputs to policy preparation. The Git push mutation
+exercises the remote-effect check alongside the Git dispatch.
+
 Browser mutants require the Vite development server because they intercept source modules.
 The runner mutates temporary source copies and browser pages. Unmodified baselines must pass;
 each targeted fault must be caught. Coverage includes parsing, file/journal behavior, Git safety,
 exports, access/governance, authentication, working copies, Admin review, examples, theming,
 branding, deployment decisions and observability.
+
+Shared proposals have their own suite, `bun run test:proposals`, with unit and route tests
+(`tests/proposals-*.test.ts`, `tests/work-in-progress-push.test.ts`, `tests/auth/proposal-*.test.ts`),
+browser component tests and `scripts/proposals-browser-check.ts`. The `proposals` mutant category
+(`scripts/proposals-mutants.ts`) runs under `bun run test:mutation`. The restore-limit case allows ten seconds to
+create every filler proposal before asserting the same limit refusal.
 
 Do not remove a failed assertion, increase its budget or exclude an error to make a release pass.
 Use a targeted reproducer, preserve failure evidence and rerun on the corrected frozen state.
@@ -305,8 +377,8 @@ zoomed labels, an enabled mini-map and full-screen views. Network and Layered op
 workspace entries so a prior selection does not affect the other layout. The empty-mapping capture
 opens the file under its named project when the same filename appears elsewhere.
 
-`SW_SCREENSHOT_DIR` selects screenshot output. The graph, lineage, metrics, item-edit, UI, responsive and edge suites also honor `TMPDIR` when it is unset.
-Older drivers retain their documented `workbench-*.png` files in the system temporary directory. Capture collection must check timestamps so an old successful
+`SW_SCREENSHOT_DIR` selects screenshot output; the graph, lineage, metrics, item-edit, UI, responsive and edge suites also honor `TMPDIR` when it is unset. Older drivers retain their documented
+`workbench-*.png` files in the system temporary directory. Capture collection must check timestamps so an old successful
 image is not mistaken for evidence from a newer failed run.
 
 Keep source, formatting and builds frozen throughout capture; schema generation can reload Vite.
@@ -392,6 +464,12 @@ stops after 30 seconds. In `bun run build` its own chunk is about 54 kB, its SPA
 about 1.2 MB and the worker wrapper about 284 kB; none of them is part of the main bundle.
 A test in `tests/validation-honesty.test.ts` checks that a `SERVICE` clause makes no network request.
 
+`@modelcontextprotocol/server` 2.4.0 (Apache-2.0) speaks the Model Context Protocol for the local
+`POST /api/mcp` endpoint. It needs `@modelcontextprotocol/core` 2.4.0 and `zod`, which Bun installs with it.
+Measured on disk: 7.0 MB, 1.4 MB and 8.2 MB. It is server-only and never part of the browser bundle, and it
+makes no network request of its own. `@modelcontextprotocol/client` 2.4.0 is a development dependency that the
+conformance tests and the acceptance script use as the reference client; it is not shipped.
+
 ## Contribution rules
 
 - Read [architecture](../ARCHITECTURE.md), the owning module and neighboring tests first.
@@ -412,12 +490,115 @@ For API work, maintain the action inventory and relevant HTTP/configuration cont
 handlers, schemas and tests remain authoritative when an older design contract describes an
 unimplemented or superseded detail.
 
+## Agent endpoint
+
+`bun test tests/mcp` runs the endpoint's tests: the tool contract and route inventory comparisons, the request gate, the capability file, protocol conformance for the current and earlier protocol eras, body caps, the read, write, commit and receipt tools, the authorization matrix for every test identity, audit records and the outbound-call check. `bun run test:mcp` is the scripted acceptance run with the reference client; it runs in the verify step after `bun test`. `docs/mcp-acceptance.md` records its result and the client versions. Agent endpoint mutants live in `scripts/mcp-mutants.ts` with their assertions in `scripts/mcp-mutation-cases.ts`.
+
+## Usage counters
+
+`bun test tests/usage/ tests/auth/usage-read-parity.test.ts` covers counting, the store, migration, retention,
+the read operation and privacy; `tests/usage-*.test.ts*` and `tests/admin-settings-usage.test.tsx` cover the Traffic
+display. `bun run test:usage-traffic` drives the display in a browser against a mocked usage answer. Its
+`--record` option rewrites `tests/fixtures/usage/dom-baseline.json`, the structure of every view with
+Traffic off. The Traffic switch sits in the closed Show menu and adds no element, so the recorded
+structure is the one these views have without the Traffic option; record it again only when a view's
+structure changes on purpose. Usage mutants run with
+`bun scripts/mutation-tests.ts --only usage`.
+`bun scripts/usage-benchmark.ts` measures what counting adds to 5,000 counted requests, with counters off and on.
+
 ## Operation boundary
 
 Connection effects narrow allowed decisions; they preserve existence-hiding refusals and the
 existing distinction between hidden-trash denials and unaudited missing entries.
 
 `bun scripts/boundary-benchmark.ts` measures 5,000 in-process HTTP requests with isolated temporary data and prints median and 95th-percentile durations.
+
+`bun scripts/dry-run-latency.ts 20` measures the Admin dry-run POST through a loopback socket on
+port 5461, using disposable authorization fixture data and a custom-role grant removal. Each
+matrix size has one warm-up followed by 20 sequential requests; the JSON output includes median
+and p95 wall time through response consumption. The default sizes are 115 cases × 9 principals
+(1,035 cells) and twice those cases (2,070 cells). Duplication changes only the script's in-memory
+matrix; it does not change the checked-in matrix or expected answers. An optional run count and
+case multipliers select shorter probes, for example `bun scripts/dry-run-latency.ts 3 1`.
+`--profile` reports time and call count inside Cedar's WASM authorization entry point. For sampled
+stacks, use `bun --cpu-prof --cpu-prof-dir=out/dry-run scripts/dry-run-latency.ts --profile 3 1`.
+Keep profiling separate from the uninstrumented 20-run latency measurement.
+
+Bun 1.4 measurements compare `84642cb0` with lazy replay indexes at `0236adb6`. Each row uses one
+warm-up and 20 sequential POSTs on the named host. Compare results within a host.
+
+| Measurement host | Matrix cells | Before median / p95 (ms) | After median / p95 (ms) |
+| ---------------- | -----------: | -----------------------: | ----------------------: |
+| Local machine    |        1,035 |      2,466.99 / 3,106.11 |         239.62 / 262.02 |
+| Local machine    |        2,070 |      1,976.19 / 2,190.76 |         247.78 / 263.01 |
+| Dev server       |        1,035 |      7,028.60 / 7,219.57 |         859.63 / 950.51 |
+| Dev server       |        2,070 |      7,010.38 / 7,149.47 |         859.18 / 993.39 |
+
+The instrumented dev-server baseline spent 6,394.51 ms per POST in 4,702 Cedar calls, against a
+7,131.65 ms median POST. Repeated decisions dominated: matrix replay and people summaries asked
+equivalent action questions, including repeated readability checks. The corresponding optimized
+probe spends 706.86 ms in 463 Cedar calls, with an 889.83 ms median POST. The local optimized probe
+spends 202.70 ms in those 463 calls, with a 263.05 ms median POST. Instrumented probes use three
+requests after warm-up and are separate from the timing table.
+
+Validated policies own role-, principal-type- and resource-type-aware action classes, built on
+the first replay. Replay scopes reuse equivalent decisions and their readability checks;
+ordinary request scopes retain exact action keys. Prospective project creation has a separate
+key because it searches domain scopes. Before/after scopes can be shared only when the relevant
+principal, grants, custom roles, project visibility and client entry agree. Deactivated principals
+use separate replay scopes because Cedar still evaluates group ancestry. Arbitrary Cedar
+admin rules keep separate scopes and exact action classes. Policy preparation is reused only
+when the validated roles and admin rules match. Decision results remain confined to a scope,
+with refresh invalidation; there is no global request-result cache. Both sides of a comparison
+use the same default context, captured once from the active control. The scope factory takes that
+control and the proposal. Both sides use independent controls with the project list and context
+captured at the start, so a live policy reload cannot change an in-flight replay.
+
+The Admin browser wait is six seconds. The doubled-matrix dev-server p95 is 993.39 ms; the Admin
+browser suite at `0236adb6` observed a 4,336 ms peak on the conservative arbitrary-rule path,
+leaving about 1.7 seconds for rendering. That suite passed with a five-second wait before the
+additional headroom was added. Arbitrary-rule proposals are outside the subsecond grant-removal
+measurement above.
+
+Ordinary-path controls alternate the original and optimized sources in three paired rounds:
+original/optimized, optimized/original, original/optimized. Each boundary run uses the existing
+5,000-request benchmark and its 150 warm-ups. Each listing run uses the existing 30 requests per
+path after one warm-up at each project count. Both controls use isolated temporary data.
+The tables report the median of the three independently reported medians and p95s, rather than
+a percentile pooled across processes.
+
+| Measurement host | Boundary before median / p95 (ms) | Boundary after median / p95 (ms) |
+| ---------------- | --------------------------------: | -------------------------------: |
+| Local machine    |                     2.644 / 5.405 |                    2.614 / 5.326 |
+| Dev server       |                    8.728 / 18.542 |                   8.709 / 17.918 |
+
+| Measurement host | Projects | HTTP before → after median / p95 (ms) | Boundary before → after median / p95 (ms) | Tool before → after median / p95 (ms) |
+| ---------------- | -------: | ------------------------------------: | ----------------------------------------: | ------------------------------------: |
+| Local machine    |       10 |                 6.1 / 7.9 → 6.3 / 8.7 |                     5.7 / 7.1 → 6.0 / 7.5 |                 5.7 / 7.2 → 5.9 / 7.4 |
+| Local machine    |      100 |             49.6 / 57.5 → 47.4 / 52.8 |                 47.1 / 56.7 → 46.1 / 53.8 |             47.7 / 53.7 → 47.4 / 56.2 |
+| Local machine    |      120 |             55.5 / 63.6 → 55.0 / 65.2 |                 56.6 / 67.1 → 56.3 / 63.2 |             57.8 / 65.2 → 57.0 / 66.9 |
+| Local machine    |      200 |         109.7 / 118.4 → 105.4 / 115.7 |             106.5 / 116.2 → 102.9 / 114.5 |         106.7 / 115.2 → 108.1 / 115.2 |
+| Dev server       |       10 |             12.2 / 16.8 → 13.6 / 22.2 |                 13.1 / 20.1 → 12.6 / 20.1 |             12.5 / 17.5 → 12.8 / 17.9 |
+| Dev server       |      100 |          98.5 / 127.6 → 103.3 / 124.2 |              98.1 / 124.7 → 109.0 / 141.5 |         102.4 / 125.5 → 106.2 / 131.3 |
+| Dev server       |      120 |         126.7 / 170.5 → 122.6 / 146.1 |             129.2 / 160.0 → 118.6 / 143.4 |         126.7 / 159.6 → 126.4 / 160.4 |
+| Dev server       |      200 |         236.9 / 265.2 → 236.9 / 286.8 |             230.8 / 275.5 → 244.5 / 268.8 |         226.8 / 258.5 → 233.2 / 254.6 |
+
+Listing controls vary across runs: one local optimized 200-project HTTP run reached a 345.4 ms
+median and 704.3 ms p95, while the three-run HTTP median is 105.4 ms. Some listing cells and tails
+are higher after the change, so these controls do not establish a uniform listing speedup.
+A separate 200-project probe wraps `statefulIsAuthorized` and `policyToJson` before dynamically
+importing the listing script. Both versions make 93 Cedar decisions across 93 requests. Cedar
+sums 72.65 → 74.06 ms locally and 196.14 → 212.55 ms on the dev server. Ordinary requests make no
+`policyToJson` calls in either the original or final version. Building the replay index eagerly
+requires 18 such calls at construction, costing 4.99 ms locally and 16.36 ms on the dev server.
+Lazy construction keeps that work outside ordinary access boundaries.
+
+Cedar can emit simultaneous forbid IDs in different orders. Repeating the original replay at
+`84642cb0` with the last Admin removed produced five rule-array order differences, with identical
+decisions and rule IDs. Dry-run reports sort rule IDs lexicographically. The whole-matrix parity
+test compares rule IDs as multisets and all other response fields byte for byte against the original
+replay algorithm. Existing fixtures retain their original contents.
+
 `bun test tests/auth/http-characterization.test.ts` compares the original recorded route cases and audit records; preserve its fixture unchanged.
 The comparison asserts and removes only the additive published identity on project listings. New publication and preview routes have separate parity cases.
 For new operations, regenerate `policies/matrix-cases.json` with `bun scripts/generate-access-matrix.ts` and record the new HTTP cases with
@@ -472,6 +653,8 @@ Use `bun run test:addresses` for the real selection/rename browser proof and `bu
 for grammar, model, replay and permission mutants. The browser suite is included in the shared gate inventory and pipeline matrix.
 Use `bun test tests/item-address-operations.test.ts tests/address-operation-parity.test.ts` for inventoried
 address reads, HTTP/twin reconciliation replay and save/move/delete history parity.
+Run `bun scripts/mutation-tests.ts --address-history` for the focused side-difference and compile-input
+exclusion mutations. The integrated mutation gate also runs these cases.
 
 
 Correctness cases that load and save the mall metric fixture use a 30-second execution budget
@@ -484,3 +667,34 @@ Published snapshot measurements use `scripts/published-snapshot-performance-fixt
 their own frontend.
 The edge suite budgets 30 seconds for its initial model readiness on a cold frontend; its
 attachment and geometry checks retain their own limits.
+
+
+## Agent panel checks
+
+`bun test tests/acp/` covers protocol parsing, relay authentication, virtual paths, versioned
+file requests, authorization parity, session endings, audit and browser event reduction.
+`bun run build && bun run test:acp` serves the built frontend on loopback port 5418 against an
+isolated temporary workspace and the scripted `reference-agent` version 1.0.0. It checks actual
+conversation, edits, Undo, conflict, permission focus and cancellation in both themes at phone,
+tablet and desktop widths. `bun run test:acp -- --closed-only` checks that default screens make no
+panel requests. Waiting, conversation and permission screenshots are written to `out/acp/`.
+The script closes its browser, relay and server before exiting.
+
+`bun scripts/acp-reference-agent.ts <script.json>` runs the deterministic standard-input reference
+agent. Its turns contain message, task-list, read, write, permission, sleep and exit steps.
+`bun scripts/acp-mutants.ts` runs only the panel's fault candidates through the shared mutation
+case dispatcher; the full mutation suite includes the same candidates. Screenshots and the full
+integrated gate are separate from these feature checks.
+
+Browser sign-in checks measure from the first authentication navigation to the callback response.
+The callback must arrive in under five seconds. The server is already running and workspace
+readiness is checked separately.
+
+### Ontology mesh checks
+
+Run focused mesh tests with `bun test tests/mesh`. The isolated browser journey is
+`bun run test:mesh`. List the focused mutation cases with `bun scripts/mesh-mutants.ts --list`.
+
+The development server compiled the 200-part, 20-import, 20 MB fixture in 4,383 ms
+(`bun test tests/mesh/compile-scale.test.ts`). The test checks the measured compile time
+and validates the generated bundle.

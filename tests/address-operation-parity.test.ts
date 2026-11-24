@@ -4,7 +4,7 @@ import { createAccessControl } from '../src/server/auth/authorize';
 import { mintCaller } from '../src/server/auth/caller';
 import { buildTwinRequest } from '../src/server/auth/twin-request';
 import { readAddressMigrations } from '../src/server/projects/address-migrations';
-import { dataLayout, repoDir } from '../src/server/projects/paths';
+import { copyLayout, repoDir } from '../src/server/projects/paths';
 import { LOCAL_READER } from '../src/server/projects/reader';
 import { accessFixture, person } from './auth/access-fixture';
 import { readAs } from './auth/guard-cases';
@@ -26,6 +26,8 @@ async function exercise(twin: boolean, batch: boolean) {
   sh(repository, ['commit', '-qm', 'Add parity definition']);
   const access = createAccessControl(accessFixture());
   const principal = access.principalFor(person('alice'));
+  if (principal.kind !== 'person') throw new Error('Parity requires a person with a working copy.');
+  const layout = copyLayout(fixture.ws.layout, principal.key);
   const caller = mintCaller({ principal, origin: 'mcp' });
   const handler = createHandler(fixture.ws, { mode: 'server', access, principal: () => principal, publicOrigin: 'http://localhost', remoteCredentials: allowEveryRemote() });
   const invoke = async (id: string, params: Record<string, string>, body: unknown) => {
@@ -44,7 +46,7 @@ async function exercise(twin: boolean, batch: boolean) {
   expect((await readAs(fixture.ws, 'alice', project, path)).source).toBe(source.replace('Before', 'After'));
   const deleted = await save('name: Parity\nontology: [{concept: Keep}]\n', { deletedItems: [after] });
   expect(deleted.status, await deleted.clone().text()).toBe(200);
-  const history = () => readAddressMigrations(dataLayout(fixture.root), project, LOCAL_READER).map(({ kind, from, to }) => ({ kind, from, to }));
+  const history = () => readAddressMigrations(layout, project, LOCAL_READER).map(({ kind, from, to }) => ({ kind, from, to }));
   const savedHistory = history();
   expect(savedHistory).toEqual([
     { kind: 'item', from: before, to: after },

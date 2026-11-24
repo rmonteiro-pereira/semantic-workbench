@@ -1,0 +1,6 @@
+tessera: 4
+version: 0.2.0.dev0
+name: Retail
+ontology:
+  - concept: Order
+    type: EntityType

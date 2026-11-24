@@ -6,6 +6,13 @@ import { odcsReferenceIssues } from '../odcs/foreign-keys';
 import { contract, semantic } from '../../generated/validators.js';
 import { type Issue, rejectIssues, InputError, schemaErrorPath } from './diagnostics';
 import { metricLayerIssues, readKpiBindings } from '../metrics/extension';
+import { INCLUDES_PROPERTY } from '../tessera/additions/includes';
+import { IMPORTS_PROPERTY } from '../tessera/additions/imports';
+import { PART_PROPERTY } from '../tessera/additions/part';
+import { checkImports, type ProviderInterface } from '../tessera/imports';
+import { TesseraNames } from '../tessera/format';
+import { readMarker } from '../tessera/marker';
+import { tesseraIssues, withoutRepeatedSchemaFindings } from '../tessera/validate';
 /** The one Ossie schema version this app ships validators for. */
 export const OSSIE_SCHEMA_VERSION = '0.2.0.dev0';
 const object = (v: any) => v !== null && typeof v === 'object' && !Array.isArray(v);
@@ -42,10 +49,21 @@ function isOssieDocument(data: any) {
   const isContract = data.kind === 'DataContract' || data.apiVersion !== undefined || data.schema !== undefined;
   return !isContract && (data.ontology !== undefined || data.datasets !== undefined || data.semantic_model !== undefined || isMapping(data));
 }
+/** Returns a copy of a document without the Tessera marker, so the standard rules see only what is left. */
+function withoutMarker(data: Record<string, unknown>) {
+  const { [TesseraNames.markerKey]: _marker, ...rest } = data;
+  return rest;
+}
 /** Options that change how a document is checked. */
 export type ValidationOptions = {
   /** Check a file with an unknown Ossie version as if it declared the shipped version. */
   assumeOssieVersion?: boolean;
+  /** Supplies the existing bounded unit budget when validating a merged compiler output. */
+  maxDocumentBytes?: number;
+  /** Set when the document sits inside another one, so a key named like the Tessera marker is ordinary data. */
+  nested?: boolean;
+  /** Check imports against the interfaces already resolved for this caller. */
+  providerInterfaces?: readonly ProviderInterface[];
 };
 /** Checks structured definitions against schemas and semantic rules. */
 export function validateStructured(data: any, applyPinnedSchema = true, options: ValidationOptions = {}): Issue[] {
@@ -104,10 +122,26 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
     fail('/', 'Cyclic aliases or non-JSON scalar values are unsupported.', 'serialization');
     rejectIssues(issues);
   }
+  // A marked document is judged by the Tessera rules: its derived schema replaces the pinned one and it is never "not validated".
+  const marker = readMarker(data);
+  const marked = !options.nested && marker.family !== 'standard';
+  const unitRoot = marked && marker.family === 'tessera' && marker.revision === 3 && Array.isArray(data[INCLUDES_PROPERTY]) && data[INCLUDES_PROPERTY].length > 0;
+  const part = marked && marker.family === 'tessera' && marker.revision === 3 && Object.hasOwn(data, PART_PROPERTY);
+  const imported = marked && marker.family === 'tessera' && marker.revision === 3 && Array.isArray(data[IMPORTS_PROPERTY]) && data[IMPORTS_PROPERTY].length > 0;
+  const checkLocalReferences = !part && !unitRoot && !imported;
+  if (marked) {
+    issues.push(...tesseraIssues(data).issues);
+    if (imported && options.providerInterfaces) {
+      const unit = { root: { path: 'ontology', data }, parts: [] };
+      issues.push(...checkImports(unit, options.providerInterfaces).findings);
+    }
+    if (data.ontology !== undefined) applyPinnedSchema = false;
+    else data = withoutMarker(data);
+  }
   // The notice goes last so the findings that block a save stay first.
   let notice: Issue | null = null;
   // Mapping files keep their strict schema, which names the one version the agent runtime reads.
-  if (applyPinnedSchema && isOssieDocument(data) && !isMapping(data) && data.version !== OSSIE_SCHEMA_VERSION) {
+  if (!marked && applyPinnedSchema && isOssieDocument(data) && !isMapping(data) && data.version !== OSSIE_SCHEMA_VERSION) {
     if (options.assumeOssieVersion) {
       data = { ...data, version: OSSIE_SCHEMA_VERSION };
     } else {
@@ -160,7 +194,7 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
     }
     for (const issue of odcsReferenceIssues(data)) fail(issue.path, issue.message, 'reference');
   } else if (data.ontology !== undefined) {
-    const xs = arr(data.ontology, '/ontology', true);
+    const xs = arr(data.ontology, '/ontology', !unitRoot);
     const names = named(xs, '/ontology', 'concept');
     const parents = new Map<string, string[]>();
     const iris = new Map<string, string>();
@@ -174,7 +208,7 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
       if (!str(value, pointer)) return;
       const iri = expandIri(value as string, prefixes);
       if ('error' in iri) {
-        fail(pointer, iri.error);
+        if (!part || !iri.error.startsWith('Prefix ')) fail(pointer, iri.error);
         return;
       }
       return iri.iri;
@@ -194,7 +228,8 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
       const ps = arr(x.extends, path + '/extends');
       parents.set(x.concept, ps.filter(text));
       ps.forEach((parent, j) => {
-        if (str(parent, `${path}/extends/${j}`) && !names.has(parent) && !OSSIE_BUILTINS.has(parent)) fail(`${path}/extends/${j}`, `Unknown parent concept "${parent}".`, 'reference');
+        if (str(parent, `${path}/extends/${j}`) && checkLocalReferences && !names.has(parent) && !OSSIE_BUILTINS.has(parent))
+          fail(`${path}/extends/${j}`, `Unknown parent concept "${parent}".`, 'reference');
       });
       const rs = arr(x.relationships, path + '/relationships');
       named(rs, path + '/relationships');
@@ -203,7 +238,13 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
         const relationshipPath = `${path}/relationships/${j}`;
         if (relationship.iri !== undefined) identifier(relationship.iri, relationshipPath + '/iri');
         arr(relationship.roles, relationshipPath + '/roles').forEach((role, index) => {
-          if (obj(role, `${relationshipPath}/roles/${index}`) && str(role.concept, `${relationshipPath}/roles/${index}/concept`) && !names.has(role.concept) && !OSSIE_BUILTINS.has(role.concept))
+          if (
+            obj(role, `${relationshipPath}/roles/${index}`) &&
+            str(role.concept, `${relationshipPath}/roles/${index}/concept`) &&
+            checkLocalReferences &&
+            !names.has(role.concept) &&
+            !OSSIE_BUILTINS.has(role.concept)
+          )
             fail(`${relationshipPath}/roles/${index}/concept`, `Unknown concept "${role.concept}". Define it before importing.`, 'reference');
         });
         arr(relationship.verbalizes, relationshipPath + '/verbalizes').forEach((v, k) => str(v, `${relationshipPath}/verbalizes/${k}`));
@@ -219,7 +260,7 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
       if (!schemaIssues.length)
         try {
           issues.push(
-            ...validateStructured(embeddedMapping.semantic_model, false).map(issue => ({
+            ...validateStructured(embeddedMapping.semantic_model, false, { nested: true }).map(issue => ({
               ...issue,
               path: prefix + '/semantic_model' + issue.path,
             })),
@@ -324,6 +365,7 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
         path: schemaErrorPath(error) || '/',
         message: error.message ?? 'Schema violation.',
       });
+  if (marked) issues.splice(0, issues.length, ...withoutRepeatedSchemaFindings(issues));
   if (notice) issues.push(notice);
   rejectIssues(issues);
   return issues;

@@ -23,6 +23,10 @@ import { useNeighborhoodViewport } from './useNeighborhoodViewport';
 import { NeighborhoodLinks, NeighborhoodTools } from './NeighborhoodToolbar';
 import { NODE, useNeighborhoodNodes } from './useNeighborhoodNodes';
 import { useNeighborhoodView } from './useNeighborhoodView';
+import { TrafficMark } from '../usage/TrafficMark';
+import { TrafficLegend } from '../usage/TrafficLegend';
+import { entityAddressText } from '../usage/usage-addresses';
+import { bundleTraffic, scopeDocument, useTraffic } from '../usage/use-usage';
 // Incoming neighbors appear left of the center and outgoing neighbors right. Navigation history
 // also records steps into other project files.
 /** Identifies a navigation target in another project document. */
@@ -74,6 +78,9 @@ const COLORS = {
 };
 function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
   const { docId, entities: all, edges: allEdges, search, walk, selected, selectedEdge, kpiBadges, groupColorOf } = props;
+  const trafficSnapshot = useTraffic();
+  const traffic = trafficSnapshot.on ? trafficSnapshot : null;
+  const trafficOn = traffic !== null;
   const trail = useRef<HTMLOListElement>(null);
   const actionHistory = useActionHistory();
   const [hideKpis, setHideKpis] = useRecordedState('neighborhood.hideKpis', false);
@@ -291,6 +298,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
                   )}
                 </small>
                 <EntityName name={entity.name} />
+                {'change' in entity && typeof entity.change === 'string' && <span className="item-change-mark item-change-dashed">Not published: {entity.change}</span>}
                 <span title={entity.description || undefined}>
                   {entity.fields.length ? `${entity.fields.length} ${entity.fields.length === 1 ? 'field' : 'fields'}` : entity.description || 'Select to inspect'}
                 </span>
@@ -354,12 +362,13 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
                     </button>
                   )}
                 </div>
+                {trafficOn && <TrafficMark address={entityAddressText(entity)} />}
               </div>
             ),
           },
         };
       }),
-    [nodes, center, previous, selected, kpiBadges, groupColorOf, view, canvasState, pierceSet, minHeights],
+    [nodes, center, previous, selected, kpiBadges, groupColorOf, view, canvasState, pierceSet, minHeights, trafficOn],
   );
   // Labels and the center description compensate for zoom so framing more neighbors keeps them legible.
   const zoomWatch = useFarZoom();
@@ -387,53 +396,57 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
       ),
     [shownLabels.map(g => g.id).join('|'), routes, boxes, labelScale],
   );
-  const renderedIds = new Set(nodes.map(n => n.id));
-  const visibleEdges = groups
-    .filter(g => renderedIds.has(g.source) && renderedIds.has(g.target))
-    .map(edgeGroup => {
-      const active = edgeGroup.data.relationships.some(r => r.id === selectedEdge);
-      let kind: 'out' | 'in' | 'lateral';
-      if (edgeGroup.source === center && edgeGroup.target !== center) {
-        kind = 'out';
-      } else if (edgeGroup.target === center && edgeGroup.source !== center) {
-        kind = 'in';
-      } else if (edgeGroup.source === center) {
-        kind = 'out';
-      } else {
-        kind = 'lateral';
-      }
-      const color = COLORS[kind as keyof typeof COLORS];
-      let strokeWidth: number;
-      if (active) {
-        strokeWidth = 2.6;
-      } else if (kind === 'lateral') {
-        strokeWidth = 1.1;
-      } else {
-        strokeWidth = 1.5;
-      }
-      return {
-        ...edgeGroup,
-        type: 'relationship',
-        data: {
-          ...edgeGroup.data,
-          route: routes.get(edgeGroup.id),
-          direction: kind,
-          labelAt: labelAt.get(edgeGroup.id),
-          labelScale,
-        },
-        label: labels || active || hovered === edgeGroup.id ? labelText(edgeGroup) : undefined,
-        selected: active,
-        interactionWidth: 24,
-        markerEnd: { type: MarkerType.ArrowClosed, color, width: 14, height: 14 },
-        className: `edge-${kind}`,
-        style: {
-          stroke: color,
-          strokeOpacity: kind === 'lateral' ? 0.55 : 0.85,
-          strokeWidth,
-          strokeDasharray: kind === 'lateral' ? '5 4' : undefined,
-        },
-      };
-    });
+  const visibleEdges = useMemo(() => {
+    const trafficDocument = traffic ? scopeDocument(traffic) : null;
+    const renderedIds = new Set(nodes.map(n => n.id));
+    return groups
+      .filter(g => renderedIds.has(g.source) && renderedIds.has(g.target))
+      .map(edgeGroup => {
+        const active = edgeGroup.data.relationships.some(r => r.id === selectedEdge);
+        let kind: 'out' | 'in' | 'lateral';
+        if (edgeGroup.source === center && edgeGroup.target !== center) {
+          kind = 'out';
+        } else if (edgeGroup.target === center && edgeGroup.source !== center) {
+          kind = 'in';
+        } else if (edgeGroup.source === center) {
+          kind = 'out';
+        } else {
+          kind = 'lateral';
+        }
+        const color = COLORS[kind as keyof typeof COLORS];
+        let strokeWidth: number;
+        if (active) {
+          strokeWidth = 2.6;
+        } else if (kind === 'lateral') {
+          strokeWidth = 1.1;
+        } else {
+          strokeWidth = 1.5;
+        }
+        return {
+          ...edgeGroup,
+          type: 'relationship',
+          data: {
+            ...edgeGroup.data,
+            route: routes.get(edgeGroup.id),
+            direction: kind,
+            labelAt: labelAt.get(edgeGroup.id),
+            labelScale,
+            ...(traffic ? { traffic: bundleTraffic(traffic, edgeGroup.data.relationships, trafficDocument) } : {}),
+          },
+          label: labels || active || hovered === edgeGroup.id ? labelText(edgeGroup) : undefined,
+          selected: active,
+          interactionWidth: 24,
+          markerEnd: { type: MarkerType.ArrowClosed, color, width: 14, height: 14 },
+          className: `edge-${kind}`,
+          style: {
+            stroke: color,
+            strokeOpacity: kind === 'lateral' ? 0.55 : 0.85,
+            strokeWidth,
+            strokeDasharray: kind === 'lateral' ? '5 4' : undefined,
+          },
+        };
+      });
+  }, [nodes, groups, selectedEdge, center, routes, labelAt, labelScale, traffic, labels, hovered]);
   const { canvas, measured, fitted, setFitted, fitRef, fitPrompt, zoomIn, zoomOut } = useNeighborhoodViewport({
     nodes,
     center,
@@ -583,8 +596,28 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
           </div>
         ) : (
           <ReactFlow
-            nodes={rendered}
-            edges={visibleEdges}
+            nodes={rendered.map(node => {
+              const imported = view.entities.find(entity => entity.id === node.id)?.imported;
+              if (!imported) return node;
+              return {
+                ...node,
+                data: {
+                  ...node.data,
+                  label: (
+                    <div className="mesh-neighborhood-imported">
+                      {node.data.label}
+                      <small className="mesh-imported-origin">
+                        Imported from {imported.project} · {imported.version.slice(0, 12)}
+                      </small>
+                    </div>
+                  ),
+                },
+              };
+            })}
+            edges={visibleEdges.map(edge => {
+              const usesImport = byId.get(edge.source)?.imported || byId.get(edge.target)?.imported;
+              return usesImport ? { ...edge, data: { ...edge.data, imported: true } } : edge;
+            })}
             edgeTypes={relationshipEdgeTypes}
             minZoom={0.05}
             maxZoom={2}
@@ -618,6 +651,7 @@ function NeighborhoodCanvas(props: NeighborhoodGraphProps) {
           </ReactFlow>
         )}
       </div>
+      <TrafficLegend />
     </div>
   );
 }

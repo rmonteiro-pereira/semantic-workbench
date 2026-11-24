@@ -15,10 +15,12 @@ import { DiffPane } from './DiffPane';
 import { SyncCounters } from './SyncCounters';
 import { useRemoteActions, type Note } from './useRemoteActions';
 import { BranchPicker } from './BranchPicker';
-import { SyncDialog } from './SyncDialog';
+import { PublicationDependencies } from './DefaultBranchActions';
+import { ConfirmPublish, SyncDialog } from './SyncDialog';
 import { RemoteActions } from './RemoteActions';
 import { changesOfProject, elsewhereLine } from './project-changes';
 import { PublishedSnapshot } from './PublishedSnapshot';
+import { ProposalsSection } from '../proposals/ProposalsSection';
 import './scm.css';
 import { usePhoneScreen } from '../workspace/hooks/useNarrowScreen';
 
@@ -104,6 +106,7 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
   const [busy, setBusy] = useState(false);
   const [ignoring, setIgnoring] = useState<string | null>(null);
   const [syncOpen, setSyncOpen] = useState(false);
+  const [localPublishOpen, setLocalPublishOpen] = useState(false);
   const openGitSetup = useGitSetup();
   const [historyFile, setHistoryFile] = useState<string | undefined>(historyPath);
   const [log, setLog] = useState<Commit[]>([]);
@@ -273,7 +276,15 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
     }
     return true;
   }
-  const { reportRemote, pullDefault, pushDefault, publishCopy, fromSync } = useRemoteActions({ project, act, guard, altered, setNote, setError, setSyncOpen });
+  const { reportRemote, pullDefault, pushDefault, publishCopy, fromSync } = useRemoteActions({
+    project,
+    act,
+    guard,
+    altered,
+    setNote,
+    setError,
+    setSyncOpen,
+  });
   function acknowledgePublication() {
     void act(() => scm.acknowledgePublication(project));
   }
@@ -435,10 +446,11 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
           local={!!access.local}
           canPublish={access.can('publish')}
           busy={busy}
-          onPublish={publishCopy}
+          onPublish={() => setLocalPublishOpen(true)}
           onAdopt={adoptPublication}
           onAcknowledge={acknowledgePublication}
         />
+        <ProposalsSection project={project} projects={projects} version={version + tick} />
         <div className="scm-remote">
           {remoteNames.length ? (
             <span className="scm-remote-url" title={status.remotes[remoteNames[0]]}>
@@ -507,6 +519,7 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
             onPull={() => void remote('pull')}
           />
         )}
+        {access.can('edit') && error.includes('Use Update dependencies') && <PublicationDependencies project={project} onUpdated={() => setError('')} />}
         {status.merging && !note && (
           <p className="scm-note warning">
             <AlertTriangle size={14} />
@@ -595,6 +608,18 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
           </ol>
         </section>
       </div>
+      {localPublishOpen && (
+        <ConfirmPublish
+          project={project}
+          target={status.published && status.published.state !== 'none' ? status.published.branch : 'the default branch'}
+          branch={status.branch}
+          onCancel={() => setLocalPublishOpen(false)}
+          onConfirm={disclosureShown => {
+            setLocalPublishOpen(false);
+            void publishCopy(disclosureShown);
+          }}
+        />
+      )}
       {syncOpen && (
         <SyncDialog
           project={project}
@@ -603,7 +628,7 @@ export function SourceControl({ projects, project, version, unsaved, historyPath
           busy={busy}
           onClose={() => setSyncOpen(false)}
           onPullDefault={() => fromSync(pullDefault)}
-          onPublish={() => fromSync(publishCopy)}
+          onPublish={disclosureShown => fromSync(() => publishCopy(disclosureShown))}
           onPushDefault={() => fromSync(pushDefault)}
         />
       )}

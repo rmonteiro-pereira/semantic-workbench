@@ -24,6 +24,18 @@ export function GraphOptions({
   );
 }
 
+import { OverlayControl } from '../item-diff/OverlayControl';
+
+/** Includes the unpublished comparison controls in a model graph toolbar. */
+export function ModelGraphOptions({ children }: { children: React.ReactNode }) {
+  return (
+    <GraphOptions>
+      {children}
+      <OverlayControl />
+    </GraphOptions>
+  );
+}
+
 /** One group of related controls, separated from its neighbors in the toolbar. */
 export function OptionGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -74,4 +86,9 @@ export function Segmented<Value extends string>({
       ))}
     </span>
   );
+}
+
+/** Explains the imported graph marks when a model has imports. */
+export function ImportedGraphKey() {
+  return <span className="mesh-imported-key">Imported concepts show their owner and version</span>;
 }

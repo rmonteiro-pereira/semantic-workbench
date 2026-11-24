@@ -1,3 +1,5 @@
+import { AgentProgramsSection } from './AgentProgramsSection';
+import { AgentConnectionsSection } from './AgentConnectionsSection';
 import { ArrowLeft } from 'lucide-react';
 import type { ComponentType } from 'react';
 import { PersonMenu } from '../auth/PersonMenu';
@@ -16,6 +18,8 @@ import { UsersSection } from './UsersSection';
 import './admin.css';
 
 const sectionViews: Record<AdminSectionId, ComponentType> = {
+  'agent-programs': AgentProgramsSection,
+  'agent-connections': AgentConnectionsSection,
   grants: () => <RolesAccessSection view="grants" />,
   roles: () => <RolesAccessSection view="roles" />,
   users: UsersSection,

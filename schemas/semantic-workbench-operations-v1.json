@@ -6,9 +6,19 @@
   "additionalProperties": false,
   "required": [
     "operations",
-    "browserCapabilities"
+    "browserCapabilities",
+    "contentGuardActions"
   ],
   "properties": {
+    "contentGuardActions": {
+      "type": "object",
+      "required": ["item-status", "item-body"],
+      "additionalProperties": false,
+      "properties": {
+        "item-status": { "const": "approveOntologyItem" },
+        "item-body": { "const": "approveOntologyItem" }
+      }
+    },
     "operations": {
       "type": "object",
       "minProperties": 1,
@@ -60,7 +70,8 @@
               "creationDomain",
               "remoteAddress",
               "trashTarget",
-              "bodyTargets"
+              "bodyTargets",
+              "authorizeProposal"
             ]
           }
         },
@@ -83,11 +94,14 @@
                 "IMPORT_REQUEST_LIMIT",
                 "METRIC_REQUEST_LIMIT",
                 "ITEM_ADDRESS_REQUEST_LIMIT",
+                "ITEM_DIFF_QUERY_LIMIT",
                 "GROUPING_REQUEST_LIMIT",
                 "DRAFT_REQUEST_LIMIT",
                 "TRASH_REQUEST_LIMIT",
                 "ADMIN_REQUEST_LIMIT",
-                "BROWSER_REPORT_REQUEST_LIMIT"
+                "BROWSER_REPORT_REQUEST_LIMIT",
+                "OAUTH_REQUEST_LIMIT",
+                "AGENT_PANEL_REQUEST_LIMIT"
               ]
             },
             "response": {
@@ -192,6 +206,9 @@
               }
             }
           ]
+        },
+        "usage": {
+          "const": true
         },
         "outcomeClassifier": {
           "enum": [

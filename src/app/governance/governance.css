@@ -1,0 +1,78 @@
+/* Governance of an item in the details panel. Status is a word and a shape; text wraps and is never cut. */
+.governance-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.governance-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+.status-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-small);
+  font-weight: 600;
+}
+.status-word {
+  overflow-wrap: anywhere;
+}
+.status-shape {
+  flex: none;
+}
+.status-filled .status-shape {
+  color: var(--color-success);
+}
+.status-outlined .status-shape {
+  color: var(--color-info);
+}
+.status-struck .status-shape {
+  color: var(--color-danger);
+}
+.status-dashed .status-shape {
+  color: var(--color-neutral-strong);
+}
+.status-struck .status-word {
+  text-decoration: line-through;
+}
+.governance-values {
+  display: grid;
+  grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
+  gap: 2px 10px;
+  margin: 0;
+  font-size: var(--text-small);
+}
+.governance-values dt {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+.governance-values dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.governance-fields {
+  grid-template-columns: minmax(0, 1fr);
+}
+.governance-placeholder {
+  min-height: 3em;
+  margin: 0;
+  color: var(--color-text-muted);
+}
+.governance-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.governance-error p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}

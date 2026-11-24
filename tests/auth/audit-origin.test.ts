@@ -19,6 +19,11 @@ export const attributedInput: AuditInput = {
   origin: 'mcp',
   tool: 'projects.list',
   connection: 'connection_1-A',
+  method: 'tools/call',
+  clientLabel: 'reference client',
+  result: 'ok',
+  disclosureShown: true,
+  proposal: { proposal: 'reviewed-change', projects: ['sales'], commits: ['b'.repeat(40)] },
   publication: { previous: 'a'.repeat(40), commit: 'b'.repeat(40) },
   snapshot: { grants: ['grant'], roles: ['reader'], groups: ['group'], emailMatched: false, resourceAttrs: { type: 'project', project: 'sales' } },
 };
@@ -28,6 +33,7 @@ test('attribution accepts the fixed vocabularies and HTTP remains implicit', asy
   const audit = createAuditLog({ dir: join(fixture.root, 'origins') });
   expect(audit.append(attributedInput)).toMatchObject(attributedInput);
   expect(audit.append({ ...attributedInput, origin: 'mcp' }).origin).toBe('mcp');
+  expect(audit.append({ ...attributedInput, origin: 'acp' }).origin).toBe('acp');
   expect(audit.append({ ...attributedInput, origin: 'http' }).origin).toBeUndefined();
 });
 
@@ -37,7 +43,19 @@ test('invalid attribution writes neither a record nor a mirror anchor', async ()
   let now = new Date('2026-01-31T23:00:00Z');
   const audit = createAuditLog({ dir: join(fixture.root, 'invalid-origin'), now: () => now, mirror: line => mirrored.push(line) });
   audit.append(attributedInput);
-  const cases = [{ origin: 'browser' }, { origin: null }, { tool: 'unknown.tool' }, { tool: '/api/projects' }, { connection: '' }, { connection: 'a/b' }, { connection: 'a'.repeat(65) }];
+  const cases = [
+    { origin: 'browser' },
+    { origin: null },
+    { tool: 'unknown.tool' },
+    { tool: '/api/projects' },
+    { connection: '' },
+    { connection: 'a/b' },
+    { connection: 'a'.repeat(65) },
+    { method: 'resources/read' },
+    { clientLabel: 'x'.repeat(65) },
+    { clientLabel: 'line\nbreak' },
+    { result: 'maybe' },
+  ];
   now = new Date('2026-02-01T00:00:00Z');
   for (const invalid of cases) expect(() => audit.append({ ...attributedInput, ...invalid } as AuditInput)).toThrow('Invalid audit');
   expect(audit.entries('2026-02')).toEqual([]);

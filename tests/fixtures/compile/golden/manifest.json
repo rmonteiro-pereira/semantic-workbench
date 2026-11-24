@@ -1,0 +1,107 @@
+{
+  "base": {
+    "label": "valid against the bundled Ossie 0.2.0.dev0 draft",
+    "version": "0.2.0.dev0"
+  },
+  "compiler": {
+    "name": "tessera",
+    "version": "1.1.0"
+  },
+  "inputs": [
+    {
+      "path": "finance/revenue-recognition.odcs.yaml",
+      "sha256": "152f0294ec1f928e1ad3417e915c6a0f9d7d083ad371905ec08c1ea0770b3f21",
+      "treatment": "not-included"
+    },
+    {
+      "path": "orders.odcs.yaml",
+      "sha256": "4a78181ff3dda87592465d3d6c862033b0a54468de10c79d1cdc5e2cc03348b8",
+      "treatment": "not-included"
+    },
+    {
+      "path": "people.mapping.yaml",
+      "sha256": "1561eb5ba6f9794b8840c86ac3d6cffae33fa8625e5e92901fefa99d5dc616e1",
+      "treatment": "copied"
+    },
+    {
+      "path": "reference.ontology.yaml",
+      "sha256": "3a40093f197d295ad9de86eb6630fcb89a6c3f267271901f350b772d49701046",
+      "treatment": "copied"
+    },
+    {
+      "path": "retail.contract.odcs.yaml",
+      "sha256": "871580fccd4762a5426186f1765bcb412d615f130ef5374c4e2669d07ee543dc",
+      "treatment": "not-included"
+    },
+    {
+      "path": "retail.mapping.yaml",
+      "sha256": "8a52218cbeb06634c33642a79f2e6054d009414abaeb7c733c17e4e84a3637f7",
+      "treatment": "copied"
+    },
+    {
+      "path": "retail.ontology.yaml",
+      "sha256": "6b14b0a5019726391c5afc683cadf7a5290b3a346783cc92df1cbd7ff29a3758",
+      "treatment": "compiled"
+    },
+    {
+      "path": "retail.semantic.yaml",
+      "sha256": "652a253bd806b1219aa39bc41465257d78a3c0a402de439b265e099058dc2ec7",
+      "treatment": "copied"
+    },
+    {
+      "path": "sales.mapping.yaml",
+      "sha256": "69759f2fa971b107a0db2b77cc5d3f267f9acfaed7b06dd6aed9c66c20aa62b3",
+      "treatment": "copied"
+    },
+    {
+      "path": "sales.semantic.yaml",
+      "sha256": "3db7e0fe565948eff82aeaa8fd571ce89b504211a1ba8f33dd58d3f1d0a53ee0",
+      "treatment": "copied"
+    }
+  ],
+  "loss": {
+    "accepted": "digest",
+    "digest": "sha256:50d05567e4a3b05f67a00c20c2a6253f742581750685fc9ec1f10613f5d726fb"
+  },
+  "lossPolicySha256": null,
+  "manifestVersion": 1,
+  "outputs": [
+    {
+      "path": "people.mapping.yaml",
+      "sha256": "1561eb5ba6f9794b8840c86ac3d6cffae33fa8625e5e92901fefa99d5dc616e1"
+    },
+    {
+      "path": "reference.ontology.yaml",
+      "sha256": "3a40093f197d295ad9de86eb6630fcb89a6c3f267271901f350b772d49701046"
+    },
+    {
+      "path": "retail.mapping.yaml",
+      "sha256": "8a52218cbeb06634c33642a79f2e6054d009414abaeb7c733c17e4e84a3637f7"
+    },
+    {
+      "path": "retail.ontology.yaml",
+      "sha256": "d80583e168b596b63d9f1feda35e3d66fdd3c90e17e81a8500a0e8ca098dcd52"
+    },
+    {
+      "path": "retail.semantic.yaml",
+      "sha256": "652a253bd806b1219aa39bc41465257d78a3c0a402de439b265e099058dc2ec7"
+    },
+    {
+      "path": "sales.mapping.yaml",
+      "sha256": "69759f2fa971b107a0db2b77cc5d3f267f9acfaed7b06dd6aed9c66c20aa62b3"
+    },
+    {
+      "path": "sales.semantic.yaml",
+      "sha256": "3db7e0fe565948eff82aeaa8fd571ce89b504211a1ba8f33dd58d3f1d0a53ee0"
+    }
+  ],
+  "source": {
+    "branch": "main",
+    "commit": "<commit>",
+    "kind": "published-snapshot",
+    "projectFolder": "."
+  },
+  "tesseraRevisions": [
+    1
+  ]
+}

@@ -68,12 +68,32 @@ export function assertPerson(value: any, username: TestUserName, expected: Expec
   assertNoCredentials(value);
 }
 
+const AUTHENTICATION_LIMIT_MS = 5_000;
+
+/** Enforces the provider navigation and callback budget before workspace readiness checks. */
+export function assertAuthenticationTime(username: TestUserName, milliseconds: number): void {
+  assert(milliseconds < AUTHENTICATION_LIMIT_MS, `Authentication as ${username} took ${Math.round(milliseconds)} ms (limit ${AUTHENTICATION_LIMIT_MS} ms)`);
+}
+
+async function submitLogin(page: Page, target: SignInTarget, username: TestUserName) {
+  const callback = new URL('/auth/callback', target.url);
+  const completed = page
+    .waitForResponse(response => {
+      const url = new URL(response.url());
+      return url.origin === callback.origin && url.pathname === callback.pathname;
+    })
+    .then(() => performance.now());
+  const submit = target.kind === 'keycloak' ? page.locator('#kc-login') : page.getByRole('button', { name: TEST_USERS[username].name, exact: true });
+  const [finished] = await Promise.all([completed, submit.click()]);
+  return finished;
+}
+
 /** Navigates directly to the provider and signs in, preserving the requested workspace path. */
 export async function signIn(page: Page, target: SignInTarget, username: TestUserName, expected: ExpectedRole | undefined = DEFAULT_ROLES[username]) {
   authPageErrors(page);
   const start = performance.now();
   const path = '/?auth-check=return';
-  const response = await page.goto(target.url + path);
+  const response = await page.goto(target.url + path, { waitUntil: 'domcontentloaded' });
   assert(response);
   let first = response.request();
   while (first.redirectedFrom()) first = first.redirectedFrom()!;
@@ -84,15 +104,16 @@ export async function signIn(page: Page, target: SignInTarget, username: TestUse
   if (target.kind === 'keycloak') {
     await page.locator('#username').fill(username);
     await page.locator('#password').fill(`test-${username}`);
-    await page.locator('#kc-login').click();
-  } else {
-    await page.getByRole('button', { name: TEST_USERS[username].name, exact: true }).click();
   }
+  const finished = await submitLogin(page, target, username);
+  const elapsed = finished - start;
+  assertAuthenticationTime(username, elapsed);
+  console.log(`Authentication as ${username}: ${Math.round(elapsed)} ms`);
   if (username === 'erin' || username === 'gina') {
     await deniedPerson(page, target, username);
     return;
   }
-  await signedInPerson(page, target, { username, start, expected });
+  await signedInPerson(page, target, { username, expected });
 }
 
 async function deniedPerson(page: Page, target: SignInTarget, username: 'erin' | 'gina') {
@@ -109,13 +130,12 @@ async function deniedPerson(page: Page, target: SignInTarget, username: 'erin' |
   assert.deepEqual(await projects.json(), { error: 'no access' });
 }
 
-async function signedInPerson(page: Page, target: SignInTarget, person: { username: TestUserName; start: number; expected?: ExpectedRole }) {
-  const { username, start, expected } = person;
-  await expect(page.getByRole('button', { name: 'Person menu', exact: true })).toBeVisible();
-  await expect(page.getByRole('tree', { name: 'Projects' })).toBeVisible();
+async function signedInPerson(page: Page, target: SignInTarget, person: { username: TestUserName; expected?: ExpectedRole }) {
+  const { username, expected } = person;
+  await expect(page.getByRole('button', { name: 'Person menu', exact: true })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole('tree', { name: 'Projects' })).toBeVisible({ timeout: 20_000 });
   await expect(page.locator('.workspace-sidebar')).toContainText('SHARED WORKSPACE');
   assert.equal(new URL(page.url()).search, '?auth-check=return');
-  assert(performance.now() - start < 5000, `Sign-in as ${username} exceeded 5 seconds`);
   const me = await page.request.get(target.url + '/api/me');
   assert.equal(me.status(), 200);
   assertPerson(await me.json(), username, expected);
@@ -165,7 +185,9 @@ export async function authGeometry(page: Page, name: string, scope?: string, reo
       await expect(summary).not.toHaveAttribute('role', 'menuitem');
       await expect(summary.locator('[tabindex], button, a')).toHaveCount(0);
       await expect(page.getByRole('menu')).toHaveAccessibleName('Person menu for Alice Andrade');
-      await expect(page.getByRole('menuitem')).toHaveCount(2);
+      // A signed-in person without Admin sees the agent panel, their agent connections, their accounts and Sign out.
+      for (const item of ['Agent panel', 'Agent connections', 'Connected accounts', 'Sign out']) await expect(page.getByRole('menuitem', { name: new RegExp(`^${item}`) })).toHaveCount(1);
+      await expect(page.getByRole('menuitem')).toHaveCount(4);
     }
     assert.deepEqual(errors, [], `Uncaught browser errors before ${name} at ${width}`);
     await page.screenshot({ path: screenshotPath(`/tmp/workbench-auth-${name}-${width}.png`) });

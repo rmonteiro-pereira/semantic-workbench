@@ -9,7 +9,9 @@ import { testWorkspace } from '../helpers/temp-data-dir';
 test('every example resolves to its own row and every row has an example', () => {
   expect(routeExamples).toHaveLength(ROUTE_ACTIONS.length);
   routeExamples.forEach((example, index) => {
-    expect(routeFor(example.method, example.path, 'server')?.row).toBe(ROUTE_ACTIONS[index]);
+    // A local-only row is invisible to server mode, so its example resolves in local mode.
+    const found = routeFor(example.method, example.path, 'server') ?? routeFor(example.method, example.path, 'local');
+    expect(found?.row).toBe(ROUTE_ACTIONS[index]);
   });
 });
 function assertRouteCoverage(text: string, file = 'synthetic.ts'): void {
@@ -73,8 +75,11 @@ test('every implemented inventory example reaches a route in local mode', async 
   using workspace = await testWorkspace();
   for (const example of routeExamples) {
     // Public rows reserve handlers for the later authentication and health work.
-    const row = routeFor(example.method, example.path, 'server')!.row;
-    if (row.public || row.serverOnly) continue;
+    const row = (routeFor(example.method, example.path, 'server') ?? routeFor(example.method, example.path, 'local'))!.row;
+    // The local agent transport is mounted only with a capability and has its own tests under tests/mcp.
+    if (row.public || row.serverOnly || row.localOnly) continue;
+    // The agent panel is mounted only with its prerequisites, and tests/acp/mount.test.ts covers both cases.
+    if (example.path.startsWith('/api/acp/')) continue;
     const controller = new AbortController();
     const request = new Request('http://localhost' + example.path, {
       method: example.method,

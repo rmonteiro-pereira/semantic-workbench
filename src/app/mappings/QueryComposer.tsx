@@ -1,5 +1,6 @@
 /** Dialog that composes a governed query from mapped metrics and fields, and previews its SQL. */
 import React, { useMemo, useState } from 'react';
+import { metricGovernanceOf } from '../../shared/governance/item-governance';
 import type { RuntimeContext } from '../../server/agent/runtime';
 import { Modal } from '../projects/Modal';
 import { SqlCode } from '../sql/SqlCode';
@@ -13,6 +14,13 @@ function formulaOf(metric: Metric) {
   const dialects: { dialect: string; expression: string }[] = metric.definition?.expression?.dialects ?? [];
   const ansi = dialects.find(entry => entry.dialect === 'ANSI_SQL');
   return ansi?.expression ?? 'No ANSI_SQL expression';
+}
+
+function MetricStatus({ metric }: { metric: Metric }) {
+  const { status } = metricGovernanceOf(metric.definition);
+  if (status === 'approved') return null;
+  if (!status) return <span>Status not set</span>;
+  return <span>Not approved: {status}</span>;
 }
 
 type Props = {
@@ -70,6 +78,7 @@ export function QueryComposer(props: Props) {
             <label key={metric.id}>
               <input type="checkbox" aria-label={`Metric ${metric.name}`} checked={props.metrics.includes(metric.id)} onChange={() => props.onToggleMetric(metric.id)} />
               {metric.name}
+              <MetricStatus metric={metric} />
               <code>{formulaOf(metric)}</code>
             </label>
           ))}

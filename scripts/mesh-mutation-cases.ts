@@ -1,0 +1,111 @@
+/** Identifies one decision and the focused test which must reject a changed implementation. */
+export type MeshMutant = { name: string; source: string; before: string; after: string; test: string };
+
+/** Faults exercised through the existing mesh tests. */
+export const meshMutants: readonly MeshMutant[] = [
+  {
+    name: 'missing part',
+    source: 'src/shared/tessera/unit-structure.ts',
+    before: "else if (!part) findings.push(issue('tessera-include-missing'",
+    after: "else if (!part) continue;\n    else if (false) findings.push(issue('tessera-include-missing'",
+    test: 'unit-structure',
+  },
+  {
+    name: 'unlisted alias member',
+    source: 'src/shared/tessera/imports.ts',
+    before: 'if (declaration?.concepts.includes(name.slice(dot + 1))) continue;',
+    after: 'if (declaration) continue;',
+    test: 'imports',
+  },
+  {
+    name: 'pin outside publication history',
+    source: 'src/server/mesh/dependency-update.ts',
+    before: "if (!snapshot) refuse('tessera-import-pin', `The pin for \"${entry.alias}\" is outside the provider's published history.`);",
+    after: 'if (!snapshot) return { commit: pin.commits.get(repository)!.commit, documents: await source.snapshots.documents(pin, entry.project), tag: null };',
+    test: 'dependency-update',
+  },
+  {
+    name: 'stale manifest declaration',
+    source: 'src/server/mesh/dependency-check.ts',
+    before: 'if (!unit || !manifestIsCurrent(entry, declaredImports(unit.root.data)))',
+    after: 'if (!unit)',
+    test: 'dependency-check',
+  },
+  {
+    name: 'incomplete reader projection',
+    source: 'src/shared/tessera/set-validation.ts',
+    before: 'if (!visibleFiles.has(file)) setNotChecked = true;',
+    after: 'if (!visibleFiles.has(file)) setNotChecked = false;',
+    test: 'set-validation',
+  },
+  {
+    name: 'ambiguous qualification',
+    source: 'src/shared/tessera/qualify.ts',
+    before: ".replaceAll('~', '%7E')",
+    after: '',
+    test: 'qualify',
+  },
+  {
+    name: 'incompatible provider versions',
+    source: 'src/shared/tessera/compile-unit.ts',
+    before: '...providerVersionFailures(options.providers)',
+    after: '...[]',
+    test: 'compile-refusals',
+  },
+  {
+    name: 'qualified name collision',
+    source: 'src/shared/tessera/compile-mesh.ts',
+    before: 'if (localNames.has(qualified) || imported.has(qualified))',
+    after: 'if (false)',
+    test: 'compile-refusals',
+  },
+  {
+    name: 'incompatible provider base',
+    source: 'src/shared/tessera/compile-mesh.ts',
+    before: 'if (!isObject(unit.root.data) || provider.scope !== unit.root.data.version)',
+    after: 'if (false)',
+    test: 'compile-refusals',
+  },
+  {
+    name: 'missing public prerequisite',
+    source: 'src/shared/tessera/compile-mesh.ts',
+    before: 'if (!concept) throw new Error',
+    after: 'if (!concept) continue;\n    if (false) throw new Error',
+    test: 'compile-refusals',
+  },
+  {
+    name: 'undefined provider translation',
+    source: 'src/shared/tessera/compile-mesh.ts',
+    before: "if (result.failures.length) throw new Error(result.failures.map(failure => failure.message).join(' '));",
+    after: '',
+    test: 'compile-refusals',
+  },
+  {
+    name: 'altered imported meaning',
+    source: 'src/shared/tessera/meaning-check.ts',
+    before: 'if (!deepEqual(expected.data, output.data))',
+    after: 'if (false)',
+    test: 'compile-mesh',
+  },
+  {
+    name: 'canonical owner through a re-export',
+    source: 'src/shared/tessera/compile-mesh.ts',
+    before: 'origins.set(key, item.origin);',
+    after: 'origins.set(key, { ...item.origin, ...owner(item.origin.concept) });',
+    test: 'reexports',
+  },
+  {
+    name: 'diamond de-duplication',
+    source: 'src/shared/tessera/compile-mesh.ts',
+    before: 'if (imported.has(key)) continue;',
+    after: 'if (imported.has(key)) throw new Error("Repeated concept.");',
+    test: 'reexports',
+  },
+  {
+    name: 'compiler provenance version',
+    source: 'src/shared/tessera/format.ts',
+    before: "COMPILER_VERSION = '1.1.0'",
+    after: "COMPILER_VERSION = '9.9.9'",
+    test: 'determinism',
+  },
+];

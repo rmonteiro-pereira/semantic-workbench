@@ -177,6 +177,12 @@ repository groups so their history and unpublished work can be retained together
 
 ### Project export
 
+Choose **Files to export → Standard Ossie (compiled)** for a derived ZIP of the published snapshot.
+Review the dropped values, accept that exact report, then download. **Validation details** on a
+Tessera ontology offers an unpublished check of saved working files and a reviewed conversion of
+one clean, committed ontology. See [check, compile and convert](compile.md) for acceptance,
+conflicts and the distinction from byte-preserving export.
+
 **Export project…** downloads a streaming, uncompressed ZIP containing the project's stored files,
 relative folders and `.gitignore`. It excludes `.git/`, ignored files and unsaved drafts. The dialog
 names known unsaved edits and can offer **Save and export** for the open file. When a snapshot
@@ -187,7 +193,8 @@ Published disables Git history and does not save or include the open draft.
 or null). This metadata and the Published export choice require no Git history permission.
 
 `GET /api/projects/:slug/export?source=published` instead archives exact committed snapshot bytes
-for the files the caller may read. `source=editing` is the default. Published exports never include
+for the files the caller may read. `source=editing` is the default. Both file exports omit the
+workbench’s address-history bookkeeping. Published exports never include
 unpublished work and reject `history=1` with “history is not available for the published source”.
 
 **Include Git history**, off by default, adds `git-history.bundle`. The bundle can be read by
@@ -196,8 +203,8 @@ unpublished work and reject `history=1` with “history is not available for the
 
 In server mode, exports include only readable files from the caller's view. The number omitted
 appears in `X-Export-Omitted`; omitted names are not disclosed. History is allowed only for a
-whole-repository project when its history never touched unreadable paths, and includes the
-checked-out branch rather than other people's working branches. Exports are audited.
+whole-repository project when the caller may read every path touched in Git and every address
+history endpoint in the exported branch. The bundle includes the checked-out branch. Exports are audited.
 
 ### Grouping suggestions
 
@@ -283,6 +290,25 @@ Git rejects because the remote has newer commits shows a plain summary and **Pul
 Git's own output is under **Show details**. Server-mode credentials work differently; see
 [remote Git on a shared server](server-mode.md#remote-git).
 
+### Shared proposals
+
+In server mode, **Source control** has a **Proposals** section. **New proposal** asks for a name and the
+projects it touches. **Work on it** moves your copy onto your own branch for that proposal, **Synchronize**
+brings in what others contributed, and **Contribute** sends your commits to the shared proposal.
+If another tab changes your branch or its last commit while you choose Work or Synchronize, reload
+the copy and try again. Stewards
+and Admins use **Check**, **Promote**, **Close proposal** and **Restore**. A repository holds up to 50
+open proposals, and a name has up to 80 characters. Local mode has no proposals.
+
+Push, Sync and Push default send only commits in the published default branch’s history. The
+destination must be outside `work/`, `proposal/` and `refs/workbench/`. To send new changes, publish
+first, then use **Push default**. Sync checks before pulling and checks the resulting commit again
+before sending it. If the pull adds unpublished history, Sync keeps the pull and reports that the
+push was refused.
+
+If you can read at least one declared project, you can see the proposal name, creator, contributors
+and tip. The list of declared projects shows only the projects you can read.
+
 ### Clone a repository
 
 Choose **Add project → Clone a repository** (the Import dialog also links to it). Supply a URL or local path, an optional name and,
@@ -362,7 +388,8 @@ Links inside an area are drawn; each area says "links to N areas", and those lin
 for the entity you select. Switch to **Layered (ELK)**, which preserves orthogonal routes while
 they match current handles, with the **Layered / Network** control in the graph toolbar. The
 toolbar also holds **Re-layout**, the crosshair select that zooms to an area (**Zoom to group**; a long area name ends in an ellipsis and hovering the select shows the full name),
-**Collapse areas**, **Expand all**, and switches for **Labels**, **Value types**, **Metrics** and **Mini-map**; a check mark shows which
+**Collapse areas**, **Expand all**, and the **Show** menu with switches for **Labels**, **Value types**, **Metrics**,
+**Mini-map** and **Traffic**. A badge on the **Show** button counts the switches that are on, and in the menu a check mark shows which
 are on. When space is limited these controls fold behind **Controls**. The canvas supports grouped areas,
 dragging, area zoom and selection. Resizing the window or the sidebar does not rearrange the
 graph or undo your drags; **Re-layout** plans it again for the current window. Network detail routing uses a shared background worker;
@@ -378,6 +405,19 @@ Layered opens on the first area in the existing area order, at readable name sca
 the other areas, or choose **Fit model** to see the complete layout. Fit may make individual
 names small; select an entity to center it at readable zoom. At fit zoom, **Labels** shows names only
 for selected or hovered relationships; zooming in reveals all enabled labels.
+
+### Traffic
+
+When an operator has turned usage counters on, **Traffic** in the **Show** menu of the graph toolbar (Graph and
+Neighborhood; on a phone, behind **Controls**) shades entities and relationships by how many requests
+through this workbench asked about them in the last 30 days: a heavier outline, a longer bar and a
+relationship line that grows. The legend below the graph names what is counted. Selecting an item shows
+its count with the period and the split by operation, for example "1,200 requests through this workbench
+in the last 30 days", and on **Catalog** and **Metrics** a **Sort by traffic** switch lists the busiest
+first. Browser views are not counted, so opening an item here never raises its count. Traffic is off by
+default and remembered for each model in this browser. If counters are off it says "Not collected" (an
+Admin is told how to turn them on); it also says when nothing was counted yet, when counts are loading,
+failed (with **Retry**) or unavailable for some days. See [usage counters](usage-counters.md).
 
 ### Neighborhood and expansion
 
@@ -400,8 +440,9 @@ same run goes back to that step, and a run that adds nothing new adds no step. T
 same bounded traversal and the same step wording. A result that cannot fit at readable zoom offers
 **N entities, Fit** to show the complete result.
 
-The toolbar filters neighbors by **Relationship** and switches **Links between neighbors**,
-**Technical resources**, **Labels**, **Value types** and **Metrics** on or off. **Re-arrange** puts
+The toolbar filters neighbors by **Relationship** and switches **Links between neighbors** and
+**Technical resources** on or off; its **Show** menu switches **Labels**, **Value types**, **Metrics**
+and **Traffic**. **Re-arrange** puts
 dragged nodes back in their columns. OWL opens with classes only unless technical resources are
 requested. Graph names and labels compensate for zoom; names retain full-name tooltips, and long
 identifiers wrap at natural separators without changing their spelling. On phones, a long center name can move the
@@ -549,6 +590,71 @@ Results describe the text as it is now and clear when either file changes. Data 
 Turtle, N-Triples or N3; convert RDF/XML first. JSON-LD, TriG, N-Quads, OWL/XML, Functional Syntax and Manchester syntax are
 not supported inputs. See [schema provenance](../schemas/README.md).
 
+### Tessera documents
+
+A Tessera document is an Ossie ontology that carries a `tessera` revision marker and, if you want, the
+property `tessera_notes`. It is an authoring format that compiles to standard Ossie: you edit it in the
+workbench like any ontology, and a release job compiles it into plain Ossie files.
+
+- **The marker.** Put `tessera: 1` at the top level of an ontology file (YAML or JSON). The number is
+  the revision of the Tessera rules. The workbench supports revisions 1 and 2. The file must also name its Ossie
+  base in `version`, which today is `0.2.0.dev0`. The marker is allowed on ontologies only, not on
+  semantic models, mappings, data contracts or RDF files.
+- **Notes.** `tessera_notes` is free text for the people who edit the ontology: a non-empty string of
+  at most 10,000 characters, allowed on the ontology root, on a concept and on a relationship of a
+  concept. Notes appear nowhere else: not in the graph, the inspector, agent context or the compiled
+  output.
+- **The format label.** **Validation details** names the format, for example "Tessera 1 on Ossie
+  0.2.0.dev0 · 0 errors · 0 warnings". A Tessera document is never shown as "Not validated".
+- **Removing the last note** keeps the marker. Only compiling, or you, removes it.
+
+Revision 2 adds three sections to the item details:
+
+- **Attributes** lets you add, edit, reorder and remove single-role relationships to a value type
+  or a built-in. `tessera_attributes` stores display order on the concept. Unlisted rows follow
+  in file order. Inherited rows link to their declaring concept, and a value type lists its uses.
+- **Agent context** uses `tessera_ai_context` for a concept or relationship. Enter instructions,
+  synonyms and examples and preview the working copy. Agents see the published context only.
+- **Governance** uses `tessera_governance` for a concept or relationship. Choose proposed, approved
+  or deprecated, or leave status unset. Replacement and reason belong to deprecated items. A
+  replacement must name an existing item of the same kind. Classification records a declaration.
+  In server mode approval requires permission and a different person from the owner. See
+  [governed content](server-mode.md#governed-content).
+
+When a change needs revision 2, the editor asks you to confirm the upgrade before saving.
+
+The Source view lists the visible files of a split ontology. Use the unit file buttons to open
+another part. Definition details show the current file’s role in the unit.
+
+For a revision 3 root, open **Imports** in Definition details. Choose a published provider,
+enter a local alias, and select the concepts the ontology can use. The version choice follows
+the latest publication or names a published commit or release tag.
+nImported concepts show the provider and version on graph cards. Definition details show the
+full commit and link the concept’s identity to the provider ontology.
+If a provider moves its exporting file, edit the import and choose the newly published file.
+Renaming the provider project keeps its stable identity.
+
+Each mistake gives one finding with a code and a place. `tessera-marker`: the marker is not a whole
+number of at least 1; write `tessera: 1`. `tessera-revision`: the document is newer than this
+workbench, or uses a property that needs a higher revision; use a supported revision. `tessera-base`:
+`version` is missing or not a supported Ossie base; set it to `0.2.0.dev0`. `tessera-kind`: the marker
+is on a file that is not an ontology; remove it. `tessera-property`: a `tessera_` property that does
+not exist, often a misspelling such as `tessera_note`; fix the spelling or remove it.
+`tessera-location`: a known
+property in a place that does not take it, such as a dataset; move it to the ontology root, a concept
+or a relationship. An empty or too long note is a `schema` finding on the note.
+
+An invalid order entry gives `tessera-attribute-order`. Invalid governance fields give
+`tessera-governance-value` and invalid deprecation details give `tessera-governance-deprecation`.
+
+Compiling drops the marker and the Tessera additions and preserves the attribute relationships.
+The standard ontology carries no governance status. Loss report version 2 includes status counts
+when governance was dropped. Accepting loss has no effect on content approval. The compile lists each dropped value in a loss
+report (by item and size, never the text) and writes a bundle only when you accept that report by its
+digest or by a loss policy. Comments and layout in a compiled file may not survive; values and key
+order do. The command line is described in the [README](../README.md#tessera-an-authoring-format-that-compiles-to-standard-ossie)
+and in [development](development.md#the-tessera-command).
+
 ### SQL expressions
 
 Ossie semantic fields, metrics and mapping expressions, ODCS SQL quality rules and transform logic
@@ -595,6 +701,10 @@ the write path. Authorized approvers can retain approval where the guard permits
 incoming-content operations can refuse rather than demote it. Deprecation needs a replacement or
 reason. See [the server governance rules](server-mode.md#governed-content).
 
+## Connecting an agent in local mode
+
+An agent client that speaks the Model Context Protocol can read, check, change and commit definitions in a local workbench. Semantic Workbench does not call a language model. When you connect an external agent, that agent can receive definitions you authorize and may send them to its model provider; its configuration and policies govern that onward use. Its saves appear in the open editor like any outside edit and never discard what you typed but have not saved, and its changes are only committed and never published: publish from the browser. [The agent endpoint guide](mcp.md) explains how to connect a client and what each tool does.
+
 ## Ontology mappings and agent context
 
 The **Mappings** view resolves ontology → mapping → semantic model → physical source. Object,
@@ -606,7 +716,9 @@ fewer** folds them again, and **Show N more concepts** works the same way. The t
 mappings of the open file's project, offers **Import** and **Load example** when that project has none, and asks you to open a
 project when no file is open. Search includes unbound concepts; empty views offer Source navigation
 for the selected mapping document. **Show query** selects mapped fields/metrics and previews a
-newly composed governed query without running it. **AI context** shows the same context
+newly composed governed query without running it. Metrics with a status other than approved show
+**Not approved** and their status; metrics without one show **Status not set**. These labels do not
+prevent selection or change the stored formula. **AI context** shows the same context
 `/api/agent/context?concept=` returns for the selected concept (or the whole mapping when none is
 selected), including any `ai_context` the documents declare. **Export agent context** downloads metadata.
 
@@ -619,3 +731,72 @@ Both split Ossie files and deprecated consolidated `ontology_mappings` layouts a
 Other mixed single-file layouts are rejected with a description of the supported alternatives.
 Agent endpoints expose catalog, context and plans; the workbench does not call a hosted language
 model. See [agent runtime and protocol](agent-runtime.md).
+
+## Agent connections on a shared server
+
+The person menu's **Agent connections** lists connections acting as you, their origin, scopes and
+current status. **Revoke** asks for confirmation and ends that connection's current work.
+**Create a setup credential** opens the script-free setup page for registered programs.
+See [agent connections](agent-connections.md) for the consent flow and client status.
+
+Admins register programs through **Admin → Agent programs**, review the dry run and confirm the
+change. Removing a program, redirect or scope ends affected connections; the review shows the
+count. **Admin → Agent connections** lists owners and allows revocation without showing tokens.
+
+## Talk to your own agent
+
+Choose **Agent panel** in the person menu, read the content statement and select **Start session**.
+Run the shown relay command on your own machine with the ACP agent you choose. The workbench
+never starts the agent or calls its model. Definitions the agent reads, including draft text it
+opens, may reach its model provider under that agent's configuration.
+
+Messages and file-path links go from the prompt box to your agent. The panel shows its replies,
+tool activity and task list, permission questions and diffs of saved changes. **Undo** uses an
+ordinary version-checked save; it reports a conflict if another edit intervened. **Cancel turn**
+cancels pending questions too. **End session** or closing the panel ends the conversation. A new
+session starts a new conversation. See [the panel guide](agent-panel.md) for scopes and limits.
+
+## Glossary
+
+- **Tessera**: an authoring format that compiles to standard Ossie. A Tessera document is an Ossie
+  ontology with the marker `tessera: 1` and, optionally, `tessera_notes`.
+
+## Review unpublished work
+
+Switch on **Unpublished work** in the **Show** menu of the full graph or Neighborhood, and open
+**Comparison** next to it for the list of changes. On a phone, use **Controls**.
+The comparison follows your branch against the published snapshot. It starts on when Source
+Control reports unpublished work. A project with no published commit shows its saved items as
+added when you turn the overlay on.
+
+Grey surfaces, dashed outlines and text identify added, changed and removed items. Open
+**Comparison** for the branch, published commit, a grouped list of changed fields and any files
+the workbench could not compare. Turning the overlay off restores the ordinary graph display.
+The overlay is a display aid. Workbench access rules apply in either setting.
+
+In the details for a concept, relationship or attribute, choose **Start a branch for this item**
+to open the branch picker with a suggested name. The picker switches your saved working copy
+without pushing. In server mode, the publication confirmation shows what the branch's committed
+tip would change. You can continue publishing if the comparison fails.
+
+### Ontology units and imports
+
+Open a revision 3 ontology's root to see its concepts together. The root lists every part
+under `tessera_includes`. Each part has `tessera: 3`, `tessera_part: true` and an ontology list.
+When adding a concept, choose the root or a declared part.
+
+**Imports** lets you select a provider project in the workbench, give it an alias and choose
+the exported concepts you need. Refer to a chosen concept as `alias.Concept`. Use **Update
+dependencies** to review changes and explicitly write the dependency manifest before
+committing and publishing. A reported interface change leaves compatibility for the author
+to evaluate. **Mesh**, in the sidebar under Source control, shows the published connections. People with permission to publish a
+provider can select it and open **Used by**.
+
+A provider can re-export an imported concept by listing its alias-qualified name in
+`tessera_exports`, provided the original concept is public and on the provider's allow-list.
+Mesh and **Used by** show the original owner and version. Compile writes that owner's
+qualified concept once, even if several import paths reach it. Publication refuses a
+re-export cycle.
+
+See [Ontology unit validation](ontology-units.md) for the checks applied to a file, its
+complete unit and the committed dependency lock.

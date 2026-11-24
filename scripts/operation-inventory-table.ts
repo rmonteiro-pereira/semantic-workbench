@@ -11,7 +11,7 @@ export function operationInventoryTable(inventory: OperationInventory = operatio
   const lines = [
     '# Operation inventory',
     '',
-    'This reference describes the shared operation boundary. It does not imply that a protocol transport is available.',
+    'This reference describes the shared operation boundary. Each tool of the local agent endpoint is the twin of one of these operations; see docs/mcp.md for the tools.',
     'Regenerate this page with `bun scripts/operation-inventory-table.ts` after reviewing the inventory.',
     '',
     '| Operation | Route | Action | Targets | Effects | Request limit | Exposure |',
@@ -34,6 +34,8 @@ export function operationInventoryTable(inventory: OperationInventory = operatio
   for (const entry of Object.values(inventory.operations)) {
     if (entry.steps?.length) lines.push('| ' + [entry.id, entry.steps.join(', ')].map(cell).join(' | ') + ' |');
   }
+  lines.push('', '## Content guards', '', 'These actions apply after the write operation is admitted.', '', '| Guard | Policy action |', '| --- | --- |');
+  for (const [kind, action] of Object.entries(inventory.contentGuardActions)) lines.push(`| ${kind} | ${action} |`);
   lines.push('', '## Workspace lifecycle', '', '| Operation | Effects | Entry point | Dispatch |', '| --- | --- | --- | --- |');
   for (const entry of Object.values(inventory.lifecycleOperations)) {
     lines.push('| ' + [entry.id, entry.effects.join(', '), entry.entryPoint, entry.reason].map(cell).join(' | ') + ' |');

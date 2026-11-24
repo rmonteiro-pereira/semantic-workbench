@@ -7,6 +7,7 @@ import type { Entity, Relationship } from '../../shared/core/model';
 import type { Doc } from '../projects/api';
 import { EntityDetails } from './EntityDetails';
 import { RelationshipDetails } from './RelationshipDetails';
+import { useTrafficScope } from '../usage/use-usage';
 import type { ItemTarget, RdfTarget, ValidatedModel } from './types';
 
 type Props = {
@@ -56,9 +57,28 @@ type Props = {
   >;
   relatedDocuments: Doc[];
   openDocument: (doc: Doc) => boolean;
+  applySaved: SectionSupport['applySaved'];
+  projectDocsOf: SectionSupport['projectDocsOf'];
 };
-/** Renders details panel. */
-export function DetailsPanel({
+import { declaredImports } from '../../shared/tessera/imports';
+import { documentFormat } from '../../shared/tessera/validate';
+import { UnitSetNotice } from '../mesh/UnitSetNotice';
+import { useUnitSet } from '../mesh/use-mesh';
+import { ImportsSection } from '../mesh/ImportsSection';
+import { PartPicker } from '../mesh/PartPicker';
+import { ontologyPartSelection } from './ontologyUnit';
+import { ItemSectionSupportContext, type SectionSupport } from '../edit/section-context';
+
+/** Renders details and makes the workspace's editing support available to its sections. */
+export function DetailsPanel({ sections, ...props }: Omit<Props, 'applySaved' | 'projectDocsOf'> & { sections: SectionSupport }) {
+  return (
+    <ItemSectionSupportContext.Provider value={sections}>
+      <DetailsPanelContent {...props} applySaved={sections.applySaved} projectDocsOf={sections.projectDocsOf} />
+    </ItemSectionSupportContext.Provider>
+  );
+}
+
+function DetailsPanelContent({
   inspectorVisible,
   pageDetails,
   entity,
@@ -84,7 +104,16 @@ export function DetailsPanel({
   setAdding,
   relatedDocuments,
   openDocument,
+  applySaved,
+  projectDocsOf,
 }: Props) {
+  useTrafficScope(current?.project, current?.path, model?.name);
+  const unitFiles = model && 'unitFiles' in model && Array.isArray(model.unitFiles) ? model.unitFiles : undefined;
+  const partSelection = ontologyPartSelection(current, model, unitFiles);
+  const data = model && 'document' in model ? model.document : undefined;
+  const format = documentFormat(data);
+  const unitValidation = useUnitSet(current ?? undefined, inspectorVisible && format?.family === 'tessera' && format.revision === 3);
+  const showImports = model?.kind === 'Ossie ontology' && format?.family === 'tessera' && format.revision === 3 && !partSelection?.part;
   function renderDetails() {
     if (relationship) {
       return (
@@ -159,6 +188,11 @@ export function DetailsPanel({
               </button>
             )}
           </div>
+          <UnitSetNotice validation={unitValidation} />
+          {partSelection && <PartPicker selection={partSelection} />}
+          {showImports && current && (
+            <ImportsSection key={current.id} doc={current} imports={declaredImports(data)} dirty={source !== current.source} applySaved={applySaved} projectDocs={() => projectDocsOf(current.id)} />
+          )}
           {renderDetails()}
         </aside>
       )}

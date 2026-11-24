@@ -8,6 +8,8 @@ export type RouteAction = {
   method: string;
   methods?: string[];
   serverOnly?: true;
+  /** Served in local mode only; server mode answers the path like any unknown route. */
+  localOnly?: true;
   path: string;
   pattern: RegExp;
   action: Action;
@@ -57,6 +59,23 @@ export const pageRow: RouteAction = {
   action: 'read',
   resource: workspace,
 };
+// The eleven proposal operations, each decided on the project named in the path.
+function proposalRows(): RouteAction[] {
+  const proposal = (method: string, path: string, action: Action): RouteAction => row(method, '/api/projects/:slug/proposals' + path, action, project);
+  return [
+    proposal('GET', '', 'read'),
+    proposal('GET', '/:id', 'read'),
+    proposal('GET', '/:id/diff', 'history'),
+    proposal('POST', '', 'branch'),
+    proposal('POST', '/:id/work', 'branch'),
+    proposal('POST', '/:id/synchronize', 'pull'),
+    proposal('POST', '/:id/contribute', 'commit'),
+    proposal('GET', '/:id/promotion-check', 'publish'),
+    proposal('POST', '/:id/promote', 'publish'),
+    proposal('POST', '/:id/close', 'publish'),
+    proposal('POST', '/:id/restore', 'publish'),
+  ];
+}
 /** Ordered route inventory; explanations precede generic file reads. */
 export const ROUTE_ACTIONS: RouteAction[] = [
   row('GET', '/api/me', 'read', workspace),
@@ -81,12 +100,24 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   row('POST', '/api/projects/:slug/import', 'import', project),
   // Reads are audited only when asked; an export leaves the server, so each one is recorded.
   { ...row('GET', '/api/projects/:slug/export', 'export', project), audited: true, readSource: 'by-query' },
+  { ...row('GET', '/api/projects/:slug/item-diff', 'history', project), audited: true, readSource: 'editing' },
   row('POST', '/api/projects/:slug/save-batch', 'edit', project),
+  { ...row('GET', '/api/mesh', 'read', workspace), readSource: 'published' },
+  { ...row('GET', '/api/mesh/providers', 'edit', workspace), targets: 'body', readSource: 'published' },
+  { ...row('GET', '/api/projects/:slug/dependencies', 'read', project), readSource: 'editing' },
+  row('POST', '/api/projects/:slug/dependencies/update', 'edit', project),
+  { ...row('GET', '/api/projects/:slug/dependents', 'read', workspace), targets: 'body', readSource: 'published' },
+  // Standard Ossie: a check reads, a compile and its download leave the server so each is recorded, and a conversion saves one file.
+  { ...row('POST', '/api/projects/:slug/compile/check', 'read', project), readSource: 'by-query' },
+  { ...row('POST', '/api/projects/:slug/compile', 'export', project), audited: true, readSource: 'published' },
+  { ...row('GET', '/api/projects/:slug/compile/bundle', 'export', project), audited: true, readSource: 'published' },
+  row('POST', '/api/projects/:slug/compile/convert', 'edit', project),
   { ...row('POST', '/api/projects/:slug/item-addresses/resolve', 'read', project), audited: true },
   row('POST', '/api/projects/:slug/item-addresses/reconcile/*', 'edit', file),
   row('POST', '/api/projects/:slug/gitignore', 'edit', project),
   { ...row('GET', '/api/projects/:slug/metrics', 'read', project), readSource: 'by-surface' },
   row('GET', '/api/projects/:slug/delete-impact', 'read', project),
+  row('GET', '/api/projects/:slug/usage', 'read', project),
   { ...row('POST', '/api/projects/:slug/metrics', 'edit', project), readSource: 'editing' },
   // Owner choices list people's addresses, so only those who may save metrics here see them.
   row('GET', '/api/projects/:slug/people', 'edit', project),
@@ -96,6 +127,8 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   { ...row('GET', '/api/projects/:slug/files/*/explain/:metric', 'read', file), readSource: 'by-surface' },
   { ...row('GET', '/api/projects/:slug/files/*', 'read', file), readSource: 'editing' },
   { ...row('PUT', '/api/projects/:slug/files/*', 'edit', file), readSource: 'editing' },
+  // Checks proposed text with the save pipeline's rules and writes nothing, so it needs the right to edit the file.
+  { ...row('POST', '/api/projects/:slug/files/*/validate', 'edit', file), readSource: 'editing' },
   { ...row('DELETE', '/api/projects/:slug/files/*', 'delete', file), readSource: 'editing' },
   { ...row('GET', '/api/drafts', 'viewOwnState', workspace), readSource: 'editing' },
   { ...row('GET', '/api/drafts/:slug/*', 'viewOwnState', file), readSource: 'editing' },
@@ -136,6 +169,8 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   row('PUT', '/api/projects/:slug/git/remote', 'setRemote', project),
   row('DELETE', '/api/projects/:slug/git/remote', 'setRemote', project),
   row('PUT', '/api/projects/:slug/git/folder', 'setRemote', project),
+  // Shared proposals exist in server mode only; their routes answer 404 in local mode.
+  ...proposalRows(),
   row('POST', '/api/clone/:operation/cancel', 'clone', workspace),
   row('GET', '/api/repos/:repo/project-candidates', 'registerProjects', workspace),
   row('PUT', '/api/repos/:repo/projects', 'registerProjects', workspace),
@@ -214,12 +249,47 @@ export const ROUTE_ACTIONS: RouteAction[] = [
     methods: ['GET', 'HEAD'],
     serverOnly: true,
   },
+  // Agent connections, server mode only. The first four rows are the only new answers given without a sign-in: two discovery
+  // documents (one of them under two addresses), the token endpoint and, below, the endpoint's own bearer challenge. The
+  // pages and lists need the person's session, and the Admin rows need the admin action.
+  { ...publicRow('GET', '/.well-known/oauth-protected-resource/api/mcp'), serverOnly: true },
+  { ...publicRow('GET', '/.well-known/oauth-protected-resource'), serverOnly: true },
+  { ...publicRow('GET', '/.well-known/oauth-authorization-server'), serverOnly: true },
+  { ...publicRow('POST', '/oauth/token'), serverOnly: true },
+  { ...row('GET', '/oauth/authorize', 'viewOwnState', workspace), serverOnly: true, unaudited: true },
+  { ...row('POST', '/oauth/consent', 'viewOwnState', workspace), serverOnly: true, unaudited: true },
+  { ...row('GET', '/oauth/setup', 'viewOwnState', workspace), serverOnly: true, unaudited: true },
+  { ...row('POST', '/oauth/setup', 'viewOwnState', workspace), serverOnly: true, unaudited: true },
+  { ...row('GET', '/api/connections', 'viewOwnState', workspace), serverOnly: true, unaudited: true },
+  { ...row('DELETE', '/api/connections/:id', 'viewOwnState', workspace), serverOnly: true, unaudited: true },
+  { ...row('GET', '/api/admin/connections', 'admin', workspace), serverOnly: true },
+  { ...row('DELETE', '/api/admin/connections/:id', 'admin', workspace), serverOnly: true },
+  { ...row('GET', '/api/admin/programs', 'admin', workspace), serverOnly: true },
+  { ...row('PUT', '/api/admin/programs', 'admin', workspace), serverOnly: true },
+  { ...row('POST', '/api/admin/programs/preview', 'admin', workspace), serverOnly: true },
+  // The agent transport authenticates its credential separately. Each tool is decided and audited as a route twin, so this
+  // row grants nothing beyond reaching the transport and leaves no record of its own.
+  { ...publicRow('POST', '/api/mcp'), methods: ['POST', 'GET', 'DELETE', 'PUT', 'PATCH'], unaudited: true },
+  // The agent panel. The browser routes act for the signed-in person. The relay routes answer without a sign-in because the relay
+  // authenticates by its own credential inside the handler. Neither grants anything: the agent's file requests are decided and
+  // audited as twins of ordinary routes, and the panel writes its own start and end records.
+  { ...row('POST', '/api/acp/sessions', 'read', workspace), unaudited: true },
+  { ...row('GET', '/api/acp/sessions/:id/events', 'read', workspace), unaudited: true },
+  { ...row('POST', '/api/acp/sessions/:id/prompt', 'read', workspace), unaudited: true },
+  { ...row('POST', '/api/acp/sessions/:id/cancel', 'read', workspace), unaudited: true },
+  { ...row('POST', '/api/acp/sessions/:id/questions/:question', 'read', workspace), unaudited: true },
+  { ...row('DELETE', '/api/acp/sessions/:id', 'read', workspace), unaudited: true },
+  publicRow('POST', '/api/acp/relay/:session/hello'),
+  publicRow('POST', '/api/acp/relay/:session/frames'),
+  publicRow('GET', '/api/acp/relay/:session/stream'),
+  publicRow('POST', '/api/acp/relay/:session/bye'),
   pageRow,
 ];
 /** Finds the first matching method and path, or refuses an unmapped entry point. */
 export function routeFor(method: string, pathname: string, mode: 'local' | 'server' = 'local') {
   for (const row of ROUTE_ACTIONS) {
     if (row.serverOnly && mode !== 'server') continue;
+    if (row.localOnly && mode !== 'local') continue;
     if (!(row.methods ?? [row.method]).includes(method)) continue;
     const match = pathname.match(row.pattern);
     if (match) return { row, match };

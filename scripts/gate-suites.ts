@@ -18,8 +18,15 @@ export const gateSuites: string[] = [
   'test:editor',
   'test:item-edit',
   'test:addresses',
+  'test:mcp:browser',
+  'test:connections',
   'test:rdf-edit',
   'test:validation',
+  'test:tessera',
+  'test:item-diff',
+  'test:attributes',
+  'test:compile',
+  'test:mesh',
   'test:scm',
   'test:odcs',
   'test:lineage',
@@ -34,17 +41,24 @@ export const gateSuites: string[] = [
   'test:clipping',
   'test:mapping-graph',
   'test:back-history',
+  'test:usage-traffic',
+  'test:proposals',
   'test:theme',
   'test:brand',
 ];
 
 /** Suites that serve their own built frontend and require server container coverage. */
-export const selfServedSuites = ['test:auth', 'test:two-editors', 'test:admin', 'test:brand'];
+export const selfServedSuites = ['test:connections', 'test:auth', 'test:two-editors', 'test:admin', 'test:brand'];
+
+// The panel browser check serves the built app from its own isolated workspace.
+gateSuites.push('test:acp');
+selfServedSuites.push('test:acp');
 
 /** Explicit reasons why other test scripts are not browser gate suites. */
 export const exclusions = [
   { script: 'test:mutation', reason: 'Runs in the mutation step' },
   { script: 'test:container', reason: 'Runs in the container step' },
+  { script: 'test:mcp', reason: 'Runs in the verify step: an isolated local server driven by the reference client' },
   { script: 'test:examples', reason: 'Unit-level example check covered by bun test' },
   { script: 'test:auth:keycloak', reason: "Compatibility suite on the owner's machine" },
 ];

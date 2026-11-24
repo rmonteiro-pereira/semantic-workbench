@@ -1,0 +1,124 @@
+/* The sheet takes width only while mounted; narrow screens give it the full viewport. */
+.agent-panel-host {
+  flex: 0 0 min(440px, 40%);
+  min-width: 0;
+  min-height: 0;
+  border-left: 1px solid var(--color-border);
+}
+.agent-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  color: var(--color-text);
+  background: var(--color-surface);
+  overflow-wrap: anywhere;
+}
+.agent-panel header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+.agent-panel h2,
+.agent-panel h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+.agent-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px;
+}
+.agent-panel p,
+.agent-panel li,
+.agent-panel pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.agent-panel pre {
+  font-size: 0.85rem;
+}
+.agent-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.agent-message,
+.agent-change {
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+}
+.agent-panel button {
+  min-height: 44px;
+  max-width: 100%;
+  height: auto;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.agent-panel :focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.agent-panel label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.agent-panel textarea {
+  width: 100%;
+  min-height: 80px;
+  box-sizing: border-box;
+  resize: vertical;
+}
+.agent-prompt,
+.agent-question {
+  padding: 16px;
+  border-top: 1px solid var(--color-border);
+}
+.agent-question {
+  max-height: 45%;
+  overflow: auto;
+}
+.agent-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.agent-panel .diff-view {
+  margin: 12px 0;
+  min-width: 0;
+  max-width: 100%;
+}
+.agent-panel .diff-labels span {
+  white-space: normal;
+}
+.agent-panel .cm-mergeView {
+  flex-direction: column;
+}
+.agent-panel .cm-mergeViewEditor {
+  width: 100%;
+}
+@media (max-width: 1099px) {
+  .agent-panel-host {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    border: 0;
+    height: 100dvh;
+  }
+}
+@media (max-width: 650px) {
+  .agent-panel header {
+    align-items: flex-start;
+  }
+  .agent-panel .agent-question {
+    max-height: 40dvh;
+  }
+}

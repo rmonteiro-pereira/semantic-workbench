@@ -1,0 +1,20 @@
+tessera: 1
+version: 0.2.0.dev0
+name: Retail
+tessera_notes: Owned by the retail data team.
+ontology:
+  - concept: Order
+    type: EntityType
+    description: A customer order.
+    tessera_notes: Ask finance before adding a Return concept.
+    relationships:
+      - name: placed_by
+        verbalizes:
+          - Order is placed by Customer
+        roles:
+          - concept: Order
+          - concept: Customer
+        tessera_notes: Revisit the cardinality after the loyalty launch.
+  - concept: Customer
+    type: EntityType
+    tessera_notes: Customers are people, not accounts.

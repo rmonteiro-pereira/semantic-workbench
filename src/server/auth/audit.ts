@@ -3,6 +3,8 @@
 import { mkdirSync, readdirSync, readFileSync, existsSync, openSync, writeSync, fsyncSync, closeSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { sha256 } from '../projects/atomic';
+import { hasControlCharacter } from '../../shared/validation/control-characters';
+import { ATTRIBUTED_METHODS, AUDIT_RESULTS, MAXIMUM_CLIENT_LABEL_LENGTH } from './call-attribution';
 import { CALLER_ORIGINS, operationById } from './operation-inventory';
 import type { CallerOrigin } from './caller';
 import type { ResourceRef } from './resource';
@@ -13,6 +15,12 @@ export type AuditInput = {
   origin?: CallerOrigin;
   tool?: string;
   connection?: string;
+  /** The protocol method of a call that arrived over a protocol transport. */
+  method?: string;
+  /** The client's own name for itself, shortened and stripped of control characters. */
+  clientLabel?: string;
+  /** What the caller was told: `ok` or one failure code of the tool contract. */
+  result?: string;
   principal: { id: string; kind: string; name?: string; clientId?: string; [key: string]: unknown };
   action: string;
   resource: { type: string; [key: string]: unknown };
@@ -28,8 +36,12 @@ export type AuditInput = {
     resourceAttrs: Record<string, unknown>;
   };
   version?: string;
+  /** The publish confirmation showed the dependency disclosure. */
+  disclosureShown?: true;
   /** The settled and candidate commits of a publication or adoption attempt. */
   publication?: { previous: string | null; commit: string | null };
+  /** The proposal a record is about, its declared projects and the commits involved. */
+  proposal?: { proposal: string; projects: string[]; commits: string[] };
   /** How many refusals of this kind from this source were left out since the last record. */
   suppressed?: number;
   [key: string]: unknown;
@@ -50,7 +62,7 @@ function pick(value: Record<string, unknown>, keys: string[]) {
 const resourceKeys = ['type', 'project', 'path', 'branch', 'metric', 'entry', 'area', 'role', 'grant'];
 function record(input: AuditInput, at: string, prev: string): AuditEntry {
   const entry = {
-    ...pick(input, ['requestId', 'action', 'decision', 'rules', 'reason', 'outcome', 'version', 'tool', 'connection']),
+    ...pick(input, ['requestId', 'action', 'decision', 'rules', 'reason', 'outcome', 'version', 'tool', 'connection', 'method', 'clientLabel', 'result', 'disclosureShown']),
     type: 'audit',
     at,
     prev,
@@ -60,6 +72,7 @@ function record(input: AuditInput, at: string, prev: string): AuditEntry {
   if (input.origin && input.origin !== 'http') entry.origin = input.origin;
   if (input.suppressed) entry.suppressed = input.suppressed;
   if (input.publication) entry.publication = { previous: input.publication.previous, commit: input.publication.commit };
+  if (input.proposal) entry.proposal = { proposal: input.proposal.proposal, projects: [...input.proposal.projects], commits: [...input.proposal.commits] };
   if (input.snapshot) {
     entry.snapshot = {
       grants: [...input.snapshot.grants],
@@ -75,6 +88,10 @@ function record(input: AuditInput, at: string, prev: string): AuditEntry {
 function validateAttribution(input: AuditInput): void {
   if (input.origin !== undefined && !CALLER_ORIGINS.includes(input.origin)) throw new Error('Invalid audit origin.');
   if (input.tool !== undefined && (typeof input.tool !== 'string' || !operationById(input.tool))) throw new Error('Invalid audit tool: expected an inventory id.');
+  if (input.method !== undefined && !ATTRIBUTED_METHODS.includes(input.method)) throw new Error('Invalid audit method.');
+  if (input.clientLabel !== undefined && (typeof input.clientLabel !== 'string' || input.clientLabel.length > MAXIMUM_CLIENT_LABEL_LENGTH || hasControlCharacter(input.clientLabel)))
+    throw new Error('Invalid audit client label.');
+  if (input.result !== undefined && (typeof input.result !== 'string' || !AUDIT_RESULTS.includes(input.result))) throw new Error('Invalid audit result.');
   if (input.connection !== undefined && (typeof input.connection !== 'string' || !/^[A-Za-z0-9_-]{1,64}$/.test(input.connection))) throw new Error('Invalid audit connection id.');
 }
 

@@ -5,7 +5,7 @@ import type { EventTags } from './events';
 import { existsSync, lstatSync, readFileSync } from 'node:fs';
 import { join, posix } from 'node:path';
 import { atomicWrite, decode, sha256 } from './atomic';
-import { BadRequestError, StaleError, NotFoundError } from './errors';
+import { GitUnavailableError, StaleError, NotFoundError } from './errors';
 import type { Git } from './git';
 import { PathError, assertNoLinks, assertSlug, locationOf, slugify, uniqueName, type DataLayout } from './paths';
 import { MANIFEST_FILE, MANIFEST_SCHEMA, checkProjectFolders, detectProjectFolders, parseManifest, type RepositoryProject } from './repositories';
@@ -108,7 +108,7 @@ export function createRepositoryProjects(deps: RepositoryProjectDeps) {
   const inRepo = (repo: string, projects = deps.projects()) => projects.filter(project => locationOf(project).repo === repo);
 
   function checkRepository(repo: string) {
-    if (!deps.gitAvailable) throw new BadRequestError('Git is not available on this machine.');
+    if (!deps.gitAvailable) throw new GitUnavailableError();
     if (!inRepo(assertSlug(repo)).length) throw new NotFoundError('Repository not found.');
     if (!existsSync(join(repoPath(repo), '.git'))) throw new NotFoundError('Not a Git repository.');
     return repoPath(repo);

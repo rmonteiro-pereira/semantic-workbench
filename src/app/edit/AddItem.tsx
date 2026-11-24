@@ -10,6 +10,7 @@ import { validateInWorker } from '../editor/lint';
 import { insertPatches, itemValue, valuePatches } from '../../shared/edit/yaml-patch';
 import {
   addableKinds,
+  duplicateUnitConcept,
   fieldsFor,
   fieldValue,
   itemName,
@@ -27,10 +28,10 @@ import './edit.css';
 import { SqlField } from '../editor/SqlField';
 // The preview uses the document’s own layout and shared validation. Nothing is written before
 // Save.
-type Props = {
-  doc: Doc;
-  base: string;
-  document: any;
+/** Gives the physical file and current source used for a new item. */
+export type ItemDestination = { doc: Doc; base: string; document: any };
+type Props = ItemDestination & {
+  destinations?: readonly ItemDestination[];
   kind?: ItemKind;
   owner?: Path;
   preset?: Record<string, any>;
@@ -71,7 +72,10 @@ function requiredHint(labels: string[]) {
 }
 
 /** Previews and validates a new item before saving it. */
-export function AddItem({ doc, base, document, kind: fixed, owner, preset = {}, choices, onClose, onSaved }: Props) {
+export function AddItem({ doc: originalDoc, base: originalBase, document: originalDocument, destinations, kind: fixed, owner, preset = {}, choices, onClose, onSaved }: Props) {
+  const [destinationId, setDestinationId] = useState(originalDoc.id);
+  const selected = destinations?.find(destination => destination.doc.id === destinationId);
+  const { doc, base, document } = selected ?? { doc: originalDoc, base: originalBase, document: originalDocument };
   const access = useCapabilities(doc.project);
   const kinds = fixed ? [fixed] : addableKinds(document);
   const [kind, setKind] = useState<ItemKind | undefined>(kinds[0]);
@@ -109,6 +113,14 @@ export function AddItem({ doc, base, document, kind: fixed, owner, preset = {}, 
     const item = newItem(kind, values);
     const list = itemValue(base, listPath);
     const name = itemName(kind, item);
+    if (kind === 'concept' && destinations?.length && name) {
+      const duplicate = duplicateUnitConcept(
+        name,
+        doc.path,
+        destinations.map(destination => ({ path: destination.doc.path, document: destination.document })),
+      );
+      if (duplicate) return { error: duplicate };
+    }
     if (Array.isArray(list) && name && list.some(x => itemName(kind, x) === name)) return { error: `${kindLabel[kind]} ${name} already exists here.` };
     try {
       const patches = Array.isArray(list) ? insertPatches(base, listPath, item, undefined, doc.filename) : valuePatches(base, listPath, [item], doc.filename);
@@ -123,7 +135,7 @@ export function AddItem({ doc, base, document, kind: fixed, owner, preset = {}, 
     } catch (error) {
       return { error: (error as Error).message };
     }
-  }, [kind, JSON.stringify(values)]);
+  }, [kind, JSON.stringify(values), doc.id, doc.filename, base]);
   useEffect(() => {
     if (plan.text === undefined) return;
     const timer = setTimeout(() => {
@@ -146,6 +158,11 @@ export function AddItem({ doc, base, document, kind: fixed, owner, preset = {}, 
       setError(error instanceof StaleSave ? 'Not saved: the file changed since you opened it. Close this and try again.' : (error as Error).message);
       setSaving(false);
     }
+  }
+  function changeDestination(event: React.ChangeEvent<HTMLSelectElement>) {
+    setDestinationId(event.target.value);
+    setCheck(null);
+    setError('');
   }
   const set = (spec: FieldSpec, input: string | boolean) => setRaw(v => ({ ...v, [spec.key]: input }));
   const valueOf = (spec: FieldSpec) => String(raw[spec.key] ?? '');
@@ -176,6 +193,18 @@ export function AddItem({ doc, base, document, kind: fixed, owner, preset = {}, 
       footer={footer}
       footerNote={plan.incomplete ? plan.error : undefined}
     >
+      {destinations && destinations.length > 1 && (
+        <label>
+          Destination file
+          <select value={doc.id} onChange={changeDestination} disabled={saving}>
+            {destinations.map(destination => (
+              <option key={destination.doc.id} value={destination.doc.id}>
+                {destination.doc.path}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       {kinds.length > 1 && (
         <label>
           What to add

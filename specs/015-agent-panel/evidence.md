@@ -1,0 +1,226 @@
+# Evidence and departures
+
+Notes on tasks that were skipped, changed or found different from their description.
+
+## T008: the Admin audit view has no origin filter
+
+`src/app/admin/AuditSection.tsx` filters by person, action, resource project and time only, and
+`src/app/admin/types.ts` has no origin field, so there was no origin option to extend. The server
+query and the export already accept `origin=acp` (checked in `tests/auth/audit.test.ts`). The
+Admin view was left unchanged; adding a new filter control would be a design change that this
+feature was not asked to make. The audit contract and `docs/audit-tamper-evidence.md` name `acp`.
+
+## T004: one more literal found
+
+`src/server/routes/files.ts` kept the person's unsaved draft only for a caller with origin `mcp`.
+It now does the same for `acp`, so an agent panel write shows in the editor as an outside change.
+The plan did not list this file.
+
+## Endings and connection contract
+
+The end-to-end flood case exposed a reset of the oversize counter before every frame, including
+oversize frames. Consecutive oversize frames now accumulate and end the session. The lifecycle
+proof covers the twelve server-produced reasons and the browser 404 inference for
+`server-restarted`; the completed thirteen-case proof is recorded below.
+
+The connection directory now matches the connection service request and end notice: optional
+origin, mutable named scopes (read/edit rather than operation effects read/localWrite), and connectionId, reason, origin, person and clientId on
+end. The service's `signed-out` maps to `sign-out`, `session-ended` to `expired`, and registration,
+replay and revocation endings to `revoked`. Real connection-service integration remains T028.
+
+Connection proof: `bun test tests/acp/connection-auth.test.ts`: 3 pass, 0 fail. Lifecycle proof: `bun test tests/acp/end-reasons.test.ts`: 12 pass, 0 fail.
+
+## Relay authorization and refusal audit
+
+The public relay rows now authenticate at the relay adapter, then enter the ordinary operation
+boundary with origin `acp`. A request-local WeakMap carries the authenticated context into the
+boundary's invocation of the same route; it is deleted in finally. The exception in route verdict
+is limited to the four registered relay operation ids and still evaluates read access and scope.
+The HTTP authentication dispatcher leaves only those exact paths to relay authentication, so a
+foreign Origin/Host reaches the audited authentication refusal instead of the former outer 403.
+Relay delegation is a single contiguous block in request-authentication.ts. Middleware additions
+are now confined to one HandlerOptions block using an inline type import. The request entry
+remains responsible for authentication delegation, and relay authorization stays in the boundary.
+
+Unknown methods are recorded as unsupported-terminal or unsupported-other; file and question
+refusals get a bounded reason. No arbitrary method, parameter, path or content enters these records.
+
+Proofs: `sw-midgard-run -- bun test tests/acp/ tests/auth/operation-inventory.test.ts
+ tests/auth/route-actions.test.ts tests/auth/matrix.test.ts tests/auth/guard-inventory.test.ts`:
+274 pass, 0 fail, 46,593 assertions. Additional targeted proofs after strengthening refusal checks:
+`bun test tests/acp/audit-records.test.ts`: 2 pass, 0 fail; `bun test
+ tests/acp/relay-boundary.test.ts`: 2 pass, 0 fail, including a real policy denial that leaves the
+single-use code unconsumed and an allow record with origin acp and the connection id.
+
+## Browser panel structure and proofs
+
+Shared event types live in `src/shared/agent-panel/events.ts`; server normalizers re-export the
+same types for existing callers. Presentation proofs live under `tests/acp/`, alongside the rest
+of this feature's tests, rather than a second top-level test group. Reducer proof: 2 pass, 0 fail.
+Presentation proofs: transcript 1 pass (million-character message and 5,000-character task),
+connect 1 pass, change 1 pass (ordinary-save arguments and conflict), question 1 pass (eight long
+escaped choices). These are rendering/contract proofs; focus and geometry belong to the browser
+check, not server rendering.
+
+The lazy person-menu import mounts the sheet beside the canvas into its own React root. Closing
+removes that container, restoring canvas width and menu focus. No edits to main.tsx or
+WorkspaceCanvas.tsx are necessary, so those proposed edits in T035 are skipped. The sheet's
+BrandProvider preserves the deployment identity. The only PersonMenu change is one contiguous
+menu-item block. The panel requests nothing until that item is chosen.
+
+Shared-file consolidation: files.ts has one keepDrafts expression; me.ts one availability field;
+middleware.ts one HandlerOptions block; guard-cases.ts one exemption block; route-actions.ts one
+appended registration block. The latter registers conversation-only examples after the
+definition-read matrix is derived, so event streams cannot hang the definition-read checks.
+
+## Mutation scope
+
+`sw-midgard-run -- bun scripts/acp-mutants.ts`: 19 killed, 0 survived, each candidate run through
+`scripts/mutation-case.ts` after its passing baseline. The full mutation suite was not run.
+The proposed mutant replacing the recorded base with the just-read current hash is equivalent:
+the existing equality guard proves those hashes equal before save. It is omitted rather than
+reported as killed. Dropping the equality guard, allowing an unread write and skipping the
+second read are independently killed. The content/audit-origin candidates exercise the session
+service's public start/end path; they do not add an unrestricted agent operation.
+
+The browser exposed a permission-focus race: a question can arrive while the prompt POST is
+still pending, so its first button is disabled at mount and cannot receive focus. Focus is now
+applied once the action finishes as well as when the question id changes. The targeted renderer
+proof remains green; the browser check exercises this race through the real relay.
+
+Lifecycle proof completed: `bun test tests/acp/end-reasons.test.ts`: 13 pass, 0 fail, including
+replacement of process-owned session state on the same data root/address, the 404 inference in
+the browser client and refusal of the next file frame. The fixture can also serve the built
+frontend through the same local static wrapper used by the production entry point.
+
+Relay token review found that any successful HTTP reply was cast to tokens without checking its
+fields. The relay now requires HTTP 200, Bearer type, nonempty access/refresh tokens and a positive
+integer lifetime, with a bounded request deadline. Failed refreshes report a content-free error
+and stop presenting a token. `bun test tests/acp/relay-token.test.ts`: 2 pass, 0 fail.
+
+Browser proof on the dev server: `bun run test:acp`: 6 viewport/theme conversations passed,
+including 360/768/1280 widths, both themes, real reference-agent messages, long text/paths,
+versioned write, Undo, conflict, eight options, keyboard-visible focus, cancellation, all end
+reasons and unchanged canvas geometry on close. Default screens sent no panel requests. No
+capture was made: the screenshot portion of T036 is deferred with T037 as explicitly requested.
+The baseline screenshot comparison remains the integrated regression gate's responsibility.
+The closing build comparison below records main-entry sizes; panel code and styles are separate
+lazy build chunks.
+
+Documents cover relay setup, named scopes versus operation effects, the credential variable,
+draft-text disclosure, memory-only transcript, limits, threat model and pending server assembly.
+The request brief substitutes the reference agent for T042's unspecified real-agent selection:
+compatibility is claimed only for reference-agent 1.0.0 in local mode. Its real relay/browser
+acceptance connected, read, wrote, answered, cancelled and ended cleanly.
+
+T041 requires no edit to ci-validate.ts: it already imports gateSuites and selfServedSuites, so
+registering test:acp in those inventories includes it automatically. Proof: `bun test
+ tests/pipeline/ci-validate.test.ts`: 8 pass, 0 fail. Docs sync on the working tree exits 0.
+The leak scanner is clean for README, architecture and the panel guide. Its complete-file scan
+flags existing public temporary/cache path examples: one hit in docs/configuration.md, one in
+.env.server.example and six in docs/development.md. Those usage defaults are preserved rather
+than changed to evade the scanner. No confidential-term hit was found in any changed file.
+
+Review removed a duplicate rendered copy of completed agent messages: the live announcement
+used a class that did not exist in the theme. The visible message itself is now the polite
+completed-message status region, without a second copy or clipped text. The transcript test
+asserts a single escaped copy and the polite announcement attribute.
+
+Session-create review found that an invalid JSON body was treated as default options and could
+create a session. The route now rejects malformed, oversized and wrongly typed options before
+calling the service. Its targeted route proof includes no state change for malformed bodies.
+
+Final route-inventory review caught the positional requirement in route-actions.test.ts: the
+conversation examples must precede the final pages row. The single appended block now inserts
+them immediately before that row, after deriving the definition-read matrix.
+Proof: `bun test tests/auth/route-actions.test.ts`: 7 pass, 0 fail, 385 assertions.
+
+The origin-parity proof compared rule arrays by iteration order, although the decision supplies
+the same rule set in either order. Its comparison now canonicalizes only rules; decisions,
+resources and every other audit field remain compared. No production authorization changed.
+Proof: `bun test tests/auth/acp-origin.test.ts`: 11 pass, 0 fail, 51 assertions.
+
+The boundary scan lacked declarations for the panel's audit support and local identity factory,
+including the identity import already present before this continuation. It now admits only
+reportAuditFailure, createAnonymousAuditGate, auditDenial and localPrincipal in their exact owning
+modules. Negative cases reject another symbol or another module; access evaluators and scope
+construction remain forbidden. Proof: `bun test tests/auth/boundary-scan.test.ts`: 4 pass, 0 fail,
+16 assertions. The preceding aggregate exposed these issues: 297 pass, 3 fail; the closing
+aggregate must replace that result after these three corrections.
+The final type check required an explicit array callback at the origin normalizer's caller,
+so an array index cannot become its optional field name. The targeted origin proof was rerun:
+11 pass, 0 fail, 51 assertions.
+
+A repeated browser proof exposed a missed glob interception of the event stream: the actual
+server answered 200, so the test had not caused its intended disconnect. The harness now uses
+an explicit event-path regular expression and waits for the intercepted 503 before checking
+the visible recovery state. No product behavior changed. Dev-server proofs: `bun run test:acp`
+and `bun run test:acp --closed-only` each report six viewport/theme conversations passed; closed
+screens sent no panel requests. The complete run includes all thirteen ending notices.
+
+## Closing review notes
+
+The mandated readable checker exits 0 on every changed code file. Docs sync exits 0; the
+configuration and development pointers were checked against their updated relay instructions.
+The confidential-only scan exits 0 on all 63 changed files, including these internal logs. The
+complete deliverable scanner exits 0 on README, architecture, changelog, panel guide, server-mode
+and user guide; the eight existing public temporary-path examples described above remain its
+only exceptions. No scanner allow-list or suppressed confidential term was introduced.
+
+The requested scripts/commit_cadence.py is absent from this repository, so that command cannot
+run. Every coherent step has its own commit, and no project-remote push or bypassed hook was used.
+The owner-approved scratch transport is the only push made by the remote test wrapper.
+
+The five shared files identified in the brief each have one contiguous change block relative
+to origin/main 84642cb0: files.ts keeps the draft for acp; me.ts reports availability; middleware.ts
+adds panel options; guard-cases.ts explains panel-only exemptions; route-actions.ts inserts the
+ten conversation route examples after deriving definition reads. The additional shared blocks
+are the person-menu lazy import, request-authentication's exact relay-path delegation and
+route-verdict's four-operation acp exception. Suite inventories and mutation dispatchers each
+have one appended registration block. No existing canvas or application entry was changed.
+
+The batch reviewer must integrate the real connection directory before claiming server-mode
+acceptance, capture the deferred states, and run the complete combined gate and independent
+architecture review. The security reviewer should inspect the request-local relay re-entry,
+bounded anonymous audit, current grants/scopes at each operation, hidden/missing equivalence,
+same-session version checks, refresh validation and draft disclosure. The text-only agent
+surface, empty tool-server list and memory-only transcript remain mandatory constraints.
+
+Browser reply review found that the create-session consumer validated only id and command
+before trusting its other required fields. The transport now validates every required text,
+nonempty scope list and integer expiry after the explicit 201 check, before the hook stores an
+id. Its public transport proof exercises malformed successful replies and the write-intent
+header. Proof: `bun test tests/acp/panel-connect.test.tsx`: 2 pass, 0 fail, 14 assertions.
+
+The next repeat showed that the regular expression alone did not make failure simulation
+stable: the real stream could still bypass interception. The browser harness now installs one
+persistent handler for setup failure, stream failure and recovery. It never changes handler
+registrations between the two failures, and still requires the observed 503 response before
+checking disconnection. Two consecutive dev-server executions passed, each reporting six
+viewport/theme conversations and exercising all thirteen endings.
+
+## Final proof record
+
+Dev-server aggregate: ACP, operation inventory, route actions, read/write matrices, guard
+inventory and guard files, origin parity, boundary scanner and pipeline registration: 353 pass,
+0 fail, 47,506 assertions across 41 files (384.10 seconds). The final setup-response correction
+then passed all five browser transport/reducer/presentation files: 7 pass, 0 fail, 36 assertions.
+
+`bun --bun run check`: exit 0 after the final browser-harness correction; TypeScript, formatting,
+lint, comments, theme and brand checks pass. Lint reports 2,696 existing warnings and no errors.
+`bun --bun run build`: exit 0, 2,333 modules, 2.97 seconds; the existing chunk-size and ReactFlow
+module-directive warnings remain. Both commands ran on the dev server.
+
+The actual module entry, not the separate theme initializer, was compared against a scratch
+build of fe462cc0: 2,521,830 bytes before, 2,521,415 after (415 bytes smaller). The final product
+build retained the latter size. Its eager bundle contains no panel-session transport URL; panel
+code and styles remain lazy chunks. Closed-only browser visits sent no ACP requests.
+
+Final `test:acp`: two consecutive passes, each six viewport/theme conversations plus all thirteen
+ending notices; final `test:acp --closed-only`: six passing visits without panel requests. The
+reference agent read, wrote, answered, cancelled and ended through the real person-run relay.
+No image capture, complete unit/mutation/browser suite or independent batch review was run.
+
+The full changed-code readable check and docs sync exit 0. The detached validation process has
+exited, browser/relay/fixture cleanup has completed and port 5418 is no longer listening. T028
+(real connection assembly), T037 (captures) and T044 (combined batch gate) stay unticked.

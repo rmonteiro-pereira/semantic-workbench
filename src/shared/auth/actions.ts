@@ -15,6 +15,7 @@ export const ACTIONS = [
   'revert',
   'restoreOwn',
   'approveMetric',
+  'approveOntologyItem',
   'editGuarded',
   'restoreOthers',
   'publish',
@@ -47,7 +48,7 @@ export type Action = (typeof ACTIONS)[number];
 export const READ_ACTIONS: readonly Action[] = ['read', 'export', 'history', 'viewOwnState'];
 
 /** Actions a request can make on one file, so path, type and level conditions apply to them. */
-export const FILE_ACTIONS: readonly Action[] = [...READ_ACTIONS, 'edit', 'createMetric', 'import', 'move', 'delete', 'revert', 'approveMetric', 'editGuarded'];
+export const FILE_ACTIONS: readonly Action[] = [...READ_ACTIONS, 'edit', 'createMetric', 'import', 'move', 'delete', 'revert', 'approveMetric', 'approveOntologyItem', 'editGuarded'];
 
 /** Actions that work on a branch, so a branch condition applies to them. */
 export const BRANCH_ACTIONS: readonly Action[] = ['publish', 'stage', 'commit', 'branch', 'fetch', 'pull', 'push', 'cancelOwn'];

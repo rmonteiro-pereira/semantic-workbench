@@ -56,8 +56,12 @@ jobs:
           suite: test:editor
         item_edit:
           suite: test:item-edit
+        item_diff:
+          suite: test:item-diff
         addresses:
           suite: test:addresses
+        mcp:
+          suite: test:mcp:browser
         rdf_edit:
           suite: test:rdf-edit
         validation:
@@ -90,10 +94,26 @@ jobs:
           suite: test:mapping-graph
         back_history:
           suite: test:back-history
+        tessera:
+          suite: test:tessera
+        usage_traffic:
+          suite: test:usage-traffic
+        proposals:
+          suite: test:proposals
         theme:
           suite: test:theme
         brand:
           suite: test:brand
+        connections:
+          suite: test:connections
+        attributes:
+          suite: test:attributes
+        compile:
+          suite: test:compile
+        mesh:
+          suite: test:mesh
+        acp:
+          suite: test:acp
     steps:
       - template: setup-steps.yml
       - bash: bun run ci:validate -- --step browser --suite $(suite)

@@ -1,0 +1,7 @@
+{
+  "operations": [
+    { "operation": "agent.context.read", "items": "context-items", "measure": "workbench-requests" },
+    { "operation": "agent.plan", "items": "plan-items", "measure": "workbench-requests" },
+    { "operation": "metrics.explain", "items": "metric", "measure": "workbench-requests" }
+  ]
+}

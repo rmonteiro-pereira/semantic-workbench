@@ -1,4 +1,7 @@
+import type { ItemDiff } from '../../shared/item-diff/item-change';
+import type { ReaderValidation } from '../../shared/tessera/set-validation';
 import type { PublishedStatus } from '../../shared/scm/published-status';
+import type { UsageAnswer } from '../../server/usage/usage-read';
 /** Defines browser requests and response types for project files, metrics and source control. */
 import { fileSaveReply, batchSaveReply } from './save-reply';
 import type { DeclaredMigration } from '../../shared/core/address-migration';
@@ -145,6 +148,8 @@ export type GitChange = {
 export type GitStatus = {
   published?: PublishedStatus;
   branch: string;
+  /** The commit the copy's branch is at, or null before the first commit. */
+  head?: string | null;
   upstream: string;
   /** Server mode: where Pull takes from on a personal branch, such as `origin/main`. */
   pullSource?: string;
@@ -294,6 +299,11 @@ const explainQuery = (query: ExplainQuery) => {
 export type AgentMapping = { id: string; name: string; filename: string; embedded: boolean; project?: string };
 /** The SQL preview the plan endpoint returns, with the rest of its fields left open. */
 export type AgentPlan = { sql: string } & Record<string, unknown>;
+/** Compares two sides through the browser operation boundary. */
+export function fetchItemDiff(project: string, from: string, to: string, signal?: AbortSignal): Promise<ItemDiff> {
+  const parameters = new URLSearchParams({ from, to });
+  return apiFetch(`/api/projects/${encodeURIComponent(project)}/item-diff?${parameters}`, { signal }).then(response => json<ItemDiff>(response));
+}
 /** Provides browser operations for projects, documents, imports and metrics. */
 export const api = {
   /** Lists the mappings of one project, from the saved authoring view. */
@@ -304,6 +314,8 @@ export const api = {
   agentPlan: (request: Pick<PlanRequest, 'mappingId' | 'concepts' | 'metrics' | 'dimensions'> & { project: string }) =>
     apiFetch('/api/preview/plan', send('POST', request)).then(r => json<AgentPlan>(r)),
   metrics: (project: string) => apiFetch(`/api/projects/${encodeURIComponent(project)}/metrics`).then(r => json<KpiSummary[]>(r)),
+  /** Counts of requests through the workbench for a project's items, limited to what the caller may read. */
+  usage: (project: string) => apiFetch(`/api/projects/${encodeURIComponent(project)}/usage`).then(r => json<UsageAnswer>(r)),
   explain: (project: string, path: string, metric: string, query: ExplainQuery = {}, signal?: AbortSignal) =>
     apiFetch(`${fileUrl(project, path)}/explain/${encodeURIComponent(metric)}${explainQuery(query)}`, {
       signal,
@@ -312,7 +324,7 @@ export const api = {
   projects: () => apiFetch('/api/projects').then(r => json<ProjectInfo[]>(r)),
   /** People a metric owner in this project can be chosen from; empty in local mode. */
   people: (project: string) => apiFetch(`/api/projects/${encodeURIComponent(project)}/people`).then(response => json<Person[]>(response)),
-  file: (project: string, path: string) => apiFetch(fileUrl(project, path)).then(r => json<{ path: string; source: string; hash: string; docType: string }>(r)),
+  file: (project: string, path: string) => apiFetch(fileUrl(project, path)).then(r => json<{ path: string; source: string; hash: string; docType: string; unitValidation?: ReaderValidation }>(r)),
   // A save sends patches against the version it started from when it has them, else the text.
   async save(
     project: string,
@@ -518,7 +530,7 @@ export const scm = {
   acknowledgePublication: (p: string) => gitPost<{ acknowledged: boolean }>(p, 'git/acknowledge-publication', {}),
   /** Adopts a checked outside fast-forward as the published snapshot. */
   adopt: (p: string) => gitPost<{ published: string; commit: string }>(p, 'git/adopt', {}),
-  publish: (p: string) => gitPost<{ published: string; commit: string }>(p, 'git/publish', {}),
+  publish: (p: string, disclosureShown = false) => gitPost<{ published: string; commit: string }>(p, 'git/publish', disclosureShown ? { disclosureShown } : {}),
   /** Server mode: merges the default branch into the person's branch. */
   pullDefault: (p: string) => gitPost<RemoteResult>(p, 'git/pull-default', {}),
   /** Server mode: pushes the default branch to the remote; Stewards and Admins only. */

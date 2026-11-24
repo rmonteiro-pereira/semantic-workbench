@@ -1,7 +1,10 @@
 // Runs the installed Git with argument arrays, timeouts, and a queue per repository. In local
 // mode credentials come from Git configuration; in server mode a remote command receives the
 // signed-in person's credential for that command only. Terminal prompts are disabled.
-import { relative, resolve, sep } from 'node:path';
+import { AsyncLocalStorage } from 'node:async_hooks';
+import { join, relative, resolve, sep } from 'node:path';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { BadRequestError } from './errors';
 import { observeGitCommand } from '../observability/git-command';
@@ -10,7 +13,7 @@ export const LOCAL_TIMEOUT_MS = 30_000;
 /** Default time limit for remote Git commands. */
 export const REMOTE_TIMEOUT_MS = 600_000;
 /** A blob entry listed from an immutable Git tree. */
-export type GitTreeEntry = { path: string; id: string; size: number };
+export type GitTreeEntry = { path: string; id: string; size: number; link?: true };
 /** Maximum bytes accepted when reading immutable definition objects. */
 export type GitObjectLimits = { documentBytes: number; totalBytes: number };
 const OBJECT_LIMITS: GitObjectLimits = { documentBytes: 2_000_000, totalBytes: 64_000_000 };
@@ -25,6 +28,13 @@ export class GitError extends Error {
   ) {
     super(message);
     this.name = 'GitError';
+  }
+}
+/** A refusal a person can act on, such as nothing to commit, rather than a failure of Git. */
+export class GitRefusalError extends GitError {
+  constructor(message: string) {
+    super(message);
+    this.name = 'GitRefusalError';
   }
 }
 /** Configures the allowed repository root, Git binary, environment, and timeouts. */
@@ -200,6 +210,8 @@ export function createGit(options: GitOptions) {
   const remoteTimeoutMs = options.remoteTimeoutMs ?? REMOTE_TIMEOUT_MS;
   const queues = new Map<string, Promise<unknown>>();
   const cancels = new Map<string, () => void>();
+  // The turn the running code holds. Async work started inside a turn keeps this object after the turn ends, so the turn says whether it is still open.
+  const holding = new AsyncLocalStorage<{ key: string; open: boolean }>();
   function insideProjects(cwd: string) {
     const dir = resolve(cwd);
     if (dir.startsWith(root + sep)) return dir;
@@ -289,9 +301,18 @@ export function createGit(options: GitOptions) {
       return gitResult;
     };
     if (opts.readOnly) return exec();
-    const key = queueKey(dir);
+    return inTurn(dir, exec);
+  }
+  /** Runs a task in the repository's queue; work that already holds the repository's turn runs it inside that turn. */
+  function inTurn<T>(directory: string, task: () => Promise<T>): Promise<T> {
+    const key = queueKey(directory);
+    const turn = holding.getStore();
+    if (turn?.open && turn.key === key) return task();
+    return enqueue(key, task);
+  }
+  function enqueue<T>(key: string, task: () => Promise<T>): Promise<T> {
     const previous = queues.get(key) ?? Promise.resolve();
-    const next = previous.catch(() => {}).then(exec);
+    const next = previous.catch(() => {}).then(task);
     queues.set(key, next);
     next
       .catch(() => {})
@@ -299,6 +320,18 @@ export function createGit(options: GitOptions) {
         if (queues.get(key) === next) queues.delete(key);
       });
     return next;
+  }
+  /** Runs several commands as one turn of the repository's queue, so no other command interleaves with them. */
+  function exclusive<T>(cwd: string, work: () => Promise<T>): Promise<T> {
+    const key = queueKey(insideProjects(cwd));
+    return enqueue(key, async () => {
+      const turn = { key, open: true };
+      try {
+        return await holding.run(turn, work);
+      } finally {
+        turn.open = false;
+      }
+    });
   }
   const read = (cwd: string, args: string[], allowFailure = false) =>
     run(cwd, ['--no-optional-locks', '-c', 'core.quotepath=off', ...args], {
@@ -332,10 +365,32 @@ export function createGit(options: GitOptions) {
     await run(cwd, ['config', '--local', 'user.email', email]);
   }
   const merging = async (cwd: string) => (await read(cwd, ['rev-parse', '-q', '--verify', 'MERGE_HEAD'], true)).code === 0;
+  async function commitWithBlobs(cwd: string, paths: string[], blobs: ReadonlyMap<string, string>, message: string, author?: CommitAuthor) {
+    return inTurn(insideProjects(cwd), () => commitIsolatedIndex(cwd, paths, blobs, message, author));
+  }
+  async function commitIsolatedIndex(cwd: string, paths: string[], blobs: ReadonlyMap<string, string>, message: string, author?: CommitAuthor, staged = false) {
+    const temporary = mkdtempSync(join(tmpdir(), 'sw-git-index-'));
+    const env = { GIT_INDEX_FILE: join(temporary, 'index') };
+    try {
+      const base = staged ? await run(cwd, ['write-tree'], { readOnly: true }) : await read(cwd, ['rev-parse', '--verify', 'HEAD'], true);
+      await run(cwd, ['read-tree', base.code === 0 ? base.stdout.trim() : '--empty'], { env, readOnly: true });
+      for (const chunk of chunks(paths)) await run(cwd, ['add', '-A', '--', ...chunk], { env, readOnly: true });
+      for (const [path, source] of blobs) {
+        const object = await run(cwd, ['hash-object', '-w', '--stdin'], { stdin: source, readOnly: true });
+        await run(cwd, ['update-index', '--add', '--cacheinfo', '100644', object.stdout.trim(), path], { env, readOnly: true });
+      }
+      const signed = authorship(author);
+      await run(cwd, [...signed.config, 'commit', '-q', ...signed.trailer, '-F', '-'], { stdin: message, env: { ...signed.env, ...env }, readOnly: true });
+      for (const chunk of chunks([...paths, ...blobs.keys()])) await run(cwd, ['reset', '-q', 'HEAD', '--', ...chunk], { readOnly: true });
+    } finally {
+      rmSync(temporary, { recursive: true, force: true });
+    }
+  }
+
   // Commit only these paths from the working tree to preserve unrelated staged and unstaged
   // changes. Skip ignored or unchanged paths; report missing identity, active merges, or no changes
   // as outcomes.
-  async function commitPaths(cwd: string, paths: string[], message: string, author?: CommitAuthor): Promise<CommitPathsResult> {
+  async function commitPaths(cwd: string, paths: string[], message: string, author?: CommitAuthor, blobs: ReadonlyMap<string, string> = new Map()): Promise<CommitPathsResult> {
     if (typeof message !== 'string' || !message.trim()) throw new GitError('A commit message is required.');
     if (!Array.isArray(paths) || !paths.length) throw new GitError('Name the files to commit.');
     // A server-mode commit is authored by the signed-in person, so no repository identity is needed.
@@ -348,6 +403,12 @@ export function createGit(options: GitOptions) {
     }
     const list = paths.filter(p => changed.has(p));
     if (!list.length) return { committed: false, reason: 'nothing' };
+    if (blobs.size) await commitWithBlobs(cwd, list, blobs, message, author);
+    else await commitWorkingPaths(cwd, list, message, author);
+    const head = await read(cwd, ['rev-parse', '-q', '--verify', 'HEAD']);
+    return { committed: true, commit: head.stdout.trim() };
+  }
+  async function commitWorkingPaths(cwd: string, list: string[], message: string, author?: CommitAuthor) {
     const untracked: string[] = [];
     for (const chunk of chunks(list)) {
       const gitResult = await read(cwd, ['ls-files', '-z', '--others', '--exclude-standard', '--', ...chunk]);
@@ -356,11 +417,9 @@ export function createGit(options: GitOptions) {
     for (const chunk of chunks(untracked)) await run(cwd, ['add', '--', ...chunk]);
     const signed = authorship(author);
     await run(cwd, [...signed.config, 'commit', '-q', ...signed.trailer, '--only', '-F', '-', '--', ...list], { stdin: message, env: signed.env });
-    const head = await read(cwd, ['rev-parse', '-q', '--verify', 'HEAD']);
-    return { committed: true, commit: head.stdout.trim() };
   }
-  async function lsTree(cwd: string, revision: string, prefix = ''): Promise<GitTreeEntry[]> {
-    const result = await run(cwd, ['ls-tree', '-r', '-l', '-z', revision, '--', ...(prefix ? [prefix] : [])], {
+  async function lsTree(cwd: string, revision: string, prefix = '', sizes = true): Promise<GitTreeEntry[]> {
+    const result = await run(cwd, ['ls-tree', '-r', ...(sizes ? ['-l'] : []), '-z', revision, '--', ...(prefix ? [prefix] : [])], {
       env: { GIT_NO_LAZY_FETCH: '1' },
     });
     return result.stdout
@@ -370,7 +429,7 @@ export function createGit(options: GitOptions) {
         const tab = entry.indexOf('\t');
         const fields = entry.slice(0, tab).trim().split(/\s+/);
         if (fields[1] !== 'blob') return [];
-        return [{ path: entry.slice(tab + 1), id: fields[2], size: Number(fields[3]) }];
+        return [{ path: entry.slice(tab + 1), id: fields[2], size: sizes ? Number(fields[3]) : 0, ...(fields[0] === '120000' ? { link: true as const } : {}) }];
       });
   }
   async function catFileBatch(cwd: string, ids: string[], limits = OBJECT_LIMITS) {
@@ -404,19 +463,19 @@ export function createGit(options: GitOptions) {
     catFileBatch,
     /** Tests commit ancestry without accepting other command failures as a negative answer. */
     async isAncestor(cwd: string, ancestor: string, descendant: string) {
-      const result = await run(cwd, ['merge-base', '--is-ancestor', ancestor, descendant], { allowFailure: true });
+      const result = await run(cwd, ['merge-base', '--is-ancestor', ancestor, descendant], { allowFailure: true, env: { GIT_NO_LAZY_FETCH: '1' } });
       if (result.code > 1) throw new GitError('Cannot determine Git ancestry.', result);
       return result.code === 0;
     },
     /** Resolves a revision to a full object id, or null when it does not exist. */
     async revParse(cwd: string, ref: string) {
-      const result = await run(cwd, ['rev-parse', '--verify', '--end-of-options', ref], { allowFailure: true });
+      const result = await run(cwd, ['rev-parse', '--verify', '--end-of-options', ref], { allowFailure: true, env: { GIT_NO_LAZY_FETCH: '1' } });
       return result.code === 0 ? result.stdout.trim() : null;
     },
     /** Resolves only a tag, peeling annotated tags to their commit. */
     async peelTag(cwd: string, name: string) {
       const ref = name.startsWith('refs/tags/') ? name : `refs/tags/${name}`;
-      const result = await run(cwd, ['rev-parse', '--verify', '--end-of-options', `${ref}^{commit}`], { allowFailure: true });
+      const result = await run(cwd, ['rev-parse', '--verify', '--end-of-options', `${ref}^{commit}`], { allowFailure: true, env: { GIT_NO_LAZY_FETCH: '1' } });
       return result.code === 0 ? result.stdout.trim() : null;
     },
     // Kill the running remote operation of this repository (the UI's Cancel).
@@ -465,6 +524,10 @@ export function createGit(options: GitOptions) {
         env: signed.env,
       });
     },
+    /** Commits the staged definitions with their corresponding history blobs. */
+    commitIndexWithBlobs(cwd: string, paths: string[], blobs: ReadonlyMap<string, string>, message: string, author?: CommitAuthor) {
+      return inTurn(insideProjects(cwd), () => commitIsolatedIndex(cwd, paths, blobs, message, author, true));
+    },
     // Tracked and untracked files, with .gitignore applied by Git itself.
     async lsFiles(cwd: string) {
       const gitResult = await read(cwd, ['ls-files', '-co', '--exclude-standard', '-z']);
@@ -506,6 +569,7 @@ export function createGit(options: GitOptions) {
     },
     merging,
     commitPaths,
+    exclusive,
     async branches(cwd: string) {
       const gitResult = await read(cwd, ['for-each-ref', '--format=%(refname)', 'refs/heads', 'refs/remotes']);
       const refs = gitResult.stdout.split('\n').filter(Boolean);
@@ -585,7 +649,8 @@ export function createGit(options: GitOptions) {
     },
   };
 }
-function parseBlobBatch(bytes: Uint8Array, ids: string[]): Map<string, Uint8Array> {
+/** Reads the non-overlapping blob payloads returned by Git in request order. */
+export function parseBlobBatch(bytes: Uint8Array, ids: string[]): Map<string, Uint8Array> {
   const blobs = new Map<string, Uint8Array>();
   let offset = 0;
   for (const id of ids) {
@@ -630,6 +695,7 @@ export type StatusEntry = {
 export function parseStatus(output: string) {
   const parts = output.split('\0');
   let branch = '';
+  let head: string | null = null;
   let upstream = '';
   let hasCommits = true;
   let ahead = 0;
@@ -639,8 +705,10 @@ export function parseStatus(output: string) {
   for (let i = 0; i < parts.length; i++) {
     const entry = parts[i];
     if (!entry) continue;
-    if (entry.startsWith('# branch.oid ')) hasCommits = entry.slice(13) !== '(initial)';
-    else if (entry.startsWith('# branch.head ')) branch = entry.slice(14);
+    if (entry.startsWith('# branch.oid ')) {
+      hasCommits = entry.slice(13) !== '(initial)';
+      head = hasCommits ? entry.slice(13) : null;
+    } else if (entry.startsWith('# branch.head ')) branch = entry.slice(14);
     else if (entry.startsWith('# branch.upstream ')) upstream = entry.slice(18);
     else if (entry.startsWith('# branch.ab ')) {
       const match = entry.match(/\+(\d+) -(\d+)/);
@@ -692,5 +760,5 @@ export function parseStatus(output: string) {
       });
     }
   }
-  return { branch, upstream, hasCommits, ahead, behind, changes: files.size, files, entries };
+  return { branch, head, upstream, hasCommits, ahead, behind, changes: files.size, files, entries };
 }

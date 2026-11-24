@@ -1,3 +1,6 @@
+import { entityCardData } from './full-node-data';
+import type { ChangeState } from '../../shared/item-diff/item-change';
+import { ChangeMark } from '../item-diff/ChangeMark';
 /** Displays the complete model graph with grouping, filtering and a detail inspector. */
 import { isStructuredEntity } from '../../shared/core/model';
 import { formatAddress } from '../../shared/core/item-address';
@@ -11,7 +14,7 @@ import { ReactFlow, Background, MiniMap, type ReactFlowInstance } from '@xyflow/
 import { SmartEdgeProvider, type SmartEdgeMetrics } from '@tisoap/react-flow-smart-edge';
 import { Crosshair, Maximize, RefreshCw } from 'lucide-react';
 import { useViewRestore, type Fullscreen } from './fullscreen';
-import { GraphOptions, OptionGroup, Segmented, ShowToggle } from './GraphOptions';
+import { ImportedGraphKey, ModelGraphOptions, OptionGroup, Segmented } from './GraphOptions';
 import { ZoomButtons } from './ZoomButtons';
 import { MODEL_CARD_WIDTH, minimumGraphZoom, textSizesAt } from './overview-capacity';
 import { humanizeIdentifier } from './EntityName';
@@ -28,6 +31,10 @@ import { useFullGraphEdges } from './useFullGraphEdges';
 import { fitFullGraph, fitGraphArea, focusFullGraph } from './full-graph-viewport';
 import { useFullGraphLayout } from './useFullGraphLayout';
 import { useFullGraphOpening } from './useFullGraphOpening';
+import { useTrafficShowItem } from '../usage/traffic-show-item';
+import { useUnpublishedWorkShowItem } from '../item-diff/unpublished-work-show-item';
+import { ShowMenu } from './ShowMenu';
+import { TrafficLegend } from '../usage/TrafficLegend';
 
 function entityAddress(entity: import('../../shared/core/model').Entity | undefined) {
   return entity && isStructuredEntity(entity) ? formatAddress(entity.address) : undefined;
@@ -44,6 +51,8 @@ type Props = {
   name: string;
   entities: Entity[];
   edges: Relationship[];
+  /** Saved item marks affect rendering without invalidating a layout of the same items. */
+  annotations?: { entities: Entity[]; edges: Relationship[] };
   selected: string;
   selectedEdge: string;
   search: string;
@@ -79,6 +88,8 @@ export function FullGraph(props: Props) {
   const miniMapReservedWidth = miniMap && !phone ? MINI_MAP_RESERVED_WIDTH : 0;
   useEffect(() => writeFlag(MINI_MAP_KEY, miniMap), [miniMap]);
   const toggleMiniMap = () => setMiniMap(shown => !shown);
+  const trafficItem = useTrafficShowItem();
+  const unpublishedWorkItem = useUnpublishedWorkShowItem();
   const [routeMetrics, setRouteMetrics] = useState<SmartEdgeMetrics | null>(null);
   // Value types (including built-ins) can be hidden with their edges; the choice is remembered per
   // model in this browser.
@@ -129,7 +140,26 @@ export function FullGraph(props: Props) {
       duration: 350,
     });
   };
-  const connections = useMemo(() => groupRelationships(display.edges), [display]);
+  const entityMarks = useMemo(() => {
+    const changes = new Map<string, ChangeState>();
+    for (const entity of props.annotations?.entities ?? []) {
+      if ('change' in entity) changes.set(entity.id, entity.change as ChangeState);
+    }
+    return changes;
+  }, [props.annotations]);
+  const connections = useMemo(() => {
+    if (!props.annotations) return groupRelationships(display.edges);
+    const marks = new Map<string, ChangeState>();
+    for (const edge of props.annotations.edges) {
+      if ('change' in edge.data) marks.set(edge.id, edge.data.change as ChangeState);
+    }
+    return groupRelationships(
+      display.edges.map(edge => {
+        const change = marks.get(edge.id);
+        return change ? { ...edge, data: { ...edge.data, change } } : edge;
+      }),
+    );
+  }, [display, props.annotations]);
   const entityById = useMemo(() => new Map(display.entities.map(e => [e.id, e])), [display]);
   const groupById = useMemo(() => new Map(overview.groups.map(g => [g.id, g])), [overview]);
   useEffect(() => {
@@ -259,24 +289,28 @@ export function FullGraph(props: Props) {
   }, [display, focus]);
   const renderedNodes = useMemo(
     () =>
-      nodes.map(node =>
-        node.type === 'entity'
-          ? {
-              ...node,
-              selected: node.id === props.selected,
-              data: {
-                ...node.data,
-                kind: entityById.get(node.id)?.kind,
-                address: entityAddress(entityById.get(node.id)),
-                kpis: props.kpiBadges?.get(String(node.data.name)),
-                focused: connected.has(node.id),
-                tooltip: node.id === hover || node.id === props.selected,
-              },
-              style: { ...node.style, opacity: focus && !connected.has(node.id) ? 0.35 : 1 },
-            }
-          : node,
-      ),
-    [nodes, connected, focus, props.selected, hover, entityById, props.kpiBadges],
+      nodes.map(node => {
+        if (node.type !== 'entity') return node;
+        const entity = entityById.get(node.id);
+        const change = entityMarks.get(node.id);
+        const geometry = change && entity ? entityCardData({ ...entity, change }, { width: node.style.width, height: node.style.height }) : undefined;
+        return {
+          ...node,
+          selected: node.id === props.selected,
+          data: {
+            ...node.data,
+            ...geometry,
+            ...(change ? { changeMark: <ChangeMark change={change} /> } : {}),
+            kind: entity?.kind,
+            address: entityAddress(entity),
+            kpis: props.kpiBadges?.get(String(node.data.name)),
+            focused: connected.has(node.id),
+            tooltip: node.id === hover || node.id === props.selected,
+          },
+          style: { ...node.style, opacity: focus && !connected.has(node.id) ? 0.35 : 1 },
+        };
+      }),
+    [nodes, connected, focus, props.selected, hover, entityById, entityMarks, props.kpiBadges],
   );
   const positions = useMemo(() => {
     const byId = new Map(nodes.map(n => [n.id, n]));
@@ -351,7 +385,8 @@ export function FullGraph(props: Props) {
           <fieldset className="graph-layout-controls" disabled={busy || opening.checking}>
             {props.groupMenu}
             <ZoomButtons onZoomIn={() => void flow.current?.zoomIn({ duration: 150 })} onZoomOut={() => void flow.current?.zoomOut({ duration: 150 })} />
-            <GraphOptions>
+            <ModelGraphOptions>
+              {props.entities.some(entity => !!entity.imported) && <ImportedGraphKey />}
               <OptionGroup title="Layout">
                 <Segmented
                   label="Graph layout"
@@ -386,24 +421,18 @@ export function FullGraph(props: Props) {
                 </button>
               </OptionGroup>
               <OptionGroup title="Show">
-                <ShowToggle on={labels} onToggle={() => setLabels(shown => !shown)}>
-                  Labels
-                </ShowToggle>
-                {valueIds.size > 0 && (
-                  <ShowToggle on={!hideValues} onToggle={toggleValues} title={`${valueIds.size} value types and their relationships`}>
-                    Value types
-                  </ShowToggle>
-                )}
-                {kpiIds.size > 0 && (
-                  <ShowToggle on={!hideKpis} onToggle={toggleKpis} title={`${kpiIds.size} metric nodes and their relationships`}>
-                    Metrics
-                  </ShowToggle>
-                )}
-                <ShowToggle on={miniMap} onToggle={toggleMiniMap} title="Mini-map of the whole model">
-                  Mini-map
-                </ShowToggle>
+                <ShowMenu
+                  items={[
+                    { name: 'Labels', summary: 'Relationship names on the lines', on: labels, onToggle: () => setLabels(shown => !shown) },
+                    valueIds.size > 0 ? { name: 'Value types', summary: `${valueIds.size} value types and their relationships`, on: !hideValues, onToggle: toggleValues } : null,
+                    kpiIds.size > 0 ? { name: 'Metrics', summary: `${kpiIds.size} metric nodes and their relationships`, on: !hideKpis, onToggle: toggleKpis } : null,
+                    { name: 'Mini-map', summary: 'A small map of the whole model in the corner', on: miniMap, onToggle: toggleMiniMap },
+                    unpublishedWorkItem,
+                    trafficItem,
+                  ]}
+                />
               </OptionGroup>
-            </GraphOptions>
+            </ModelGraphOptions>
           </fieldset>
         </CompactControls>
         {props.fullscreen && <FullscreenButton fullscreen={props.fullscreen} />}
@@ -477,6 +506,7 @@ export function FullGraph(props: Props) {
           Arranging {display.entities.length} graph nodes…
         </div>
       )}
+      <TrafficLegend />
       <div className="full-graph-status" data-entity-count={overview.entities.length} data-relationship-count={overview.links.length} data-routing={routeMetrics?.executedOn ?? 'pending'}>
         {hideValues && <span>{valueIds.size} value types hidden</span>}
         {hideKpis && <span>{kpiIds.size} metrics hidden</span>}

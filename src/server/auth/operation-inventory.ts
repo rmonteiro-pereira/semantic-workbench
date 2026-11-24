@@ -22,6 +22,7 @@ export const HANDLER_CHECKS = [
   'remoteAddress',
   'trashTarget',
   'bodyTargets',
+  'authorizeProposal',
 ] as const;
 /** Audit transport origins. */
 export { CALLER_ORIGINS } from '../../shared/observability/operation';
@@ -37,6 +38,8 @@ export type OperationEntry = {
   steps?: string[];
   dispatch: 'twin' | { no: (typeof DISPATCH_REASONS)[number] };
   outcomeClassifier?: keyof typeof operationClassifiers;
+  /** True when a successful call counts the items its answer names; see src/shared/usage/counted-operations.json. */
+  usage?: true;
   exposure: { increment: (typeof INCREMENTS)[number]; reason?: string };
 };
 /** A browser derivation that is deliberately absent from route dispatch. */
@@ -51,7 +54,12 @@ export type BrowserCapability = {
 /** Trusted startup work that has no transport dispatch. */
 export type LifecycleOperation = { id: string; steps: string[]; effects: OperationEffect[]; entryPoint: string; reason: string };
 /** Validated route operations and remaining browser capabilities. */
-export type OperationInventory = { operations: Record<string, OperationEntry>; browserCapabilities: BrowserCapability[]; lifecycleOperations: Record<string, LifecycleOperation> };
+export type OperationInventory = {
+  contentGuardActions: Record<'item-status' | 'item-body', 'approveOntologyItem'>;
+  operations: Record<string, OperationEntry>;
+  browserCapabilities: BrowserCapability[];
+  lifecycleOperations: Record<string, LifecycleOperation>;
+};
 
 /** Invalid reviewed inventory data, including the row and schema failure. */
 export class OperationInventoryError extends Error {}

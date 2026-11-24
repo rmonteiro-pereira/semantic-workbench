@@ -28,7 +28,7 @@ flowchart TB
         Access["Identity and access boundary<br/>[Component]<br/>sessions, grants and Cedar"]
         Routes["Resource routes<br/>[Component]<br/>typed requests and dispatch"]
         Workspace["Workspace services<br/>[Component]<br/>files, Git, journals and events"]
-        Models["Definition model and validation<br/>[Component]<br/>parsers, schemas and guards"]
+        Models["Definition model and validation<br/>[Component]<br/>parsers, schemas, guards and the Tessera format"]
         Planner["Agent and metric planner<br/>[Component]<br/>filtered metadata and SQL previews"]
         Admin["Access administration<br/>[Component]<br/>review, replay and versioned activation"]
         Audit["Security audit<br/>[Component]<br/>durable hash-chained records"]
@@ -78,6 +78,19 @@ The integration view shows what the application reads and contacts, and what it 
 ![Integrations and boundaries: file formats read, the identity provider, agent clients, Git hosting and Azure Monitor that it can talk to when configured, container deployment and outputs, and what it never does: connect to a warehouse, produce live metric values, reason over OWL or call a hosted language model.](docs/diagrams/integrations.svg)
 
 ## Code map
+
+- `src/server/projects/item-diff-sides.ts` takes comparison definitions and provenance from the same
+  published commit, saved working copy, visible branch tip or readable commit, using the snapshot size limits.
+  `src/server/auth/item-diff-access.ts` applies the project, file and branch visibility rules.
+  `src/server/projects/item-diff.ts` compares structured items with destination-only migrations and reports files it could not compare.
+- `src/shared/item-diff/` owns comparison side parsing, parsed model item extraction, field comparison and
+  address-based pairing independently of files, Git and browser state. Child item collections do not
+  cascade changes to their containers; relationship roles remain a named relationship field.
+
+- `src/shared/attributes/` owns the attribute rule, inheritance and display order over Ossie relationships.
+- `src/app/attributes/` renders and edits attribute rows and shows where value types are used.
+- `src/app/agent-context/` edits item context and labels the preview as working copy content.
+- `src/app/governance/` presents ontology and metric governance using the shared governance model.
 
 - `src/shared/core/address-kinds.ts` owns the versioned item-address kind registry and parent rules.
 - `src/shared/core/item-address.ts` owns canonical parsing, document locators, formatting, relative resolution and whole-segment prefix operations.
@@ -144,7 +157,7 @@ font-face declarations before the theme stylesheet. Fonts are served from the ap
   copies and stages the file-store migration.
 - `address-key-stores.ts` locates active and archived grouping stores.
 - `address-key-conversion.ts` backs them up, verifies original hashes, and journals their one-time conversion.
-- `address-migrations.ts` validates request declarations for routes and stages bounded, ordered history without committing a separate transaction.
+- `address-migrations.ts` validates request declarations for routes and stages bounded, ordered history in the project’s Git working copy within the owning journal.
   Document-save services receive typed declarations and check their effect against the guarded source.
 - `address-resolution.ts` resolves current items and visible history behind the reader boundary.
 - `address-reconciliation.ts` receives an already-authorized reader and records explicit reconciliation through the project lock and journal.
@@ -167,6 +180,8 @@ font-face declarations before the theme stylesheet. Fonts are served from the ap
   builds share one promise per repository, commit and folder digest; limits reject whole builds.
   Publication validation holds an active candidate pin through settlement, then releases it on success
   or refusal. The first published read reuses that index within the existing retention bound.
+  A request that needs set validation first projects the candidate tree to the caller's readable
+  definitions, before opening restricted blobs or building the shared index.
 - `publication.ts` is the single publication writer and repository queue for local Publish, server Publish,
   remote follow and adoption. It applies `publication-checks.ts`, writes intent, compare-and-swaps the ref,
   records the pointer and supersedes the resolver. A failed swap abandons intent. `recover` finishes or drops
@@ -201,7 +216,33 @@ font-face declarations before the theme stylesheet. Fonts are served from the ap
 - `project-export.ts` selects permitted files/history and checks limits before streaming;
   `zip.ts` writes the archive. Export logic must not bypass a Reader's permissions.
 
+- Shared proposals: `shared/proposals/` holds the pure model (names, identifiers, derived status, contribution
+  branch names and scope judging). `proposal-store.ts` writes `state/proposals/<repo>.json` atomically and
+  `proposal-refs.ts` owns the Git refs. A failed ref transaction checks the expected refs again.
+  A mismatch is stale state, while a storage failure returns a generic operation error.
+  `proposals.ts` creates, lists and views; `proposal-contribution.ts`,
+  `proposal-promotion.ts` (also startup recovery) and `proposal-closing.ts` do the rest, all inside the
+  repository publication queue. Startup reconciles a close or restore when the Git transaction moved
+  the ref but the proposal record still holds the earlier state. An interrupted close records
+  recovery as the closer because the actor is unavailable. Promotion reuses `moveDefault` through `worktrees.promote`.
+  `work-in-progress-push.ts` refuses pushing work and proposal branches. `routes/proposals.ts` exposes the
+  routes and `auth/proposal-access.ts` decides authority. The browser side is `app/proposals/`.
+  The proposal visibility boundary allows a reader of any declared project to see the name, creator,
+  contributors and tip. Unreadable project names are filtered. These shared metadata fields can
+  disclose information across declared projects if the author includes it in the proposal name.
+
 ### Identity, authorization, governance and administration
+
+- `src/server/connections/` owns program registrations, consent grants, token rotation and session-bound connections.
+  Server MCP authenticates through `mcp/server-mode-gate.ts` and supplies a fresh caller to the existing
+  operation boundary for every request. Scopes narrow effects; the connection end signal cancels its work.
+  Receipt replay uses the same inventoried route and authorization checks, with the original
+  restore target retained when the trash entry is consumed. The stdio bridge keeps rotating
+  client tokens in a private, atomic per-server cache.
+  Tokens on the server persist only as keyed hashes; the original browser cookie is never recovered.
+  Delegated Git credential updates use the session store reference under its existing mutation lock,
+  preserving the browser session idle clock and refusing updates after session end.
+
 
 - `src/server/auth/request-surface.ts` records the authenticated caller’s browser or consumer surface through
   `request-scope.ts` at the operation boundary, using a symbol on the request and one setter.
@@ -259,10 +300,24 @@ font-face declarations before the theme stylesheet. Fonts are served from the ap
   controls but cannot authorize a write.
 - `admin-repo.ts`, `access-admin.ts`, `dry-run.ts`, `admin-guard.ts`, `policies.ts` and
   `change-summary.ts` own versioned access documents, reviewed proposals, replay, last-Admin
-  protection and activation. Requested rollback is a new reviewed commit.
+  protection and activation. Requested rollback is a new reviewed commit. The Admin path reuses active
+  policy preparation only when roles and administrator policy text match. Proposal boundaries own
+  their entities and grants. Replay scopes share unchanged principal policy inputs within one
+  comparison; arbitrary administrator rules retain independent evaluation.
+  Cedar builds policy-derived action applicability indexes lazily on the first replay, by role,
+  principal kind and resource kind. Replay scopes use these indexes and reuse readability decisions; ordinary HTTP scopes
+  retain their per-action keys. Both use the same decision function. Reloads replace policy
+  indexes and clear scope decisions. Cedar remains the decision authority.
 - `remote-hosts.ts`, `remote-credentials.ts` and `github-oauth.ts` choose permitted remote hosts
   and command-scoped credentials. `src/server/bin/sw-askpass` is the final host-specific credential
   boundary; Git filters and local merge steps must not inherit remote tokens.
+
+### Agent endpoint
+
+- `src/server/routes/mcp.ts` serves `POST /api/mcp` in local mode only and does transport work only: it applies the request gate, reads the body under its caps and hands the message to the protocol library. It is mounted by `src/server/handler.ts` when `src/server/index.ts` opened a capability.
+- `src/server/mcp/` holds one module per concern: `request-gate.ts` (method, `Origin`, `Host`, capability, content type, in that order), `local-capability.ts` (the secret file), `body-limits.ts`, `server-factory.ts` (builds the protocol server for one request from the registry), `tool-registry.ts` and `tool-definition.ts` (the 23 tools as plain data), `tools/` (grouped by what they do), `twin-dispatch.ts` (runs a tool's request through the operation boundary and maps the answer), `tool-results.ts`, `tool-paging.ts` and `cursors.ts`, `call-limits.ts`, `receipts.ts` (durable retry safety for delete, restore and commit) and `call-audit.ts`.
+- Nothing under `src/server/mcp/` reads project files or decides access. A tool is the twin of the inventory operation it names, so adding a tool means adding it to the registry, to the route inventory contract and to `docs/mcp.md`; `tests/mcp/` compares the three.
+- `scripts/mcp-stdio.ts` is the bridge for clients that start a program; `scripts/mcp-rotate.ts` rotates the secret.
 
 ### Parsing, editing, metrics and agent planning
 
@@ -299,6 +354,119 @@ font-face declarations before the theme stylesheet. Fonts are served from the ap
   `context-selection.ts`); `query-plan.ts` builds the SQL preview;
   `runtime.ts` re-exports both as the public entry point. They never execute a plan or
   call an LLM. Synthetic example execution belongs only to verification scripts/tests.
+
+### Usage counters
+
+Usage stages migrations against both sides of a publication and selects them by the published commit.
+Usage reads resolve addresses against the pinned model and the reader's file grants.
+
+- `src/server/usage/` owns counts of requests through the workbench, off unless `SW_USAGE_COUNTERS=on`.
+  `usage-settings.ts` reads the two variables, `src/shared/usage/usage-counted-operations.ts` parses
+  `src/shared/usage/counted-operations.json`, and `usage-items.ts` is the pure rule that finds the
+  addresses a counted answer names. `usage-recorder.ts` counts in memory (a no-op object when off) and
+  flushes every 30 seconds through `usage-flush.ts` to day files that only `usage-store.ts` touches;
+  `usage-migration.ts`, `usage-retention.ts` and `usage-compaction.ts` move counts with item addresses and
+  expire them, `usage-read.ts` builds the answer of `usage.read` for one reader, `usage-trash.ts` moves
+  counts with a trashed project and `usage-workspace.ts` is the one module that knows the workspace.
+  `usage-publication.ts` reads the address history committed in the published commit, the same
+  history `src/server/projects/address-migrations.ts` gives published address resolution.
+- The operation boundary calls the recorder once after a counted answer exists. It never waits for the
+  disk, changes an answer or reads the audit log; no usage module imports audit or telemetry code, and a
+  test scans the imports. `state/usage/` is a durable store that is registered in the persisted-key
+  inventory and holds counts only.
+- `src/app/usage/` is the Traffic display: `traffic-store.ts` asks the server only when the option is on,
+  `use-usage.ts` connects it to React, and the badge, mark, legend, toggle and sort components render
+  from it. With the option off they render nothing.
+
+### The Tessera format and compiler
+
+`src/server/tessera/unit-source.ts` owns the complete-unit seam; `workspace-unit-source.ts` binds
+it to pinned published bytes and the caller's saved working files. `compile-service.ts` reuses the
+shared compiler and acceptance/paging decisions. `bundle-files.ts` assembles identical CLI and HTTP
+bundle entries, while shared `compile-findings.ts` formats their findings. `workspace-conversion.ts`
+connects `convert-service.ts` to Git cleanliness and the existing guarded, hash-checked save pipeline.
+`src/server/routes/compile.ts` parses typed requests behind the operation boundary and inventory;
+`src/app/compile/` owns review, explicit acceptance, downloads and conversion states. The browser's
+one-file preview reuses the shared compiler; the server recomputes the complete unit before saving.
+The [compile guide](docs/compile.md) owns HTTP answers, usage and limits. MCP adapters await integration.
+
+The shared `src/shared/tessera/digest.ts` implements synchronous SHA-256 for both runtimes.
+The compiler and browser conversion preview use that same function without a bundler alias or
+Node imports. Native Bun hashes and browser Web Crypto verify its output at block boundaries.
+
+Tessera is an authoring format that compiles to standard Ossie. Its definitions are pure code in
+`src/shared/tessera/`; Git and the file system are touched only in `src/server/tessera/` and the
+command line.
+
+- `src/shared/tessera/format.ts` holds the one definition of the name, the marker key, the property
+  prefix, the supported revisions and the compiler version. No other module under `src` spells them.
+- `src/shared/tessera/registry.ts` is the one list of additions, built from the modules under
+  `src/shared/tessera/additions/` and `reserved-names.ts`. Validation,
+  the derived schema, the compiler and the loss report all read it. Its header says how to add one.
+- `src/shared/tessera/bases.ts` is the table of supported Ossie bases and the check that a base
+  leaves the Tessera names alone. Its pinned schema data is copied into `src/generated/` by
+  `scripts/compile-schemas.ts`, keeping schema-file imports outside the shared layer.
+  `schema-derivation.ts` derives the Tessera ontology schema from a pinned schema and the registry; `scripts/derive-tessera-schema.ts` writes it to
+  `schemas/tessera-ontology-1-ossie-0.2.0.dev0.json` and the revision 2 counterpart. `scripts/compile-schemas.ts` compiles both.
+- `src/shared/tessera/unit-structure.ts` resolves the root’s declared parts and reports structural
+  findings from parsed project files. It never follows links or reads the filesystem.
+  `unit-model.ts` combines the concepts in include order and maps item addresses to source files.
+  `export-closure.ts` checks the public concept list and computes its canonical interface hash.
+  `imports.ts` checks aliases and allow-lists against the resolved public interfaces.
+  `dependency-manifest.ts` reads the versioned dependency lock and compares it with the declared imports.
+  `qualify.ts` spells compiled concept names from their stable owner and rewrites their references.
+  `set-validation.ts` keeps complete-set findings separate from each reader’s visible single-file findings.
+  The shared validator selects the revision 3 root or part schema before checking a single file.
+  References outside that file are checked at the unit boundary.
+  Agent context composes roots with their declared parts from the caller’s pinned published files.
+  `src/server/mesh/provider-resolution.ts` reads public interfaces from pinned publication objects
+  after checking whether the caller can read the provider project.
+  The shared inspector connects allowed aliases to read-only concept nodes that retain the provider’s
+  project, ontology, and published version.
+  `src/server/routes/mesh.ts` serves provider discovery, dependency status and explicit dependency updates through the operation boundary.
+  `src/server/mesh/dependents-registry.ts` rebuilds the provider's dependents index from published lock files.
+  `src/server/mesh/mesh-graph.ts` projects the published graph to the reader's visible projects.
+  Dependency previews report interface changes. Cross-project links in this revision are workbench-local imports, and compatibility
+  verdicts, externally composed ontologies, organization-wide targets and release automation are outside the mesh boundary.
+  The shared publication guard checks locks against the immutable candidate tree and pinned provider history before advancing the ref.
+  The compile unit source passes root and declared part files, lock metadata and pinned public interfaces to the compiler.
+  Mesh bundles merge parts into their roots, qualify imported concepts, and record their provenance and address map in manifest version 2.
+  The inspector can build a composed graph with a source-file index. The scanner indexes the
+  dependency manifest as project metadata and keeps parse findings per file.
+  The workspace graph, catalog and grouping compose the active ontology from the reader’s files.
+  A selected concept keeps the address of its original file. Form edits patch that file at its source path.
+  When adding a concept, the form offers the root and its declared parts as destinations.
+  The journaled batch save checks duplicate concept declarations and records cross-file concept moves.
+- `src/shared/tessera/marker.ts` reads the marker (top level only). `validate.ts` gives the Tessera
+  findings and picks the derived schema by marker and base. `src/shared/validation/validation.ts`
+  calls it at the top of `validateStructured`, and `src/shared/core/model.ts` returns the document
+  `format` from `inspect`. That is the whole read path: the editor, the file scan, the save
+  endpoints and agent context reach a Tessera document through those two functions, so no route
+  or operation was added. `agent-view.ts` projects item context and governance flags for agent context
+  and strips the remaining Tessera fields. Production agent handlers read the pinned publication.
+- `src/shared/governance/ontology-guards.ts` compares ontology items on the shared write paths.
+  The server guard binds approval to `approveOntologyItem` and classification to `editGuarded`.
+- `compile-document.ts` removes the marker and additions of one ontology by their disposition;
+  `serialize.ts` prints the result; `meaning-check.ts` checks the output keeps the data, the items
+  and addresses, the name index and the attribute relationships. `loss-report.ts` builds the report
+  and counts lost governance entries by status, parses loss policies
+  and decides acceptance; `manifest.ts` builds the manifest; `canonical-json.ts` and `digest.ts`
+  give equal input equal bytes. `document-kind.ts` sorts the files of a project folder and
+  `compile-unit.ts` compiles the whole folder.
+- `src/server/tessera/snapshot-source.ts` reads a committed project folder through the Git helper
+  (`src/server/projects/git.ts`), `disk-source.ts` reads a folder for `check`, and
+  `bundle-writer.ts` writes the bundle to a temporary folder and renames it.
+  `scripts/tessera.ts` is the command line; `scripts/tessera-arguments.ts` and
+  `scripts/tessera-output.ts` read its options and print its results.
+- Tests live in `tests/tessera/`. The mutation gate adds `scripts/tessera-mutants.ts` and
+  `scripts/tessera-mutation-cases.ts`, and the browser check is `scripts/tessera-browser-check.ts`.
+
+Compile flow: read the project folder at a full commit on the default branch (with a data root, the
+commit must equal the published one); classify each file as Tessera ontology, standard Ossie or
+other; validate every Ossie document with the shared validator; compile the Tessera ones and copy
+the others; validate every output with the pinned schema and no notice; run the meaning check;
+build the loss report; release only when there is no failure and the loss is accepted exactly; write
+the bundle outside the source trees.
 
 ### Browser shell and graph rendering
 
@@ -348,7 +516,11 @@ font-face declarations before the theme stylesheet. Fonts are served from the ap
   `useNeighborhoodView.ts` (filtering, walk canvas, shown entities and edges), `useNeighborhoodNodes.ts`
   (positions, chunked reveal, separation by measured size) and `NeighborhoodToolbar.tsx`. `FullGraph.tsx` composes `useFullGraphLayout.ts` (layout cache, the Network worker
   and ELK layout) and `FullGraphNodes.tsx` (entity, area and relationship renderers). `overview.ts` and `communities.ts`
-  decide display grouping, not standard semantics.
+  decide display grouping, not standard semantics. The toolbars' drop-down menus, the Group menu
+  (`GroupingControls.tsx`) and the Show menu (`ShowMenu.tsx`), share placement, dismissal and keyboard
+  focus through `toolbar-menu.ts`. Features add their own Show menu entries through a hook that returns
+  a `ShowItem` or null: Traffic (`src/app/usage/traffic-show-item.ts`) and Unpublished work
+  (`src/app/item-diff/unpublished-work-show-item.ts`).
 - `src/app/odcs/lineage.ts` builds declared column dependencies; `LineageCanvas.tsx`, `LineageCard.tsx`
   and `LineageColumnList.tsx` draw row ports, selection and windowed column lists. Mapping canvases
   reuse this infrastructure with resolver-derived cards/lines. `LineageCanvas.tsx` composes
@@ -411,6 +583,25 @@ font-face declarations before the theme stylesheet. Fonts are served from the ap
 5. All worktrees of a repository share its serialized Git queue. Sparse paths, multi-project
    ownership and protected content apply to both direct changes and incoming Git content.
 
+### Agent operation
+
+1. The route gates the request, streams its body under the cap of the named tool and gives it to the protocol library, which checks the headers, the envelope and the revision.
+2. The tool checks its arguments against its JSON Schema, takes a place under the call limits and builds the request of its twin route.
+3. `operation-boundary.ts` decides and audits the call as the twin with the `mcp` origin, and the route runs unchanged. The tool maps the HTTP answer to a result.
+4. Delete, restore and commit write a receipt before and after the effect, so a retry returns the original result. A commit also checks the branch, head and file versions in the same turn of the repository queue that commits.
+
+### Proposal contribution and promotion
+
+1. Create registers a proposal ref at the published commit; Work on it gives the caller `work/<handle>.<id>`.
+2. Contribute checks the tip is not stale, the branch descends from it, the declared-project scope,
+   per-path `edit` and the content guards, then moves the ref by compare-and-swap.
+3. Promote dry-runs publication, then fast-forwards the default branch through the shared publication
+   path. A tip inside published history reads as promoted.
+
+Startup persists recovered promotion outcomes and their expected tips before removing any
+open refs. Later startups retry a promoted proposal's cleanup only when its open ref still
+matches that tip.
+
 ### Access administration
 
 1. A typed proposal is validated and replayed against configured cases, recent audit and known
@@ -461,8 +652,10 @@ font-face declarations before the theme stylesheet. Fonts are served from the ap
 | Content protection | `src/shared/governance/`, then server/client bindings |
 | Item address kind | `shared/core/address-kinds.ts`, model derivation, conformance fixtures, properties and `docs/item-addresses.md` |
 | Definition syntax | `src/shared/core/model.ts`, `src/shared/validation/`, `src/shared/odcs/` and pinned schemas |
+| Tessera addition, base or compiler | `src/shared/tessera/registry.ts` (read its header), `bases.ts`, `compile-document.ts`; the command line in `scripts/tessera.ts` |
 | Byte-preserving item edit | `src/shared/edit/`, `src/app/edit/` and `src/shared/editor/patch.ts` |
 | Metrics/bindings/plans | `src/shared/metrics/`, `src/app/metrics/`, `src/server/agent/` |
+| Usage counts and the Traffic display | `src/server/usage/`, `src/shared/usage/counted-operations.json`, `src/app/usage/`, `docs/usage-counters.md` |
 | Graph layout/routing | `FullGraph.tsx`, `src/app/graph/`, `src/app/odcs/` |
 | Git/repository behavior | `src/server/projects/git.ts`, `scm.ts`, working-copy modules |
 | Theme/brand | Tokens and `public/brand/`; server sanitation under `src/server/brand/` |
@@ -472,3 +665,28 @@ font-face declarations before the theme stylesheet. Fonts are served from the ap
 Use [the development guide](docs/development.md) for command syntax, fixture rules and validation.
 Keep configuration/API/operation details in their canonical guides instead of appending release
 history or per-control instructions to this architecture map.
+
+## Agent panel
+
+`src/server/acp/` owns relay authentication, protocol framing, session lifetime and the file
+adapter into the operation boundary. `src/shared/agent-panel/` holds the content statement and
+event contracts. `src/app/agent/` owns the in-memory browser event reduction and panel transport;
+it uses the ordinary browser API wrapper for write intent and ordinary guarded saves for Undo.
+
+
+The person menu dynamically imports `AgentPanelHost` only on selection. The host mounts a sheet
+beside the existing canvas and removes its container on close, leaving closed-screen geometry
+unchanged. `useAgentSession` owns stream retries and the known-session 404 inference;
+`agent-events.ts` deduplicates replay and combines streamed text. Browser storage holds only a
+session id. `ChangeCard` restores text with the ordinary guarded save and its accepted base hash.
+The workbench never launches an agent, calls a model, supplies credentials to an agent or names
+a tool server. In server mode, `handler.ts` supplies the real person connection service to the panel; it owns
+setup exchange, token rotation and session-end notifications. Each transport binds tokens to its
+own caller origin before the shared operation boundary authorizes them.
+
+### Item comparison
+
+The browser-only `items.diff` operation uses the existing history permission and audit boundary.
+It compares structured items from authorized saved files and Git snapshots. The overlay is a
+display aid. Agent operations continue to build context, plans and explanations from the
+published snapshot and have no item comparison operation.

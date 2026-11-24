@@ -1,12 +1,17 @@
 // Coordinates project files, durable state, and workspace services. Project folders are the source
 // of truth; the SQLite cache can be rebuilt.
+import { createDependentsRegistry } from '../mesh/dependents-registry';
 import { upgradePublications } from '../auth/operation-execution';
 import type { PublicationObserver } from './local-publication';
-import { readAddressMigrations } from './address-migrations';
-import { resolveForCaller } from './address-resolution';
+import { ADDRESS_HISTORY_FILE, committedAddressHistoryFile, readAddressMigrations, readCommittedAddressMigrations, trashHistoryChanges } from './address-migrations';
+import { resolveForCaller, resolvePublishedForCaller } from './address-resolution';
 import { recordReconciliation, type ReconciliationRequest } from './address-reconciliation';
 import { convertAddressKeys } from './address-key-conversion';
-import { inspect } from '../../shared/core/model';
+import { INCLUDES_PROPERTY } from '../../shared/tessera/additions/includes';
+import { PART_PROPERTY } from '../../shared/tessera/additions/part';
+import { DEPENDENCY_MANIFEST_PATH } from '../../shared/tessera/dependency-manifest';
+import { completeOntologyUnit } from '../../shared/tessera/unit-structure';
+import { inspect, inspectOntologyUnit } from '../../shared/core/model';
 import { encodeGrouping, decodeGrouping, type GroupingAssignments } from '../../shared/core/grouping-addresses';
 import { InputError } from '../../shared/validation/diagnostics';
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync } from 'node:fs';
@@ -28,9 +33,10 @@ import { createScm } from './scm';
 import { migrateLegacyPublicationNotices, scmPublishedStatus } from './scm-published';
 import { createPublication } from './publication';
 import { createPublishedPointers } from './published-pointer';
+import { createItemDiffSides } from './item-diff-sides';
 import { createPublishedSnapshots } from './published-snapshot';
 import { initializePublishedPointers } from './published-initialization';
-import { createWorktrees } from './worktrees';
+import { createWorktrees, personalBranch } from './worktrees';
 import { copyScmHooks, createWorkingCopies, projectLockKey, type Place, type RepositoryFacts } from './working-copies';
 import { createPublishing } from './publishing';
 import { createLocalPublication, LOCAL_AUTHORING_BRANCH, prepareLocalCommit } from './local-publication';
@@ -43,6 +49,7 @@ import { createImportBatch, freeReadableName, preflight } from './workspace/impo
 import { createDocumentSave, applyPatches } from './workspace/document-save';
 import { createFileMove } from './workspace/file-move';
 import { createGitIdentity } from './workspace/git-identity';
+import { createWorkspaceProposals } from './workspace/proposals';
 import { MANIFEST_FILE } from './repositories';
 import { LOCAL_READER, type Reader } from './reader';
 import { BadRequestError, HiddenResourceError, SnapshotUnavailableError } from './errors';
@@ -68,6 +75,8 @@ export type WorkspaceOptions = {
   copyIdleMs?: number;
   migrationHooks?: Parameters<typeof migrateLegacy>[1];
   journalHooks?: JournalHooks;
+  /** Tests stop a publication after one of its durable steps to prove restart recovery. */
+  publicationStage?: (stage: 'intent' | 'ref' | 'pointer') => void;
   /**
    * Server mode: at start-up, restores files that local-mode deletions left deleted in the
    * published checkout, and refuses to start on any other change there.
@@ -77,8 +86,8 @@ export type WorkspaceOptions = {
   log?: (line: string) => void;
 };
 /** A definition file is one the person sees as a definition: visible, and not a .gitignore. */
-function isDefinitionFile(file: { visible: boolean; docType: string }) {
-  return file.visible && file.docType !== 'gitignore';
+function isDefinitionFile(file: { visible: boolean; docType: string; path: string }) {
+  return file.visible && file.docType !== 'gitignore' && file.path !== DEPENDENCY_MANIFEST_PATH;
 }
 /** Derives a numeric revision from a content hash for legacy document clients. */
 export const revisionOf = (hash: string) => parseInt(hash.slice(0, 12), 16) + 1;
@@ -234,25 +243,50 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   async function localCommit(files: DataLayout, project: string): Promise<string> {
     return gitAvailable ? ((await git.head(repoDir(files, project))) ?? '') : '';
   }
-  const addressReads = { projectExists: (project: string) => projects().some(entry => entry.slug === project), readFile };
+  const addressReads = { projectExists: (project: string) => projects().some(entry => entry.slug === project), readFile, partOntologyName };
   const addressReconciliation = {
     ...addressReads,
     layout,
     journal,
     lock,
-    head: (project: string, reader: Reader) => localCommit(copies.readPlace(reader, project).layout, project),
+    workingLayout: async (project: string, reader: Reader, precheck: () => void) => (await copies.writePlace(reader, project, precheck)).layout,
+    head: localCommit,
   };
   function groupingEntities(reference: { project: string; path: string }, reader: Reader) {
     const document = readFile(reference.project, reference.path, reader);
     try {
-      return inspect(document.source, reference.path).entities;
+      const model = inspect(document.source, posix.basename(reference.path));
+      if (!('document' in model) || (!model.document[PART_PROPERTY] && !model.document[INCLUDES_PROPERTY]?.length)) return model.entities;
+      const files = groupingUnitFiles(reference.project, reader);
+      const unit = completeOntologyUnit(files, reference.path);
+      return unit ? inspectOntologyUnit(unit, reference.project).entities : model.entities;
     } catch (error) {
       if (!(error instanceof InputError)) throw error;
       return [];
     }
   }
+  function partOntologyName(project: string, path: string, reader: Reader): string | undefined {
+    const unit = completeOntologyUnit(groupingUnitFiles(project, reader), path);
+    const data = unit?.root.data;
+    if (data && typeof data === 'object' && 'name' in data && typeof data.name === 'string') return data.name;
+  }
+  function groupingUnitFiles(project: string, reader: Reader) {
+    const place = copies.readPlace(reader, project);
+    return place.cache.files(project).flatMap(file => {
+      if (file.docType !== 'Ossie ontology' || (reader.view && !reader.view.canRead(project, file.path))) return [];
+      try {
+        const document = readFile(project, file.path, reader);
+        const parsed = inspect(document.source, posix.basename(file.path));
+        return 'document' in parsed ? [{ path: file.path, data: parsed.document }] : [];
+      } catch (error) {
+        if (error instanceof InputError || error instanceof NotFoundError || error instanceof PathError) return [];
+        throw error;
+      }
+    });
+  }
   function readFile(slug: string, path: string, reader: Reader = LOCAL_READER) {
     entry(slug);
+    if (posix.basename(path).toLowerCase() === ADDRESS_HISTORY_FILE) throw new NotFoundError('File not found.');
     const place = copies.readPlace(reader, slug);
     const file = projectFile(place.layout, slug, path);
     let bytes: Uint8Array;
@@ -281,34 +315,60 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     if (slash < 1) throw new NotFoundError('Document not found.');
     return { project: id.slice(0, slash), path: id.slice(slash + 1) };
   }
+  function documentsAtPlace(project: string, place: Place, visible: (path: string) => boolean) {
+    return place.cache
+      .files(project)
+      .filter(file => file.visible && visible(file.path))
+      .flatMap(cachedFile => {
+        let bytes: Buffer;
+        try {
+          bytes = readFileSync(indexedFile(place.layout, project, cachedFile.path));
+        } catch {
+          return [];
+        }
+        return [
+          {
+            id: `${project}/${cachedFile.path}`,
+            filename: posix.basename(cachedFile.path),
+            source: decode(bytes),
+            revision: revisionOf(cachedFile.hash),
+            hash: sha256(bytes),
+            project,
+            path: cachedFile.path,
+            updated: cachedFile.indexedAt,
+          },
+        ];
+      });
+  }
   function documentsFor(reader: Reader) {
-    const { view } = reader;
-    return projects().flatMap(projectEntry => {
-      const place = copies.readPlace(reader, projectEntry.slug);
-      return place.cache
-        .files(projectEntry.slug)
-        .filter(f => f.visible && (!view || view.canRead(projectEntry.slug, f.path)))
-        .flatMap(cachedFile => {
-          let source: string;
-          try {
-            source = decode(readFileSync(indexedFile(place.layout, projectEntry.slug, cachedFile.path)));
-          } catch {
-            return [];
-          }
-          return [
-            {
-              id: `${projectEntry.slug}/${cachedFile.path}`,
-              filename: posix.basename(cachedFile.path),
-              source,
-              revision: revisionOf(cachedFile.hash),
-              hash: cachedFile.hash,
-              project: projectEntry.slug,
-              path: cachedFile.path,
-              updated: cachedFile.indexedAt,
-            },
-          ];
-        });
+    return projects().flatMap(project => {
+      return documentsAtPlace(project.slug, copies.readPlace(reader, project.slug), path => !reader.view || reader.view.canRead(project.slug, path));
     });
+  }
+  /**
+   * The files of one project the reader may open, without their text. A project that is missing and
+   * one the reader may not see answer alike.
+   */
+  function documentIndexFor(slug: string, reader: Reader) {
+    const { view } = reader;
+    if (!projects().some(projectEntry => projectEntry.slug === slug) || (view && !view.readableProjects.has(slug))) throw new NotFoundError('Project not found.');
+    const place = copies.readPlace(reader, slug);
+    return place.cache
+      .files(slug)
+      .filter(f => f.visible && (!view || view.canRead(slug, f.path)))
+      .flatMap(cachedFile => {
+        try {
+          const size = statSync(indexedFile(place.layout, slug, cachedFile.path)).size;
+          return [{ project: slug, path: cachedFile.path, hash: cachedFile.hash, docType: cachedFile.docType, size, updated: cachedFile.indexedAt }];
+        } catch {
+          return [];
+        }
+      });
+  }
+
+  function dependencyCandidateDocuments(consumer: string, provider: string, reader: Reader) {
+    if (repoOf(consumer) !== repoOf(provider) || (reader.view && !reader.view.readableProjects.has(provider))) return [];
+    return documentsAtPlace(provider, copies.pendingWritePlace(reader, consumer), path => consumer !== provider || !reader.view || reader.view.canRead(provider, path));
   }
   // Every project of a repository notices a change under .git; the browser hears of it once.
   const pendingGitEvents = new Set<string>();
@@ -364,6 +424,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     directory: repository => join(layout.projects, repository),
     readable: candidate => snapshots.validate(candidate),
     supersede: () => snapshots.supersede(),
+    stage: options.publicationStage,
   });
   const localPublication = createLocalPublication({
     git,
@@ -378,15 +439,15 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     publication,
   });
   // The repository paths of files that copy-less trash entries hold, per repository folder.
-  function trashedPaths(): Map<string, Set<string>> {
-    const byRepo = new Map<string, Set<string>>();
+  function trashedPaths(): Map<string, TrashEntry[]> {
+    const byRepo = new Map<string, TrashEntry[]>();
     for (const id of readdirSync(layout.trash)) {
       const kept = readJsonFile<TrashEntry>(join(layout.trash, id, 'entry.json'));
       const project = projects().find(item => item.slug === kept?.project);
       if (!kept || kept.kind !== 'file' || kept.copy || !kept.path || !project) continue;
       const repo = locationOf(project).repo;
-      const paths = byRepo.get(repo) ?? new Set<string>();
-      paths.add(projectPrefix(layout, project.slug) + kept.path);
+      const paths = byRepo.get(repo) ?? [];
+      paths.push(kept);
       byRepo.set(repo, paths);
     }
     return byRepo;
@@ -397,9 +458,27 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       const dir = join(layout.projects, repo);
       if (!existsSync(join(dir, '.git'))) continue;
       const report = options.log ?? ((line: string) => log.info('workspace.reconcile', { detail: line }));
-      const paths = trashed.get(repo) ?? new Set<string>();
-      await restoreTrashedDeletions({ git, dir, repo, trashed: paths, log: report });
+      const entries = trashed.get(repo) ?? [];
+      const paths = new Set(entries.map(kept => projectPrefix(layout, kept.project) + kept.path));
+      await restoreTrashedDeletions({
+        git,
+        dir,
+        repo,
+        trashed: paths,
+        log: report,
+        historyChanges: restored => restoredHistoryPaths(entries, new Set(restored)),
+      });
     }
+  }
+  async function restoredHistoryPaths(entries: TrashEntry[], restored: ReadonlySet<string>) {
+    const byProject = new Map<string, Set<string>>();
+    for (const kept of entries) {
+      if (!restored.has(projectPrefix(layout, kept.project) + kept.path)) continue;
+      const records = byProject.get(kept.project) ?? new Set<string>();
+      records.add(`d-${kept.entryId}-0`);
+      byProject.set(kept.project, records);
+    }
+    return (await Promise.all([...byProject].map(([project, records]) => trashHistoryChanges(git, layout, project, records)))).flat();
   }
   if (gitAvailable)
     await upgradePublications(async () => {
@@ -455,6 +534,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       git,
       gitAvailable,
       siblings: slug => projectsIn(repoOf(slug)),
+      withProjectLock: (slug, work) => lock(projectLockKey(slug, place.copy), work),
       project: slug => entry(slug),
       drafts: slug =>
         drafts
@@ -464,6 +544,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       rescan: slug => rescanIn(place, slug),
       emit: (e, d, tags) => events.emit(e, d, place.tags(tags)),
       defaultBranch: slug => worktrees.defaultBranch(repoOf(slug)),
+      publishedPosition: slug => publication.pointer(repoOf(slug)),
       beforeCommit: !own && !options.reconcilePublished ? slug => prepareLocalCommit(git, repoDir(place.layout, slug)) : undefined,
       isReadableRevision: (slug, revision, head) => snapshots.isReadableRevision(revision, head, repoOf(slug)),
       publishedStatus: (slug, reader) => scmPublishedStatus({ git, snapshots, state }, repoOf(slug), slug, repoDir(place.layout, slug), reader),
@@ -498,22 +579,47 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     now: options.now ?? Date.now,
     idleMs: options.copyIdleMs,
   });
+  const dependents = createDependentsRegistry(layout.mesh, snapshots, projects, lock);
+  const meshPublishing = {
+    snapshots,
+    projectsIn,
+    repoOf,
+    repositoryOf: (project: string) => (projects().some(entry => entry.slug === project) ? repoOf(project) : null),
+  };
   const publishing = createPublishing({
+    ...meshPublishing,
+    publicationChanged: dependents.invalidate,
     adopt: async (slug, reader, observe) => {
       const repository = repoOf(slug);
       const server = options.reconcilePublished || Boolean(reader.view);
-      const guard = judgePublish(published, slug, reader.guard);
+      const guard = judgePublish(meshPublishing, published, slug, reader);
       if (server) return worktrees.adopt(repository, guard, observe);
       return localPublication.adopt(repository, await worktrees.defaultBranch(repository), guard, observe);
     },
-    localPublish: async (slug, reader) => localPublication.publishLocal(repoOf(slug), await worktrees.defaultBranch(repoOf(slug)), judgePublish(published, slug, reader.guard)),
+    localPublish: async (slug, reader) => localPublication.publishLocal(repoOf(slug), await worktrees.defaultBranch(repoOf(slug)), judgePublish(meshPublishing, published, slug, reader)),
     worktrees,
     copies,
-    repoOf,
-    projectsIn,
+    published,
     rescan,
     emit: (e, d, tags) => events.emit(e, d, tags),
   });
+  const proposals = createWorkspaceProposals({
+    layout,
+    git,
+    worktrees,
+    publication,
+    publishing,
+    published,
+    copies,
+    events,
+    entry,
+    repoOf,
+    projectsIn,
+    publicationDependencies: meshPublishing,
+    now: options.now ?? Date.now,
+  });
+  // A promotion that stopped before its bookkeeping finished is completed here.
+  if (gitAvailable) await proposals.recover([...new Set(projects().map(project => locationOf(project).repo))].filter(repo => existsSync(join(layout.projects, repo, '.git'))));
   const unpublished = createUnpublishedWork({
     git,
     gitAvailable,
@@ -548,6 +654,10 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
   const trash = createTrash({
     layout,
     head: localCommit,
+    async committedAddressHistory(files, project) {
+      const commit = await localCommit(files, project);
+      return commit ? committedAddressHistoryFile(git, files, project, commit) : null;
+    },
     state,
     journal,
     lock,
@@ -561,6 +671,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     writeCopy: async (reader, slug) => (await copies.writePlace(reader, slug)).copy,
     archiveCopies: (removed, entryDir) => unpublished.archiveCopies(removed, entryDir),
     removeCopies: entryDir => unpublished.removeCopies(entryDir),
+    projectsRemoved: dependents.invalidate,
     forgetProject: slug => {
       watcher?.remove(slug);
       cache.removeProject(slug);
@@ -730,6 +841,7 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
     migration,
     repositoryStatus,
     published: snapshots,
+    dependents,
     ...gitIdentity,
     revertFile: documentSave.revertFile,
     importBatch: importBatch.importBatch,
@@ -792,6 +904,11 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       entry(slug);
       return copies.pendingWritePlace(reader, slug).scm;
     },
+    /** The folders a reader's saved files live in: their working copy, or the shared project folders. */
+    layoutFor: (slug: string, reader: Reader) => {
+      entry(slug);
+      return copies.readPlace(reader, slug).layout;
+    },
     /** The file a request reads, in the person's copy when they have one. */
     filePath: (slug: string, path: string, reader: Reader) => projectFile(copies.readPlace(reader, slug).layout, slug, path),
     /**
@@ -805,29 +922,66 @@ export async function openWorkspace(options: WorkspaceOptions = {}) {
       return existsSync(projectFile(place.layout, slug, relative)) || place.cache.file(slug, relative) !== null;
     },
     /** Moves a file to the trash from the place the person edits it in. */
-    deleteFile: async (slug: string, path: string, reader: Reader) => {
+    deleteFile: async (slug: string, path: string, reader: Reader, baseHash?: string) => {
       entry(slug);
       const relativePath = projectPath(path);
+      if (relativePath === DEPENDENCY_MANIFEST_PATH) throw new BadRequestError('Use Update dependencies to write the dependency manifest.');
       const check = (at: Place) => guardDeletion(at.layout, slug, relativePath, reader.guard);
       const place = await copies.writePlace(reader, slug, check);
-      return trash.deleteFile(slug, path, reader.owner, reader, place.copy);
+      return trash.deleteFile(slug, path, reader.owner, reader, place.copy, baseHash);
     },
     /** People's copies in use now, with the repository folders watched for each. */
     activeCopies: () => copies.active(),
     /** Releases copies idle longer than the idle period; their files and drafts stay. */
     releaseIdleCopies: () => copies.releaseIdle(),
     worktrees,
+    /** Shared proposals: what several people prepare together before it is published. */
+    proposals,
     /** The repository folder of a registered project. */
     repoOf,
     project: entry,
     registrySteps,
+    /** Looks up a definition in the caller's current working-copy index without opening the file. */
+    indexedFile: (slug: string, path: string, reader: Reader) => copies.readPlace(reader, slug).cache.file(slug, path),
     readFile,
     saveFile,
-    resolveAddress: (address: string, reader: Reader) => resolveForCaller({ ...addressReads, readMigrations: (project, caller) => readAddressMigrations(layout, project, caller) }, address, reader),
+    validateFile: documentSave.validateFile,
+    itemDiffSides: createItemDiffSides({
+      git,
+      gitAvailable: () => gitAvailable,
+      layout,
+      snapshots,
+      workingLayout: (project, reader) => {
+        const place = copies.readPlace(reader, project);
+        return !reader.view || place.copy ? place.layout : null;
+      },
+      ownBranch: reader => {
+        const owner = copies.owners().find(candidate => candidate.key === reader.copy?.key);
+        return owner ? personalBranch(owner.handle) : null;
+      },
+    }),
+    resolveAddress: (address: string, reader: Reader) =>
+      resolveForCaller({ ...addressReads, readMigrations: (project, caller) => readAddressMigrations(copies.readPlace(caller, project).layout, project, caller) }, address, reader),
+    resolvePublishedAddress: (address: string, reader: Reader) =>
+      snapshots.withPin(pin =>
+        resolvePublishedForCaller(address, reader, async project => {
+          try {
+            const { commit, documents } = await snapshots.readableDocuments(pin, project, reader);
+            const records = await readCommittedAddressMigrations(git, layout, project, commit, reader);
+            return { documents, records };
+          } catch (error) {
+            if (error instanceof SnapshotUnavailableError) return null;
+            throw error;
+          }
+        }),
+      ),
     reconcileAddress: (declaration: ReconciliationRequest, reader: Reader) => recordReconciliation(addressReconciliation, declaration, reader),
     saveFiles: documentSave.saveFiles,
     documents: () => documentsFor(LOCAL_READER),
     documentsFor,
+    documentIndexFor,
+    dependencyCandidateDocuments,
+    writeDependencyManifest: documentSave.writeDependencyManifest,
     resolveId,
     preflight,
     trash,

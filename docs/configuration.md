@@ -56,6 +56,8 @@ out of the repository and use the deployment's secret store.
 | `SW_COMMIT` | Unset; optional build revision reported by health |
 | `CONTAINER_APP_REVISION` | Platform-provided revision identity, if present |
 | `SW_LOG_LEVEL` | `info`; debug/info/warn/error/silent, case-insensitive |
+| `SW_USAGE_COUNTERS` | Unset (off); `on` counts requests through the workbench, see [usage counters](usage-counters.md) |
+| `SW_USAGE_RETENTION_DAYS` | `30`; whole number of days from 1 to 365 that counts are kept |
 
 Server mode always serves `dist/`, regardless of `SW_SERVE_STATIC`. Development Vite remains a
 separate frontend and serves its own public assets. Local mode rejects a non-loopback bind;
@@ -297,13 +299,49 @@ published-checkout checks in
 [the deployment guide](../deploy/README.md#moving-a-data-folder-from-local-mode-to-server-mode).
 Do not simply expose a local-mode listener to the network.
 
-Address migration history is stored in `state/address-migrations/<project>.json`. Records retain their original append
-order and are not pruned by age. Each project is limited to 50,000 records; an overflowing operation is refused before
-definitions or history change. There is no retention setting because deleting or compacting ordered records can change
-replay results. There is no bulk history HTTP listing; scoped resolution and reconciliation use the shared operation
-boundary. Conversion backups and the
-completion report are described in [item addresses](item-addresses.md).
+Address migration history travels with each project in Git. See [item addresses](item-addresses.md)
+for history limits, legacy import and conversion backups.
 
 Repositories cloned or registered while the application is running use the same first-snapshot adoption as
 startup. Existing default-branch commits become available immediately without moving a ref or rewriting a
 commit.
+
+## Agent endpoint (local mode)
+
+The agent endpoint needs no environment variable. It uses `DATA_DIR` and `SW_PORT` like the rest of the server.
+
+| File or command | Meaning |
+| --- | --- |
+| `<data root>/state/mcp-capability` | The local capability: one line of 43 characters, created on first start with owner-only access. Local mode refuses to mount the endpoint when owner-only access cannot be set. |
+| `<data root>/state/mcp-receipts/<year>-<month>.json` | Receipts that make delete, restore and commit safe to retry, kept for seven days, removed when the endpoint starts and ignored once expired. An unreadable file is moved aside as `*.json.corrupt-<time>` and, for the retention period after that, every key not found is answered `uncertain`; deleting that moved-aside file, after checking the trash and the Git log, lifts this sooner. They hold no file text. |
+| `bun run mcp:rotate` | Replaces the capability; the old value stops working on the next request. |
+
+Server mode mounts the endpoint with person connection tokens instead of the local capability. See [the agent endpoint guide](mcp.md).
+
+## Person connections for server agents
+
+Server MCP discovery derives all addresses from `SW_PUBLIC_URL`. Connection token hashes derive
+from `SW_SESSION_KEY` with a separate key label. A stable key preserves readable sessions and
+connection records across restarts; key rotation ends existing access. No additional server
+setting or static personal access token is needed. Registrations live in `admin/programs.json`;
+connection metadata and keyed hashes live in `state/connections/`. Back up the complete data root.
+
+The local stdio bridge still uses `DATA_DIR` and `SW_PORT`. The server bridge stores rotating
+client tokens in an owner-only file; see [agent connections](agent-connections.md) for client status.
+
+
+The stdio bridge uses `SW_SERVER_URL` for the server origin, `SW_CLIENT_ID` for the
+registered agent program and `SW_SETUP_CREDENTIAL` or `--setup-credential-file` for
+first use. See the [server stdio bridge guide](mcp.md#server-stdio-bridge) for permissions
+and sign-out.
+
+## Agent panel relay
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `SW_ACP_CREDENTIAL` | absent | Single-use server-mode setup credential consumed by the person-run relay, exchanged at `/oauth/token`. Never a server setting; never forwarded to the agent. Local mode uses the installation capability instead. |
+
+The relay's `--session <id>.<code>`, `--url <origin>` and agent command after `--` come from the
+panel connection instructions. `DATA_DIR` and `SW_PORT` locate the local capability and server.
+Do not put a real credential in an environment file. See [the panel guide](agent-panel.md) for
+scopes, lifetime and the required Admin registration.

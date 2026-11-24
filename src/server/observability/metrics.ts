@@ -44,6 +44,9 @@ function createInstruments() {
     authFailures: meter.createCounter('sw.auth.failures', {
       description: 'Refused sign-ins, tokens and sessions by reason.',
     }),
+    connectionEvents: meter.createCounter('sw.connection.events', {
+      description: 'Requests to the agent connection endpoints by endpoint, grant type and outcome.',
+    }),
     browserErrors: meter.createCounter('sw.browser.errors', {
       description: 'JavaScript errors and unhandled rejections reported by browsers.',
     }),
@@ -135,4 +138,14 @@ export function recordOperation(origin: CallerOrigin, operation: string, outcome
   const attributes = { origin, operation, outcome };
   use().operations.add(1, attributes);
   use().operationDuration.record(durationMs, attributes);
+}
+
+/** The endpoints of agent connections that are measured. */
+export type ConnectionEndpoint = 'token' | 'authorize' | 'consent' | 'setup' | 'metadata';
+/** The grant types of the token endpoint, or `none` for an endpoint that has none. */
+export type ConnectionGrantType = 'authorization_code' | 'refresh_token' | 'setup' | 'none';
+
+/** Counts one request to an agent connection endpoint. The labels are closed lists, so no client id, person, address or token fragment can enter a metric. */
+export function recordConnectionEvent(endpoint: ConnectionEndpoint, grant: ConnectionGrantType, outcome: 'ok' | 'refused'): void {
+  use().connectionEvents.add(1, { endpoint, grant, outcome });
 }

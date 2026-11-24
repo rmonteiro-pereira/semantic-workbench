@@ -1,0 +1,10 @@
+{
+  "tessera": 3,
+  "tessera_part": true,
+  "ontology": [
+    {
+      "concept": "Customer",
+      "type": "EntityType"
+    }
+  ]
+}

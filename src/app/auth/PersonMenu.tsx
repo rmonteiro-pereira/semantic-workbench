@@ -1,5 +1,6 @@
 // Uses the shared keyboard menu and a native form for session sign-out.
 import './PersonMenu.css';
+import { AgentConnectionsDialog } from './AgentConnectionsDialog';
 import { useRef, useState } from 'react';
 import { MenuButton } from '../projects/Menu';
 import type { MenuItem } from '../projects/Menu';
@@ -26,6 +27,7 @@ export function PersonMenu() {
   const { me, error } = useMe();
   const openAdmin = useAdminEntry();
   const form = useRef<HTMLFormElement>(null);
+  const [connections, setConnections] = useState(false);
   const [accounts, setAccounts] = useState(false);
   if (error) return <span role="status">{error}</span>;
   if (!me) return null;
@@ -36,7 +38,16 @@ export function PersonMenu() {
   }
   const items: MenuItem[] = [];
   if (openAdmin) items.push({ label: local ? 'Local administration' : 'Admin', run: openAdmin });
+  if ('agentPanel' in me && me.agentPanel === true) {
+    items.push({
+      label: 'Agent panel',
+      run: () => {
+        void import('../agent/AgentPanelHost').then(panel => panel.openAgentPanel());
+      },
+    });
+  }
   if (!local) {
+    items.push({ label: 'Agent connections', run: () => setConnections(true) });
     items.push({ label: 'Connected accounts', hint: accountsSummary(me), run: () => setAccounts(true) });
     items.push({ label: 'Sign out', run: signOut, disabled: !me.csrf && 'Session token unavailable' });
   }
@@ -62,6 +73,7 @@ export function PersonMenu() {
         }
         items={items}
       />
+      {connections && <AgentConnectionsDialog onClose={() => setConnections(false)} />}
       {accounts && <ConnectedAccountsDialog me={me} onClose={() => setAccounts(false)} />}
       {!local && (
         <form ref={form} method="post" action="/auth/logout" hidden>

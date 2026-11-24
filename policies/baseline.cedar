@@ -29,9 +29,9 @@ when { resource.everyoneCanRead };
 permit (principal is SW::Client, action == SW::Action::"agentRead", resource)
 when { principal.projects.contains(resource.project) };
 
-// Nobody approves or deprecates a metric they own.
+// Nobody approves or deprecates an item they own.
 @id("F1-no-self-approval")
-forbid (principal is SW::User, action == SW::Action::"approveMetric", resource)
+forbid (principal is SW::User, action in [SW::Action::"approveMetric", SW::Action::"approveOntologyItem"], resource)
 when
 {
   resource.owner != "" &&

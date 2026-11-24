@@ -1,9 +1,10 @@
 // Decides and executes operations through the same handler and durable audit path.
+import { receiptReplay, type ReceiptReplay, type ReceiptReplayRequest } from './receipt-replay';
 import { executeOperation } from './operation-execution';
 import { operationClassifiers } from './operation-classifiers';
 import { recordOperation } from '../observability/metrics';
 import { withSpan } from '../observability/tracing';
-import { classifyOutcome, statusOutcome, OPERATION_OUTCOMES, type OperationOutcome, type OutcomeClassifier } from './operation-outcome';
+import { callResultOf, classifyOutcome, statusOutcome, OPERATION_OUTCOMES, type OperationOutcome, type OutcomeClassifier } from './operation-outcome';
 import type { Workspace } from '../projects/workspace';
 import { routeVerdict, routeTargets, type RouteVerdict } from './route-verdict';
 import type { RemoteCredentials } from './remote-credentials';
@@ -11,16 +12,19 @@ import type { AccessControl, AccessScope } from './authorize';
 import { auditableProjects, reportAuditFailure, type AuditLog } from './audit';
 import { assertMinted, type Caller, type CallerOrigin } from './caller';
 import { log } from '../observability/log';
-import { CALLER_ORIGINS, operationById, operationForRow } from './operation-inventory';
+import { CALLER_ORIGINS, operationById, operationForRow, type OperationEffect } from './operation-inventory';
 import { ROUTE_ACTIONS, routeFor, routeResourceKind, type RouteAction } from './route-actions';
 import type { ResourceRef, Decision } from './resource';
 import { WriteAccessError } from './write-access';
 import { GuardedChangeError } from './guards';
 import { READ_ACTIONS } from '../../shared/auth/actions';
-import { attachIdentity, requestPublication, requestPublicationRefusal, type AccessRequest } from './request-scope';
+import { attachIdentity, requestDisclosureShown, requestProposal, requestPublication, requestPublicationRefusal, type AccessRequest } from './request-scope';
 import { hiddenResponses, requestAuditId } from '../request';
 import { actorPseudonym, setRequestActor } from '../observability/request-context';
 import { auditDenial, agentRefusal } from './refusal';
+import { requestSurface } from './request-surface';
+import { routeTarget } from '../usage/usage-items';
+import type { UsageRecorder } from '../usage/usage-recorder';
 
 /** Dependencies needed to decide and execute authenticated operations. */
 export type OperationBoundaryOptions = {
@@ -28,13 +32,19 @@ export type OperationBoundaryOptions = {
   access: AccessControl;
   audit: AuditLog;
   remoteCredentials?: RemoteCredentials;
+  /** Counts the items of successful counted answers; absent or no-op when counters are off. */
+  usage?: UsageRecorder;
 };
+
+/** The original resource metadata a restore receipt carries across retries. */
+export type { ReceiptReplay, ReceiptTrashTarget } from './receipt-replay';
 
 /** One authenticated request to authorize and execute. */
 export type OperationCall = {
   caller: Caller;
   request: Request;
   operationId?: string;
+  replay?: ReceiptReplay;
 };
 
 /** The projects whose audit records the caller may read: null for an Admin, who reads them all. */
@@ -44,6 +54,11 @@ function auditScope(scope: AccessScope, ws: Workspace): Set<string> | null {
 }
 function projectSlugs(ws: Workspace): string[] {
   return ws.state.registry().projects.map(project => project.slug);
+}
+/** What a refused protocol caller is told: a hidden target reads as missing, any other refusal as refused. */
+function deniedResult(input: { decision: 'allow' | 'deny'; reason?: string }): string | undefined {
+  if (input.decision !== 'deny') return undefined;
+  return input.reason === 'not-readable' ? 'not_found' : 'refused';
 }
 /** Selects denials, explicitly audited routes, and operations other than ordinary reads. */
 export function shouldAudit(row: RouteAction, method: string, decision: 'allow' | 'deny', origin: CallerOrigin = 'http'): boolean {
@@ -98,7 +113,9 @@ function refusedTarget(audit: AuditLog, requestId: string, scope: AccessScope, e
  * Finds the entry a trash route names, so the decision and the audit use its original target.
  * Local mode leaves the lookup to the route, which keeps its own "not found" message.
  */
-function trashLookup(ws: Workspace, request: Request) {
+function trashLookup(ws: Workspace, request: ReceiptReplayRequest) {
+  const original = request[receiptReplay]?.trash;
+  if (original) return { entry: original };
   const trashId = new URL(request.url).pathname.match(/^\/api\/trash\/([^/]+)/)?.[1];
   if (!trashId) return undefined;
   return { entry: ws.trash.list().find(candidate => candidate.entryId === trashId) };
@@ -171,12 +188,23 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
     return { response, denied: false };
   }
 
-  function auditAllowed(input: Execution, verdict: RouteVerdict, record: ReturnType<typeof auditInput>, semanticOutcome: OperationOutcome): void {
+  function auditAllowed(input: Execution, verdict: RouteVerdict, record: ReturnType<typeof auditInput>, semanticOutcome: OperationOutcome, result: string | undefined): void {
     if (!shouldAudit(verdict.row, input.request.method, 'allow', input.caller.origin)) return;
     try {
       const publication = input.request[requestPublication];
       const reason = input.request[requestPublicationRefusal];
-      input.audit.append({ ...record, decision: 'allow', outcome: semanticOutcome, ...(publication ? { publication } : {}), ...(reason ? { reason } : {}) });
+      const proposal = input.request[requestProposal];
+      const disclosure = input.request[requestDisclosureShown];
+      input.audit.append({
+        ...record,
+        ...(disclosure ? { disclosureShown: true } : {}),
+        decision: 'allow',
+        outcome: semanticOutcome,
+        ...(result ? { result } : {}),
+        ...(publication ? { publication } : {}),
+        ...(proposal ? { proposal } : {}),
+        ...(reason ? { reason } : {}),
+      });
     } catch (error) {
       // The operation already ran; a failure response could trigger a duplicate write on retry.
       reportAuditFailure({ requestId: input.requestId, action: verdict.row.action, error });
@@ -191,14 +219,17 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
     if (denied) return response;
     const semanticOutcome = input.classifier ? await classifyOutcome(response, input.classifier) : statusOutcome(response.status);
     input.observation.outcome = semanticOutcome;
-    auditAllowed(input, verdict, record, semanticOutcome);
+    const operationId = operationForRow(verdict.row.path)?.id ?? '';
+    const result = input.caller.attribution ? await callResultOf(operationId, response) : undefined;
+    auditAllowed(input, verdict, record, semanticOutcome, result);
     if (mode === 'server' && response.status === 404) return Response.json({ error: 'Not found.' }, { status: 404 });
     return response;
   }
   async function operate(call: OperationCall): Promise<{ response: Response; requestId: string }> {
     assertMinted(call.caller);
     const { caller } = call;
-    const request = call.request as AccessRequest;
+    const request = call.request as AccessRequest & ReceiptReplayRequest;
+    if (call.replay) request[receiptReplay] = call.replay;
     const requestId = request[requestAuditId] ?? crypto.randomUUID();
     const url = new URL(request.url);
     const found = routeFor(request.method, url.pathname, mode);
@@ -208,7 +239,15 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
         ? sharedAudit
         : {
             ...sharedAudit,
-            append: input => sharedAudit.append({ ...input, origin: caller.origin, tool: entry?.id, connection: caller.connection }),
+            append: input =>
+              sharedAudit.append({
+                ...input,
+                origin: caller.origin,
+                tool: entry?.id,
+                connection: caller.connection,
+                ...caller.attribution,
+                ...(caller.attribution ? { result: input.result ?? deniedResult(input) } : {}),
+              }),
           };
     const wrongRow = call.operationId !== undefined && call.operationId !== entry?.id;
     if (wrongRow || (caller.origin !== 'http' && !found)) {
@@ -237,13 +276,30 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
       // A telemetry exporter cannot make a completed write appear retryable.
       log.warn('operation.metrics-failed', { requestId, operation: entry?.id, errorMessage: error instanceof Error ? error.message : String(error) });
     }
+    // Counting happens after the answer exists and never waits for the disk or changes the answer.
+    try {
+      // A tool call runs inside the agent endpoint's own operation, which does not own the snapshot read that
+      // counting does, so counting runs as the counted operation itself.
+      if (entry?.usage) {
+        const counted = {
+          operationId: entry.id,
+          origin: caller.origin,
+          surface: requestSurface(request),
+          outcome: observation.outcome ?? responseOutcome,
+          target: routeTarget(row.resource(found.match, url)),
+          response,
+        };
+        executeOperation(entry, () => options.usage?.record(counted));
+      }
+    } catch {
+      log.warn('usage.record-failed', { requestId });
+    }
     return { response, requestId };
   }
-  /** Lists sorted operation ids admitted by effective policy and connection effects. */
-  function availableOperations(caller: Caller): string[] {
+  /** Yields, in route inventory order, each operation the caller may use, deciding each one only when asked. */
+  function* admittedOperations(caller: Caller): Generator<{ id: string; effects: readonly OperationEffect[] }> {
     assertMinted(caller);
     const scope = access.forRequest(caller.principal, { sourceIp: caller.sourceIp });
-    const ids: string[] = [];
     let projects: string[] | undefined;
     const probeProjects = () => (projects ??= scope.probeProjects());
     let auditProjects: Set<string> | null | undefined;
@@ -265,9 +321,15 @@ export function createOperationBoundary(ws: Workspace, options: OperationBoundar
         }
         permitted.set(key, admitted);
       }
-      if (permitted.get(key)) ids.push(entry.id);
+      if (permitted.get(key)) yield { id: entry.id, effects: entry.effects };
     }
-    return ids.sort();
   }
-  return { operate, availableOperations };
+  /** The ids of every operation the caller may use, sorted. */
+  function availableOperations(caller: Caller): string[] {
+    return [...admittedOperations(caller)].map(operation => operation.id).sort();
+  }
+  return { operate, availableOperations, admittedOperations };
 }
+
+/** The decision and execution boundary a transport adapter calls with an authenticated caller. */
+export type OperationBoundary = ReturnType<typeof createOperationBoundary>;

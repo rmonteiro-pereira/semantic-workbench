@@ -16,6 +16,8 @@ export type Caller = Readonly<{
   sourceIp?: string;
   session?: Session | null;
   connection?: string;
+  /** The protocol method and the client's own name for itself, kept as an untrusted label on each record. */
+  attribution?: Readonly<{ method: string; clientLabel?: string }>;
   scope?: readonly OperationEffect[];
 }>;
 

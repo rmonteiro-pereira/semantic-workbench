@@ -490,3 +490,24 @@
   align-self: flex-start;
   color: var(--color-accent);
 }
+.agent-programs,
+.agent-program-fields {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.agent-program-fields {
+  display: grid;
+  gap: 1rem;
+}
+.agent-program-fields label {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.agent-program-fields textarea {
+  field-sizing: content;
+  width: 100%;
+  min-width: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

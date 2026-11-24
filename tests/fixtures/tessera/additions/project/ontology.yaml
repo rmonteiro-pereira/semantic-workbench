@@ -1,0 +1,74 @@
+tessera: 2
+version: 0.2.0.dev0
+name: Retail
+ontology:
+  - concept: LoyaltyTier
+    type: ValueType
+    description: A level in the loyalty programme.
+  - concept: Order
+    type: EntityType
+    description: A customer order.
+    tessera_governance:
+      status: approved
+      owner: dana@example.com
+      steward: eli@example.com
+      classification: internal
+    relationships:
+      - name: placed_by
+        roles:
+          - concept: Customer
+        verbalizes:
+          - Order is placed by Customer
+        tessera_governance:
+          status: proposed
+      - name: total
+        roles:
+          - concept: Decimal
+        verbalizes:
+          - Order has total
+  - concept: Customer
+    type: EntityType
+    description: A person who buys.
+    tessera_governance:
+      status: deprecated
+      replaced_by: Account
+      deprecation_reason: Customers are modelled as accounts from now on.
+    tessera_ai_context:
+      instructions: Use the account concept for new questions.
+      synonyms:
+        - client
+        - buyer
+      examples:
+        - How many customers placed an order last month?
+    tessera_attributes:
+      - tier
+      - email
+    relationships:
+      - name: email
+        roles:
+          - concept: String
+        verbalizes:
+          - Customer has email
+        tessera_ai_context: The address people sign in with.
+        tessera_governance:
+          status: approved
+          owner: dana@example.com
+      - name: tier
+        roles:
+          - concept: LoyaltyTier
+        verbalizes:
+          - Customer has tier
+      - name: places
+        roles:
+          - concept: Order
+        verbalizes:
+          - Customer places Order
+  - concept: Account
+    type: EntityType
+    description: The account a person holds.
+    tessera_governance:
+      status: proposed
+      owner: Dana@Example.com
+  - concept: Region
+    type: EntityType
+    description: A sales region with no governance entry.

@@ -97,6 +97,7 @@ export function AuditSection() {
                 </td>
                 <td data-label="Action / resource">
                   <span title={entry.action}>{auditLabel(entry.action)}</span>
+                  {entry.tool && ` · ${entry.tool}`}
                   <br />
                   {Object.values(entry.resource).join(' · ')}
                 </td>

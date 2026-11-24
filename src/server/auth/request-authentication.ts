@@ -13,6 +13,11 @@ import { auditDenial, agentRefusal } from './refusal';
 import { createAnonymousAuditGate, createRateLimitReport, createRateLimiter, DEFAULT_REQUEST_LIMITS, SIGN_IN_PATHS } from './rate-limit';
 import { recordAuthFailure } from '../observability/metrics';
 
+/** Program endpoints authenticate their own grants or tokens and never use browser cookies or CSRF markers. */
+const GRANT_ENDPOINT_PATHS: ReadonlySet<string> = new Set(['/oauth/token', '/api/mcp']);
+/** Browser forms that carry the session's request token in their own body, which the route checks. The request must still come from this origin. */
+const FORM_POST_PATHS: ReadonlySet<string> = new Set(['/oauth/consent', '/oauth/setup']);
+
 /** Dependencies read by network authentication and request admission. */
 export type RequestAuthenticationOptions = {
   mode?: 'local' | 'server';
@@ -54,7 +59,7 @@ export function createRequestAuthentication(options: RequestAuthenticationOption
    */
   async function limitedResponse(request: Request): Promise<Response | null> {
     const address = sourceOf(request) ?? 'unknown';
-    if (SIGN_IN_PATHS.has(new URL(request.url).pathname)) {
+    if (SIGN_IN_PATHS.has(new URL(request.url).pathname) || GRANT_ENDPOINT_PATHS.has(new URL(request.url).pathname)) {
       const signIn = signInLimiter.take(address);
       return signIn.allowed ? null : refuseRateLimited(request, signIn.retryAfterSeconds);
     }
@@ -103,7 +108,15 @@ export function createRequestAuthentication(options: RequestAuthenticationOption
       suppressed,
     });
   }
+  /** The cross-site check of a cookie request: a marker header, the logout form's token, or for the connection forms the right origin. */
+  async function crossSiteCheckPasses(request: Request, url: URL): Promise<boolean> {
+    if (request.method === 'POST' && FORM_POST_PATHS.has(url.pathname)) return request.headers.get('Origin') === options.publicOrigin;
+    const logoutToken = url.pathname === '/auth/logout' ? (await options.authentication?.session(request))?.csrf : undefined;
+    return validCsrf(request, options.publicOrigin, logoutToken);
+  }
   async function authenticate(request: AccessRequest, requestId: string): Promise<Principal | Response | undefined> {
+    // Relay routes authenticate their own bearer, then invoke the operation boundary.
+    if (/^\/api\/acp\/relay\/[A-Za-z0-9_-]{1,64}\/(hello|frames|stream|bye)$/.test(new URL(request.url).pathname)) return undefined;
     if (mode === 'server') {
       const limited = await limitedResponse(request);
       if (limited) return limited;
@@ -113,12 +126,14 @@ export function createRequestAuthentication(options: RequestAuthenticationOption
       if (refused) return refused;
     }
     const url = new URL(request.url);
+    // The token endpoint answers by its grant alone; neither a cookie nor a bearer header means anything there.
+    if (mode === 'server' && GRANT_ENDPOINT_PATHS.has(url.pathname)) return undefined;
     // A bearer token replaces the session cookie, so a signed-in browser cannot widen a client.
     const client = await bearerIdentity(request, requestId);
     if (client instanceof Response) return client;
     // The cross-site check protects cookies a browser sends on its own. A validated bearer token
     // is never sent that way, so a client skips it.
-    if (!client && mode === 'server' && !(await validCsrf(request, options.publicOrigin, url.pathname === '/auth/logout' ? (await options.authentication?.session(request))?.csrf : undefined))) {
+    if (!client && mode === 'server' && !(await crossSiteCheckPasses(request, url))) {
       recordAuthFailure('csrf-invalid');
       return new Response('Forbidden', { status: 403 });
     }
