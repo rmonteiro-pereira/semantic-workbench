@@ -1,3 +1,41 @@
+# Batch 2 gate
+
+Batch 2 holds batch 1 and the features 013, 015, 016, 017, 018, 019 and 020. The owner's decisions
+of 19 November are in: the Show button counts the switches that are on in a badge, Mesh opens from
+the sidebar under Source control, and Unpublished work is a Show menu item beside the Comparison
+button. One architecture review round ran; its must-fix items are in `618f13e1`.
+
+| Command | Summary |
+| --- | --- |
+| `bun --bun run check` at `486cff5e` | Exit 0. |
+| `bun test` at `486cff5e` | 4343 pass, 2 fail. The two failures are the compile scale tests, at 30.4 s and 32.5 s against a 30 s budget while the full suite loaded the server. Run alone they pass at 23.6 s and 65.1 s for the compile-and-zip case, which has its own budget. |
+| `bun --bun run build` at `486cff5e` | Exit 0. |
+| `bun scripts/ci-validate.ts --step mutation` | 942/942 mutants killed in 3184 s. The later commits change no mutated module. |
+| All browser suites at `7917d120` | 39 passed, 7 failed. Two failures were new and are fixed in `28ff9a39`: the sidebar at 1280x500 and a timing fault in the item diff check. |
+| Browser rerun at `486cff5e`: item-diff, usage-traffic, sidebar | All passed. |
+
+**Inherited failures.** responsive, graph, editor, lineage and back-history fail at the same
+assertions as on `main` and batch 1. graph fails its timing bound (about 300 ms against 100 ms);
+back-history fails at "collapse the graph areas".
+
+**Comparison with `main`.** Every screen of the tour was captured at `7917d120` in local and
+server mode, light and dark, at 390, 1280, 1440 and 2560 px, and compared with `main` at
+`d36159ff`. A second local capture of the same build measured layout noise. The differences above
+noise are the batches' own features: the Agent programs and Agent connections admin areas, usage
+counters in Admin settings, proposals in Source control, attributes on catalog cards, the Mesh row
+in the sidebar, the Show menu and the Comparison button. Three regressions were found and fixed in
+`486cff5e`, then recaptured:
+
+- Turning on Labels from the Show menu at 1280 px dropped the neighborhood zoom. The badge widened
+  the button, the legend wrapped, and the shorter canvas refit. The badge now keeps its place.
+- The relationship filter was as wide as the longest relationship name, which put the neighborhood
+  toolbar on three rows at 1280 px. It now sizes to the name it shows.
+- Catalog cards stretched by a taller neighbor started their text lower than the others.
+
+**Open for the owner.** At 1280 px, in the neighborhood state without hidden neighbors, the
+Incoming/Outgoing legend sits on a line of its own under the toolbar, because the Comparison
+button takes its place on the second row.
+
 # Batch 1 gate after the third review
 
 The third review returned two must-fix items in usage counting. Both are fixed in `6d6a993b` and
