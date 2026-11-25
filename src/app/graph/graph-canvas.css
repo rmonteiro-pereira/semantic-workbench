@@ -84,12 +84,12 @@
   display: var(--entity-detail-display, block);
 }
 
-/* The neighborhood toolbar on a phone wraps instead of scrolling sideways, so no control is cut
-   off. */
+/* Phone controls wrap without clipping and leave room for the legends below the canvas. */
 @media (max-width: 650px) {
   .neighborhood-graph .neighborhood-tools {
     flex-wrap: wrap;
     overflow: visible;
+    padding-block: 2px;
   }
   .neighborhood-graph .neighborhood-tools .center-picker {
     flex: 1 1 max-content;
@@ -127,8 +127,15 @@
   pointer-events: auto;
 }
 @media (max-width: 650px) {
+  .neighborhood-graph .neighborhood-links {
+    padding-block: 1px;
+    row-gap: 0;
+  }
   .neighborhood-graph .neighborhood-links .walk-trail {
     flex-basis: 200px;
+  }
+  .neighborhood-graph .neighborhood-links .compact-controls > button {
+    height: 28px;
   }
 }
 
