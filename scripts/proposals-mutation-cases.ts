@@ -119,17 +119,17 @@ async function contributionCases(loaded: Loaded) {
     const loose = world.branchHead({ 'README.md': 'outside every project\n' });
     await assert.rejects(contribute(world.base, loose), { code: 'outside-declared-projects' }, 'a file of no project refuses the contribution');
     assert.equal(await world.tipOf(), world.base, 'a refused scope moves nothing');
-    world.branchHead({ 'sales/a.txt': 'two\n' });
+    const authorizedHead = world.branchHead({ 'sales/a.txt': 'two\n' });
     world.behaviour.filesThrow = true;
-    await assert.rejects(contribute(world.base, inside), /may not edit/, 'every changed file is authorized');
+    await assert.rejects(contribute(world.base, authorizedHead), /may not edit/, 'every changed file is authorized');
     world.behaviour.filesThrow = false;
     world.behaviour.guardThrow = true;
-    await assert.rejects(contribute(world.base, inside), /guarded/, 'the content guard judges the contribution');
+    await assert.rejects(contribute(world.base, authorizedHead), /guarded/, 'the content guard judges the contribution');
     assert.equal(await world.tipOf(), world.base, 'refusals move nothing');
     world.behaviour.guardThrow = false;
-    const accepted = await contribute(world.base, inside);
-    assert.equal(await world.tipOf(), inside, 'a good contribution moves the proposal');
-    assert.equal(accepted.audit.commits[1], inside);
+    const accepted = await contribute(world.base, authorizedHead);
+    assert.equal(await world.tipOf(), authorizedHead, 'a good contribution moves the proposal');
+    assert.equal(accepted.audit.commits[1], authorizedHead);
     assert(world.calls.files > 0 && world.calls.guard > 0, 'authority and guard were consulted');
   } finally {
     world.dispose();
