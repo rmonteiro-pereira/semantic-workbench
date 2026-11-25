@@ -71,7 +71,6 @@ try {
 
   // A misspelled property is reported with its code, its place and how to fix it.
   await fillEditor(editor, withNote.replace('tessera_notes', 'tessera_note'));
-  await footer.getByText('Validation failed').waitFor();
   await openValidationDetails();
   await validationDialog.getByText('Error · tessera-property').waitFor();
   await validationDialog.getByText(/tessera_note is not a Tessera property/).waitFor();

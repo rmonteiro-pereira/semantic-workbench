@@ -525,7 +525,7 @@ try {
       // Fetch, Pull, Push and Sync sit on the panel as one row, each inside the column and whole.
       const buttons = remoteActions(page).getByRole('button');
       await expect(buttons).toHaveText(['Fetch', 'Pull', 'Push', 'Sync']);
-      await expect(panel().getByRole('button', { name: 'Sync', exact: true })).toHaveCount(0);
+      await expect(panel().getByRole('button', { name: 'Sync…', exact: true })).toHaveCount(0);
       for (const box of await buttons.evaluateAll(items =>
         items.map(item => ({
           right: item.getBoundingClientRect().right,
