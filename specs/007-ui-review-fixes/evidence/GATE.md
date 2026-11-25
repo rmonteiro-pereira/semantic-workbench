@@ -1,5 +1,134 @@
 # Integration and regression gate
 
+## After merging main da54cf17
+
+The gate is incomplete. The browser reruns leave four failures reproduced on main. A blank Mesh navigation row remains an open visual regression. The full
+capture matrix and comparison with the accepted review images remain pending; completion stays unchecked.
+
+All heavy commands used the unchanged `sw-midgard-run` wrapper. No origin push was performed.
+Candidate browser commands were `bun scripts/ci-validate.ts --step browser --suite SUITE`.
+Main comparisons used an archived `da54cf17` source tree, the same installed dependencies and isolated fixtures.
+
+| Suite | Candidate exit/result | Main da54cf17 |
+| --- | --- | --- |
+| test:ui | 0 | Batch 2: no failure recorded |
+| test:responsive | 1, fullscreen restores a different zoom | 1, matched fullscreen assertion; original run stops at canvas height |
+| test:edges | 0 | Batch 2: no failure recorded |
+| test:grouping-validation | 0 | Batch 2: no failure recorded |
+| test:examples:ui | 0 | Batch 2: no failure recorded |
+| test:graph | 1, neighborhood canvas 458.61 px below 480 px | Matched measurement 409 px, also below 480 px; original suite fails pierce timing |
+| test:lineage | 1, UBL table first view exceeds 2000 ms | Matched isolated check: 5195 ms; candidate 4874 ms; original main run stops at sidebar interception |
+| test:odcs | 0 | Batch 2: no failure recorded |
+| test:mapping-graph | 0, 12 checks | Batch 2: no failure recorded |
+| test:scm | 0 after harness repair | 0, rerun |
+| test:editor | 1, 59.72 ms/key against 30 ms | 1, same assertion, 58.51 ms/key |
+| test:validation | 0 | Batch 2: no failure recorded |
+| test:theme | 0 | Batch 2: no failure recorded |
+| test:dialogs | 0, 9 checks | Batch 2: no failure recorded |
+| test:admin | 0 | Batch 2: no failure recorded |
+| test:auth | 0 | Batch 2: no failure recorded |
+| test:brand | 0 | Batch 2: no failure recorded |
+| test:metrics | 0 | Batch 2: no failure recorded |
+| test:trash | 0 | Batch 2: no failure recorded |
+| test:projects | 0 | Batch 2: no failure recorded |
+| test:sidebar | 0, 4 checks | Batch 2: passed rerun |
+| test:mappings-layout | 0, 8 checks | Batch 2: no failure recorded |
+| test:back-history | 0 | Batch 2: inherited failure |
+| test:tessera | 0 after harness repair | 0, rerun |
+| test:item-diff | 0 after DOM baseline refresh | 0, rerun |
+| test:attributes | 0 | Batch 2: no failure recorded |
+| test:mesh | 0 | Batch 2: no failure recorded |
+| test:compile | 0 | Batch 2: no failure recorded |
+| test:usage-traffic | 0, 51 checks after phone fix and harness refresh | 0, rerun |
+| test:connections | 0 | Not individually rerun |
+| test:mcp:browser | 0 | Not individually rerun |
+| test:proposals | 0 | Batch 2: passed |
+| test:acp | 0 | Not individually rerun |
+| test:mcp | 0 | Not individually rerun |
+| mutation | 1, latest full run stopped at proposals baseline; focused repairs pass | Batch 2 records 942/942 killed; publication fixture failure reproduced directly |
+| check | 0 at df201d11 | Batch 2: 0 |
+| unit | Supplied result at d5d84e57: 4383 pass, 0 fail, exit 0 | Batch 2 records two compile timing failures |
+| build | Supplied exit 0 before this round | Batch 2: 0 |
+
+“Batch 2” entries cite main's own `git show da54cf17:GATE.md`, rather than a fresh run.
+Browser totals: 29 suites pass, four fail; the additional MCP command passes.
+The graph height target remains unmet on both revisions. The approved below-canvas legend is retained;
+the candidate has more canvas space than main at the matched 1280 px viewport.
+
+### Regressions and repairs
+
+- Fixed merge regression: enabling Traffic at 360×780 left a 406.61 px neighborhood canvas, below
+  the 55% viewport requirement. `e8cce394` reduces phone toolbar spacing, preserving both legends
+  and all controls. The canvas is now 432.61 px (55.46%); main measures 433 px. Full Traffic rerun passes.
+- Fixed merged checks: `70b3b565` removes a contradictory Sync assertion and the expectation for
+  a duplicate Source footer error. SCM and Tessera pass with their behavioral checks retained.
+- Fixed stale display expectations: `7f3b6dee` records folded graph controls, readable labels and
+  the footer legend in item-diff and Traffic DOM baselines. Agent answers are unchanged. The Traffic
+  entity-ring check explicitly opens entities before measuring them at the automatic area-view breakpoint.
+- Fixed inherited mutation fixture defect: `194c3dd4` supplies project and path addresses for published
+  and draft interfaces. The same missing-path exception occurs on main. Targeted publication mutation
+  passes its baseline and kills its one mutant.
+- Fixed merged mutation coverage: `08242ebb` points the packing fault at the current fit predicate,
+  rather than an absent source substring. A missing predicate now fails explicitly. All five targeted
+  lineage-review mutants are killed and their baseline passes.
+
+- Fixed inherited timing-dependent mutation fixture: `df201d11` submits the current contribution head instead of a prior commit recreated with a different timestamp. Main reproduces the same authorization assertion when the two commits cross a timestamp boundary. All 14 proposal mutants are killed; their baseline passes.
+
+### Capture comparison disposition
+
+Only the initial focused graph-region comparison is complete. Three candidate/main pairs were pixel-compared
+and visually reviewed: UBL neighborhood at 1280×720 and 1440×900, and Traffic at 360×780 after repair.
+Classification counts for those three graph regions: fixed 0, intended 3, unchanged 0, regression 0. Full-screen sidebar behavior is excluded from those region counts.
+They preserve the approved legend placement, larger readable center descriptions and compact controls.
+The separate before/after phone pair confirms the regression repair above. These counts do not
+represent the requested stock-tour matrix or the accepted review baseline.
+
+An earlier accepted neighborhood file contains Mall data while the focused capture contains UBL.
+That mismatched pair is excluded. Compare matching Mall captures before assigning a classification.
+The 2560 px combined metric content width now has matched light/dark captures and both candidate measurements report `CONTENT_WIDTH 2560 []`. The light content region was visually reviewed and matches the approved centered list/detail layout. The filtered responsive
+content-width run made no progress for five minutes and was stopped by its exact owned timeout PID,
+exit 143; it establishes no result.
+
+The frozen candidate at `df201d11` and main each completed neighborhood batches at 1280 and
+1440 px in light/dark (21 images per command), plus metric-detail batches at 2560 px in light/dark
+(two images per command). All 12 capture commands returned 0: 176 images total, at most 21 per job.
+The graph helper nevertheless records unreachable actions and label-size problems; command exit 0
+is not a clean visual gate. Logs retain those findings. Preview images were reduced to at most 1600 px.
+
+`critical-diff/pixels.tsv` records six candidate/main first-view comparisons and three candidate/accepted
+comparisons. All nine differ at RGB tolerance 16. Of the six main comparisons, three light pairs were
+visually reviewed and classified regression because the candidate's Mesh navigation row is blank:
+neighborhood 1280, neighborhood 1440 and metric-detail 2560. Three dark main pairs remain unclassified.
+The three accepted full-screen pairs have different surrounding project inventories and are excluded
+from full-screen counts; their matching content regions require separate comparison/classification.
+The reviewed light metric region has the intended shared width. No unchanged pair was found in this subset.
+
+**Open visual regression: Mesh navigation is blank in candidate screenshots.** Main renders the Mesh
+icon and label below Source control. The candidate preserves an empty row there at both neighborhood
+widths and metric detail. Its metric DOM contains the Mesh button at normal dimensions with visible
+display, visibility, opacity and text color. Determine whether clipping/compositing or another rendering
+rule hides the pixels, repair the owning module, and recapture the three states. No fix commit exists.
+Do not treat the passing mesh browser suite or visible DOM as clearing this screenshot regression.
+
+The first 390 px light local stock-tour batch was interrupted at the budget stop; it is not a completed
+matrix entry. The driver was stopped by exact owned PID 568991 and its trap stops its active timeout
+and both owned frontend PIDs. Server tours, the remaining local tours, full graph/rest states and the
+other task-specific capture scripts remain pending. No full journey classification is claimed.
+
+### Evidence and remaining work
+
+Ignored evidence lives under `out/after-main-da54cf17/` in the development checkout on Midgard.
+`results.txt` records initial exits; `main/` contains main reruns; `retries/` contains passing repairs;
+`focused/` holds the matched geometry and phone screenshots. Initial mutation invocation was stopped
+with exit 143 because no frontend was running. The next full run failed the publication fixture baseline,
+exit 1. The subsequent run passed all baselines and killed mutants 0–769, then stopped at survivor 770,
+exit 1. Targeted lineage repair exits 0 with 5/5 killed. The latest full rerun stops at the timing-dependent proposals baseline, exit 1, before mutation execution. A focused proposal rerun exits 0 with 14/14 killed after repair. These partial runs are not a full mutation pass.
+
+Next: repair the blank Mesh row, obtain a clean full mutation run, capture the complete matched matrix and task-specific states, compare
+pixels against main and the accepted review images, review only changed regions, and record every
+classification. Preserve the approved neighborhood footer legend and verify the shared metric width
+at 2560 px. Do not mark completion until all pairs are classified and no regression remains.
+
 ## Layout decisions after merging main da54cf17
 
 - The neighborhood legend (Incoming, Outgoing, Between neighbors) sits under the canvas at every width, beside the Traffic
