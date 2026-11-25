@@ -2,7 +2,7 @@
 
 ## After merging main da54cf17
 
-The gate is incomplete. The browser reruns leave four failures reproduced on main. A blank Mesh navigation row remains an open visual regression. The full
+The gate is incomplete. The browser reruns leave four failures reproduced on main. No merge regression is open. The full
 capture matrix and comparison with the accepted review images remain pending; completion stays unchecked.
 
 All heavy commands used the unchanged `sw-midgard-run` wrapper. No origin push was performed.
@@ -97,18 +97,20 @@ is not a clean visual gate. Logs retain those findings. Preview images were redu
 
 `critical-diff/pixels.tsv` records six candidate/main first-view comparisons and three candidate/accepted
 comparisons. All nine differ at RGB tolerance 16. Of the six main comparisons, three light pairs were
-visually reviewed and classified regression because the candidate's Mesh navigation row is blank:
-neighborhood 1280, neighborhood 1440 and metric-detail 2560. Three dark main pairs remain unclassified.
+first classified as a regression for a blank Mesh row. A second review below withdrew that. Four pairs
+(neighborhood 1280 light and dark, 1440 light, metric detail 2560 light) are classified intended; the
+1440 dark and 2560 dark pairs still need a look.
 The three accepted full-screen pairs have different surrounding project inventories and are excluded
 from full-screen counts; their matching content regions require separate comparison/classification.
 The reviewed light metric region has the intended shared width. No unchanged pair was found in this subset.
 
-**Open visual regression: Mesh navigation is blank in candidate screenshots.** Main renders the Mesh
-icon and label below Source control. The candidate preserves an empty row there at both neighborhood
-widths and metric detail. Its metric DOM contains the Mesh button at normal dimensions with visible
-display, visibility, opacity and text color. Determine whether clipping/compositing or another rendering
-rule hides the pixels, repair the owning module, and recapture the three states. No fix commit exists.
-Do not treat the passing mesh browser suite or visible DOM as clearing this screenshot regression.
+**Mesh navigation row: not a regression.** A second review of the same `critical-diff` images
+(candidate 1280 light and dark, 1440 light, 2560 light) shows the Mesh icon and label below Source control
+in every one, as on main. The earlier "blank row" reading is withdrawn.
+The four reviewed main pairs are classified as intended. On the candidate the toolbar folds behind **Controls** and the
+"Continue in" links behind **Other files** below 1400 px, the neighborhood legend sits under the canvas,
+project kinds show as chips, and the center card shows its description at a readable size. All of these are
+007 changes. The green dot after LOCAL WORKSPACE is absent because 007 removed it on purpose (commit f4d1e8dc).
 
 The first 390 px light local stock-tour batch was interrupted at the budget stop; it is not a completed
 matrix entry. The driver was stopped by exact owned PID 568991 and its trap stops its active timeout
@@ -124,7 +126,7 @@ with exit 143 because no frontend was running. The next full run failed the publ
 exit 1. The subsequent run passed all baselines and killed mutants 0–769, then stopped at survivor 770,
 exit 1. Targeted lineage repair exits 0 with 5/5 killed. The latest full rerun stops at the timing-dependent proposals baseline, exit 1, before mutation execution. A focused proposal rerun exits 0 with 14/14 killed after repair. These partial runs are not a full mutation pass.
 
-Next: repair the blank Mesh row, obtain a clean full mutation run, capture the complete matched matrix and task-specific states, compare
+Next: obtain a clean full mutation run, capture the complete matched matrix and task-specific states, compare
 pixels against main and the accepted review images, review only changed regions, and record every
 classification. Preserve the approved neighborhood footer legend and verify the shared metric width
 at 2560 px. Do not mark completion until all pairs are classified and no regression remains.
