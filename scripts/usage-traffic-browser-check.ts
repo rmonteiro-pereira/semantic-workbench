@@ -14,7 +14,7 @@ import { fileTab, openFile } from './helpers/screen-tour';
 import { inspect, isStructuredEntity } from '../src/shared/core/model';
 import { graphCanvasProblems } from './helpers/graph-canvas-geometry';
 import { neighborhoodCardProblems } from './helpers/card-geometry';
-import { setShown, viewOptions } from './helpers/graph-options';
+import { setShown, showEveryEntity, viewOptions } from './helpers/graph-options';
 import { tokenContrast } from './helpers/theme-tour';
 import { cardSizes, countedItems, domSignature, usageInterceptor, type UsageMock } from './helpers/usage-traffic';
 
@@ -110,6 +110,8 @@ async function checkOn(width: number, height: number, scheme: 'light' | 'dark') 
   const page = await openApp(width, height, scheme);
   mock.mode = 'ready';
   await openTab(page, 'Graph');
+  // Traffic annotates entity cards, so expand counted areas before comparing their dimensions.
+  await showEveryEntity(page);
   await page.waitForTimeout(1200);
   const before = await cardSizes(page, '.full-graph');
   // Problems the screen already has without Traffic belong to other work; Traffic must add none.

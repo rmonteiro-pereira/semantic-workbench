@@ -96,33 +96,20 @@
               ]
             },
             {
-              "tag": "div",
+              "tag": "span",
               "attributes": [
                 [
                   "class",
-                  "grouping-controls"
+                  "compact-controls"
                 ]
               ],
               "text": [],
               "children": [
                 {
                   "tag": "button",
-                  "attributes": [
-                    [
-                      "type",
-                      "button"
-                    ],
-                    [
-                      "class",
-                      "grouping-trigger"
-                    ],
-                    [
-                      "aria-label",
-                      "Group by: Definition types"
-                    ]
-                  ],
+                  "attributes": [],
                   "text": [
-                    "Definition types"
+                    "Controls"
                   ],
                   "children": [
                     {
@@ -130,483 +117,64 @@
                       "attributes": [
                         [
                           "class",
-                          "lucide lucide-layout-grid"
+                          "lucide lucide-sliders-horizontal"
                         ]
                       ],
                       "text": [],
                       "children": [
                         {
-                          "tag": "rect",
+                          "tag": "line",
                           "attributes": [],
                           "text": [],
                           "children": []
                         },
                         {
-                          "tag": "rect",
+                          "tag": "line",
                           "attributes": [],
                           "text": [],
                           "children": []
                         },
                         {
-                          "tag": "rect",
+                          "tag": "line",
                           "attributes": [],
                           "text": [],
                           "children": []
                         },
                         {
-                          "tag": "rect",
-                          "attributes": [],
-                          "text": [],
-                          "children": []
-                        }
-                      ]
-                    },
-                    {
-                      "tag": "svg",
-                      "attributes": [
-                        [
-                          "class",
-                          "lucide lucide-chevron-down"
-                        ]
-                      ],
-                      "text": [],
-                      "children": [
-                        {
-                          "tag": "path",
-                          "attributes": [],
-                          "text": [],
-                          "children": []
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "tag": "span",
-              "attributes": [
-                [
-                  "class",
-                  "zoom-buttons"
-                ]
-              ],
-              "text": [],
-              "children": [
-                {
-                  "tag": "button",
-                  "attributes": [
-                    [
-                      "aria-label",
-                      "Zoom out"
-                    ]
-                  ],
-                  "text": [],
-                  "children": [
-                    {
-                      "tag": "svg",
-                      "attributes": [
-                        [
-                          "class",
-                          "lucide lucide-minus"
-                        ]
-                      ],
-                      "text": [],
-                      "children": [
-                        {
-                          "tag": "path",
-                          "attributes": [],
-                          "text": [],
-                          "children": []
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "tag": "button",
-                  "attributes": [
-                    [
-                      "aria-label",
-                      "Zoom in"
-                    ]
-                  ],
-                  "text": [],
-                  "children": [
-                    {
-                      "tag": "svg",
-                      "attributes": [
-                        [
-                          "class",
-                          "lucide lucide-plus"
-                        ]
-                      ],
-                      "text": [],
-                      "children": [
-                        {
-                          "tag": "path",
+                          "tag": "line",
                           "attributes": [],
                           "text": [],
                           "children": []
                         },
                         {
-                          "tag": "path",
+                          "tag": "line",
                           "attributes": [],
                           "text": [],
                           "children": []
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "tag": "span",
-              "attributes": [
-                [
-                  "class",
-                  "graph-options"
-                ],
-                [
-                  "role",
-                  "group"
-                ],
-                [
-                  "aria-label",
-                  "View options"
-                ]
-              ],
-              "text": [],
-              "children": [
-                {
-                  "tag": "span",
-                  "attributes": [
-                    [
-                      "class",
-                      "option-group"
-                    ],
-                    [
-                      "role",
-                      "group"
-                    ],
-                    [
-                      "aria-label",
-                      "Layout"
-                    ]
-                  ],
-                  "text": [],
-                  "children": [
-                    {
-                      "tag": "span",
-                      "attributes": [
-                        [
-                          "class",
-                          "segmented"
-                        ],
-                        [
-                          "role",
-                          "radiogroup"
-                        ],
-                        [
-                          "aria-label",
-                          "Graph layout"
-                        ]
-                      ],
-                      "text": [],
-                      "children": [
+                        },
                         {
-                          "tag": "button",
-                          "attributes": [
-                            [
-                              "role",
-                              "radio"
-                            ]
-                          ],
-                          "text": [
-                            "Layered"
-                          ],
+                          "tag": "line",
+                          "attributes": [],
+                          "text": [],
                           "children": []
                         },
                         {
-                          "tag": "button",
-                          "attributes": [
-                            [
-                              "role",
-                              "radio"
-                            ]
-                          ],
-                          "text": [
-                            "Network"
-                          ],
+                          "tag": "line",
+                          "attributes": [],
+                          "text": [],
                           "children": []
-                        }
-                      ]
-                    },
-                    {
-                      "tag": "button",
-                      "attributes": [
-                        [
-                          "aria-label",
-                          "Re-layout"
-                        ]
-                      ],
-                      "text": [],
-                      "children": [
-                        {
-                          "tag": "svg",
-                          "attributes": [
-                            [
-                              "class",
-                              "lucide lucide-refresh-cw"
-                            ]
-                          ],
-                          "text": [],
-                          "children": [
-                            {
-                              "tag": "path",
-                              "attributes": [],
-                              "text": [],
-                              "children": []
-                            },
-                            {
-                              "tag": "path",
-                              "attributes": [],
-                              "text": [],
-                              "children": []
-                            },
-                            {
-                              "tag": "path",
-                              "attributes": [],
-                              "text": [],
-                              "children": []
-                            },
-                            {
-                              "tag": "path",
-                              "attributes": [],
-                              "text": [],
-                              "children": []
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "tag": "label",
-                      "attributes": [
-                        [
-                          "class",
-                          "zoom-to-group"
-                        ]
-                      ],
-                      "text": [],
-                      "children": [
-                        {
-                          "tag": "svg",
-                          "attributes": [
-                            [
-                              "class",
-                              "lucide lucide-crosshair"
-                            ]
-                          ],
-                          "text": [],
-                          "children": [
-                            {
-                              "tag": "circle",
-                              "attributes": [],
-                              "text": [],
-                              "children": []
-                            },
-                            {
-                              "tag": "line",
-                              "attributes": [],
-                              "text": [],
-                              "children": []
-                            },
-                            {
-                              "tag": "line",
-                              "attributes": [],
-                              "text": [],
-                              "children": []
-                            },
-                            {
-                              "tag": "line",
-                              "attributes": [],
-                              "text": [],
-                              "children": []
-                            },
-                            {
-                              "tag": "line",
-                              "attributes": [],
-                              "text": [],
-                              "children": []
-                            }
-                          ]
                         },
                         {
-                          "tag": "select",
-                          "attributes": [
-                            [
-                              "aria-label",
-                              "Zoom to group"
-                            ]
-                          ],
+                          "tag": "line",
+                          "attributes": [],
                           "text": [],
-                          "children": [
-                            {
-                              "tag": "option",
-                              "attributes": [],
-                              "text": [
-                                "Whole model"
-                              ],
-                              "children": []
-                            },
-                            {
-                              "tag": "option",
-                              "attributes": [],
-                              "text": [
-                                "Built-in concept"
-                              ],
-                              "children": []
-                            },
-                            {
-                              "tag": "option",
-                              "attributes": [],
-                              "text": [
-                                "EntityType"
-                              ],
-                              "children": []
-                            },
-                            {
-                              "tag": "option",
-                              "attributes": [],
-                              "text": [
-                                "ValueType"
-                              ],
-                              "children": []
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "tag": "span",
-                  "attributes": [
-                    [
-                      "class",
-                      "option-group"
-                    ],
-                    [
-                      "role",
-                      "group"
-                    ],
-                    [
-                      "aria-label",
-                      "Areas"
-                    ]
-                  ],
-                  "text": [],
-                  "children": [
-                    {
-                      "tag": "button",
-                      "attributes": [],
-                      "text": [
-                        "Collapse areas"
-                      ],
-                      "children": []
-                    },
-                    {
-                      "tag": "button",
-                      "attributes": [],
-                      "text": [
-                        "Expand all"
-                      ],
-                      "children": []
-                    }
-                  ]
-                },
-                {
-                  "tag": "span",
-                  "attributes": [
-                    [
-                      "class",
-                      "option-group"
-                    ],
-                    [
-                      "role",
-                      "group"
-                    ],
-                    [
-                      "aria-label",
-                      "Show"
-                    ]
-                  ],
-                  "text": [],
-                  "children": [
-                    {
-                      "tag": "span",
-                      "attributes": [
-                        [
-                          "class",
-                          "show-menu"
-                        ]
-                      ],
-                      "text": [],
-                      "children": [
+                          "children": []
+                        },
                         {
-                          "tag": "button",
-                          "attributes": [
-                            [
-                              "type",
-                              "button"
-                            ],
-                            [
-                              "class",
-                              "show-menu-trigger"
-                            ],
-                            [
-                              "aria-label",
-                              "Show: Value types"
-                            ]
-                          ],
-                          "text": [
-                            "Show"
-                          ],
-                          "children": [
-                            {
-                              "tag": "svg",
-                              "attributes": [
-                                [
-                                  "class",
-                                  "lucide lucide-chevron-down"
-                                ]
-                              ],
-                              "text": [],
-                              "children": [
-                                {
-                                  "tag": "path",
-                                  "attributes": [],
-                                  "text": [],
-                                  "children": []
-                                }
-                              ]
-                            },
-                            {
-                              "tag": "span",
-                              "attributes": [
-                                [
-                                  "class",
-                                  "show-menu-count"
-                                ]
-                              ],
-                              "text": [
-                                "1"
-                              ],
-                              "children": []
-                            }
-                          ]
+                          "tag": "line",
+                          "attributes": [],
+                          "text": [],
+                          "children": []
                         }
                       ]
                     }
@@ -998,7 +566,7 @@
                                       "tag": "strong",
                                       "attributes": [],
                                       "text": [
-                                        "Built-in concept"
+                                        "Built in concept"
                                       ],
                                       "children": []
                                     },
@@ -1006,8 +574,7 @@
                                       "tag": "small",
                                       "attributes": [],
                                       "text": [
-                                        "1",
-                                        "entities"
+                                        "1 entity"
                                       ],
                                       "children": []
                                     }
@@ -1049,7 +616,7 @@
                                       "tag": "strong",
                                       "attributes": [],
                                       "text": [
-                                        "EntityType"
+                                        "Entity type"
                                       ],
                                       "children": []
                                     },
@@ -1057,8 +624,7 @@
                                       "tag": "small",
                                       "attributes": [],
                                       "text": [
-                                        "3",
-                                        "entities"
+                                        "3 entities"
                                       ],
                                       "children": []
                                     }
@@ -1100,7 +666,7 @@
                                       "tag": "strong",
                                       "attributes": [],
                                       "text": [
-                                        "ValueType"
+                                        "Value type"
                                       ],
                                       "children": []
                                     },
@@ -1108,8 +674,7 @@
                                       "tag": "small",
                                       "attributes": [],
                                       "text": [
-                                        "1",
-                                        "entities"
+                                        "1 entity"
                                       ],
                                       "children": []
                                     }
@@ -1961,7 +1526,7 @@
       "attributes": [
         [
           "class",
-          "neighborhood-canvas"
+          "neighborhood-canvas zoom-far"
         ]
       ],
       "text": [],
@@ -5366,6 +4931,25 @@
       "text": [],
       "children": [
         {
+          "tag": "p",
+          "attributes": [
+            [
+              "class",
+              "catalog-result-count"
+            ],
+            [
+              "role",
+              "status"
+            ]
+          ],
+          "text": [
+            "5",
+            "of",
+            "5"
+          ],
+          "children": []
+        },
+        {
           "tag": "div",
           "attributes": [
             [
@@ -5384,7 +4968,7 @@
                   "tag": "small",
                   "attributes": [],
                   "text": [
-                    "EntityType"
+                    "Entity type"
                   ],
                   "children": [
                     {
@@ -5547,7 +5131,7 @@
                   "tag": "small",
                   "attributes": [],
                   "text": [
-                    "EntityType"
+                    "Entity type"
                   ],
                   "children": []
                 },
@@ -5645,7 +5229,7 @@
                   "tag": "small",
                   "attributes": [],
                   "text": [
-                    "ValueType"
+                    "Value type"
                   ],
                   "children": []
                 },
@@ -5743,7 +5327,7 @@
                   "tag": "small",
                   "attributes": [],
                   "text": [
-                    "EntityType"
+                    "Entity type"
                   ],
                   "children": []
                 },
@@ -5841,7 +5425,7 @@
                   "tag": "small",
                   "attributes": [],
                   "text": [
-                    "Built-in concept"
+                    "Built in concept"
                   ],
                   "children": []
                 },
@@ -5898,7 +5482,7 @@
           "tag": "span",
           "attributes": [],
           "text": [
-            "Published: main @ 82b7c06"
+            "Published: main @ c6d44bb"
           ],
           "children": []
         },
