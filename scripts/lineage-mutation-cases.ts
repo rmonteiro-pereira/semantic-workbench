@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 const targetCompensation = 'Math.max(24, 24 / zoom)';
 const nameCompensation = 'Math.max(CARD_NAME_PX, NAME_MIN_PX / zoom)';
 const reachDecision = '(right - left) * zoom + margin * 2 <= view.width && (bottom - top) * zoom + margin * 2 <= view.height';
-const packingDecision = '(OVERVIEW_H - 16) * zoom < minimumNameHeight';
+const packingDecision = '(OVERVIEW_H - 16) * zoom >= minimumNameHeight';
 const packingEligibility = '!cards.every(card => card.overview)';
 const source = await Bun.file(resolve(process.cwd(), 'src/app/odcs/lineage-view.ts')).text();
 const candidate = source
@@ -20,9 +20,10 @@ try {
   await writeFile(path, candidate);
   const { walkTargetSize, fitsReadableView, overviewNameSize } = await import(path);
   const layoutSource = await Bun.file(resolve(process.cwd(), 'src/app/odcs/lineage-layout.ts')).text();
+  assert.ok(layoutSource.includes('(OVERVIEW_H - 16) * zoom >= minimumNameHeight'), 'The packing mutation must match the production predicate.');
   const layoutCandidate = layoutSource
     .replace("from './lineage-view'", `from '${path}'`)
-    .replace('(OVERVIEW_H - 16) * zoom < minimumNameHeight', packingDecision)
+    .replace('(OVERVIEW_H - 16) * zoom >= minimumNameHeight', packingDecision)
     .replace('!cards.every(card => card.overview)', packingEligibility);
   const layoutPath = resolve(temporary, 'lineage-layout.ts');
   await writeFile(layoutPath, layoutCandidate);
