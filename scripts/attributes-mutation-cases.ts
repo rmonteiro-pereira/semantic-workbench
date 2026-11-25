@@ -52,9 +52,9 @@ function itemIdentity(candidate: Record<string, any>) {
 }
 
 async function publication(candidate: Record<string, any>) {
-  const published = [{ source: JSON.stringify(ontology('approved')) }];
+  const published = [{ project, path, source: JSON.stringify(ontology('approved')) }];
   const workspace = {
-    documentsFor: () => [{ project, source: JSON.stringify(ontology('proposed', undefined, 'UNPUBLISHED')) }],
+    documentsFor: () => [{ project, path, source: JSON.stringify(ontology('proposed', undefined, 'UNPUBLISHED')) }],
     published: {
       withPin: async (use: (pin: object) => Promise<Response>) => use({}),
       readableDocuments: async () => ({ commit: 'published', documents: published }),
