@@ -1,10 +1,11 @@
+import { SCOPE_WORDING, type WordedScope } from '../../shared/connections/scope-wording';
 import { RecordList, type RecordColumn } from './RecordList';
 import { WrappingField } from './WrappingField';
 import { EmptyState } from '../projects/EmptyState';
 import { SavedNote, useSavedAt } from './SaveStatus';
 import { changeDescription } from './change-review';
 import { SectionStatus } from './SectionStatus';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import type { Program } from '../../server/connections/programs';
 import { adminApi } from './api';
 import { useAdminData } from './useAdminData';
@@ -14,6 +15,7 @@ const scopeNames = ['read', 'validate', 'edit', 'commit', 'remote', 'publish'] a
 
 /** Registration fields edited in place before the shared dry-run and confirmation flow. */
 export function ProgramFields({ program, onChange }: { program: Program; onChange: (program: Program) => void }) {
+  const hintPrefix = useId();
   function field(name: keyof Program, value: string) {
     onChange({ ...program, [name]: value });
   }
@@ -44,10 +46,15 @@ export function ProgramFields({ program, onChange }: { program: Program; onChang
       <fieldset>
         <legend>Allowed scopes</legend>
         {scopeNames.map(scope => (
-          <label key={scope}>
-            <input type="checkbox" checked={program.scopes.includes(scope)} onChange={() => toggleScope(scope)} />
-            {connectionScopeLabel(scope)}
-          </label>
+          <div key={scope} className="agent-program-scope">
+            <label>
+              <input type="checkbox" aria-describedby={`${hintPrefix}-${scope}`} checked={program.scopes.includes(scope)} onChange={() => toggleScope(scope)} />
+              {connectionScopeLabel(scope)}
+            </label>
+            <p id={`${hintPrefix}-${scope}`} className="admin-field-hint">
+              {SCOPE_WORDING[scope].allows}
+            </p>
+          </div>
         ))}
       </fieldset>
       <label>
@@ -60,6 +67,7 @@ export function ProgramFields({ program, onChange }: { program: Program; onChang
 
 /** A scope in the words the consent page uses for it, "Read" rather than "read". */
 export function connectionScopeLabel(scope: string): string {
+  if (scope in SCOPE_WORDING) return SCOPE_WORDING[scope as WordedScope].label;
   return scope.charAt(0).toUpperCase() + scope.slice(1);
 }
 
