@@ -254,8 +254,12 @@ async function lineageWalkTarget(page: Page, visited: string[]) {
   }
   if (!title) throw new Error('No uncovered lineage card title or Walk here button');
   await page.mouse.click(title.x, title.y);
-  const path = page.getByRole('dialog', { name: 'Selected path', exact: true });
+  const path = page.getByRole('region', { name: 'Selected path', exact: true });
   const button = path.getByRole('button', { name: 'Walk here', exact: true });
+  if (!(await button.isVisible())) {
+    const toggle = page.getByRole('button', { name: /^Selected path \d+$/ });
+    if (await toggle.isVisible()) await toggle.click();
+  }
   await button.waitFor({ state: 'visible' });
   return { id: title.id, button };
 }
