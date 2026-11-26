@@ -1,5 +1,5 @@
 /** The React Flow node and edge renderers of the full model graph: entity cards, area titles and relationship lines. */
-import { memo } from 'react';
+import { memo, useLayoutEffect, useRef } from 'react';
 import { BaseEdge, BezierEdge, Handle, NodeToolbar, Position, type EdgeProps, type NodeProps } from '@xyflow/react';
 import { Gauge } from 'lucide-react';
 import { pointAtHalf, roundedPath, type Point } from '../odcs/edge-route';
@@ -78,15 +78,29 @@ export const GraphEdge = memo((plainProps: EdgeProps) => {
   // With Traffic off the line is drawn from the props it always had.
   const traffic = useBundleTraffic(plainProps.data?.relationships as Relationship[] | undefined);
   const props = traffic?.level ? { ...plainProps, style: { ...plainProps.style, strokeWidth: trafficStrokeWidth(Number(plainProps.style?.strokeWidth ?? 1.2), traffic.level) } } : plainProps;
-  if (!props.data?.labelAt || !props.label) return <GraphPath {...props} />;
-  const points: [number, number][] = [
-    [props.sourceX, props.sourceY],
-    [props.targetX, props.targetY],
-  ];
+  const pathGroup = useRef<SVGGElement>(null);
+  const reportRoute = props.data?.reportLabelRoute as ((id: string, path: SVGPathElement) => void) | undefined;
+  useLayoutEffect(() => {
+    if (!reportRoute || !pathGroup.current) return;
+    const group = pathGroup.current;
+    const report = () => {
+      const path = group.querySelector<SVGPathElement>('.react-flow__edge-path');
+      if (path) reportRoute(props.id, path);
+    };
+    report();
+    // Smart routes arrive asynchronously and replace the fallback path in place.
+    const observer = new MutationObserver(report);
+    observer.observe(group, { subtree: true, attributes: true, attributeFilter: ['d'], childList: true });
+    return () => observer.disconnect();
+  }, [props.id, reportRoute]);
+  const points = props.data?.labelPoints as [number, number][] | undefined;
+  const placed = reportRoute && points && props.data?.labelAt && props.label;
   return (
     <>
-      <GraphPath {...props} label={undefined} />
-      <RelationshipLabel edge={props} text={props.label} points={points} fallback={points[0]} />
+      <g ref={pathGroup}>
+        <GraphPath {...props} label={reportRoute ? undefined : props.label} />
+      </g>
+      {placed && <RelationshipLabel edge={props} text={props.label} points={points} fallback={points[0]} />}
     </>
   );
 });

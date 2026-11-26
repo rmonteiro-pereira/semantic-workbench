@@ -103,3 +103,65 @@ test('pan and zoom keep labels whole or hide them rather than show fragments', (
   expect(labelInViewport(box, [0, 0, 2], 100, 80)).toBe(false);
   expect(labelInViewport(box, [-20, -20, 2], 150, 100)).toBe(true);
 });
+
+test('an obstructed diagonal bundle projects its leader onto the rendered detour', () => {
+  const points: [number, number][] = [
+    [0, 0],
+    [100, 0],
+    [200, 100],
+    [200, 200],
+  ];
+  const obstacle = { x: -80, y: -30, width: 360, height: 260 };
+  const text = '7 relationships';
+  const center = placeLabels([{ id: 'diagonal', text, points }], [obstacle]).get('diagonal')!;
+  const anchor = nearestRoutePoint(points, center);
+  expect(overlapArea(labelBox(text, center), obstacle)).toBe(0);
+  expect(Math.hypot(center[0] - anchor[0], center[1] - anchor[1])).toBeGreaterThan(1);
+  expect(nearestRoutePoint(points, [120, 80])).toEqual([150, 50]);
+  expect(anchor[1] === 0 || anchor[0] === 200 || Math.abs(anchor[0] - anchor[1] - 100) < 0.001).toBe(true);
+});
+
+test('visible lanes reserve the mini-map after a viewport pan and zoom', () => {
+  const viewport = { x: -100, y: 50, width: 800, height: 500 };
+  const miniMap = { x: 484, y: 384, width: 200, height: 150 };
+  const points: [number, number][] = [
+    [400, 450],
+    [690, 450],
+  ];
+  const text = '10 relationships';
+  const placed = placeLabels([{ id: 'map', text, points }], [miniMap], 1, viewport).get('map')!;
+  const painted = labelBox(text, placed);
+  expect(overlapArea(painted, miniMap)).toBe(0);
+  expect(labelInViewport(painted, [100, -50, 1], 800, 500)).toBe(true);
+});
+
+test('offscreen routes cannot claim a visible lane from an intersecting route', () => {
+  const viewport = { x: 2, y: 2, width: 496, height: 296 };
+  const points: [number, number][] = [
+    [100, 100],
+    [400, 100],
+  ];
+  const visible = { id: 'visible', text: '7 relationships', points };
+  const offscreen = {
+    id: 'outside',
+    text: '10 relationships',
+    points: [
+      [100, -10000000],
+      [400, -10000000],
+    ] as [number, number][],
+  };
+  const positions = placeLabels([offscreen, visible], [], 1, viewport);
+  expect(positions.has('outside')).toBe(false);
+  expect(positions.get('visible')).toEqual(placeLabels([visible], [], 1, viewport).get('visible'));
+});
+
+test('an intersecting route with distant vertical candidates starts at visible offsets', () => {
+  const points: [number, number][] = [
+    [-10000000, -10000000],
+    [100, -10000000],
+    [100, 100],
+  ];
+  const viewport = { x: 2, y: 2, width: 496, height: 296 };
+  const position = placeLabels([{ id: 'crossing', text: 'count', points }], [], 1, viewport).get('crossing')!;
+  expect(labelInViewport(labelBox('count', position), [0, 0, 1], 500, 300)).toBe(true);
+});

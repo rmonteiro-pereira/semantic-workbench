@@ -284,27 +284,29 @@ function clearLabelPosition(text: string, candidates: [number, number][], obstac
   const clear = (position: [number, number]) => !obstacles.some(obstacle => rectanglesOverlap(obstacle, labelBox(text, position, labelScale)));
   if (viewport) {
     const width = labelBox(text, [0, 0], labelScale).width;
-    const visibleCandidates = candidates.flatMap(
-      ([x, y]) =>
-        [
-          [x, y],
-          [x - width, y],
-          [x + width, y],
-        ] as [number, number][],
+    const halfHeight = 11 * labelScale;
+    const top = viewport.y + halfHeight;
+    const bottom = viewport.y + viewport.height - halfHeight;
+    const step = 22 * labelScale;
+    const lanes = candidates.flatMap(([x, y]) =>
+      [x, x - width, x + width]
+        .filter(centerX => centerX - width / 2 >= viewport.x && centerX + width / 2 <= viewport.x + viewport.width)
+        .flatMap(centerX =>
+          [-1, 1].map(direction => {
+            const gap = direction < 0 ? y - bottom : top - y;
+            return { x: centerX, y, direction, offset: Math.max(0, Math.ceil(gap / step)) * step };
+          }),
+        ),
     );
-    // Prefer a visible lane before searching beyond the canvas on a crowded route.
-    const reach = Math.max(...candidates.map(([, y]) => Math.max(Math.abs(y - viewport.y), Math.abs(y - viewport.y - viewport.height))));
-    for (let offset = 0; offset <= reach; offset += 22 * labelScale) {
-      for (const [x, y] of visibleCandidates) {
-        for (const position of [
-          [x, y - offset],
-          [x, y + offset],
-        ] as [number, number][]) {
-          const box = labelBox(text, position, labelScale);
-          const inside = box.x >= viewport.x && box.y >= viewport.y && box.x + box.width <= viewport.x + viewport.width && box.y + box.height <= viewport.y + viewport.height;
-          if (inside && clear(position)) return position;
-        }
-      }
+    // Search only offsets that can reach a visible lane, nearest to the route first.
+    while (lanes.length) {
+      lanes.sort((first, second) => first.offset - second.offset);
+      const lane = lanes.shift()!;
+      const position: [number, number] = [lane.x, lane.y + lane.direction * lane.offset];
+      if (position[1] < top || position[1] > bottom) continue;
+      if (clear(position)) return position;
+      lane.offset += step;
+      lanes.push(lane);
     }
   }
   const onRoute = candidates.find(clear);
@@ -321,11 +323,17 @@ function clearLabelPosition(text: string, candidates: [number, number][], obstac
 }
 
 /** Puts each label clear of other labels and nodes, adding lanes when routes are crowded. */
-export function placeLabels(items: { id: string; text: string; points: [number, number][] }[], boxes: Box[], labelScale = 1, viewport?: Box) {
+export function placeLabels(items: { id: string; text: string; points: [number, number][]; candidates?: [number, number][] }[], boxes: Box[], labelScale = 1, viewport?: Box) {
   const obstacles = [...boxes];
   const positions = new Map<string, [number, number]>();
   for (const item of items) {
-    const candidates = labelCandidates(item.points);
+    if (viewport) {
+      const xs = item.points.map(point => point[0]);
+      const ys = item.points.map(point => point[1]);
+      const bounds = { x: Math.min(...xs), y: Math.min(...ys), width: Math.max(...xs) - Math.min(...xs), height: Math.max(...ys) - Math.min(...ys) };
+      if (bounds.x > viewport.x + viewport.width || bounds.x + bounds.width < viewport.x || bounds.y > viewport.y + viewport.height || bounds.y + bounds.height < viewport.y) continue;
+    }
+    const candidates = item.candidates ?? labelCandidates(item.points);
     if (!candidates.length) continue;
     const position = clearLabelPosition(item.text, candidates, obstacles, labelScale, viewport);
     obstacles.push(labelBox(item.text, position, labelScale));
@@ -334,17 +342,18 @@ export function placeLabels(items: { id: string; text: string; points: [number, 
   return positions;
 }
 
-/** Finds the closest point on an orthogonal route for a displaced label's leader. */
+/** Finds the closest point on a route for a displaced label's leader. */
 export function nearestRoutePoint(points: [number, number][], center: [number, number]) {
   let nearest = points[0];
   let distance = Infinity;
   for (let index = 1; index < points.length; index++) {
     const start = points[index - 1];
     const end = points[index];
-    const candidate: [number, number] = [
-      Math.max(Math.min(start[0], end[0]), Math.min(Math.max(start[0], end[0]), center[0])),
-      Math.max(Math.min(start[1], end[1]), Math.min(Math.max(start[1], end[1]), center[1])),
-    ];
+    const dx = end[0] - start[0];
+    const dy = end[1] - start[1];
+    const squaredLength = dx * dx + dy * dy;
+    const fraction = squaredLength ? Math.max(0, Math.min(1, ((center[0] - start[0]) * dx + (center[1] - start[1]) * dy) / squaredLength)) : 0;
+    const candidate: [number, number] = [start[0] + fraction * dx, start[1] + fraction * dy];
     const reach = Math.hypot(candidate[0] - center[0], candidate[1] - center[1]);
     if (reach >= distance) continue;
     nearest = candidate;

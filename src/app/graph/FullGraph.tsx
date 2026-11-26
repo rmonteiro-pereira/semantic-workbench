@@ -26,6 +26,7 @@ import { VALUE_KINDS, kpisKey, readFlag, readHideValues, writeFlag, writeHideVal
 import type { Entity, Relationship } from '../../shared/core/model';
 import { edgeTypes, nodeTypes } from './FullGraphNodes';
 import { FullscreenButton } from './FullscreenButton';
+import type { Box } from './routes';
 import { useFullGraphEdges } from './useFullGraphEdges';
 import { fitFullGraph, fitGraphArea, focusFullGraph } from './full-graph-viewport';
 import { useFullGraphLayout } from './useFullGraphLayout';
@@ -75,6 +76,7 @@ export function FullGraph(props: Props) {
   const followZoom = (zoom: number) => setZoomStep(Math.floor(zoom * 20) / 20);
   const [size, setSize] = useState({ width: 1200, height: 650 });
   const [labelViewportSize, setLabelViewportSize] = useState({ width: 0, height: 0 });
+  const [miniMapBounds, setMiniMapBounds] = useState<Box | undefined>();
   // The first layout waits for a real measurement, so it is planned for the pane the person sees.
   const [paneMeasured, setPaneMeasured] = useState(false);
   const flow = useRef<ReactFlowInstance<any, any> | null>(null);
@@ -182,14 +184,8 @@ export function FullGraph(props: Props) {
       });
     });
     observer.observe(el);
-    const canvas = el.querySelector('.react-flow');
-    const canvasObserver = new ResizeObserver(([entry]) => {
-      setLabelViewportSize({ width: entry.contentRect.width, height: entry.contentRect.height });
-    });
-    if (canvas) canvasObserver.observe(canvas);
     return () => {
       observer.disconnect();
-      canvasObserver.disconnect();
       cancelAnimationFrame(resizeFrame);
       clearTimeout(settleTimer);
     };
@@ -256,7 +252,14 @@ export function FullGraph(props: Props) {
     const el = container.current?.querySelector('.react-flow');
     if (busy || !el) return;
     let timer: ReturnType<typeof setTimeout>;
+    const measure = () => {
+      const frame = el.getBoundingClientRect();
+      setLabelViewportSize(previous => (previous.width === frame.width && previous.height === frame.height ? previous : { width: frame.width, height: frame.height }));
+      const map = miniMap && !phone ? el.querySelector('.react-flow__minimap')?.getBoundingClientRect() : undefined;
+      setMiniMapBounds(map && map.width > 0 ? { x: map.x - frame.x, y: map.y - frame.y, width: map.width, height: map.height } : undefined);
+    };
     const observer = new ResizeObserver(() => {
+      measure();
       clearTimeout(timer);
       timer = setTimeout(() => {
         if (!held()) {
@@ -269,17 +272,12 @@ export function FullGraph(props: Props) {
       }, 100);
     });
     observer.observe(el);
-    const canvas = el.querySelector('.react-flow');
-    const canvasObserver = new ResizeObserver(([entry]) => {
-      setLabelViewportSize({ width: entry.contentRect.width, height: entry.contentRect.height });
-    });
-    if (canvas) canvasObserver.observe(canvas);
+    measure();
     return () => {
       observer.disconnect();
-      canvasObserver.disconnect();
       clearTimeout(timer);
     };
-  }, [busy, opening.checking, opening.automaticCollapse, collapseChoice, fitWithin, focusSelection, algorithm, zoomedGroupId, miniMapReservedWidth]);
+  }, [busy, opening.checking, opening.automaticCollapse, collapseChoice, fitWithin, focusSelection, algorithm, zoomedGroupId, miniMapReservedWidth, miniMap, phone]);
   useEffect(() => {
     // A person who opened every area keeps them open under another grouping; any other choice
     // belonged to the old groups.
@@ -343,27 +341,42 @@ export function FullGraph(props: Props) {
         }),
     );
   }, [nodes]);
-  const labelObstacles = useMemo(
-    () => [
+  const labelObstacles = useMemo(() => {
+    const eligible =
+      algorithm === 'network' &&
+      connections.some(
+        connection =>
+          connection.source.startsWith('collapsed:') &&
+          connection.target.startsWith('collapsed:') &&
+          ((labels && (viewport.zoom >= 0.75 || connection.source === focus || connection.target === focus)) ||
+            connection.id === hoverEdge ||
+            connection.data.relationships.some(relationship => relationship.id === props.selectedEdge)),
+      );
+    if (!eligible) return [];
+    const firstChildY = new Map<string, number>();
+    const areas = [];
+    for (const node of nodes) {
+      if (node.parentId) firstChildY.set(node.parentId, Math.min(firstChildY.get(node.parentId) ?? Infinity, node.position.y));
+      if (node.type === 'businessArea') areas.push(node);
+    }
+    return [
       ...positions.values(),
-      ...nodes
-        .filter(node => node.type === 'businessArea')
-        .map(node => ({
-          x: node.position.x,
-          y: node.position.y,
-          width: Number(node.style.width),
-          // The header ends where the first child card begins; its name stays clear of labels.
-          height: Math.min(Number(node.style.height), ...nodes.filter(child => child.parentId === node.id).map(child => child.position.y)),
-        })),
-    ],
-    [nodes, positions],
-  );
+      ...areas.map(node => ({
+        x: node.position.x,
+        y: node.position.y,
+        width: Number(node.style.width),
+        // The header ends where the first child card begins.
+        height: Math.min(Number(node.style.height), firstChildY.get(node.id) ?? Infinity),
+      })),
+    ];
+  }, [nodes, positions, algorithm, connections, labels, viewport.zoom, focus, hoverEdge, props.selectedEdge]);
   const dragging = nodes.some(n => n.dragging);
   const edges = useFullGraphEdges({
     connections,
     positions,
     labelObstacles,
     labelViewportSize,
+    miniMapBounds,
     selectedEdge: props.selectedEdge,
     focus,
     labels,
