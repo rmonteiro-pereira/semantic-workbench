@@ -6,6 +6,53 @@
 finding; record mismatches fixed in b868bec9. Architecture review: approve with follow-ups; its four fix-before-merge items
 were fixed in 54e54c8f, 3175d9e1, 5c671d21 and 2e524d23 and approved on a second pass.
 
+### Merge gate result (26 Nov 2026)
+
+The whole comparison ledger (`out/review3e/whole-matrix.json` on Midgard, keyed by baseline and screen) holds 3268
+comparisons: 2977 against main da54cf17 and 291 against the accepted 007 captures. Every changed pair now has a decision.
+
+| Decision | Pairs |
+| --- | ---: |
+| Intended (a 007 change or a main feature) | 2648 |
+| Unchanged | 444 |
+| Capture noise (the two sides show different states) | 163 |
+| Regression, fixed | 2 |
+| No comparison possible | 11 |
+
+How the pairs were seen. Server mode, 641 pairs (REVIEW-SOL-20261127-1 to -3): 176 at full resolution and 465 as crops
+of the changed area scaled down to fit. Graph and remaining states, 200 pairs (REVIEW-SOL-20261126e): 133 at full
+resolution and 67 scaled to 54-86 %. Dark local states, 422 pairs: first on contact sheets (REVIEW-SOL-20261126d), then
+again as crops (REVIEW-SOL-20261127-4 and -5), 58 with a full-resolution view. The 64 whose text was still too small to read
+were reviewed again in REVIEW-CLAUDE-20261126.json: 28 through full-resolution tiles of every changed region and 36 as
+changed-area crops shown at about 80 %, all with legible text. The earlier snapshot and missing-key pairs were reviewed on
+scaled previews. In all, about 395 pairs were seen at full resolution; the rest were seen scaled down.
+
+The two regressions were found in the full-resolution recheck and fixed:
+
+- With a metric open at 1920 px and wider, the metrics list lost its Type, Owner and Concept columns, because the list and
+  detail shared the content width and the list fell under the column threshold. Fixed in 6e1322b3; the shell tour now
+  requires all six headers to be present and visible (6ae4749f, 81fbc609).
+- In the full graph, Network with areas collapsed, two relationship counts on the UBL model were drawn under the area
+  headers. Fixed in 7e48f18b and c28793c0; after the code review the counts follow the rendered route and keep clear of
+  cards, headers and the mini-map (d081ef10). Proof: HANDOFF-SOL-20261127d.md and -e.md, at 1440, 1920 and 2560 px in both
+  themes, plus the Mall model with diagonal routes.
+
+Two suspected regressions were capture timing: the Admin Git remotes table at 2560 px (pairs 1857 and 2372) loaded its five
+rows within 0.6 s in 20 of 20 attempts on both versions (HANDOFF-SOL-20261127-6.md).
+
+The 11 comparisons with no main image: three are the Group menu and Collapse areas states, cleared by the focused checks
+above. Two have no image on either side (`full-graph--stages-failed-390`, `lineage--contract-stages-failed-390`). The
+mapping graph `edge-hovered-390` failed on main and passed on the candidate. The other five are the 390 px dataset lineage:
+main failed to select a node, and the candidate failed four Walk here steps. A phone reproduction showed both versions
+complete three walks in both themes; the candidate's name-only overview cards walk through Selected path, which the capture
+script did not try (HANDOFF-SOL-20261127-7.md). The script now takes that route (147aeb9d, d205c9d8, eace3283) and passes
+three walks in both themes. Walking on a phone takes more taps than on main; main accepted this as intended on 26 Nov.
+
+Browser suites at the final code (eace3283): `test:graph` fails at the neighborhood canvas height, 458.6 px against a 480 px
+minimum, where main measures 409 px with the same check; `test:responsive` fails at full-screen transform restoration, which
+also fails on main. The unit suite ran in full at 6ec76f7f (4384 pass, 1 fail); the failing test's key list was updated in
+d7514f41 and that file passes. `bun run check` and the focused label tests (14) pass at eace3283.
+
 ### Architecture refinements
 
 The four architecture findings are addressed in separate local commits. Form error wording, field placement, graph sizing and full-screen presentation are preserved.
@@ -200,9 +247,7 @@ The full mutation rerun and remaining graph/rest capture results are recorded in
 `HANDOFF-SOL-20261126.md`. Historical failed mutation attempts remain documented in the previous
 handoff; they do not substitute for a clean full pass.
 
-Completion stays unchecked. Finish the matched graph/rest matrix, audit missing and unreachable
-states, classify all remaining changed pairs against main and the accepted captures, and resolve any
-confirmed regression before marking the gate complete.
+The gate is complete; see "Merge gate result (26 Nov 2026)" at the top of this file.
 
 ## Layout decisions after merging main da54cf17
 
