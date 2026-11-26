@@ -5,6 +5,7 @@ import { appUrl } from './helpers/base-url';
 import { editorValue, fillEditor } from './helpers/code-editor';
 import { checkItemMarks, itemDiffCardGeometry, itemDiffStructure, itemDiffTab, expectItemDiffOverlay, setItemDiffOverlay } from './helpers/item-diff-browser';
 import { routeApi, startIsolatedApi, type IsolatedApi } from './helpers/isolated-api';
+import { hideGraphControls, revealGraphControls } from './helpers/graph-options';
 import { openSyncDialog } from './helpers/sync-dialog';
 import { LOCAL_READER } from '../src/server/projects/reader';
 
@@ -160,9 +161,20 @@ async function branchFrom(page: Page, locator: Locator, proposal: string) {
   await expect.poll(() => sh(repository, ['branch', '--show-current']).trim()).toBe(proposal);
 }
 
+async function comparisonNotice(page: Page, expected: string) {
+  await revealGraphControls(page);
+  await page.getByRole('button', { name: 'Unpublished comparison details', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Unpublished comparison', exact: true });
+  await expect(dialog.getByRole('status')).toContainText(expected);
+  await dialog.getByRole('button', { name: 'Close', exact: true }).click();
+  await hideGraphControls(page);
+}
+
 async function branchAndPublish(page: Page) {
   sh(repository, ['branch', heldBranch]);
   await serveBrowser(page, true);
+  await itemDiffTab(page, 'Graph');
+  await comparisonNotice(page, 'Branch: ' + sh(repository, ['branch', '--show-current']).trim());
   await itemDiffTab(page, 'Catalog');
   await page
     .locator('.catalog-card', { hasText: 'Customer' })
@@ -184,7 +196,14 @@ async function branchAndPublish(page: Page) {
   expect((await response).status()).toBe(200);
   await itemDiffTab(page, 'Graph');
   await expect(page.locator('.full-graph .item-change-mark').filter({ hasText: 'Not published: changed' })).toBeVisible();
-  sh(repository, ['commit', '-am', 'Edit customer on an item branch']);
+  await comparisonNotice(page, 'The comparison now follows branch item/purchases.');
+  await page.getByRole('button', { name: /^Source control/ }).click();
+  await page.getByRole('button', { name: 'Stage all', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Commit message', exact: true }).fill('Edit customer on an item branch');
+  await page.getByRole('button', { name: 'Commit to item/purchases', exact: true }).click();
+  await expect(page.locator('.scm')).toContainText('Committed');
+  await itemDiffTab(page, 'Graph');
+  await comparisonNotice(page, 'Branch item/purchases moved. The comparison used the updated branch.');
   await page.getByRole('button', { name: /^Source control/ }).click();
   const sync = await openSyncDialog(page);
   await sync.getByRole('button', { name: 'Publish to ' + primary }).click();
@@ -201,6 +220,7 @@ async function branchAndPublish(page: Page) {
   await expect(branch).toHaveValue(primary);
   await itemDiffTab(page, 'Graph');
   await expectItemDiffOverlay(page, false);
+  await comparisonNotice(page, 'The comparison now follows branch ' + primary + '.');
   await expect(page.locator('.full-graph .item-change-mark')).toHaveCount(0);
   expect(unexpectedPush).toEqual([]);
   console.log('PASS item branches, held names, overlay refresh and publication review with retry and no push');

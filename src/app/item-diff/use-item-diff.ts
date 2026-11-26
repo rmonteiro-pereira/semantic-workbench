@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ItemDiff } from '../../shared/item-diff/item-change';
 import { fetchItemDiff, type Doc, type GitStatus, type ProjectInfo } from '../projects/api';
 import { unpublishedItems } from './unpublished-items';
@@ -31,6 +31,29 @@ export async function loadItemComparison(enabled: boolean, project: ProjectInfo,
   }
 }
 
+/** Describes a branch change when the comparison follows the new checkout. */
+export function branchChangeNotice(previous: string, next: string, previousHead?: string, nextHead?: string) {
+  if (previous !== next) return next ? `The comparison now follows branch ${next}.` : `Branch ${previous} is no longer checked out.`;
+  if (next && previousHead && nextHead && previousHead !== nextHead) return `Branch ${next} moved. The comparison used the updated branch.`;
+  return '';
+}
+
+function useBranchNotice(project: string, branch: string, head?: string) {
+  const [notice, setNotice] = useState('');
+  const previous = useRef<{ project: string; branch: string; head?: string }>(undefined);
+  useEffect(() => {
+    const before = previous.current;
+    if (before?.project === project) {
+      const message = branchChangeNotice(before.branch, branch, before.head, head);
+      if (message) setNotice(message);
+    } else {
+      setNotice('');
+    }
+    previous.current = { project, branch, head: head ?? (before?.branch === branch ? before.head : undefined) };
+  }, [project, branch, head]);
+  return notice;
+}
+
 /** Follows saved file, branch and publication changes and cancels superseded comparisons. */
 export function useItemDiff(project: ProjectInfo | undefined, documents: readonly Doc[], revision: number, status?: GitStatus) {
   const [choice, setChoice] = useState<{ project: string; enabled: boolean }>();
@@ -40,6 +63,7 @@ export function useItemDiff(project: ProjectInfo | undefined, documents: readonl
   const checkedOut = status?.branch ?? project?.copy?.branch ?? project?.branch ?? '';
   const branch = checkedOut === '(detached)' ? '' : checkedOut;
   const head = status?.head;
+  const notice = useBranchNotice(project?.slug ?? '', branch, head ?? undefined);
   const commit = project?.published?.commit ?? '';
   const key = JSON.stringify([project?.slug, branch, commit, revision, attempt]);
   const unpublishedDocuments = commit ? undefined : documents;
@@ -57,6 +81,7 @@ export function useItemDiff(project: ProjectInfo | undefined, documents: readonl
   if (enabled) result = loaded?.key === key ? loaded.result : { state: 'loading' };
   return {
     result,
+    notice,
     enabled,
     branch,
     head,

@@ -1,7 +1,7 @@
 import { Modal } from '../projects/Modal';
 import { ChangeMark } from './ChangeMark';
 import { ChangeList } from './ChangeList';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { canCompareHistory, useItemDiffContext } from './ItemDiffContext';
 import type { ComparisonState } from './use-item-diff';
 
@@ -18,32 +18,13 @@ export function overlaySummary(result: ComparisonState, published: boolean) {
   return result.state === 'partial' ? counts + ' Some items could not be shown.' : counts;
 }
 
-/** Describes a branch change when the comparison follows the new checkout. */
-export function branchChangeNotice(previous: string, next: string, previousHead?: string, nextHead?: string) {
-  if (previous !== next) return next ? `The comparison now follows branch ${next}.` : `Branch ${previous} is no longer checked out.`;
-  if (next && previousHead && nextHead && previousHead !== nextHead) return `Branch ${next} moved. The comparison used the updated branch.`;
-  return '';
-}
+export { branchChangeNotice } from './use-item-diff';
 
 /** Puts the comparison details in the graph controls. The overlay itself is switched from the Show menu. */
 export function OverlayControl() {
   const overlay = useItemDiffContext();
   const [open, setOpen] = useState(false);
-  const [notice, setNotice] = useState('');
-  const previous = useRef<{ project: string; branch: string; head?: string }>(undefined);
-  const project = overlay?.project.slug ?? '';
   const branch = overlay?.branch ?? '';
-  const head = overlay?.head ?? undefined;
-  useEffect(() => {
-    const before = previous.current;
-    if (before?.project === project) {
-      const message = branchChangeNotice(before.branch, branch, before.head, head);
-      if (message) setNotice(message);
-    } else {
-      setNotice('');
-    }
-    previous.current = { project, branch, head: head ?? (before?.branch === branch ? before.head : undefined) };
-  }, [project, branch, head]);
   if (!overlay || !canCompareHistory(overlay.project)) return null;
   return (
     <span className="item-overlay-control">
@@ -65,7 +46,7 @@ export function OverlayControl() {
             <span>Branch: {branch || 'no branch'}</span>
             {overlay.commit && <span>Published commit: {overlay.commit}</span>}
             <span>{overlaySummary(overlay.result, Boolean(overlay.commit))}</span>
-            {notice && <span>{notice}</span>}
+            {overlay.notice && <span>{overlay.notice}</span>}
           </div>
           {overlay.enabled && (
             <p className="item-overlay-legend">
