@@ -5,8 +5,8 @@ import { SnapshotUnavailableError, TooLargeError } from '../projects/errors';
 import { zipSize, zipStream, type ZipEntry } from '../projects/zip';
 import { FILE_SAVE_REQUEST_LIMIT, decodeSegment, readJson } from '../request';
 import { SnapshotChangedError, checkUnit, compilePublished, runCompile, type CompileOutcome } from '../tessera/compile-service';
-import { parseBundleQuery, parseCheckRequest, parseConvertRequest, parseRunRequest } from '../tessera/compile-request';
-import { ConvertRefusal, convertToStandard } from '../tessera/convert-service';
+import { isBaseConvertBody, parseBaseConvertRequest, parseBundleQuery, parseCheckRequest, parseConvertRequest, parseRunRequest } from '../tessera/compile-request';
+import { ConvertRefusal, convertBase, convertToStandard } from '../tessera/convert-service';
 import { OutputPartError } from '../tessera/output-part';
 import { UnitLimitError } from '../tessera/unit-source';
 import { workspaceConversion } from '../tessera/workspace-conversion';
@@ -66,7 +66,14 @@ function zipEntries(outcome: Extract<CompileOutcome, { result: 'released' }>): Z
 }
 
 async function convertRoute(ws: Workspace, req: Request, slug: string): Promise<Response> {
-  const request = parseConvertRequest(await readJson(req, FILE_SAVE_REQUEST_LIMIT));
+  const body = await readJson(req, FILE_SAVE_REQUEST_LIMIT);
+  // A body that names a target converts a 0.2 document to the 0.3 draft base; otherwise a Tessera ontology becomes standard Ossie.
+  if (isBaseConvertBody(body)) {
+    const baseRequest = parseBaseConvertRequest(body);
+    authorizeWrite(req, 'edit', [{ type: 'file', project: slug, path: baseRequest.path }]);
+    return answering(async () => Response.json(await convertBase(workspaceConversion(ws, slug, requestReader(req)), baseRequest)));
+  }
+  const request = parseConvertRequest(body);
   authorizeWrite(req, 'edit', [{ type: 'file', project: slug, path: request.path }]);
   return answering(async () => Response.json(await convertToStandard(workspaceConversion(ws, slug, requestReader(req)), request)));
 }

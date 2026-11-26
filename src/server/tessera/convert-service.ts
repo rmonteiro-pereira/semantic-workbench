@@ -4,7 +4,8 @@ import { compileUnit, type CompileOptions, type CompileResult, type UnitFile } f
 import { classifyFile } from '../../shared/tessera/document-kind';
 import { NotFoundError } from '../projects/errors';
 import { decideAcceptance } from './accept-loss';
-import type { ConvertRequest } from './compile-request';
+import type { BaseConvertRequest, ConvertRequest } from './compile-request';
+import { BaseConversionRefusal, convertToDraftBase } from '../../shared/tessera/base-conversion';
 import type { UnitSource } from './unit-source';
 
 /** The answer of a conversion: the file, its new version and the digest that was accepted. */
@@ -98,4 +99,33 @@ export async function convertToStandard(deps: ConvertDeps, request: ConvertReque
   refuseUnlessStillCompiles(compile, unit.files, request.path, text, options);
   const saved = await deps.save(request.path, request.baseHash, text);
   return { path: request.path, version: saved.hash, lossDigest: result.report.digest };
+}
+
+/** The answer of a base conversion: the file, its new version and the hash of the converted text. */
+export type BaseConvertAnswer = { path: string; version: string; converted: string };
+
+/** The converted text of a 0.2 document, or a refusal that says why it cannot be converted. */
+function draftBaseText(path: string, bytes: Uint8Array) {
+  try {
+    return convertToDraftBase(decoder.decode(bytes), path);
+  } catch (error) {
+    if (error instanceof BaseConversionRefusal) throw new ConvertRefusal('refused', error.message);
+    throw error;
+  }
+}
+
+/**
+ * Converts one 0.2.0.dev0 document to the 0.3.0 draft base, exactly as the preview showed it. The
+ * file must be the version the preview read and clean in Git, so Git holds the backup. The project
+ * may hold both versions for a while; it compiles again once every document declares the same one.
+ */
+export async function convertBase(deps: ConvertDeps, request: BaseConvertRequest): Promise<BaseConvertAnswer> {
+  const current = deps.currentFile(request.path);
+  if (!current) throw new NotFoundError('Not found.');
+  if (current.hash !== request.baseHash) throw new ConvertRefusal('version-changed', 'The file changed after the preview. Review the conversion again.');
+  await refuseUnlessCommitted(deps, request.path);
+  const conversion = draftBaseText(request.path, current.bytes);
+  if (conversion.sha256 !== request.converted) throw new ConvertRefusal('digest-mismatch', 'The conversion differs from the preview. Review the conversion again.');
+  const saved = await deps.save(request.path, request.baseHash, conversion.text);
+  return { path: request.path, version: saved.hash, converted: conversion.sha256 };
 }
