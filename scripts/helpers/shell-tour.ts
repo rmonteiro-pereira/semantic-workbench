@@ -7,7 +7,22 @@ import { fileTab, openFile, showSidebar, type Screen } from './screen-tour';
 export function shellScreens(ontology: string, contract: string): Screen[] {
   return [
     { name: 'shell-source', show: fileTab(ontology, 'Source') },
-    { name: 'shell-metrics', show: fileTab(ontology, 'Metrics') },
+    {
+      name: 'shell-metrics',
+      show: async page => {
+        await fileTab(ontology, 'Metrics')(page);
+        await expect(page.locator('.metrics-list')).toBeVisible();
+        await expect(page.locator('.metrics-detail')).toHaveCount(0);
+      },
+    },
+    {
+      name: 'shell-metric-detail',
+      show: async page => {
+        await fileTab(contract, 'Metrics')(page);
+        await page.locator('.metrics-name').first().click();
+        await expect(page.locator('.metrics-detail')).toBeVisible();
+      },
+    },
     { name: 'shell-mappings', show: fileTab(ontology, 'Mappings') },
     { name: 'shell-catalog', show: fileTab(ontology, 'Catalog') },
     { name: 'shell-contract', show: fileTab(contract, 'Contract') },
@@ -85,6 +100,13 @@ export async function contentWidthProblems(page: Page, width: number): Promise<s
     const box = { left: listBox.left, right, width: right - listBox.left };
     const canvasElement = detail ? textPage.closest<HTMLElement>('.metrics-view')!.parentElement! : textPage.parentElement!;
     const canvas = canvasElement.getBoundingClientRect();
+    if (detail) {
+      const contentWidth = Math.min(limit, canvas.width);
+      const contentLeft = canvas.left + (canvas.width - contentWidth) / 2;
+      const contentRight = contentLeft + contentWidth;
+      if (Math.abs(box.left - contentLeft) > 1) found.push(`the metric list starts at ${box.left}px, expected ${contentLeft}px`);
+      if (Math.abs(box.right - contentRight) > 1) found.push(`the metric detail ends at ${box.right}px, expected ${contentRight}px`);
+    }
     if (box.width > limit + 1) found.push(`the page is ${box.width}px wide, over ${limit}px`);
     const leftGap = box.left - canvas.left;
     const rightGap = canvas.right - box.right;

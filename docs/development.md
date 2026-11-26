@@ -225,7 +225,7 @@ suites use `SW_BASE_URL`. The full runner supplies fresh frontend processes as n
 | Script | Main coverage |
 | --- | --- |
 | `test:ui` | Imports, downloads, exports, model counts and complete UI workflows |
-| `test:responsive` | Viewport/theme tours, geometry, text, focus and raw resize errors |
+| `test:responsive` | Viewport/theme tours, geometry, text, focus, raw resize errors and shared content bounds for the metric list alone and beside a selected metric |
 | `test:edges` | Rendered edge endpoints during movement and zoom |
 | `test:grouping-validation` | Grouping transitions, attachment, provenance and repair |
 | `test:item-diff` | Unpublished comparison, graph marks and branch and publication journeys in an isolated workspace |
