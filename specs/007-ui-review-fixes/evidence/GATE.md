@@ -2,6 +2,37 @@
 
 ## After merging main da54cf17
 
+### Focused Group menu and Collapse areas checks
+
+Both suspected regressions are cleared for the Mall semantic model (`mall.semantic.yaml`), in local mode on candidate `3fc01797` and main `da54cf17`. No application or browser-suite source
+change is needed.
+
+At 1440×900, the candidate places Group under **Controls** because the graph pane, excluding the sidebar, is below 1400 px. Opening Controls exposes an enabled Group trigger in Network and
+Layered, in both themes. The existing `openGroupMenu` helper successfully opens the menu in every focused case. The earlier capture timeout is not reproduced by this opening sequence; its
+exact cause remains unassigned.
+
+Times below run from the completed graph (entity nodes present and loading overlay absent) to confirmation that the exposed Group button is enabled. They include opening Controls where
+folded, so they are upper bounds on any remaining disabled interval. Every trigger was already enabled on its first observation after Controls opened.
+
+| Focused browser check   | Candidate     | Main da54cf17  |
+| ----------------------- | ------------- | -------------- |
+| 1440×900 Network, light | 191 ms; opens | 51 ms; opens   |
+| 1440×900 Layered, light | 46 ms; opens  | 1071 ms; opens |
+| 1280×720 Network, light | 532 ms; opens | 41 ms; opens   |
+| 1440×900 Network, dark  | 212 ms; opens | 40 ms; opens   |
+| 1440×900 Layered, dark  | 50 ms; opens  | 745 ms; opens  |
+| 1280×720 Network, dark  | 187 ms; opens | 49 ms; opens   |
+
+At 1280×720 Network, the candidate opens with **11 collapsed cards for all 11 areas**, in both themes. Collapse areas is intentionally disabled and Expand all is enabled. Clicking Expand all
+removes every collapsed card and enables Collapse areas. Main opens with 167 entity cards, no collapsed cards, Collapse areas enabled and Expand all disabled. This is the intended automatic
+readable-opening difference, not a regression.
+
+The candidate's preliminary first-node measurements found Group enabled within 1055–1121 ms at 1440 Network. The preliminary Layered interval of 2503–2578 ms included old Network nodes while
+Layered was loading; it is not a post-layout disabled interval. The completed-layout measurements above resolve that ambiguity.
+
+The focused checks leave zero confirmed product regressions and require no fix commit. Six menu screenshots per revision remain outside Git; the candidate menus are visibly open and usable.
+The broader matrix remains incomplete and completion stays unchecked. These checks do not replace its pending classification work.
+
 The gate is incomplete. The browser reruns leave four failures reproduced on main. No merge regression is open. The stock tour matrix is complete. Graph/rest captures and the remaining accepted-image comparisons
 are incomplete; completion stays unchecked.
 
