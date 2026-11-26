@@ -1,0 +1,628 @@
+# Settings measurements
+
+- Telemetry: no telemetry display or preference control in the requested screens. useMe supplies browserReports to observability/page-reporting; server environment controls export. No telemetry image applies.
+- Project fields: Admin Projects access edits domain, contacts, protected branches, classification and restricted paths. Outside Admin the project menu offers Rename, which edits the display name. There is no separate general project-settings page.
+- Read-only Admin: non-admin users cannot enter Admin; individual Admin sections have no non-admin read-only presentation. Built-in roles and policies are read-only within Admin.
+- Not applicable: empty Admin navigation and empty ThemeControl; both are fixed controls rather than row lists. Settings panel has no text-entry validation state or editable long text.
+- Not applicable: empty built-in role matrix and empty built-in policies; these are supplied by the application.
+- Remove domain, Remove restriction and Remove program edit unsaved drafts. They have no immediate destructive confirmation; persistence goes through Dry run and review.
+- Measurements describe visible content in each crop. Offscreen content and inaccessible states have no passing result. Colour-only checks cover detected status, chip, connection and pressed-control markers; other meanings remain outside that check.
+
+## Measurements
+
+- avatar-agent-connections/empty/light/1440: clipped text: none found. Visible ellipsis: none found.
+- avatar-agent-connections/empty/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- avatar-agent-connections/empty/light/1440: overlapping text: none found. Text contrast: none found.
+- avatar-agent-connections/empty/light/1440: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 5 Tab presses maximum).
+- agent-setup/filled/light/1440: clipped text: none found. Visible ellipsis: none found.
+- agent-setup/filled/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- agent-setup/filled/light/1440: overlapping text: none found. Text contrast: none found.
+- agent-setup/filled/light/1440: focus indicator: none found (outline/box-shadow heuristic; 12 Tab presses maximum).
+- agent-setup/filled/dark/1440: clipped text: none found. Visible ellipsis: none found.
+- agent-setup/filled/dark/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- agent-setup/filled/dark/1440: overlapping text: none found. Text contrast: none found.
+- agent-setup/filled/dark/1440: focus indicator: none found (outline/box-shadow heuristic; 12 Tab presses maximum).
+- agent-setup/filled/light/390: clipped text: none found. Visible ellipsis: none found.
+- agent-setup/filled/light/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- agent-setup/filled/light/390: overlapping text: none found. Text contrast: none found.
+- agent-setup/filled/light/390: focus indicator: none found (outline/box-shadow heuristic; 12 Tab presses maximum).
+- agent-setup-result/filled/light/1440: clipped text: none found. Visible ellipsis: none found.
+- agent-setup-result/filled/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- agent-setup-result/filled/light/1440: overlapping text: none found. Text contrast: none found.
+- agent-setup-result/filled/light/1440: focus indicator: none found (outline/box-shadow heuristic; 3 Tab presses maximum).
+- settings-panel-server/enabled/light/1440: clipped text: none found. Visible ellipsis: none found.
+- settings-panel-server/enabled/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- settings-panel-server/enabled/light/1440: overlapping text: none found. Text contrast: none found.
+- settings-panel-server/enabled/light/1440: focus indicator and dialog Tab containment: Dialog closed on Tab (outline/box-shadow heuristic; 7 Tab presses maximum).
+- settings-panel-server/enabled/dark/1440: clipped text: none found. Visible ellipsis: none found.
+- settings-panel-server/enabled/dark/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- settings-panel-server/enabled/dark/1440: overlapping text: none found. Text contrast: none found.
+- settings-panel-server/enabled/dark/1440: focus indicator and dialog Tab containment: Dialog closed on Tab (outline/box-shadow heuristic; 7 Tab presses maximum).
+- settings-panel-server/enabled/light/390: clipped text: none found. Visible ellipsis: none found.
+- settings-panel-server/enabled/light/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- settings-panel-server/enabled/light/390: overlapping text: none found. Text contrast: none found.
+- settings-panel-server/enabled/light/390: focus indicator and dialog Tab containment: Dialog closed on Tab (outline/box-shadow heuristic; 7 Tab presses maximum).
+- admin-navigation/filled/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-navigation/filled/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-navigation/filled/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-navigation/filled/light/1440: focus indicator: none found (outline/box-shadow heuristic; 24 Tab presses maximum).
+- admin-navigation/filled/dark/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-navigation/filled/dark/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-navigation/filled/dark/1440: overlapping text: none found. Text contrast: none found.
+- admin-navigation/filled/dark/1440: focus indicator: none found (outline/box-shadow heuristic; 24 Tab presses maximum).
+- admin-navigation/filled/light/390: clipped text: none found. Visible ellipsis: none found.
+- admin-navigation/filled/light/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-navigation/filled/light/390: overlapping text: none found. Text contrast: none found.
+- admin-navigation/filled/light/390: focus indicator: none found (outline/box-shadow heuristic; 24 Tab presses maximum).
+- admin-navigation/filled/dark/390: clipped text: none found. Visible ellipsis: none found.
+- admin-navigation/filled/dark/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-navigation/filled/dark/390: overlapping text: none found. Text contrast: none found.
+- admin-navigation/filled/dark/390: focus indicator: none found (outline/box-shadow heuristic; 24 Tab presses maximum).
+- admin-agent-programs/filled/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-agent-programs/filled/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-agent-programs/filled/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-agent-programs/filled/light/1440: focus indicator: none found (outline/box-shadow heuristic; 16 Tab presses maximum).
+- admin-agent-programs/filled/dark/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-agent-programs/filled/dark/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-agent-programs/filled/dark/1440: overlapping text: none found. Text contrast: none found.
+- admin-agent-programs/filled/dark/1440: focus indicator: none found (outline/box-shadow heuristic; 16 Tab presses maximum).
+- admin-agent-programs/filled/light/390: clipped text: none found. Visible ellipsis: none found.
+- admin-agent-programs/filled/light/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-agent-programs/filled/light/390: overlapping text: none found. Text contrast: none found.
+- admin-agent-programs/filled/light/390: focus indicator: none found (outline/box-shadow heuristic; 16 Tab presses maximum).
+- admin-agent-connections/filled/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-agent-connections/filled/light/1440: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- admin-agent-connections/filled/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-agent-connections/filled/light/1440: focus indicator: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- admin-agent-connections/filled/dark/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-agent-connections/filled/dark/1440: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- admin-agent-connections/filled/dark/1440: overlapping text: none found. Text contrast: none found.
+- admin-agent-connections/filled/dark/1440: focus indicator: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- admin-agent-connections/filled/light/390: clipped text: none found. Visible ellipsis: none found.
+- admin-agent-connections/filled/light/390: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- admin-agent-connections/filled/light/390: overlapping text: none found. Text contrast: none found.
+- admin-agent-connections/filled/light/390: focus indicator: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- admin-grants/filled/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-grants/filled/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-grants/filled/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-grants/filled/light/1440: focus indicator: none found (outline/box-shadow heuristic; 13 Tab presses maximum).
+- admin-grants/filled/dark/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-grants/filled/dark/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-grants/filled/dark/1440: overlapping text: none found. Text contrast: none found.
+- admin-grants/filled/dark/1440: focus indicator: none found (outline/box-shadow heuristic; 13 Tab presses maximum).
+- admin-grants/filled/light/390: clipped text: none found. Visible ellipsis: none found.
+- admin-grants/filled/light/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-grants/filled/light/390: overlapping text: none found. Text contrast: none found.
+- admin-grants/filled/light/390: focus indicator: none found (outline/box-shadow heuristic; 13 Tab presses maximum).
+- admin-roles/loading/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-roles/loading/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-roles/loading/light/1440: overlapping text: none found. Text contrast: "✓" has contrast 3.35:1, needs 4.5:1.
+- admin-roles/loading/light/1440: focus indicator: none found (outline/box-shadow heuristic; 10 Tab presses maximum).
+- admin-roles/filled/dark/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-roles/filled/dark/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-roles/filled/dark/1440: overlapping text: none found. Text contrast: none found.
+- admin-roles/filled/dark/1440: focus indicator: none found (outline/box-shadow heuristic; 10 Tab presses maximum).
+- admin-roles/filled/light/390: clipped text: none found. Visible ellipsis: none found.
+- admin-roles/filled/light/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-roles/filled/light/390: overlapping text: none found. Text contrast: "✓" has contrast 3.35:1, needs 4.5:1.
+- admin-roles/filled/light/390: focus indicator: none found (outline/box-shadow heuristic; 10 Tab presses maximum).
+- admin-users/filled/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-users/filled/light/1440: colour-only status/selection markers: none found (2 visible text status/chip/connection candidates, plus pressed controls).
+- admin-users/filled/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-users/filled/light/1440: focus indicator: none found (outline/box-shadow heuristic; 7 Tab presses maximum).
+- admin-users/filled/dark/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-users/filled/dark/1440: colour-only status/selection markers: none found (2 visible text status/chip/connection candidates, plus pressed controls).
+- admin-users/filled/dark/1440: overlapping text: none found. Text contrast: none found.
+- admin-users/filled/dark/1440: focus indicator: none found (outline/box-shadow heuristic; 7 Tab presses maximum).
+- admin-users/filled/light/390: clipped text: none found. Visible ellipsis: none found.
+- admin-users/filled/light/390: colour-only status/selection markers: none found (2 visible text status/chip/connection candidates, plus pressed controls).
+- admin-users/filled/light/390: overlapping text: none found. Text contrast: none found.
+- admin-users/filled/light/390: focus indicator: none found (outline/box-shadow heuristic; 7 Tab presses maximum).
+- admin-policies/filled/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-policies/filled/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-policies/filled/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-policies/filled/light/1440: focus indicator: none found (outline/box-shadow heuristic; 7 Tab presses maximum).
+- admin-policies/filled/dark/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-policies/filled/dark/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-policies/filled/dark/1440: overlapping text: none found. Text contrast: none found.
+- admin-policies/filled/dark/1440: focus indicator: none found (outline/box-shadow heuristic; 7 Tab presses maximum).
+- admin-policies/filled/light/390: clipped text: none found. Visible ellipsis: none found.
+- admin-policies/filled/light/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-policies/filled/light/390: overlapping text: none found. Text contrast: none found.
+- admin-policies/filled/light/390: focus indicator: none found (outline/box-shadow heuristic; 7 Tab presses maximum).
+- admin-projects/filled/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-projects/filled/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-projects/filled/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-projects/filled/light/1440: focus indicator: none found (outline/box-shadow heuristic; 24 Tab presses maximum).
+- admin-projects/filled/dark/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-projects/filled/dark/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-projects/filled/dark/1440: overlapping text: none found. Text contrast: none found.
+- admin-projects/filled/dark/1440: focus indicator: none found (outline/box-shadow heuristic; 24 Tab presses maximum).
+- admin-projects/filled/light/390: clipped text: none found. Visible ellipsis: none found.
+- admin-projects/filled/light/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-projects/filled/light/390: overlapping text: none found. Text contrast: none found.
+- admin-projects/filled/light/390: focus indicator: none found (outline/box-shadow heuristic; 24 Tab presses maximum).
+- admin-git-remotes/loading/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-git-remotes/loading/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-git-remotes/loading/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-git-remotes/loading/light/1440: focus indicator: none found (outline/box-shadow heuristic; 2 Tab presses maximum).
+- admin-git-remotes/filled/dark/1440: clipped text: none found. Visible ellipsis: Set remote…; Set remote…; Set remote…; Set remote…; Set remote….
+- admin-git-remotes/filled/dark/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-git-remotes/filled/dark/1440: overlapping text: none found. Text contrast: none found.
+- admin-git-remotes/filled/dark/1440: focus indicator: none found (outline/box-shadow heuristic; 8 Tab presses maximum).
+- admin-git-remotes/filled/light/390: clipped text: none found. Visible ellipsis: Set remote…; Set remote…; Set remote…; Set remote….
+- admin-git-remotes/filled/light/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-git-remotes/filled/light/390: overlapping text: none found. Text contrast: none found.
+- admin-git-remotes/filled/light/390: focus indicator: none found (outline/box-shadow heuristic; 8 Tab presses maximum).
+- admin-audit/filled/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-audit/filled/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-audit/filled/light/1440: overlapping text: none found. Text contrast: "Allow" has contrast 3.35:1, needs 4.5:1; "· ok" has contrast 3.35:1, needs 4.5:1; "Scope:read" has contrast 3.35:1, needs 4.5:1; "Scope:validate" has contrast 3.35:1, needs 4.5:1; "Role:admin:1" has contrast 3.35:1, needs 4.5:1.
+- admin-audit/filled/light/1440: focus indicator: No outline or box-shadow on INPUT  (outline/box-shadow heuristic; 10 Tab presses maximum).
+- admin-audit/filled/dark/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-audit/filled/dark/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-audit/filled/dark/1440: overlapping text: none found. Text contrast: none found.
+- admin-audit/filled/dark/1440: focus indicator: No outline or box-shadow on INPUT  (outline/box-shadow heuristic; 10 Tab presses maximum).
+- admin-audit/filled/light/390: clipped text: none found. Visible ellipsis: none found.
+- admin-audit/filled/light/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-audit/filled/light/390: overlapping text: none found. Text contrast: "Allow" has contrast 3.35:1, needs 4.5:1; "· ok" has contrast 3.35:1, needs 4.5:1; "Scope:read" has contrast 3.35:1, needs 4.5:1; "Scope:validate" has contrast 3.35:1, needs 4.5:1; "Role:admin:1" has contrast 3.35:1, needs 4.5:1.
+- admin-audit/filled/light/390: focus indicator: none found (outline/box-shadow heuristic; 10 Tab presses maximum).
+- admin-settings/filled/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-settings/filled/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-settings/filled/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-settings/filled/light/1440: focus indicator: none found (outline/box-shadow heuristic; 8 Tab presses maximum).
+- admin-settings/filled/dark/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-settings/filled/dark/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-settings/filled/dark/1440: overlapping text: none found. Text contrast: none found.
+- admin-settings/filled/dark/1440: focus indicator: none found (outline/box-shadow heuristic; 8 Tab presses maximum).
+- admin-settings/filled/light/390: clipped text: none found. Visible ellipsis: none found.
+- admin-settings/filled/light/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-settings/filled/light/390: overlapping text: none found. Text contrast: none found.
+- admin-settings/filled/light/390: focus indicator: none found (outline/box-shadow heuristic; 8 Tab presses maximum).
+- admin-access-check/filled/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-access-check/filled/light/1440: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- admin-access-check/filled/light/1440: overlapping text: none found. Text contrast: "Allowed" has contrast 3.54:1, needs 4.5:1; ":" has contrast 3.54:1, needs 4.5:1; "The matching grants and access" has contrast 3.54:1, needs 4.5:1.
+- admin-access-check/filled/light/1440: focus indicator: none found (outline/box-shadow heuristic; 10 Tab presses maximum).
+- admin-access-check/filled/dark/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-access-check/filled/dark/1440: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- admin-access-check/filled/dark/1440: overlapping text: none found. Text contrast: none found.
+- admin-access-check/filled/dark/1440: focus indicator: none found (outline/box-shadow heuristic; 10 Tab presses maximum).
+- admin-access-check/filled/light/390: clipped text: none found. Visible ellipsis: none found.
+- admin-access-check/filled/light/390: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- admin-access-check/filled/light/390: overlapping text: none found. Text contrast: "Allowed" has contrast 3.54:1, needs 4.5:1; ":" has contrast 3.54:1, needs 4.5:1; "The matching grants and access" has contrast 3.54:1, needs 4.5:1.
+- admin-access-check/filled/light/390: focus indicator: none found (outline/box-shadow heuristic; 10 Tab presses maximum).
+- settings-panel-local/disabled/light/1440: clipped text: none found. Visible ellipsis: none found.
+- settings-panel-local/disabled/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- settings-panel-local/disabled/light/1440: overlapping text: none found. Text contrast: none found.
+- settings-panel-local/disabled/light/1440: focus indicator and dialog Tab containment: Dialog closed on Tab (outline/box-shadow heuristic; 5 Tab presses maximum).
+- settings-panel-local/enabled/dark/1440: clipped text: none found. Visible ellipsis: none found.
+- settings-panel-local/enabled/dark/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- settings-panel-local/enabled/dark/1440: overlapping text: none found. Text contrast: none found.
+- settings-panel-local/enabled/dark/1440: focus indicator and dialog Tab containment: Dialog closed on Tab (outline/box-shadow heuristic; 7 Tab presses maximum).
+- settings-panel-local/enabled/light/390: clipped text: none found. Visible ellipsis: none found.
+- settings-panel-local/enabled/light/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- settings-panel-local/enabled/light/390: overlapping text: none found. Text contrast: none found.
+- settings-panel-local/enabled/light/390: focus indicator and dialog Tab containment: Dialog closed on Tab (outline/box-shadow heuristic; 7 Tab presses maximum).
+- settings-panel-server-non-admin/read-only/light/1440: clipped text: none found. Visible ellipsis: none found.
+- settings-panel-server-non-admin/read-only/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- settings-panel-server-non-admin/read-only/light/1440: overlapping text: none found. Text contrast: none found.
+- settings-panel-server-non-admin/read-only/light/1440: focus indicator and dialog Tab containment: Dialog closed on Tab (outline/box-shadow heuristic; 5 Tab presses maximum).
+- Settings server: focus indicator and dialog Tab containment: Dialog closed on Tab (outline/box-shadow heuristic; 5 Tab presses maximum).
+- project-rename/filled/light/1440: clipped text: none found. Visible ellipsis: none found.
+- project-rename/filled/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- project-rename/filled/light/1440: overlapping text: none found. Text contrast: none found.
+- project-rename/filled/light/1440: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 5 Tab presses maximum).
+- project-rename/filled/dark/1440: clipped text: none found. Visible ellipsis: none found.
+- project-rename/filled/dark/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- project-rename/filled/dark/1440: overlapping text: none found. Text contrast: none found.
+- project-rename/filled/dark/1440: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 5 Tab presses maximum).
+- project-rename/filled/light/390: clipped text: none found. Visible ellipsis: none found.
+- project-rename/filled/light/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- project-rename/filled/light/390: overlapping text: none found. Text contrast: none found.
+- project-rename/filled/light/390: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 5 Tab presses maximum).
+- avatar-agent-connections/filled/light/1440: clipped text: none found. Visible ellipsis: none found.
+- avatar-agent-connections/filled/light/1440: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- avatar-agent-connections/filled/light/1440: overlapping text: none found. Text contrast: none found.
+- avatar-agent-connections/filled/light/1440: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 6 Tab presses maximum).
+- avatar-agent-connections/filled/dark/1440: clipped text: none found. Visible ellipsis: none found.
+- avatar-agent-connections/filled/dark/1440: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- avatar-agent-connections/filled/dark/1440: overlapping text: none found. Text contrast: none found.
+- avatar-agent-connections/filled/dark/1440: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 6 Tab presses maximum).
+- avatar-agent-connections/filled/light/390: clipped text: none found. Visible ellipsis: none found.
+- avatar-agent-connections/filled/light/390: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- avatar-agent-connections/filled/light/390: overlapping text: none found. Text contrast: none found.
+- avatar-agent-connections/filled/light/390: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 6 Tab presses maximum).
+- avatar-revoke-connection/confirmation/light/1440: clipped text: none found. Visible ellipsis: none found.
+- avatar-revoke-connection/confirmation/light/1440: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- avatar-revoke-connection/confirmation/light/1440: overlapping text: none found. Text contrast: none found.
+- avatar-revoke-connection/confirmation/light/1440: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 8 Tab presses maximum).
+- Avatar Agent connections: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 6 Tab presses maximum).
+- remove-grant/confirmation/light/1440: clipped text: none found. Visible ellipsis: none found.
+- remove-grant/confirmation/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- remove-grant/confirmation/light/1440: overlapping text: none found. Text contrast: none found.
+- remove-grant/confirmation/light/1440: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- remove-grant: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- delete-role/confirmation/light/1440: clipped text: none found. Visible ellipsis: none found.
+- delete-role/confirmation/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- delete-role/confirmation/light/1440: overlapping text: none found. Text contrast: none found.
+- delete-role/confirmation/light/1440: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- delete-role: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- deactivate-user/confirmation/light/1440: clipped text: none found. Visible ellipsis: none found.
+- deactivate-user/confirmation/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- deactivate-user/confirmation/light/1440: overlapping text: none found. Text contrast: none found.
+- deactivate-user/confirmation/light/1440: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- deactivate-user: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- end-user-sessions/confirmation/light/1440: clipped text: none found. Visible ellipsis: none found.
+- end-user-sessions/confirmation/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- end-user-sessions/confirmation/light/1440: overlapping text: none found. Text contrast: none found.
+- end-user-sessions/confirmation/light/1440: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- end-user-sessions: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- end-session/confirmation/light/1440: clipped text: none found. Visible ellipsis: none found.
+- end-session/confirmation/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- end-session/confirmation/light/1440: overlapping text: none found. Text contrast: none found.
+- end-session/confirmation/light/1440: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- end-session: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- remove-remote/confirmation/light/1440: clipped text: none found. Visible ellipsis: none found.
+- remove-remote/confirmation/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- remove-remote/confirmation/light/1440: overlapping text: none found. Text contrast: none found.
+- remove-remote/confirmation/light/1440: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- remove-remote: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- delete-policy/confirmation/light/1440: clipped text: none found. Visible ellipsis: none found.
+- delete-policy/confirmation/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- delete-policy/confirmation/light/1440: overlapping text: none found. Text contrast: none found.
+- delete-policy/confirmation/light/1440: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- delete-policy: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- admin-revoke-connection/confirmation/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-revoke-connection/confirmation/light/1440: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- admin-revoke-connection/confirmation/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-revoke-connection/confirmation/light/1440: focus indicator: none found (outline/box-shadow heuristic; 6 Tab presses maximum).
+- policy-template/empty/light/1440: clipped text: none found. Visible ellipsis: none found.
+- policy-template/empty/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- policy-template/empty/light/1440: overlapping text: none found. Text contrast: none found.
+- policy-template/empty/light/1440: focus indicator: none found (outline/box-shadow heuristic; 10 Tab presses maximum).
+- grant-form/empty/light/1440: clipped text: none found. Visible ellipsis: none found.
+- grant-form/empty/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- grant-form/empty/light/1440: overlapping text: none found. Text contrast: none found.
+- grant-form/empty/light/1440: focus indicator: none found (outline/box-shadow heuristic; 8 Tab presses maximum).
+- grant-form/filled/light/1440: clipped text: none found. Visible ellipsis: none found.
+- grant-form/filled/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- grant-form/filled/light/1440: overlapping text: none found. Text contrast: none found.
+- grant-form/filled/light/1440: focus indicator: none found (outline/box-shadow heuristic; 8 Tab presses maximum).
+- grant-form/filled/dark/1440: clipped text: none found. Visible ellipsis: none found.
+- grant-form/filled/dark/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- grant-form/filled/dark/1440: overlapping text: none found. Text contrast: none found.
+- grant-form/filled/dark/1440: focus indicator: none found (outline/box-shadow heuristic; 8 Tab presses maximum).
+- grant-form/filled/light/390: clipped text: none found. Visible ellipsis: none found.
+- grant-form/filled/light/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- grant-form/filled/light/390: overlapping text: none found. Text contrast: none found.
+- grant-form/filled/light/390: focus indicator: none found (outline/box-shadow heuristic; 8 Tab presses maximum).
+- grant-form/error/light/1440: clipped text: none found. Visible ellipsis: none found.
+- grant-form/error/light/1440: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- grant-form/error/light/1440: overlapping text: none found. Text contrast: none found.
+- grant-form/error/light/1440: focus indicator: none found (outline/box-shadow heuristic; 7 Tab presses maximum).
+- grant-form/error/light/390: clipped text: none found. Visible ellipsis: none found.
+- grant-form/error/light/390: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- grant-form/error/light/390: overlapping text: none found. Text contrast: none found.
+- grant-form/error/light/390: focus indicator: none found (outline/box-shadow heuristic; 7 Tab presses maximum).
+- Grant form rejects invalid e-mail by disabling Review change before a server request.
+- role-editor/filled/light/1440: clipped text: none found. Visible ellipsis: none found.
+- role-editor/filled/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- role-editor/filled/light/1440: overlapping text: none found. Text contrast: none found.
+- role-editor/filled/light/1440: focus indicator: none found (outline/box-shadow heuristic; 24 Tab presses maximum).
+- role-editor/filled/dark/1440: clipped text: none found. Visible ellipsis: none found.
+- role-editor/filled/dark/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- role-editor/filled/dark/1440: overlapping text: none found. Text contrast: none found.
+- role-editor/filled/dark/1440: focus indicator: none found (outline/box-shadow heuristic; 24 Tab presses maximum).
+- role-editor/filled/light/390: clipped text: none found. Visible ellipsis: none found.
+- role-editor/filled/light/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- role-editor/filled/light/390: overlapping text: none found. Text contrast: none found.
+- role-editor/filled/light/390: focus indicator: none found (outline/box-shadow heuristic; 24 Tab presses maximum).
+- policy-editor/filled/light/1440: clipped text: 9 (20×20 > 20×0). Visible ellipsis: none found.
+- policy-editor/filled/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- policy-editor/filled/light/1440: overlapping text: none found. Text contrast: none found.
+- policy-editor/filled/light/1440: focus indicator: No outline or box-shadow on INPUT ; No outline or box-shadow on DIV @id("review_read")@description("Review a (outline/box-shadow heuristic; 8 Tab presses maximum).
+- policy-editor/filled/dark/1440: clipped text: 9 (20×20 > 20×0). Visible ellipsis: none found.
+- policy-editor/filled/dark/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- policy-editor/filled/dark/1440: overlapping text: none found. Text contrast: none found.
+- policy-editor/filled/dark/1440: focus indicator: No outline or box-shadow on INPUT ; No outline or box-shadow on DIV @id("review_read")@description("Review a (outline/box-shadow heuristic; 8 Tab presses maximum).
+- policy-editor/filled/light/390: clipped text: 9 (20×20 > 20×0). Visible ellipsis: none found.
+- policy-editor/filled/light/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- policy-editor/filled/light/390: overlapping text: none found. Text contrast: none found.
+- policy-editor/filled/light/390: focus indicator: No outline or box-shadow on INPUT ; No outline or box-shadow on DIV @id("review_read")@description("Review a (outline/box-shadow heuristic; 8 Tab presses maximum).
+- policy-editor/error/light/1440: clipped text: 9 (20×20 > 20×0). Visible ellipsis: none found.
+- policy-editor/error/light/1440: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- policy-editor/error/light/1440: overlapping text: none found. Text contrast: none found.
+- policy-editor/error/light/1440: focus indicator: No outline or box-shadow on INPUT ; No outline or box-shadow on DIV invalid cedar syntax (outline/box-shadow heuristic; 9 Tab presses maximum).
+- policy-editor/error/light/390: clipped text: 9 (20×20 > 20×0). Visible ellipsis: none found.
+- policy-editor/error/light/390: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- policy-editor/error/light/390: overlapping text: none found. Text contrast: none found.
+- policy-editor/error/light/390: focus indicator: No outline or box-shadow on INPUT ; No outline or box-shadow on DIV invalid cedar syntax (outline/box-shadow heuristic; 9 Tab presses maximum).
+- policy-editor/long-text/light/1440: clipped text: 9 (20×20 > 20×0). Visible ellipsis: none found.
+- policy-editor/long-text/light/1440: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- policy-editor/long-text/light/1440: overlapping text: none found. Text contrast: none found.
+- policy-editor/long-text/light/1440: focus indicator: No outline or box-shadow on INPUT ; No outline or box-shadow on DIV @id("review_read")// International seman (outline/box-shadow heuristic; 8 Tab presses maximum).
+- policy-editor/long-text/light/390: clipped text: 9 (20×20 > 20×0). Visible ellipsis: none found.
+- policy-editor/long-text/light/390: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- policy-editor/long-text/light/390: overlapping text: none found. Text contrast: none found.
+- policy-editor/long-text/light/390: focus indicator: No outline or box-shadow on INPUT ; No outline or box-shadow on DIV @id("review_read")// International seman (outline/box-shadow heuristic; 8 Tab presses maximum).
+- admin-settings/error/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-settings/error/light/1440: colour-only status/selection markers: none found (2 visible text status/chip/connection candidates, plus pressed controls).
+- admin-settings/error/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-settings/error/light/1440: focus indicator: none found (outline/box-shadow heuristic; 3 Tab presses maximum).
+- admin-agent-programs/error/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-agent-programs/error/light/1440: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- admin-agent-programs/error/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-agent-programs/error/light/1440: focus indicator: none found (outline/box-shadow heuristic; 3 Tab presses maximum).
+- admin-agent-connections/error/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-agent-connections/error/light/1440: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- admin-agent-connections/error/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-agent-connections/error/light/1440: focus indicator: none found (outline/box-shadow heuristic; 3 Tab presses maximum).
+- admin-grants/error/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-grants/error/light/1440: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- admin-grants/error/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-grants/error/light/1440: focus indicator: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- admin-roles/error/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-roles/error/light/1440: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- admin-roles/error/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-roles/error/light/1440: focus indicator: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- admin-users/error/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-users/error/light/1440: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- admin-users/error/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-users/error/light/1440: focus indicator: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- admin-policies/error/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-policies/error/light/1440: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- admin-policies/error/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-policies/error/light/1440: focus indicator: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- admin-projects/error/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-projects/error/light/1440: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- admin-projects/error/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-projects/error/light/1440: focus indicator: none found (outline/box-shadow heuristic; 3 Tab presses maximum).
+
+## Unreached or omitted
+
+- admin-agent-programs/filled/light/390: lower scroll slices omitted within the image budget (990px content, 730px visible).
+- admin-grants/filled/light/390: lower scroll slices omitted within the image budget (1651px content, 730px visible).
+- admin-roles/filled/light/390: lower scroll slices omitted within the image budget (3043px content, 730px visible).
+- admin-users/filled/light/390: lower scroll slices omitted within the image budget (763px content, 730px visible).
+- admin-projects/filled/light/390: lower scroll slices omitted within the image budget (3954px content, 730px visible).
+- admin-git-remotes/filled/light/390: lower scroll slices omitted within the image budget (887px content, 730px visible).
+- admin-audit/filled/light/390: lower scroll slices omitted within the image budget (5680px content, 730px visible).
+- admin-settings/filled/light/390: lower scroll slices omitted within the image budget (1115px content, 730px visible).
+- admin-access-check/filled/light/390: lower scroll slices omitted within the image budget (1058px content, 730px visible).
+- role-editor/filled/light/390: lower scroll slices omitted within the image budget (2141px content, 730px visible).
+- policy-editor/error/light/390: lower scroll slices omitted within the image budget (818px content, 730px visible).
+- Admin Agent programs/empty: no image; not reached by the current fixture and capture steps.
+- Admin Agent programs/read-only: no image; not applicable to non-admin users because Admin entry requires administration permission; built-in role and policy restrictions are described above.
+- Admin Agent connections/read-only: no image; not applicable to non-admin users because Admin entry requires administration permission; built-in role and policy restrictions are described above.
+- Admin Access grants/read-only: no image; not applicable to non-admin users because Admin entry requires administration permission; built-in role and policy restrictions are described above.
+- Admin Roles/empty: no image; not reached by the current fixture and capture steps.
+- Admin Roles/long-text: no image; not reached by the current fixture and capture steps.
+- Admin Roles/read-only: no image; not applicable to non-admin users because Admin entry requires administration permission; built-in role and policy restrictions are described above.
+- Admin Users & groups/long-text: no image; not reached by the current fixture and capture steps.
+- Admin Users & groups/read-only: no image; not applicable to non-admin users because Admin entry requires administration permission; built-in role and policy restrictions are described above.
+- Admin Policies/empty: no image; not reached by the current fixture and capture steps.
+- Admin Policies/long-text: no image; not reached by the current fixture and capture steps.
+- Admin Policies/read-only: no image; not applicable to non-admin users because Admin entry requires administration permission; built-in role and policy restrictions are described above.
+- Admin Projects access/empty: no image; not reached by the current fixture and capture steps.
+- Admin Projects access/read-only: no image; not applicable to non-admin users because Admin entry requires administration permission; built-in role and policy restrictions are described above.
+- Admin Git remotes/empty: no image; not reached by the current fixture and capture steps.
+- Admin Git remotes/read-only: no image; not applicable to non-admin users because Admin entry requires administration permission; built-in role and policy restrictions are described above.
+- Admin Audit/long-text: no image; not reached by the current fixture and capture steps.
+- Admin Audit/read-only: no image; not applicable to non-admin users because Admin entry requires administration permission; built-in role and policy restrictions are described above.
+- Admin Settings/empty: no image; not reached by the current fixture and capture steps.
+- Admin Settings/read-only: no image; not applicable to non-admin users because Admin entry requires administration permission; built-in role and policy restrictions are described above.
+- Admin Access check/empty: no image; not reached by the current fixture and capture steps.
+- Admin Access check/long-text: no image; not reached by the current fixture and capture steps.
+- Admin Access check/read-only: no image; not applicable to non-admin users because Admin entry requires administration permission; built-in role and policy restrictions are described above.
+
+Images: 125 total: 90 original images and 35 complementary images. Credentials remain masked in the original setup-result images.
+
+
+## Additional coverage facts
+
+- Settings panel enabled states in local and server mode, local-empty disabled states, and non-admin disabled states now span 1440 light/dark and 390 light/dark across the combined image set. Disabled reasons are “There are no projects to clear” and “Requires Admin”. Both Clear workspace confirmations are present and were cancelled. The original local-empty light image lacks the Administration section that appears in the new local-empty captures. Tab past the last Settings control closes the panel.
+- Local empty Access grants appears in admin-grants-local-empty-light-1440.png. Its original DOM measurements are unavailable in this findings file.
+- The 390 dark Admin navigation image shows Audit, Settings and Access check at the end of the horizontal strip. The grants content is below its initial scroll position. The section-navigation helper reports the current section link hidden and cut by the strip after the preceding Tab sequence.
+- Both connection lists contain an active MCP connection created through the real setup exchange. Both revocation prompts are present. The setup-result credential is masked.
+- Usage counters off and failed-load text are present in Admin Settings. Counters on and unknown-with-no-project remain missing. The failed-load image follows stopping the isolated API.
+- Grant form has empty, filled and validation-error images. Long text and read-only remain missing. Invalid e-mail displays validation text and disables Review change.
+- Role editor has filled images. Empty, error and long text remain missing. Its unsaved new-role disabled-member reason remains missing. Built-in-role read-only text is visible in Admin Roles.
+- Policy editor has filled, failed-validation and long-text images. The long-text draft still displays the preceding validation error. Empty policy editor remains missing. Policy template has only its empty desktop light image. Filled, error and long-text template states remain missing. Built-in policy details remain collapsed.
+- Project Rename has filled images. Empty, error and long text remain missing. Empty names disable Rename in the component, but that state is absent from this set.
+- Avatar Agent connections has empty and filled images. Its error and long text remain missing. Setup form has filled images and one masked result. Empty, error and long-text setup states remain missing. Consent/authorize pages outside the setup link's path remain missing.
+- Clear workspace confirmations and removal reviews for an agent program, a restriction and a Git remote are present. Program review reports one affected connection. Domain removal review remains absent: removing finance led to HTTP 400 from the real dry-run endpoint, with no dialog. Agent-client removal review remains missing. No destructive confirmation was accepted.
+- Agent connections has a persisted empty list; Agent programs has an unsaved empty draft that was discarded. Audit and Users & groups have no-result filtered lists. Git remotes shows four projects with “No remote” alongside one configured project. Long-text images cover grants, project fields, remotes, programs, connections and Admin Settings; Users & groups and Audit long-text images remain missing. Other missing Admin states are listed above. Non-admin Admin-section read-only views are not applicable because these users cannot enter Admin. Read-only controls within Admin are represented only where visible in filled images.
+- The lower portions of tall phone sections listed above remain missing. Non-filled phone error variants outside grant form and policy editor remain missing. The current set contains no phone scroll-slice series. The Settings failures are resolved. Lower slices remain absent under the planned image allocation and the two-execution limit.
+- Empty ThemeControl and Admin navigation, input validation in the Settings panel and editable long text in the Settings panel are not applicable because these controls have no corresponding rows or text inputs.
+
+## Measurement limits
+
+- Ordinary text uses a 4.5:1 contrast threshold and large text uses 3:1. Light-theme Roles checkmarks and audit status/chip text measure 3.35:1. Light-theme Access check result text measures 3.54:1.
+- The raw scroll measurement reports the internal CodeMirror sentinel “9” as 20×20 against a 20×0 client area. The zero-height editor element remains a raw observation.
+- The visible-ellipsis check includes the literal “Set remote…” action label, which alone does not establish truncation.
+- Absent outline and box-shadow are recorded for audit inputs and policy-editor controls. Parent-level and border-only focus indicators are outside that heuristic, so complete focus invisibility is unresolved for those elements. At most 24 Tab presses apply per image. Native confirmation dialogs have no recorded Tab escape in that sequence. Settings closes on Tab as recorded above.
+- Clipping checks cover visible text nodes and omit input-value scroll measurements. Colour-only checks cover detected status, chip, connection and pressed-control markers. Every “none found” result is limited to those elements in the visible crop.
+
+## Transient-image gaps
+
+- The 1440 light Roles image contains the heading and New role/History buttons before the matrix arrives. It is labelled loading. A complementary filled 1440 light image now contains the matrix. The original loading image is preserved.
+- The 1440 light Git remotes image contains the table header before project rows arrive. It is labelled loading. A complementary filled 1440 light image now contains all five project rows. The original loading image is preserved.
+- DOM observations run after the screenshot. In these two loading images, data arrived before the DOM samples, so those observations describe the subsequent loaded DOM and cannot be attributed to the pixels in the loading image. Other snapshots also have a short interval before measurement.
+
+## Complementary measurements
+
+- Settings local/disabled/dark/1440: Clear workspace disabled=true; text: APPEARANCE; Theme; System; Light; Dark; WORKSPACE; Clear workspace; There are no projects to clear; ADMINISTRATION; Admin; People, roles, permissions and Git remotes.
+- settings-panel-local/disabled/dark/1440: clipped text: none found. Visible ellipsis: none found.
+- settings-panel-local/disabled/dark/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- settings-panel-local/disabled/dark/1440: overlapping text: none found. Text contrast: none found.
+- settings-panel-local/disabled/dark/1440: focus indicator and dialog Tab containment: Dialog closed on Tab (outline/box-shadow heuristic; 6 Tab presses maximum).
+- Settings local/disabled/light/390: Clear workspace disabled=true; text: APPEARANCE; Theme; System; Light; Dark; WORKSPACE; Clear workspace; There are no projects to clear; ADMINISTRATION; Admin; People, roles, permissions and Git remotes.
+- settings-panel-local/disabled/light/390: clipped text: none found. Visible ellipsis: none found.
+- settings-panel-local/disabled/light/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- settings-panel-local/disabled/light/390: overlapping text: none found. Text contrast: none found.
+- settings-panel-local/disabled/light/390: focus indicator and dialog Tab containment: Dialog closed on Tab (outline/box-shadow heuristic; 6 Tab presses maximum).
+- Settings local/disabled/dark/390: Clear workspace disabled=true; text: APPEARANCE; Theme; System; Light; Dark; WORKSPACE; Clear workspace; There are no projects to clear; ADMINISTRATION; Admin; People, roles, permissions and Git remotes.
+- settings-panel-local/disabled/dark/390: clipped text: none found. Visible ellipsis: none found.
+- settings-panel-local/disabled/dark/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- settings-panel-local/disabled/dark/390: overlapping text: none found. Text contrast: none found.
+- settings-panel-local/disabled/dark/390: focus indicator and dialog Tab containment: Dialog closed on Tab (outline/box-shadow heuristic; 6 Tab presses maximum).
+- Settings local/enabled/light/1440: Clear workspace disabled=false; text: APPEARANCE; Theme; System; Light; Dark; WORKSPACE; Clear workspace; Moves every project to Trash; ADMINISTRATION; Admin; People, roles, permissions and Git remotes.
+- settings-panel-local/enabled/light/1440: clipped text: none found. Visible ellipsis: none found.
+- settings-panel-local/enabled/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- settings-panel-local/enabled/light/1440: overlapping text: none found. Text contrast: none found.
+- settings-panel-local/enabled/light/1440: focus indicator and dialog Tab containment: Dialog closed on Tab (outline/box-shadow heuristic; 7 Tab presses maximum).
+- Settings local/enabled/dark/390: Clear workspace disabled=false; text: APPEARANCE; Theme; System; Light; Dark; WORKSPACE; Clear workspace; Moves every project to Trash; ADMINISTRATION; Admin; People, roles, permissions and Git remotes.
+- settings-panel-local/enabled/dark/390: clipped text: none found. Visible ellipsis: none found.
+- settings-panel-local/enabled/dark/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- settings-panel-local/enabled/dark/390: overlapping text: none found. Text contrast: none found.
+- settings-panel-local/enabled/dark/390: focus indicator and dialog Tab containment: Dialog closed on Tab (outline/box-shadow heuristic; 7 Tab presses maximum).
+- clear-workspace-local/confirmation/light/1440: clipped text: none found. Visible ellipsis: none found.
+- clear-workspace-local/confirmation/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- clear-workspace-local/confirmation/light/1440: overlapping text: none found. Text contrast: none found.
+- clear-workspace-local/confirmation/light/1440: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- Settings server/enabled/dark/390: Clear workspace disabled=false; text: APPEARANCE; Theme; System; Light; Dark; WORKSPACE; Clear workspace; Moves every project to Trash; ADMINISTRATION; Admin; People, roles, permissions and Git remotes.
+- settings-panel-server/enabled/dark/390: clipped text: none found. Visible ellipsis: none found.
+- settings-panel-server/enabled/dark/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- settings-panel-server/enabled/dark/390: overlapping text: none found. Text contrast: none found.
+- settings-panel-server/enabled/dark/390: focus indicator and dialog Tab containment: Dialog closed on Tab (outline/box-shadow heuristic; 7 Tab presses maximum).
+- clear-workspace-server/confirmation/light/1440: clipped text: none found. Visible ellipsis: none found.
+- clear-workspace-server/confirmation/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- clear-workspace-server/confirmation/light/1440: overlapping text: none found. Text contrast: none found.
+- clear-workspace-server/confirmation/light/1440: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- Settings server-non-admin/read-only/dark/1440: Clear workspace disabled=true; text: APPEARANCE; Theme; System; Light; Dark; WORKSPACE; Clear workspace; Requires Admin.
+- settings-panel-server-non-admin/read-only/dark/1440: clipped text: none found. Visible ellipsis: none found.
+- settings-panel-server-non-admin/read-only/dark/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- settings-panel-server-non-admin/read-only/dark/1440: overlapping text: none found. Text contrast: none found.
+- settings-panel-server-non-admin/read-only/dark/1440: focus indicator and dialog Tab containment: Dialog closed on Tab (outline/box-shadow heuristic; 5 Tab presses maximum).
+- Settings server-non-admin/read-only/light/390: Clear workspace disabled=true; text: APPEARANCE; Theme; System; Light; Dark; WORKSPACE; Clear workspace; Requires Admin.
+- settings-panel-server-non-admin/read-only/light/390: clipped text: none found. Visible ellipsis: none found.
+- settings-panel-server-non-admin/read-only/light/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- settings-panel-server-non-admin/read-only/light/390: overlapping text: none found. Text contrast: none found.
+- settings-panel-server-non-admin/read-only/light/390: focus indicator and dialog Tab containment: Dialog closed on Tab (outline/box-shadow heuristic; 5 Tab presses maximum).
+- Settings server-non-admin/read-only/dark/390: Clear workspace disabled=true; text: APPEARANCE; Theme; System; Light; Dark; WORKSPACE; Clear workspace; Requires Admin.
+- settings-panel-server-non-admin/read-only/dark/390: clipped text: none found. Visible ellipsis: none found.
+- settings-panel-server-non-admin/read-only/dark/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- settings-panel-server-non-admin/read-only/dark/390: overlapping text: none found. Text contrast: none found.
+- settings-panel-server-non-admin/read-only/dark/390: focus indicator and dialog Tab containment: Dialog closed on Tab (outline/box-shadow heuristic; 5 Tab presses maximum).
+- admin-roles/filled/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-roles/filled/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-roles/filled/light/1440: overlapping text: none found. Text contrast: "✓" has contrast 3.35:1, needs 4.5:1.
+- admin-roles/filled/light/1440: focus indicator: none found (outline/box-shadow heuristic; 10 Tab presses maximum).
+- admin-git-remotes/filled/light/1440: clipped text: none found. Visible ellipsis: Set remote…; Set remote…; Set remote…; Set remote…; Set remote….
+- admin-git-remotes/filled/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-git-remotes/filled/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-git-remotes/filled/light/1440: focus indicator: none found (outline/box-shadow heuristic; 8 Tab presses maximum).
+- admin-agent-connections/empty/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-agent-connections/empty/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-agent-connections/empty/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-agent-connections/empty/light/1440: focus indicator: none found (outline/box-shadow heuristic; 3 Tab presses maximum).
+- Long audit resource request returned HTTP 404; subject is the signed-in long-name fixture identity.
+- admin-grants/long-text/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-grants/long-text/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-grants/long-text/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-grants/long-text/light/1440: focus indicator: none found (outline/box-shadow heuristic; 13 Tab presses maximum).
+- admin-grants/long-text/light/390: clipped text: none found. Visible ellipsis: none found.
+- admin-grants/long-text/light/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-grants/long-text/light/390: overlapping text: none found. Text contrast: none found.
+- admin-grants/long-text/light/390: focus indicator: none found (outline/box-shadow heuristic; 13 Tab presses maximum).
+- admin-projects/long-text/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-projects/long-text/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-projects/long-text/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-projects/long-text/light/1440: focus indicator: none found (outline/box-shadow heuristic; 24 Tab presses maximum).
+- admin-projects/long-text/light/390: clipped text: none found. Visible ellipsis: none found.
+- admin-projects/long-text/light/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-projects/long-text/light/390: overlapping text: none found. Text contrast: none found.
+- admin-projects/long-text/light/390: focus indicator: none found (outline/box-shadow heuristic; 24 Tab presses maximum).
+- admin-git-remotes/long-text/light/1440: clipped text: none found. Visible ellipsis: Set remote…; Set remote…; Set remote…; Set remote…; Set remote….
+- admin-git-remotes/long-text/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-git-remotes/long-text/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-git-remotes/long-text/light/1440: focus indicator: none found (outline/box-shadow heuristic; 8 Tab presses maximum).
+- admin-git-remotes/long-text/light/390: clipped text: none found. Visible ellipsis: Set remote…; Set remote…; Set remote….
+- admin-git-remotes/long-text/light/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-git-remotes/long-text/light/390: overlapping text: none found. Text contrast: none found.
+- admin-git-remotes/long-text/light/390: focus indicator: none found (outline/box-shadow heuristic; 8 Tab presses maximum).
+- admin-agent-programs/long-text/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-agent-programs/long-text/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-agent-programs/long-text/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-agent-programs/long-text/light/1440: focus indicator: none found (outline/box-shadow heuristic; 16 Tab presses maximum).
+- admin-agent-programs/long-text/light/390: clipped text: none found. Visible ellipsis: none found.
+- admin-agent-programs/long-text/light/390: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-agent-programs/long-text/light/390: overlapping text: none found. Text contrast: none found.
+- admin-agent-programs/long-text/light/390: focus indicator: none found (outline/box-shadow heuristic; 16 Tab presses maximum).
+- admin-agent-connections/long-text/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-agent-connections/long-text/light/1440: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- admin-agent-connections/long-text/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-agent-connections/long-text/light/1440: focus indicator: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- admin-agent-connections/long-text/light/390: clipped text: none found. Visible ellipsis: none found.
+- admin-agent-connections/long-text/light/390: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- admin-agent-connections/long-text/light/390: overlapping text: none found. Text contrast: none found.
+- admin-agent-connections/long-text/light/390: focus indicator: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- admin-settings/long-text/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-settings/long-text/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-settings/long-text/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-settings/long-text/light/1440: focus indicator: none found (outline/box-shadow heuristic; 9 Tab presses maximum).
+- Settings panel long text: not applicable; its labels and reasons are fixed strings, with no project names, e-mail addresses or other fixture text.
+- Agent connections displays program name and origin, but has no redirect-address field; long redirect addresses are present in Agent programs.
+- admin-agent-programs/empty-draft/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-agent-programs/empty-draft/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-agent-programs/empty-draft/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-agent-programs/empty-draft/light/1440: focus indicator: none found (outline/box-shadow heuristic; 6 Tab presses maximum).
+- admin-audit/empty/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-audit/empty/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-audit/empty/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-audit/empty/light/1440: focus indicator: No outline or box-shadow on INPUT  (outline/box-shadow heuristic; 10 Tab presses maximum).
+- admin-git-remotes/empty-remote/light/1440: clipped text: none found. Visible ellipsis: Set remote…; Set remote…; Set remote…; Set remote…; Set remote….
+- admin-git-remotes/empty-remote/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-git-remotes/empty-remote/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-git-remotes/empty-remote/light/1440: focus indicator: none found (outline/box-shadow heuristic; 8 Tab presses maximum).
+- admin-users/empty/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-users/empty/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- admin-users/empty/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-users/empty/light/1440: focus indicator: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- remove-program/confirmation/light/1440: clipped text: none found. Visible ellipsis: none found.
+- remove-program/confirmation/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- remove-program/confirmation/light/1440: overlapping text: none found. Text contrast: none found.
+- remove-program/confirmation/light/1440: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- remove-restriction/confirmation/light/1440: clipped text: none found. Visible ellipsis: none found.
+- remove-restriction/confirmation/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- remove-restriction/confirmation/light/1440: overlapping text: none found. Text contrast: none found.
+- remove-restriction/confirmation/light/1440: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- remove-remote/confirmation/light/1440: clipped text: none found. Visible ellipsis: none found.
+- remove-remote/confirmation/light/1440: colour-only status/selection markers: none found (0 visible text status/chip/connection candidates, plus pressed controls).
+- remove-remote/confirmation/light/1440: overlapping text: none found. Text contrast: none found.
+- remove-remote/confirmation/light/1440: focus indicator and dialog Tab containment: none found (outline/box-shadow heuristic; 4 Tab presses maximum).
+- admin-git-remotes/error/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-git-remotes/error/light/1440: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- admin-git-remotes/error/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-git-remotes/error/light/1440: focus indicator: none found (outline/box-shadow heuristic; 2 Tab presses maximum).
+- admin-audit/error/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-audit/error/light/1440: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- admin-audit/error/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-audit/error/light/1440: focus indicator: No outline or box-shadow on INPUT  (outline/box-shadow heuristic; 10 Tab presses maximum).
+- admin-access-check/error/light/1440: clipped text: none found. Visible ellipsis: none found.
+- admin-access-check/error/light/1440: colour-only status/selection markers: none found (1 visible text status/chip/connection candidates, plus pressed controls).
+- admin-access-check/error/light/1440: overlapping text: none found. Text contrast: none found.
+- admin-access-check/error/light/1440: focus indicator: none found (outline/box-shadow heuristic; 8 Tab presses maximum).
+
+## Complementary omissions
+
+- admin-grants/long-text/light/390: lower scroll slices omitted within the image budget (1763px content, 730px visible).
+- Users & groups long text: TimeoutError: waitFor: Timeout 10000ms exceeded. Call log:   - waiting for getByRole('region', { name: 'Users & groups', exact: true }).getByText('International semantic governance and analytical interoperability coordination International semantic governance and analytical interoperability coordination International semantic governance and analytical interoperability coordination', { exact: true }).first() to be visible 
+- admin-projects/long-text/light/390: lower scroll slices omitted within the image budget (3954px content, 730px visible).
+- admin-git-remotes/long-text/light/390: lower scroll slices omitted within the image budget (985px content, 730px visible).
+- admin-agent-programs/long-text/light/390: lower scroll slices omitted within the image budget (1203px content, 730px visible).
+- Audit long text: TimeoutError: waitFor: Timeout 10000ms exceeded. Call log:   - waiting for getByRole('region', { name: 'Audit', exact: true }).getByText('finance/international-governance/international-governance/international-governance/international-governance/international-governance/international-governance/international-governance/international-governance/international-governance/international-governance/review.yaml').first() to be visible 
+- Admin Settings/long-text/light/390: omitted from the planned 40-image allocation; the desktop crop contains the long host fields. Five planned slots remained unused after other states failed; the two-execution limit prevented reallocating them.
+- remove-domain: TimeoutError: waitFor: Timeout 30000ms exceeded. Call log:   - waiting for locator('dialog[open]') to be visible 
+
+## Complementary coverage limits
+
+- The two allowed executions are exhausted. The first stopped before Chromium launch because a fixture group name exceeded the 256-character schema limit. The second produced 35 images; no third capture was run.
+- Users & groups long text at 1440 and 390: no image. The long identity signed in successfully, but the exact-name locator after the e-mail filter did not become visible. The locator asks for the name alone with exact matching; the name is rendered in a table cell containing additional text. No DOM sample for that missing image establishes its filtered contents.
+- Audit long subject/resource at 1440 and 390: no image. The long-name identity signed in, and the long-path read returned HTTP 404. No matching resource row appeared. Allowed HTTP GET read operations are excluded by shouldAudit; the file-not-found response did not create the requested resource record.
+- Domain removal: no confirmation image. Removing finance leaves existing domain references; its preview returned HTTP 400, and the expected dialog did not appear within 30 seconds. The response body and inline error text were not captured. No domain change was saved.
+- Projects access long restricted path is seeded but lies below both initial crops. Its long contact is visible in the desktop crop, below the phone crop. These fields have no additional lower-slice images.
+- The long grant e-mail is visible on desktop but below the first phone crop. The long group name is visible in both widths. The phone Git remote crop and Agent programs crop omit the lower portions recorded in Complementary omissions.
+- Admin Settings long active-session name lies below its desktop crop. The long allowed-host and GitHub-host text is visible. Usage counters remain off; on and unknown states remain absent.
+- Empty Agent programs is an unsaved draft, not a newly started empty registry. Git remotes empty-remote is a no-remote project row, not a workspace with zero projects. Users & groups empty is a no-result search, not an empty server identity registry.
+- No new telemetry or separate general project-settings screen applies. The previously documented telemetry and project-field boundaries remain unchanged.
+- Mechanical checks found no changed or missing original PNGs. All 35 additional PNGs have a longest side no greater than 1600 pixels; all 125 images have manifest rows.
