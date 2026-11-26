@@ -74,7 +74,7 @@ When a relayout still contains the selected entity, the camera returns to that c
 readable neighbors. The optional mini-map is
 off until requested. Fit reserves its corner above 650 px. Collapsed Network relationship labels
 avoid cards, area headers and the displayed mini-map. Their placement and leader anchors follow
-the rendered smart route or its live Bézier fallback; routes outside the viewport do not claim visible label lanes. The phone layout hides the map and
+the rendered smart route or its live Bézier fallback; a route must intersect the viewport to claim a visible label lane. The phone layout hides the map and
 uses the whole canvas width. A finite viewport cannot display an unlimited number of full-size labels;
 area collapse, zoom and focused views make that trade-off explicit.
 

@@ -165,3 +165,31 @@ test('an intersecting route with distant vertical candidates starts at visible o
   const position = placeLabels([{ id: 'crossing', text: 'count', points }], [], 1, viewport).get('crossing')!;
   expect(labelInViewport(labelBox('count', position), [0, 0, 1], 500, 300)).toBe(true);
 });
+
+test('a diagonal that misses the viewport cannot claim a lane through overlapping bounds', () => {
+  const viewport = { x: 0, y: 0, width: 100, height: 100 };
+  const outside = {
+    id: 'outside',
+    text: '2',
+    points: [
+      [-100, 50],
+      [50, -100],
+    ] as [number, number][],
+  };
+  const inside = {
+    id: 'inside',
+    text: '3',
+    points: [
+      [10, 50],
+      [90, 50],
+    ] as [number, number][],
+  };
+  const positions = placeLabels([outside, inside], [], 1, viewport);
+  expect(positions.has('outside')).toBe(false);
+  expect(positions.get('inside')).toEqual(placeLabels([inside], [], 1, viewport).get('inside'));
+});
+
+test('a long route accumulates bounds without exceeding the argument limit', () => {
+  const points: [number, number][] = Array.from({ length: 150000 }, (_, index) => [index, -100]);
+  expect(placeLabels([{ id: 'long', text: '2', points }], [], 1, { x: 0, y: 0, width: 100, height: 100 }).size).toBe(0);
+});

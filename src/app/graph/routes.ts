@@ -322,16 +322,54 @@ function clearLabelPosition(text: string, candidates: [number, number][], obstac
   }
 }
 
+/** Accumulates route bounds without building coordinate arrays. */
+export function routeBounds(points: [number, number][]): Box {
+  let left = Infinity;
+  let top = Infinity;
+  let right = -Infinity;
+  let bottom = -Infinity;
+  for (const [x, y] of points) {
+    left = Math.min(left, x);
+    top = Math.min(top, y);
+    right = Math.max(right, x);
+    bottom = Math.max(bottom, y);
+  }
+  return { x: left, y: top, width: right - left, height: bottom - top };
+}
+
+/** Includes zero-width route bounds when culling against a viewport. */
+export function routeBoundsIntersect(bounds: Box, viewport: Box) {
+  return bounds.x <= viewport.x + viewport.width && bounds.x + bounds.width >= viewport.x && bounds.y <= viewport.y + viewport.height && bounds.y + bounds.height >= viewport.y;
+}
+
+function segmentIntersectsViewport(start: [number, number], end: [number, number], viewport: Box) {
+  let first = 0;
+  let last = 1;
+  for (const axis of [0, 1] as const) {
+    const low = axis === 0 ? viewport.x : viewport.y;
+    const high = low + (axis === 0 ? viewport.width : viewport.height);
+    const delta = end[axis] - start[axis];
+    if (delta === 0) {
+      if (start[axis] < low || start[axis] > high) return false;
+      continue;
+    }
+    const entry = (low - start[axis]) / delta;
+    const exit = (high - start[axis]) / delta;
+    first = Math.max(first, Math.min(entry, exit));
+    last = Math.min(last, Math.max(entry, exit));
+    if (first > last) return false;
+  }
+  return true;
+}
+
 /** Puts each label clear of other labels and nodes, adding lanes when routes are crowded. */
-export function placeLabels(items: { id: string; text: string; points: [number, number][]; candidates?: [number, number][] }[], boxes: Box[], labelScale = 1, viewport?: Box) {
+export function placeLabels(items: { id: string; text: string; points: [number, number][]; candidates?: [number, number][]; bounds?: Box }[], boxes: Box[], labelScale = 1, viewport?: Box) {
   const obstacles = [...boxes];
   const positions = new Map<string, [number, number]>();
   for (const item of items) {
     if (viewport) {
-      const xs = item.points.map(point => point[0]);
-      const ys = item.points.map(point => point[1]);
-      const bounds = { x: Math.min(...xs), y: Math.min(...ys), width: Math.max(...xs) - Math.min(...xs), height: Math.max(...ys) - Math.min(...ys) };
-      if (bounds.x > viewport.x + viewport.width || bounds.x + bounds.width < viewport.x || bounds.y > viewport.y + viewport.height || bounds.y + bounds.height < viewport.y) continue;
+      if (!routeBoundsIntersect(item.bounds ?? routeBounds(item.points), viewport)) continue;
+      if (!item.points.some((point, index) => index > 0 && segmentIntersectsViewport(item.points[index - 1], point, viewport))) continue;
     }
     const candidates = item.candidates ?? labelCandidates(item.points);
     if (!candidates.length) continue;
