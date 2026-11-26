@@ -1,0 +1,642 @@
+{
+ "scope": "64 dark 2560 px pairs left provisional by REVIEW-SOL-20261127-4 (text not legible at its scale)",
+ "main": "da54cf17",
+ "candidate": "d7514f41 (pixels from the 007-gate-captures matrix)",
+ "counts": {
+  "intended": 54,
+  "traversal noise": 8,
+  "regression": 2
+ },
+ "pairs": [
+  {
+   "id": "0467",
+   "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--after-fit-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Area names and Whole model shown in full, file-kind chips in the sidebar, name-only cards after Fit; nothing else worse.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0469",
+   "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--area-expanded-2560.png",
+   "classification": "traversal noise",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Main shows the collapsed-area overview, the candidate shows Address selected and zoomed on a different camera, so they cannot be compared.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0471",
+   "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--edge-hovered-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Whole model and full area names ('Allowance charge', 'Document reference'), sidebar chips; no other loss.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0474",
+   "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--fullscreen-node-selected-2560.png",
+   "classification": "intended",
+   "text_legible": false,
+   "tiles_viewed": 10,
+   "reason": "Candidate toolbar shows 'Whole model' in full where main cut it to 'Whole ...'; camera differs (candidate more zoomed) and legend and minimap moved. Tiny edge labels at fit zoom are not legible on either side.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0476",
+   "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--group-suggested-communities-2560.png",
+   "classification": "traversal noise",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Main shows the whole model, the candidate is zoomed into Address with another selection.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0479",
+   "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--legend-open-failed-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Full 'Whole model' label, full area names and chips; layout otherwise equivalent.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0481",
+   "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--loading-2-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Both show the loading message; candidate shows 'Whole model' in full and sidebar chips.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0483",
+   "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--mini-map-on-2560.png",
+   "classification": "intended",
+   "text_legible": false,
+   "illegible_regions": [
+    [
+     1000,
+     640,
+     900,
+     100
+    ]
+   ],
+   "images_viewed": 2,
+   "reason": "Full area names, Whole model and chips; tiny edge labels at this fit scale cannot be read on either side.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0486",
+   "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--zoomed-in-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "tiles_viewed": 10,
+   "reason": "Candidate shows 'Whole model' in full where main showed 'Whole ...', plus sidebar type chips and a small vertical layout shift. Card names are equally readable on both sides.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0489",
+   "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--all-areas-expanded-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "tiles_viewed": 10,
+   "reason": "The candidate toolbar shows 'Whole model' in full where main showed 'Whole ...', and group titles and card names are in full. The graph is framed at a different position, which is the reworked opening.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0491",
+   "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--areas-collapsed-2560.png",
+   "classification": "regression",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Area names now in full instead of broken words, but two edge count labels present in main are absent in the candidate.",
+   "what_is_worse": "Edge labels '7 relationships' (Address-Document reference) and '10 relationships' (Allowance charge-Party) shown in main are missing in the candidate; possibly intentional label de-collision, needs confirmation.",
+   "method": "diff-box crop per side, shown at about 78-88% scale",
+   "status": "fixed in 6e1322b3 (0630) and 7e48f18b, c28793c0 (0491); before/after in HANDOFF-SOL-20261127d.md"
+  },
+  {
+   "id": "0494",
+   "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--fullscreen-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "tiles_viewed": 11,
+   "reason": "Candidate shows the Whole model control in full where main cut it to Whole ..., entity names are whole and the graph is packed to fit; edge labels are removed, so the view is cleaner and no text is cut.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0496",
+   "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--group-automatic-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "tiles_viewed": 10,
+   "reason": "Candidate toolbar shows 'Whole model' in full (main cut it to 'Whole ...') and the area arrangement and legend differ as intended; card names are in full and nothing new is clipped.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0499",
+   "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--labels-on-2560.png",
+   "classification": "traversal noise",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Different camera zoom and framing (main zoomed in with edge labels, candidate fitted to the whole model), so label density cannot be compared.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0505",
+   "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--node-selected-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "tiles_viewed": 11,
+   "reason": "Network graph: area selector shows 'Whole model' in full where main cut it to 'Whole ...'; Show menu and graph layout changed; sidebar file kinds shown as chips; nothing worse.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0508",
+   "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--zoomed-minimum-2560.png",
+   "classification": "intended",
+   "text_legible": false,
+   "illegible_regions": [
+    [
+     1250,
+     628,
+     360,
+     290
+    ]
+   ],
+   "images_viewed": 2,
+   "reason": "Whole model label in full and sidebar chips; graph is only a few pixels at minimum zoom on both sides and needs a native look.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0511",
+   "key": "dark/2560/graphs-lineage/local-dark-contract-lineage--column-selected-2560.png",
+   "classification": "intended",
+   "text_legible": false,
+   "tiles_viewed": 12,
+   "reason": "Candidate shows the fit view with name-only cards and the relocated legend (adds 'Card tint: application grouping'), main shows a zoomed column-card view; sidebar scroll and file-type pills differ. Entity names are in full and nothing is cut. Tiny edge labels at fit zoom are not legible on either side.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0517",
+   "key": "dark/2560/graphs-lineage/local-dark-contract-lineage--hops-2-list-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "tiles_viewed": 12,
+   "reason": "Main shows the graph zoomed out to specks behind the foreign-key dialog; the candidate opens it readable, adds sidebar type chips and the Card tint legend. Dialog text is identical and no text is cut.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0521",
+   "key": "dark/2560/graphs-lineage/local-dark-contract-lineage--loading-1-2560.png",
+   "classification": "traversal noise",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Both sidebars are scrolled by the same offset and the candidate chips are taller, so commerce.owl sits just above the fold; both canvases are still laying out the lineage.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0523",
+   "key": "dark/2560/graphs-lineage/local-dark-contract-lineage--loading-3-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Same loading state; differences are the file-kind chips in the sidebar, the card-tint legend and the toolbar layout. Nothing is clipped or missing.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0528",
+   "key": "dark/2560/graphs-lineage/local-dark-contract-lineage--walk-1-before-2560.png",
+   "classification": "traversal noise",
+   "text_legible": true,
+   "tiles_viewed": 12,
+   "reason": "Main and candidate show different lineage viewports and sidebar scroll positions (different cards in view), so they cannot be compared tile by tile. The candidate also has the legend under the canvas with a card-tint entry, which is intended.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0536",
+   "key": "dark/2560/graphs-lineage/local-dark-dataset-lineage--column-selected-2560.png",
+   "classification": "intended",
+   "text_legible": false,
+   "tiles_viewed": 9,
+   "reason": "Candidate shows the lineage graph with name-only cards, a Selected path control and a legend row, where main shows an empty canvas for the same region; the tiny relationship labels on the far-zoom edges are hard to read.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0542",
+   "key": "dark/2560/graphs-lineage/local-dark-dataset-lineage--hops-2-list-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "tiles_viewed": 9,
+   "reason": "Dataset lineage with the foreign-keys dialog open: lineage cards drawn name-only when fitted, pane layout and sidebar file chips changed; dialog text identical and legible.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0546",
+   "key": "dark/2560/graphs-lineage/local-dark-dataset-lineage--more-columns-2560.png",
+   "classification": "traversal noise",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Candidate shows a compact sticky header with a different scroll and camera of the lineage graph, while main shows the full header with description and a different camera; the states cannot be compared.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0558",
+   "key": "dark/2560/graphs-mapping-graph/local-dark-mapping-graph--after-fit-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "tiles_viewed": 11,
+   "reason": "After Fit the candidate draws name-only mapping cards with a CENTER badge and an edge label chip, and the toolbar is two rows with Steps; the lost kind labels and field rows match the name-only cards at far zoom.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0561",
+   "key": "dark/2560/graphs-mapping-graph/local-dark-mapping-graph--fullscreen-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "tiles_viewed": 11,
+   "reason": "Mapping graph fullscreen first view is fit with name-only compact cards and pill edge labels (compact mapping change); card names are readable, toolbar wraps without clipping.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0565",
+   "key": "dark/2560/graphs-mapping-graph/local-dark-mapping-graph--loading-1-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Both are in the loading state; only sidebar kind chips, the Steps select and toolbar spacing differ, all in line with the intended changes.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0567",
+   "key": "dark/2560/graphs-mapping-graph/local-dark-mapping-graph--loading-3-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "tiles_viewed": 11,
+   "reason": "Candidate shows name-only cards at fit zoom (intended level of detail) with a Steps control in the toolbar; legend and footer text are the same as main. No text cut.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0570",
+   "key": "dark/2560/graphs-mapping-graph/local-dark-mapping-graph--stages-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "tiles_viewed": 11,
+   "reason": "After Fit the candidate draws mapping cards name-only with larger names (name-only cards below the detail zoom threshold); main shows full cards. Legend, panel and sidebar text are unchanged or improved.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0572",
+   "key": "dark/2560/graphs-mapping-graph/local-dark-mapping-graph--zoomed-minimum-2560.png",
+   "classification": "traversal noise",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Main shows an empty canvas before the graph rendered, while the candidate shows the zoomed-out graph, so the states differ.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0574",
+   "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--back-after-walk-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "tiles_viewed": 12,
+   "reason": "Candidate shows the full center name ('Center: AllocationShare', main cut it to 'AllocationS'), source-file chips and the Other files menu replace the inline Continue-in buttons, and the legend moved under the canvas. Graph zoom is smaller on the candidate; no text is cut.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0576",
+   "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--expanded-failed-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "tiles_viewed": 12,
+   "reason": "Candidate shows the centre card name and the Center: AllocationShare chip in full, the legend moved under the canvas, a Show count badge, an Other files menu and chip-style file format labels in the sidebar; graph zoom differs.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0580",
+   "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--fullscreen-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "tiles_viewed": 12,
+   "reason": "Neighborhood full screen: toolbar shows full 'Center: AllocationShare', legend moved under the canvas, graph fitted to the whole neighborhood with compact cards and edge labels; all text readable, nothing cut that main showed in full.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0582",
+   "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--labels-on-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "tiles_viewed": 11,
+   "reason": "The candidate shows the centre name in full (main cut it to 'AllocationS'), moves the legend under the canvas and folds the continue-in links into an Other files control. Toolbar and detail pane are otherwise intact.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0587",
+   "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--node-selected-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "tiles_viewed": 11,
+   "reason": "Same tiny neighbourhood graph on both sides; the candidate shows the full center name, source chips, the Other files menu and the legend under the canvas. No text is cut.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0590",
+   "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--walk-2-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "tiles_viewed": 12,
+   "reason": "Candidate toolbar no longer cuts 'Center: AllocationShare' (main cut it to 'AllocationS'), legend moved under the canvas, cards reworked and shown at fit zoom while main is zoomed on one card. No new clipping.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0592",
+   "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--zoomed-in-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "tiles_viewed": 12,
+   "reason": "Candidate shows 'Center: AllocationShare' in full where main cut it to 'AllocationS', moves the legend under the canvas and 'Other files' into its own button. Nothing else is worse.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0594",
+   "key": "dark/2560/rest-shell/local-dark-catalog--keyboard-focus-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Descriptions are shown in full instead of ending in an ellipsis, a result count appears and Edit buttons are hidden until hover. The label change EntityType to Entity type is covered by FR-013 (raw identifiers shown as words).",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0598",
+   "key": "dark/2560/rest-shell/local-dark-shell--avatar-menu-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "tiles_viewed": 12,
+   "reason": "The candidate lineage graph uses compact cards with the full entity names and the legend under the canvas; the avatar menu is open on both sides. Edge labels are smaller at the fitted zoom but still readable.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0602",
+   "key": "dark/2560/rest-shell/local-dark-shell--sidebar-collapsed-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "tiles_viewed": 12,
+   "reason": "Lineage canvas fitted to the whole graph with compact cards on the candidate versus a zoomed-in view on main; hops row, legend with 'Card tint' and the Other files menu match the intended lineage rework. Compact edge labels are small but readable and nothing is cut.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0606",
+   "key": "dark/2560/rest-catalog/local-dark-catalog--area-filter-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Full descriptions, the 9 of 9 count and the Entity type label replace the cut text and Edit buttons of main; nothing is missing or overlapping.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0609",
+   "key": "dark/2560/rest-catalog/local-dark-catalog--search-no-result-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Main shows a blank catalog while the candidate shows the 0 of 45 count, the no-match message and a Clear search button; this is an improvement.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0611",
+   "key": "dark/2560/rest-catalog/local-dark-catalog--table-row-hover-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Full descriptions and the 9 of 9 count; the Edit button shows only on the hovered card, as intended.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0613",
+   "key": "dark/2560/rest-catalog/local-dark-overview--long-named-entity-selected-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Differences are the sidebar kind chips and slightly smaller buttons and spacing in the detail panel; all text is present and readable.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0615",
+   "key": "dark/2560/rest-metrics/local-dark-metric-wizard--primary-hover-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Metric list and detail now share a common width at 2560 and the wizard is taller and fixed-height. Wizard content is the same; the list behind the dialog drops Type/Owner/Concept columns, same as 0630.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0617",
+   "key": "dark/2560/rest-metrics/local-dark-metric-wizard--step-1-filled-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Same wizard step; the ontology-warning banner and fields are intact, shared content width applies.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0619",
+   "key": "dark/2560/rest-metrics/local-dark-metric-wizard--step-3-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Validation messages moved inline under each field instead of a red banner list; all text whole.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0621",
+   "key": "dark/2560/rest-metrics/local-dark-metric-wizard--step-4-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "tiles_viewed": 9,
+   "reason": "The candidate wizard dialog and the metric list and detail behind it share the common content width at 2560, so they start further right. The wizard step 4 content, labels and buttons are intact on both sides.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0623",
+   "key": "dark/2560/rest-metrics/local-dark-metric-wizard--step-6-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Owner error now sits under the field; all text whole and controls present.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0625",
+   "key": "dark/2560/rest-metrics/local-dark-metric-wizard--step-8-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Save step shows the same two diffs in a fixed-height dialog; text whole.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0630",
+   "key": "dark/2560/rest-metrics/local-dark-metrics--stages-2560.png",
+   "classification": "regression",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Common content width applies, but the metrics list lost its Type, Owner and Concept columns that main shows (only Metric, Unit, Status remain).",
+   "what_is_worse": "Type, Owner and Concept columns of the metrics list are missing; content shown in main is gone.",
+   "method": "diff-box crop per side, shown at about 78-88% scale",
+   "status": "fixed in 6e1322b3 (0630) and 7e48f18b, c28793c0 (0491); before/after in HANDOFF-SOL-20261127d.md"
+  },
+  {
+   "id": "0633",
+   "key": "dark/2560/rest-mappings/local-dark-mappings--list-2560.png",
+   "classification": "traversal noise",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Main shows the Mappings bindings collapsed while the candidate has them expanded with metric cards, so the states differ.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0635",
+   "key": "dark/2560/rest-mappings/local-dark-mappings--selected-document-source-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Source editor identical; sidebar file-kind labels now render as chips, as intended.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0637",
+   "key": "dark/2560/rest-odcs/local-dark-odcs--stages-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Lineage header card collapsed to one line and canvas aligned with header edges (collapsed header and edge alignment changes); both still loading.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0647",
+   "key": "dark/2560/rest-odcs/local-dark-odcs-dataset--properties-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Properties table the same with slightly taller rows; sidebar kind chips are the intended change; commit hash differs by data.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0649",
+   "key": "dark/2560/rest-editing/local-dark-add-concept--empty-or-resting-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "tiles_viewed": 10,
+   "reason": "Catalog cards behind the dialog show full descriptions with no ellipsis, 'Entity type' spelled out, a result count, and no repeated Edit buttons (Edit moves to hover and the details pane). The Add concept dialog is the same.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0651",
+   "key": "dark/2560/rest-editing/local-dark-add-concept--filled-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Toolbar shows 'Whole model' in full, area names read 'Document reference' instead of 'DocumentReference', and the sidebar file kinds are now chips; the dialog is the same. The graph layout behind the dialog differs only by camera and layout, which is not a defect.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0654",
+   "key": "dark/2560/rest-editing/local-dark-import--empty-or-resting-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Toolbar shows 'Whole model' in full, area names read 'Document reference' instead of 'DocumentReference', and the sidebar file kinds are now chips; the dialog is the same. The graph layout behind the dialog differs only by camera and layout, which is not a defect.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0656",
+   "key": "dark/2560/rest-editing/local-dark-item-editor--empty-or-resting-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "tiles_viewed": 11,
+   "reason": "Candidate catalog cards show descriptions in full (main cut them with an ellipsis), add a 45 of 45 count and show Edit only on hover; the edit dialog has Open in Source as a button.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0658",
+   "key": "dark/2560/rest-editing/local-dark-item-editor--filled-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "tiles_viewed": 11,
+   "reason": "Item editor over a dimmed catalog: catalog cards show humanized 'Entity type', full descriptions without ellipsis, Edit action only on hover, and an 'N of M' count; editor fields and text are unchanged and legible.",
+   "method": "native tiles of every changed 780x650 region"
+  },
+  {
+   "id": "0660",
+   "key": "dark/2560/rest-editing/local-dark-project-export--empty-or-resting-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Toolbar shows 'Whole model' in full, area names read 'Document reference' instead of 'DocumentReference', and the sidebar file kinds are now chips; the dialog is the same. The graph layout behind the dialog differs only by camera and layout, which is not a defect.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0662",
+   "key": "dark/2560/rest-editing/local-dark-project-rename--empty-or-resting-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Toolbar shows 'Whole model' in full, area names read 'Document reference' instead of 'DocumentReference', and the sidebar file kinds are now chips; the dialog is the same. The graph layout behind the dialog differs only by camera and layout, which is not a defect.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0664",
+   "key": "dark/2560/rest-editing/local-dark-source-editor--clean-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Sidebar file kinds are now chips, the toolbar-row warning reads in full ('Checked, not executed.') where main ends with an ellipsis, and the 'Ln 1, Col 1' text spacing differs slightly. Editor content is unchanged and nothing is worse.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  },
+  {
+   "id": "0667",
+   "key": "dark/2560/rest-editing/local-dark-source-editor--sql-warning-gutter-2560.png",
+   "classification": "intended",
+   "text_legible": true,
+   "illegible_regions": [],
+   "images_viewed": 2,
+   "reason": "Sidebar file kinds are now chips, the toolbar-row warning reads in full ('Checked, not executed.') where main ends with an ellipsis, and the 'Ln 1, Col 1' text spacing differs slightly. Editor content is unchanged and nothing is worse.",
+   "method": "diff-box crop per side, shown at about 78-88% scale"
+  }
+ ]
+}

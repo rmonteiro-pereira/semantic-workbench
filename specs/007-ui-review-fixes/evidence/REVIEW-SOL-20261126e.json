@@ -1,0 +1,3223 @@
+{
+  "candidate": "df201d11",
+  "main": "da54cf17",
+  "scope": "200 pending graph and rest comparisons from the earlier matrix; existing screenshots only; supplied queue contains light theme only",
+  "identity": [
+    "baseline",
+    "key"
+  ],
+  "counts": {
+    "intended": 162,
+    "traversal noise": 28,
+    "unchanged": 10
+  },
+  "resolution_counts": {
+    "downscaled": 67,
+    "native": 133
+  },
+  "review_images": 104,
+  "unique_sheets": 100,
+  "regressions": [],
+  "pairs": [
+    {
+      "preview": "2102",
+      "baseline": "main",
+      "key": "light/1280/graphs-full-graph/local-full-graph-network--group-suggested-communities-1280.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-000.png"
+    },
+    {
+      "preview": "2103",
+      "baseline": "accepted",
+      "key": "light/1280/graphs-full-graph/local-full-graph-network--group-suggested-communities-1280.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 638
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-000.png"
+    },
+    {
+      "preview": "2104",
+      "baseline": "main",
+      "key": "light/1280/graphs-full-graph/local-full-graph-network--grouping-menu-1280.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 695
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-001.png"
+    },
+    {
+      "preview": "2105",
+      "baseline": "accepted",
+      "key": "light/1280/graphs-full-graph/local-full-graph-network--grouping-menu-1280.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 638
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-001.png"
+    },
+    {
+      "preview": "2106",
+      "baseline": "main",
+      "key": "light/1280/graphs-full-graph/local-full-graph-network--labels-on-1280.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 687
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-002.png"
+    },
+    {
+      "preview": "2107",
+      "baseline": "accepted",
+      "key": "light/1280/graphs-full-graph/local-full-graph-network--labels-on-1280.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 687
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-002.png"
+    },
+    {
+      "preview": "2108",
+      "baseline": "main",
+      "key": "light/1280/graphs-full-graph/local-full-graph-network--legend-open-failed-1280.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 695
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-003.png"
+    },
+    {
+      "preview": "2109",
+      "baseline": "accepted",
+      "key": "light/1280/graphs-full-graph/local-full-graph-network--legend-open-failed-1280.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1071,
+        "height": 638
+      },
+      "scale": 0.7282913165266106,
+      "resolution": "downscaled",
+      "sheet": "sheet-003.png"
+    },
+    {
+      "preview": "2110",
+      "baseline": "main",
+      "key": "light/1280/graphs-full-graph/local-full-graph-network--loading-1-1280.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 638
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-004.png"
+    },
+    {
+      "preview": "2111",
+      "baseline": "accepted",
+      "key": "light/1280/graphs-full-graph/local-full-graph-network--loading-1-1280.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 905,
+        "height": 638
+      },
+      "scale": 0.861878453038674,
+      "resolution": "downscaled",
+      "sheet": "sheet-004.png"
+    },
+    {
+      "preview": "2112",
+      "baseline": "main",
+      "key": "light/1280/graphs-full-graph/local-full-graph-network--loading-2-1280.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 638
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-005.png"
+    },
+    {
+      "preview": "2113",
+      "baseline": "accepted",
+      "key": "light/1280/graphs-full-graph/local-full-graph-network--loading-2-1280.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 905,
+        "height": 638
+      },
+      "scale": 0.861878453038674,
+      "resolution": "downscaled",
+      "sheet": "sheet-005.png"
+    },
+    {
+      "preview": "2114",
+      "baseline": "main",
+      "key": "light/1280/graphs-full-graph/local-full-graph-network--loading-3-1280.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 638
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-006.png"
+    },
+    {
+      "preview": "2115",
+      "baseline": "accepted",
+      "key": "light/1280/graphs-full-graph/local-full-graph-network--loading-3-1280.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 905,
+        "height": 638
+      },
+      "scale": 0.861878453038674,
+      "resolution": "downscaled",
+      "sheet": "sheet-006.png"
+    },
+    {
+      "preview": "2116",
+      "baseline": "main",
+      "key": "light/1280/graphs-full-graph/local-full-graph-network--mini-map-on-1280.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 695
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-007.png"
+    },
+    {
+      "preview": "2117",
+      "baseline": "accepted",
+      "key": "light/1280/graphs-full-graph/local-full-graph-network--mini-map-on-1280.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1071,
+        "height": 638
+      },
+      "scale": 0.7282913165266106,
+      "resolution": "downscaled",
+      "sheet": "sheet-007.png"
+    },
+    {
+      "preview": "2118",
+      "baseline": "main",
+      "key": "light/1280/graphs-full-graph/local-full-graph-network--node-selected-1280.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 716
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-008.png"
+    },
+    {
+      "preview": "2119",
+      "baseline": "accepted",
+      "key": "light/1280/graphs-full-graph/local-full-graph-network--node-selected-1280.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 717
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-008.png"
+    },
+    {
+      "preview": "2120",
+      "baseline": "main",
+      "key": "light/1280/graphs-full-graph/local-full-graph-network--options-open-1280.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 695
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-009.png"
+    },
+    {
+      "preview": "2121",
+      "baseline": "accepted",
+      "key": "light/1280/graphs-full-graph/local-full-graph-network--options-open-1280.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 638
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-009.png"
+    },
+    {
+      "preview": "2122",
+      "baseline": "main",
+      "key": "light/1280/graphs-full-graph/local-full-graph-network--zoomed-in-1280.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 710
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-010.png"
+    },
+    {
+      "preview": "2123",
+      "baseline": "accepted",
+      "key": "light/1280/graphs-full-graph/local-full-graph-network--zoomed-in-1280.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 710
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-010.png"
+    },
+    {
+      "preview": "2124",
+      "baseline": "main",
+      "key": "light/1280/graphs-full-graph/local-full-graph-network--zoomed-minimum-1280.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 638
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-011.png"
+    },
+    {
+      "preview": "2125",
+      "baseline": "accepted",
+      "key": "light/1280/graphs-full-graph/local-full-graph-network--zoomed-minimum-1280.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 936,
+        "height": 638
+      },
+      "scale": 0.8333333333333334,
+      "resolution": "downscaled",
+      "sheet": "sheet-011.png"
+    },
+    {
+      "preview": "2192",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph--stages-1440.png",
+      "classification": "traversal noise",
+      "reason": "Capture sequence differs in camera, center, selected path or loading state; comparable after-fit/opening frames show the model. Failed walk frames do not establish a usable traversal.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 875
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-012.png"
+    },
+    {
+      "preview": "2193",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-layered--after-fit-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 802
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-012.png"
+    },
+    {
+      "preview": "2194",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-layered--all-areas-expanded-1440.png",
+      "classification": "traversal noise",
+      "reason": "Capture sequence differs in camera, center, selected path or loading state; comparable after-fit/opening frames show the model. Failed walk frames do not establish a usable traversal.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 875
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-013.png"
+    },
+    {
+      "preview": "2195",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-layered--area-expanded-1440.png",
+      "classification": "traversal noise",
+      "reason": "Capture sequence differs in camera, center, selected path or loading state; comparable after-fit/opening frames show the model. Failed walk frames do not establish a usable traversal.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 875
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-013.png"
+    },
+    {
+      "preview": "2196",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-layered--areas-collapsed-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 880
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-014.png"
+    },
+    {
+      "preview": "2197",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-layered--edge-hovered-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 802
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-014.png"
+    },
+    {
+      "preview": "2198",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-layered--first-view-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 802
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-015.png"
+    },
+    {
+      "preview": "2199",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-layered--fullscreen-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 1,
+        "top": 0,
+        "width": 1439,
+        "height": 900
+      },
+      "scale": 0.542043085476025,
+      "resolution": "downscaled",
+      "sheet": "sheet-015.png"
+    },
+    {
+      "preview": "2200",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-layered--fullscreen-node-selected-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-016.png"
+    },
+    {
+      "preview": "2201",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-layered--group-automatic-1440.png",
+      "classification": "traversal noise",
+      "reason": "Capture sequence differs in camera, center, selected path or loading state; comparable after-fit/opening frames show the model. Failed walk frames do not establish a usable traversal.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 875
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-016.png"
+    },
+    {
+      "preview": "2202",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-layered--group-suggested-communities-1440.png",
+      "classification": "traversal noise",
+      "reason": "Capture sequence differs in camera, center, selected path or loading state; comparable after-fit/opening frames show the model. Failed walk frames do not establish a usable traversal.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 875
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-017.png"
+    },
+    {
+      "preview": "2203",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-layered--labels-on-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 802
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-017.png"
+    },
+    {
+      "preview": "2204",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-layered--legend-open-failed-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 875
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-018.png"
+    },
+    {
+      "preview": "2205",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-layered--loading-1-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 858
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-018.png"
+    },
+    {
+      "preview": "2206",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-layered--loading-2-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 858
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-019.png"
+    },
+    {
+      "preview": "2207",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-layered--loading-3-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 858
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-019.png"
+    },
+    {
+      "preview": "2208",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-layered--mini-map-on-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 875
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-020.png"
+    },
+    {
+      "preview": "2209",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-layered--node-selected-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-020.png"
+    },
+    {
+      "preview": "2210",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-layered--options-open-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 875
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-021.png"
+    },
+    {
+      "preview": "2211",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-layered--zoomed-in-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 822
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-021.png"
+    },
+    {
+      "preview": "2212",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-layered--zoomed-minimum-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 802
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-022.png"
+    },
+    {
+      "preview": "2213",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-network--after-fit-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 850
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-022.png"
+    },
+    {
+      "preview": "2214",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-network--all-areas-expanded-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 875
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-023.png"
+    },
+    {
+      "preview": "2215",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-network--area-expanded-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 875
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-023.png"
+    },
+    {
+      "preview": "2216",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-network--areas-collapsed-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 875
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-024.png"
+    },
+    {
+      "preview": "2217",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-network--edge-hovered-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 850
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-024.png"
+    },
+    {
+      "preview": "2218",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-network--first-view-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 850
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-025.png"
+    },
+    {
+      "preview": "2219",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-network--fullscreen-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-025.png"
+    },
+    {
+      "preview": "2220",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-network--fullscreen-node-selected-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-026.png"
+    },
+    {
+      "preview": "2221",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-network--group-automatic-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 875
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-026.png"
+    },
+    {
+      "preview": "2222",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-network--group-suggested-communities-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 875
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-027.png"
+    },
+    {
+      "preview": "2223",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-network--labels-on-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 850
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-027.png"
+    },
+    {
+      "preview": "2224",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-network--legend-open-failed-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 875
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-028.png"
+    },
+    {
+      "preview": "2225",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-network--loading-1-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 802
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-028.png"
+    },
+    {
+      "preview": "2226",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-network--loading-2-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 802
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-029.png"
+    },
+    {
+      "preview": "2227",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-network--loading-3-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 802
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-029.png"
+    },
+    {
+      "preview": "2228",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-network--mini-map-on-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 875
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-030.png"
+    },
+    {
+      "preview": "2229",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-network--node-selected-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-030.png"
+    },
+    {
+      "preview": "2230",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-network--options-open-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 875
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-031.png"
+    },
+    {
+      "preview": "2231",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-network--zoomed-in-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 890
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-031.png"
+    },
+    {
+      "preview": "2232",
+      "baseline": "main",
+      "key": "light/1440/graphs-full-graph/local-full-graph-network--zoomed-minimum-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 802
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-032.png"
+    },
+    {
+      "preview": "2233",
+      "baseline": "accepted",
+      "key": "light/1440/local-0/local-ontology-catalog-1440.png",
+      "classification": "intended",
+      "reason": "Catalog count, cards and descriptions remain readable. Desktop Edit actions are intentionally revealed on hover or focus (3731b0ae); the controls remain in CatalogView. Mesh and changed fixture titles account for sidebar differences.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1436,
+        "height": 855
+      },
+      "scale": 0.5431754874651811,
+      "resolution": "downscaled",
+      "sheet": "sheet-032.png"
+    },
+    {
+      "preview": "2234",
+      "baseline": "accepted",
+      "key": "light/1440/local-0/local-ontology-graph-1440.png",
+      "classification": "intended",
+      "reason": "Approved folded Controls and Show badge, readable graph names and camera, with main branch actions and Mesh retained; fixture titles and project counts differ against the accepted baseline.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1436,
+        "height": 816
+      },
+      "scale": 0.5431754874651811,
+      "resolution": "downscaled",
+      "sheet": "sheet-033.png"
+    },
+    {
+      "preview": "2428",
+      "baseline": "main",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--after-fit-390.png",
+      "classification": "intended",
+      "reason": "Compact dataset header and separate zoom controls preserve space for name-only lineage cards and the below-canvas legend; available controls remain visible.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 743
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-033.png"
+    },
+    {
+      "preview": "2429",
+      "baseline": "accepted",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--after-fit-390.png",
+      "classification": "intended",
+      "reason": "Compact dataset header and separate zoom controls preserve space for name-only lineage cards and the below-canvas legend; available controls remain visible.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 737
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-034.png"
+    },
+    {
+      "preview": "2430",
+      "baseline": "main",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--column-filter-failed-390.png",
+      "classification": "intended",
+      "reason": "Compact dataset header and separate zoom controls preserve space for name-only lineage cards and the below-canvas legend; available controls remain visible.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 743
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-034.png"
+    },
+    {
+      "preview": "2431",
+      "baseline": "accepted",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--column-filter-failed-390.png",
+      "classification": "intended",
+      "reason": "Compact dataset header and separate zoom controls preserve space for name-only lineage cards and the below-canvas legend; available controls remain visible.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 737
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-035.png"
+    },
+    {
+      "preview": "2432",
+      "baseline": "main",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--column-selected-390.png",
+      "classification": "traversal noise",
+      "reason": "Capture sequence differs in camera, center, selected path or loading state; comparable after-fit/opening frames show the model. Failed walk frames do not establish a usable traversal.",
+      "crop": {
+        "left": 0,
+        "top": 101,
+        "width": 390,
+        "height": 737
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-035.png"
+    },
+    {
+      "preview": "2433",
+      "baseline": "accepted",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--column-selected-390.png",
+      "classification": "traversal noise",
+      "reason": "Capture sequence differs in camera, center, selected path or loading state; comparable after-fit/opening frames show the model. Failed walk frames do not establish a usable traversal.",
+      "crop": {
+        "left": 0,
+        "top": 202,
+        "width": 390,
+        "height": 579
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-036.png"
+    },
+    {
+      "preview": "2434",
+      "baseline": "main",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--edge-hovered-390.png",
+      "classification": "traversal noise",
+      "reason": "Capture sequence differs in camera, center, selected path or loading state; comparable after-fit/opening frames show the model. Failed walk frames do not establish a usable traversal.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 743
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-036.png"
+    },
+    {
+      "preview": "2435",
+      "baseline": "accepted",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--edge-hovered-390.png",
+      "classification": "intended",
+      "reason": "Compact dataset header and separate zoom controls preserve space for name-only lineage cards and the below-canvas legend; available controls remain visible.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 737
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-037.png"
+    },
+    {
+      "preview": "2436",
+      "baseline": "main",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--first-view-390.png",
+      "classification": "intended",
+      "reason": "Compact dataset header and separate zoom controls preserve space for name-only lineage cards and the below-canvas legend; available controls remain visible.",
+      "crop": {
+        "left": 0,
+        "top": 101,
+        "width": 390,
+        "height": 737
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-037.png"
+    },
+    {
+      "preview": "2437",
+      "baseline": "accepted",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--first-view-390.png",
+      "classification": "unchanged",
+      "reason": "Same visible content and actions; difference is focus, small positioning or background pixels.",
+      "crop": {
+        "left": 0,
+        "top": 402,
+        "width": 170,
+        "height": 158
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-038.png"
+    },
+    {
+      "preview": "2438",
+      "baseline": "main",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--fullscreen-390.png",
+      "classification": "traversal noise",
+      "reason": "Capture sequence differs in camera, center, selected path or loading state; comparable after-fit/opening frames show the model. Failed walk frames do not establish a usable traversal.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 390,
+        "height": 844
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-038.png"
+    },
+    {
+      "preview": "2440",
+      "baseline": "main",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--fullscreen-node-selected-390.png",
+      "classification": "traversal noise",
+      "reason": "Capture sequence differs in camera, center, selected path or loading state; comparable after-fit/opening frames show the model. Failed walk frames do not establish a usable traversal.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 390,
+        "height": 844
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-039.png"
+    },
+    {
+      "preview": "2441",
+      "baseline": "accepted",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--fullscreen-node-selected-390.png",
+      "classification": "unchanged",
+      "reason": "Same visible content and actions; difference is focus, small positioning or background pixels.",
+      "crop": {
+        "left": 0,
+        "top": 232,
+        "width": 390,
+        "height": 612
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-039.png"
+    },
+    {
+      "preview": "2443",
+      "baseline": "accepted",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--hops-1-list-390.png",
+      "classification": "unchanged",
+      "reason": "Same visible content and actions; difference is focus, small positioning or background pixels.",
+      "crop": {
+        "left": 0,
+        "top": 136,
+        "width": 390,
+        "height": 667
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-040.png"
+    },
+    {
+      "preview": "2445",
+      "baseline": "accepted",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--hops-2-list-390.png",
+      "classification": "unchanged",
+      "reason": "Same visible content and actions; difference is focus, small positioning or background pixels.",
+      "crop": {
+        "left": 0,
+        "top": 136,
+        "width": 390,
+        "height": 667
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-040.png"
+    },
+    {
+      "preview": "2447",
+      "baseline": "accepted",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--hops-3-list-390.png",
+      "classification": "unchanged",
+      "reason": "Same visible content and actions; difference is focus, small positioning or background pixels.",
+      "crop": {
+        "left": 0,
+        "top": 136,
+        "width": 390,
+        "height": 667
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-041.png"
+    },
+    {
+      "preview": "2448",
+      "baseline": "main",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--labels-on-failed-390.png",
+      "classification": "intended",
+      "reason": "Compact dataset header and separate zoom controls preserve space for name-only lineage cards and the below-canvas legend; available controls remain visible.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 743
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-041.png"
+    },
+    {
+      "preview": "2449",
+      "baseline": "accepted",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--labels-on-failed-390.png",
+      "classification": "intended",
+      "reason": "Compact dataset header and separate zoom controls preserve space for name-only lineage cards and the below-canvas legend; available controls remain visible.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 737
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-042.png"
+    },
+    {
+      "preview": "2450",
+      "baseline": "main",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--legend-open-failed-390.png",
+      "classification": "traversal noise",
+      "reason": "Capture sequence differs in camera, center, selected path or loading state; comparable after-fit/opening frames show the model. Failed walk frames do not establish a usable traversal.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 743
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-042.png"
+    },
+    {
+      "preview": "2451",
+      "baseline": "accepted",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--legend-open-failed-390.png",
+      "classification": "unchanged",
+      "reason": "Same visible content and actions; difference is focus, small positioning or background pixels.",
+      "crop": {
+        "left": 6,
+        "top": 212,
+        "width": 82,
+        "height": 81
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-043.png"
+    },
+    {
+      "preview": "2452",
+      "baseline": "main",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--more-columns-390.png",
+      "classification": "intended",
+      "reason": "Compact dataset header and separate zoom controls preserve space for name-only lineage cards and the below-canvas legend; available controls remain visible.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 743
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-043.png"
+    },
+    {
+      "preview": "2453",
+      "baseline": "accepted",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--more-columns-390.png",
+      "classification": "intended",
+      "reason": "Compact dataset header and separate zoom controls preserve space for name-only lineage cards and the below-canvas legend; available controls remain visible.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 737
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-044.png"
+    },
+    {
+      "preview": "2454",
+      "baseline": "accepted",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--node-selected-390.png",
+      "classification": "unchanged",
+      "reason": "Same visible content and actions; difference is focus, small positioning or background pixels.",
+      "crop": {
+        "left": 0,
+        "top": 512,
+        "width": 50,
+        "height": 233
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-044.png"
+    },
+    {
+      "preview": "2455",
+      "baseline": "main",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--options-open-390.png",
+      "classification": "intended",
+      "reason": "Compact dataset header and separate zoom controls preserve space for name-only lineage cards and the below-canvas legend; available controls remain visible.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 743
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-045.png"
+    },
+    {
+      "preview": "2457",
+      "baseline": "main",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--walk-1-after-failed-390.png",
+      "classification": "traversal noise",
+      "reason": "Capture sequence differs in camera, center, selected path or loading state; comparable after-fit/opening frames show the model. Failed walk frames do not establish a usable traversal.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 743
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-045.png"
+    },
+    {
+      "preview": "2458",
+      "baseline": "accepted",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--walk-1-after-failed-390.png",
+      "classification": "traversal noise",
+      "reason": "Capture sequence differs in camera, center, selected path or loading state; comparable after-fit/opening frames show the model. Failed walk frames do not establish a usable traversal.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 737
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-046.png"
+    },
+    {
+      "preview": "2459",
+      "baseline": "main",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--walk-1-before-390.png",
+      "classification": "intended",
+      "reason": "Compact dataset header and separate zoom controls preserve space for name-only lineage cards and the below-canvas legend; available controls remain visible.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 743
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-046.png"
+    },
+    {
+      "preview": "2460",
+      "baseline": "accepted",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--walk-1-before-390.png",
+      "classification": "intended",
+      "reason": "Compact dataset header and separate zoom controls preserve space for name-only lineage cards and the below-canvas legend; available controls remain visible.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 737
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-047.png"
+    },
+    {
+      "preview": "2461",
+      "baseline": "main",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--walk-1-hover-failed-390.png",
+      "classification": "intended",
+      "reason": "Compact dataset header and separate zoom controls preserve space for name-only lineage cards and the below-canvas legend; available controls remain visible.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 743
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-047.png"
+    },
+    {
+      "preview": "2462",
+      "baseline": "accepted",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--walk-1-hover-failed-390.png",
+      "classification": "intended",
+      "reason": "Compact dataset header and separate zoom controls preserve space for name-only lineage cards and the below-canvas legend; available controls remain visible.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 737
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-048.png"
+    },
+    {
+      "preview": "2463",
+      "baseline": "accepted",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--walk-2-after-failed-390.png",
+      "classification": "traversal noise",
+      "reason": "Capture sequence differs in camera, center, selected path or loading state; comparable after-fit/opening frames show the model. Failed walk frames do not establish a usable traversal.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 737
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-048.png"
+    },
+    {
+      "preview": "2464",
+      "baseline": "main",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--walk-2-before-390.png",
+      "classification": "traversal noise",
+      "reason": "Capture sequence differs in camera, center, selected path or loading state; comparable after-fit/opening frames show the model. Failed walk frames do not establish a usable traversal.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 743
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-049.png"
+    },
+    {
+      "preview": "2465",
+      "baseline": "accepted",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--walk-2-before-390.png",
+      "classification": "traversal noise",
+      "reason": "Capture sequence differs in camera, center, selected path or loading state; comparable after-fit/opening frames show the model. Failed walk frames do not establish a usable traversal.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 737
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-049.png"
+    },
+    {
+      "preview": "2466",
+      "baseline": "accepted",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--walk-2-hover-failed-390.png",
+      "classification": "traversal noise",
+      "reason": "Capture sequence differs in camera, center, selected path or loading state; comparable after-fit/opening frames show the model. Failed walk frames do not establish a usable traversal.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 737
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-050.png"
+    },
+    {
+      "preview": "2467",
+      "baseline": "accepted",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--walk-3-after-failed-390.png",
+      "classification": "traversal noise",
+      "reason": "Capture sequence differs in camera, center, selected path or loading state; comparable after-fit/opening frames show the model. Failed walk frames do not establish a usable traversal.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 737
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-050.png"
+    },
+    {
+      "preview": "2468",
+      "baseline": "main",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--walk-3-before-390.png",
+      "classification": "traversal noise",
+      "reason": "Capture sequence differs in camera, center, selected path or loading state; comparable after-fit/opening frames show the model. Failed walk frames do not establish a usable traversal.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 743
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-051.png"
+    },
+    {
+      "preview": "2469",
+      "baseline": "accepted",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--walk-3-before-390.png",
+      "classification": "traversal noise",
+      "reason": "Capture sequence differs in camera, center, selected path or loading state; comparable after-fit/opening frames show the model. Failed walk frames do not establish a usable traversal.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 737
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-051.png"
+    },
+    {
+      "preview": "2470",
+      "baseline": "accepted",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--walk-3-hover-failed-390.png",
+      "classification": "traversal noise",
+      "reason": "Capture sequence differs in camera, center, selected path or loading state; comparable after-fit/opening frames show the model. Failed walk frames do not establish a usable traversal.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 737
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-052.png"
+    },
+    {
+      "preview": "2471",
+      "baseline": "main",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--zoomed-in-390.png",
+      "classification": "traversal noise",
+      "reason": "Capture sequence differs in camera, center, selected path or loading state; comparable after-fit/opening frames show the model. Failed walk frames do not establish a usable traversal.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 743
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-052.png"
+    },
+    {
+      "preview": "2472",
+      "baseline": "accepted",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--zoomed-in-390.png",
+      "classification": "intended",
+      "reason": "Compact dataset header and separate zoom controls preserve space for name-only lineage cards and the below-canvas legend; available controls remain visible.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 737
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-053.png"
+    },
+    {
+      "preview": "2473",
+      "baseline": "main",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--zoomed-minimum-390.png",
+      "classification": "traversal noise",
+      "reason": "Capture sequence differs in camera, center, selected path or loading state; comparable after-fit/opening frames show the model. Failed walk frames do not establish a usable traversal.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 743
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-053.png"
+    },
+    {
+      "preview": "2474",
+      "baseline": "accepted",
+      "key": "light/390/graphs-lineage/local-dataset-lineage--zoomed-minimum-390.png",
+      "classification": "intended",
+      "reason": "Compact dataset header and separate zoom controls preserve space for name-only lineage cards and the below-canvas legend; available controls remain visible.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 737
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-054.png"
+    },
+    {
+      "preview": "2475",
+      "baseline": "main",
+      "key": "light/390/graphs-lineage/local-lineage--dataset-stages-390.png",
+      "classification": "traversal noise",
+      "reason": "Capture sequence differs in camera, center, selected path or loading state; comparable after-fit/opening frames show the model. Failed walk frames do not establish a usable traversal.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 743
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-054.png"
+    },
+    {
+      "preview": "2476",
+      "baseline": "accepted",
+      "key": "light/390/graphs-lineage/local-lineage--dataset-stages-390.png",
+      "classification": "unchanged",
+      "reason": "Same visible content and actions; difference is focus, small positioning or background pixels.",
+      "crop": {
+        "left": 6,
+        "top": 212,
+        "width": 82,
+        "height": 81
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-055.png"
+    },
+    {
+      "preview": "2477",
+      "baseline": "main",
+      "key": "light/390/graphs-mapping-graph/local-mapping-graph--after-fit-390.png",
+      "classification": "intended",
+      "reason": "Name-only mapping cards preserve all nine reachable assets, with zoom controls outside Controls and a collapsed footer legend.",
+      "crop": {
+        "left": 0,
+        "top": 106,
+        "width": 390,
+        "height": 707
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-055.png"
+    },
+    {
+      "preview": "2480",
+      "baseline": "main",
+      "key": "light/390/graphs-mapping-graph/local-mapping-graph--first-view-390.png",
+      "classification": "intended",
+      "reason": "Name-only mapping cards show the reachable concepts, fields and metrics; separate zoom controls and collapsed footer legend preserve canvas space. Selected-path details remain available in a dialog.",
+      "crop": {
+        "left": 0,
+        "top": 106,
+        "width": 390,
+        "height": 707
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-056.png"
+    },
+    {
+      "preview": "2482",
+      "baseline": "main",
+      "key": "light/390/graphs-mapping-graph/local-mapping-graph--fullscreen-390.png",
+      "classification": "intended",
+      "reason": "Name-only mapping cards show the reachable concepts, fields and metrics; separate zoom controls and collapsed footer legend preserve canvas space. Selected-path details remain available in a dialog.",
+      "crop": {
+        "left": 0,
+        "top": 7,
+        "width": 390,
+        "height": 837
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-056.png"
+    },
+    {
+      "preview": "2484",
+      "baseline": "main",
+      "key": "light/390/graphs-mapping-graph/local-mapping-graph--fullscreen-node-selected-390.png",
+      "classification": "intended",
+      "reason": "Name-only mapping cards show the reachable concepts, fields and metrics; separate zoom controls and collapsed footer legend preserve canvas space. Selected-path details remain available in a dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 390,
+        "height": 844
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-057.png"
+    },
+    {
+      "preview": "2486",
+      "baseline": "main",
+      "key": "light/390/graphs-mapping-graph/local-mapping-graph--labels-on-failed-390.png",
+      "classification": "intended",
+      "reason": "Name-only mapping cards show the reachable concepts, fields and metrics; separate zoom controls and collapsed footer legend preserve canvas space. Selected-path details remain available in a dialog.",
+      "crop": {
+        "left": 0,
+        "top": 137,
+        "width": 390,
+        "height": 676
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-057.png"
+    },
+    {
+      "preview": "2488",
+      "baseline": "main",
+      "key": "light/390/graphs-mapping-graph/local-mapping-graph--legend-open-failed-390.png",
+      "classification": "intended",
+      "reason": "Name-only mapping cards show the reachable concepts, fields and metrics; separate zoom controls and collapsed footer legend preserve canvas space. Selected-path details remain available in a dialog.",
+      "crop": {
+        "left": 0,
+        "top": 106,
+        "width": 390,
+        "height": 707
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-058.png"
+    },
+    {
+      "preview": "2490",
+      "baseline": "main",
+      "key": "light/390/graphs-mapping-graph/local-mapping-graph--loading-1-390.png",
+      "classification": "intended",
+      "reason": "Name-only mapping cards show the reachable concepts, fields and metrics; separate zoom controls and collapsed footer legend preserve canvas space. Selected-path details remain available in a dialog.",
+      "crop": {
+        "left": 0,
+        "top": 66,
+        "width": 390,
+        "height": 747
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-058.png"
+    },
+    {
+      "preview": "2491",
+      "baseline": "accepted",
+      "key": "light/390/graphs-mapping-graph/local-mapping-graph--loading-1-390.png",
+      "classification": "traversal noise",
+      "reason": "Accepted capture is still resolving or laying out the graph; candidate has completed layout. The foreground action remains available; this pair does not compare completed graph states.",
+      "crop": {
+        "left": 0,
+        "top": 65,
+        "width": 390,
+        "height": 767
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-059.png"
+    },
+    {
+      "preview": "2492",
+      "baseline": "main",
+      "key": "light/390/graphs-mapping-graph/local-mapping-graph--loading-2-390.png",
+      "classification": "intended",
+      "reason": "Name-only mapping cards show the reachable concepts, fields and metrics; separate zoom controls and collapsed footer legend preserve canvas space. Selected-path details remain available in a dialog.",
+      "crop": {
+        "left": 0,
+        "top": 66,
+        "width": 390,
+        "height": 747
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-059.png"
+    },
+    {
+      "preview": "2494",
+      "baseline": "main",
+      "key": "light/390/graphs-mapping-graph/local-mapping-graph--loading-3-390.png",
+      "classification": "intended",
+      "reason": "Name-only mapping cards show the reachable concepts, fields and metrics; separate zoom controls and collapsed footer legend preserve canvas space. Selected-path details remain available in a dialog.",
+      "crop": {
+        "left": 0,
+        "top": 66,
+        "width": 390,
+        "height": 747
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-060.png"
+    },
+    {
+      "preview": "2496",
+      "baseline": "main",
+      "key": "light/390/graphs-mapping-graph/local-mapping-graph--node-selected-390.png",
+      "classification": "intended",
+      "reason": "Name-only mapping cards show the reachable concepts, fields and metrics; separate zoom controls and collapsed footer legend preserve canvas space. Selected-path details remain available in a dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 390,
+        "height": 844
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-060.png"
+    },
+    {
+      "preview": "2498",
+      "baseline": "main",
+      "key": "light/390/graphs-mapping-graph/local-mapping-graph--options-open-390.png",
+      "classification": "intended",
+      "reason": "Name-only mapping cards show the reachable concepts, fields and metrics; separate zoom controls and collapsed footer legend preserve canvas space. Selected-path details remain available in a dialog.",
+      "crop": {
+        "left": 0,
+        "top": 111,
+        "width": 390,
+        "height": 702
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-061.png"
+    },
+    {
+      "preview": "2500",
+      "baseline": "main",
+      "key": "light/390/graphs-mapping-graph/local-mapping-graph--stages-390.png",
+      "classification": "intended",
+      "reason": "Name-only mapping cards show the reachable concepts, fields and metrics; separate zoom controls and collapsed footer legend preserve canvas space. Selected-path details remain available in a dialog.",
+      "crop": {
+        "left": 0,
+        "top": 112,
+        "width": 390,
+        "height": 701
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-061.png"
+    },
+    {
+      "preview": "2502",
+      "baseline": "main",
+      "key": "light/390/graphs-mapping-graph/local-mapping-graph--zoomed-in-390.png",
+      "classification": "intended",
+      "reason": "Name-only mapping cards show the reachable concepts, fields and metrics; separate zoom controls and collapsed footer legend preserve canvas space. Selected-path details remain available in a dialog.",
+      "crop": {
+        "left": 0,
+        "top": 65,
+        "width": 390,
+        "height": 748
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-062.png"
+    },
+    {
+      "preview": "2504",
+      "baseline": "main",
+      "key": "light/390/graphs-mapping-graph/local-mapping-graph--zoomed-minimum-390.png",
+      "classification": "intended",
+      "reason": "Name-only mapping cards show the reachable concepts, fields and metrics; separate zoom controls and collapsed footer legend preserve canvas space. Selected-path details remain available in a dialog.",
+      "crop": {
+        "left": 0,
+        "top": 65,
+        "width": 390,
+        "height": 748
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-062.png"
+    },
+    {
+      "preview": "2506",
+      "baseline": "main",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--after-fit-failed-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-063.png"
+    },
+    {
+      "preview": "2507",
+      "baseline": "accepted",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--after-fit-failed-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 741
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-063.png"
+    },
+    {
+      "preview": "2508",
+      "baseline": "main",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--back-after-walk-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-064.png"
+    },
+    {
+      "preview": "2509",
+      "baseline": "accepted",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--back-after-walk-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 741
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-064.png"
+    },
+    {
+      "preview": "2510",
+      "baseline": "main",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--edge-hovered-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-065.png"
+    },
+    {
+      "preview": "2511",
+      "baseline": "accepted",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--edge-hovered-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 741
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-065.png"
+    },
+    {
+      "preview": "2512",
+      "baseline": "main",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--expanded-failed-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-066.png"
+    },
+    {
+      "preview": "2513",
+      "baseline": "accepted",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--expanded-failed-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 741
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-066.png"
+    },
+    {
+      "preview": "2514",
+      "baseline": "main",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--expansion-collapsed-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-067.png"
+    },
+    {
+      "preview": "2515",
+      "baseline": "accepted",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--expansion-collapsed-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 741
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-067.png"
+    },
+    {
+      "preview": "2516",
+      "baseline": "main",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--first-view-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-068.png"
+    },
+    {
+      "preview": "2517",
+      "baseline": "accepted",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--first-view-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-068.png"
+    },
+    {
+      "preview": "2518",
+      "baseline": "main",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--full-pierce-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-069.png"
+    },
+    {
+      "preview": "2519",
+      "baseline": "accepted",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--full-pierce-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 741
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-069.png"
+    },
+    {
+      "preview": "2520",
+      "baseline": "main",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--fullscreen-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 390,
+        "height": 844
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-070.png"
+    },
+    {
+      "preview": "2521",
+      "baseline": "accepted",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--fullscreen-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 390,
+        "height": 844
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-070.png"
+    },
+    {
+      "preview": "2522",
+      "baseline": "main",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--fullscreen-node-selected-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 390,
+        "height": 844
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-071.png"
+    },
+    {
+      "preview": "2523",
+      "baseline": "accepted",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--fullscreen-node-selected-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 390,
+        "height": 844
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-071.png"
+    },
+    {
+      "preview": "2524",
+      "baseline": "main",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--labels-on-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-072.png"
+    },
+    {
+      "preview": "2525",
+      "baseline": "accepted",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--labels-on-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 741
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-072.png"
+    },
+    {
+      "preview": "2526",
+      "baseline": "main",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--legend-open-failed-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-073.png"
+    },
+    {
+      "preview": "2527",
+      "baseline": "accepted",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--legend-open-failed-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 741
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-073.png"
+    },
+    {
+      "preview": "2528",
+      "baseline": "main",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--loading-1-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-074.png"
+    },
+    {
+      "preview": "2529",
+      "baseline": "accepted",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--loading-1-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-074.png"
+    },
+    {
+      "preview": "2530",
+      "baseline": "main",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--loading-2-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-075.png"
+    },
+    {
+      "preview": "2531",
+      "baseline": "accepted",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--loading-2-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-075.png"
+    },
+    {
+      "preview": "2532",
+      "baseline": "main",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--loading-3-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-076.png"
+    },
+    {
+      "preview": "2533",
+      "baseline": "accepted",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--loading-3-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-076.png"
+    },
+    {
+      "preview": "2534",
+      "baseline": "main",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--node-selected-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-077.png"
+    },
+    {
+      "preview": "2535",
+      "baseline": "accepted",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--node-selected-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 741
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-077.png"
+    },
+    {
+      "preview": "2536",
+      "baseline": "main",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--options-open-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 740
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-078.png"
+    },
+    {
+      "preview": "2537",
+      "baseline": "accepted",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--options-open-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 95,
+        "width": 390,
+        "height": 743
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-078.png"
+    },
+    {
+      "preview": "2538",
+      "baseline": "main",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--walk-1-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 741
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-079.png"
+    },
+    {
+      "preview": "2539",
+      "baseline": "accepted",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--walk-1-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 741
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-079.png"
+    },
+    {
+      "preview": "2540",
+      "baseline": "main",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--walk-2-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-080.png"
+    },
+    {
+      "preview": "2541",
+      "baseline": "accepted",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--walk-2-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 741
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-080.png"
+    },
+    {
+      "preview": "2542",
+      "baseline": "main",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--walk-3-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-081.png"
+    },
+    {
+      "preview": "2543",
+      "baseline": "accepted",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--walk-3-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 741
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-081.png"
+    },
+    {
+      "preview": "2544",
+      "baseline": "main",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--zoomed-in-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-082.png"
+    },
+    {
+      "preview": "2545",
+      "baseline": "accepted",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--zoomed-in-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 741
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-082.png"
+    },
+    {
+      "preview": "2546",
+      "baseline": "main",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--zoomed-minimum-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-083.png"
+    },
+    {
+      "preview": "2547",
+      "baseline": "accepted",
+      "key": "light/390/graphs-neighborhood/local-neighborhood--zoomed-minimum-390.png",
+      "classification": "intended",
+      "reason": "Legend below the canvas, independent fullscreen control and compact toolbar preserve the center, neighbors and history; main branch actions and Show badge remain available.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 741
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-083.png"
+    },
+    {
+      "preview": "2550",
+      "baseline": "main",
+      "key": "light/390/rest-catalog/local-catalog--area-filter-390.png",
+      "classification": "intended",
+      "reason": "Catalog result count, readable entity type and full description preserve the cards and actions; empty results include a clear-search action. Accepted details gain main branch actions.",
+      "crop": {
+        "left": 0,
+        "top": 119,
+        "width": 390,
+        "height": 719
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-084.png"
+    },
+    {
+      "preview": "2552",
+      "baseline": "main",
+      "key": "light/390/rest-catalog/local-catalog--populated-390.png",
+      "classification": "intended",
+      "reason": "Catalog result count, readable entity type and full description preserve the cards and actions; empty results include a clear-search action. Accepted details gain main branch actions.",
+      "crop": {
+        "left": 0,
+        "top": 115,
+        "width": 390,
+        "height": 723
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-084.png"
+    },
+    {
+      "preview": "2554",
+      "baseline": "main",
+      "key": "light/390/rest-catalog/local-catalog--search-matching-390.png",
+      "classification": "intended",
+      "reason": "Catalog result count, readable entity type and full description preserve the cards and actions; empty results include a clear-search action. Accepted details gain main branch actions.",
+      "crop": {
+        "left": 0,
+        "top": 115,
+        "width": 390,
+        "height": 363
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-085.png"
+    },
+    {
+      "preview": "2556",
+      "baseline": "main",
+      "key": "light/390/rest-catalog/local-catalog--search-no-result-390.png",
+      "classification": "intended",
+      "reason": "Catalog result count, readable entity type and full description preserve the cards and actions; empty results include a clear-search action. Accepted details gain main branch actions.",
+      "crop": {
+        "left": 0,
+        "top": 119,
+        "width": 342,
+        "height": 194
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-085.png"
+    },
+    {
+      "preview": "2558",
+      "baseline": "main",
+      "key": "light/390/rest-catalog/local-catalog--stages-390.png",
+      "classification": "unchanged",
+      "reason": "Same selected entity, branch actions, description and relationships; only reference icons and small spacing differ.",
+      "crop": {
+        "left": 0,
+        "top": 344,
+        "width": 390,
+        "height": 494
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-086.png"
+    },
+    {
+      "preview": "2559",
+      "baseline": "accepted",
+      "key": "light/390/rest-catalog/local-catalog--stages-390.png",
+      "classification": "intended",
+      "reason": "Catalog result count, readable entity type and full description preserve the cards and actions; empty results include a clear-search action. Accepted details gain main branch actions.",
+      "crop": {
+        "left": 0,
+        "top": 281,
+        "width": 390,
+        "height": 557
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-086.png"
+    },
+    {
+      "preview": "2560",
+      "baseline": "main",
+      "key": "light/390/rest-catalog/local-catalog--table-row-hover-390.png",
+      "classification": "intended",
+      "reason": "Catalog result count, readable entity type and full description preserve the cards and actions; empty results include a clear-search action. Accepted details gain main branch actions.",
+      "crop": {
+        "left": 0,
+        "top": 119,
+        "width": 390,
+        "height": 719
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-087.png"
+    },
+    {
+      "preview": "2562",
+      "baseline": "main",
+      "key": "light/390/rest-catalog/local-overview--entity-details-390.png",
+      "classification": "intended",
+      "reason": "Catalog result count, readable entity type and full description preserve the cards and actions; empty results include a clear-search action. Accepted details gain main branch actions.",
+      "crop": {
+        "left": 0,
+        "top": 119,
+        "width": 390,
+        "height": 719
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-087.png"
+    },
+    {
+      "preview": "2563",
+      "baseline": "accepted",
+      "key": "light/390/rest-catalog/local-overview--entity-details-390.png",
+      "classification": "intended",
+      "reason": "Catalog result count, readable entity type and full description preserve the cards and actions; empty results include a clear-search action. Accepted details gain main branch actions.",
+      "crop": {
+        "left": 0,
+        "top": 281,
+        "width": 390,
+        "height": 557
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-088.png"
+    },
+    {
+      "preview": "2564",
+      "baseline": "main",
+      "key": "light/390/rest-catalog/local-overview--long-named-entity-selected-390.png",
+      "classification": "unchanged",
+      "reason": "Same selected entity, branch actions, description and relationships; only reference icons and small spacing differ.",
+      "crop": {
+        "left": 0,
+        "top": 344,
+        "width": 390,
+        "height": 494
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-088.png"
+    },
+    {
+      "preview": "2565",
+      "baseline": "accepted",
+      "key": "light/390/rest-catalog/local-overview--long-named-entity-selected-390.png",
+      "classification": "intended",
+      "reason": "Catalog result count, readable entity type and full description preserve the cards and actions; empty results include a clear-search action. Accepted details gain main branch actions.",
+      "crop": {
+        "left": 0,
+        "top": 281,
+        "width": 390,
+        "height": 557
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-089.png"
+    },
+    {
+      "preview": "2566",
+      "baseline": "main",
+      "key": "light/390/rest-catalog/local-overview--show-all-expanded-390.png",
+      "classification": "intended",
+      "reason": "Catalog result count, readable entity type and full description preserve the cards and actions; empty results include a clear-search action. Accepted details gain main branch actions.",
+      "crop": {
+        "left": 0,
+        "top": 119,
+        "width": 390,
+        "height": 719
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-089.png"
+    },
+    {
+      "preview": "2568",
+      "baseline": "main",
+      "key": "light/390/rest-shell/local-catalog--keyboard-focus-390.png",
+      "classification": "intended",
+      "reason": "Readable cards, separate zoom controls and main Mesh navigation remain available; file-type pills, focus styling and compact menus are intentional. Accepted fixtures have different project titles and counts.",
+      "crop": {
+        "left": 0,
+        "top": 115,
+        "width": 390,
+        "height": 708
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-090.png"
+    },
+    {
+      "preview": "2569",
+      "baseline": "accepted",
+      "key": "light/390/rest-shell/local-catalog--keyboard-focus-390.png",
+      "classification": "intended",
+      "reason": "Readable cards, separate zoom controls and main Mesh navigation remain available; file-type pills, focus styling and compact menus are intentional. Accepted fixtures have different project titles and counts.",
+      "crop": {
+        "left": 0,
+        "top": 451,
+        "width": 390,
+        "height": 387
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-090.png"
+    },
+    {
+      "preview": "2570",
+      "baseline": "main",
+      "key": "light/390/rest-shell/local-metrics--keyboard-focus-390.png",
+      "classification": "intended",
+      "reason": "Keyboard focus changes from a browser outline to the visible theme-colored focus ring; grouping control remains legible.",
+      "crop": {
+        "left": 0,
+        "top": 299,
+        "width": 234,
+        "height": 122
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-091.png"
+    },
+    {
+      "preview": "2571",
+      "baseline": "accepted",
+      "key": "light/390/rest-shell/local-metrics--keyboard-focus-390.png",
+      "classification": "intended",
+      "reason": "Metric list keeps its filters, count and readable rows; shorter project heading and spacing follow the current main presentation.",
+      "crop": {
+        "left": 0,
+        "top": 126,
+        "width": 390,
+        "height": 707
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-091.png"
+    },
+    {
+      "preview": "2574",
+      "baseline": "main",
+      "key": "light/390/rest-shell/local-settings--theme-control-390.png",
+      "classification": "intended",
+      "reason": "Appearance menu keeps System, Light and Dark choices, Clear workspace and Admin; changed background graph is the approved name-only layout.",
+      "crop": {
+        "left": 18,
+        "top": 97,
+        "width": 372,
+        "height": 732
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-092.png"
+    },
+    {
+      "preview": "2575",
+      "baseline": "accepted",
+      "key": "light/390/rest-shell/local-settings--theme-control-390.png",
+      "classification": "intended",
+      "reason": "Readable cards, separate zoom controls and main Mesh navigation remain available; file-type pills, focus styling and compact menus are intentional. Accepted fixtures have different project titles and counts.",
+      "crop": {
+        "left": 0,
+        "top": 192,
+        "width": 390,
+        "height": 609
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-092.png"
+    },
+    {
+      "preview": "2576",
+      "baseline": "main",
+      "key": "light/390/rest-shell/local-shell--avatar-menu-390.png",
+      "classification": "intended",
+      "reason": "Readable cards, separate zoom controls and main Mesh navigation remain available; file-type pills, focus styling and compact menus are intentional. Accepted fixtures have different project titles and counts.",
+      "crop": {
+        "left": 0,
+        "top": 77,
+        "width": 390,
+        "height": 755
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-093.png"
+    },
+    {
+      "preview": "2577",
+      "baseline": "accepted",
+      "key": "light/390/rest-shell/local-shell--avatar-menu-390.png",
+      "classification": "traversal noise",
+      "reason": "Accepted capture is still resolving or laying out the graph; candidate has completed layout. The foreground action remains available; this pair does not compare completed graph states.",
+      "crop": {
+        "left": 0,
+        "top": 112,
+        "width": 390,
+        "height": 689
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-093.png"
+    },
+    {
+      "preview": "2578",
+      "baseline": "main",
+      "key": "light/390/rest-shell/local-shell--history-back-390.png",
+      "classification": "intended",
+      "reason": "Readable cards, separate zoom controls and main Mesh navigation remain available; file-type pills, focus styling and compact menus are intentional. Accepted fixtures have different project titles and counts.",
+      "crop": {
+        "left": 0,
+        "top": 105,
+        "width": 390,
+        "height": 715
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-094.png"
+    },
+    {
+      "preview": "2581",
+      "baseline": "accepted",
+      "key": "light/390/rest-shell/local-shell--history-forward-390.png",
+      "classification": "intended",
+      "reason": "Metric list keeps its filters, count and readable rows; shorter project heading and spacing follow the current main presentation.",
+      "crop": {
+        "left": 0,
+        "top": 126,
+        "width": 390,
+        "height": 707
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-094.png"
+    },
+    {
+      "preview": "2582",
+      "baseline": "main",
+      "key": "light/390/rest-shell/local-shell--new-menu-390.png",
+      "classification": "intended",
+      "reason": "Add table moves to the first position for an open contract; unavailable creation choices keep their explanations. Readable contract cards and legend remain behind the menu.",
+      "crop": {
+        "left": 0,
+        "top": 58,
+        "width": 390,
+        "height": 774
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-095.png"
+    },
+    {
+      "preview": "2583",
+      "baseline": "accepted",
+      "key": "light/390/rest-shell/local-shell--new-menu-390.png",
+      "classification": "traversal noise",
+      "reason": "Accepted capture is still resolving or laying out the graph; candidate has completed layout. The foreground action remains available; this pair does not compare completed graph states.",
+      "crop": {
+        "left": 0,
+        "top": 66,
+        "width": 390,
+        "height": 735
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-095.png"
+    },
+    {
+      "preview": "2584",
+      "baseline": "main",
+      "key": "light/390/rest-shell/local-shell--sidebar-collapsed-390.png",
+      "classification": "intended",
+      "reason": "Readable cards, separate zoom controls and main Mesh navigation remain available; file-type pills, focus styling and compact menus are intentional. Accepted fixtures have different project titles and counts.",
+      "crop": {
+        "left": 0,
+        "top": 146,
+        "width": 390,
+        "height": 686
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-096.png"
+    },
+    {
+      "preview": "2585",
+      "baseline": "accepted",
+      "key": "light/390/rest-shell/local-shell--sidebar-collapsed-390.png",
+      "classification": "traversal noise",
+      "reason": "Accepted capture is still resolving or laying out the graph; candidate has completed layout. The foreground action remains available; this pair does not compare completed graph states.",
+      "crop": {
+        "left": 0,
+        "top": 66,
+        "width": 390,
+        "height": 735
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-096.png"
+    },
+    {
+      "preview": "2586",
+      "baseline": "main",
+      "key": "light/390/rest-shell/local-shell--sidebar-expanded-390.png",
+      "classification": "intended",
+      "reason": "Readable cards, separate zoom controls and main Mesh navigation remain available; file-type pills, focus styling and compact menus are intentional. Accepted fixtures have different project titles and counts.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 732
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-097.png"
+    },
+    {
+      "preview": "2587",
+      "baseline": "accepted",
+      "key": "light/390/rest-shell/local-shell--sidebar-expanded-390.png",
+      "classification": "intended",
+      "reason": "Readable cards, separate zoom controls and main Mesh navigation remain available; file-type pills, focus styling and compact menus are intentional. Accepted fixtures have different project titles and counts.",
+      "crop": {
+        "left": 0,
+        "top": 273,
+        "width": 315,
+        "height": 473
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-097.png"
+    },
+    {
+      "preview": "2588",
+      "baseline": "main",
+      "key": "light/390/rest-shell/local-shell--sidebar-item-hover-390.png",
+      "classification": "intended",
+      "reason": "Readable cards, separate zoom controls and main Mesh navigation remain available; file-type pills, focus styling and compact menus are intentional. Accepted fixtures have different project titles and counts.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 315,
+        "height": 605
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-098.png"
+    },
+    {
+      "preview": "2589",
+      "baseline": "accepted",
+      "key": "light/390/rest-shell/local-shell--sidebar-item-hover-390.png",
+      "classification": "intended",
+      "reason": "Readable cards, separate zoom controls and main Mesh navigation remain available; file-type pills, focus styling and compact menus are intentional. Accepted fixtures have different project titles and counts.",
+      "crop": {
+        "left": 0,
+        "top": 127,
+        "width": 390,
+        "height": 574
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-098.png"
+    },
+    {
+      "preview": "2590",
+      "baseline": "main",
+      "key": "light/390/rest-shell/local-shell--stages-390.png",
+      "classification": "intended",
+      "reason": "Readable cards, separate zoom controls and main Mesh navigation remain available; file-type pills, focus styling and compact menus are intentional. Accepted fixtures have different project titles and counts.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 315,
+        "height": 605
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-099.png"
+    },
+    {
+      "preview": "2591",
+      "baseline": "accepted",
+      "key": "light/390/rest-shell/local-shell--stages-390.png",
+      "classification": "intended",
+      "reason": "Readable cards, separate zoom controls and main Mesh navigation remain available; file-type pills, focus styling and compact menus are intentional. Accepted fixtures have different project titles and counts.",
+      "crop": {
+        "left": 0,
+        "top": 127,
+        "width": 390,
+        "height": 574
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-099.png"
+    }
+  ]
+}

@@ -1,0 +1,4136 @@
+{
+  "candidate": "df201d11",
+  "main": "da54cf17",
+  "scope": "Assigned recheck-dark-1.tsv: 211 existing dark local screenshot pairs",
+  "review_complete": false,
+  "counts": {
+    "intended": 161,
+    "traversal noise": 11,
+    "unchanged": 39,
+    "regression": 0
+  },
+  "status_counts": {
+    "reviewed": 147,
+    "provisional": 64
+  },
+  "resolution_counts": {
+    "downscaled": 179,
+    "downscaled with native detail": 14,
+    "native": 18
+  },
+  "images_viewed": 120,
+  "primary_sheets": 113,
+  "native_detail_sheets": 7,
+  "method": "Pixel-difference bounding box with channel tolerance 16, plus 40 px of context, clipped to the original image. Crops wider than 780 px reduced to 780 px. At most two pairs per image; main left, candidate right.",
+  "evidence_local": "/home/rodrigo/scratch/sw-007/review-sol4",
+  "evidence_remote": "/srv/dev/review-sol4",
+  "regressions": [],
+  "open_points": [
+    "Finish text-legibility review for every provisional pair before accepting the queue.",
+    "This list does not include the requested 1280/1440 neighborhood states or comprehensive Traffic, imported-item and change-mark coverage.",
+    "No browser, unit or mutation suite was run in this review-only round."
+  ],
+  "pairs": [
+    {
+      "id": "0097",
+      "key": "dark/1280/graphs-lineage/local-dark-contract-lineage--column-filter-failed-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable name-only lineage cards and adjusted camera; same available controls and hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-000.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0103",
+      "key": "dark/1280/graphs-lineage/local-dark-contract-lineage--hops-1-list-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable name-only lineage cards and adjusted camera; same available controls and hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-000.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0105",
+      "key": "dark/1280/graphs-lineage/local-dark-contract-lineage--hops-3-list-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable name-only lineage cards and adjusted camera; same available controls and hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-001.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0109",
+      "key": "dark/1280/graphs-lineage/local-dark-contract-lineage--loading-2-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable name-only lineage cards and adjusted camera; same available controls and hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 703
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-001.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0111",
+      "key": "dark/1280/graphs-lineage/local-dark-contract-lineage--more-columns-1280.png",
+      "previous_classification": "intended",
+      "classification": "traversal noise",
+      "verdict_changed": true,
+      "reason": "Different camera positions clip the selected candidate card at the left canvas edge; both show the same collapsed property rows and Show fewer action. This pair does not establish equivalent expansion framing.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled with native detail",
+      "sheet": "sheet-002.png",
+      "text_legibility": "legible",
+      "status": "reviewed",
+      "native_detail": "detail-0.png",
+      "detail_scope": "Focused content only; the primary crop remains the full difference bounds."
+    },
+    {
+      "id": "0124",
+      "key": "dark/1280/graphs-lineage/local-dark-dataset-lineage--column-filter-failed-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Dataset lineage uses the intended taller readable cards and compact dataset header.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-002.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0130",
+      "key": "dark/1280/graphs-lineage/local-dark-dataset-lineage--hops-1-list-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable name-only lineage cards and adjusted camera; same available controls and hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-003.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0132",
+      "key": "dark/1280/graphs-lineage/local-dark-dataset-lineage--hops-3-list-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable name-only lineage cards and adjusted camera; same available controls and hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-003.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0137",
+      "key": "dark/1280/graphs-lineage/local-dark-dataset-lineage--walk-1-before-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Dataset has the approved compact header and readable card opening before the first walk.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-004.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0149",
+      "key": "dark/1280/graphs-mapping-graph/local-dark-mapping-graph--edge-hovered-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved fitted name-only graph cards, persistent canvas controls, compact headers, catalog descriptions and count; shell actions remain visible.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 656
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-004.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0153",
+      "key": "dark/1280/graphs-mapping-graph/local-dark-mapping-graph--labels-on-failed-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved fitted name-only graph cards, persistent canvas controls, compact headers, catalog descriptions and count; shell actions remain visible.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 656
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-005.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0156",
+      "key": "dark/1280/graphs-mapping-graph/local-dark-mapping-graph--loading-2-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved fitted name-only graph cards, persistent canvas controls, compact headers, catalog descriptions and count; shell actions remain visible.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 650
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-005.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0158",
+      "key": "dark/1280/graphs-mapping-graph/local-dark-mapping-graph--node-selected-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved fitted name-only graph cards, persistent canvas controls, compact headers, catalog descriptions and count; shell actions remain visible.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 656
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-006.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0161",
+      "key": "dark/1280/graphs-mapping-graph/local-dark-mapping-graph--zoomed-in-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved fitted name-only graph cards, persistent canvas controls, compact headers, catalog descriptions and count; shell actions remain visible.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 664
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-006.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0163",
+      "key": "dark/1280/rest-shell/local-dark-catalog--keyboard-focus-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved fitted name-only graph cards, persistent canvas controls, compact headers, catalog descriptions and count; shell actions remain visible.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-007.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0165",
+      "key": "dark/1280/rest-shell/local-dark-overview--keyboard-focus-1280.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Only focus, sidebar fixture inventory or insignificant positioning differs; same displayed screen and actions.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 764,
+        "height": 711
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-007.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0167",
+      "key": "dark/1280/rest-shell/local-dark-shell--avatar-menu-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved fitted name-only graph cards, persistent canvas controls, compact headers, catalog descriptions and count; shell actions remain visible.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-008.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0169",
+      "key": "dark/1280/rest-shell/local-dark-shell--history-forward-1280.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Only focus, sidebar fixture inventory or insignificant positioning differs; same displayed screen and actions.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 764,
+        "height": 592
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-008.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0171",
+      "key": "dark/1280/rest-shell/local-dark-shell--sidebar-collapsed-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved fitted name-only graph cards, persistent canvas controls, compact headers, catalog descriptions and count; shell actions remain visible.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-009.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0173",
+      "key": "dark/1280/rest-shell/local-dark-shell--sidebar-item-hover-1280.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Only focus, sidebar fixture inventory or insignificant positioning differs; same displayed screen and actions.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 764,
+        "height": 592
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-009.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0175",
+      "key": "dark/1280/rest-catalog/local-dark-catalog--area-filter-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Catalog count and expanded descriptions remain visible; overview detail remains available.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-010.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0177",
+      "key": "dark/1280/rest-catalog/local-dark-catalog--search-matching-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Catalog count and expanded descriptions remain visible; overview detail remains available.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1248,
+        "height": 593
+      },
+      "scale": 0.625,
+      "resolution": "downscaled",
+      "sheet": "sheet-010.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0180",
+      "key": "dark/1280/rest-catalog/local-dark-catalog--table-row-hover-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Catalog descriptions and counts are intentional; long-name detail and expanded entity view remain available.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-011.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0182",
+      "key": "dark/1280/rest-catalog/local-dark-overview--long-named-entity-selected-1280.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-011.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0184",
+      "key": "dark/1280/rest-metrics/local-dark-metric-wizard--primary-hover-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Wizard has the approved stable height and field-level validation.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1000,
+        "height": 720
+      },
+      "scale": 0.78,
+      "resolution": "downscaled",
+      "sheet": "sheet-012.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0186",
+      "key": "dark/1280/rest-metrics/local-dark-metric-wizard--step-1-filled-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Wizard has the approved stable height and field-level validation.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1000,
+        "height": 720
+      },
+      "scale": 0.78,
+      "resolution": "downscaled",
+      "sheet": "sheet-012.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0189",
+      "key": "dark/1280/rest-metrics/local-dark-metric-wizard--step-3-validation-error-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Wizard step layout and validation placement are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1000,
+        "height": 720
+      },
+      "scale": 0.78,
+      "resolution": "downscaled",
+      "sheet": "sheet-013.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0191",
+      "key": "dark/1280/rest-metrics/local-dark-metric-wizard--step-5-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Wizard step layout and validation placement are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1000,
+        "height": 720
+      },
+      "scale": 0.78,
+      "resolution": "downscaled",
+      "sheet": "sheet-013.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0193",
+      "key": "dark/1280/rest-metrics/local-dark-metric-wizard--step-7-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Stable wizard height and readable final preview are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1000,
+        "height": 720
+      },
+      "scale": 0.78,
+      "resolution": "downscaled",
+      "sheet": "sheet-014.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0195",
+      "key": "dark/1280/rest-metrics/local-dark-metrics--detail-1280.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 766,
+        "height": 592
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-014.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0197",
+      "key": "dark/1280/rest-metrics/local-dark-metrics--filter-no-result-1280.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 766,
+        "height": 592
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-015.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0199",
+      "key": "dark/1280/rest-metrics/local-dark-metrics--stages-1280.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 766,
+        "height": 592
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-015.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0201",
+      "key": "dark/1280/rest-mappings/local-dark-mappings--agent-context-1280.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 920,
+        "height": 720
+      },
+      "scale": 0.8478260869565217,
+      "resolution": "downscaled",
+      "sheet": "sheet-016.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0203",
+      "key": "dark/1280/rest-mappings/local-dark-mappings--selected-binding-1280.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 920,
+        "height": 720
+      },
+      "scale": 0.8478260869565217,
+      "resolution": "downscaled",
+      "sheet": "sheet-016.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0205",
+      "key": "dark/1280/rest-mappings/local-dark-mappings--stages-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Compact dataset lineage header increases graph space; same contract summary.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-017.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0207",
+      "key": "dark/1280/rest-odcs/local-dark-odcs-contract--populated-1280.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 709,
+        "height": 592
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-017.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0209",
+      "key": "dark/1280/rest-odcs/local-dark-odcs-contract--search-no-result-1280.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 709,
+        "height": 592
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-018.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0211",
+      "key": "dark/1280/rest-odcs/local-dark-odcs-contract--section-service-levels3-1280.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 709,
+        "height": 590
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-018.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0213",
+      "key": "dark/1280/rest-odcs/local-dark-odcs-dataset--data-quality-1280.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 867,
+        "height": 592
+      },
+      "scale": 0.8996539792387543,
+      "resolution": "downscaled",
+      "sheet": "sheet-019.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0215",
+      "key": "dark/1280/rest-odcs/local-dark-odcs-dataset--lineage-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Compact dataset header is limited to lineage; other dataset tabs remain available.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-019.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0217",
+      "key": "dark/1280/rest-odcs/local-dark-odcs-dataset--relationships-1280.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 867,
+        "height": 592
+      },
+      "scale": 0.8996539792387543,
+      "resolution": "downscaled",
+      "sheet": "sheet-020.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0219",
+      "key": "dark/1280/rest-editing/local-dark-add-concept--field-errors-failed-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Catalog descriptions and readable graph backgrounds are intentional; concept dialog remains usable.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 686
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-020.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0221",
+      "key": "dark/1280/rest-editing/local-dark-editing--stages-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Source findings use the readable separate row; graph background changes and catalog descriptions are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-021.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0223",
+      "key": "dark/1280/rest-editing/local-dark-import--empty-or-resting-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Source findings use the readable separate row; graph background changes and catalog descriptions are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 686
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-021.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0225",
+      "key": "dark/1280/rest-editing/local-dark-item-editor--empty-or-resting-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Catalog descriptions and editor presentation are intentional; project dialogs remain usable.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-022.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0228",
+      "key": "dark/1280/rest-editing/local-dark-project-delete--empty-or-resting-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Catalog descriptions and editor presentation are intentional; project dialogs remain usable.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 686
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-022.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0230",
+      "key": "dark/1280/rest-editing/local-dark-project-export-history--empty-or-resting-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable Source finding row and fitted graph background are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 686
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-023.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0232",
+      "key": "dark/1280/rest-editing/local-dark-query-composer--empty-or-resting-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable Source finding row and fitted graph background are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1270,
+        "height": 720
+      },
+      "scale": 0.6141732283464567,
+      "resolution": "downscaled",
+      "sheet": "sheet-023.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0235",
+      "key": "dark/1280/rest-editing/local-dark-source-editor--sql-colouring-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Source coloring, readable finding row, fitted graph labels and framed minimap are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1125,
+        "height": 629
+      },
+      "scale": 0.6933333333333334,
+      "resolution": "downscaled",
+      "sheet": "sheet-024.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0237",
+      "key": "dark/1280/rest-editing/local-dark-trash--empty-or-resting-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Source coloring, readable finding row, fitted graph labels and framed minimap are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 686
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-024.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0239",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-layered--after-fit-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Folded Controls, fitted readable graph layout and framed minimap are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 637
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-025.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0241",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-layered--area-expanded-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Folded Controls, fitted readable graph layout and framed minimap are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 695
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-025.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0243",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-layered--edge-hovered-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Folded Controls retain Show count badge; selected entity details and grouping choices remain available.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 637
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-026.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0247",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-layered--group-automatic-1280.png",
+      "previous_classification": "intended",
+      "classification": "traversal noise",
+      "verdict_changed": true,
+      "reason": "Main shows the whole model; candidate retains the Address selection with Controls open. The grouping interaction did not reach equivalent states.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 695
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-026.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0250",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-layered--labels-on-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Folded controls, framed minimap and current fit/camera are intentional; loading states show the same progress.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 637
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-027.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0252",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-layered--loading-1-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Folded controls, framed minimap and current fit/camera are intentional; loading states show the same progress.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 670
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-027.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0254",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-layered--loading-3-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 670
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-028.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0256",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-layered--node-selected-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 713
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-028.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0259",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-layered--zoomed-minimum-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 637
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-029.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0262",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-network--area-expanded-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 695
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-029.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0265",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-network--fullscreen-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-030.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0267",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-network--group-automatic-1280.png",
+      "previous_classification": "intended",
+      "classification": "traversal noise",
+      "verdict_changed": true,
+      "reason": "Main has expanded areas; candidate has collapsed area cards and Controls open. The grouping interaction did not reach equivalent states.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-030.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0270",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-network--labels-on-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 687
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-031.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0272",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-network--loading-1-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 637
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-031.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0274",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-network--loading-3-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 637
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-032.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0276",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-network--node-selected-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 713
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-032.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0279",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-network--zoomed-minimum-1280.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Minimum-zoom graph and fitted lineage selection retain visible entities; hop list remains available.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 637
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-033.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0282",
+      "key": "dark/1440/graphs-lineage/local-dark-contract-lineage--column-selected-1440.png",
+      "previous_classification": "intended",
+      "classification": "traversal noise",
+      "verdict_changed": true,
+      "reason": "Main has a blank canvas beside the selected path while candidate has the fitted name-only graph. Layout completion differs; this frame cannot establish a stable-state comparison.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-033.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0288",
+      "key": "dark/1440/graphs-lineage/local-dark-contract-lineage--hops-2-list-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable lineage card/camera and compact dataset header are intentional; hop-list content and controls are retained.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-034.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0292",
+      "key": "dark/1440/graphs-lineage/local-dark-contract-lineage--loading-1-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable lineage card/camera and compact dataset header are intentional; hop-list content and controls are retained.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-034.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0294",
+      "key": "dark/1440/graphs-lineage/local-dark-contract-lineage--loading-3-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable lineage card/camera and compact dataset header are intentional; hop-list content and controls are retained.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-035.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0299",
+      "key": "dark/1440/graphs-lineage/local-dark-contract-lineage--walk-1-before-1440.png",
+      "previous_classification": "intended",
+      "classification": "traversal noise",
+      "verdict_changed": true,
+      "reason": "Both show properties at three hops, but the cameras expose different neighbors and place the center differently. The Walk-before frame is not an equivalent viewport.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-035.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0311",
+      "key": "dark/1440/graphs-lineage/local-dark-dataset-lineage--column-selected-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable lineage card/camera and compact dataset header are intentional; hop-list content and controls are retained.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-036.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0317",
+      "key": "dark/1440/graphs-lineage/local-dark-dataset-lineage--hops-2-list-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable lineage card/camera and compact dataset header are intentional; hop-list content and controls are retained.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-036.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0321",
+      "key": "dark/1440/graphs-lineage/local-dark-dataset-lineage--more-columns-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable lineage card/camera and compact dataset header are intentional; hop-list content and controls are retained.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-037.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0334",
+      "key": "dark/1440/graphs-mapping-graph/local-dark-mapping-graph--after-fit-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable lineage card/camera and compact dataset header are intentional; hop-list content and controls are retained.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 861
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-037.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0337",
+      "key": "dark/1440/graphs-mapping-graph/local-dark-mapping-graph--fullscreen-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Fitted name-only mapping cards, persistent canvas actions and selected-path presentation are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-038.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0339",
+      "key": "dark/1440/graphs-mapping-graph/local-dark-mapping-graph--labels-on-failed-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Fitted name-only mapping cards, persistent canvas actions and selected-path presentation are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 862
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-038.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0342",
+      "key": "dark/1440/graphs-mapping-graph/local-dark-mapping-graph--loading-2-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Fitted name-only mapping cards, persistent canvas actions and selected-path presentation are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 848
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-039.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0344",
+      "key": "dark/1440/graphs-mapping-graph/local-dark-mapping-graph--node-selected-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Fitted name-only mapping cards, persistent canvas actions and selected-path presentation are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 862
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-039.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0347",
+      "key": "dark/1440/graphs-mapping-graph/local-dark-mapping-graph--zoomed-in-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 862
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-040.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0349",
+      "key": "dark/1440/rest-shell/local-dark-catalog--keyboard-focus-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-040.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0351",
+      "key": "dark/1440/rest-shell/local-dark-overview--keyboard-focus-1440.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 764,
+        "height": 757
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-041.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0353",
+      "key": "dark/1440/rest-shell/local-dark-shell--avatar-menu-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-041.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0355",
+      "key": "dark/1440/rest-shell/local-dark-shell--history-forward-1440.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 764,
+        "height": 757
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-042.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0357",
+      "key": "dark/1440/rest-shell/local-dark-shell--sidebar-collapsed-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-042.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0359",
+      "key": "dark/1440/rest-shell/local-dark-shell--sidebar-item-hover-1440.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 764,
+        "height": 757
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-043.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0361",
+      "key": "dark/1440/rest-catalog/local-dark-catalog--area-filter-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-043.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0363",
+      "key": "dark/1440/rest-catalog/local-dark-catalog--search-matching-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1408,
+        "height": 757
+      },
+      "scale": 0.5539772727272727,
+      "resolution": "downscaled",
+      "sheet": "sheet-044.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0366",
+      "key": "dark/1440/rest-catalog/local-dark-catalog--table-row-hover-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-044.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0368",
+      "key": "dark/1440/rest-catalog/local-dark-overview--long-named-entity-selected-1440.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 895
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-045.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0370",
+      "key": "dark/1440/rest-metrics/local-dark-metric-wizard--primary-hover-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1080,
+        "height": 870
+      },
+      "scale": 0.7222222222222222,
+      "resolution": "downscaled",
+      "sheet": "sheet-045.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0372",
+      "key": "dark/1440/rest-metrics/local-dark-metric-wizard--step-1-filled-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1080,
+        "height": 870
+      },
+      "scale": 0.7222222222222222,
+      "resolution": "downscaled",
+      "sheet": "sheet-046.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0375",
+      "key": "dark/1440/rest-metrics/local-dark-metric-wizard--step-3-validation-error-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1080,
+        "height": 870
+      },
+      "scale": 0.7222222222222222,
+      "resolution": "downscaled",
+      "sheet": "sheet-046.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0377",
+      "key": "dark/1440/rest-metrics/local-dark-metric-wizard--step-5-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1080,
+        "height": 870
+      },
+      "scale": 0.7222222222222222,
+      "resolution": "downscaled",
+      "sheet": "sheet-047.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0379",
+      "key": "dark/1440/rest-metrics/local-dark-metric-wizard--step-7-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1080,
+        "height": 870
+      },
+      "scale": 0.7222222222222222,
+      "resolution": "downscaled",
+      "sheet": "sheet-047.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0381",
+      "key": "dark/1440/rest-metrics/local-dark-metrics--detail-1440.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 766,
+        "height": 757
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-048.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0383",
+      "key": "dark/1440/rest-metrics/local-dark-metrics--filter-no-result-1440.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 766,
+        "height": 757
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-049.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0385",
+      "key": "dark/1440/rest-metrics/local-dark-metrics--stages-1440.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 766,
+        "height": 757
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-050.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0387",
+      "key": "dark/1440/rest-mappings/local-dark-mappings--agent-context-1440.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 757
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-050.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0389",
+      "key": "dark/1440/rest-mappings/local-dark-mappings--selected-binding-1440.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 757
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-051.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0391",
+      "key": "dark/1440/rest-mappings/local-dark-mappings--stages-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-051.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0393",
+      "key": "dark/1440/rest-odcs/local-dark-odcs-contract--populated-1440.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 709,
+        "height": 757
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-052.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0395",
+      "key": "dark/1440/rest-odcs/local-dark-odcs-contract--search-no-result-1440.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 709,
+        "height": 757
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-053.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0397",
+      "key": "dark/1440/rest-odcs/local-dark-odcs-contract--section-service-levels3-1440.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Same contract/dataset content and actions; fixture hash/time and sidebar inventory differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 709,
+        "height": 755
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-054.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0399",
+      "key": "dark/1440/rest-odcs/local-dark-odcs-dataset--data-quality-1440.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Same contract/dataset content and actions; fixture hash/time and sidebar inventory differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 860,
+        "height": 757
+      },
+      "scale": 0.9069767441860465,
+      "resolution": "downscaled",
+      "sheet": "sheet-054.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0401",
+      "key": "dark/1440/rest-odcs/local-dark-odcs-dataset--lineage-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-055.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0403",
+      "key": "dark/1440/rest-odcs/local-dark-odcs-dataset--relationships-1440.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Same contract/dataset content and actions; fixture hash/time and sidebar inventory differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 860,
+        "height": 757
+      },
+      "scale": 0.9069767441860465,
+      "resolution": "downscaled",
+      "sheet": "sheet-055.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0405",
+      "key": "dark/1440/rest-editing/local-dark-add-concept--field-errors-failed-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1437,
+        "height": 816
+      },
+      "scale": 0.5427974947807933,
+      "resolution": "downscaled",
+      "sheet": "sheet-056.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0407",
+      "key": "dark/1440/rest-editing/local-dark-editing--stages-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-056.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0409",
+      "key": "dark/1440/rest-editing/local-dark-import--empty-or-resting-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1437,
+        "height": 816
+      },
+      "scale": 0.5427974947807933,
+      "resolution": "downscaled",
+      "sheet": "sheet-057.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0411",
+      "key": "dark/1440/rest-editing/local-dark-item-editor--empty-or-resting-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-057.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0413",
+      "key": "dark/1440/rest-editing/local-dark-item-editor--filled-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-058.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0415",
+      "key": "dark/1440/rest-editing/local-dark-project-export--empty-or-resting-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1437,
+        "height": 816
+      },
+      "scale": 0.5427974947807933,
+      "resolution": "downscaled",
+      "sheet": "sheet-058.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0417",
+      "key": "dark/1440/rest-editing/local-dark-project-rename--empty-or-resting-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1437,
+        "height": 815
+      },
+      "scale": 0.5427974947807933,
+      "resolution": "downscaled",
+      "sheet": "sheet-059.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0419",
+      "key": "dark/1440/rest-editing/local-dark-source-editor--clean-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1276,
+        "height": 757
+      },
+      "scale": 0.6112852664576802,
+      "resolution": "downscaled",
+      "sheet": "sheet-059.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0422",
+      "key": "dark/1440/rest-editing/local-dark-source-editor--sql-warning-gutter-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1276,
+        "height": 757
+      },
+      "scale": 0.6112852664576802,
+      "resolution": "downscaled",
+      "sheet": "sheet-060.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0424",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph--stages-1440.png",
+      "previous_classification": "intended",
+      "classification": "traversal noise",
+      "verdict_changed": true,
+      "reason": "The generic stages frame compares the whole model with a retained zoom into Address. The candidate minimap shows that the remaining graph is outside the viewport.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 875
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-060.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0426",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--all-areas-expanded-1440.png",
+      "previous_classification": "intended",
+      "classification": "traversal noise",
+      "verdict_changed": true,
+      "reason": "The all-areas-expanded frame compares the whole model with a retained zoom into Address. The candidate minimap shows the viewport covers only that area.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 875
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-061.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0428",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--areas-collapsed-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 880
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-061.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0431",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--fullscreen-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "crop": {
+        "left": 1,
+        "top": 0,
+        "width": 1439,
+        "height": 900
+      },
+      "scale": 0.542043085476025,
+      "resolution": "downscaled",
+      "sheet": "sheet-062.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0433",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--group-automatic-1440.png",
+      "previous_classification": "intended",
+      "classification": "traversal noise",
+      "verdict_changed": true,
+      "reason": "Main is on Whole model while candidate retains Address in its open Controls. Group automatic did not reach equivalent selections.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 875
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-062.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0435",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--grouping-menu-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 875
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-063.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0437",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--legend-open-failed-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 875
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-063.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0439",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--loading-2-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 858
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-064.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0441",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--mini-map-on-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 875
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-064.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0443",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--options-open-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 875
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-065.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0445",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--zoomed-minimum-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 794
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-065.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0447",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--all-areas-expanded-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 875
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-066.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0449",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--areas-collapsed-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 875
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-066.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0452",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--fullscreen-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-067.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0454",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--group-automatic-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 875
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-067.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0456",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--labels-on-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 818
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-068.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0458",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--loading-1-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 794
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-068.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0460",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--loading-3-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 794
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-069.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0462",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--node-selected-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-069.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0465",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--zoomed-minimum-1440.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 794
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-070.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0467",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--after-fit-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2511,
+        "height": 1341
+      },
+      "scale": 0.3106332138590203,
+      "resolution": "downscaled",
+      "sheet": "sheet-070.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0469",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--area-expanded-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1415
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-071.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0471",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--edge-hovered-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2511,
+        "height": 1341
+      },
+      "scale": 0.3106332138590203,
+      "resolution": "downscaled",
+      "sheet": "sheet-071.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0474",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--fullscreen-node-selected-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "crop": {
+        "left": 78,
+        "top": 0,
+        "width": 2482,
+        "height": 1440
+      },
+      "scale": 0.314262691377921,
+      "resolution": "downscaled",
+      "sheet": "sheet-072.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0476",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--group-suggested-communities-2560.png",
+      "previous_classification": "intended",
+      "classification": "traversal noise",
+      "verdict_changed": true,
+      "reason": "The suggested-communities frame retains a zoom into Address on candidate while main shows the whole graph. This is not an equivalent grouping viewport.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1415
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-072.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0479",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--legend-open-failed-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1415
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-073.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0481",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--loading-2-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1391
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-073.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0483",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--mini-map-on-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1415
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-074.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0486",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--zoomed-in-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1429
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-074.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0489",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--all-areas-expanded-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1415
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-075.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0491",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--areas-collapsed-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1415
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-075.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0494",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--fullscreen-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-076.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0496",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--group-automatic-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1415
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-076.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0499",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--labels-on-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2504,
+        "height": 1385
+      },
+      "scale": 0.31150159744408945,
+      "resolution": "downscaled",
+      "sheet": "sheet-077.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0501",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--loading-1-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1490,
+        "height": 1341
+      },
+      "scale": 0.5234899328859061,
+      "resolution": "downscaled",
+      "sheet": "sheet-077.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0503",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--loading-3-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1490,
+        "height": 1341
+      },
+      "scale": 0.5234899328859061,
+      "resolution": "downscaled",
+      "sheet": "sheet-078.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0505",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--node-selected-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-078.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0508",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--zoomed-minimum-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1649,
+        "height": 1341
+      },
+      "scale": 0.4730139478471801,
+      "resolution": "downscaled",
+      "sheet": "sheet-079.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0511",
+      "key": "dark/2560/graphs-lineage/local-dark-contract-lineage--column-selected-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled with native detail",
+      "sheet": "sheet-079.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "native_detail": "detail-0.png",
+      "detail_scope": "Focused content only; the primary crop remains the full difference bounds.",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0517",
+      "key": "dark/2560/graphs-lineage/local-dark-contract-lineage--hops-2-list-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-080.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0521",
+      "key": "dark/2560/graphs-lineage/local-dark-contract-lineage--loading-1-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-080.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0523",
+      "key": "dark/2560/graphs-lineage/local-dark-contract-lineage--loading-3-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-081.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0528",
+      "key": "dark/2560/graphs-lineage/local-dark-contract-lineage--walk-1-before-2560.png",
+      "previous_classification": "traversal noise",
+      "classification": "traversal noise",
+      "verdict_changed": false,
+      "reason": "The Walk-before frame has different camera positions and visible center cards; it cannot establish an equivalent traversal starting point.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-081.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0536",
+      "key": "dark/2560/graphs-lineage/local-dark-dataset-lineage--column-selected-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2248,
+        "height": 1440
+      },
+      "scale": 0.3469750889679715,
+      "resolution": "downscaled",
+      "sheet": "sheet-082.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0542",
+      "key": "dark/2560/graphs-lineage/local-dark-dataset-lineage--hops-2-list-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2247,
+        "height": 1436
+      },
+      "scale": 0.3471295060080107,
+      "resolution": "downscaled",
+      "sheet": "sheet-082.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0546",
+      "key": "dark/2560/graphs-lineage/local-dark-dataset-lineage--more-columns-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2248,
+        "height": 1440
+      },
+      "scale": 0.3469750889679715,
+      "resolution": "downscaled with native detail",
+      "sheet": "sheet-083.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "native_detail": "detail-1.png",
+      "detail_scope": "Focused content only; the primary crop remains the full difference bounds.",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0558",
+      "key": "dark/2560/graphs-mapping-graph/local-dark-mapping-graph--after-fit-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-083.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0561",
+      "key": "dark/2560/graphs-mapping-graph/local-dark-mapping-graph--fullscreen-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-084.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0565",
+      "key": "dark/2560/graphs-mapping-graph/local-dark-mapping-graph--loading-1-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-084.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0567",
+      "key": "dark/2560/graphs-mapping-graph/local-dark-mapping-graph--loading-3-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Native detail confirms complete name-only orders and Customer cards with the CENTER badge and attached mapping edges; this is the intended far-zoom presentation.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled with native detail",
+      "sheet": "sheet-085.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "native_detail": "detail-1.png",
+      "detail_scope": "Focused content only; the primary crop remains the full difference bounds.",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0570",
+      "key": "dark/2560/graphs-mapping-graph/local-dark-mapping-graph--stages-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-085.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0572",
+      "key": "dark/2560/graphs-mapping-graph/local-dark-mapping-graph--zoomed-minimum-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-086.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0574",
+      "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--back-after-walk-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled with native detail",
+      "sheet": "sheet-086.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "native_detail": "detail-2.png",
+      "detail_scope": "Focused content only; the primary crop remains the full difference bounds.",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0576",
+      "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--expanded-failed-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-087.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0580",
+      "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--fullscreen-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-087.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0582",
+      "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--labels-on-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-088.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0587",
+      "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--node-selected-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-088.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0590",
+      "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--walk-2-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-089.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0592",
+      "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--zoomed-in-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-089.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0594",
+      "key": "dark/2560/rest-shell/local-dark-catalog--keyboard-focus-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2553,
+        "height": 1440
+      },
+      "scale": 0.30552291421856637,
+      "resolution": "downscaled",
+      "sheet": "sheet-090.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0596",
+      "key": "dark/2560/rest-shell/local-dark-overview--keyboard-focus-2560.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; focus and sidebar fixture inventory differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 959,
+        "height": 1297
+      },
+      "scale": 0.8133472367049009,
+      "resolution": "downscaled",
+      "sheet": "sheet-091.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0598",
+      "key": "dark/2560/rest-shell/local-dark-shell--avatar-menu-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Native detail confirms the Local administration label replaces Admin; the local identity, Commit menu and separate canvas zoom/fullscreen controls remain visible.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled with native detail",
+      "sheet": "sheet-092.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "native_detail": "detail-2.png",
+      "detail_scope": "Focused content only; the primary crop remains the full difference bounds.",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0600",
+      "key": "dark/2560/rest-shell/local-dark-shell--history-forward-2560.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; focus and sidebar fixture inventory differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 959,
+        "height": 1297
+      },
+      "scale": 0.8133472367049009,
+      "resolution": "downscaled",
+      "sheet": "sheet-093.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0602",
+      "key": "dark/2560/rest-shell/local-dark-shell--sidebar-collapsed-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-094.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0604",
+      "key": "dark/2560/rest-shell/local-dark-shell--sidebar-item-hover-2560.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; focus and sidebar fixture inventory differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 959,
+        "height": 1297
+      },
+      "scale": 0.8133472367049009,
+      "resolution": "downscaled",
+      "sheet": "sheet-095.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0606",
+      "key": "dark/2560/rest-catalog/local-dark-catalog--area-filter-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2553,
+        "height": 1297
+      },
+      "scale": 0.30552291421856637,
+      "resolution": "downscaled",
+      "sheet": "sheet-095.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0609",
+      "key": "dark/2560/rest-catalog/local-dark-catalog--search-no-result-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1297
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled with native detail",
+      "sheet": "sheet-096.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "native_detail": "detail-3.png",
+      "detail_scope": "Focused content only; the primary crop remains the full difference bounds.",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0611",
+      "key": "dark/2560/rest-catalog/local-dark-catalog--table-row-hover-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2553,
+        "height": 1297
+      },
+      "scale": 0.30552291421856637,
+      "resolution": "downscaled",
+      "sheet": "sheet-096.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0613",
+      "key": "dark/2560/rest-catalog/local-dark-overview--long-named-entity-selected-2560.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; focus and sidebar fixture inventory differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1433
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled with native detail",
+      "sheet": "sheet-097.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "native_detail": "detail-3.png",
+      "detail_scope": "Focused content only; the primary crop remains the full difference bounds.",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0615",
+      "key": "dark/2560/rest-metrics/local-dark-metric-wizard--primary-hover-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2287,
+        "height": 1440
+      },
+      "scale": 0.3410581547879318,
+      "resolution": "downscaled",
+      "sheet": "sheet-097.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0617",
+      "key": "dark/2560/rest-metrics/local-dark-metric-wizard--step-1-filled-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2287,
+        "height": 1440
+      },
+      "scale": 0.3410581547879318,
+      "resolution": "downscaled",
+      "sheet": "sheet-098.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0619",
+      "key": "dark/2560/rest-metrics/local-dark-metric-wizard--step-3-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Native detail confirms the same validation messages move from the summary to their fields in the taller wizard. The filled Label receiving an error also occurs in main.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2287,
+        "height": 1440
+      },
+      "scale": 0.3410581547879318,
+      "resolution": "downscaled with native detail",
+      "sheet": "sheet-098.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "native_detail": "detail-4.png",
+      "detail_scope": "Focused content only; the primary crop remains the full difference bounds.",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0621",
+      "key": "dark/2560/rest-metrics/local-dark-metric-wizard--step-4-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2287,
+        "height": 1440
+      },
+      "scale": 0.3410581547879318,
+      "resolution": "downscaled",
+      "sheet": "sheet-099.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0623",
+      "key": "dark/2560/rest-metrics/local-dark-metric-wizard--step-6-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2287,
+        "height": 1440
+      },
+      "scale": 0.3410581547879318,
+      "resolution": "downscaled",
+      "sheet": "sheet-099.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0625",
+      "key": "dark/2560/rest-metrics/local-dark-metric-wizard--step-8-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Native detail shows the same metric and mapping save payload in the taller wizard; no payload text is lost.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2287,
+        "height": 1440
+      },
+      "scale": 0.3410581547879318,
+      "resolution": "downscaled with native detail",
+      "sheet": "sheet-100.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "native_detail": "detail-4.png",
+      "detail_scope": "Focused content only; the primary crop remains the full difference bounds.",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0628",
+      "key": "dark/2560/rest-metrics/local-dark-metrics--filter-no-result-2560.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; sidebar fixture inventory or focus differs.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 962,
+        "height": 1295
+      },
+      "scale": 0.8108108108108109,
+      "resolution": "downscaled",
+      "sheet": "sheet-101.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0630",
+      "key": "dark/2560/rest-metrics/local-dark-metrics--stages-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "The approved common content width at 2560 centers the list and metric detail together; filters wrap and the compact list retains metric, unit and status.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2287,
+        "height": 1440
+      },
+      "scale": 0.3410581547879318,
+      "resolution": "downscaled with native detail",
+      "sheet": "sheet-102.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "native_detail": "detail-5.png",
+      "detail_scope": "Focused content only; the primary crop remains the full difference bounds.",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0633",
+      "key": "dark/2560/rest-mappings/local-dark-mappings--list-2560.png",
+      "previous_classification": "traversal noise",
+      "classification": "traversal noise",
+      "verdict_changed": false,
+      "reason": "Main has the resolved-bindings disclosure closed; candidate has it and Metrics expanded. The native detail shows the same 1057 bindings with different disclosure states.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2252,
+        "height": 1440
+      },
+      "scale": 0.3463587921847247,
+      "resolution": "downscaled with native detail",
+      "sheet": "sheet-102.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "native_detail": "detail-5.png",
+      "detail_scope": "Focused content only; the primary crop remains the full difference bounds.",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0635",
+      "key": "dark/2560/rest-mappings/local-dark-mappings--selected-document-source-2560.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; sidebar fixture inventory or focus differs.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2406,
+        "height": 1289
+      },
+      "scale": 0.32418952618453867,
+      "resolution": "downscaled",
+      "sheet": "sheet-103.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0637",
+      "key": "dark/2560/rest-odcs/local-dark-odcs--stages-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2248,
+        "height": 1440
+      },
+      "scale": 0.3469750889679715,
+      "resolution": "downscaled",
+      "sheet": "sheet-103.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0639",
+      "key": "dark/2560/rest-odcs/local-dark-odcs-contract--search-matching-2560.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; sidebar fixture inventory or focus differs.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 905,
+        "height": 1297
+      },
+      "scale": 0.861878453038674,
+      "resolution": "downscaled",
+      "sheet": "sheet-104.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0641",
+      "key": "dark/2560/rest-odcs/local-dark-odcs-contract--section-quality4-2560.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; sidebar fixture inventory or focus differs.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 905,
+        "height": 1297
+      },
+      "scale": 0.861878453038674,
+      "resolution": "downscaled",
+      "sheet": "sheet-105.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0643",
+      "key": "dark/2560/rest-odcs/local-dark-odcs-contract--team-failed-2560.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; sidebar fixture inventory or focus differs.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 905,
+        "height": 1297
+      },
+      "scale": 0.861878453038674,
+      "resolution": "downscaled",
+      "sheet": "sheet-106.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0645",
+      "key": "dark/2560/rest-odcs/local-dark-odcs-dataset--history-2560.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; sidebar fixture inventory or focus differs.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1185,
+        "height": 1297
+      },
+      "scale": 0.6582278481012658,
+      "resolution": "downscaled",
+      "sheet": "sheet-107.png",
+      "text_legibility": "legible",
+      "status": "reviewed"
+    },
+    {
+      "id": "0647",
+      "key": "dark/2560/rest-odcs/local-dark-odcs-dataset--properties-2560.png",
+      "previous_classification": "unchanged",
+      "classification": "unchanged",
+      "verdict_changed": false,
+      "reason": "Equivalent displayed content and actions; sidebar fixture inventory or focus differs.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2092,
+        "height": 1297
+      },
+      "scale": 0.372848948374761,
+      "resolution": "downscaled",
+      "sheet": "sheet-107.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0649",
+      "key": "dark/2560/rest-editing/local-dark-add-concept--empty-or-resting-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Native detail confirms the same empty Add concept fields and guidance with revised input styling; catalog count and full descriptions remain visible behind it.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2553,
+        "height": 1440
+      },
+      "scale": 0.30552291421856637,
+      "resolution": "downscaled with native detail",
+      "sheet": "sheet-108.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "native_detail": "detail-6.png",
+      "detail_scope": "Focused content only; the primary crop remains the full difference bounds.",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0651",
+      "key": "dark/2560/rest-editing/local-dark-add-concept--filled-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2492,
+        "height": 1323
+      },
+      "scale": 0.3130016051364366,
+      "resolution": "downscaled",
+      "sheet": "sheet-108.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0654",
+      "key": "dark/2560/rest-editing/local-dark-import--empty-or-resting-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2492,
+        "height": 1323
+      },
+      "scale": 0.3130016051364366,
+      "resolution": "downscaled",
+      "sheet": "sheet-109.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0656",
+      "key": "dark/2560/rest-editing/local-dark-item-editor--empty-or-resting-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Native detail confirms the same item values and relationship actions, with the intended Open in Source button and increased field spacing.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled with native detail",
+      "sheet": "sheet-109.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "native_detail": "detail-6.png",
+      "detail_scope": "Focused content only; the primary crop remains the full difference bounds.",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0658",
+      "key": "dark/2560/rest-editing/local-dark-item-editor--filled-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-110.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0660",
+      "key": "dark/2560/rest-editing/local-dark-project-export--empty-or-resting-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2492,
+        "height": 1323
+      },
+      "scale": 0.3130016051364366,
+      "resolution": "downscaled",
+      "sheet": "sheet-110.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0662",
+      "key": "dark/2560/rest-editing/local-dark-project-rename--empty-or-resting-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2492,
+        "height": 1323
+      },
+      "scale": 0.3130016051364366,
+      "resolution": "downscaled",
+      "sheet": "sheet-111.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0664",
+      "key": "dark/2560/rest-editing/local-dark-source-editor--clean-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2396,
+        "height": 1289
+      },
+      "scale": 0.32554257095158595,
+      "resolution": "downscaled",
+      "sheet": "sheet-111.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    },
+    {
+      "id": "0667",
+      "key": "dark/2560/rest-editing/local-dark-source-editor--sql-warning-gutter-2560.png",
+      "previous_classification": "intended",
+      "classification": "intended",
+      "verdict_changed": false,
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2396,
+        "height": 1289
+      },
+      "scale": 0.32554257095158595,
+      "resolution": "downscaled",
+      "sheet": "sheet-112.png",
+      "text_legibility": "incomplete",
+      "status": "provisional",
+      "limitation": "The full-width crop makes some small text unreadable. Focused details, where present, do not complete every changed text region."
+    }
+  ]
+}

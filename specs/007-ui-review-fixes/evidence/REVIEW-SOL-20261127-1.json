@@ -1,0 +1,3682 @@
+{
+  "scope": "Assigned changed server-mode pairs only; existing images, no new captures or product edits.",
+  "candidate": "df201d11 (frozen matrix)",
+  "main": "da54cf17",
+  "review_worktree_base": "3bb8f61f",
+  "input": "pending-server-1.tsv",
+  "input_sha256": "bcc25e004c68c592c0895181e8e6040a63d7bab62c6d3376f663fd5d7d4276e1",
+  "counts": {
+    "intended": 208,
+    "regression": 1,
+    "unchanged": 5,
+    "traversal noise": 0
+  },
+  "pairs_reviewed": 214,
+  "resolution_counts": {
+    "downscaled": 154,
+    "native": 60
+  },
+  "images_viewed": 119,
+  "image_directory": "/home/rodrigo/scratch/sw-007/review-sol1",
+  "remote_image_directory": "/srv/dev/review-sol1",
+  "method": "Tolerance-16 pixel-difference bounding box plus 40 px context, clipped to source edges. Native unless crop exceeds 780 px wide. Main left, candidate right; labelled identity, screen, state, width and theme. At most two pairs per sheet; one extra native detail for 1857.",
+  "limits": [
+    "Existing still images do not establish interaction behavior or whether a loading state eventually settles.",
+    "Wide diff regions were downscaled as permitted; exact scales and source-coordinate crops are recorded per pair.",
+    "This assigned subset cannot establish coverage for every main feature or complete T076."
+  ],
+  "open_regressions": ["1857: missing visible Git remotes rows; persistent failure versus capture timing unresolved."],
+  "suites": {
+    "browser": "not run; review-only",
+    "mutation": "not run; review-only",
+    "unit": "not run; review-only"
+  },
+  "pairs": [
+    {
+      "id": "1529",
+      "baseline": "main",
+      "key": "dark/1280/server-0/server-dark-add-concept-1280-full.png",
+      "classification": "intended",
+      "reason": "Editor field spacing and solid disabled-action styling are intentional; visible fields and actions remain present.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.609375,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 617
+      },
+      "review_image": "sheet-000.png"
+    },
+    {
+      "id": "1535",
+      "baseline": "main",
+      "key": "dark/1280/server-0/server-dark-contract-contract-1280-full.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 611,
+        "height": 592
+      },
+      "review_image": "sheet-000.png"
+    },
+    {
+      "id": "1541",
+      "baseline": "main",
+      "key": "dark/1280/server-0/server-dark-item-editor-1280-full.png",
+      "classification": "intended",
+      "reason": "Editor field spacing and solid disabled-action styling are intentional; visible fields and actions remain present.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.609375,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "review_image": "sheet-001.png"
+    },
+    {
+      "id": "1547",
+      "baseline": "main",
+      "key": "dark/1280/server-0/server-dark-metric-wizard-1280-full.png",
+      "classification": "intended",
+      "reason": "The taller wizard and stable footer keep fields and actions together, including the phone layout.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.78,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1000,
+        "height": 720
+      },
+      "review_image": "sheet-001.png"
+    },
+    {
+      "id": "1553",
+      "baseline": "main",
+      "key": "dark/1280/server-0/server-dark-odcs-contract-team-1280-full.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 611,
+        "height": 592
+      },
+      "review_image": "sheet-002.png"
+    },
+    {
+      "id": "1559",
+      "baseline": "main",
+      "key": "dark/1280/server-0/server-dark-odcs-dataset-quality-1280-full.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.8986175115207373,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 868,
+        "height": 592
+      },
+      "review_image": "sheet-002.png"
+    },
+    {
+      "id": "1565",
+      "baseline": "main",
+      "key": "dark/1280/server-0/server-dark-ontology-catalog-1280-full.png",
+      "classification": "intended",
+      "reason": "Catalog count, readable type labels, descriptions and action placement are intentional; phone Edit actions remain visible.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.609375,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 679
+      },
+      "review_image": "sheet-003.png"
+    },
+    {
+      "id": "1571",
+      "baseline": "main",
+      "key": "dark/1280/server-0/server-dark-ontology-metrics-1280-full.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 676,
+        "height": 589
+      },
+      "review_image": "sheet-003.png"
+    },
+    {
+      "id": "1577",
+      "baseline": "main",
+      "key": "dark/1280/server-0/server-dark-ontology-source-1280-full.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.6933333333333334,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1125,
+        "height": 720
+      },
+      "review_image": "sheet-004.png"
+    },
+    {
+      "id": "1583",
+      "baseline": "main",
+      "key": "dark/1280/server-0/server-dark-sidebar-projects-1280-full.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 676,
+        "height": 589
+      },
+      "review_image": "sheet-004.png"
+    },
+    {
+      "id": "1589",
+      "baseline": "main",
+      "key": "dark/1280/server-0/server-dark-source-editor-1280-full.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.6933333333333334,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1125,
+        "height": 720
+      },
+      "review_image": "sheet-005.png"
+    },
+    {
+      "id": "1599",
+      "baseline": "main",
+      "key": "dark/1280/server-1/server-dark-admin-audit-1280-full.png",
+      "classification": "intended",
+      "reason": "Human-readable audit labels and Allow/Deny styling retain the audit content.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.8459869848156182,
+      "crop": {
+        "left": 358,
+        "top": 332,
+        "width": 922,
+        "height": 388
+      },
+      "review_image": "sheet-005.png"
+    },
+    {
+      "id": "1609",
+      "baseline": "main",
+      "key": "dark/1280/server-1/server-dark-admin-roles-1280-full.png",
+      "classification": "intended",
+      "reason": "The role matrix uses checkmarks and clearer spacing while retaining permissions.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 570,
+        "top": 170,
+        "width": 629,
+        "height": 550
+      },
+      "review_image": "sheet-006.png"
+    },
+    {
+      "id": "1615",
+      "baseline": "main",
+      "key": "dark/1280/server-1/server-dark-clone-folder-1280-full.png",
+      "classification": "intended",
+      "reason": "Form spacing and disabled/validation action styling are intentional; the visible path or repository fields and error state are preserved.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.7046070460704607,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1107,
+        "height": 672
+      },
+      "review_image": "sheet-006.png"
+    },
+    {
+      "id": "1621",
+      "baseline": "main",
+      "key": "dark/1280/server-1/server-dark-graph-model-all-areas-1280-full.png",
+      "classification": "intended",
+      "reason": "Responsive Controls, graph fitting and label/card geometry are intentional. Open-option overlays and hover/camera differences do not establish lost graph content; Show badge is retained where exposed.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.609375,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 692
+      },
+      "review_image": "sheet-007.png"
+    },
+    {
+      "id": "1627",
+      "baseline": "main",
+      "key": "dark/1280/server-1/server-dark-mapping-graph-1280-full.png",
+      "classification": "intended",
+      "reason": "Mapping empty-state guidance offers Import and Load example instead of inert graph controls; surrounding sidebar spacing and badges are intentional.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 672,
+        "height": 592
+      },
+      "review_image": "sheet-007.png"
+    },
+    {
+      "id": "1633",
+      "baseline": "main",
+      "key": "dark/1280/server-1/server-dark-ontology-neighborhood-hover-label-1280-full.png",
+      "classification": "intended",
+      "reason": "The legend sits below the canvas; responsive controls, label sizing and camera fitting change graph geometry intentionally. Visible graph content is retained.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.609375,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "review_image": "sheet-008.png"
+    },
+    {
+      "id": "1639",
+      "baseline": "main",
+      "key": "dark/1280/server-1/server-dark-project-export-1280-full.png",
+      "classification": "intended",
+      "reason": "Dialog spacing and action styling are intentional; visible form content and validation remain available.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.7046070460704607,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1107,
+        "height": 672
+      },
+      "review_image": "sheet-008.png"
+    },
+    {
+      "id": "1645",
+      "baseline": "main",
+      "key": "dark/1280/server-1/server-dark-remote-folder-1280-full.png",
+      "classification": "intended",
+      "reason": "Form spacing and disabled/validation action styling are intentional; the visible path or repository fields and error state are preserved.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 713,
+        "height": 711
+      },
+      "review_image": "sheet-009.png"
+    },
+    {
+      "id": "1651",
+      "baseline": "main",
+      "key": "dark/1280/server-1/server-dark-scm-diff-deleted-1280-full.png",
+      "classification": "intended",
+      "reason": "Diff filename, gutters and responsive detail layout are intentional; phone detail includes Back to changes. Fixture commit text is incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.609375,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 716
+      },
+      "review_image": "sheet-009.png"
+    },
+    {
+      "id": "1657",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-add-concept-1440-full.png",
+      "classification": "intended",
+      "reason": "Editor field spacing and solid disabled-action styling are intentional; visible fields and actions remain present.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 740
+      },
+      "review_image": "sheet-010.png"
+    },
+    {
+      "id": "1660",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-catalog-1440.png",
+      "classification": "intended",
+      "reason": "Catalog count, readable type labels, descriptions and action placement are intentional; phone Edit actions remain visible.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 742
+      },
+      "review_image": "sheet-010.png"
+    },
+    {
+      "id": "1663",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-contract-contract-1440-full.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 611,
+        "height": 743
+      },
+      "review_image": "sheet-011.png"
+    },
+    {
+      "id": "1666",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-contract-graph-1440.png",
+      "classification": "intended",
+      "reason": "Compact name-only graph cards and fitting change node geometry intentionally; the graph content remains represented.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "review_image": "sheet-011.png"
+    },
+    {
+      "id": "1669",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-item-editor-1440-full.png",
+      "classification": "intended",
+      "reason": "Editor field spacing and solid disabled-action styling are intentional; visible fields and actions remain present.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "review_image": "sheet-012.png"
+    },
+    {
+      "id": "1672",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-mappings-1440.png",
+      "classification": "intended",
+      "reason": "Mapping empty-state guidance offers Import and Load example instead of inert graph controls; surrounding sidebar spacing and badges are intentional.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 742
+      },
+      "review_image": "sheet-012.png"
+    },
+    {
+      "id": "1675",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-metric-wizard-1440-full.png",
+      "classification": "intended",
+      "reason": "The taller wizard and stable footer keep fields and actions together, including the phone layout.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.7222222222222222,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1080,
+        "height": 870
+      },
+      "review_image": "sheet-013.png"
+    },
+    {
+      "id": "1678",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-metrics-list-1440.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 656,
+        "height": 742
+      },
+      "review_image": "sheet-013.png"
+    },
+    {
+      "id": "1681",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-odcs-contract-team-1440-full.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 611,
+        "height": 743
+      },
+      "review_image": "sheet-014.png"
+    },
+    {
+      "id": "1684",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-odcs-dataset-history-1440.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.8986175115207373,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 868,
+        "height": 743
+      },
+      "review_image": "sheet-014.png"
+    },
+    {
+      "id": "1687",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-odcs-dataset-quality-1440-full.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.8986175115207373,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 868,
+        "height": 743
+      },
+      "review_image": "sheet-015.png"
+    },
+    {
+      "id": "1690",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-odcs-dataset-relationships-1440.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.8986175115207373,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 868,
+        "height": 743
+      },
+      "review_image": "sheet-015.png"
+    },
+    {
+      "id": "1693",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-ontology-catalog-1440-full.png",
+      "classification": "intended",
+      "reason": "Catalog count, readable type labels, descriptions and action placement are intentional; phone Edit actions remain visible.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 742
+      },
+      "review_image": "sheet-016.png"
+    },
+    {
+      "id": "1696",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-ontology-graph-1440.png",
+      "classification": "intended",
+      "reason": "Responsive Controls, graph fitting and label/card geometry are intentional. Open-option overlays and hover/camera differences do not establish lost graph content; Show badge is retained where exposed.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 887
+      },
+      "review_image": "sheet-016.png"
+    },
+    {
+      "id": "1699",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-ontology-metrics-1440-full.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 676,
+        "height": 742
+      },
+      "review_image": "sheet-017.png"
+    },
+    {
+      "id": "1702",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-ontology-neighborhood-1440.png",
+      "classification": "intended",
+      "reason": "The legend sits below the canvas; responsive controls, label sizing and camera fitting change graph geometry intentionally. Visible graph content is retained.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "review_image": "sheet-017.png"
+    },
+    {
+      "id": "1705",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-ontology-source-1440-full.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.6070038910505836,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1285,
+        "height": 900
+      },
+      "review_image": "sheet-018.png"
+    },
+    {
+      "id": "1708",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-query-composer-1440.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 742
+      },
+      "review_image": "sheet-018.png"
+    },
+    {
+      "id": "1711",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-sidebar-projects-1440-full.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 676,
+        "height": 742
+      },
+      "review_image": "sheet-019.png"
+    },
+    {
+      "id": "1714",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-source-control-1440.png",
+      "classification": "intended",
+      "reason": "Source-control staging and remote guidance use clearer grouping; sidebar type badges and fixture metadata account for remaining differences.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 713,
+        "height": 825
+      },
+      "review_image": "sheet-020.png"
+    },
+    {
+      "id": "1717",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-source-editor-1440-full.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.6070038910505836,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1285,
+        "height": 789
+      },
+      "review_image": "sheet-020.png"
+    },
+    {
+      "id": "1720",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-trash-1440.png",
+      "classification": "intended",
+      "reason": "Trash actions retain their content with intended button and surrounding layout styling.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.6074766355140186,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1284,
+        "height": 789
+      },
+      "review_image": "sheet-021.png"
+    },
+    {
+      "id": "1727",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-admin-audit-1440-full.png",
+      "classification": "intended",
+      "reason": "Human-readable audit labels and Allow/Deny styling retain the audit content.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.7208872458410351,
+      "crop": {
+        "left": 358,
+        "top": 332,
+        "width": 1082,
+        "height": 568
+      },
+      "review_image": "sheet-021.png"
+    },
+    {
+      "id": "1731",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-admin-grants-1440-full.png",
+      "classification": "intended",
+      "reason": "Admin fields, table columns and actions use the intended bounded layout; visible records and controls remain available.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 685,
+        "top": 171,
+        "width": 693,
+        "height": 534
+      },
+      "review_image": "sheet-022.png"
+    },
+    {
+      "id": "1736",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-admin-projects-1440.png",
+      "classification": "intended",
+      "reason": "Admin fields, table columns and actions use the intended bounded layout; visible records and controls remain available.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 864,
+        "top": 248,
+        "width": 576,
+        "height": 652
+      },
+      "review_image": "sheet-022.png"
+    },
+    {
+      "id": "1739",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-admin-settings-1440-full.png",
+      "classification": "intended",
+      "reason": "Settings fields use bounded widths and Save follows the lifetime fields.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.654911838790932,
+      "crop": {
+        "left": 228,
+        "top": 229,
+        "width": 1191,
+        "height": 671
+      },
+      "review_image": "sheet-023.png"
+    },
+    {
+      "id": "1742",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-admin-users-1440.png",
+      "classification": "intended",
+      "reason": "Admin fields, table columns and actions use the intended bounded layout; visible records and controls remain available.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.7854984894259819,
+      "crop": {
+        "left": 447,
+        "top": 141,
+        "width": 993,
+        "height": 319
+      },
+      "review_image": "sheet-023.png"
+    },
+    {
+      "id": "1745",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-clone-folder-refused-1440-full.png",
+      "classification": "intended",
+      "reason": "Form spacing and disabled/validation action styling are intentional; the visible path or repository fields and error state are preserved.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5481377371749825,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 838
+      },
+      "review_image": "sheet-024.png"
+    },
+    {
+      "id": "1748",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-file-move-1440.png",
+      "classification": "intended",
+      "reason": "Dialog spacing and action styling are intentional; visible form content and validation remain available.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5481377371749825,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 838
+      },
+      "review_image": "sheet-024.png"
+    },
+    {
+      "id": "1751",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-graph-model-options-1440-full.png",
+      "classification": "intended",
+      "reason": "Responsive Controls, graph fitting and label/card geometry are intentional. Open-option overlays and hover/camera differences do not establish lost graph content; Show badge is retained where exposed.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 887
+      },
+      "review_image": "sheet-025.png"
+    },
+    {
+      "id": "1754",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-graph-neighborhood-more-1440.png",
+      "classification": "intended",
+      "reason": "The legend sits below the canvas; responsive controls, label sizing and camera fitting change graph geometry intentionally. Visible graph content is retained.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "review_image": "sheet-025.png"
+    },
+    {
+      "id": "1757",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-ontology-graph-fullscreen-1440-full.png",
+      "classification": "intended",
+      "reason": "Responsive Controls, graph fitting and label/card geometry are intentional. Open-option overlays and hover/camera differences do not establish lost graph content; Show badge is retained where exposed.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.8405172413793104,
+      "crop": {
+        "left": 293,
+        "top": 0,
+        "width": 928,
+        "height": 797
+      },
+      "review_image": "sheet-026.png"
+    },
+    {
+      "id": "1760",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-ontology-neighborhood-fullscreen-1440.png",
+      "classification": "intended",
+      "reason": "The legend sits below the canvas; responsive controls, label sizing and camera fitting change graph geometry intentionally. Visible graph content is retained.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "review_image": "sheet-026.png"
+    },
+    {
+      "id": "1763",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-ontology-neighborhood-labels-zoomed-1440-full.png",
+      "classification": "intended",
+      "reason": "The legend sits below the canvas; responsive controls, label sizing and camera fitting change graph geometry intentionally. Visible graph content is retained.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "review_image": "sheet-027.png"
+    },
+    {
+      "id": "1766",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-project-delete-1440.png",
+      "classification": "intended",
+      "reason": "Deletion confirmation says Will move to trash before the action; button spacing and styling are intentional.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5481377371749825,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 838
+      },
+      "review_image": "sheet-027.png"
+    },
+    {
+      "id": "1769",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-project-export-history-1440-full.png",
+      "classification": "intended",
+      "reason": "Dialog spacing and action styling are intentional; visible form content and validation remain available.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5481377371749825,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 838
+      },
+      "review_image": "sheet-028.png"
+    },
+    {
+      "id": "1772",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-project-rename-1440.png",
+      "classification": "intended",
+      "reason": "Dialog spacing and action styling are intentional; visible form content and validation remain available.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5481377371749825,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 838
+      },
+      "review_image": "sheet-028.png"
+    },
+    {
+      "id": "1775",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-remote-folder-refused-1440-full.png",
+      "classification": "intended",
+      "reason": "Form spacing and disabled/validation action styling are intentional; the visible path or repository fields and error state are preserved.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 722,
+        "height": 825
+      },
+      "review_image": "sheet-029.png"
+    },
+    {
+      "id": "1778",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-scm-diff-added-1440.png",
+      "classification": "intended",
+      "reason": "Diff filename, gutters and responsive detail layout are intentional; phone detail includes Back to changes. Fixture commit text is incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 885
+      },
+      "review_image": "sheet-029.png"
+    },
+    {
+      "id": "1781",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-scm-diff-modified-1440-full.png",
+      "classification": "intended",
+      "reason": "Diff filename, gutters and responsive detail layout are intentional; phone detail includes Back to changes. Fixture commit text is incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 808
+      },
+      "review_image": "sheet-030.png"
+    },
+    {
+      "id": "1784",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-scm-stale-save-1440.png",
+      "classification": "intended",
+      "reason": "Keep editing is the primary action; overwrite has a danger outline and the diff uses the intended responsive layout.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5954198473282443,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1310,
+        "height": 900
+      },
+      "review_image": "sheet-030.png"
+    },
+    {
+      "id": "1787",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-catalog-2560-full.png",
+      "classification": "intended",
+      "reason": "Catalog count, readable type labels, descriptions and action placement are intentional; phone Edit actions remain visible.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.30552291421856637,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2553,
+        "height": 1245
+      },
+      "review_image": "sheet-031.png"
+    },
+    {
+      "id": "1790",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-clone-repository-2560.png",
+      "classification": "intended",
+      "reason": "Form spacing and disabled/validation action styling are intentional; the visible path or repository fields and error state are preserved.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.50814332247557,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1535,
+        "height": 1245
+      },
+      "review_image": "sheet-031.png"
+    },
+    {
+      "id": "1793",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-contract-graph-2560-full.png",
+      "classification": "intended",
+      "reason": "Compact name-only graph cards and fitting change node geometry intentionally; the graph content remains represented.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.3046875,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "review_image": "sheet-032.png"
+    },
+    {
+      "id": "1796",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-import-2560.png",
+      "classification": "intended",
+      "reason": "Form spacing and disabled/validation action styling are intentional; the visible path or repository fields and error state are preserved.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.324459234608985,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2404,
+        "height": 1245
+      },
+      "review_image": "sheet-032.png"
+    },
+    {
+      "id": "1799",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-mappings-2560-full.png",
+      "classification": "intended",
+      "reason": "Mapping empty-state guidance offers Import and Load example instead of inert graph controls; surrounding sidebar spacing and badges are intentional.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.3463587921847247,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2252,
+        "height": 1245
+      },
+      "review_image": "sheet-033.png"
+    },
+    {
+      "id": "1802",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-metric-detail-2560.png",
+      "classification": "intended",
+      "reason": "At 2560 px the open metric and its list share the common content width, as explicitly accepted.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.3410581547879318,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2287,
+        "height": 1440
+      },
+      "review_image": "sheet-033.png"
+    },
+    {
+      "id": "1805",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-metrics-list-2560-full.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.9154929577464789,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 852,
+        "height": 1245
+      },
+      "review_image": "sheet-034.png"
+    },
+    {
+      "id": "1808",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-odcs-contract-search-2560.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.967741935483871,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 806,
+        "height": 1245
+      },
+      "review_image": "sheet-035.png"
+    },
+    {
+      "id": "1811",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-odcs-dataset-history-2560-full.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.6587837837837838,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1184,
+        "height": 1245
+      },
+      "review_image": "sheet-036.png"
+    },
+    {
+      "id": "1814",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-odcs-dataset-properties-2560.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.372848948374761,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2092,
+        "height": 1245
+      },
+      "review_image": "sheet-036.png"
+    },
+    {
+      "id": "1817",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-odcs-dataset-relationships-2560-full.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.6587837837837838,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1184,
+        "height": 1245
+      },
+      "review_image": "sheet-037.png"
+    },
+    {
+      "id": "1820",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-odcs-property-edit-2560.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.372848948374761,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2092,
+        "height": 1245
+      },
+      "review_image": "sheet-037.png"
+    },
+    {
+      "id": "1823",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-ontology-graph-2560-full.png",
+      "classification": "intended",
+      "reason": "Responsive Controls, graph fitting and label/card geometry are intentional. Open-option overlays and hover/camera differences do not establish lost graph content; Show badge is retained where exposed.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "review_image": "sheet-038.png"
+    },
+    {
+      "id": "1826",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-ontology-mappings-2560.png",
+      "classification": "intended",
+      "reason": "Mapping empty-state guidance offers Import and Load example instead of inert graph controls; surrounding sidebar spacing and badges are intentional.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.3463587921847247,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2252,
+        "height": 1245
+      },
+      "review_image": "sheet-038.png"
+    },
+    {
+      "id": "1829",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-ontology-neighborhood-2560-full.png",
+      "classification": "intended",
+      "reason": "The legend sits below the canvas; responsive controls, label sizing and camera fitting change graph geometry intentionally. Visible graph content is retained.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.3046875,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "review_image": "sheet-039.png"
+    },
+    {
+      "id": "1832",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-ontology-overview-2560.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.8944954128440367,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 872,
+        "height": 1245
+      },
+      "review_image": "sheet-040.png"
+    },
+    {
+      "id": "1835",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-query-composer-2560-full.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.3463587921847247,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2252,
+        "height": 1245
+      },
+      "review_image": "sheet-041.png"
+    },
+    {
+      "id": "1838",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-settings-2560.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.32432432432432434,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2405,
+        "height": 1245
+      },
+      "review_image": "sheet-041.png"
+    },
+    {
+      "id": "1841",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-source-control-2560-full.png",
+      "classification": "intended",
+      "reason": "Source-control staging and remote guidance use clearer grouping; sidebar type badges and fixture metadata account for remaining differences.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.967741935483871,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 806,
+        "height": 1245
+      },
+      "review_image": "sheet-042.png"
+    },
+    {
+      "id": "1844",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-source-control-remote-2560.png",
+      "classification": "intended",
+      "reason": "Source-control staging and remote guidance use clearer grouping; sidebar type badges and fixture metadata account for remaining differences.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.50814332247557,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1535,
+        "height": 1245
+      },
+      "review_image": "sheet-043.png"
+    },
+    {
+      "id": "1847",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-trash-2560-full.png",
+      "classification": "intended",
+      "reason": "Trash actions retain their content with intended button and surrounding layout styling.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.324459234608985,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2404,
+        "height": 1245
+      },
+      "review_image": "sheet-043.png"
+    },
+    {
+      "id": "1850",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-admin-access-check-2560.png",
+      "classification": "intended",
+      "reason": "Admin fields, table columns and actions use the intended bounded layout; visible records and controls remain available.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.3344768439108062,
+      "crop": {
+        "left": 228,
+        "top": 176,
+        "width": 2332,
+        "height": 517
+      },
+      "review_image": "sheet-044.png"
+    },
+    {
+      "id": "1857",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-admin-git-remotes-2560-full.png",
+      "classification": "regression",
+      "reason": "Main shows five project rows; candidate shows only table headers. Native follow-up confirms missing visible rows. Loading can produce this state, so a persistent product regression is unconfirmed; obtain a settled-state comparison before clearing.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.3344768439108062,
+      "crop": {
+        "left": 228,
+        "top": 127,
+        "width": 2332,
+        "height": 347
+      },
+      "review_image": "sheet-044.png",
+      "additional_native_crop": "detail-1857.png",
+      "additional_crop": {
+        "left": 220,
+        "top": 100,
+        "width": 780,
+        "height": 440
+      },
+      "status": "open; loading versus persistent omission unresolved; no fix authorized"
+    },
+    {
+      "id": "1860",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-admin-grants-2560.png",
+      "classification": "intended",
+      "reason": "Admin fields, table columns and actions use the intended bounded layout; visible records and controls remain available.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.425531914893617,
+      "crop": {
+        "left": 727,
+        "top": 171,
+        "width": 1833,
+        "height": 543
+      },
+      "review_image": "sheet-045.png"
+    },
+    {
+      "id": "1865",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-admin-roles-2560-full.png",
+      "classification": "intended",
+      "reason": "The role matrix uses checkmarks and clearer spacing while retaining permissions.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.42460533478497553,
+      "crop": {
+        "left": 723,
+        "top": 170,
+        "width": 1837,
+        "height": 1270
+      },
+      "review_image": "sheet-045.png"
+    },
+    {
+      "id": "1868",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-admin-settings-2560.png",
+      "classification": "intended",
+      "reason": "Settings fields use bounded widths and Save follows the lifetime fields.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.654911838790932,
+      "crop": {
+        "left": 228,
+        "top": 229,
+        "width": 1191,
+        "height": 712
+      },
+      "review_image": "sheet-046.png"
+    },
+    {
+      "id": "1871",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-clone-folder-2560-full.png",
+      "classification": "intended",
+      "reason": "Form spacing and disabled/validation action styling are intentional; the visible path or repository fields and error state are preserved.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "review_image": "sheet-046.png"
+    },
+    {
+      "id": "1874",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-clone-folder-refused-2560.png",
+      "classification": "intended",
+      "reason": "Form spacing and disabled/validation action styling are intentional; the visible path or repository fields and error state are preserved.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "review_image": "sheet-047.png"
+    },
+    {
+      "id": "1877",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-graph-model-all-areas-2560-full.png",
+      "classification": "intended",
+      "reason": "Responsive Controls, graph fitting and label/card geometry are intentional. Open-option overlays and hover/camera differences do not establish lost graph content; Show badge is retained where exposed.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "review_image": "sheet-047.png"
+    },
+    {
+      "id": "1880",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-graph-model-options-2560.png",
+      "classification": "intended",
+      "reason": "Responsive Controls, graph fitting and label/card geometry are intentional. Open-option overlays and hover/camera differences do not establish lost graph content; Show badge is retained where exposed.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "review_image": "sheet-048.png"
+    },
+    {
+      "id": "1883",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-mapping-graph-2560-full.png",
+      "classification": "intended",
+      "reason": "Mapping empty-state guidance offers Import and Load example instead of inert graph controls; surrounding sidebar spacing and badges are intentional.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.8996539792387543,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 867,
+        "height": 1245
+      },
+      "review_image": "sheet-049.png"
+    },
+    {
+      "id": "1886",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-ontology-graph-fullscreen-2560.png",
+      "classification": "intended",
+      "reason": "Responsive Controls, graph fitting and label/card geometry are intentional. Open-option overlays and hover/camera differences do not establish lost graph content; Show badge is retained where exposed.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.6800348735832606,
+      "crop": {
+        "left": 565,
+        "top": 0,
+        "width": 1147,
+        "height": 1067
+      },
+      "review_image": "sheet-050.png"
+    },
+    {
+      "id": "1889",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-ontology-neighborhood-hover-label-2560-full.png",
+      "classification": "intended",
+      "reason": "The legend sits below the canvas; responsive controls, label sizing and camera fitting change graph geometry intentionally. Visible graph content is retained.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.3046875,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "review_image": "sheet-050.png"
+    },
+    {
+      "id": "1892",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-ontology-neighborhood-labels-zoomed-2560.png",
+      "classification": "intended",
+      "reason": "The legend sits below the canvas; responsive controls, label sizing and camera fitting change graph geometry intentionally. Visible graph content is retained.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.3046875,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "review_image": "sheet-051.png"
+    },
+    {
+      "id": "1895",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-project-export-2560-full.png",
+      "classification": "intended",
+      "reason": "Dialog spacing and action styling are intentional; visible form content and validation remain available.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "review_image": "sheet-051.png"
+    },
+    {
+      "id": "1898",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-project-export-history-2560.png",
+      "classification": "intended",
+      "reason": "Dialog spacing and action styling are intentional; visible form content and validation remain available.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "review_image": "sheet-052.png"
+    },
+    {
+      "id": "1901",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-remote-folder-2560-full.png",
+      "classification": "intended",
+      "reason": "Form spacing and disabled/validation action styling are intentional; the visible path or repository fields and error state are preserved.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.608424336973479,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1282,
+        "height": 1245
+      },
+      "review_image": "sheet-052.png"
+    },
+    {
+      "id": "1904",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-remote-folder-refused-2560.png",
+      "classification": "intended",
+      "reason": "Form spacing and disabled/validation action styling are intentional; the visible path or repository fields and error state are preserved.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.608424336973479,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1282,
+        "height": 1245
+      },
+      "review_image": "sheet-053.png"
+    },
+    {
+      "id": "1907",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-scm-diff-deleted-2560-full.png",
+      "classification": "intended",
+      "reason": "Diff filename, gutters and responsive detail layout are intentional; phone detail includes Back to changes. Fixture commit text is incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.3046875,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1245
+      },
+      "review_image": "sheet-053.png"
+    },
+    {
+      "id": "1910",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-scm-diff-modified-2560.png",
+      "classification": "intended",
+      "reason": "Diff filename, gutters and responsive detail layout are intentional; phone detail includes Back to changes. Fixture commit text is incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.3046875,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1245
+      },
+      "review_image": "sheet-054.png"
+    },
+    {
+      "id": "1913",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-add-concept-390-full.png",
+      "classification": "intended",
+      "reason": "Editor field spacing and solid disabled-action styling are intentional; visible fields and actions remain present.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 78,
+        "width": 390,
+        "height": 730
+      },
+      "review_image": "sheet-054.png"
+    },
+    {
+      "id": "1916",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-catalog-390.png",
+      "classification": "intended",
+      "reason": "Catalog count, readable type labels, descriptions and action placement are intentional; phone Edit actions remain visible.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 115,
+        "width": 390,
+        "height": 710
+      },
+      "review_image": "sheet-055.png"
+    },
+    {
+      "id": "1921",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-contract-graph-390-full.png",
+      "classification": "intended",
+      "reason": "Compact name-only graph cards and fitting change node geometry intentionally; the graph content remains represented.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 121,
+        "width": 390,
+        "height": 711
+      },
+      "review_image": "sheet-055.png"
+    },
+    {
+      "id": "1924",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-import-390.png",
+      "classification": "intended",
+      "reason": "Form spacing and disabled/validation action styling are intentional; the visible path or repository fields and error state are preserved.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 106,
+        "width": 305,
+        "height": 704
+      },
+      "review_image": "sheet-056.png"
+    },
+    {
+      "id": "1927",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-mappings-390-full.png",
+      "classification": "intended",
+      "reason": "Mapping empty-state guidance offers Import and Load example instead of inert graph controls; surrounding sidebar spacing and badges are intentional.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 232,
+        "width": 389,
+        "height": 331
+      },
+      "review_image": "sheet-056.png"
+    },
+    {
+      "id": "1932",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-metric-wizard-390.png",
+      "classification": "intended",
+      "reason": "The taller wizard and stable footer keep fields and actions together, including the phone layout.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 2,
+        "width": 390,
+        "height": 840
+      },
+      "review_image": "sheet-057.png"
+    },
+    {
+      "id": "1941",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-odcs-dataset-properties-390-full.png",
+      "classification": "unchanged",
+      "reason": "Visible content and actions are equivalent; fixture hashes, timestamps or minor text offsets account for the pixel difference.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 95,
+        "top": 307,
+        "width": 130,
+        "height": 345
+      },
+      "review_image": "sheet-057.png"
+    },
+    {
+      "id": "1944",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-odcs-dataset-quality-390.png",
+      "classification": "unchanged",
+      "reason": "Visible content and actions are equivalent; fixture hashes, timestamps or minor text offsets account for the pixel difference.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 95,
+        "top": 307,
+        "width": 130,
+        "height": 90
+      },
+      "review_image": "sheet-058.png"
+    },
+    {
+      "id": "1947",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-odcs-property-edit-390-full.png",
+      "classification": "unchanged",
+      "reason": "Visible content and actions are equivalent; fixture hashes, timestamps or minor text offsets account for the pixel difference. Both captures show the properties list, so this pair does not establish an open property-edit dialog.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 95,
+        "top": 307,
+        "width": 130,
+        "height": 345
+      },
+      "review_image": "sheet-058.png"
+    },
+    {
+      "id": "1950",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-ontology-catalog-390.png",
+      "classification": "intended",
+      "reason": "Catalog count, readable type labels, descriptions and action placement are intentional; phone Edit actions remain visible.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 115,
+        "width": 390,
+        "height": 710
+      },
+      "review_image": "sheet-059.png"
+    },
+    {
+      "id": "1953",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-ontology-mappings-390-full.png",
+      "classification": "intended",
+      "reason": "Mapping empty-state guidance offers Import and Load example instead of inert graph controls; surrounding sidebar spacing and badges are intentional.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 232,
+        "width": 389,
+        "height": 331
+      },
+      "review_image": "sheet-059.png"
+    },
+    {
+      "id": "1958",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-ontology-neighborhood-390.png",
+      "classification": "intended",
+      "reason": "The legend sits below the canvas; responsive controls, label sizing and camera fitting change graph geometry intentionally. Visible graph content is retained.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "review_image": "sheet-060.png"
+    },
+    {
+      "id": "1963",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-query-composer-390-full.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 232,
+        "width": 389,
+        "height": 331
+      },
+      "review_image": "sheet-060.png"
+    },
+    {
+      "id": "1966",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-settings-390.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 307,
+        "height": 376
+      },
+      "review_image": "sheet-061.png"
+    },
+    {
+      "id": "1969",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-source-control-390-full.png",
+      "classification": "intended",
+      "reason": "Source-control staging and remote guidance use clearer grouping; sidebar type badges and fixture metadata account for remaining differences.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 184,
+        "width": 390,
+        "height": 654
+      },
+      "review_image": "sheet-061.png"
+    },
+    {
+      "id": "1972",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-source-control-remote-390.png",
+      "classification": "intended",
+      "reason": "Source-control staging and remote guidance use clearer grouping; sidebar type badges and fixture metadata account for remaining differences.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 274,
+        "width": 390,
+        "height": 563
+      },
+      "review_image": "sheet-062.png"
+    },
+    {
+      "id": "1975",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-trash-390-full.png",
+      "classification": "intended",
+      "reason": "Trash actions retain their content with intended button and surrounding layout styling.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 106,
+        "width": 305,
+        "height": 704
+      },
+      "review_image": "sheet-062.png"
+    },
+    {
+      "id": "1978",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-admin-access-check-390.png",
+      "classification": "intended",
+      "reason": "Admin fields, table columns and actions use the intended bounded layout; visible records and controls remain available.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 735,
+        "width": 308,
+        "height": 109
+      },
+      "review_image": "sheet-063.png"
+    },
+    {
+      "id": "1987",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-admin-grants-390-full.png",
+      "classification": "unchanged",
+      "reason": "Visible content and actions are equivalent; fixture hashes, timestamps or minor text offsets account for the pixel difference.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 92,
+        "top": 326,
+        "width": 120,
+        "height": 429
+      },
+      "review_image": "sheet-063.png"
+    },
+    {
+      "id": "1992",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-admin-projects-390.png",
+      "classification": "intended",
+      "reason": "Admin fields, table columns and actions use the intended bounded layout; visible records and controls remain available.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 220,
+        "top": 637,
+        "width": 170,
+        "height": 112
+      },
+      "review_image": "sheet-064.png"
+    },
+    {
+      "id": "1995",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-admin-settings-390-full.png",
+      "classification": "intended",
+      "reason": "Settings fields use bounded widths and Save follows the lifetime fields.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 294,
+        "width": 334,
+        "height": 550
+      },
+      "review_image": "sheet-064.png"
+    },
+    {
+      "id": "1998",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-admin-users-390.png",
+      "classification": "unchanged",
+      "reason": "Visible content and actions are equivalent; fixture hashes, timestamps or minor text offsets account for the pixel difference.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 168,
+        "top": 329,
+        "width": 128,
+        "height": 89
+      },
+      "review_image": "sheet-065.png"
+    },
+    {
+      "id": "2001",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-clone-folder-refused-390-full.png",
+      "classification": "intended",
+      "reason": "Form spacing and disabled/validation action styling are intentional; the visible path or repository fields and error state are preserved.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 113,
+        "width": 390,
+        "height": 669
+      },
+      "review_image": "sheet-065.png"
+    },
+    {
+      "id": "2004",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-file-move-390.png",
+      "classification": "intended",
+      "reason": "Dialog spacing and action styling are intentional; visible form content and validation remain available.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 113,
+        "width": 382,
+        "height": 669
+      },
+      "review_image": "sheet-066.png"
+    },
+    {
+      "id": "2007",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-graph-model-options-390-full.png",
+      "classification": "intended",
+      "reason": "Responsive Controls, graph fitting and label/card geometry are intentional. Open-option overlays and hover/camera differences do not establish lost graph content; Show badge is retained where exposed.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 113,
+        "width": 390,
+        "height": 685
+      },
+      "review_image": "sheet-066.png"
+    },
+    {
+      "id": "2010",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-graph-neighborhood-more-390.png",
+      "classification": "intended",
+      "reason": "The legend sits below the canvas; responsive controls, label sizing and camera fitting change graph geometry intentionally. Visible graph content is retained.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "review_image": "sheet-067.png"
+    },
+    {
+      "id": "2015",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-ontology-neighborhood-fullscreen-390-full.png",
+      "classification": "intended",
+      "reason": "The legend sits below the canvas; responsive controls, label sizing and camera fitting change graph geometry intentionally. Visible graph content is retained.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 390,
+        "height": 844
+      },
+      "review_image": "sheet-067.png"
+    },
+    {
+      "id": "2018",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-ontology-neighborhood-hover-label-390.png",
+      "classification": "intended",
+      "reason": "The legend sits below the canvas; responsive controls, label sizing and camera fitting change graph geometry intentionally. Visible graph content is retained.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "review_image": "sheet-068.png"
+    },
+    {
+      "id": "2021",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-project-delete-390-full.png",
+      "classification": "intended",
+      "reason": "Deletion confirmation says Will move to trash before the action; button spacing and styling are intentional.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 113,
+        "width": 382,
+        "height": 669
+      },
+      "review_image": "sheet-068.png"
+    },
+    {
+      "id": "2024",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-project-export-390.png",
+      "classification": "intended",
+      "reason": "Dialog spacing and action styling are intentional; visible form content and validation remain available.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 6,
+        "top": 113,
+        "width": 376,
+        "height": 669
+      },
+      "review_image": "sheet-069.png"
+    },
+    {
+      "id": "2027",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-project-rename-390-full.png",
+      "classification": "intended",
+      "reason": "Dialog spacing and action styling are intentional; visible form content and validation remain available.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 113,
+        "width": 382,
+        "height": 669
+      },
+      "review_image": "sheet-069.png"
+    },
+    {
+      "id": "2030",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-remote-folder-390.png",
+      "classification": "intended",
+      "reason": "Form spacing and disabled/validation action styling are intentional; the visible path or repository fields and error state are preserved.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 274,
+        "width": 374,
+        "height": 563
+      },
+      "review_image": "sheet-070.png"
+    },
+    {
+      "id": "2033",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-scm-diff-added-390-full.png",
+      "classification": "intended",
+      "reason": "Diff filename, gutters and responsive detail layout are intentional; phone detail includes Back to changes. Fixture commit text is incidental.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 118,
+        "width": 390,
+        "height": 720
+      },
+      "review_image": "sheet-070.png"
+    },
+    {
+      "id": "2036",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-scm-diff-deleted-390.png",
+      "classification": "intended",
+      "reason": "Diff filename, gutters and responsive detail layout are intentional; phone detail includes Back to changes. Fixture commit text is incidental.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 68,
+        "width": 390,
+        "height": 770
+      },
+      "review_image": "sheet-071.png"
+    },
+    {
+      "id": "2039",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-scm-stale-save-390-full.png",
+      "classification": "intended",
+      "reason": "Keep editing is the primary action; overwrite has a danger outline and the diff uses the intended responsive layout.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 11,
+        "width": 390,
+        "height": 822
+      },
+      "review_image": "sheet-071.png"
+    },
+    {
+      "id": "2129",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-admin-access-check-1280.png",
+      "classification": "intended",
+      "reason": "Admin fields, table columns and actions use the intended bounded layout; visible records and controls remain available.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.7414448669201521,
+      "crop": {
+        "left": 228,
+        "top": 123,
+        "width": 1052,
+        "height": 592
+      },
+      "review_image": "sheet-072.png"
+    },
+    {
+      "id": "2138",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-admin-grants-1280-full.png",
+      "classification": "intended",
+      "reason": "Admin fields, table columns and actions use the intended bounded layout; visible records and controls remain available.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 622,
+        "top": 171,
+        "width": 616,
+        "height": 534
+      },
+      "review_image": "sheet-072.png"
+    },
+    {
+      "id": "2143",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-admin-projects-1280.png",
+      "classification": "intended",
+      "reason": "Admin fields, table columns and actions use the intended bounded layout; visible records and controls remain available.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 864,
+        "top": 248,
+        "width": 416,
+        "height": 392
+      },
+      "review_image": "sheet-073.png"
+    },
+    {
+      "id": "2146",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-admin-settings-1280-full.png",
+      "classification": "intended",
+      "reason": "Settings fields use bounded widths and Save follows the lifetime fields.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 228,
+        "top": 229,
+        "width": 358,
+        "height": 491
+      },
+      "review_image": "sheet-073.png"
+    },
+    {
+      "id": "2149",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-admin-users-1280.png",
+      "classification": "intended",
+      "reason": "Admin fields, table columns and actions use the intended bounded layout; visible records and controls remain available.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.936374549819928,
+      "crop": {
+        "left": 447,
+        "top": 141,
+        "width": 833,
+        "height": 319
+      },
+      "review_image": "sheet-074.png"
+    },
+    {
+      "id": "2152",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-clone-folder-refused-1280-full.png",
+      "classification": "intended",
+      "reason": "Form spacing and disabled/validation action styling are intentional; the visible path or repository fields and error state are preserved.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.6927175843694494,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1126,
+        "height": 672
+      },
+      "review_image": "sheet-074.png"
+    },
+    {
+      "id": "2155",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-file-move-1280.png",
+      "classification": "intended",
+      "reason": "Dialog spacing and action styling are intentional; visible form content and validation remain available.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.6927175843694494,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1126,
+        "height": 672
+      },
+      "review_image": "sheet-075.png"
+    },
+    {
+      "id": "2158",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-graph-model-options-1280-full.png",
+      "classification": "intended",
+      "reason": "Responsive Controls, graph fitting and label/card geometry are intentional. Open-option overlays and hover/camera differences do not establish lost graph content; Show badge is retained where exposed.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.609375,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 692
+      },
+      "review_image": "sheet-075.png"
+    },
+    {
+      "id": "2161",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-graph-neighborhood-more-1280.png",
+      "classification": "intended",
+      "reason": "The legend sits below the canvas; responsive controls, label sizing and camera fitting change graph geometry intentionally. Visible graph content is retained.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.609375,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "review_image": "sheet-076.png"
+    },
+    {
+      "id": "2164",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-ontology-graph-fullscreen-1280-full.png",
+      "classification": "intended",
+      "reason": "Responsive Controls, graph fitting and label/card geometry are intentional. Open-option overlays and hover/camera differences do not establish lost graph content; Show badge is retained where exposed.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.609375,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 717
+      },
+      "review_image": "sheet-076.png"
+    },
+    {
+      "id": "2167",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-ontology-neighborhood-fullscreen-1280.png",
+      "classification": "intended",
+      "reason": "The legend sits below the canvas; responsive controls, label sizing and camera fitting change graph geometry intentionally. Visible graph content is retained.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.609375,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "review_image": "sheet-077.png"
+    },
+    {
+      "id": "2170",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-ontology-neighborhood-labels-zoomed-1280-full.png",
+      "classification": "intended",
+      "reason": "The legend sits below the canvas; responsive controls, label sizing and camera fitting change graph geometry intentionally. Visible graph content is retained.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.609375,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "review_image": "sheet-077.png"
+    },
+    {
+      "id": "2173",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-project-delete-1280.png",
+      "classification": "intended",
+      "reason": "Deletion confirmation says Will move to trash before the action; button spacing and styling are intentional.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.6927175843694494,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1126,
+        "height": 672
+      },
+      "review_image": "sheet-078.png"
+    },
+    {
+      "id": "2176",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-project-export-history-1280-full.png",
+      "classification": "intended",
+      "reason": "Dialog spacing and action styling are intentional; visible form content and validation remain available.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.6927175843694494,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1126,
+        "height": 672
+      },
+      "review_image": "sheet-078.png"
+    },
+    {
+      "id": "2179",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-project-rename-1280.png",
+      "classification": "intended",
+      "reason": "Dialog spacing and action styling are intentional; visible form content and validation remain available.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.6927175843694494,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1126,
+        "height": 672
+      },
+      "review_image": "sheet-079.png"
+    },
+    {
+      "id": "2182",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-remote-folder-refused-1280-full.png",
+      "classification": "intended",
+      "reason": "Form spacing and disabled/validation action styling are intentional; the visible path or repository fields and error state are preserved.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 713,
+        "height": 711
+      },
+      "review_image": "sheet-079.png"
+    },
+    {
+      "id": "2185",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-scm-diff-added-1280.png",
+      "classification": "intended",
+      "reason": "Diff filename, gutters and responsive detail layout are intentional; phone detail includes Back to changes. Fixture commit text is incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.609375,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 716
+      },
+      "review_image": "sheet-080.png"
+    },
+    {
+      "id": "2188",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-scm-diff-modified-1280-full.png",
+      "classification": "intended",
+      "reason": "Diff filename, gutters and responsive detail layout are intentional; phone detail includes Back to changes. Fixture commit text is incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.609375,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 716
+      },
+      "review_image": "sheet-080.png"
+    },
+    {
+      "id": "2191",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-scm-stale-save-1280.png",
+      "classification": "intended",
+      "reason": "Keep editing is the primary action; overwrite has a danger outline and the diff uses the intended responsive layout.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.6341463414634146,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1230,
+        "height": 589
+      },
+      "review_image": "sheet-081.png"
+    },
+    {
+      "id": "2241",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-admin-audit-1440-full.png",
+      "classification": "intended",
+      "reason": "Human-readable audit labels and Allow/Deny styling retain the audit content.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.8125,
+      "crop": {
+        "left": 358,
+        "top": 332,
+        "width": 960,
+        "height": 568
+      },
+      "review_image": "sheet-081.png"
+    },
+    {
+      "id": "2246",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-admin-grants-1440.png",
+      "classification": "intended",
+      "reason": "Admin fields, table columns and actions use the intended bounded layout; visible records and controls remain available.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 685,
+        "top": 171,
+        "width": 693,
+        "height": 534
+      },
+      "review_image": "sheet-082.png"
+    },
+    {
+      "id": "2251",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-admin-roles-1440-full.png",
+      "classification": "intended",
+      "reason": "The role matrix uses checkmarks and clearer spacing while retaining permissions.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 625,
+        "top": 171,
+        "width": 701,
+        "height": 729
+      },
+      "review_image": "sheet-082.png"
+    },
+    {
+      "id": "2254",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-admin-settings-1440.png",
+      "classification": "intended",
+      "reason": "Settings fields use bounded widths and Save follows the lifetime fields.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.654911838790932,
+      "crop": {
+        "left": 228,
+        "top": 229,
+        "width": 1191,
+        "height": 671
+      },
+      "review_image": "sheet-083.png"
+    },
+    {
+      "id": "2257",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-clone-folder-1440-full.png",
+      "classification": "intended",
+      "reason": "Form spacing and disabled/validation action styling are intentional; the visible path or repository fields and error state are preserved.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5481377371749825,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 865
+      },
+      "review_image": "sheet-083.png"
+    },
+    {
+      "id": "2260",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-clone-folder-refused-1440.png",
+      "classification": "intended",
+      "reason": "Form spacing and disabled/validation action styling are intentional; the visible path or repository fields and error state are preserved.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5481377371749825,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 865
+      },
+      "review_image": "sheet-084.png"
+    },
+    {
+      "id": "2263",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-graph-model-all-areas-1440-full.png",
+      "classification": "intended",
+      "reason": "Responsive Controls, graph fitting and label/card geometry are intentional. Open-option overlays and hover/camera differences do not establish lost graph content; Show badge is retained where exposed.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 874
+      },
+      "review_image": "sheet-084.png"
+    },
+    {
+      "id": "2266",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-graph-model-options-1440.png",
+      "classification": "intended",
+      "reason": "Responsive Controls, graph fitting and label/card geometry are intentional. Open-option overlays and hover/camera differences do not establish lost graph content; Show badge is retained where exposed.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 874
+      },
+      "review_image": "sheet-085.png"
+    },
+    {
+      "id": "2269",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-mapping-graph-1440-full.png",
+      "classification": "intended",
+      "reason": "Mapping empty-state guidance offers Import and Load example instead of inert graph controls; surrounding sidebar spacing and badges are intentional.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 672,
+        "height": 744
+      },
+      "review_image": "sheet-085.png"
+    },
+    {
+      "id": "2272",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-ontology-graph-fullscreen-1440.png",
+      "classification": "intended",
+      "reason": "Responsive Controls, graph fitting and label/card geometry are intentional. Open-option overlays and hover/camera differences do not establish lost graph content; Show badge is retained where exposed.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.8324439701173959,
+      "crop": {
+        "left": 294,
+        "top": 0,
+        "width": 937,
+        "height": 797
+      },
+      "review_image": "sheet-086.png"
+    },
+    {
+      "id": "2275",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-ontology-neighborhood-hover-label-1440-full.png",
+      "classification": "intended",
+      "reason": "The legend sits below the canvas; responsive controls, label sizing and camera fitting change graph geometry intentionally. Visible graph content is retained.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "review_image": "sheet-086.png"
+    },
+    {
+      "id": "2278",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-ontology-neighborhood-labels-zoomed-1440.png",
+      "classification": "intended",
+      "reason": "The legend sits below the canvas; responsive controls, label sizing and camera fitting change graph geometry intentionally. Visible graph content is retained.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "review_image": "sheet-087.png"
+    },
+    {
+      "id": "2281",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-project-export-1440-full.png",
+      "classification": "intended",
+      "reason": "Dialog spacing and action styling are intentional; visible form content and validation remain available.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5481377371749825,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 865
+      },
+      "review_image": "sheet-087.png"
+    },
+    {
+      "id": "2284",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-project-export-history-1440.png",
+      "classification": "intended",
+      "reason": "Dialog spacing and action styling are intentional; visible form content and validation remain available.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5481377371749825,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 865
+      },
+      "review_image": "sheet-088.png"
+    },
+    {
+      "id": "2287",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-remote-folder-1440-full.png",
+      "classification": "intended",
+      "reason": "Form spacing and disabled/validation action styling are intentional; the visible path or repository fields and error state are preserved.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 722,
+        "height": 837
+      },
+      "review_image": "sheet-088.png"
+    },
+    {
+      "id": "2290",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-remote-folder-refused-1440.png",
+      "classification": "intended",
+      "reason": "Form spacing and disabled/validation action styling are intentional; the visible path or repository fields and error state are preserved.",
+      "viewed": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 722,
+        "height": 837
+      },
+      "review_image": "sheet-089.png"
+    },
+    {
+      "id": "2293",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-scm-diff-deleted-1440-full.png",
+      "classification": "intended",
+      "reason": "Diff filename, gutters and responsive detail layout are intentional; phone detail includes Back to changes. Fixture commit text is incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 885
+      },
+      "review_image": "sheet-089.png"
+    },
+    {
+      "id": "2296",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-scm-diff-modified-1440.png",
+      "classification": "intended",
+      "reason": "Diff filename, gutters and responsive detail layout are intentional; phone detail includes Back to changes. Fixture commit text is incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 820
+      },
+      "review_image": "sheet-090.png"
+    },
+    {
+      "id": "2300",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-add-concept-2560-full.png",
+      "classification": "intended",
+      "reason": "Editor field spacing and solid disabled-action styling are intentional; visible fields and actions remain present.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.30552291421856637,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2553,
+        "height": 1245
+      },
+      "review_image": "sheet-090.png"
+    },
+    {
+      "id": "2303",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-catalog-2560.png",
+      "classification": "intended",
+      "reason": "Catalog count, readable type labels, descriptions and action placement are intentional; phone Edit actions remain visible.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.30552291421856637,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2553,
+        "height": 1247
+      },
+      "review_image": "sheet-091.png"
+    },
+    {
+      "id": "2306",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-contract-contract-2560-full.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.967741935483871,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 806,
+        "height": 1247
+      },
+      "review_image": "sheet-092.png"
+    },
+    {
+      "id": "2309",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-contract-graph-2560.png",
+      "classification": "intended",
+      "reason": "Compact name-only graph cards and fitting change node geometry intentionally; the graph content remains represented.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.3046875,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "review_image": "sheet-093.png"
+    },
+    {
+      "id": "2312",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-item-editor-2560-full.png",
+      "classification": "intended",
+      "reason": "Editor field spacing and solid disabled-action styling are intentional; visible fields and actions remain present.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.3046875,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "review_image": "sheet-093.png"
+    },
+    {
+      "id": "2315",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-mappings-2560.png",
+      "classification": "intended",
+      "reason": "Mapping empty-state guidance offers Import and Load example instead of inert graph controls; surrounding sidebar spacing and badges are intentional.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.3463587921847247,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2252,
+        "height": 1247
+      },
+      "review_image": "sheet-094.png"
+    },
+    {
+      "id": "2318",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-metric-wizard-2560-full.png",
+      "classification": "intended",
+      "reason": "The taller wizard and stable footer keep fields and actions together, including the phone layout.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.3410581547879318,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2287,
+        "height": 1429
+      },
+      "review_image": "sheet-094.png"
+    },
+    {
+      "id": "2321",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-metrics-list-2560.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.9154929577464789,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 852,
+        "height": 1247
+      },
+      "review_image": "sheet-095.png"
+    },
+    {
+      "id": "2324",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-odcs-contract-team-2560-full.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.967741935483871,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 806,
+        "height": 1247
+      },
+      "review_image": "sheet-096.png"
+    },
+    {
+      "id": "2327",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-odcs-dataset-history-2560.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.6587837837837838,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1184,
+        "height": 1247
+      },
+      "review_image": "sheet-097.png"
+    },
+    {
+      "id": "2330",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-odcs-dataset-quality-2560-full.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.6587837837837838,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1184,
+        "height": 1247
+      },
+      "review_image": "sheet-098.png"
+    },
+    {
+      "id": "2333",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-odcs-dataset-relationships-2560.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.6587837837837838,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1184,
+        "height": 1247
+      },
+      "review_image": "sheet-099.png"
+    },
+    {
+      "id": "2336",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-ontology-catalog-2560-full.png",
+      "classification": "intended",
+      "reason": "Catalog count, readable type labels, descriptions and action placement are intentional; phone Edit actions remain visible.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.30552291421856637,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2553,
+        "height": 1247
+      },
+      "review_image": "sheet-099.png"
+    },
+    {
+      "id": "2339",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-ontology-graph-2560.png",
+      "classification": "intended",
+      "reason": "Responsive Controls, graph fitting and label/card geometry are intentional. Open-option overlays and hover/camera differences do not establish lost graph content; Show badge is retained where exposed.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1247
+      },
+      "review_image": "sheet-100.png"
+    },
+    {
+      "id": "2342",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-ontology-metrics-2560-full.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.8944954128440367,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 872,
+        "height": 1247
+      },
+      "review_image": "sheet-101.png"
+    },
+    {
+      "id": "2345",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-ontology-neighborhood-2560.png",
+      "classification": "intended",
+      "reason": "The legend sits below the canvas; responsive controls, label sizing and camera fitting change graph geometry intentionally. Visible graph content is retained.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.3046875,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "review_image": "sheet-102.png"
+    },
+    {
+      "id": "2348",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-ontology-source-2560-full.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.32432432432432434,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2405,
+        "height": 1247
+      },
+      "review_image": "sheet-102.png"
+    },
+    {
+      "id": "2351",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-query-composer-2560.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.3463587921847247,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2252,
+        "height": 1247
+      },
+      "review_image": "sheet-103.png"
+    },
+    {
+      "id": "2354",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-sidebar-projects-2560-full.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.8944954128440367,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 872,
+        "height": 1247
+      },
+      "review_image": "sheet-104.png"
+    },
+    {
+      "id": "2357",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-source-control-2560.png",
+      "classification": "intended",
+      "reason": "Source-control staging and remote guidance use clearer grouping; sidebar type badges and fixture metadata account for remaining differences.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.967741935483871,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 806,
+        "height": 1247
+      },
+      "review_image": "sheet-105.png"
+    },
+    {
+      "id": "2360",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-source-editor-2560-full.png",
+      "classification": "intended",
+      "reason": "Sidebar type badges and spacing, bounded content layout or editor/form styling are intentional; the visible screen content remains equivalent. Fixture hashes and timestamps are incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.32432432432432434,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2405,
+        "height": 1247
+      },
+      "review_image": "sheet-106.png"
+    },
+    {
+      "id": "2363",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-trash-2560.png",
+      "classification": "intended",
+      "reason": "Trash actions retain their content with intended button and surrounding layout styling.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.324459234608985,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2404,
+        "height": 1245
+      },
+      "review_image": "sheet-106.png"
+    },
+    {
+      "id": "2370",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-admin-audit-2560-full.png",
+      "classification": "intended",
+      "reason": "Human-readable audit labels and Allow/Deny styling retain the audit content.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.3344768439108062,
+      "crop": {
+        "left": 228,
+        "top": 146,
+        "width": 2332,
+        "height": 1116
+      },
+      "review_image": "sheet-107.png"
+    },
+    {
+      "id": "2373",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-admin-git-remotes-2560.png",
+      "classification": "intended",
+      "reason": "The table is header-only in both captures; candidate applies the narrower admin content width. Loaded project rows are not established by this pair.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.40289256198347106,
+      "crop": {
+        "left": 624,
+        "top": 127,
+        "width": 1936,
+        "height": 102
+      },
+      "review_image": "sheet-107.png"
+    },
+    {
+      "id": "2378",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-admin-projects-2560-full.png",
+      "classification": "intended",
+      "reason": "Admin fields, table columns and actions use the intended bounded layout; visible records and controls remain available.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.45990566037735847,
+      "crop": {
+        "left": 864,
+        "top": 248,
+        "width": 1696,
+        "height": 1026
+      },
+      "review_image": "sheet-108.png"
+    },
+    {
+      "id": "2381",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-admin-roles-2560.png",
+      "classification": "intended",
+      "reason": "The role matrix uses checkmarks and clearer spacing while retaining permissions.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.42460533478497553,
+      "crop": {
+        "left": 723,
+        "top": 171,
+        "width": 1837,
+        "height": 1269
+      },
+      "review_image": "sheet-108.png"
+    },
+    {
+      "id": "2384",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-admin-users-2560-full.png",
+      "classification": "intended",
+      "reason": "Admin fields, table columns and actions use the intended bounded layout; visible records and controls remain available.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.3691433980123048,
+      "crop": {
+        "left": 447,
+        "top": 141,
+        "width": 2113,
+        "height": 342
+      },
+      "review_image": "sheet-109.png"
+    },
+    {
+      "id": "2387",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-clone-folder-2560.png",
+      "classification": "intended",
+      "reason": "Form spacing and disabled/validation action styling are intentional; the visible path or repository fields and error state are preserved.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "review_image": "sheet-109.png"
+    },
+    {
+      "id": "2390",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-file-move-2560-full.png",
+      "classification": "intended",
+      "reason": "Dialog spacing and action styling are intentional; visible form content and validation remain available.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "review_image": "sheet-110.png"
+    },
+    {
+      "id": "2393",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-graph-model-all-areas-2560.png",
+      "classification": "intended",
+      "reason": "Responsive Controls, graph fitting and label/card geometry are intentional. Open-option overlays and hover/camera differences do not establish lost graph content; Show badge is retained where exposed.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1247
+      },
+      "review_image": "sheet-110.png"
+    },
+    {
+      "id": "2396",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-graph-neighborhood-more-2560-full.png",
+      "classification": "intended",
+      "reason": "The legend sits below the canvas; responsive controls, label sizing and camera fitting change graph geometry intentionally. Visible graph content is retained.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.3046875,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "review_image": "sheet-111.png"
+    },
+    {
+      "id": "2399",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-mapping-graph-2560.png",
+      "classification": "intended",
+      "reason": "Mapping empty-state guidance offers Import and Load example instead of inert graph controls; surrounding sidebar spacing and badges are intentional.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.8996539792387543,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 867,
+        "height": 1247
+      },
+      "review_image": "sheet-112.png"
+    },
+    {
+      "id": "2402",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-ontology-neighborhood-fullscreen-2560-full.png",
+      "classification": "intended",
+      "reason": "The legend sits below the canvas; responsive controls, label sizing and camera fitting change graph geometry intentionally. Visible graph content is retained.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.3046875,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "review_image": "sheet-113.png"
+    },
+    {
+      "id": "2405",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-ontology-neighborhood-hover-label-2560.png",
+      "classification": "intended",
+      "reason": "The legend sits below the canvas; responsive controls, label sizing and camera fitting change graph geometry intentionally. Visible graph content is retained.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.3046875,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "review_image": "sheet-113.png"
+    },
+    {
+      "id": "2408",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-project-delete-2560-full.png",
+      "classification": "intended",
+      "reason": "Deletion confirmation says Will move to trash before the action; button spacing and styling are intentional.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "review_image": "sheet-114.png"
+    },
+    {
+      "id": "2411",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-project-export-2560.png",
+      "classification": "intended",
+      "reason": "Dialog spacing and action styling are intentional; visible form content and validation remain available.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "review_image": "sheet-114.png"
+    },
+    {
+      "id": "2414",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-project-rename-2560-full.png",
+      "classification": "intended",
+      "reason": "Dialog spacing and action styling are intentional; visible form content and validation remain available.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "review_image": "sheet-115.png"
+    },
+    {
+      "id": "2417",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-remote-folder-2560.png",
+      "classification": "intended",
+      "reason": "Form spacing and disabled/validation action styling are intentional; the visible path or repository fields and error state are preserved.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.608424336973479,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1282,
+        "height": 1245
+      },
+      "review_image": "sheet-115.png"
+    },
+    {
+      "id": "2420",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-scm-diff-added-2560-full.png",
+      "classification": "intended",
+      "reason": "Diff filename, gutters and responsive detail layout are intentional; phone detail includes Back to changes. Fixture commit text is incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.3046875,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1247
+      },
+      "review_image": "sheet-116.png"
+    },
+    {
+      "id": "2423",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-scm-diff-deleted-2560.png",
+      "classification": "intended",
+      "reason": "Diff filename, gutters and responsive detail layout are intentional; phone detail includes Back to changes. Fixture commit text is incidental.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.3046875,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1247
+      },
+      "review_image": "sheet-116.png"
+    },
+    {
+      "id": "2426",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-scm-stale-save-2560-full.png",
+      "classification": "intended",
+      "reason": "Keep editing is the primary action; overwrite has a danger outline and the diff uses the intended responsive layout.",
+      "viewed": true,
+      "resolution": "downscaled",
+      "scale": 0.324459234608985,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2404,
+        "height": 1245
+      },
+      "review_image": "sheet-117.png"
+    }
+  ]
+}

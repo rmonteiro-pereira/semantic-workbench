@@ -1,0 +1,3743 @@
+{
+  "scope": "Assigned changed server-mode pairs only; existing screenshots, no new captures or product changes.",
+  "baseline_commit": "da54cf17",
+  "candidate_capture_commit": "df201d11",
+  "review_worktree_base": "3bb8f61f",
+  "input": "/home/rodrigo/scratch/sw-007/pending-server-3.tsv",
+  "input_sha256": "e6be66a797f2fe4c54149a8bfa7cb9b76b748f9a4353a666edfc8c96f79e2675",
+  "method": {
+    "pixel_threshold_per_channel": 16,
+    "context_pixels": 40,
+    "maximum_panel_width": 780,
+    "main_position": "left",
+    "candidate_position": "right",
+    "maximum_pairs_per_image": 2,
+    "images_seen": 119,
+    "images": "115 bounding-box sheets and four supplemental native-detail sheets",
+    "resolution_rule": "Native unless bounding-box crop exceeds 780 pixels wide; native detail crops supplement dense desktop forms and the reported regression."
+  },
+  "counts": {
+    "intended": 207,
+    "traversal noise": 1,
+    "unchanged": 4,
+    "regression": 1
+  },
+  "resolution_counts": {
+    "downscaled": 159,
+    "native": 54
+  },
+  "open_regressions": [
+    {
+      "id": 2372,
+      "status": "open; not fixed in review-only session",
+      "key": "light/2560/server-1/server-admin-git-remotes-2560-full.png",
+      "description": "Five Git remotes project rows and their Set remote actions are absent from the candidate screenshot.",
+      "crop": "/home/rodrigo/scratch/sw-007/review-sol3-detail2/sheet-000.png",
+      "uncertainty": "A transient loading or traversal difference is possible. Screenshot evidence alone cannot distinguish it from a persistent regression.",
+      "next_step": "Reproduce after the Git remotes list has settled, then recapture this screen and resolve or reclassify the finding."
+    }
+  ],
+  "limitations": [
+    "This subset does not establish the complete journey, Traffic, imported mesh items or all change-mark states.",
+    "No browser, mutation, unit or build suite was run in this review-only assignment.",
+    "No gate completion claim or T076 change is made."
+  ],
+  "pairs": [
+    {
+      "id": 1533,
+      "key": "dark/1280/server-0/server-dark-clone-repository-1280-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.8715083798882681,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 895,
+        "height": 711
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-000.png",
+      "native_details": []
+    },
+    {
+      "id": 1539,
+      "key": "dark/1280/server-0/server-dark-import-1280-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.693950177935943,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1124,
+        "height": 720
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-000.png",
+      "native_details": []
+    },
+    {
+      "id": 1545,
+      "key": "dark/1280/server-0/server-dark-metric-detail-1280-full.png",
+      "classification": "intended",
+      "reason": "Metric spacing and content alignment are intended; at 2560 pixels the list and open detail share the common content width.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 656,
+        "height": 706
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-001.png",
+      "native_details": []
+    },
+    {
+      "id": 1551,
+      "key": "dark/1280/server-0/server-dark-odcs-contract-search-1280-full.png",
+      "classification": "intended",
+      "reason": "Contract detail spacing, readable labels and Open in Source presentation are intended. Differences in revision text are volatile; a property-edit filename alone does not establish an open editor.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 611,
+        "height": 592
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-001.png",
+      "native_details": []
+    },
+    {
+      "id": 1557,
+      "key": "dark/1280/server-0/server-dark-odcs-dataset-properties-1280-full.png",
+      "classification": "intended",
+      "reason": "Contract detail spacing, readable labels and Open in Source presentation are intended. Differences in revision text are volatile; a property-edit filename alone does not establish an open editor.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.609375,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 619
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-002.png",
+      "native_details": []
+    },
+    {
+      "id": 1563,
+      "key": "dark/1280/server-0/server-dark-odcs-property-edit-1280-full.png",
+      "classification": "intended",
+      "reason": "Contract detail spacing, readable labels and Open in Source presentation are intended. Differences in revision text are volatile; a property-edit filename alone does not establish an open editor.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.609375,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 619
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-002.png",
+      "native_details": []
+    },
+    {
+      "id": 1569,
+      "key": "dark/1280/server-0/server-dark-ontology-mappings-1280-full.png",
+      "classification": "intended",
+      "reason": "The empty mapping state uses the intended recovery actions and removes an empty selector. This capture does not establish a populated query journey.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.609375,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 589
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-003.png",
+      "native_details": []
+    },
+    {
+      "id": 1575,
+      "key": "dark/1280/server-0/server-dark-ontology-overview-1280-full.png",
+      "classification": "intended",
+      "reason": "The visible sidebar labels, spacing and content/action styling follow the intended review changes; no additional regression was observed.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 676,
+        "height": 589
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-003.png",
+      "native_details": []
+    },
+    {
+      "id": 1581,
+      "key": "dark/1280/server-0/server-dark-settings-1280-full.png",
+      "classification": "intended",
+      "reason": "The visible sidebar labels, spacing and content/action styling follow the intended review changes; no additional regression was observed.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.6933333333333334,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1125,
+        "height": 720
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-004.png",
+      "native_details": []
+    },
+    {
+      "id": 1587,
+      "key": "dark/1280/server-0/server-dark-source-control-remote-1280-full.png",
+      "classification": "intended",
+      "reason": "Source-control spacing, stage and commit guidance, and sidebar labels follow the intended presentation.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.8715083798882681,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 895,
+        "height": 711
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-004.png",
+      "native_details": []
+    },
+    {
+      "id": 1593,
+      "key": "dark/1280/server-1/server-dark-admin-access-check-1280-full.png",
+      "classification": "intended",
+      "reason": "Administrative form/table alignment, bounded field widths and readable labels follow the intended responsive layout.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.7414448669201521,
+      "crop": {
+        "left": 228,
+        "top": 123,
+        "width": 1052,
+        "height": 592
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-005.png",
+      "native_details": []
+    },
+    {
+      "id": 1607,
+      "key": "dark/1280/server-1/server-dark-admin-projects-1280-full.png",
+      "classification": "intended",
+      "reason": "Administrative form/table alignment, bounded field widths and readable labels follow the intended responsive layout.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 864,
+        "top": 248,
+        "width": 416,
+        "height": 392
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-005.png",
+      "native_details": []
+    },
+    {
+      "id": 1613,
+      "key": "dark/1280/server-1/server-dark-admin-users-1280-full.png",
+      "classification": "intended",
+      "reason": "Administrative form/table alignment, bounded field widths and readable labels follow the intended responsive layout.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.936374549819928,
+      "crop": {
+        "left": 447,
+        "top": 141,
+        "width": 833,
+        "height": 319
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-006.png",
+      "native_details": []
+    },
+    {
+      "id": 1619,
+      "key": "dark/1280/server-1/server-dark-file-move-1280-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.7046070460704607,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1107,
+        "height": 672
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-006.png",
+      "native_details": []
+    },
+    {
+      "id": 1625,
+      "key": "dark/1280/server-1/server-dark-graph-neighborhood-more-1280-full.png",
+      "classification": "intended",
+      "reason": "Adaptive graph fitting, readable labels, folded controls and legend below the canvas are intended. The visible neighborhood remains represented.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.609375,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-007.png",
+      "native_details": []
+    },
+    {
+      "id": 1631,
+      "key": "dark/1280/server-1/server-dark-ontology-neighborhood-fullscreen-1280-full.png",
+      "classification": "intended",
+      "reason": "Adaptive graph fitting, readable labels, folded controls and legend below the canvas are intended. The visible neighborhood remains represented.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.609375,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-007.png",
+      "native_details": []
+    },
+    {
+      "id": 1637,
+      "key": "dark/1280/server-1/server-dark-project-delete-1280-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.7046070460704607,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1107,
+        "height": 672
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-008.png",
+      "native_details": []
+    },
+    {
+      "id": 1643,
+      "key": "dark/1280/server-1/server-dark-project-rename-1280-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.7046070460704607,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1107,
+        "height": 672
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-008.png",
+      "native_details": []
+    },
+    {
+      "id": 1649,
+      "key": "dark/1280/server-1/server-dark-scm-diff-added-1280-full.png",
+      "classification": "intended",
+      "reason": "The themed diff, file heading, line presentation and responsive navigation are intended.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.609375,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 716
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-009.png",
+      "native_details": []
+    },
+    {
+      "id": 1655,
+      "key": "dark/1280/server-1/server-dark-scm-stale-save-1280-full.png",
+      "classification": "intended",
+      "reason": "The clearer stale-save wording and safer primary/destructive action presentation are intended.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.6341463414634146,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1230,
+        "height": 720
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-009.png",
+      "native_details": []
+    },
+    {
+      "id": 1659,
+      "key": "dark/1440/server-0/server-dark-catalog-1440-full.png",
+      "classification": "intended",
+      "reason": "Catalog count, readable kind labels, descriptions and responsive row actions follow the intended catalog presentation.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 742
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-010.png",
+      "native_details": []
+    },
+    {
+      "id": 1662,
+      "key": "dark/1440/server-0/server-dark-clone-repository-1440.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.8,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 975,
+        "height": 837
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-010.png",
+      "native_details": []
+    },
+    {
+      "id": 1665,
+      "key": "dark/1440/server-0/server-dark-contract-graph-1440-full.png",
+      "classification": "intended",
+      "reason": "Compact name-only graph cards and adaptive fitting are intended; represented entities and edges remain visible.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-011.png",
+      "native_details": []
+    },
+    {
+      "id": 1668,
+      "key": "dark/1440/server-0/server-dark-import-1440.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.6074766355140186,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1284,
+        "height": 789
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-011.png",
+      "native_details": []
+    },
+    {
+      "id": 1671,
+      "key": "dark/1440/server-0/server-dark-mappings-1440-full.png",
+      "classification": "intended",
+      "reason": "The empty mapping state uses the intended recovery actions and removes an empty selector. This capture does not establish a populated query journey.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 742
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-012.png",
+      "native_details": []
+    },
+    {
+      "id": 1674,
+      "key": "dark/1440/server-0/server-dark-metric-detail-1440.png",
+      "classification": "intended",
+      "reason": "Metric spacing and content alignment are intended; at 2560 pixels the list and open detail share the common content width.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 656,
+        "height": 742
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-012.png",
+      "native_details": []
+    },
+    {
+      "id": 1677,
+      "key": "dark/1440/server-0/server-dark-metrics-list-1440-full.png",
+      "classification": "intended",
+      "reason": "Metric spacing and content alignment are intended; at 2560 pixels the list and open detail share the common content width.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 656,
+        "height": 742
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-013.png",
+      "native_details": []
+    },
+    {
+      "id": 1680,
+      "key": "dark/1440/server-0/server-dark-odcs-contract-search-1440.png",
+      "classification": "intended",
+      "reason": "Contract detail spacing, readable labels and Open in Source presentation are intended. Differences in revision text are volatile; a property-edit filename alone does not establish an open editor.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 611,
+        "height": 743
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-014.png",
+      "native_details": []
+    },
+    {
+      "id": 1683,
+      "key": "dark/1440/server-0/server-dark-odcs-dataset-history-1440-full.png",
+      "classification": "intended",
+      "reason": "Contract detail spacing, readable labels and Open in Source presentation are intended. Differences in revision text are volatile; a property-edit filename alone does not establish an open editor.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.8986175115207373,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 868,
+        "height": 743
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-014.png",
+      "native_details": []
+    },
+    {
+      "id": 1686,
+      "key": "dark/1440/server-0/server-dark-odcs-dataset-properties-1440.png",
+      "classification": "intended",
+      "reason": "Contract detail spacing, readable labels and Open in Source presentation are intended. Differences in revision text are volatile; a property-edit filename alone does not establish an open editor.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 743
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-015.png",
+      "native_details": []
+    },
+    {
+      "id": 1689,
+      "key": "dark/1440/server-0/server-dark-odcs-dataset-relationships-1440-full.png",
+      "classification": "intended",
+      "reason": "Contract detail spacing, readable labels and Open in Source presentation are intended. Differences in revision text are volatile; a property-edit filename alone does not establish an open editor.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.8986175115207373,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 868,
+        "height": 743
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-015.png",
+      "native_details": []
+    },
+    {
+      "id": 1692,
+      "key": "dark/1440/server-0/server-dark-odcs-property-edit-1440.png",
+      "classification": "intended",
+      "reason": "Contract detail spacing, readable labels and Open in Source presentation are intended. Differences in revision text are volatile; a property-edit filename alone does not establish an open editor.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 743
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-016.png",
+      "native_details": []
+    },
+    {
+      "id": 1695,
+      "key": "dark/1440/server-0/server-dark-ontology-graph-1440-full.png",
+      "classification": "intended",
+      "reason": "Graph controls, node fitting and label geometry follow the intended compact graph presentation; no additional missing graph content was observed.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 887
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-016.png",
+      "native_details": []
+    },
+    {
+      "id": 1698,
+      "key": "dark/1440/server-0/server-dark-ontology-mappings-1440.png",
+      "classification": "intended",
+      "reason": "The empty mapping state uses the intended recovery actions and removes an empty selector. This capture does not establish a populated query journey.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 742
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-017.png",
+      "native_details": []
+    },
+    {
+      "id": 1701,
+      "key": "dark/1440/server-0/server-dark-ontology-neighborhood-1440-full.png",
+      "classification": "intended",
+      "reason": "Adaptive graph fitting, readable labels, folded controls and legend below the canvas are intended. The visible neighborhood remains represented.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-017.png",
+      "native_details": []
+    },
+    {
+      "id": 1704,
+      "key": "dark/1440/server-0/server-dark-ontology-overview-1440.png",
+      "classification": "intended",
+      "reason": "The visible sidebar labels, spacing and content/action styling follow the intended review changes; no additional regression was observed.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 676,
+        "height": 742
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-018.png",
+      "native_details": []
+    },
+    {
+      "id": 1707,
+      "key": "dark/1440/server-0/server-dark-query-composer-1440-full.png",
+      "classification": "intended",
+      "reason": "The empty mapping state uses the intended recovery actions and removes an empty selector. This capture does not establish a populated query journey.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 742
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-018.png",
+      "native_details": []
+    },
+    {
+      "id": 1710,
+      "key": "dark/1440/server-0/server-dark-settings-1440.png",
+      "classification": "intended",
+      "reason": "The visible sidebar labels, spacing and content/action styling follow the intended review changes; no additional regression was observed.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.6070038910505836,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1285,
+        "height": 743
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-019.png",
+      "native_details": []
+    },
+    {
+      "id": 1713,
+      "key": "dark/1440/server-0/server-dark-source-control-1440-full.png",
+      "classification": "intended",
+      "reason": "Source-control spacing, stage and commit guidance, and sidebar labels follow the intended presentation.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 713,
+        "height": 825
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-019.png",
+      "native_details": []
+    },
+    {
+      "id": 1716,
+      "key": "dark/1440/server-0/server-dark-source-control-remote-1440.png",
+      "classification": "intended",
+      "reason": "Source-control spacing, stage and commit guidance, and sidebar labels follow the intended presentation.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.8,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 975,
+        "height": 837
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-020.png",
+      "native_details": []
+    },
+    {
+      "id": 1719,
+      "key": "dark/1440/server-0/server-dark-trash-1440-full.png",
+      "classification": "intended",
+      "reason": "The visible sidebar labels, spacing and content/action styling follow the intended review changes; no additional regression was observed.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.6074766355140186,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1284,
+        "height": 789
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-020.png",
+      "native_details": []
+    },
+    {
+      "id": 1722,
+      "key": "dark/1440/server-1/server-dark-admin-access-check-1440.png",
+      "classification": "intended",
+      "reason": "Administrative form/table alignment, bounded field widths and readable labels follow the intended responsive layout.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.6435643564356436,
+      "crop": {
+        "left": 228,
+        "top": 123,
+        "width": 1212,
+        "height": 570
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-021.png",
+      "native_details": []
+    },
+    {
+      "id": 1729,
+      "key": "dark/1440/server-1/server-dark-admin-git-remotes-1440-full.png",
+      "classification": "traversal noise",
+      "reason": "Main shows an empty Git remotes table while candidate has project rows and actions; the baseline appears captured before population.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.6435643564356436,
+      "crop": {
+        "left": 228,
+        "top": 127,
+        "width": 1212,
+        "height": 347
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-021.png",
+      "native_details": []
+    },
+    {
+      "id": 1735,
+      "key": "dark/1440/server-1/server-dark-admin-projects-1440-full.png",
+      "classification": "intended",
+      "reason": "Administrative form/table alignment, bounded field widths and readable labels follow the intended responsive layout.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 864,
+        "top": 248,
+        "width": 576,
+        "height": 652
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-022.png",
+      "native_details": []
+    },
+    {
+      "id": 1738,
+      "key": "dark/1440/server-1/server-dark-admin-roles-1440.png",
+      "classification": "intended",
+      "reason": "Readable role permissions and checkmark presentation replace verbose labels and lock decoration intentionally.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 625,
+        "top": 170,
+        "width": 701,
+        "height": 730
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-022.png",
+      "native_details": []
+    },
+    {
+      "id": 1741,
+      "key": "dark/1440/server-1/server-dark-admin-users-1440-full.png",
+      "classification": "intended",
+      "reason": "Administrative form/table alignment, bounded field widths and readable labels follow the intended responsive layout.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.7854984894259819,
+      "crop": {
+        "left": 447,
+        "top": 141,
+        "width": 993,
+        "height": 319
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-023.png",
+      "native_details": []
+    },
+    {
+      "id": 1744,
+      "key": "dark/1440/server-1/server-dark-clone-folder-1440.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5481377371749825,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 838
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-023.png",
+      "native_details": []
+    },
+    {
+      "id": 1747,
+      "key": "dark/1440/server-1/server-dark-file-move-1440-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5481377371749825,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 838
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-024.png",
+      "native_details": []
+    },
+    {
+      "id": 1750,
+      "key": "dark/1440/server-1/server-dark-graph-model-all-areas-1440.png",
+      "classification": "intended",
+      "reason": "Graph controls, node fitting and label geometry follow the intended compact graph presentation; no additional missing graph content was observed.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 887
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-024.png",
+      "native_details": []
+    },
+    {
+      "id": 1753,
+      "key": "dark/1440/server-1/server-dark-graph-neighborhood-more-1440-full.png",
+      "classification": "intended",
+      "reason": "Adaptive graph fitting, readable labels, folded controls and legend below the canvas are intended. The visible neighborhood remains represented.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-025.png",
+      "native_details": []
+    },
+    {
+      "id": 1756,
+      "key": "dark/1440/server-1/server-dark-mapping-graph-1440.png",
+      "classification": "intended",
+      "reason": "Graph controls, node fitting and label geometry follow the intended compact graph presentation; no additional missing graph content was observed.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 672,
+        "height": 743
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-025.png",
+      "native_details": []
+    },
+    {
+      "id": 1759,
+      "key": "dark/1440/server-1/server-dark-ontology-neighborhood-fullscreen-1440-full.png",
+      "classification": "intended",
+      "reason": "Adaptive graph fitting, readable labels, folded controls and legend below the canvas are intended. The visible neighborhood remains represented.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-026.png",
+      "native_details": []
+    },
+    {
+      "id": 1762,
+      "key": "dark/1440/server-1/server-dark-ontology-neighborhood-hover-label-1440.png",
+      "classification": "intended",
+      "reason": "Adaptive graph fitting, readable labels, folded controls and legend below the canvas are intended. The visible neighborhood remains represented.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-026.png",
+      "native_details": []
+    },
+    {
+      "id": 1765,
+      "key": "dark/1440/server-1/server-dark-project-delete-1440-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5481377371749825,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 838
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-027.png",
+      "native_details": []
+    },
+    {
+      "id": 1768,
+      "key": "dark/1440/server-1/server-dark-project-export-1440.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5481377371749825,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 838
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-027.png",
+      "native_details": []
+    },
+    {
+      "id": 1771,
+      "key": "dark/1440/server-1/server-dark-project-rename-1440-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5481377371749825,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 838
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-028.png",
+      "native_details": []
+    },
+    {
+      "id": 1774,
+      "key": "dark/1440/server-1/server-dark-remote-folder-1440.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 722,
+        "height": 825
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-028.png",
+      "native_details": []
+    },
+    {
+      "id": 1777,
+      "key": "dark/1440/server-1/server-dark-scm-diff-added-1440-full.png",
+      "classification": "intended",
+      "reason": "The themed diff, file heading, line presentation and responsive navigation are intended.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 885
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-029.png",
+      "native_details": []
+    },
+    {
+      "id": 1780,
+      "key": "dark/1440/server-1/server-dark-scm-diff-deleted-1440.png",
+      "classification": "intended",
+      "reason": "The themed diff, file heading, line presentation and responsive navigation are intended.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 885
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-029.png",
+      "native_details": []
+    },
+    {
+      "id": 1783,
+      "key": "dark/1440/server-1/server-dark-scm-stale-save-1440-full.png",
+      "classification": "intended",
+      "reason": "The clearer stale-save wording and safer primary/destructive action presentation are intended.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5954198473282443,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1310,
+        "height": 900
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-030.png",
+      "native_details": []
+    },
+    {
+      "id": 1786,
+      "key": "dark/2560/server-0/server-dark-add-concept-2560.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.30552291421856637,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2553,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-030.png",
+      "native_details": [
+        {
+          "image": "/home/rodrigo/scratch/sw-007/review-sol3-details/sheet-001.png",
+          "crop": {
+            "left": 830,
+            "top": 500,
+            "width": 760,
+            "height": 500
+          },
+          "resolution": "native"
+        }
+      ]
+    },
+    {
+      "id": 1789,
+      "key": "dark/2560/server-0/server-dark-clone-repository-2560-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.50814332247557,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1535,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-031.png",
+      "native_details": []
+    },
+    {
+      "id": 1792,
+      "key": "dark/2560/server-0/server-dark-contract-contract-2560.png",
+      "classification": "intended",
+      "reason": "Contract detail spacing, readable labels and Open in Source presentation are intended. Differences in revision text are volatile; a property-edit filename alone does not establish an open editor.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.967741935483871,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 806,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-032.png",
+      "native_details": []
+    },
+    {
+      "id": 1795,
+      "key": "dark/2560/server-0/server-dark-import-2560-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.324459234608985,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2404,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-033.png",
+      "native_details": []
+    },
+    {
+      "id": 1798,
+      "key": "dark/2560/server-0/server-dark-item-editor-2560.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.3046875,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-033.png",
+      "native_details": [
+        {
+          "image": "/home/rodrigo/scratch/sw-007/review-sol3-details/sheet-000.png",
+          "crop": {
+            "left": 1760,
+            "top": 150,
+            "width": 760,
+            "height": 500
+          },
+          "resolution": "native"
+        }
+      ]
+    },
+    {
+      "id": 1801,
+      "key": "dark/2560/server-0/server-dark-metric-detail-2560-full.png",
+      "classification": "intended",
+      "reason": "Metric spacing and content alignment are intended; at 2560 pixels the list and open detail share the common content width.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.3410581547879318,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2287,
+        "height": 1440
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-034.png",
+      "native_details": []
+    },
+    {
+      "id": 1804,
+      "key": "dark/2560/server-0/server-dark-metric-wizard-2560.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.3410581547879318,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2287,
+        "height": 1429
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-034.png",
+      "native_details": [
+        {
+          "image": "/home/rodrigo/scratch/sw-007/review-sol3-details/sheet-001.png",
+          "crop": {
+            "left": 920,
+            "top": 450,
+            "width": 760,
+            "height": 650
+          },
+          "resolution": "native"
+        }
+      ]
+    },
+    {
+      "id": 1807,
+      "key": "dark/2560/server-0/server-dark-odcs-contract-search-2560-full.png",
+      "classification": "intended",
+      "reason": "Contract detail spacing, readable labels and Open in Source presentation are intended. Differences in revision text are volatile; a property-edit filename alone does not establish an open editor.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.967741935483871,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 806,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-035.png",
+      "native_details": []
+    },
+    {
+      "id": 1810,
+      "key": "dark/2560/server-0/server-dark-odcs-contract-team-2560.png",
+      "classification": "intended",
+      "reason": "Contract detail spacing, readable labels and Open in Source presentation are intended. Differences in revision text are volatile; a property-edit filename alone does not establish an open editor.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.967741935483871,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 806,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-036.png",
+      "native_details": []
+    },
+    {
+      "id": 1813,
+      "key": "dark/2560/server-0/server-dark-odcs-dataset-properties-2560-full.png",
+      "classification": "intended",
+      "reason": "Contract detail spacing, readable labels and Open in Source presentation are intended. Differences in revision text are volatile; a property-edit filename alone does not establish an open editor.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.372848948374761,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2092,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-037.png",
+      "native_details": []
+    },
+    {
+      "id": 1816,
+      "key": "dark/2560/server-0/server-dark-odcs-dataset-quality-2560.png",
+      "classification": "intended",
+      "reason": "Contract detail spacing, readable labels and Open in Source presentation are intended. Differences in revision text are volatile; a property-edit filename alone does not establish an open editor.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.6587837837837838,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1184,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-037.png",
+      "native_details": []
+    },
+    {
+      "id": 1819,
+      "key": "dark/2560/server-0/server-dark-odcs-property-edit-2560-full.png",
+      "classification": "intended",
+      "reason": "Contract detail spacing, readable labels and Open in Source presentation are intended. Differences in revision text are volatile; a property-edit filename alone does not establish an open editor.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.372848948374761,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2092,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-038.png",
+      "native_details": []
+    },
+    {
+      "id": 1822,
+      "key": "dark/2560/server-0/server-dark-ontology-catalog-2560.png",
+      "classification": "intended",
+      "reason": "Catalog count, readable kind labels, descriptions and responsive row actions follow the intended catalog presentation.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.30552291421856637,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2553,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-038.png",
+      "native_details": []
+    },
+    {
+      "id": 1825,
+      "key": "dark/2560/server-0/server-dark-ontology-mappings-2560-full.png",
+      "classification": "intended",
+      "reason": "The empty mapping state uses the intended recovery actions and removes an empty selector. This capture does not establish a populated query journey.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.3463587921847247,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2252,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-039.png",
+      "native_details": []
+    },
+    {
+      "id": 1828,
+      "key": "dark/2560/server-0/server-dark-ontology-metrics-2560.png",
+      "classification": "intended",
+      "reason": "Metric spacing and content alignment are intended; at 2560 pixels the list and open detail share the common content width.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.8944954128440367,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 872,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-040.png",
+      "native_details": []
+    },
+    {
+      "id": 1831,
+      "key": "dark/2560/server-0/server-dark-ontology-overview-2560-full.png",
+      "classification": "intended",
+      "reason": "The visible sidebar labels, spacing and content/action styling follow the intended review changes; no additional regression was observed.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.8944954128440367,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 872,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-041.png",
+      "native_details": []
+    },
+    {
+      "id": 1834,
+      "key": "dark/2560/server-0/server-dark-ontology-source-2560.png",
+      "classification": "intended",
+      "reason": "Editor toolbar spacing and readable sidebar kind labels are intended; source content remains visible.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.32432432432432434,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2405,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-042.png",
+      "native_details": []
+    },
+    {
+      "id": 1837,
+      "key": "dark/2560/server-0/server-dark-settings-2560-full.png",
+      "classification": "intended",
+      "reason": "The visible sidebar labels, spacing and content/action styling follow the intended review changes; no additional regression was observed.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.32432432432432434,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2405,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-042.png",
+      "native_details": []
+    },
+    {
+      "id": 1840,
+      "key": "dark/2560/server-0/server-dark-sidebar-projects-2560.png",
+      "classification": "intended",
+      "reason": "Readable file-kind badges, project indentation and sidebar spacing are intended; expanded fixture entries also vary between traversals.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.8944954128440367,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 872,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-043.png",
+      "native_details": []
+    },
+    {
+      "id": 1843,
+      "key": "dark/2560/server-0/server-dark-source-control-remote-2560-full.png",
+      "classification": "intended",
+      "reason": "Source-control spacing, stage and commit guidance, and sidebar labels follow the intended presentation.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.50814332247557,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1535,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-044.png",
+      "native_details": []
+    },
+    {
+      "id": 1846,
+      "key": "dark/2560/server-0/server-dark-source-editor-2560.png",
+      "classification": "intended",
+      "reason": "Editor toolbar spacing and readable sidebar kind labels are intended; source content remains visible.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.32432432432432434,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2405,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-044.png",
+      "native_details": []
+    },
+    {
+      "id": 1849,
+      "key": "dark/2560/server-1/server-dark-admin-access-check-2560-full.png",
+      "classification": "intended",
+      "reason": "Administrative form/table alignment, bounded field widths and readable labels follow the intended responsive layout.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.3344768439108062,
+      "crop": {
+        "left": 228,
+        "top": 176,
+        "width": 2332,
+        "height": 517
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-045.png",
+      "native_details": []
+    },
+    {
+      "id": 1856,
+      "key": "dark/2560/server-1/server-dark-admin-audit-2560.png",
+      "classification": "intended",
+      "reason": "Human-readable audit labels and decision colors are intended.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.3344768439108062,
+      "crop": {
+        "left": 228,
+        "top": 146,
+        "width": 2332,
+        "height": 1116
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-045.png",
+      "native_details": []
+    },
+    {
+      "id": 1859,
+      "key": "dark/2560/server-1/server-dark-admin-grants-2560-full.png",
+      "classification": "intended",
+      "reason": "Administrative form/table alignment, bounded field widths and readable labels follow the intended responsive layout.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.425531914893617,
+      "crop": {
+        "left": 727,
+        "top": 171,
+        "width": 1833,
+        "height": 543
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-046.png",
+      "native_details": []
+    },
+    {
+      "id": 1864,
+      "key": "dark/2560/server-1/server-dark-admin-projects-2560.png",
+      "classification": "intended",
+      "reason": "Administrative form/table alignment, bounded field widths and readable labels follow the intended responsive layout.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.45990566037735847,
+      "crop": {
+        "left": 864,
+        "top": 248,
+        "width": 1696,
+        "height": 1026
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-046.png",
+      "native_details": []
+    },
+    {
+      "id": 1867,
+      "key": "dark/2560/server-1/server-dark-admin-settings-2560-full.png",
+      "classification": "intended",
+      "reason": "Settings content width and placement of Save settings with its form are intended.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.654911838790932,
+      "crop": {
+        "left": 228,
+        "top": 229,
+        "width": 1191,
+        "height": 712
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-047.png",
+      "native_details": []
+    },
+    {
+      "id": 1870,
+      "key": "dark/2560/server-1/server-dark-admin-users-2560.png",
+      "classification": "intended",
+      "reason": "Administrative form/table alignment, bounded field widths and readable labels follow the intended responsive layout.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.3691433980123048,
+      "crop": {
+        "left": 447,
+        "top": 141,
+        "width": 2113,
+        "height": 342
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-047.png",
+      "native_details": []
+    },
+    {
+      "id": 1873,
+      "key": "dark/2560/server-1/server-dark-clone-folder-refused-2560-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-048.png",
+      "native_details": []
+    },
+    {
+      "id": 1876,
+      "key": "dark/2560/server-1/server-dark-file-move-2560.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-048.png",
+      "native_details": []
+    },
+    {
+      "id": 1879,
+      "key": "dark/2560/server-1/server-dark-graph-model-options-2560-full.png",
+      "classification": "intended",
+      "reason": "Graph controls, node fitting and label geometry follow the intended compact graph presentation; no additional missing graph content was observed.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-049.png",
+      "native_details": []
+    },
+    {
+      "id": 1882,
+      "key": "dark/2560/server-1/server-dark-graph-neighborhood-more-2560.png",
+      "classification": "intended",
+      "reason": "Adaptive graph fitting, readable labels, folded controls and legend below the canvas are intended. The visible neighborhood remains represented.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.3046875,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-049.png",
+      "native_details": []
+    },
+    {
+      "id": 1885,
+      "key": "dark/2560/server-1/server-dark-ontology-graph-fullscreen-2560-full.png",
+      "classification": "intended",
+      "reason": "Graph controls, node fitting and label geometry follow the intended compact graph presentation; no additional missing graph content was observed.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.6800348735832606,
+      "crop": {
+        "left": 565,
+        "top": 0,
+        "width": 1147,
+        "height": 1067
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-050.png",
+      "native_details": []
+    },
+    {
+      "id": 1888,
+      "key": "dark/2560/server-1/server-dark-ontology-neighborhood-fullscreen-2560.png",
+      "classification": "intended",
+      "reason": "Adaptive graph fitting, readable labels, folded controls and legend below the canvas are intended. The visible neighborhood remains represented.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.3046875,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-050.png",
+      "native_details": []
+    },
+    {
+      "id": 1891,
+      "key": "dark/2560/server-1/server-dark-ontology-neighborhood-labels-zoomed-2560-full.png",
+      "classification": "intended",
+      "reason": "Adaptive graph fitting, readable labels, folded controls and legend below the canvas are intended. The visible neighborhood remains represented.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.3046875,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-051.png",
+      "native_details": []
+    },
+    {
+      "id": 1894,
+      "key": "dark/2560/server-1/server-dark-project-delete-2560.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-051.png",
+      "native_details": []
+    },
+    {
+      "id": 1897,
+      "key": "dark/2560/server-1/server-dark-project-export-history-2560-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-052.png",
+      "native_details": []
+    },
+    {
+      "id": 1900,
+      "key": "dark/2560/server-1/server-dark-project-rename-2560.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-052.png",
+      "native_details": []
+    },
+    {
+      "id": 1903,
+      "key": "dark/2560/server-1/server-dark-remote-folder-refused-2560-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.608424336973479,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1282,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-053.png",
+      "native_details": []
+    },
+    {
+      "id": 1906,
+      "key": "dark/2560/server-1/server-dark-scm-diff-added-2560.png",
+      "classification": "intended",
+      "reason": "The themed diff, file heading, line presentation and responsive navigation are intended.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.3046875,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-053.png",
+      "native_details": []
+    },
+    {
+      "id": 1909,
+      "key": "dark/2560/server-1/server-dark-scm-diff-modified-2560-full.png",
+      "classification": "intended",
+      "reason": "The themed diff, file heading, line presentation and responsive navigation are intended.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.3046875,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-054.png",
+      "native_details": []
+    },
+    {
+      "id": 1912,
+      "key": "dark/2560/server-1/server-dark-scm-stale-save-2560.png",
+      "classification": "intended",
+      "reason": "The clearer stale-save wording and safer primary/destructive action presentation are intended.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.324459234608985,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2404,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-054.png",
+      "native_details": []
+    },
+    {
+      "id": 1915,
+      "key": "dark/390/server-0/server-dark-catalog-390-full.png",
+      "classification": "intended",
+      "reason": "Catalog count, readable kind labels, descriptions and responsive row actions follow the intended catalog presentation.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 115,
+        "width": 390,
+        "height": 710
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-055.png",
+      "native_details": []
+    },
+    {
+      "id": 1918,
+      "key": "dark/390/server-0/server-dark-clone-repository-390.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 279,
+        "width": 390,
+        "height": 558
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-055.png",
+      "native_details": []
+    },
+    {
+      "id": 1923,
+      "key": "dark/390/server-0/server-dark-import-390-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 106,
+        "width": 305,
+        "height": 704
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-056.png",
+      "native_details": []
+    },
+    {
+      "id": 1926,
+      "key": "dark/390/server-0/server-dark-item-editor-390.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 41,
+        "width": 390,
+        "height": 803
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-056.png",
+      "native_details": []
+    },
+    {
+      "id": 1931,
+      "key": "dark/390/server-0/server-dark-metric-wizard-390-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 2,
+        "width": 390,
+        "height": 840
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-057.png",
+      "native_details": []
+    },
+    {
+      "id": 1940,
+      "key": "dark/390/server-0/server-dark-odcs-dataset-history-390.png",
+      "classification": "unchanged",
+      "reason": "No substantive visual change: the differing text is a volatile revision/date or sign-in timestamp.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 83,
+        "top": 307,
+        "width": 210,
+        "height": 272
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-057.png",
+      "native_details": []
+    },
+    {
+      "id": 1943,
+      "key": "dark/390/server-0/server-dark-odcs-dataset-quality-390-full.png",
+      "classification": "unchanged",
+      "reason": "No substantive visual change: the differing text is a volatile revision/date or sign-in timestamp.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 95,
+        "top": 307,
+        "width": 130,
+        "height": 90
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-058.png",
+      "native_details": []
+    },
+    {
+      "id": 1946,
+      "key": "dark/390/server-0/server-dark-odcs-dataset-relationships-390.png",
+      "classification": "unchanged",
+      "reason": "No substantive visual change: the differing text is a volatile revision/date or sign-in timestamp.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 95,
+        "top": 307,
+        "width": 130,
+        "height": 90
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-058.png",
+      "native_details": []
+    },
+    {
+      "id": 1949,
+      "key": "dark/390/server-0/server-dark-ontology-catalog-390-full.png",
+      "classification": "intended",
+      "reason": "Catalog count, readable kind labels, descriptions and responsive row actions follow the intended catalog presentation.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 115,
+        "width": 390,
+        "height": 710
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-059.png",
+      "native_details": []
+    },
+    {
+      "id": 1952,
+      "key": "dark/390/server-0/server-dark-ontology-graph-390.png",
+      "classification": "intended",
+      "reason": "Graph controls, node fitting and label geometry follow the intended compact graph presentation; no additional missing graph content was observed.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 113,
+        "width": 390,
+        "height": 684
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-059.png",
+      "native_details": []
+    },
+    {
+      "id": 1957,
+      "key": "dark/390/server-0/server-dark-ontology-neighborhood-390-full.png",
+      "classification": "intended",
+      "reason": "Adaptive graph fitting, readable labels, folded controls and legend below the canvas are intended. The visible neighborhood remains represented.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-060.png",
+      "native_details": []
+    },
+    {
+      "id": 1962,
+      "key": "dark/390/server-0/server-dark-ontology-source-390.png",
+      "classification": "intended",
+      "reason": "Editor toolbar spacing and readable sidebar kind labels are intended; source content remains visible.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 100,
+        "width": 293,
+        "height": 727
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-060.png",
+      "native_details": []
+    },
+    {
+      "id": 1965,
+      "key": "dark/390/server-0/server-dark-settings-390-full.png",
+      "classification": "intended",
+      "reason": "The visible sidebar labels, spacing and content/action styling follow the intended review changes; no additional regression was observed.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 307,
+        "height": 376
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-061.png",
+      "native_details": []
+    },
+    {
+      "id": 1968,
+      "key": "dark/390/server-0/server-dark-sidebar-projects-390.png",
+      "classification": "intended",
+      "reason": "Readable file-kind badges, project indentation and sidebar spacing are intended; expanded fixture entries also vary between traversals.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 307,
+        "height": 589
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-061.png",
+      "native_details": []
+    },
+    {
+      "id": 1971,
+      "key": "dark/390/server-0/server-dark-source-control-remote-390-full.png",
+      "classification": "intended",
+      "reason": "Source-control spacing, stage and commit guidance, and sidebar labels follow the intended presentation.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 274,
+        "width": 390,
+        "height": 563
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-062.png",
+      "native_details": []
+    },
+    {
+      "id": 1974,
+      "key": "dark/390/server-0/server-dark-source-editor-390.png",
+      "classification": "intended",
+      "reason": "Editor toolbar spacing and readable sidebar kind labels are intended; source content remains visible.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 100,
+        "width": 305,
+        "height": 710
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-062.png",
+      "native_details": []
+    },
+    {
+      "id": 1977,
+      "key": "dark/390/server-1/server-dark-admin-access-check-390-full.png",
+      "classification": "intended",
+      "reason": "Administrative form/table alignment, bounded field widths and readable labels follow the intended responsive layout.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 735,
+        "width": 308,
+        "height": 109
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-063.png",
+      "native_details": []
+    },
+    {
+      "id": 1984,
+      "key": "dark/390/server-1/server-dark-admin-audit-390.png",
+      "classification": "intended",
+      "reason": "Human-readable audit labels and decision colors are intended.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 265,
+        "width": 390,
+        "height": 579
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-063.png",
+      "native_details": []
+    },
+    {
+      "id": 1991,
+      "key": "dark/390/server-1/server-dark-admin-projects-390-full.png",
+      "classification": "intended",
+      "reason": "Administrative form/table alignment, bounded field widths and readable labels follow the intended responsive layout.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 220,
+        "top": 637,
+        "width": 170,
+        "height": 112
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-064.png",
+      "native_details": []
+    },
+    {
+      "id": 1994,
+      "key": "dark/390/server-1/server-dark-admin-roles-390.png",
+      "classification": "intended",
+      "reason": "Readable role permissions and checkmark presentation replace verbose labels and lock decoration intentionally.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 235,
+        "width": 390,
+        "height": 609
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-064.png",
+      "native_details": []
+    },
+    {
+      "id": 1997,
+      "key": "dark/390/server-1/server-dark-admin-users-390-full.png",
+      "classification": "unchanged",
+      "reason": "No substantive visual change: the differing text is a volatile revision/date or sign-in timestamp.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 168,
+        "top": 329,
+        "width": 128,
+        "height": 89
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-065.png",
+      "native_details": []
+    },
+    {
+      "id": 2000,
+      "key": "dark/390/server-1/server-dark-clone-folder-390.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 113,
+        "width": 330,
+        "height": 669
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-065.png",
+      "native_details": []
+    },
+    {
+      "id": 2003,
+      "key": "dark/390/server-1/server-dark-file-move-390-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 113,
+        "width": 382,
+        "height": 669
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-066.png",
+      "native_details": []
+    },
+    {
+      "id": 2006,
+      "key": "dark/390/server-1/server-dark-graph-model-all-areas-390.png",
+      "classification": "intended",
+      "reason": "Graph controls, node fitting and label geometry follow the intended compact graph presentation; no additional missing graph content was observed.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 113,
+        "width": 390,
+        "height": 685
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-066.png",
+      "native_details": []
+    },
+    {
+      "id": 2009,
+      "key": "dark/390/server-1/server-dark-graph-neighborhood-more-390-full.png",
+      "classification": "intended",
+      "reason": "Adaptive graph fitting, readable labels, folded controls and legend below the canvas are intended. The visible neighborhood remains represented.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-067.png",
+      "native_details": []
+    },
+    {
+      "id": 2014,
+      "key": "dark/390/server-1/server-dark-ontology-graph-fullscreen-390.png",
+      "classification": "intended",
+      "reason": "Graph controls, node fitting and label geometry follow the intended compact graph presentation; no additional missing graph content was observed.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 390,
+        "height": 783
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-067.png",
+      "native_details": []
+    },
+    {
+      "id": 2017,
+      "key": "dark/390/server-1/server-dark-ontology-neighborhood-hover-label-390-full.png",
+      "classification": "intended",
+      "reason": "Adaptive graph fitting, readable labels, folded controls and legend below the canvas are intended. The visible neighborhood remains represented.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-068.png",
+      "native_details": []
+    },
+    {
+      "id": 2020,
+      "key": "dark/390/server-1/server-dark-ontology-neighborhood-labels-zoomed-390.png",
+      "classification": "intended",
+      "reason": "Adaptive graph fitting, readable labels, folded controls and legend below the canvas are intended. The visible neighborhood remains represented.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-068.png",
+      "native_details": []
+    },
+    {
+      "id": 2023,
+      "key": "dark/390/server-1/server-dark-project-export-390-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 6,
+        "top": 113,
+        "width": 376,
+        "height": 669
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-069.png",
+      "native_details": []
+    },
+    {
+      "id": 2026,
+      "key": "dark/390/server-1/server-dark-project-export-history-390.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 6,
+        "top": 113,
+        "width": 376,
+        "height": 669
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-069.png",
+      "native_details": []
+    },
+    {
+      "id": 2029,
+      "key": "dark/390/server-1/server-dark-remote-folder-390-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 274,
+        "width": 374,
+        "height": 563
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-070.png",
+      "native_details": []
+    },
+    {
+      "id": 2032,
+      "key": "dark/390/server-1/server-dark-remote-folder-refused-390.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 252,
+        "width": 374,
+        "height": 585
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-070.png",
+      "native_details": []
+    },
+    {
+      "id": 2035,
+      "key": "dark/390/server-1/server-dark-scm-diff-deleted-390-full.png",
+      "classification": "intended",
+      "reason": "The themed diff, file heading, line presentation and responsive navigation are intended.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 118,
+        "width": 390,
+        "height": 720
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-071.png",
+      "native_details": []
+    },
+    {
+      "id": 2038,
+      "key": "dark/390/server-1/server-dark-scm-diff-modified-390.png",
+      "classification": "intended",
+      "reason": "The themed diff, file heading, line presentation and responsive navigation are intended.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 68,
+        "width": 390,
+        "height": 770
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-071.png",
+      "native_details": []
+    },
+    {
+      "id": 2128,
+      "key": "light/1280/server-1/server-admin-access-check-1280-full.png",
+      "classification": "intended",
+      "reason": "Administrative form/table alignment, bounded field widths and readable labels follow the intended responsive layout.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.7414448669201521,
+      "crop": {
+        "left": 228,
+        "top": 123,
+        "width": 1052,
+        "height": 592
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-072.png",
+      "native_details": []
+    },
+    {
+      "id": 2135,
+      "key": "light/1280/server-1/server-admin-audit-1280.png",
+      "classification": "intended",
+      "reason": "Human-readable audit labels and decision colors are intended.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.9165687426556992,
+      "crop": {
+        "left": 358,
+        "top": 332,
+        "width": 851,
+        "height": 388
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-072.png",
+      "native_details": []
+    },
+    {
+      "id": 2142,
+      "key": "light/1280/server-1/server-admin-projects-1280-full.png",
+      "classification": "intended",
+      "reason": "Administrative form/table alignment, bounded field widths and readable labels follow the intended responsive layout.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 864,
+        "top": 248,
+        "width": 416,
+        "height": 392
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-073.png",
+      "native_details": []
+    },
+    {
+      "id": 2145,
+      "key": "light/1280/server-1/server-admin-roles-1280.png",
+      "classification": "intended",
+      "reason": "Readable role permissions and checkmark presentation replace verbose labels and lock decoration intentionally.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 570,
+        "top": 171,
+        "width": 629,
+        "height": 549
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-073.png",
+      "native_details": []
+    },
+    {
+      "id": 2148,
+      "key": "light/1280/server-1/server-admin-users-1280-full.png",
+      "classification": "intended",
+      "reason": "Administrative form/table alignment, bounded field widths and readable labels follow the intended responsive layout.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.936374549819928,
+      "crop": {
+        "left": 447,
+        "top": 141,
+        "width": 833,
+        "height": 319
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-074.png",
+      "native_details": []
+    },
+    {
+      "id": 2151,
+      "key": "light/1280/server-1/server-clone-folder-1280.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.6927175843694494,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1126,
+        "height": 672
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-074.png",
+      "native_details": []
+    },
+    {
+      "id": 2154,
+      "key": "light/1280/server-1/server-file-move-1280-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.6927175843694494,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1126,
+        "height": 672
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-075.png",
+      "native_details": []
+    },
+    {
+      "id": 2157,
+      "key": "light/1280/server-1/server-graph-model-all-areas-1280.png",
+      "classification": "intended",
+      "reason": "Graph controls, node fitting and label geometry follow the intended compact graph presentation; no additional missing graph content was observed.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.609375,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 692
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-075.png",
+      "native_details": []
+    },
+    {
+      "id": 2160,
+      "key": "light/1280/server-1/server-graph-neighborhood-more-1280-full.png",
+      "classification": "intended",
+      "reason": "Adaptive graph fitting, readable labels, folded controls and legend below the canvas are intended. The visible neighborhood remains represented.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.609375,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-076.png",
+      "native_details": []
+    },
+    {
+      "id": 2163,
+      "key": "light/1280/server-1/server-mapping-graph-1280.png",
+      "classification": "intended",
+      "reason": "Graph controls, node fitting and label geometry follow the intended compact graph presentation; no additional missing graph content was observed.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 672,
+        "height": 594
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-076.png",
+      "native_details": []
+    },
+    {
+      "id": 2166,
+      "key": "light/1280/server-1/server-ontology-neighborhood-fullscreen-1280-full.png",
+      "classification": "intended",
+      "reason": "Adaptive graph fitting, readable labels, folded controls and legend below the canvas are intended. The visible neighborhood remains represented.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.609375,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-077.png",
+      "native_details": []
+    },
+    {
+      "id": 2169,
+      "key": "light/1280/server-1/server-ontology-neighborhood-hover-label-1280.png",
+      "classification": "intended",
+      "reason": "Adaptive graph fitting, readable labels, folded controls and legend below the canvas are intended. The visible neighborhood remains represented.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.609375,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-077.png",
+      "native_details": []
+    },
+    {
+      "id": 2172,
+      "key": "light/1280/server-1/server-project-delete-1280-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.6927175843694494,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1126,
+        "height": 672
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-078.png",
+      "native_details": []
+    },
+    {
+      "id": 2175,
+      "key": "light/1280/server-1/server-project-export-1280.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.6927175843694494,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1126,
+        "height": 672
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-078.png",
+      "native_details": []
+    },
+    {
+      "id": 2178,
+      "key": "light/1280/server-1/server-project-rename-1280-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.6927175843694494,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1126,
+        "height": 672
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-079.png",
+      "native_details": []
+    },
+    {
+      "id": 2181,
+      "key": "light/1280/server-1/server-remote-folder-1280.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 713,
+        "height": 711
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-079.png",
+      "native_details": []
+    },
+    {
+      "id": 2184,
+      "key": "light/1280/server-1/server-scm-diff-added-1280-full.png",
+      "classification": "intended",
+      "reason": "The themed diff, file heading, line presentation and responsive navigation are intended.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.609375,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 716
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-080.png",
+      "native_details": []
+    },
+    {
+      "id": 2187,
+      "key": "light/1280/server-1/server-scm-diff-deleted-1280.png",
+      "classification": "intended",
+      "reason": "The themed diff, file heading, line presentation and responsive navigation are intended.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.609375,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 716
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-080.png",
+      "native_details": []
+    },
+    {
+      "id": 2190,
+      "key": "light/1280/server-1/server-scm-stale-save-1280-full.png",
+      "classification": "intended",
+      "reason": "The clearer stale-save wording and safer primary/destructive action presentation are intended.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.6341463414634146,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1230,
+        "height": 589
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-081.png",
+      "native_details": []
+    },
+    {
+      "id": 2236,
+      "key": "light/1440/server-1/server-admin-access-check-1440.png",
+      "classification": "intended",
+      "reason": "Administrative form/table alignment, bounded field widths and readable labels follow the intended responsive layout.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.6435643564356436,
+      "crop": {
+        "left": 228,
+        "top": 123,
+        "width": 1212,
+        "height": 570
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-081.png",
+      "native_details": []
+    },
+    {
+      "id": 2245,
+      "key": "light/1440/server-1/server-admin-grants-1440-full.png",
+      "classification": "intended",
+      "reason": "Administrative form/table alignment, bounded field widths and readable labels follow the intended responsive layout.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 685,
+        "top": 171,
+        "width": 693,
+        "height": 534
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-082.png",
+      "native_details": []
+    },
+    {
+      "id": 2250,
+      "key": "light/1440/server-1/server-admin-projects-1440.png",
+      "classification": "intended",
+      "reason": "Administrative form/table alignment, bounded field widths and readable labels follow the intended responsive layout.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 864,
+        "top": 248,
+        "width": 576,
+        "height": 652
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-082.png",
+      "native_details": []
+    },
+    {
+      "id": 2253,
+      "key": "light/1440/server-1/server-admin-settings-1440-full.png",
+      "classification": "intended",
+      "reason": "Settings content width and placement of Save settings with its form are intended.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.654911838790932,
+      "crop": {
+        "left": 228,
+        "top": 229,
+        "width": 1191,
+        "height": 671
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-083.png",
+      "native_details": []
+    },
+    {
+      "id": 2256,
+      "key": "light/1440/server-1/server-admin-users-1440.png",
+      "classification": "intended",
+      "reason": "Administrative form/table alignment, bounded field widths and readable labels follow the intended responsive layout.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.7854984894259819,
+      "crop": {
+        "left": 447,
+        "top": 141,
+        "width": 993,
+        "height": 319
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-083.png",
+      "native_details": []
+    },
+    {
+      "id": 2259,
+      "key": "light/1440/server-1/server-clone-folder-refused-1440-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5481377371749825,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 865
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-084.png",
+      "native_details": []
+    },
+    {
+      "id": 2262,
+      "key": "light/1440/server-1/server-file-move-1440.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5481377371749825,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 865
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-084.png",
+      "native_details": []
+    },
+    {
+      "id": 2265,
+      "key": "light/1440/server-1/server-graph-model-options-1440-full.png",
+      "classification": "intended",
+      "reason": "Graph controls, node fitting and label geometry follow the intended compact graph presentation; no additional missing graph content was observed.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 874
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-085.png",
+      "native_details": []
+    },
+    {
+      "id": 2268,
+      "key": "light/1440/server-1/server-graph-neighborhood-more-1440.png",
+      "classification": "intended",
+      "reason": "Adaptive graph fitting, readable labels, folded controls and legend below the canvas are intended. The visible neighborhood remains represented.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-085.png",
+      "native_details": []
+    },
+    {
+      "id": 2271,
+      "key": "light/1440/server-1/server-ontology-graph-fullscreen-1440-full.png",
+      "classification": "intended",
+      "reason": "Graph controls, node fitting and label geometry follow the intended compact graph presentation; no additional missing graph content was observed.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.8324439701173959,
+      "crop": {
+        "left": 294,
+        "top": 0,
+        "width": 937,
+        "height": 797
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-086.png",
+      "native_details": []
+    },
+    {
+      "id": 2274,
+      "key": "light/1440/server-1/server-ontology-neighborhood-fullscreen-1440.png",
+      "classification": "intended",
+      "reason": "Adaptive graph fitting, readable labels, folded controls and legend below the canvas are intended. The visible neighborhood remains represented.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-086.png",
+      "native_details": []
+    },
+    {
+      "id": 2277,
+      "key": "light/1440/server-1/server-ontology-neighborhood-labels-zoomed-1440-full.png",
+      "classification": "intended",
+      "reason": "Adaptive graph fitting, readable labels, folded controls and legend below the canvas are intended. The visible neighborhood remains represented.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-087.png",
+      "native_details": []
+    },
+    {
+      "id": 2280,
+      "key": "light/1440/server-1/server-project-delete-1440.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5481377371749825,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 865
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-087.png",
+      "native_details": []
+    },
+    {
+      "id": 2283,
+      "key": "light/1440/server-1/server-project-export-history-1440-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5481377371749825,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 865
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-088.png",
+      "native_details": []
+    },
+    {
+      "id": 2286,
+      "key": "light/1440/server-1/server-project-rename-1440.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5481377371749825,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 865
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-088.png",
+      "native_details": []
+    },
+    {
+      "id": 2289,
+      "key": "light/1440/server-1/server-remote-folder-refused-1440-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "native",
+      "scale": 1,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 722,
+        "height": 837
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-089.png",
+      "native_details": []
+    },
+    {
+      "id": 2292,
+      "key": "light/1440/server-1/server-scm-diff-added-1440.png",
+      "classification": "intended",
+      "reason": "The themed diff, file heading, line presentation and responsive navigation are intended.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 885
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-089.png",
+      "native_details": []
+    },
+    {
+      "id": 2295,
+      "key": "light/1440/server-1/server-scm-diff-modified-1440-full.png",
+      "classification": "intended",
+      "reason": "The themed diff, file heading, line presentation and responsive navigation are intended.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5416666666666666,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 820
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-090.png",
+      "native_details": []
+    },
+    {
+      "id": 2298,
+      "key": "light/1440/server-1/server-scm-stale-save-1440.png",
+      "classification": "intended",
+      "reason": "The clearer stale-save wording and safer primary/destructive action presentation are intended.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.5954198473282443,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1310,
+        "height": 741
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-090.png",
+      "native_details": []
+    },
+    {
+      "id": 2302,
+      "key": "light/2560/server-0/server-catalog-2560-full.png",
+      "classification": "intended",
+      "reason": "Catalog count, readable kind labels, descriptions and responsive row actions follow the intended catalog presentation.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.30552291421856637,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2553,
+        "height": 1247
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-091.png",
+      "native_details": []
+    },
+    {
+      "id": 2305,
+      "key": "light/2560/server-0/server-clone-repository-2560.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.50814332247557,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1535,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-091.png",
+      "native_details": []
+    },
+    {
+      "id": 2308,
+      "key": "light/2560/server-0/server-contract-graph-2560-full.png",
+      "classification": "intended",
+      "reason": "Compact name-only graph cards and adaptive fitting are intended; represented entities and edges remain visible.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.3046875,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-092.png",
+      "native_details": []
+    },
+    {
+      "id": 2311,
+      "key": "light/2560/server-0/server-import-2560.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.324459234608985,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2404,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-092.png",
+      "native_details": []
+    },
+    {
+      "id": 2314,
+      "key": "light/2560/server-0/server-mappings-2560-full.png",
+      "classification": "intended",
+      "reason": "The empty mapping state uses the intended recovery actions and removes an empty selector. This capture does not establish a populated query journey.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.3463587921847247,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2252,
+        "height": 1247
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-093.png",
+      "native_details": []
+    },
+    {
+      "id": 2317,
+      "key": "light/2560/server-0/server-metric-detail-2560.png",
+      "classification": "intended",
+      "reason": "Metric spacing and content alignment are intended; at 2560 pixels the list and open detail share the common content width.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.3410581547879318,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2287,
+        "height": 1440
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-093.png",
+      "native_details": [
+        {
+          "image": "/home/rodrigo/scratch/sw-007/review-sol3-details/sheet-002.png",
+          "crop": {
+            "left": 1380,
+            "top": 150,
+            "width": 760,
+            "height": 650
+          },
+          "resolution": "native"
+        }
+      ]
+    },
+    {
+      "id": 2320,
+      "key": "light/2560/server-0/server-metrics-list-2560-full.png",
+      "classification": "intended",
+      "reason": "Metric spacing and content alignment are intended; at 2560 pixels the list and open detail share the common content width.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.9154929577464789,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 852,
+        "height": 1247
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-094.png",
+      "native_details": []
+    },
+    {
+      "id": 2323,
+      "key": "light/2560/server-0/server-odcs-contract-search-2560.png",
+      "classification": "intended",
+      "reason": "Contract detail spacing, readable labels and Open in Source presentation are intended. Differences in revision text are volatile; a property-edit filename alone does not establish an open editor.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.967741935483871,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 806,
+        "height": 1247
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-095.png",
+      "native_details": []
+    },
+    {
+      "id": 2326,
+      "key": "light/2560/server-0/server-odcs-dataset-history-2560-full.png",
+      "classification": "intended",
+      "reason": "Contract detail spacing, readable labels and Open in Source presentation are intended. Differences in revision text are volatile; a property-edit filename alone does not establish an open editor.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.6587837837837838,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1184,
+        "height": 1247
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-096.png",
+      "native_details": []
+    },
+    {
+      "id": 2329,
+      "key": "light/2560/server-0/server-odcs-dataset-properties-2560.png",
+      "classification": "intended",
+      "reason": "Contract detail spacing, readable labels and Open in Source presentation are intended. Differences in revision text are volatile; a property-edit filename alone does not establish an open editor.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.372848948374761,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2092,
+        "height": 1247
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-096.png",
+      "native_details": []
+    },
+    {
+      "id": 2332,
+      "key": "light/2560/server-0/server-odcs-dataset-relationships-2560-full.png",
+      "classification": "intended",
+      "reason": "Contract detail spacing, readable labels and Open in Source presentation are intended. Differences in revision text are volatile; a property-edit filename alone does not establish an open editor.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.6587837837837838,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1184,
+        "height": 1247
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-097.png",
+      "native_details": []
+    },
+    {
+      "id": 2335,
+      "key": "light/2560/server-0/server-odcs-property-edit-2560.png",
+      "classification": "intended",
+      "reason": "Contract detail spacing, readable labels and Open in Source presentation are intended. Differences in revision text are volatile; a property-edit filename alone does not establish an open editor.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.372848948374761,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2092,
+        "height": 1247
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-097.png",
+      "native_details": []
+    },
+    {
+      "id": 2338,
+      "key": "light/2560/server-0/server-ontology-graph-2560-full.png",
+      "classification": "intended",
+      "reason": "Graph controls, node fitting and label geometry follow the intended compact graph presentation; no additional missing graph content was observed.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1247
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-098.png",
+      "native_details": []
+    },
+    {
+      "id": 2341,
+      "key": "light/2560/server-0/server-ontology-mappings-2560.png",
+      "classification": "intended",
+      "reason": "The empty mapping state uses the intended recovery actions and removes an empty selector. This capture does not establish a populated query journey.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.3463587921847247,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2252,
+        "height": 1247
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-098.png",
+      "native_details": []
+    },
+    {
+      "id": 2344,
+      "key": "light/2560/server-0/server-ontology-neighborhood-2560-full.png",
+      "classification": "intended",
+      "reason": "Adaptive graph fitting, readable labels, folded controls and legend below the canvas are intended. The visible neighborhood remains represented.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.3046875,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-099.png",
+      "native_details": []
+    },
+    {
+      "id": 2347,
+      "key": "light/2560/server-0/server-ontology-overview-2560.png",
+      "classification": "intended",
+      "reason": "The visible sidebar labels, spacing and content/action styling follow the intended review changes; no additional regression was observed.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.8944954128440367,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 872,
+        "height": 1247
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-100.png",
+      "native_details": []
+    },
+    {
+      "id": 2350,
+      "key": "light/2560/server-0/server-query-composer-2560-full.png",
+      "classification": "intended",
+      "reason": "The empty mapping state uses the intended recovery actions and removes an empty selector. This capture does not establish a populated query journey.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.3463587921847247,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2252,
+        "height": 1247
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-101.png",
+      "native_details": []
+    },
+    {
+      "id": 2353,
+      "key": "light/2560/server-0/server-settings-2560.png",
+      "classification": "intended",
+      "reason": "The visible sidebar labels, spacing and content/action styling follow the intended review changes; no additional regression was observed.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.32432432432432434,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2405,
+        "height": 1247
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-101.png",
+      "native_details": []
+    },
+    {
+      "id": 2356,
+      "key": "light/2560/server-0/server-source-control-2560-full.png",
+      "classification": "intended",
+      "reason": "Source-control spacing, stage and commit guidance, and sidebar labels follow the intended presentation.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.967741935483871,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 806,
+        "height": 1247
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-102.png",
+      "native_details": []
+    },
+    {
+      "id": 2359,
+      "key": "light/2560/server-0/server-source-control-remote-2560.png",
+      "classification": "intended",
+      "reason": "Source-control spacing, stage and commit guidance, and sidebar labels follow the intended presentation.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.50814332247557,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1535,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-103.png",
+      "native_details": []
+    },
+    {
+      "id": 2362,
+      "key": "light/2560/server-0/server-trash-2560-full.png",
+      "classification": "intended",
+      "reason": "The visible sidebar labels, spacing and content/action styling follow the intended review changes; no additional regression was observed.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.324459234608985,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2404,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-103.png",
+      "native_details": []
+    },
+    {
+      "id": 2365,
+      "key": "light/2560/server-1/server-admin-access-check-2560.png",
+      "classification": "intended",
+      "reason": "Administrative form/table alignment, bounded field widths and readable labels follow the intended responsive layout.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.3344768439108062,
+      "crop": {
+        "left": 228,
+        "top": 176,
+        "width": 2332,
+        "height": 517
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-104.png",
+      "native_details": []
+    },
+    {
+      "id": 2372,
+      "key": "light/2560/server-1/server-admin-git-remotes-2560-full.png",
+      "classification": "regression",
+      "reason": "Candidate shows only Git remotes table headers; main shows five project rows and Set remote actions. Missing candidate content is an open visual regression; loading/capture timing remains unverified.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.3344768439108062,
+      "crop": {
+        "left": 228,
+        "top": 127,
+        "width": 2332,
+        "height": 347
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-104.png",
+      "native_details": [
+        {
+          "image": "/home/rodrigo/scratch/sw-007/review-sol3-details/sheet-000.png",
+          "crop": {
+            "left": 320,
+            "top": 150,
+            "width": 760,
+            "height": 350
+          },
+          "resolution": "native"
+        },
+        {
+          "image": "/home/rodrigo/scratch/sw-007/review-sol3-detail2/sheet-000.png",
+          "crop": {
+            "left": 0,
+            "top": 100,
+            "width": 780,
+            "height": 500
+          },
+          "resolution": "native"
+        },
+        {
+          "image": "/home/rodrigo/scratch/sw-007/review-sol3-detail2/sheet-000.png",
+          "crop": {
+            "left": 1400,
+            "top": 100,
+            "width": 780,
+            "height": 500
+          },
+          "resolution": "native"
+        }
+      ]
+    },
+    {
+      "id": 2375,
+      "key": "light/2560/server-1/server-admin-grants-2560.png",
+      "classification": "intended",
+      "reason": "Administrative form/table alignment, bounded field widths and readable labels follow the intended responsive layout.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.425531914893617,
+      "crop": {
+        "left": 727,
+        "top": 171,
+        "width": 1833,
+        "height": 543
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-105.png",
+      "native_details": []
+    },
+    {
+      "id": 2380,
+      "key": "light/2560/server-1/server-admin-roles-2560-full.png",
+      "classification": "intended",
+      "reason": "Readable role permissions and checkmark presentation replace verbose labels and lock decoration intentionally.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.42460533478497553,
+      "crop": {
+        "left": 723,
+        "top": 171,
+        "width": 1837,
+        "height": 1269
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-105.png",
+      "native_details": []
+    },
+    {
+      "id": 2383,
+      "key": "light/2560/server-1/server-admin-settings-2560.png",
+      "classification": "intended",
+      "reason": "Settings content width and placement of Save settings with its form are intended.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.654911838790932,
+      "crop": {
+        "left": 228,
+        "top": 229,
+        "width": 1191,
+        "height": 712
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-106.png",
+      "native_details": []
+    },
+    {
+      "id": 2386,
+      "key": "light/2560/server-1/server-clone-folder-2560-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-106.png",
+      "native_details": []
+    },
+    {
+      "id": 2389,
+      "key": "light/2560/server-1/server-clone-folder-refused-2560.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-107.png",
+      "native_details": []
+    },
+    {
+      "id": 2392,
+      "key": "light/2560/server-1/server-graph-model-all-areas-2560-full.png",
+      "classification": "intended",
+      "reason": "Graph controls, node fitting and label geometry follow the intended compact graph presentation; no additional missing graph content was observed.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1247
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-107.png",
+      "native_details": []
+    },
+    {
+      "id": 2395,
+      "key": "light/2560/server-1/server-graph-model-options-2560.png",
+      "classification": "intended",
+      "reason": "Graph controls, node fitting and label geometry follow the intended compact graph presentation; no additional missing graph content was observed.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1247
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-108.png",
+      "native_details": []
+    },
+    {
+      "id": 2398,
+      "key": "light/2560/server-1/server-mapping-graph-2560-full.png",
+      "classification": "intended",
+      "reason": "Graph controls, node fitting and label geometry follow the intended compact graph presentation; no additional missing graph content was observed.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.8996539792387543,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 867,
+        "height": 1247
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-109.png",
+      "native_details": []
+    },
+    {
+      "id": 2401,
+      "key": "light/2560/server-1/server-ontology-graph-fullscreen-2560.png",
+      "classification": "intended",
+      "reason": "Graph controls, node fitting and label geometry follow the intended compact graph presentation; no additional missing graph content was observed.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.6800348735832606,
+      "crop": {
+        "left": 565,
+        "top": 0,
+        "width": 1147,
+        "height": 1067
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-110.png",
+      "native_details": []
+    },
+    {
+      "id": 2404,
+      "key": "light/2560/server-1/server-ontology-neighborhood-hover-label-2560-full.png",
+      "classification": "intended",
+      "reason": "Adaptive graph fitting, readable labels, folded controls and legend below the canvas are intended. The visible neighborhood remains represented.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.3046875,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-110.png",
+      "native_details": []
+    },
+    {
+      "id": 2407,
+      "key": "light/2560/server-1/server-ontology-neighborhood-labels-zoomed-2560.png",
+      "classification": "intended",
+      "reason": "Adaptive graph fitting, readable labels, folded controls and legend below the canvas are intended. The visible neighborhood remains represented.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.3046875,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-111.png",
+      "native_details": []
+    },
+    {
+      "id": 2410,
+      "key": "light/2560/server-1/server-project-export-2560-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-111.png",
+      "native_details": []
+    },
+    {
+      "id": 2413,
+      "key": "light/2560/server-1/server-project-export-history-2560.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.4189044038668099,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-112.png",
+      "native_details": []
+    },
+    {
+      "id": 2416,
+      "key": "light/2560/server-1/server-remote-folder-2560-full.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.608424336973479,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1282,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-112.png",
+      "native_details": []
+    },
+    {
+      "id": 2419,
+      "key": "light/2560/server-1/server-remote-folder-refused-2560.png",
+      "classification": "intended",
+      "reason": "Dialog/form spacing, field presentation and action styling are intended; visible controls remain available.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.608424336973479,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1282,
+        "height": 1245
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-113.png",
+      "native_details": []
+    },
+    {
+      "id": 2422,
+      "key": "light/2560/server-1/server-scm-diff-deleted-2560-full.png",
+      "classification": "intended",
+      "reason": "The themed diff, file heading, line presentation and responsive navigation are intended.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.3046875,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1247
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-113.png",
+      "native_details": []
+    },
+    {
+      "id": 2425,
+      "key": "light/2560/server-1/server-scm-diff-modified-2560.png",
+      "classification": "intended",
+      "reason": "The themed diff, file heading, line presentation and responsive navigation are intended.",
+      "seen": true,
+      "resolution": "downscaled",
+      "scale": 0.3046875,
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1247
+      },
+      "review_image": "/home/rodrigo/scratch/sw-007/review-sol3/sheet-114.png",
+      "native_details": []
+    }
+  ]
+}

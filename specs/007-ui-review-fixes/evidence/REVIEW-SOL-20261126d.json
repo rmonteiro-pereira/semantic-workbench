@@ -1,0 +1,3388 @@
+{
+  "candidate": "df201d11",
+  "main": "da54cf17",
+  "scope": "422 previously pending dark local pairs; existing screenshots only",
+  "counts": {
+    "intended": 338,
+    "traversal noise": 10,
+    "unchanged": 74
+  },
+  "pairs": [
+    {
+      "id": "0097",
+      "key": "dark/1280/graphs-lineage/local-dark-contract-lineage--column-filter-failed-1280.png",
+      "classification": "intended",
+      "reason": "Readable name-only lineage cards and adjusted camera; same available controls and hop-list dialog.",
+      "sheet": "000",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0098",
+      "key": "dark/1280/graphs-lineage/local-dark-contract-lineage--column-selected-1280.png",
+      "classification": "intended",
+      "reason": "Readable name-only lineage cards and adjusted camera; same available controls and hop-list dialog.",
+      "sheet": "000",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0103",
+      "key": "dark/1280/graphs-lineage/local-dark-contract-lineage--hops-1-list-1280.png",
+      "classification": "intended",
+      "reason": "Readable name-only lineage cards and adjusted camera; same available controls and hop-list dialog.",
+      "sheet": "000",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0104",
+      "key": "dark/1280/graphs-lineage/local-dark-contract-lineage--hops-2-list-1280.png",
+      "classification": "intended",
+      "reason": "Readable name-only lineage cards and adjusted camera; same available controls and hop-list dialog.",
+      "sheet": "000",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0105",
+      "key": "dark/1280/graphs-lineage/local-dark-contract-lineage--hops-3-list-1280.png",
+      "classification": "intended",
+      "reason": "Readable name-only lineage cards and adjusted camera; same available controls and hop-list dialog.",
+      "sheet": "001",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0108",
+      "key": "dark/1280/graphs-lineage/local-dark-contract-lineage--loading-1-1280.png",
+      "classification": "intended",
+      "reason": "Readable name-only lineage cards and adjusted camera; same available controls and hop-list dialog.",
+      "sheet": "001",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0109",
+      "key": "dark/1280/graphs-lineage/local-dark-contract-lineage--loading-2-1280.png",
+      "classification": "intended",
+      "reason": "Readable name-only lineage cards and adjusted camera; same available controls and hop-list dialog.",
+      "sheet": "001",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0110",
+      "key": "dark/1280/graphs-lineage/local-dark-contract-lineage--loading-3-1280.png",
+      "classification": "intended",
+      "reason": "Readable name-only lineage cards and adjusted camera; same available controls and hop-list dialog.",
+      "sheet": "001",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0111",
+      "key": "dark/1280/graphs-lineage/local-dark-contract-lineage--more-columns-1280.png",
+      "classification": "intended",
+      "reason": "Readable name-only lineage cards and adjusted camera; same available controls and hop-list dialog.",
+      "sheet": "002",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0114",
+      "key": "dark/1280/graphs-lineage/local-dark-contract-lineage--walk-1-before-1280.png",
+      "classification": "traversal noise",
+      "reason": "Walk-before frames show different selected centers and camera positions.",
+      "sheet": "002",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0124",
+      "key": "dark/1280/graphs-lineage/local-dark-dataset-lineage--column-filter-failed-1280.png",
+      "classification": "intended",
+      "reason": "Dataset lineage uses the intended taller readable cards and compact dataset header.",
+      "sheet": "002",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0125",
+      "key": "dark/1280/graphs-lineage/local-dark-dataset-lineage--column-selected-1280.png",
+      "classification": "traversal noise",
+      "reason": "Different selected entity and camera state; selection capture is not comparable.",
+      "sheet": "002",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0130",
+      "key": "dark/1280/graphs-lineage/local-dark-dataset-lineage--hops-1-list-1280.png",
+      "classification": "intended",
+      "reason": "Readable name-only lineage cards and adjusted camera; same available controls and hop-list dialog.",
+      "sheet": "003",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0131",
+      "key": "dark/1280/graphs-lineage/local-dark-dataset-lineage--hops-2-list-1280.png",
+      "classification": "intended",
+      "reason": "Readable name-only lineage cards and adjusted camera; same available controls and hop-list dialog.",
+      "sheet": "003",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0132",
+      "key": "dark/1280/graphs-lineage/local-dark-dataset-lineage--hops-3-list-1280.png",
+      "classification": "intended",
+      "reason": "Readable name-only lineage cards and adjusted camera; same available controls and hop-list dialog.",
+      "sheet": "003",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0135",
+      "key": "dark/1280/graphs-lineage/local-dark-dataset-lineage--more-columns-1280.png",
+      "classification": "intended",
+      "reason": "Readable name-only lineage cards and adjusted camera; same available controls and hop-list dialog.",
+      "sheet": "003",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0137",
+      "key": "dark/1280/graphs-lineage/local-dark-dataset-lineage--walk-1-before-1280.png",
+      "classification": "intended",
+      "reason": "Dataset has the approved compact header and readable card opening before the first walk.",
+      "sheet": "004",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0148",
+      "key": "dark/1280/graphs-mapping-graph/local-dark-mapping-graph--after-fit-1280.png",
+      "classification": "intended",
+      "reason": "Approved fitted name-only graph cards, persistent canvas controls, compact headers, catalog descriptions and count; shell actions remain visible.",
+      "sheet": "004",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0149",
+      "key": "dark/1280/graphs-mapping-graph/local-dark-mapping-graph--edge-hovered-1280.png",
+      "classification": "intended",
+      "reason": "Approved fitted name-only graph cards, persistent canvas controls, compact headers, catalog descriptions and count; shell actions remain visible.",
+      "sheet": "004",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0151",
+      "key": "dark/1280/graphs-mapping-graph/local-dark-mapping-graph--fullscreen-1280.png",
+      "classification": "intended",
+      "reason": "Approved fitted name-only graph cards, persistent canvas controls, compact headers, catalog descriptions and count; shell actions remain visible.",
+      "sheet": "004",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0153",
+      "key": "dark/1280/graphs-mapping-graph/local-dark-mapping-graph--labels-on-failed-1280.png",
+      "classification": "intended",
+      "reason": "Approved fitted name-only graph cards, persistent canvas controls, compact headers, catalog descriptions and count; shell actions remain visible.",
+      "sheet": "005",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0155",
+      "key": "dark/1280/graphs-mapping-graph/local-dark-mapping-graph--loading-1-1280.png",
+      "classification": "intended",
+      "reason": "Approved fitted name-only graph cards, persistent canvas controls, compact headers, catalog descriptions and count; shell actions remain visible.",
+      "sheet": "005",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0156",
+      "key": "dark/1280/graphs-mapping-graph/local-dark-mapping-graph--loading-2-1280.png",
+      "classification": "intended",
+      "reason": "Approved fitted name-only graph cards, persistent canvas controls, compact headers, catalog descriptions and count; shell actions remain visible.",
+      "sheet": "005",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0157",
+      "key": "dark/1280/graphs-mapping-graph/local-dark-mapping-graph--loading-3-1280.png",
+      "classification": "intended",
+      "reason": "Approved fitted name-only graph cards, persistent canvas controls, compact headers, catalog descriptions and count; shell actions remain visible.",
+      "sheet": "005",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0158",
+      "key": "dark/1280/graphs-mapping-graph/local-dark-mapping-graph--node-selected-1280.png",
+      "classification": "intended",
+      "reason": "Approved fitted name-only graph cards, persistent canvas controls, compact headers, catalog descriptions and count; shell actions remain visible.",
+      "sheet": "006",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0160",
+      "key": "dark/1280/graphs-mapping-graph/local-dark-mapping-graph--stages-1280.png",
+      "classification": "intended",
+      "reason": "Approved fitted name-only graph cards, persistent canvas controls, compact headers, catalog descriptions and count; shell actions remain visible.",
+      "sheet": "006",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0161",
+      "key": "dark/1280/graphs-mapping-graph/local-dark-mapping-graph--zoomed-in-1280.png",
+      "classification": "intended",
+      "reason": "Approved fitted name-only graph cards, persistent canvas controls, compact headers, catalog descriptions and count; shell actions remain visible.",
+      "sheet": "006",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0162",
+      "key": "dark/1280/graphs-mapping-graph/local-dark-mapping-graph--zoomed-minimum-1280.png",
+      "classification": "intended",
+      "reason": "Approved fitted name-only graph cards, persistent canvas controls, compact headers, catalog descriptions and count; shell actions remain visible.",
+      "sheet": "006",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0163",
+      "key": "dark/1280/rest-shell/local-dark-catalog--keyboard-focus-1280.png",
+      "classification": "intended",
+      "reason": "Approved fitted name-only graph cards, persistent canvas controls, compact headers, catalog descriptions and count; shell actions remain visible.",
+      "sheet": "007",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0164",
+      "key": "dark/1280/rest-shell/local-dark-metrics--keyboard-focus-1280.png",
+      "classification": "unchanged",
+      "reason": "Only focus, sidebar fixture inventory or insignificant positioning differs; same displayed screen and actions.",
+      "sheet": "007",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0165",
+      "key": "dark/1280/rest-shell/local-dark-overview--keyboard-focus-1280.png",
+      "classification": "unchanged",
+      "reason": "Only focus, sidebar fixture inventory or insignificant positioning differs; same displayed screen and actions.",
+      "sheet": "007",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0166",
+      "key": "dark/1280/rest-shell/local-dark-settings--theme-control-1280.png",
+      "classification": "intended",
+      "reason": "Approved fitted name-only graph cards, persistent canvas controls, compact headers, catalog descriptions and count; shell actions remain visible.",
+      "sheet": "007",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0167",
+      "key": "dark/1280/rest-shell/local-dark-shell--avatar-menu-1280.png",
+      "classification": "intended",
+      "reason": "Approved fitted name-only graph cards, persistent canvas controls, compact headers, catalog descriptions and count; shell actions remain visible.",
+      "sheet": "008",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0168",
+      "key": "dark/1280/rest-shell/local-dark-shell--history-back-1280.png",
+      "classification": "intended",
+      "reason": "Approved fitted name-only graph cards, persistent canvas controls, compact headers, catalog descriptions and count; shell actions remain visible.",
+      "sheet": "008",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0169",
+      "key": "dark/1280/rest-shell/local-dark-shell--history-forward-1280.png",
+      "classification": "unchanged",
+      "reason": "Only focus, sidebar fixture inventory or insignificant positioning differs; same displayed screen and actions.",
+      "sheet": "008",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0170",
+      "key": "dark/1280/rest-shell/local-dark-shell--new-menu-1280.png",
+      "classification": "intended",
+      "reason": "Approved fitted name-only graph cards, persistent canvas controls, compact headers, catalog descriptions and count; shell actions remain visible.",
+      "sheet": "008",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0171",
+      "key": "dark/1280/rest-shell/local-dark-shell--sidebar-collapsed-1280.png",
+      "classification": "intended",
+      "reason": "Approved fitted name-only graph cards, persistent canvas controls, compact headers, catalog descriptions and count; shell actions remain visible.",
+      "sheet": "009",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0172",
+      "key": "dark/1280/rest-shell/local-dark-shell--sidebar-expanded-1280.png",
+      "classification": "intended",
+      "reason": "Approved fitted name-only graph cards, persistent canvas controls, compact headers, catalog descriptions and count; shell actions remain visible.",
+      "sheet": "009",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0173",
+      "key": "dark/1280/rest-shell/local-dark-shell--sidebar-item-hover-1280.png",
+      "classification": "unchanged",
+      "reason": "Only focus, sidebar fixture inventory or insignificant positioning differs; same displayed screen and actions.",
+      "sheet": "009",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0174",
+      "key": "dark/1280/rest-shell/local-dark-shell--stages-1280.png",
+      "classification": "unchanged",
+      "reason": "Only focus, sidebar fixture inventory or insignificant positioning differs; same displayed screen and actions.",
+      "sheet": "009",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0175",
+      "key": "dark/1280/rest-catalog/local-dark-catalog--area-filter-1280.png",
+      "classification": "intended",
+      "reason": "Catalog count and expanded descriptions remain visible; overview detail remains available.",
+      "sheet": "010",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0176",
+      "key": "dark/1280/rest-catalog/local-dark-catalog--populated-1280.png",
+      "classification": "intended",
+      "reason": "Catalog count and expanded descriptions remain visible; overview detail remains available.",
+      "sheet": "010",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0177",
+      "key": "dark/1280/rest-catalog/local-dark-catalog--search-matching-1280.png",
+      "classification": "intended",
+      "reason": "Catalog count and expanded descriptions remain visible; overview detail remains available.",
+      "sheet": "010",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0179",
+      "key": "dark/1280/rest-catalog/local-dark-catalog--stages-1280.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "sheet": "010",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0180",
+      "key": "dark/1280/rest-catalog/local-dark-catalog--table-row-hover-1280.png",
+      "classification": "intended",
+      "reason": "Catalog descriptions and counts are intentional; long-name detail and expanded entity view remain available.",
+      "sheet": "011",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0181",
+      "key": "dark/1280/rest-catalog/local-dark-overview--entity-details-1280.png",
+      "classification": "intended",
+      "reason": "Catalog descriptions and counts are intentional; long-name detail and expanded entity view remain available.",
+      "sheet": "011",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0182",
+      "key": "dark/1280/rest-catalog/local-dark-overview--long-named-entity-selected-1280.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "sheet": "011",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0183",
+      "key": "dark/1280/rest-catalog/local-dark-overview--show-all-expanded-1280.png",
+      "classification": "intended",
+      "reason": "Catalog descriptions and counts are intentional; long-name detail and expanded entity view remain available.",
+      "sheet": "011",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0184",
+      "key": "dark/1280/rest-metrics/local-dark-metric-wizard--primary-hover-1280.png",
+      "classification": "intended",
+      "reason": "Wizard has the approved stable height and field-level validation.",
+      "sheet": "012",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0185",
+      "key": "dark/1280/rest-metrics/local-dark-metric-wizard--step-1-empty-validation-1280.png",
+      "classification": "intended",
+      "reason": "Wizard has the approved stable height and field-level validation.",
+      "sheet": "012",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0186",
+      "key": "dark/1280/rest-metrics/local-dark-metric-wizard--step-1-filled-1280.png",
+      "classification": "intended",
+      "reason": "Wizard has the approved stable height and field-level validation.",
+      "sheet": "012",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0188",
+      "key": "dark/1280/rest-metrics/local-dark-metric-wizard--step-3-1280.png",
+      "classification": "intended",
+      "reason": "Wizard has the approved stable height and field-level validation.",
+      "sheet": "012",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0189",
+      "key": "dark/1280/rest-metrics/local-dark-metric-wizard--step-3-validation-error-1280.png",
+      "classification": "intended",
+      "reason": "Wizard step layout and validation placement are intentional.",
+      "sheet": "013",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0190",
+      "key": "dark/1280/rest-metrics/local-dark-metric-wizard--step-4-1280.png",
+      "classification": "intended",
+      "reason": "Wizard step layout and validation placement are intentional.",
+      "sheet": "013",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0191",
+      "key": "dark/1280/rest-metrics/local-dark-metric-wizard--step-5-1280.png",
+      "classification": "intended",
+      "reason": "Wizard step layout and validation placement are intentional.",
+      "sheet": "013",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0192",
+      "key": "dark/1280/rest-metrics/local-dark-metric-wizard--step-6-1280.png",
+      "classification": "intended",
+      "reason": "Wizard step layout and validation placement are intentional.",
+      "sheet": "013",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0193",
+      "key": "dark/1280/rest-metrics/local-dark-metric-wizard--step-7-1280.png",
+      "classification": "intended",
+      "reason": "Stable wizard height and readable final preview are intentional.",
+      "sheet": "014",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0194",
+      "key": "dark/1280/rest-metrics/local-dark-metric-wizard--step-8-1280.png",
+      "classification": "intended",
+      "reason": "Stable wizard height and readable final preview are intentional.",
+      "sheet": "014",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0195",
+      "key": "dark/1280/rest-metrics/local-dark-metrics--detail-1280.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "sheet": "014",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0196",
+      "key": "dark/1280/rest-metrics/local-dark-metrics--filter-matching-1280.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "sheet": "014",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0197",
+      "key": "dark/1280/rest-metrics/local-dark-metrics--filter-no-result-1280.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "sheet": "015",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0198",
+      "key": "dark/1280/rest-metrics/local-dark-metrics--list-1280.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "sheet": "015",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0199",
+      "key": "dark/1280/rest-metrics/local-dark-metrics--stages-1280.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "sheet": "015",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0200",
+      "key": "dark/1280/rest-mappings/local-dark-mapping-graph--empty-bindings-1280.png",
+      "classification": "intended",
+      "reason": "Graph toolbar and compact canvas actions are intentional.",
+      "sheet": "015",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0201",
+      "key": "dark/1280/rest-mappings/local-dark-mappings--agent-context-1280.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "sheet": "016",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0202",
+      "key": "dark/1280/rest-mappings/local-dark-mappings--list-1280.png",
+      "classification": "traversal noise",
+      "reason": "All-concepts binding list is at different asynchronous loading stages; no comparable settled result.",
+      "sheet": "016",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0203",
+      "key": "dark/1280/rest-mappings/local-dark-mappings--selected-binding-1280.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "sheet": "016",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0204",
+      "key": "dark/1280/rest-mappings/local-dark-mappings--selected-document-source-1280.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "sheet": "016",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0205",
+      "key": "dark/1280/rest-mappings/local-dark-mappings--stages-1280.png",
+      "classification": "intended",
+      "reason": "Compact dataset lineage header increases graph space; same contract summary.",
+      "sheet": "017",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0206",
+      "key": "dark/1280/rest-odcs/local-dark-odcs--stages-1280.png",
+      "classification": "intended",
+      "reason": "Compact dataset lineage header increases graph space; same contract summary.",
+      "sheet": "017",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0207",
+      "key": "dark/1280/rest-odcs/local-dark-odcs-contract--populated-1280.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "sheet": "017",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0208",
+      "key": "dark/1280/rest-odcs/local-dark-odcs-contract--search-matching-1280.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "sheet": "017",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0209",
+      "key": "dark/1280/rest-odcs/local-dark-odcs-contract--search-no-result-1280.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "sheet": "018",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0210",
+      "key": "dark/1280/rest-odcs/local-dark-odcs-contract--section-quality4-1280.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "sheet": "018",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0211",
+      "key": "dark/1280/rest-odcs/local-dark-odcs-contract--section-service-levels3-1280.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "sheet": "018",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0212",
+      "key": "dark/1280/rest-odcs/local-dark-odcs-contract--team-failed-1280.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "sheet": "018",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0213",
+      "key": "dark/1280/rest-odcs/local-dark-odcs-dataset--data-quality-1280.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "sheet": "019",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0214",
+      "key": "dark/1280/rest-odcs/local-dark-odcs-dataset--history-1280.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "sheet": "019",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0215",
+      "key": "dark/1280/rest-odcs/local-dark-odcs-dataset--lineage-1280.png",
+      "classification": "intended",
+      "reason": "Compact dataset header is limited to lineage; other dataset tabs remain available.",
+      "sheet": "019",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0216",
+      "key": "dark/1280/rest-odcs/local-dark-odcs-dataset--properties-1280.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "sheet": "019",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0217",
+      "key": "dark/1280/rest-odcs/local-dark-odcs-dataset--relationships-1280.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar import inventory, timestamps, commit hashes or focus differ.",
+      "sheet": "020",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0218",
+      "key": "dark/1280/rest-editing/local-dark-add-concept--empty-or-resting-1280.png",
+      "classification": "intended",
+      "reason": "Catalog descriptions and readable graph backgrounds are intentional; concept dialog remains usable.",
+      "sheet": "020",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0219",
+      "key": "dark/1280/rest-editing/local-dark-add-concept--field-errors-failed-1280.png",
+      "classification": "intended",
+      "reason": "Catalog descriptions and readable graph backgrounds are intentional; concept dialog remains usable.",
+      "sheet": "020",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0220",
+      "key": "dark/1280/rest-editing/local-dark-add-concept--filled-1280.png",
+      "classification": "intended",
+      "reason": "Catalog descriptions and readable graph backgrounds are intentional; concept dialog remains usable.",
+      "sheet": "020",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0221",
+      "key": "dark/1280/rest-editing/local-dark-editing--stages-1280.png",
+      "classification": "intended",
+      "reason": "Source findings use the readable separate row; graph background changes and catalog descriptions are intentional.",
+      "sheet": "021",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0222",
+      "key": "dark/1280/rest-editing/local-dark-file-move--empty-or-resting-1280.png",
+      "classification": "intended",
+      "reason": "Source findings use the readable separate row; graph background changes and catalog descriptions are intentional.",
+      "sheet": "021",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0223",
+      "key": "dark/1280/rest-editing/local-dark-import--empty-or-resting-1280.png",
+      "classification": "intended",
+      "reason": "Source findings use the readable separate row; graph background changes and catalog descriptions are intentional.",
+      "sheet": "021",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0224",
+      "key": "dark/1280/rest-editing/local-dark-item-editor--delete-confirmation-1280.png",
+      "classification": "intended",
+      "reason": "Source findings use the readable separate row; graph background changes and catalog descriptions are intentional.",
+      "sheet": "021",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0225",
+      "key": "dark/1280/rest-editing/local-dark-item-editor--empty-or-resting-1280.png",
+      "classification": "intended",
+      "reason": "Catalog descriptions and editor presentation are intentional; project dialogs remain usable.",
+      "sheet": "022",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0227",
+      "key": "dark/1280/rest-editing/local-dark-item-editor--filled-1280.png",
+      "classification": "intended",
+      "reason": "Catalog descriptions and editor presentation are intentional; project dialogs remain usable.",
+      "sheet": "022",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0228",
+      "key": "dark/1280/rest-editing/local-dark-project-delete--empty-or-resting-1280.png",
+      "classification": "intended",
+      "reason": "Catalog descriptions and editor presentation are intentional; project dialogs remain usable.",
+      "sheet": "022",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0229",
+      "key": "dark/1280/rest-editing/local-dark-project-export--empty-or-resting-1280.png",
+      "classification": "intended",
+      "reason": "Catalog descriptions and editor presentation are intentional; project dialogs remain usable.",
+      "sheet": "022",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0230",
+      "key": "dark/1280/rest-editing/local-dark-project-export-history--empty-or-resting-1280.png",
+      "classification": "intended",
+      "reason": "Readable Source finding row and fitted graph background are intentional.",
+      "sheet": "023",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0231",
+      "key": "dark/1280/rest-editing/local-dark-project-rename--empty-or-resting-1280.png",
+      "classification": "intended",
+      "reason": "Readable Source finding row and fitted graph background are intentional.",
+      "sheet": "023",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0232",
+      "key": "dark/1280/rest-editing/local-dark-query-composer--empty-or-resting-1280.png",
+      "classification": "intended",
+      "reason": "Readable Source finding row and fitted graph background are intentional.",
+      "sheet": "023",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0233",
+      "key": "dark/1280/rest-editing/local-dark-source-editor--clean-1280.png",
+      "classification": "intended",
+      "reason": "Readable Source finding row and fitted graph background are intentional.",
+      "sheet": "023",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0235",
+      "key": "dark/1280/rest-editing/local-dark-source-editor--sql-colouring-1280.png",
+      "classification": "intended",
+      "reason": "Source coloring, readable finding row, fitted graph labels and framed minimap are intentional.",
+      "sheet": "024",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0236",
+      "key": "dark/1280/rest-editing/local-dark-source-editor--sql-warning-gutter-1280.png",
+      "classification": "intended",
+      "reason": "Source coloring, readable finding row, fitted graph labels and framed minimap are intentional.",
+      "sheet": "024",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0237",
+      "key": "dark/1280/rest-editing/local-dark-trash--empty-or-resting-1280.png",
+      "classification": "intended",
+      "reason": "Source coloring, readable finding row, fitted graph labels and framed minimap are intentional.",
+      "sheet": "024",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0238",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph--stages-1280.png",
+      "classification": "intended",
+      "reason": "Source coloring, readable finding row, fitted graph labels and framed minimap are intentional.",
+      "sheet": "024",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0239",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-layered--after-fit-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls, fitted readable graph layout and framed minimap are intentional.",
+      "sheet": "025",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0240",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-layered--all-areas-expanded-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls, fitted readable graph layout and framed minimap are intentional.",
+      "sheet": "025",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0241",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-layered--area-expanded-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls, fitted readable graph layout and framed minimap are intentional.",
+      "sheet": "025",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0242",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-layered--areas-collapsed-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls, fitted readable graph layout and framed minimap are intentional.",
+      "sheet": "025",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0243",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-layered--edge-hovered-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls retain Show count badge; selected entity details and grouping choices remain available.",
+      "sheet": "026",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0246",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-layered--fullscreen-node-selected-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls retain Show count badge; selected entity details and grouping choices remain available.",
+      "sheet": "026",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0247",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-layered--group-automatic-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls retain Show count badge; selected entity details and grouping choices remain available.",
+      "sheet": "026",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0248",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-layered--group-suggested-communities-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls retain Show count badge; selected entity details and grouping choices remain available.",
+      "sheet": "026",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0250",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-layered--labels-on-1280.png",
+      "classification": "intended",
+      "reason": "Folded controls, framed minimap and current fit/camera are intentional; loading states show the same progress.",
+      "sheet": "027",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0251",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-layered--legend-open-failed-1280.png",
+      "classification": "intended",
+      "reason": "Folded controls, framed minimap and current fit/camera are intentional; loading states show the same progress.",
+      "sheet": "027",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0252",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-layered--loading-1-1280.png",
+      "classification": "intended",
+      "reason": "Folded controls, framed minimap and current fit/camera are intentional; loading states show the same progress.",
+      "sheet": "027",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0253",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-layered--loading-2-1280.png",
+      "classification": "intended",
+      "reason": "Folded controls, framed minimap and current fit/camera are intentional; loading states show the same progress.",
+      "sheet": "027",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0254",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-layered--loading-3-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "sheet": "028",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0255",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-layered--mini-map-on-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "sheet": "028",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0256",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-layered--node-selected-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "sheet": "028",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0258",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-layered--zoomed-in-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "sheet": "028",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0259",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-layered--zoomed-minimum-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "sheet": "029",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0261",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-network--all-areas-expanded-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "sheet": "029",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0262",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-network--area-expanded-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "sheet": "029",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0263",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-network--edge-hovered-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "sheet": "029",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0265",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-network--fullscreen-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "sheet": "030",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0266",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-network--fullscreen-node-selected-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "sheet": "030",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0267",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-network--group-automatic-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "sheet": "030",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0268",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-network--group-suggested-communities-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "sheet": "030",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0270",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-network--labels-on-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "sheet": "031",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0271",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-network--legend-open-failed-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "sheet": "031",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0272",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-network--loading-1-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "sheet": "031",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0273",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-network--loading-2-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "sheet": "031",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0274",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-network--loading-3-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "sheet": "032",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0275",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-network--mini-map-on-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "sheet": "032",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0276",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-network--node-selected-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "sheet": "032",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0278",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-network--zoomed-in-1280.png",
+      "classification": "intended",
+      "reason": "Folded Controls, fitted labels, framed minimap and selected-entity camera retain the approved graph presentation; minimum zoom remains explicitly requested.",
+      "sheet": "032",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0279",
+      "key": "dark/1280/graphs-full-graph/local-dark-full-graph-network--zoomed-minimum-1280.png",
+      "classification": "intended",
+      "reason": "Minimum-zoom graph and fitted lineage selection retain visible entities; hop list remains available.",
+      "sheet": "033",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0281",
+      "key": "dark/1440/graphs-lineage/local-dark-contract-lineage--column-filter-failed-1440.png",
+      "classification": "intended",
+      "reason": "Minimum-zoom graph and fitted lineage selection retain visible entities; hop list remains available.",
+      "sheet": "033",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0282",
+      "key": "dark/1440/graphs-lineage/local-dark-contract-lineage--column-selected-1440.png",
+      "classification": "intended",
+      "reason": "Minimum-zoom graph and fitted lineage selection retain visible entities; hop list remains available.",
+      "sheet": "033",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0287",
+      "key": "dark/1440/graphs-lineage/local-dark-contract-lineage--hops-1-list-1440.png",
+      "classification": "intended",
+      "reason": "Minimum-zoom graph and fitted lineage selection retain visible entities; hop list remains available.",
+      "sheet": "033",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0288",
+      "key": "dark/1440/graphs-lineage/local-dark-contract-lineage--hops-2-list-1440.png",
+      "classification": "intended",
+      "reason": "Readable lineage card/camera and compact dataset header are intentional; hop-list content and controls are retained.",
+      "sheet": "034",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0289",
+      "key": "dark/1440/graphs-lineage/local-dark-contract-lineage--hops-3-list-1440.png",
+      "classification": "intended",
+      "reason": "Readable lineage card/camera and compact dataset header are intentional; hop-list content and controls are retained.",
+      "sheet": "034",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0292",
+      "key": "dark/1440/graphs-lineage/local-dark-contract-lineage--loading-1-1440.png",
+      "classification": "intended",
+      "reason": "Readable lineage card/camera and compact dataset header are intentional; hop-list content and controls are retained.",
+      "sheet": "034",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0293",
+      "key": "dark/1440/graphs-lineage/local-dark-contract-lineage--loading-2-1440.png",
+      "classification": "intended",
+      "reason": "Readable lineage card/camera and compact dataset header are intentional; hop-list content and controls are retained.",
+      "sheet": "034",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0294",
+      "key": "dark/1440/graphs-lineage/local-dark-contract-lineage--loading-3-1440.png",
+      "classification": "intended",
+      "reason": "Readable lineage card/camera and compact dataset header are intentional; hop-list content and controls are retained.",
+      "sheet": "035",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0295",
+      "key": "dark/1440/graphs-lineage/local-dark-contract-lineage--more-columns-1440.png",
+      "classification": "intended",
+      "reason": "Readable lineage card/camera and compact dataset header are intentional; hop-list content and controls are retained.",
+      "sheet": "035",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0299",
+      "key": "dark/1440/graphs-lineage/local-dark-contract-lineage--walk-1-before-1440.png",
+      "classification": "intended",
+      "reason": "Readable lineage card/camera and compact dataset header are intentional; hop-list content and controls are retained.",
+      "sheet": "035",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0310",
+      "key": "dark/1440/graphs-lineage/local-dark-dataset-lineage--column-filter-failed-1440.png",
+      "classification": "intended",
+      "reason": "Readable lineage card/camera and compact dataset header are intentional; hop-list content and controls are retained.",
+      "sheet": "035",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0311",
+      "key": "dark/1440/graphs-lineage/local-dark-dataset-lineage--column-selected-1440.png",
+      "classification": "intended",
+      "reason": "Readable lineage card/camera and compact dataset header are intentional; hop-list content and controls are retained.",
+      "sheet": "036",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0316",
+      "key": "dark/1440/graphs-lineage/local-dark-dataset-lineage--hops-1-list-1440.png",
+      "classification": "intended",
+      "reason": "Readable lineage card/camera and compact dataset header are intentional; hop-list content and controls are retained.",
+      "sheet": "036",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0317",
+      "key": "dark/1440/graphs-lineage/local-dark-dataset-lineage--hops-2-list-1440.png",
+      "classification": "intended",
+      "reason": "Readable lineage card/camera and compact dataset header are intentional; hop-list content and controls are retained.",
+      "sheet": "036",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0318",
+      "key": "dark/1440/graphs-lineage/local-dark-dataset-lineage--hops-3-list-1440.png",
+      "classification": "intended",
+      "reason": "Readable lineage card/camera and compact dataset header are intentional; hop-list content and controls are retained.",
+      "sheet": "036",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0321",
+      "key": "dark/1440/graphs-lineage/local-dark-dataset-lineage--more-columns-1440.png",
+      "classification": "intended",
+      "reason": "Readable lineage card/camera and compact dataset header are intentional; hop-list content and controls are retained.",
+      "sheet": "037",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0323",
+      "key": "dark/1440/graphs-lineage/local-dark-dataset-lineage--walk-1-before-1440.png",
+      "classification": "traversal noise",
+      "reason": "Walk-before frame has a different selected center and camera; not a comparable traversal state.",
+      "sheet": "037",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0334",
+      "key": "dark/1440/graphs-mapping-graph/local-dark-mapping-graph--after-fit-1440.png",
+      "classification": "intended",
+      "reason": "Readable lineage card/camera and compact dataset header are intentional; hop-list content and controls are retained.",
+      "sheet": "037",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0335",
+      "key": "dark/1440/graphs-mapping-graph/local-dark-mapping-graph--edge-hovered-1440.png",
+      "classification": "intended",
+      "reason": "Readable lineage card/camera and compact dataset header are intentional; hop-list content and controls are retained.",
+      "sheet": "037",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0337",
+      "key": "dark/1440/graphs-mapping-graph/local-dark-mapping-graph--fullscreen-1440.png",
+      "classification": "intended",
+      "reason": "Fitted name-only mapping cards, persistent canvas actions and selected-path presentation are intentional.",
+      "sheet": "038",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0338",
+      "key": "dark/1440/graphs-mapping-graph/local-dark-mapping-graph--fullscreen-node-selected-1440.png",
+      "classification": "intended",
+      "reason": "Fitted name-only mapping cards, persistent canvas actions and selected-path presentation are intentional.",
+      "sheet": "038",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0339",
+      "key": "dark/1440/graphs-mapping-graph/local-dark-mapping-graph--labels-on-failed-1440.png",
+      "classification": "intended",
+      "reason": "Fitted name-only mapping cards, persistent canvas actions and selected-path presentation are intentional.",
+      "sheet": "038",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0341",
+      "key": "dark/1440/graphs-mapping-graph/local-dark-mapping-graph--loading-1-1440.png",
+      "classification": "intended",
+      "reason": "Fitted name-only mapping cards, persistent canvas actions and selected-path presentation are intentional.",
+      "sheet": "038",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0342",
+      "key": "dark/1440/graphs-mapping-graph/local-dark-mapping-graph--loading-2-1440.png",
+      "classification": "intended",
+      "reason": "Fitted name-only mapping cards, persistent canvas actions and selected-path presentation are intentional.",
+      "sheet": "039",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0343",
+      "key": "dark/1440/graphs-mapping-graph/local-dark-mapping-graph--loading-3-1440.png",
+      "classification": "intended",
+      "reason": "Fitted name-only mapping cards, persistent canvas actions and selected-path presentation are intentional.",
+      "sheet": "039",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0344",
+      "key": "dark/1440/graphs-mapping-graph/local-dark-mapping-graph--node-selected-1440.png",
+      "classification": "intended",
+      "reason": "Fitted name-only mapping cards, persistent canvas actions and selected-path presentation are intentional.",
+      "sheet": "039",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0346",
+      "key": "dark/1440/graphs-mapping-graph/local-dark-mapping-graph--stages-1440.png",
+      "classification": "intended",
+      "reason": "Fitted name-only mapping cards, persistent canvas actions and selected-path presentation are intentional.",
+      "sheet": "039",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0347",
+      "key": "dark/1440/graphs-mapping-graph/local-dark-mapping-graph--zoomed-in-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "040",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0348",
+      "key": "dark/1440/graphs-mapping-graph/local-dark-mapping-graph--zoomed-minimum-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "040",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0349",
+      "key": "dark/1440/rest-shell/local-dark-catalog--keyboard-focus-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "040",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0350",
+      "key": "dark/1440/rest-shell/local-dark-metrics--keyboard-focus-1440.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "sheet": "040",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0351",
+      "key": "dark/1440/rest-shell/local-dark-overview--keyboard-focus-1440.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "sheet": "041",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0352",
+      "key": "dark/1440/rest-shell/local-dark-settings--theme-control-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "041",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0353",
+      "key": "dark/1440/rest-shell/local-dark-shell--avatar-menu-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "041",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0354",
+      "key": "dark/1440/rest-shell/local-dark-shell--history-back-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "041",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0355",
+      "key": "dark/1440/rest-shell/local-dark-shell--history-forward-1440.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "sheet": "042",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0356",
+      "key": "dark/1440/rest-shell/local-dark-shell--new-menu-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "042",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0357",
+      "key": "dark/1440/rest-shell/local-dark-shell--sidebar-collapsed-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "042",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0358",
+      "key": "dark/1440/rest-shell/local-dark-shell--sidebar-expanded-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "042",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0359",
+      "key": "dark/1440/rest-shell/local-dark-shell--sidebar-item-hover-1440.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "sheet": "043",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0360",
+      "key": "dark/1440/rest-shell/local-dark-shell--stages-1440.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "sheet": "043",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0361",
+      "key": "dark/1440/rest-catalog/local-dark-catalog--area-filter-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "043",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0362",
+      "key": "dark/1440/rest-catalog/local-dark-catalog--populated-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "043",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0363",
+      "key": "dark/1440/rest-catalog/local-dark-catalog--search-matching-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "044",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0365",
+      "key": "dark/1440/rest-catalog/local-dark-catalog--stages-1440.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "sheet": "044",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0366",
+      "key": "dark/1440/rest-catalog/local-dark-catalog--table-row-hover-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "044",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0367",
+      "key": "dark/1440/rest-catalog/local-dark-overview--entity-details-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "044",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0368",
+      "key": "dark/1440/rest-catalog/local-dark-overview--long-named-entity-selected-1440.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "sheet": "045",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0369",
+      "key": "dark/1440/rest-catalog/local-dark-overview--show-all-expanded-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "045",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0370",
+      "key": "dark/1440/rest-metrics/local-dark-metric-wizard--primary-hover-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "045",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0371",
+      "key": "dark/1440/rest-metrics/local-dark-metric-wizard--step-1-empty-validation-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "045",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0372",
+      "key": "dark/1440/rest-metrics/local-dark-metric-wizard--step-1-filled-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "046",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0374",
+      "key": "dark/1440/rest-metrics/local-dark-metric-wizard--step-3-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "046",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0375",
+      "key": "dark/1440/rest-metrics/local-dark-metric-wizard--step-3-validation-error-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "046",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0376",
+      "key": "dark/1440/rest-metrics/local-dark-metric-wizard--step-4-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "046",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0377",
+      "key": "dark/1440/rest-metrics/local-dark-metric-wizard--step-5-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "047",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0378",
+      "key": "dark/1440/rest-metrics/local-dark-metric-wizard--step-6-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "047",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0379",
+      "key": "dark/1440/rest-metrics/local-dark-metric-wizard--step-7-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "047",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0380",
+      "key": "dark/1440/rest-metrics/local-dark-metric-wizard--step-8-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "047",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0381",
+      "key": "dark/1440/rest-metrics/local-dark-metrics--detail-1440.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "sheet": "048",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0382",
+      "key": "dark/1440/rest-metrics/local-dark-metrics--filter-matching-1440.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "sheet": "048",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0383",
+      "key": "dark/1440/rest-metrics/local-dark-metrics--filter-no-result-1440.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "sheet": "048",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0384",
+      "key": "dark/1440/rest-metrics/local-dark-metrics--list-1440.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "sheet": "048",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0385",
+      "key": "dark/1440/rest-metrics/local-dark-metrics--stages-1440.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "sheet": "049",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0386",
+      "key": "dark/1440/rest-mappings/local-dark-mapping-graph--empty-bindings-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "049",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0387",
+      "key": "dark/1440/rest-mappings/local-dark-mappings--agent-context-1440.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "sheet": "049",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0388",
+      "key": "dark/1440/rest-mappings/local-dark-mappings--list-1440.png",
+      "classification": "traversal noise",
+      "reason": "Binding list has different asynchronous loading progress; not comparable settled content.",
+      "sheet": "049",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0389",
+      "key": "dark/1440/rest-mappings/local-dark-mappings--selected-binding-1440.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "sheet": "050",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0390",
+      "key": "dark/1440/rest-mappings/local-dark-mappings--selected-document-source-1440.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "sheet": "050",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0391",
+      "key": "dark/1440/rest-mappings/local-dark-mappings--stages-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "050",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0392",
+      "key": "dark/1440/rest-odcs/local-dark-odcs--stages-1440.png",
+      "classification": "intended",
+      "reason": "Approved name-only graph cards, persistent canvas controls, catalog count/descriptions or stable wizard with field-level validation; actions remain present.",
+      "sheet": "050",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0393",
+      "key": "dark/1440/rest-odcs/local-dark-odcs-contract--populated-1440.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "sheet": "051",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0394",
+      "key": "dark/1440/rest-odcs/local-dark-odcs-contract--search-matching-1440.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "sheet": "051",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0395",
+      "key": "dark/1440/rest-odcs/local-dark-odcs-contract--search-no-result-1440.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "sheet": "051",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0396",
+      "key": "dark/1440/rest-odcs/local-dark-odcs-contract--section-quality4-1440.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; fixture inventory, hash/time or focus differences only.",
+      "sheet": "051",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0397",
+      "key": "dark/1440/rest-odcs/local-dark-odcs-contract--section-service-levels3-1440.png",
+      "classification": "unchanged",
+      "reason": "Same contract/dataset content and actions; fixture hash/time and sidebar inventory differ.",
+      "sheet": "052",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0398",
+      "key": "dark/1440/rest-odcs/local-dark-odcs-contract--team-failed-1440.png",
+      "classification": "unchanged",
+      "reason": "Same contract/dataset content and actions; fixture hash/time and sidebar inventory differ.",
+      "sheet": "052",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0399",
+      "key": "dark/1440/rest-odcs/local-dark-odcs-dataset--data-quality-1440.png",
+      "classification": "unchanged",
+      "reason": "Same contract/dataset content and actions; fixture hash/time and sidebar inventory differ.",
+      "sheet": "052",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0400",
+      "key": "dark/1440/rest-odcs/local-dark-odcs-dataset--history-1440.png",
+      "classification": "unchanged",
+      "reason": "Same contract/dataset content and actions; fixture hash/time and sidebar inventory differ.",
+      "sheet": "052",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0401",
+      "key": "dark/1440/rest-odcs/local-dark-odcs-dataset--lineage-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "053",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0402",
+      "key": "dark/1440/rest-odcs/local-dark-odcs-dataset--properties-1440.png",
+      "classification": "unchanged",
+      "reason": "Same contract/dataset content and actions; fixture hash/time and sidebar inventory differ.",
+      "sheet": "053",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0403",
+      "key": "dark/1440/rest-odcs/local-dark-odcs-dataset--relationships-1440.png",
+      "classification": "unchanged",
+      "reason": "Same contract/dataset content and actions; fixture hash/time and sidebar inventory differ.",
+      "sheet": "053",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0404",
+      "key": "dark/1440/rest-editing/local-dark-add-concept--empty-or-resting-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "053",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0405",
+      "key": "dark/1440/rest-editing/local-dark-add-concept--field-errors-failed-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "054",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0406",
+      "key": "dark/1440/rest-editing/local-dark-add-concept--filled-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "054",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0407",
+      "key": "dark/1440/rest-editing/local-dark-editing--stages-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "054",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0408",
+      "key": "dark/1440/rest-editing/local-dark-file-move--empty-or-resting-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "054",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0409",
+      "key": "dark/1440/rest-editing/local-dark-import--empty-or-resting-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "055",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0410",
+      "key": "dark/1440/rest-editing/local-dark-item-editor--delete-confirmation-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "055",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0411",
+      "key": "dark/1440/rest-editing/local-dark-item-editor--empty-or-resting-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "055",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0412",
+      "key": "dark/1440/rest-editing/local-dark-item-editor--field-errors-failed-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "055",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0413",
+      "key": "dark/1440/rest-editing/local-dark-item-editor--filled-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "056",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0414",
+      "key": "dark/1440/rest-editing/local-dark-project-delete--empty-or-resting-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "056",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0415",
+      "key": "dark/1440/rest-editing/local-dark-project-export--empty-or-resting-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "056",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0416",
+      "key": "dark/1440/rest-editing/local-dark-project-export-history--empty-or-resting-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "056",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0417",
+      "key": "dark/1440/rest-editing/local-dark-project-rename--empty-or-resting-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "057",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0418",
+      "key": "dark/1440/rest-editing/local-dark-query-composer--empty-or-resting-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "057",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0419",
+      "key": "dark/1440/rest-editing/local-dark-source-editor--clean-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "057",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0421",
+      "key": "dark/1440/rest-editing/local-dark-source-editor--sql-colouring-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "057",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0422",
+      "key": "dark/1440/rest-editing/local-dark-source-editor--sql-warning-gutter-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "058",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0423",
+      "key": "dark/1440/rest-editing/local-dark-trash--empty-or-resting-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "058",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0424",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph--stages-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "058",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0425",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--after-fit-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "058",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0426",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--all-areas-expanded-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "059",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0427",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--area-expanded-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "059",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0428",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--areas-collapsed-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "059",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0429",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--edge-hovered-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "059",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0431",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--fullscreen-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "060",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0432",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--fullscreen-node-selected-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "060",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0433",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--group-automatic-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "060",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0434",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--group-suggested-communities-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "060",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0435",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--grouping-menu-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "061",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0436",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--labels-on-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "061",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0437",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--legend-open-failed-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "061",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0438",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--loading-1-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "061",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0439",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--loading-2-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "062",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0440",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--loading-3-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "062",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0441",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--mini-map-on-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "062",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0442",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--node-selected-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "062",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0443",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--options-open-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "063",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0444",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--zoomed-in-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "063",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0445",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-layered--zoomed-minimum-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "063",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0446",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--after-fit-1440.png",
+      "classification": "intended",
+      "reason": "Readable graph labels/camera, folded Controls, framed minimap, catalog descriptions and Source finding row are intentional; dialog actions remain usable.",
+      "sheet": "063",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0447",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--all-areas-expanded-1440.png",
+      "classification": "intended",
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "sheet": "064",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0448",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--area-expanded-1440.png",
+      "classification": "intended",
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "sheet": "064",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0449",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--areas-collapsed-1440.png",
+      "classification": "intended",
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "sheet": "064",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0450",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--edge-hovered-1440.png",
+      "classification": "intended",
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "sheet": "064",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0452",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--fullscreen-1440.png",
+      "classification": "intended",
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "sheet": "065",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0453",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--fullscreen-node-selected-1440.png",
+      "classification": "intended",
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "sheet": "065",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0454",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--group-automatic-1440.png",
+      "classification": "intended",
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "sheet": "065",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0455",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--group-suggested-communities-1440.png",
+      "classification": "intended",
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "sheet": "065",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0456",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--labels-on-1440.png",
+      "classification": "intended",
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "sheet": "066",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0457",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--legend-open-failed-1440.png",
+      "classification": "intended",
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "sheet": "066",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0458",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--loading-1-1440.png",
+      "classification": "intended",
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "sheet": "066",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0459",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--loading-2-1440.png",
+      "classification": "intended",
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "sheet": "066",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0460",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--loading-3-1440.png",
+      "classification": "intended",
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "sheet": "067",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0461",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--mini-map-on-1440.png",
+      "classification": "intended",
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "sheet": "067",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0462",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--node-selected-1440.png",
+      "classification": "intended",
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "sheet": "067",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0464",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--zoomed-in-1440.png",
+      "classification": "intended",
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "sheet": "067",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0465",
+      "key": "dark/1440/graphs-full-graph/local-dark-full-graph-network--zoomed-minimum-1440.png",
+      "classification": "intended",
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "sheet": "068",
+      "light_counterpart": "pixel comparison only; no recorded disposition"
+    },
+    {
+      "id": "0466",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph--stages-2560.png",
+      "classification": "intended",
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "sheet": "068",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0467",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--after-fit-2560.png",
+      "classification": "intended",
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "sheet": "068",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0468",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--all-areas-expanded-2560.png",
+      "classification": "traversal noise",
+      "reason": "Expanded-area camera follows selection and expansion without Fit in the capture sequence. Standalone pair shows a retained closer camera; settled after-fit pair 0467 contains the complete graph on both revisions. No missing graph feature established.",
+      "sheet": "068",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0469",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--area-expanded-2560.png",
+      "classification": "intended",
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "sheet": "069",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0470",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--areas-collapsed-2560.png",
+      "classification": "intended",
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "sheet": "069",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0471",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--edge-hovered-2560.png",
+      "classification": "intended",
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "sheet": "069",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0473",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--fullscreen-2560.png",
+      "classification": "intended",
+      "reason": "Packed readable Network cards, folded controls at narrow canvas widths, persistent fullscreen actions and framed minimap retain the approved graph presentation.",
+      "sheet": "069",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0474",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--fullscreen-node-selected-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "070",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0475",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--group-automatic-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "070",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0476",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--group-suggested-communities-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "070",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0478",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--labels-on-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "070",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0479",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--legend-open-failed-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "071",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0480",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--loading-1-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "071",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0481",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--loading-2-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "071",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0482",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--loading-3-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "071",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0483",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--mini-map-on-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "072",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0484",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--node-selected-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "072",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0486",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--zoomed-in-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "072",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0487",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-layered--zoomed-minimum-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "072",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0489",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--all-areas-expanded-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "073",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0490",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--area-expanded-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "073",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0491",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--areas-collapsed-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "073",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0492",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--edge-hovered-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "073",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0494",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--fullscreen-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "074",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0495",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--fullscreen-node-selected-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "074",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0496",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--group-automatic-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "074",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0497",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--group-suggested-communities-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "074",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0499",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--labels-on-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "075",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0500",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--legend-open-failed-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "075",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0501",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--loading-1-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "075",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0502",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--loading-2-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "075",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0503",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--loading-3-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "076",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0504",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--mini-map-on-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "076",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0505",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--node-selected-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "076",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0507",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--zoomed-in-2560.png",
+      "classification": "traversal noise",
+      "reason": "Different graph layout/camera or selected center after traversal; nodes and controls remain present.",
+      "sheet": "076",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0508",
+      "key": "dark/2560/graphs-full-graph/local-dark-full-graph-network--zoomed-minimum-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "077",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0510",
+      "key": "dark/2560/graphs-lineage/local-dark-contract-lineage--column-filter-failed-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "077",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0511",
+      "key": "dark/2560/graphs-lineage/local-dark-contract-lineage--column-selected-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "077",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0516",
+      "key": "dark/2560/graphs-lineage/local-dark-contract-lineage--hops-1-list-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "077",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0517",
+      "key": "dark/2560/graphs-lineage/local-dark-contract-lineage--hops-2-list-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "078",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0518",
+      "key": "dark/2560/graphs-lineage/local-dark-contract-lineage--hops-3-list-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "078",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0521",
+      "key": "dark/2560/graphs-lineage/local-dark-contract-lineage--loading-1-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "078",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0522",
+      "key": "dark/2560/graphs-lineage/local-dark-contract-lineage--loading-2-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "078",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0523",
+      "key": "dark/2560/graphs-lineage/local-dark-contract-lineage--loading-3-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "079",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0524",
+      "key": "dark/2560/graphs-lineage/local-dark-contract-lineage--more-columns-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "079",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0528",
+      "key": "dark/2560/graphs-lineage/local-dark-contract-lineage--walk-1-before-2560.png",
+      "classification": "traversal noise",
+      "reason": "Different graph layout/camera or selected center after traversal; nodes and controls remain present.",
+      "sheet": "079",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0535",
+      "key": "dark/2560/graphs-lineage/local-dark-dataset-lineage--column-filter-failed-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "079",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0536",
+      "key": "dark/2560/graphs-lineage/local-dark-dataset-lineage--column-selected-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "080",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0541",
+      "key": "dark/2560/graphs-lineage/local-dark-dataset-lineage--hops-1-list-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "080",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0542",
+      "key": "dark/2560/graphs-lineage/local-dark-dataset-lineage--hops-2-list-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "080",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0543",
+      "key": "dark/2560/graphs-lineage/local-dark-dataset-lineage--hops-3-list-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "080",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0546",
+      "key": "dark/2560/graphs-lineage/local-dark-dataset-lineage--more-columns-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "081",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0550",
+      "key": "dark/2560/graphs-lineage/local-dark-dataset-lineage--walk-1-before-2560.png",
+      "classification": "traversal noise",
+      "reason": "Different graph layout/camera or selected center after traversal; nodes and controls remain present.",
+      "sheet": "081",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0558",
+      "key": "dark/2560/graphs-mapping-graph/local-dark-mapping-graph--after-fit-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "081",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0559",
+      "key": "dark/2560/graphs-mapping-graph/local-dark-mapping-graph--edge-hovered-2560.png",
+      "classification": "intended",
+      "reason": "Graph framing/minimap and readable names retain intended behavior; lineage uses the compact dataset header, fitted cards and available hop-list dialog.",
+      "sheet": "081",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0561",
+      "key": "dark/2560/graphs-mapping-graph/local-dark-mapping-graph--fullscreen-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "082",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0563",
+      "key": "dark/2560/graphs-mapping-graph/local-dark-mapping-graph--labels-on-failed-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "082",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0565",
+      "key": "dark/2560/graphs-mapping-graph/local-dark-mapping-graph--loading-1-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "082",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0566",
+      "key": "dark/2560/graphs-mapping-graph/local-dark-mapping-graph--loading-2-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "082",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0567",
+      "key": "dark/2560/graphs-mapping-graph/local-dark-mapping-graph--loading-3-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "083",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0568",
+      "key": "dark/2560/graphs-mapping-graph/local-dark-mapping-graph--node-selected-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "083",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0570",
+      "key": "dark/2560/graphs-mapping-graph/local-dark-mapping-graph--stages-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "083",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0571",
+      "key": "dark/2560/graphs-mapping-graph/local-dark-mapping-graph--zoomed-in-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "083",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0572",
+      "key": "dark/2560/graphs-mapping-graph/local-dark-mapping-graph--zoomed-minimum-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "084",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0573",
+      "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--after-fit-failed-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "084",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0574",
+      "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--back-after-walk-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "084",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0575",
+      "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--edge-hovered-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "084",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0576",
+      "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--expanded-failed-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "085",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0577",
+      "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--expansion-collapsed-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "085",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0580",
+      "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--fullscreen-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "085",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0581",
+      "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--fullscreen-node-selected-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "085",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0582",
+      "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--labels-on-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "086",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0583",
+      "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--legend-open-failed-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "086",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0587",
+      "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--node-selected-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "086",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0589",
+      "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--walk-1-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "086",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0590",
+      "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--walk-2-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "087",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0591",
+      "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--walk-3-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "087",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0592",
+      "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--zoomed-in-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "087",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0593",
+      "key": "dark/2560/graphs-neighborhood/local-dark-neighborhood--zoomed-minimum-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "087",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0594",
+      "key": "dark/2560/rest-shell/local-dark-catalog--keyboard-focus-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "088",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0595",
+      "key": "dark/2560/rest-shell/local-dark-metrics--keyboard-focus-2560.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; focus and sidebar fixture inventory differ.",
+      "sheet": "088",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0596",
+      "key": "dark/2560/rest-shell/local-dark-overview--keyboard-focus-2560.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; focus and sidebar fixture inventory differ.",
+      "sheet": "088",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0597",
+      "key": "dark/2560/rest-shell/local-dark-settings--theme-control-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "088",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0598",
+      "key": "dark/2560/rest-shell/local-dark-shell--avatar-menu-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "089",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0599",
+      "key": "dark/2560/rest-shell/local-dark-shell--history-back-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "089",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0600",
+      "key": "dark/2560/rest-shell/local-dark-shell--history-forward-2560.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; focus and sidebar fixture inventory differ.",
+      "sheet": "089",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0601",
+      "key": "dark/2560/rest-shell/local-dark-shell--new-menu-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "089",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0602",
+      "key": "dark/2560/rest-shell/local-dark-shell--sidebar-collapsed-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "090",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0603",
+      "key": "dark/2560/rest-shell/local-dark-shell--sidebar-expanded-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "090",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0604",
+      "key": "dark/2560/rest-shell/local-dark-shell--sidebar-item-hover-2560.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; focus and sidebar fixture inventory differ.",
+      "sheet": "090",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0605",
+      "key": "dark/2560/rest-shell/local-dark-shell--stages-2560.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; focus and sidebar fixture inventory differ.",
+      "sheet": "090",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0606",
+      "key": "dark/2560/rest-catalog/local-dark-catalog--area-filter-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "091",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0608",
+      "key": "dark/2560/rest-catalog/local-dark-catalog--search-matching-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "091",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0609",
+      "key": "dark/2560/rest-catalog/local-dark-catalog--search-no-result-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "091",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0610",
+      "key": "dark/2560/rest-catalog/local-dark-catalog--stages-2560.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; focus and sidebar fixture inventory differ.",
+      "sheet": "091",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0611",
+      "key": "dark/2560/rest-catalog/local-dark-catalog--table-row-hover-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "092",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0612",
+      "key": "dark/2560/rest-catalog/local-dark-overview--entity-details-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "092",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0613",
+      "key": "dark/2560/rest-catalog/local-dark-overview--long-named-entity-selected-2560.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; focus and sidebar fixture inventory differ.",
+      "sheet": "092",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0614",
+      "key": "dark/2560/rest-catalog/local-dark-overview--show-all-expanded-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "092",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0615",
+      "key": "dark/2560/rest-metrics/local-dark-metric-wizard--primary-hover-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "093",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0616",
+      "key": "dark/2560/rest-metrics/local-dark-metric-wizard--step-1-empty-validation-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "093",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0617",
+      "key": "dark/2560/rest-metrics/local-dark-metric-wizard--step-1-filled-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "093",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0618",
+      "key": "dark/2560/rest-metrics/local-dark-metric-wizard--step-2-2560.png",
+      "classification": "intended",
+      "reason": "Approved mapping/lineage camera, compact headers, below-canvas neighborhood legend, fitted center and catalog descriptions/count; stable metric wizard.",
+      "sheet": "093",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0619",
+      "key": "dark/2560/rest-metrics/local-dark-metric-wizard--step-3-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "094",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0620",
+      "key": "dark/2560/rest-metrics/local-dark-metric-wizard--step-3-validation-error-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "094",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0621",
+      "key": "dark/2560/rest-metrics/local-dark-metric-wizard--step-4-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "094",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0622",
+      "key": "dark/2560/rest-metrics/local-dark-metric-wizard--step-5-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "094",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0623",
+      "key": "dark/2560/rest-metrics/local-dark-metric-wizard--step-6-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "095",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0624",
+      "key": "dark/2560/rest-metrics/local-dark-metric-wizard--step-7-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "095",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0625",
+      "key": "dark/2560/rest-metrics/local-dark-metric-wizard--step-8-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "095",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0627",
+      "key": "dark/2560/rest-metrics/local-dark-metrics--filter-matching-2560.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar fixture inventory or focus differs.",
+      "sheet": "095",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0628",
+      "key": "dark/2560/rest-metrics/local-dark-metrics--filter-no-result-2560.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar fixture inventory or focus differs.",
+      "sheet": "096",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0629",
+      "key": "dark/2560/rest-metrics/local-dark-metrics--list-2560.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar fixture inventory or focus differs.",
+      "sheet": "096",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0630",
+      "key": "dark/2560/rest-metrics/local-dark-metrics--stages-2560.png",
+      "classification": "intended",
+      "reason": "Approved common metric list/detail content width at 2560 px.",
+      "sheet": "096",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0632",
+      "key": "dark/2560/rest-mappings/local-dark-mappings--agent-context-2560.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar fixture inventory or focus differs.",
+      "sheet": "096",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0633",
+      "key": "dark/2560/rest-mappings/local-dark-mappings--list-2560.png",
+      "classification": "traversal noise",
+      "reason": "Mapping inventory is captured at different asynchronous loading stages; no comparable settled list.",
+      "sheet": "097",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0634",
+      "key": "dark/2560/rest-mappings/local-dark-mappings--selected-binding-2560.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar fixture inventory or focus differs.",
+      "sheet": "097",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0635",
+      "key": "dark/2560/rest-mappings/local-dark-mappings--selected-document-source-2560.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar fixture inventory or focus differs.",
+      "sheet": "097",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0636",
+      "key": "dark/2560/rest-mappings/local-dark-mappings--stages-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "097",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0637",
+      "key": "dark/2560/rest-odcs/local-dark-odcs--stages-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "098",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0638",
+      "key": "dark/2560/rest-odcs/local-dark-odcs-contract--populated-2560.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar fixture inventory or focus differs.",
+      "sheet": "098",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0639",
+      "key": "dark/2560/rest-odcs/local-dark-odcs-contract--search-matching-2560.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar fixture inventory or focus differs.",
+      "sheet": "098",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0640",
+      "key": "dark/2560/rest-odcs/local-dark-odcs-contract--search-no-result-2560.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar fixture inventory or focus differs.",
+      "sheet": "098",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0641",
+      "key": "dark/2560/rest-odcs/local-dark-odcs-contract--section-quality4-2560.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar fixture inventory or focus differs.",
+      "sheet": "099",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0642",
+      "key": "dark/2560/rest-odcs/local-dark-odcs-contract--section-service-levels3-2560.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar fixture inventory or focus differs.",
+      "sheet": "099",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0643",
+      "key": "dark/2560/rest-odcs/local-dark-odcs-contract--team-failed-2560.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar fixture inventory or focus differs.",
+      "sheet": "099",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0644",
+      "key": "dark/2560/rest-odcs/local-dark-odcs-dataset--data-quality-2560.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar fixture inventory or focus differs.",
+      "sheet": "099",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0645",
+      "key": "dark/2560/rest-odcs/local-dark-odcs-dataset--history-2560.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar fixture inventory or focus differs.",
+      "sheet": "100",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0646",
+      "key": "dark/2560/rest-odcs/local-dark-odcs-dataset--lineage-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "100",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0647",
+      "key": "dark/2560/rest-odcs/local-dark-odcs-dataset--properties-2560.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar fixture inventory or focus differs.",
+      "sheet": "100",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0648",
+      "key": "dark/2560/rest-odcs/local-dark-odcs-dataset--relationships-2560.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar fixture inventory or focus differs.",
+      "sheet": "100",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0649",
+      "key": "dark/2560/rest-editing/local-dark-add-concept--empty-or-resting-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "101",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0650",
+      "key": "dark/2560/rest-editing/local-dark-add-concept--field-errors-failed-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "101",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0651",
+      "key": "dark/2560/rest-editing/local-dark-add-concept--filled-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "101",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0653",
+      "key": "dark/2560/rest-editing/local-dark-file-move--empty-or-resting-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "101",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0654",
+      "key": "dark/2560/rest-editing/local-dark-import--empty-or-resting-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "102",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0655",
+      "key": "dark/2560/rest-editing/local-dark-item-editor--delete-confirmation-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "102",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0656",
+      "key": "dark/2560/rest-editing/local-dark-item-editor--empty-or-resting-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "102",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0657",
+      "key": "dark/2560/rest-editing/local-dark-item-editor--field-errors-failed-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "102",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0658",
+      "key": "dark/2560/rest-editing/local-dark-item-editor--filled-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "103",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0659",
+      "key": "dark/2560/rest-editing/local-dark-project-delete--empty-or-resting-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "103",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0660",
+      "key": "dark/2560/rest-editing/local-dark-project-export--empty-or-resting-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "103",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0661",
+      "key": "dark/2560/rest-editing/local-dark-project-export-history--empty-or-resting-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "103",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0662",
+      "key": "dark/2560/rest-editing/local-dark-project-rename--empty-or-resting-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "104",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0663",
+      "key": "dark/2560/rest-editing/local-dark-query-composer--empty-or-resting-2560.png",
+      "classification": "unchanged",
+      "reason": "Equivalent displayed content and actions; sidebar fixture inventory or focus differs.",
+      "sheet": "104",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0664",
+      "key": "dark/2560/rest-editing/local-dark-source-editor--clean-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "104",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0666",
+      "key": "dark/2560/rest-editing/local-dark-source-editor--sql-colouring-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "104",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0667",
+      "key": "dark/2560/rest-editing/local-dark-source-editor--sql-warning-gutter-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "105",
+      "light_counterpart": "absent from earlier matrix"
+    },
+    {
+      "id": "0668",
+      "key": "dark/2560/rest-editing/local-dark-trash--empty-or-resting-2560.png",
+      "classification": "intended",
+      "reason": "Retained controls with approved catalog descriptions, compact dataset header, graph presentation, stable dialogs or source warning layout.",
+      "sheet": "105",
+      "light_counterpart": "absent from earlier matrix"
+    }
+  ]
+}

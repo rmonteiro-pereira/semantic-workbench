@@ -1,0 +1,4513 @@
+{
+  "candidate": "df201d11",
+  "main": "da54cf17",
+  "scope": "Review-only job 2: all 214 assigned changed server-mode pairs from the frozen earlier matrix; no new captures or live interaction checks. Candidate identity follows the existing matrix record.",
+  "identity": ["baseline", "key"],
+  "queue": "pending-server-2.tsv",
+  "queue_sha256": "8f140e84d122c1539a3133dba0618d336623ab4d2d3014423422a70b99bff9af",
+  "counts": {
+    "intended": 206,
+    "unchanged": 8,
+    "traversal noise": 0,
+    "regression": 0
+  },
+  "resolution_counts": {
+    "downscaled": 152,
+    "native": 62
+  },
+  "pairs_with_native_details": 56,
+  "review_images": 120,
+  "unique_sheets": 118,
+  "supplemental_images": 2,
+  "crop_method": "Per-channel pixel difference threshold 16; bounding box plus 40 pixels of context clipped to source bounds. Native unless crop exceeds 780 pixels wide, then reduced to 780. Main left, candidate right; at most two distinct pairs per image. Selected wide pairs also have native text insets.",
+  "crop_directory": "/srv/dev/review-sol2",
+  "local_crop_directory": "/home/rodrigo/scratch/sw-007/review-sol2",
+  "coverage_limits": [
+    "Existing still images only; no new captures, browser suites, mutation runs or code changes.",
+    "Git-remotes pair 1858 contains table headers only on both sides.",
+    "Query-composer and some property-edit/search/team filenames do not establish the named open state.",
+    "Traffic, imported items and unpublished-change behavior are not comprehensively established by this assigned subset.",
+    "Downscaled comparisons are identified per pair; native insets cover selected text regions rather than every text region of a wide screen."
+  ],
+  "regressions": [],
+  "pairs": [
+    {
+      "preview": "1531",
+      "baseline": "main",
+      "key": "dark/1280/server-0/server-dark-catalog-1280-full.png",
+      "classification": "intended",
+      "reason": "Intended result count, readable type labels and card descriptions; desktop Edit appears on hover. Sidebar type labels and spacing are also intended.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 679
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-000.png",
+      "seen": true
+    },
+    {
+      "preview": "1537",
+      "baseline": "main",
+      "key": "dark/1280/server-0/server-dark-contract-graph-1280-full.png",
+      "classification": "intended",
+      "reason": "Compact name-only lineage cards and viewport fitting expose the related contract, semantic model and metrics; the removal of card field detail is intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 703
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-000.png",
+      "seen": true
+    },
+    {
+      "preview": "1543",
+      "baseline": "main",
+      "key": "dark/1280/server-0/server-dark-mappings-1280-full.png",
+      "classification": "intended",
+      "reason": "Intended empty mapping state offers Import and Load example instead of inert query/export actions. Where both show this state, the filename does not establish an open query composer.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 593
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-001.png",
+      "seen": true
+    },
+    {
+      "preview": "1549",
+      "baseline": "main",
+      "key": "dark/1280/server-0/server-dark-metrics-list-1280-full.png",
+      "classification": "intended",
+      "reason": "Metric list and actions remain; intended sidebar type labels and spacing account for the visible change.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 656,
+        "height": 706
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-001.png",
+      "seen": true
+    },
+    {
+      "preview": "1555",
+      "baseline": "main",
+      "key": "dark/1280/server-0/server-dark-odcs-dataset-history-1280-full.png",
+      "classification": "intended",
+      "reason": "Contract content remains with intended sidebar type labels and spacing; fixture revision hashes and timestamps may differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 868,
+        "height": 592
+      },
+      "scale": 0.8986175115207373,
+      "resolution": "downscaled",
+      "sheet": "sheet-002.png",
+      "seen": true
+    },
+    {
+      "preview": "1561",
+      "baseline": "main",
+      "key": "dark/1280/server-0/server-dark-odcs-dataset-relationships-1280-full.png",
+      "classification": "intended",
+      "reason": "Contract content remains with intended sidebar type labels and spacing; fixture revision hashes and timestamps may differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 868,
+        "height": 592
+      },
+      "scale": 0.8986175115207373,
+      "resolution": "downscaled",
+      "sheet": "sheet-002.png",
+      "seen": true
+    },
+    {
+      "preview": "1567",
+      "baseline": "main",
+      "key": "dark/1280/server-0/server-dark-ontology-graph-1280-full.png",
+      "classification": "intended",
+      "reason": "Intended graph layout and readable entity names, responsive folded Controls where needed, and separate fullscreen action. Show count badge remains where exposed.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 692
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-003.png",
+      "seen": true
+    },
+    {
+      "preview": "1573",
+      "baseline": "main",
+      "key": "dark/1280/server-0/server-dark-ontology-neighborhood-1280-full.png",
+      "classification": "intended",
+      "reason": "Intended neighborhood viewport fitting, compact readable cards and legend below the canvas. Center, connected entities and walk controls remain; wide views avoid oversized cards.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-003.png",
+      "seen": true
+    },
+    {
+      "preview": "1579",
+      "baseline": "main",
+      "key": "dark/1280/server-0/server-dark-query-composer-1280-full.png",
+      "classification": "intended",
+      "reason": "Intended empty mapping state offers Import and Load example instead of inert query/export actions. Where both show this state, the filename does not establish an open query composer.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 593
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-004.png",
+      "seen": true
+    },
+    {
+      "preview": "1585",
+      "baseline": "main",
+      "key": "dark/1280/server-0/server-dark-source-control-1280-full.png",
+      "classification": "intended",
+      "reason": "Intended sync/no-remote guidance and explanation for disabled commit; source-control or remote-dialog actions remain. Sidebar type labels and spacing are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 713,
+        "height": 711
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-004.png",
+      "seen": true
+    },
+    {
+      "preview": "1591",
+      "baseline": "main",
+      "key": "dark/1280/server-0/server-dark-trash-1280-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1124,
+        "height": 720
+      },
+      "scale": 0.693950177935943,
+      "resolution": "downscaled",
+      "sheet": "sheet-005.png",
+      "seen": true
+    },
+    {
+      "preview": "1603",
+      "baseline": "main",
+      "key": "dark/1280/server-1/server-dark-admin-grants-1280-full.png",
+      "classification": "intended",
+      "reason": "Bounded desktop form/table width and spacing are intended; visible fields, row content and actions remain. Fixture times vary.",
+      "crop": {
+        "left": 622,
+        "top": 171,
+        "width": 616,
+        "height": 534
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-005.png",
+      "seen": true
+    },
+    {
+      "preview": "1611",
+      "baseline": "main",
+      "key": "dark/1280/server-1/server-dark-admin-settings-1280-full.png",
+      "classification": "intended",
+      "reason": "Save settings is placed with the session lifetime inputs it edits; remote policy and active-session controls remain. Wider layouts use bounded content width.",
+      "crop": {
+        "left": 228,
+        "top": 229,
+        "width": 358,
+        "height": 491
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-006.png",
+      "seen": true
+    },
+    {
+      "preview": "1617",
+      "baseline": "main",
+      "key": "dark/1280/server-1/server-dark-clone-folder-refused-1280-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1107,
+        "height": 672
+      },
+      "scale": 0.7046070460704607,
+      "resolution": "downscaled",
+      "sheet": "sheet-006.png",
+      "seen": true
+    },
+    {
+      "preview": "1623",
+      "baseline": "main",
+      "key": "dark/1280/server-1/server-dark-graph-model-options-1280-full.png",
+      "classification": "intended",
+      "reason": "Intended graph layout and readable entity names, responsive folded Controls where needed, and separate fullscreen action. Show count badge remains where exposed.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 692
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-007.png",
+      "seen": true
+    },
+    {
+      "preview": "1629",
+      "baseline": "main",
+      "key": "dark/1280/server-1/server-dark-ontology-graph-fullscreen-1280-full.png",
+      "classification": "intended",
+      "reason": "Intended graph layout and readable entity names, responsive folded Controls where needed, and separate fullscreen action. Show count badge remains where exposed.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-007.png",
+      "seen": true
+    },
+    {
+      "preview": "1635",
+      "baseline": "main",
+      "key": "dark/1280/server-1/server-dark-ontology-neighborhood-labels-zoomed-1280-full.png",
+      "classification": "intended",
+      "reason": "Intended neighborhood viewport fitting, compact readable cards and legend below the canvas. Center, connected entities and walk controls remain; wide views avoid oversized cards.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-008.png",
+      "seen": true
+    },
+    {
+      "preview": "1641",
+      "baseline": "main",
+      "key": "dark/1280/server-1/server-dark-project-export-history-1280-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1107,
+        "height": 672
+      },
+      "scale": 0.7046070460704607,
+      "resolution": "downscaled",
+      "sheet": "sheet-008.png",
+      "seen": true
+    },
+    {
+      "preview": "1647",
+      "baseline": "main",
+      "key": "dark/1280/server-1/server-dark-remote-folder-refused-1280-full.png",
+      "classification": "intended",
+      "reason": "Intended sync/no-remote guidance and explanation for disabled commit; source-control or remote-dialog actions remain. Sidebar type labels and spacing are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 713,
+        "height": 711
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-009.png",
+      "seen": true
+    },
+    {
+      "preview": "1653",
+      "baseline": "main",
+      "key": "dark/1280/server-1/server-dark-scm-diff-modified-1280-full.png",
+      "classification": "intended",
+      "reason": "Theme-aware diff rows, filename header and gutter treatment; changed lines remain visible. Sidebar type labels and clearer source-control help are intended.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 716
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-009.png",
+      "seen": true
+    },
+    {
+      "preview": "1658",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-add-concept-1440.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 740
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-010.png",
+      "seen": true
+    },
+    {
+      "preview": "1661",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-clone-repository-1440-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 975,
+        "height": 837
+      },
+      "scale": 0.8,
+      "resolution": "downscaled",
+      "sheet": "sheet-010.png",
+      "seen": true
+    },
+    {
+      "preview": "1664",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-contract-contract-1440.png",
+      "classification": "intended",
+      "reason": "Contract content remains with intended sidebar type labels and spacing; fixture revision hashes and timestamps may differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 611,
+        "height": 743
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-011.png",
+      "seen": true
+    },
+    {
+      "preview": "1667",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-import-1440-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1284,
+        "height": 789
+      },
+      "scale": 0.6074766355140186,
+      "resolution": "downscaled",
+      "sheet": "sheet-011.png",
+      "seen": true
+    },
+    {
+      "preview": "1670",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-item-editor-1440.png",
+      "classification": "intended",
+      "reason": "Open in Source is presented as a button with clearer field spacing and disabled-state styling; editor fields and tabs remain.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-012.png",
+      "seen": true
+    },
+    {
+      "preview": "1673",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-metric-detail-1440-full.png",
+      "classification": "intended",
+      "reason": "Intended bounded metric content; at 2560 the open metric and list share the common content width accepted on main.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 656,
+        "height": 742
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-012.png",
+      "seen": true
+    },
+    {
+      "preview": "1676",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-metric-wizard-1440.png",
+      "classification": "intended",
+      "reason": "Intended taller wizard with stable footer and clearer field spacing; the same steps and navigation remain.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1080,
+        "height": 870
+      },
+      "scale": 0.7222222222222222,
+      "resolution": "downscaled",
+      "sheet": "sheet-013.png",
+      "seen": true
+    },
+    {
+      "preview": "1679",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-odcs-contract-search-1440-full.png",
+      "classification": "intended",
+      "reason": "Contract panel remains with intended sidebar type labels and spacing; the filename alone does not establish an active search or opened team editor.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 611,
+        "height": 743
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-013.png",
+      "seen": true
+    },
+    {
+      "preview": "1682",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-odcs-contract-team-1440.png",
+      "classification": "intended",
+      "reason": "Contract panel remains with intended sidebar type labels and spacing; the filename alone does not establish an active search or opened team editor.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 611,
+        "height": 743
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-014.png",
+      "seen": true
+    },
+    {
+      "preview": "1685",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-odcs-dataset-properties-1440-full.png",
+      "classification": "intended",
+      "reason": "Contract content remains with intended sidebar type labels and spacing; fixture revision hashes and timestamps may differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 743
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-014.png",
+      "seen": true
+    },
+    {
+      "preview": "1688",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-odcs-dataset-quality-1440.png",
+      "classification": "intended",
+      "reason": "Contract content remains with intended sidebar type labels and spacing; fixture revision hashes and timestamps may differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 868,
+        "height": 743
+      },
+      "scale": 0.8986175115207373,
+      "resolution": "downscaled",
+      "sheet": "sheet-015.png",
+      "seen": true
+    },
+    {
+      "preview": "1691",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-odcs-property-edit-1440-full.png",
+      "classification": "intended",
+      "reason": "Visible properties list is preserved with intended sidebar type labels and spacing; neither screenshot establishes an opened property-edit dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 743
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-015.png",
+      "seen": true
+    },
+    {
+      "preview": "1694",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-ontology-catalog-1440.png",
+      "classification": "intended",
+      "reason": "Intended result count, readable type labels and card descriptions; desktop Edit appears on hover. Sidebar type labels and spacing are also intended.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 742
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-016.png",
+      "seen": true
+    },
+    {
+      "preview": "1697",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-ontology-mappings-1440-full.png",
+      "classification": "intended",
+      "reason": "Intended empty mapping state offers Import and Load example instead of inert query/export actions. Where both show this state, the filename does not establish an open query composer.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 742
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-016.png",
+      "seen": true
+    },
+    {
+      "preview": "1700",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-ontology-metrics-1440.png",
+      "classification": "intended",
+      "reason": "Metric list and actions remain; intended sidebar type labels and spacing account for the visible change.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 676,
+        "height": 742
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-017.png",
+      "seen": true
+    },
+    {
+      "preview": "1703",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-ontology-overview-1440-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 676,
+        "height": 742
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-018.png",
+      "seen": true
+    },
+    {
+      "preview": "1706",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-ontology-source-1440.png",
+      "classification": "intended",
+      "reason": "Visible source and actions remain; intended sidebar type labels and spacing account for the change outside the editor.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1285,
+        "height": 900
+      },
+      "scale": 0.6070038910505836,
+      "resolution": "downscaled",
+      "sheet": "sheet-018.png",
+      "seen": true
+    },
+    {
+      "preview": "1709",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-settings-1440-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1285,
+        "height": 743
+      },
+      "scale": 0.6070038910505836,
+      "resolution": "downscaled",
+      "sheet": "sheet-019.png",
+      "seen": true
+    },
+    {
+      "preview": "1712",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-sidebar-projects-1440.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 676,
+        "height": 742
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-019.png",
+      "seen": true
+    },
+    {
+      "preview": "1715",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-source-control-remote-1440-full.png",
+      "classification": "intended",
+      "reason": "Intended sync/no-remote guidance and explanation for disabled commit; source-control or remote-dialog actions remain. Sidebar type labels and spacing are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 975,
+        "height": 837
+      },
+      "scale": 0.8,
+      "resolution": "downscaled",
+      "sheet": "sheet-020.png",
+      "seen": true
+    },
+    {
+      "preview": "1718",
+      "baseline": "main",
+      "key": "dark/1440/server-0/server-dark-source-editor-1440.png",
+      "classification": "intended",
+      "reason": "Visible source and actions remain; intended sidebar type labels and spacing account for the change outside the editor.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1285,
+        "height": 789
+      },
+      "scale": 0.6070038910505836,
+      "resolution": "downscaled",
+      "sheet": "sheet-020.png",
+      "seen": true
+    },
+    {
+      "preview": "1721",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-admin-access-check-1440-full.png",
+      "classification": "intended",
+      "reason": "Bounded desktop form/table width and spacing are intended; visible fields, row content and actions remain. Fixture times vary.",
+      "crop": {
+        "left": 228,
+        "top": 123,
+        "width": 1212,
+        "height": 570
+      },
+      "scale": 0.6435643564356436,
+      "resolution": "downscaled",
+      "sheet": "sheet-021.png",
+      "seen": true
+    },
+    {
+      "preview": "1728",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-admin-audit-1440.png",
+      "classification": "intended",
+      "reason": "Readable action labels and Allow/Deny emphasis replace raw action strings; filters and export actions remain, with bounded content width on desktop.",
+      "crop": {
+        "left": 358,
+        "top": 332,
+        "width": 1082,
+        "height": 568
+      },
+      "scale": 0.7208872458410351,
+      "resolution": "downscaled",
+      "sheet": "sheet-021.png",
+      "seen": true
+    },
+    {
+      "preview": "1732",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-admin-grants-1440.png",
+      "classification": "intended",
+      "reason": "Bounded desktop form/table width and spacing are intended; visible fields, row content and actions remain. Fixture times vary.",
+      "crop": {
+        "left": 685,
+        "top": 171,
+        "width": 693,
+        "height": 534
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-022.png",
+      "seen": true
+    },
+    {
+      "preview": "1737",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-admin-roles-1440-full.png",
+      "classification": "intended",
+      "reason": "Explicit permission checkmarks and readable role matrix replace ambiguous cells; bounded desktop width is intentional.",
+      "crop": {
+        "left": 625,
+        "top": 170,
+        "width": 701,
+        "height": 730
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-022.png",
+      "seen": true
+    },
+    {
+      "preview": "1740",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-admin-settings-1440.png",
+      "classification": "intended",
+      "reason": "Save settings is placed with the session lifetime inputs it edits; remote policy and active-session controls remain. Wider layouts use bounded content width.",
+      "crop": {
+        "left": 228,
+        "top": 229,
+        "width": 1191,
+        "height": 671
+      },
+      "scale": 0.654911838790932,
+      "resolution": "downscaled",
+      "sheet": "sheet-023.png",
+      "seen": true
+    },
+    {
+      "preview": "1743",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-clone-folder-1440-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 838
+      },
+      "scale": 0.5481377371749825,
+      "resolution": "downscaled",
+      "sheet": "sheet-023.png",
+      "seen": true
+    },
+    {
+      "preview": "1746",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-clone-folder-refused-1440.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 838
+      },
+      "scale": 0.5481377371749825,
+      "resolution": "downscaled",
+      "sheet": "sheet-024.png",
+      "seen": true
+    },
+    {
+      "preview": "1749",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-graph-model-all-areas-1440-full.png",
+      "classification": "intended",
+      "reason": "Intended graph layout and readable entity names, responsive folded Controls where needed, and separate fullscreen action. Show count badge remains where exposed.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 887
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-024.png",
+      "seen": true
+    },
+    {
+      "preview": "1752",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-graph-model-options-1440.png",
+      "classification": "intended",
+      "reason": "Intended graph layout and readable entity names, responsive folded Controls where needed, and separate fullscreen action. Show count badge remains where exposed.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 887
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-025.png",
+      "seen": true
+    },
+    {
+      "preview": "1755",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-mapping-graph-1440-full.png",
+      "classification": "intended",
+      "reason": "Intended graph layout and readable entity names, responsive folded Controls where needed, and separate fullscreen action. Show count badge remains where exposed.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 672,
+        "height": 743
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-025.png",
+      "seen": true
+    },
+    {
+      "preview": "1758",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-ontology-graph-fullscreen-1440.png",
+      "classification": "intended",
+      "reason": "Intended graph layout and readable entity names, responsive folded Controls where needed, and separate fullscreen action. Show count badge remains where exposed.",
+      "crop": {
+        "left": 293,
+        "top": 0,
+        "width": 928,
+        "height": 797
+      },
+      "scale": 0.8405172413793104,
+      "resolution": "downscaled",
+      "sheet": "sheet-026.png",
+      "seen": true
+    },
+    {
+      "preview": "1761",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-ontology-neighborhood-hover-label-1440-full.png",
+      "classification": "intended",
+      "reason": "Intended neighborhood viewport fitting, compact readable cards and legend below the canvas. Center, connected entities and walk controls remain; wide views avoid oversized cards.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-026.png",
+      "seen": true
+    },
+    {
+      "preview": "1764",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-ontology-neighborhood-labels-zoomed-1440.png",
+      "classification": "intended",
+      "reason": "Intended neighborhood viewport fitting, compact readable cards and legend below the canvas. Center, connected entities and walk controls remain; wide views avoid oversized cards.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-027.png",
+      "seen": true
+    },
+    {
+      "preview": "1767",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-project-export-1440-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 838
+      },
+      "scale": 0.5481377371749825,
+      "resolution": "downscaled",
+      "sheet": "sheet-027.png",
+      "seen": true
+    },
+    {
+      "preview": "1770",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-project-export-history-1440.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 838
+      },
+      "scale": 0.5481377371749825,
+      "resolution": "downscaled",
+      "sheet": "sheet-028.png",
+      "seen": true
+    },
+    {
+      "preview": "1773",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-remote-folder-1440-full.png",
+      "classification": "intended",
+      "reason": "Intended sync/no-remote guidance and explanation for disabled commit; source-control or remote-dialog actions remain. Sidebar type labels and spacing are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 722,
+        "height": 825
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-028.png",
+      "seen": true
+    },
+    {
+      "preview": "1776",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-remote-folder-refused-1440.png",
+      "classification": "intended",
+      "reason": "Intended sync/no-remote guidance and explanation for disabled commit; source-control or remote-dialog actions remain. Sidebar type labels and spacing are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 722,
+        "height": 825
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-029.png",
+      "seen": true
+    },
+    {
+      "preview": "1779",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-scm-diff-deleted-1440-full.png",
+      "classification": "intended",
+      "reason": "Theme-aware diff rows, filename header and gutter treatment; changed lines remain visible. Sidebar type labels and clearer source-control help are intended.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 885
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-029.png",
+      "seen": true
+    },
+    {
+      "preview": "1782",
+      "baseline": "main",
+      "key": "dark/1440/server-1/server-dark-scm-diff-modified-1440.png",
+      "classification": "intended",
+      "reason": "Theme-aware diff rows, filename header and gutter treatment; changed lines remain visible. Sidebar type labels and clearer source-control help are intended.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 808
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-030.png",
+      "seen": true
+    },
+    {
+      "preview": "1785",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-add-concept-2560-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2553,
+        "height": 1245
+      },
+      "scale": 0.30552291421856637,
+      "resolution": "downscaled",
+      "sheet": "sheet-030.png",
+      "native_details": [
+        {
+          "left": 840,
+          "top": 540,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 840,
+          "top": 540,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "detail-0.png",
+      "seen": true
+    },
+    {
+      "preview": "1788",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-catalog-2560.png",
+      "classification": "intended",
+      "reason": "Intended result count, readable type labels and card descriptions; desktop Edit appears on hover. Sidebar type labels and spacing are also intended.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2553,
+        "height": 1245
+      },
+      "scale": 0.30552291421856637,
+      "resolution": "downscaled",
+      "sheet": "sheet-031.png",
+      "native_details": [
+        {
+          "left": 660,
+          "top": 110,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 660,
+          "top": 110,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "detail-0.png",
+      "seen": true
+    },
+    {
+      "preview": "1791",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-contract-contract-2560-full.png",
+      "classification": "intended",
+      "reason": "Contract content remains with intended sidebar type labels and spacing; fixture revision hashes and timestamps may differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 806,
+        "height": 1245
+      },
+      "scale": 0.967741935483871,
+      "resolution": "downscaled",
+      "sheet": "sheet-032.png",
+      "seen": true
+    },
+    {
+      "preview": "1794",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-contract-graph-2560.png",
+      "classification": "intended",
+      "reason": "Compact name-only lineage cards and viewport fitting expose the related contract, semantic model and metrics; the removal of card field detail is intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-033.png",
+      "seen": true
+    },
+    {
+      "preview": "1797",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-item-editor-2560-full.png",
+      "classification": "intended",
+      "reason": "Open in Source is presented as a button with clearer field spacing and disabled-state styling; editor fields and tabs remain.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-033.png",
+      "native_details": [
+        {
+          "left": 1760,
+          "top": 0,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 1760,
+          "top": 0,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "detail-1.png",
+      "seen": true
+    },
+    {
+      "preview": "1800",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-mappings-2560.png",
+      "classification": "intended",
+      "reason": "Intended empty mapping state offers Import and Load example instead of inert query/export actions. Where both show this state, the filename does not establish an open query composer.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2252,
+        "height": 1245
+      },
+      "scale": 0.3463587921847247,
+      "resolution": "downscaled",
+      "sheet": "sheet-034.png",
+      "seen": true
+    },
+    {
+      "preview": "1803",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-metric-wizard-2560-full.png",
+      "classification": "intended",
+      "reason": "Intended taller wizard with stable footer and clearer field spacing; the same steps and navigation remain.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2287,
+        "height": 1429
+      },
+      "scale": 0.3410581547879318,
+      "resolution": "downscaled",
+      "sheet": "sheet-034.png",
+      "native_details": [
+        {
+          "left": 900,
+          "top": 710,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 900,
+          "top": 420,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "detail-1.png",
+      "seen": true
+    },
+    {
+      "preview": "1806",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-metrics-list-2560.png",
+      "classification": "intended",
+      "reason": "Metric list and actions remain; intended sidebar type labels and spacing account for the visible change.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 852,
+        "height": 1245
+      },
+      "scale": 0.9154929577464789,
+      "resolution": "downscaled",
+      "sheet": "sheet-035.png",
+      "seen": true
+    },
+    {
+      "preview": "1809",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-odcs-contract-team-2560-full.png",
+      "classification": "intended",
+      "reason": "Contract panel remains with intended sidebar type labels and spacing; the filename alone does not establish an active search or opened team editor.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 806,
+        "height": 1245
+      },
+      "scale": 0.967741935483871,
+      "resolution": "downscaled",
+      "sheet": "sheet-036.png",
+      "seen": true
+    },
+    {
+      "preview": "1812",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-odcs-dataset-history-2560.png",
+      "classification": "intended",
+      "reason": "Contract content remains with intended sidebar type labels and spacing; fixture revision hashes and timestamps may differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1184,
+        "height": 1245
+      },
+      "scale": 0.6587837837837838,
+      "resolution": "downscaled",
+      "sheet": "sheet-037.png",
+      "seen": true
+    },
+    {
+      "preview": "1815",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-odcs-dataset-quality-2560-full.png",
+      "classification": "intended",
+      "reason": "Contract content remains with intended sidebar type labels and spacing; fixture revision hashes and timestamps may differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1184,
+        "height": 1245
+      },
+      "scale": 0.6587837837837838,
+      "resolution": "downscaled",
+      "sheet": "sheet-038.png",
+      "seen": true
+    },
+    {
+      "preview": "1818",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-odcs-dataset-relationships-2560.png",
+      "classification": "intended",
+      "reason": "Contract content remains with intended sidebar type labels and spacing; fixture revision hashes and timestamps may differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1184,
+        "height": 1245
+      },
+      "scale": 0.6587837837837838,
+      "resolution": "downscaled",
+      "sheet": "sheet-039.png",
+      "seen": true
+    },
+    {
+      "preview": "1821",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-ontology-catalog-2560-full.png",
+      "classification": "intended",
+      "reason": "Intended result count, readable type labels and card descriptions; desktop Edit appears on hover. Sidebar type labels and spacing are also intended.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2553,
+        "height": 1245
+      },
+      "scale": 0.30552291421856637,
+      "resolution": "downscaled",
+      "sheet": "sheet-039.png",
+      "seen": true
+    },
+    {
+      "preview": "1824",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-ontology-graph-2560.png",
+      "classification": "intended",
+      "reason": "Intended graph layout and readable entity names, responsive folded Controls where needed, and separate fullscreen action. Show count badge remains where exposed.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "scale": 0.4189044038668099,
+      "resolution": "downscaled",
+      "sheet": "sheet-040.png",
+      "native_details": [
+        {
+          "left": 660,
+          "top": 110,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 660,
+          "top": 110,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-040.png",
+      "seen": true
+    },
+    {
+      "preview": "1827",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-ontology-metrics-2560-full.png",
+      "classification": "intended",
+      "reason": "Metric list and actions remain; intended sidebar type labels and spacing account for the visible change.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 872,
+        "height": 1245
+      },
+      "scale": 0.8944954128440367,
+      "resolution": "downscaled",
+      "sheet": "sheet-041.png",
+      "seen": true
+    },
+    {
+      "preview": "1830",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-ontology-neighborhood-2560.png",
+      "classification": "intended",
+      "reason": "Intended neighborhood viewport fitting, compact readable cards and legend below the canvas. Center, connected entities and walk controls remain; wide views avoid oversized cards.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-042.png",
+      "native_details": [
+        {
+          "left": 1150,
+          "top": 630,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 1150,
+          "top": 630,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-042.png",
+      "seen": true
+    },
+    {
+      "preview": "1833",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-ontology-source-2560-full.png",
+      "classification": "intended",
+      "reason": "Visible source and actions remain; intended sidebar type labels and spacing account for the change outside the editor.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2405,
+        "height": 1245
+      },
+      "scale": 0.32432432432432434,
+      "resolution": "downscaled",
+      "sheet": "sheet-042.png",
+      "native_details": [
+        {
+          "left": 320,
+          "top": 120,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 320,
+          "top": 120,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-042.png",
+      "seen": true
+    },
+    {
+      "preview": "1836",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-query-composer-2560.png",
+      "classification": "intended",
+      "reason": "Intended empty mapping state offers Import and Load example instead of inert query/export actions. Where both show this state, the filename does not establish an open query composer.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2252,
+        "height": 1245
+      },
+      "scale": 0.3463587921847247,
+      "resolution": "downscaled",
+      "sheet": "sheet-043.png",
+      "native_details": [
+        {
+          "left": 660,
+          "top": 110,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 660,
+          "top": 110,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-043.png",
+      "seen": true
+    },
+    {
+      "preview": "1839",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-sidebar-projects-2560-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 872,
+        "height": 1245
+      },
+      "scale": 0.8944954128440367,
+      "resolution": "downscaled",
+      "sheet": "sheet-044.png",
+      "seen": true
+    },
+    {
+      "preview": "1842",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-source-control-2560.png",
+      "classification": "intended",
+      "reason": "Intended sync/no-remote guidance and explanation for disabled commit; source-control or remote-dialog actions remain. Sidebar type labels and spacing are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 806,
+        "height": 1245
+      },
+      "scale": 0.967741935483871,
+      "resolution": "downscaled",
+      "sheet": "sheet-045.png",
+      "seen": true
+    },
+    {
+      "preview": "1845",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-source-editor-2560-full.png",
+      "classification": "intended",
+      "reason": "Visible source and actions remain; intended sidebar type labels and spacing account for the change outside the editor.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2405,
+        "height": 1245
+      },
+      "scale": 0.32432432432432434,
+      "resolution": "downscaled",
+      "sheet": "sheet-046.png",
+      "native_details": [
+        {
+          "left": 320,
+          "top": 120,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 320,
+          "top": 120,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-046.png",
+      "seen": true
+    },
+    {
+      "preview": "1848",
+      "baseline": "main",
+      "key": "dark/2560/server-0/server-dark-trash-2560.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2404,
+        "height": 1245
+      },
+      "scale": 0.324459234608985,
+      "resolution": "downscaled",
+      "sheet": "sheet-046.png",
+      "native_details": [
+        {
+          "left": 840,
+          "top": 490,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 840,
+          "top": 490,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-046.png",
+      "seen": true
+    },
+    {
+      "preview": "1855",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-admin-audit-2560-full.png",
+      "classification": "intended",
+      "reason": "Readable action labels and Allow/Deny emphasis replace raw action strings; filters and export actions remain, with bounded content width on desktop.",
+      "crop": {
+        "left": 228,
+        "top": 146,
+        "width": 2332,
+        "height": 1116
+      },
+      "scale": 0.3344768439108062,
+      "resolution": "downscaled",
+      "sheet": "sheet-047.png",
+      "native_details": [
+        {
+          "left": 300,
+          "top": 140,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 300,
+          "top": 140,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-047.png",
+      "seen": true
+    },
+    {
+      "preview": "1858",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-admin-git-remotes-2560.png",
+      "classification": "intended",
+      "reason": "Bounded table width is intended. Both screenshots show headers without loaded rows, so this pair cannot establish loaded-row preservation.",
+      "crop": {
+        "left": 624,
+        "top": 127,
+        "width": 1936,
+        "height": 102
+      },
+      "scale": 0.40289256198347106,
+      "resolution": "downscaled",
+      "sheet": "sheet-047.png",
+      "native_details": [
+        {
+          "left": 300,
+          "top": 140,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 300,
+          "top": 140,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-047.png",
+      "seen": true
+    },
+    {
+      "preview": "1863",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-admin-projects-2560-full.png",
+      "classification": "intended",
+      "reason": "Bounded desktop form/table width and spacing are intended; visible fields, row content and actions remain. Fixture times vary.",
+      "crop": {
+        "left": 864,
+        "top": 248,
+        "width": 1696,
+        "height": 1026
+      },
+      "scale": 0.45990566037735847,
+      "resolution": "downscaled",
+      "sheet": "sheet-048.png",
+      "native_details": [
+        {
+          "left": 300,
+          "top": 140,
+          "width": 780,
+          "height": 213
+        },
+        {
+          "left": 300,
+          "top": 140,
+          "width": 780,
+          "height": 213
+        }
+      ],
+      "detail_sheet": "sheet-048.png",
+      "seen": true
+    },
+    {
+      "preview": "1866",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-admin-roles-2560.png",
+      "classification": "intended",
+      "reason": "Explicit permission checkmarks and readable role matrix replace ambiguous cells; bounded desktop width is intentional.",
+      "crop": {
+        "left": 723,
+        "top": 170,
+        "width": 1837,
+        "height": 1270
+      },
+      "scale": 0.42460533478497553,
+      "resolution": "downscaled",
+      "sheet": "sheet-048.png",
+      "native_details": [
+        {
+          "left": 300,
+          "top": 140,
+          "width": 780,
+          "height": 213
+        },
+        {
+          "left": 300,
+          "top": 140,
+          "width": 780,
+          "height": 213
+        }
+      ],
+      "detail_sheet": "sheet-048.png",
+      "seen": true
+    },
+    {
+      "preview": "1869",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-admin-users-2560-full.png",
+      "classification": "intended",
+      "reason": "Bounded desktop form/table width and spacing are intended; visible fields, row content and actions remain. Fixture times vary.",
+      "crop": {
+        "left": 447,
+        "top": 141,
+        "width": 2113,
+        "height": 342
+      },
+      "scale": 0.3691433980123048,
+      "resolution": "downscaled",
+      "sheet": "sheet-049.png",
+      "native_details": [
+        {
+          "left": 300,
+          "top": 140,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 300,
+          "top": 140,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-049.png",
+      "seen": true
+    },
+    {
+      "preview": "1872",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-clone-folder-2560.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "scale": 0.4189044038668099,
+      "resolution": "downscaled",
+      "sheet": "sheet-049.png",
+      "native_details": [
+        {
+          "left": 840,
+          "top": 490,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 840,
+          "top": 490,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-049.png",
+      "seen": true
+    },
+    {
+      "preview": "1875",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-file-move-2560-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "scale": 0.4189044038668099,
+      "resolution": "downscaled",
+      "sheet": "sheet-050.png",
+      "native_details": [
+        {
+          "left": 840,
+          "top": 490,
+          "width": 780,
+          "height": 197
+        },
+        {
+          "left": 840,
+          "top": 490,
+          "width": 780,
+          "height": 197
+        }
+      ],
+      "detail_sheet": "sheet-050.png",
+      "seen": true
+    },
+    {
+      "preview": "1878",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-graph-model-all-areas-2560.png",
+      "classification": "intended",
+      "reason": "Intended graph layout and readable entity names, responsive folded Controls where needed, and separate fullscreen action. Show count badge remains where exposed.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "scale": 0.4189044038668099,
+      "resolution": "downscaled",
+      "sheet": "sheet-050.png",
+      "native_details": [
+        {
+          "left": 660,
+          "top": 110,
+          "width": 780,
+          "height": 197
+        },
+        {
+          "left": 660,
+          "top": 110,
+          "width": 780,
+          "height": 197
+        }
+      ],
+      "detail_sheet": "sheet-050.png",
+      "seen": true
+    },
+    {
+      "preview": "1881",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-graph-neighborhood-more-2560-full.png",
+      "classification": "intended",
+      "reason": "Intended neighborhood viewport fitting, compact readable cards and legend below the canvas. Center, connected entities and walk controls remain; wide views avoid oversized cards.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-051.png",
+      "native_details": [
+        {
+          "left": 1150,
+          "top": 630,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 1150,
+          "top": 630,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-051.png",
+      "seen": true
+    },
+    {
+      "preview": "1884",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-mapping-graph-2560.png",
+      "classification": "intended",
+      "reason": "Intended graph layout and readable entity names, responsive folded Controls where needed, and separate fullscreen action. Show count badge remains where exposed.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 867,
+        "height": 1245
+      },
+      "scale": 0.8996539792387543,
+      "resolution": "downscaled",
+      "sheet": "sheet-052.png",
+      "seen": true
+    },
+    {
+      "preview": "1887",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-ontology-neighborhood-fullscreen-2560-full.png",
+      "classification": "intended",
+      "reason": "Intended neighborhood viewport fitting, compact readable cards and legend below the canvas. Center, connected entities and walk controls remain; wide views avoid oversized cards.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-053.png",
+      "native_details": [
+        {
+          "left": 900,
+          "top": 560,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 900,
+          "top": 560,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-053.png",
+      "seen": true
+    },
+    {
+      "preview": "1890",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-ontology-neighborhood-hover-label-2560.png",
+      "classification": "intended",
+      "reason": "Intended neighborhood viewport fitting, compact readable cards and legend below the canvas. Center, connected entities and walk controls remain; wide views avoid oversized cards.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-053.png",
+      "native_details": [
+        {
+          "left": 1150,
+          "top": 630,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 1150,
+          "top": 630,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-053.png",
+      "seen": true
+    },
+    {
+      "preview": "1893",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-project-delete-2560-full.png",
+      "classification": "intended",
+      "reason": "Delete confirmation uses prospective Will move to trash wording; cancel and destructive confirmation remain. Sidebar type labels and graph layout changes are intended.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "scale": 0.4189044038668099,
+      "resolution": "downscaled",
+      "sheet": "sheet-054.png",
+      "native_details": [
+        {
+          "left": 840,
+          "top": 490,
+          "width": 780,
+          "height": 197
+        },
+        {
+          "left": 840,
+          "top": 490,
+          "width": 780,
+          "height": 197
+        }
+      ],
+      "detail_sheet": "sheet-054.png",
+      "seen": true
+    },
+    {
+      "preview": "1896",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-project-export-2560.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "scale": 0.4189044038668099,
+      "resolution": "downscaled",
+      "sheet": "sheet-054.png",
+      "native_details": [
+        {
+          "left": 840,
+          "top": 490,
+          "width": 780,
+          "height": 197
+        },
+        {
+          "left": 840,
+          "top": 490,
+          "width": 780,
+          "height": 197
+        }
+      ],
+      "detail_sheet": "sheet-054.png",
+      "seen": true
+    },
+    {
+      "preview": "1899",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-project-rename-2560-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "scale": 0.4189044038668099,
+      "resolution": "downscaled",
+      "sheet": "sheet-055.png",
+      "native_details": [
+        {
+          "left": 840,
+          "top": 490,
+          "width": 780,
+          "height": 178
+        },
+        {
+          "left": 840,
+          "top": 490,
+          "width": 780,
+          "height": 178
+        }
+      ],
+      "detail_sheet": "sheet-055.png",
+      "seen": true
+    },
+    {
+      "preview": "1902",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-remote-folder-2560.png",
+      "classification": "intended",
+      "reason": "Intended sync/no-remote guidance and explanation for disabled commit; source-control or remote-dialog actions remain. Sidebar type labels and spacing are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1282,
+        "height": 1245
+      },
+      "scale": 0.608424336973479,
+      "resolution": "downscaled",
+      "sheet": "sheet-055.png",
+      "seen": true
+    },
+    {
+      "preview": "1905",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-scm-diff-added-2560-full.png",
+      "classification": "intended",
+      "reason": "Theme-aware diff rows, filename header and gutter treatment; changed lines remain visible. Sidebar type labels and clearer source-control help are intended.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1245
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-056.png",
+      "native_details": [
+        {
+          "left": 1100,
+          "top": 130,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 1100,
+          "top": 130,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-056.png",
+      "seen": true
+    },
+    {
+      "preview": "1908",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-scm-diff-deleted-2560.png",
+      "classification": "intended",
+      "reason": "Theme-aware diff rows, filename header and gutter treatment; changed lines remain visible. Sidebar type labels and clearer source-control help are intended.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1245
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-056.png",
+      "native_details": [
+        {
+          "left": 1100,
+          "top": 130,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 1100,
+          "top": 130,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-056.png",
+      "seen": true
+    },
+    {
+      "preview": "1911",
+      "baseline": "main",
+      "key": "dark/2560/server-1/server-dark-scm-stale-save-2560-full.png",
+      "classification": "intended",
+      "reason": "Theme-aware comparison colors, fitted dialog title and safer footer emphasis: Keep editing is primary and overwrite is explicitly destructive. Both versions remain available.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2404,
+        "height": 1245
+      },
+      "scale": 0.324459234608985,
+      "resolution": "downscaled",
+      "sheet": "sheet-057.png",
+      "native_details": [
+        {
+          "left": 840,
+          "top": 500,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 840,
+          "top": 500,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-057.png",
+      "seen": true
+    },
+    {
+      "preview": "1914",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-add-concept-390.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 78,
+        "width": 390,
+        "height": 730
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-057.png",
+      "seen": true
+    },
+    {
+      "preview": "1917",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-clone-repository-390-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 279,
+        "width": 390,
+        "height": 558
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-058.png",
+      "seen": true
+    },
+    {
+      "preview": "1922",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-contract-graph-390.png",
+      "classification": "intended",
+      "reason": "Compact name-only lineage cards and viewport fitting expose the related contract, semantic model and metrics; the removal of card field detail is intentional.",
+      "crop": {
+        "left": 0,
+        "top": 121,
+        "width": 390,
+        "height": 711
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-058.png",
+      "seen": true
+    },
+    {
+      "preview": "1925",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-item-editor-390-full.png",
+      "classification": "intended",
+      "reason": "Open in Source is presented as a button with clearer field spacing and disabled-state styling; editor fields and tabs remain.",
+      "crop": {
+        "left": 0,
+        "top": 41,
+        "width": 390,
+        "height": 803
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-059.png",
+      "seen": true
+    },
+    {
+      "preview": "1928",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-mappings-390.png",
+      "classification": "intended",
+      "reason": "Intended empty mapping state offers Import and Load example instead of inert query/export actions. Where both show this state, the filename does not establish an open query composer.",
+      "crop": {
+        "left": 0,
+        "top": 232,
+        "width": 389,
+        "height": 331
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-059.png",
+      "seen": true
+    },
+    {
+      "preview": "1939",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-odcs-dataset-history-390-full.png",
+      "classification": "unchanged",
+      "reason": "Same contract content and actions; fixture revision hash or history timestamp differs.",
+      "crop": {
+        "left": 83,
+        "top": 307,
+        "width": 210,
+        "height": 272
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-060.png",
+      "seen": true
+    },
+    {
+      "preview": "1942",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-odcs-dataset-properties-390.png",
+      "classification": "unchanged",
+      "reason": "Same contract content and actions; fixture revision hash or history timestamp differs.",
+      "crop": {
+        "left": 95,
+        "top": 307,
+        "width": 130,
+        "height": 345
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-060.png",
+      "seen": true
+    },
+    {
+      "preview": "1945",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-odcs-dataset-relationships-390-full.png",
+      "classification": "unchanged",
+      "reason": "Same contract content and actions; fixture revision hash or history timestamp differs.",
+      "crop": {
+        "left": 95,
+        "top": 307,
+        "width": 130,
+        "height": 90
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-061.png",
+      "seen": true
+    },
+    {
+      "preview": "1948",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-odcs-property-edit-390.png",
+      "classification": "unchanged",
+      "reason": "Same contract content and actions; fixture revision hash or history timestamp differs. No opened property editor is established by the property-edit filename.",
+      "crop": {
+        "left": 95,
+        "top": 307,
+        "width": 130,
+        "height": 345
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-061.png",
+      "seen": true
+    },
+    {
+      "preview": "1951",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-ontology-graph-390-full.png",
+      "classification": "intended",
+      "reason": "Intended graph layout and readable entity names, responsive folded Controls where needed, and separate fullscreen action. Show count badge remains where exposed.",
+      "crop": {
+        "left": 0,
+        "top": 113,
+        "width": 390,
+        "height": 684
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-062.png",
+      "seen": true
+    },
+    {
+      "preview": "1954",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-ontology-mappings-390.png",
+      "classification": "intended",
+      "reason": "Intended empty mapping state offers Import and Load example instead of inert query/export actions. Where both show this state, the filename does not establish an open query composer.",
+      "crop": {
+        "left": 0,
+        "top": 232,
+        "width": 389,
+        "height": 331
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-062.png",
+      "seen": true
+    },
+    {
+      "preview": "1961",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-ontology-source-390-full.png",
+      "classification": "unchanged",
+      "reason": "Same source text and available actions; minor gutter, focus and folding presentation differences do not change the visible source.",
+      "crop": {
+        "left": 0,
+        "top": 100,
+        "width": 293,
+        "height": 727
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-063.png",
+      "seen": true
+    },
+    {
+      "preview": "1964",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-query-composer-390.png",
+      "classification": "intended",
+      "reason": "Intended empty mapping state offers Import and Load example instead of inert query/export actions. Where both show this state, the filename does not establish an open query composer.",
+      "crop": {
+        "left": 0,
+        "top": 232,
+        "width": 389,
+        "height": 331
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-063.png",
+      "seen": true
+    },
+    {
+      "preview": "1967",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-sidebar-projects-390-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 307,
+        "height": 589
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-064.png",
+      "seen": true
+    },
+    {
+      "preview": "1970",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-source-control-390.png",
+      "classification": "intended",
+      "reason": "Intended sync/no-remote guidance and explanation for disabled commit; source-control or remote-dialog actions remain. Sidebar type labels and spacing are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 184,
+        "width": 390,
+        "height": 654
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-064.png",
+      "seen": true
+    },
+    {
+      "preview": "1973",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-source-editor-390-full.png",
+      "classification": "unchanged",
+      "reason": "Same source text and available actions; minor gutter, focus and folding presentation differences do not change the visible source.",
+      "crop": {
+        "left": 0,
+        "top": 100,
+        "width": 305,
+        "height": 710
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-065.png",
+      "seen": true
+    },
+    {
+      "preview": "1976",
+      "baseline": "main",
+      "key": "dark/390/server-0/server-dark-trash-390.png",
+      "classification": "unchanged",
+      "reason": "Same trash dialog, content and actions; small placement differences do not change the visible state.",
+      "crop": {
+        "left": 0,
+        "top": 106,
+        "width": 305,
+        "height": 704
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-065.png",
+      "seen": true
+    },
+    {
+      "preview": "1983",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-admin-audit-390-full.png",
+      "classification": "intended",
+      "reason": "Readable action labels and Allow/Deny emphasis replace raw action strings; filters and export actions remain, with bounded content width on desktop.",
+      "crop": {
+        "left": 0,
+        "top": 265,
+        "width": 390,
+        "height": 579
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-066.png",
+      "seen": true
+    },
+    {
+      "preview": "1988",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-admin-grants-390.png",
+      "classification": "unchanged",
+      "reason": "Same grants, scopes and Actions buttons; timestamps omit zero seconds on the candidate.",
+      "crop": {
+        "left": 92,
+        "top": 326,
+        "width": 120,
+        "height": 429
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-066.png",
+      "seen": true
+    },
+    {
+      "preview": "1993",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-admin-roles-390-full.png",
+      "classification": "intended",
+      "reason": "Explicit permission checkmarks and readable role matrix replace ambiguous cells; bounded desktop width is intentional.",
+      "crop": {
+        "left": 0,
+        "top": 235,
+        "width": 390,
+        "height": 609
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-067.png",
+      "seen": true
+    },
+    {
+      "preview": "1996",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-admin-settings-390.png",
+      "classification": "intended",
+      "reason": "Save settings is placed with the session lifetime inputs it edits; remote policy and active-session controls remain. Wider layouts use bounded content width.",
+      "crop": {
+        "left": 0,
+        "top": 294,
+        "width": 334,
+        "height": 550
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-067.png",
+      "seen": true
+    },
+    {
+      "preview": "1999",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-clone-folder-390-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 113,
+        "width": 330,
+        "height": 669
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-068.png",
+      "seen": true
+    },
+    {
+      "preview": "2002",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-clone-folder-refused-390.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 113,
+        "width": 390,
+        "height": 669
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-068.png",
+      "seen": true
+    },
+    {
+      "preview": "2005",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-graph-model-all-areas-390-full.png",
+      "classification": "intended",
+      "reason": "Intended graph layout and readable entity names, responsive folded Controls where needed, and separate fullscreen action. Show count badge remains where exposed.",
+      "crop": {
+        "left": 0,
+        "top": 113,
+        "width": 390,
+        "height": 685
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-069.png",
+      "seen": true
+    },
+    {
+      "preview": "2008",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-graph-model-options-390.png",
+      "classification": "intended",
+      "reason": "Intended graph layout and readable entity names, responsive folded Controls where needed, and separate fullscreen action. Show count badge remains where exposed.",
+      "crop": {
+        "left": 0,
+        "top": 113,
+        "width": 390,
+        "height": 685
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-069.png",
+      "seen": true
+    },
+    {
+      "preview": "2013",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-ontology-graph-fullscreen-390-full.png",
+      "classification": "intended",
+      "reason": "Intended graph layout and readable entity names, responsive folded Controls where needed, and separate fullscreen action. Show count badge remains where exposed.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 390,
+        "height": 783
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-070.png",
+      "seen": true
+    },
+    {
+      "preview": "2016",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-ontology-neighborhood-fullscreen-390.png",
+      "classification": "intended",
+      "reason": "Intended neighborhood viewport fitting, compact readable cards and legend below the canvas. Center, connected entities and walk controls remain; wide views avoid oversized cards.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 390,
+        "height": 844
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-070.png",
+      "seen": true
+    },
+    {
+      "preview": "2019",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-ontology-neighborhood-labels-zoomed-390-full.png",
+      "classification": "intended",
+      "reason": "Intended neighborhood viewport fitting, compact readable cards and legend below the canvas. Center, connected entities and walk controls remain; wide views avoid oversized cards.",
+      "crop": {
+        "left": 0,
+        "top": 97,
+        "width": 390,
+        "height": 738
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-071.png",
+      "seen": true
+    },
+    {
+      "preview": "2022",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-project-delete-390.png",
+      "classification": "intended",
+      "reason": "Delete confirmation uses prospective Will move to trash wording; cancel and destructive confirmation remain. Sidebar type labels and graph layout changes are intended.",
+      "crop": {
+        "left": 0,
+        "top": 113,
+        "width": 382,
+        "height": 669
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-071.png",
+      "seen": true
+    },
+    {
+      "preview": "2025",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-project-export-history-390-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 6,
+        "top": 113,
+        "width": 376,
+        "height": 669
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-072.png",
+      "seen": true
+    },
+    {
+      "preview": "2028",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-project-rename-390.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 113,
+        "width": 382,
+        "height": 669
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-072.png",
+      "seen": true
+    },
+    {
+      "preview": "2031",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-remote-folder-refused-390-full.png",
+      "classification": "intended",
+      "reason": "Intended sync/no-remote guidance and explanation for disabled commit; source-control or remote-dialog actions remain. Sidebar type labels and spacing are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 252,
+        "width": 374,
+        "height": 585
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-073.png",
+      "seen": true
+    },
+    {
+      "preview": "2034",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-scm-diff-added-390.png",
+      "classification": "intended",
+      "reason": "Intended phone diff detail with Back to changes navigation replaces the list view; filename and line content are exposed. This is a different navigation state, not missing changes.",
+      "crop": {
+        "left": 0,
+        "top": 68,
+        "width": 390,
+        "height": 770
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-073.png",
+      "seen": true
+    },
+    {
+      "preview": "2037",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-scm-diff-modified-390-full.png",
+      "classification": "intended",
+      "reason": "Intended phone diff detail with Back to changes navigation replaces the list view; filename and line content are exposed. This is a different navigation state, not missing changes.",
+      "crop": {
+        "left": 0,
+        "top": 118,
+        "width": 390,
+        "height": 720
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-074.png",
+      "seen": true
+    },
+    {
+      "preview": "2040",
+      "baseline": "main",
+      "key": "dark/390/server-1/server-dark-scm-stale-save-390.png",
+      "classification": "intended",
+      "reason": "Theme-aware comparison colors, fitted dialog title and safer footer emphasis: Keep editing is primary and overwrite is explicitly destructive. Both versions remain available.",
+      "crop": {
+        "left": 0,
+        "top": 11,
+        "width": 390,
+        "height": 822
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-074.png",
+      "seen": true
+    },
+    {
+      "preview": "2134",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-admin-audit-1280-full.png",
+      "classification": "intended",
+      "reason": "Readable action labels and Allow/Deny emphasis replace raw action strings; filters and export actions remain, with bounded content width on desktop.",
+      "crop": {
+        "left": 358,
+        "top": 332,
+        "width": 851,
+        "height": 388
+      },
+      "scale": 0.9165687426556992,
+      "resolution": "downscaled",
+      "sheet": "sheet-075.png",
+      "seen": true
+    },
+    {
+      "preview": "2139",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-admin-grants-1280.png",
+      "classification": "intended",
+      "reason": "Bounded desktop form/table width and spacing are intended; visible fields, row content and actions remain. Fixture times vary.",
+      "crop": {
+        "left": 622,
+        "top": 171,
+        "width": 616,
+        "height": 534
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-075.png",
+      "seen": true
+    },
+    {
+      "preview": "2144",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-admin-roles-1280-full.png",
+      "classification": "intended",
+      "reason": "Explicit permission checkmarks and readable role matrix replace ambiguous cells; bounded desktop width is intentional.",
+      "crop": {
+        "left": 570,
+        "top": 171,
+        "width": 629,
+        "height": 549
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-076.png",
+      "seen": true
+    },
+    {
+      "preview": "2147",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-admin-settings-1280.png",
+      "classification": "intended",
+      "reason": "Save settings is placed with the session lifetime inputs it edits; remote policy and active-session controls remain. Wider layouts use bounded content width.",
+      "crop": {
+        "left": 228,
+        "top": 229,
+        "width": 358,
+        "height": 491
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-076.png",
+      "seen": true
+    },
+    {
+      "preview": "2150",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-clone-folder-1280-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1126,
+        "height": 672
+      },
+      "scale": 0.6927175843694494,
+      "resolution": "downscaled",
+      "sheet": "sheet-077.png",
+      "seen": true
+    },
+    {
+      "preview": "2153",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-clone-folder-refused-1280.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1126,
+        "height": 672
+      },
+      "scale": 0.6927175843694494,
+      "resolution": "downscaled",
+      "sheet": "sheet-077.png",
+      "seen": true
+    },
+    {
+      "preview": "2156",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-graph-model-all-areas-1280-full.png",
+      "classification": "intended",
+      "reason": "Intended graph layout and readable entity names, responsive folded Controls where needed, and separate fullscreen action. Show count badge remains where exposed.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 692
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-078.png",
+      "seen": true
+    },
+    {
+      "preview": "2159",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-graph-model-options-1280.png",
+      "classification": "intended",
+      "reason": "Intended graph layout and readable entity names, responsive folded Controls where needed, and separate fullscreen action. Show count badge remains where exposed.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 692
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-078.png",
+      "seen": true
+    },
+    {
+      "preview": "2162",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-mapping-graph-1280-full.png",
+      "classification": "intended",
+      "reason": "Intended graph layout and readable entity names, responsive folded Controls where needed, and separate fullscreen action. Show count badge remains where exposed.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 672,
+        "height": 594
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-079.png",
+      "seen": true
+    },
+    {
+      "preview": "2165",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-ontology-graph-fullscreen-1280.png",
+      "classification": "intended",
+      "reason": "Intended graph layout and readable entity names, responsive folded Controls where needed, and separate fullscreen action. Show count badge remains where exposed.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 717
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-079.png",
+      "seen": true
+    },
+    {
+      "preview": "2168",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-ontology-neighborhood-hover-label-1280-full.png",
+      "classification": "intended",
+      "reason": "Intended neighborhood viewport fitting, compact readable cards and legend below the canvas. Center, connected entities and walk controls remain; wide views avoid oversized cards.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-080.png",
+      "seen": true
+    },
+    {
+      "preview": "2171",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-ontology-neighborhood-labels-zoomed-1280.png",
+      "classification": "intended",
+      "reason": "Intended neighborhood viewport fitting, compact readable cards and legend below the canvas. Center, connected entities and walk controls remain; wide views avoid oversized cards.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-080.png",
+      "seen": true
+    },
+    {
+      "preview": "2174",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-project-export-1280-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1126,
+        "height": 672
+      },
+      "scale": 0.6927175843694494,
+      "resolution": "downscaled",
+      "sheet": "sheet-081.png",
+      "seen": true
+    },
+    {
+      "preview": "2177",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-project-export-history-1280.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1126,
+        "height": 672
+      },
+      "scale": 0.6927175843694494,
+      "resolution": "downscaled",
+      "sheet": "sheet-081.png",
+      "seen": true
+    },
+    {
+      "preview": "2180",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-remote-folder-1280-full.png",
+      "classification": "intended",
+      "reason": "Intended sync/no-remote guidance and explanation for disabled commit; source-control or remote-dialog actions remain. Sidebar type labels and spacing are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 713,
+        "height": 711
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-082.png",
+      "seen": true
+    },
+    {
+      "preview": "2183",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-remote-folder-refused-1280.png",
+      "classification": "intended",
+      "reason": "Intended sync/no-remote guidance and explanation for disabled commit; source-control or remote-dialog actions remain. Sidebar type labels and spacing are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 713,
+        "height": 711
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-082.png",
+      "seen": true
+    },
+    {
+      "preview": "2186",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-scm-diff-deleted-1280-full.png",
+      "classification": "intended",
+      "reason": "Theme-aware diff rows, filename header and gutter treatment; changed lines remain visible. Sidebar type labels and clearer source-control help are intended.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 716
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-083.png",
+      "seen": true
+    },
+    {
+      "preview": "2189",
+      "baseline": "main",
+      "key": "light/1280/server-1/server-scm-diff-modified-1280.png",
+      "classification": "intended",
+      "reason": "Theme-aware diff rows, filename header and gutter treatment; changed lines remain visible. Sidebar type labels and clearer source-control help are intended.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 716
+      },
+      "scale": 0.609375,
+      "resolution": "downscaled",
+      "sheet": "sheet-083.png",
+      "seen": true
+    },
+    {
+      "preview": "2235",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-admin-access-check-1440-full.png",
+      "classification": "intended",
+      "reason": "Bounded desktop form/table width and spacing are intended; visible fields, row content and actions remain. Fixture times vary.",
+      "crop": {
+        "left": 228,
+        "top": 123,
+        "width": 1212,
+        "height": 570
+      },
+      "scale": 0.6435643564356436,
+      "resolution": "downscaled",
+      "sheet": "sheet-084.png",
+      "seen": true
+    },
+    {
+      "preview": "2242",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-admin-audit-1440.png",
+      "classification": "intended",
+      "reason": "Readable action labels and Allow/Deny emphasis replace raw action strings; filters and export actions remain, with bounded content width on desktop.",
+      "crop": {
+        "left": 358,
+        "top": 332,
+        "width": 960,
+        "height": 568
+      },
+      "scale": 0.8125,
+      "resolution": "downscaled",
+      "sheet": "sheet-084.png",
+      "seen": true
+    },
+    {
+      "preview": "2249",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-admin-projects-1440-full.png",
+      "classification": "intended",
+      "reason": "Bounded desktop form/table width and spacing are intended; visible fields, row content and actions remain. Fixture times vary.",
+      "crop": {
+        "left": 864,
+        "top": 248,
+        "width": 576,
+        "height": 652
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-085.png",
+      "seen": true
+    },
+    {
+      "preview": "2252",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-admin-roles-1440.png",
+      "classification": "intended",
+      "reason": "Explicit permission checkmarks and readable role matrix replace ambiguous cells; bounded desktop width is intentional.",
+      "crop": {
+        "left": 625,
+        "top": 171,
+        "width": 701,
+        "height": 729
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-085.png",
+      "seen": true
+    },
+    {
+      "preview": "2255",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-admin-users-1440-full.png",
+      "classification": "intended",
+      "reason": "Bounded desktop form/table width and spacing are intended; visible fields, row content and actions remain. Fixture times vary.",
+      "crop": {
+        "left": 447,
+        "top": 141,
+        "width": 993,
+        "height": 319
+      },
+      "scale": 0.7854984894259819,
+      "resolution": "downscaled",
+      "sheet": "sheet-086.png",
+      "seen": true
+    },
+    {
+      "preview": "2258",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-clone-folder-1440.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 865
+      },
+      "scale": 0.5481377371749825,
+      "resolution": "downscaled",
+      "sheet": "sheet-086.png",
+      "seen": true
+    },
+    {
+      "preview": "2261",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-file-move-1440-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 865
+      },
+      "scale": 0.5481377371749825,
+      "resolution": "downscaled",
+      "sheet": "sheet-087.png",
+      "seen": true
+    },
+    {
+      "preview": "2264",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-graph-model-all-areas-1440.png",
+      "classification": "intended",
+      "reason": "Intended graph layout and readable entity names, responsive folded Controls where needed, and separate fullscreen action. Show count badge remains where exposed.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 874
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-087.png",
+      "seen": true
+    },
+    {
+      "preview": "2267",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-graph-neighborhood-more-1440-full.png",
+      "classification": "intended",
+      "reason": "Intended neighborhood viewport fitting, compact readable cards and legend below the canvas. Center, connected entities and walk controls remain; wide views avoid oversized cards.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-088.png",
+      "seen": true
+    },
+    {
+      "preview": "2270",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-mapping-graph-1440.png",
+      "classification": "intended",
+      "reason": "Intended graph layout and readable entity names, responsive folded Controls where needed, and separate fullscreen action. Show count badge remains where exposed.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 672,
+        "height": 744
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-088.png",
+      "seen": true
+    },
+    {
+      "preview": "2273",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-ontology-neighborhood-fullscreen-1440-full.png",
+      "classification": "intended",
+      "reason": "Intended neighborhood viewport fitting, compact readable cards and legend below the canvas. Center, connected entities and walk controls remain; wide views avoid oversized cards.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-089.png",
+      "seen": true
+    },
+    {
+      "preview": "2276",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-ontology-neighborhood-hover-label-1440.png",
+      "classification": "intended",
+      "reason": "Intended neighborhood viewport fitting, compact readable cards and legend below the canvas. Center, connected entities and walk controls remain; wide views avoid oversized cards.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-089.png",
+      "seen": true
+    },
+    {
+      "preview": "2279",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-project-delete-1440-full.png",
+      "classification": "intended",
+      "reason": "Delete confirmation uses prospective Will move to trash wording; cancel and destructive confirmation remain. Sidebar type labels and graph layout changes are intended.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 865
+      },
+      "scale": 0.5481377371749825,
+      "resolution": "downscaled",
+      "sheet": "sheet-090.png",
+      "seen": true
+    },
+    {
+      "preview": "2282",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-project-export-1440.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 865
+      },
+      "scale": 0.5481377371749825,
+      "resolution": "downscaled",
+      "sheet": "sheet-090.png",
+      "seen": true
+    },
+    {
+      "preview": "2285",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-project-rename-1440-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1423,
+        "height": 865
+      },
+      "scale": 0.5481377371749825,
+      "resolution": "downscaled",
+      "sheet": "sheet-091.png",
+      "seen": true
+    },
+    {
+      "preview": "2288",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-remote-folder-1440.png",
+      "classification": "intended",
+      "reason": "Intended sync/no-remote guidance and explanation for disabled commit; source-control or remote-dialog actions remain. Sidebar type labels and spacing are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 722,
+        "height": 837
+      },
+      "scale": 1,
+      "resolution": "native",
+      "sheet": "sheet-091.png",
+      "seen": true
+    },
+    {
+      "preview": "2291",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-scm-diff-added-1440-full.png",
+      "classification": "intended",
+      "reason": "Theme-aware diff rows, filename header and gutter treatment; changed lines remain visible. Sidebar type labels and clearer source-control help are intended.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 885
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-092.png",
+      "seen": true
+    },
+    {
+      "preview": "2294",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-scm-diff-deleted-1440.png",
+      "classification": "intended",
+      "reason": "Theme-aware diff rows, filename header and gutter treatment; changed lines remain visible. Sidebar type labels and clearer source-control help are intended.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1440,
+        "height": 885
+      },
+      "scale": 0.5416666666666666,
+      "resolution": "downscaled",
+      "sheet": "sheet-092.png",
+      "seen": true
+    },
+    {
+      "preview": "2297",
+      "baseline": "main",
+      "key": "light/1440/server-1/server-scm-stale-save-1440-full.png",
+      "classification": "intended",
+      "reason": "Theme-aware comparison colors, fitted dialog title and safer footer emphasis: Keep editing is primary and overwrite is explicitly destructive. Both versions remain available.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1310,
+        "height": 741
+      },
+      "scale": 0.5954198473282443,
+      "resolution": "downscaled",
+      "sheet": "sheet-093.png",
+      "seen": true
+    },
+    {
+      "preview": "2301",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-add-concept-2560.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2553,
+        "height": 1245
+      },
+      "scale": 0.30552291421856637,
+      "resolution": "downscaled",
+      "sheet": "sheet-093.png",
+      "native_details": [
+        {
+          "left": 840,
+          "top": 540,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 840,
+          "top": 540,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-093.png",
+      "seen": true
+    },
+    {
+      "preview": "2304",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-clone-repository-2560-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1535,
+        "height": 1245
+      },
+      "scale": 0.50814332247557,
+      "resolution": "downscaled",
+      "sheet": "sheet-094.png",
+      "seen": true
+    },
+    {
+      "preview": "2307",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-contract-contract-2560.png",
+      "classification": "intended",
+      "reason": "Contract content remains with intended sidebar type labels and spacing; fixture revision hashes and timestamps may differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 806,
+        "height": 1247
+      },
+      "scale": 0.967741935483871,
+      "resolution": "downscaled",
+      "sheet": "sheet-095.png",
+      "seen": true
+    },
+    {
+      "preview": "2310",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-import-2560-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2404,
+        "height": 1245
+      },
+      "scale": 0.324459234608985,
+      "resolution": "downscaled",
+      "sheet": "sheet-096.png",
+      "native_details": [
+        {
+          "left": 840,
+          "top": 490,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 840,
+          "top": 490,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-096.png",
+      "seen": true
+    },
+    {
+      "preview": "2313",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-item-editor-2560.png",
+      "classification": "intended",
+      "reason": "Open in Source is presented as a button with clearer field spacing and disabled-state styling; editor fields and tabs remain.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-096.png",
+      "native_details": [
+        {
+          "left": 1760,
+          "top": 0,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 1760,
+          "top": 0,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-096.png",
+      "seen": true
+    },
+    {
+      "preview": "2316",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-metric-detail-2560-full.png",
+      "classification": "intended",
+      "reason": "Intended bounded metric content; at 2560 the open metric and list share the common content width accepted on main.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2287,
+        "height": 1440
+      },
+      "scale": 0.3410581547879318,
+      "resolution": "downscaled",
+      "sheet": "sheet-097.png",
+      "native_details": [
+        {
+          "left": 1450,
+          "top": 130,
+          "width": 780,
+          "height": 229
+        },
+        {
+          "left": 1450,
+          "top": 130,
+          "width": 780,
+          "height": 229
+        }
+      ],
+      "detail_sheet": "sheet-097.png",
+      "seen": true
+    },
+    {
+      "preview": "2319",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-metric-wizard-2560.png",
+      "classification": "intended",
+      "reason": "Intended taller wizard with stable footer and clearer field spacing; the same steps and navigation remain.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2287,
+        "height": 1429
+      },
+      "scale": 0.3410581547879318,
+      "resolution": "downscaled",
+      "sheet": "sheet-097.png",
+      "native_details": [
+        {
+          "left": 900,
+          "top": 710,
+          "width": 780,
+          "height": 229
+        },
+        {
+          "left": 900,
+          "top": 420,
+          "width": 780,
+          "height": 229
+        }
+      ],
+      "detail_sheet": "sheet-097.png",
+      "seen": true
+    },
+    {
+      "preview": "2322",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-odcs-contract-search-2560-full.png",
+      "classification": "intended",
+      "reason": "Contract panel remains with intended sidebar type labels and spacing; the filename alone does not establish an active search or opened team editor.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 806,
+        "height": 1247
+      },
+      "scale": 0.967741935483871,
+      "resolution": "downscaled",
+      "sheet": "sheet-098.png",
+      "seen": true
+    },
+    {
+      "preview": "2325",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-odcs-contract-team-2560.png",
+      "classification": "intended",
+      "reason": "Contract panel remains with intended sidebar type labels and spacing; the filename alone does not establish an active search or opened team editor.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 806,
+        "height": 1247
+      },
+      "scale": 0.967741935483871,
+      "resolution": "downscaled",
+      "sheet": "sheet-099.png",
+      "seen": true
+    },
+    {
+      "preview": "2328",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-odcs-dataset-properties-2560-full.png",
+      "classification": "intended",
+      "reason": "Contract content remains with intended sidebar type labels and spacing; fixture revision hashes and timestamps may differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2092,
+        "height": 1247
+      },
+      "scale": 0.372848948374761,
+      "resolution": "downscaled",
+      "sheet": "sheet-100.png",
+      "native_details": [
+        {
+          "left": 660,
+          "top": 110,
+          "width": 780,
+          "height": 171
+        },
+        {
+          "left": 660,
+          "top": 110,
+          "width": 780,
+          "height": 171
+        }
+      ],
+      "detail_sheet": "sheet-100.png",
+      "seen": true
+    },
+    {
+      "preview": "2331",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-odcs-dataset-quality-2560.png",
+      "classification": "intended",
+      "reason": "Contract content remains with intended sidebar type labels and spacing; fixture revision hashes and timestamps may differ.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1184,
+        "height": 1247
+      },
+      "scale": 0.6587837837837838,
+      "resolution": "downscaled",
+      "sheet": "sheet-100.png",
+      "seen": true
+    },
+    {
+      "preview": "2334",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-odcs-property-edit-2560-full.png",
+      "classification": "intended",
+      "reason": "Visible properties list is preserved with intended sidebar type labels and spacing; neither screenshot establishes an opened property-edit dialog.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2092,
+        "height": 1247
+      },
+      "scale": 0.372848948374761,
+      "resolution": "downscaled",
+      "sheet": "sheet-101.png",
+      "native_details": [
+        {
+          "left": 660,
+          "top": 110,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 660,
+          "top": 110,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-101.png",
+      "seen": true
+    },
+    {
+      "preview": "2337",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-ontology-catalog-2560.png",
+      "classification": "intended",
+      "reason": "Intended result count, readable type labels and card descriptions; desktop Edit appears on hover. Sidebar type labels and spacing are also intended.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2553,
+        "height": 1247
+      },
+      "scale": 0.30552291421856637,
+      "resolution": "downscaled",
+      "sheet": "sheet-101.png",
+      "native_details": [
+        {
+          "left": 660,
+          "top": 110,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 660,
+          "top": 110,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-101.png",
+      "seen": true
+    },
+    {
+      "preview": "2340",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-ontology-mappings-2560-full.png",
+      "classification": "intended",
+      "reason": "Intended empty mapping state offers Import and Load example instead of inert query/export actions. Where both show this state, the filename does not establish an open query composer.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2252,
+        "height": 1247
+      },
+      "scale": 0.3463587921847247,
+      "resolution": "downscaled",
+      "sheet": "sheet-102.png",
+      "native_details": [
+        {
+          "left": 660,
+          "top": 110,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 660,
+          "top": 110,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-102.png",
+      "seen": true
+    },
+    {
+      "preview": "2343",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-ontology-metrics-2560.png",
+      "classification": "intended",
+      "reason": "Metric list and actions remain; intended sidebar type labels and spacing account for the visible change.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 872,
+        "height": 1247
+      },
+      "scale": 0.8944954128440367,
+      "resolution": "downscaled",
+      "sheet": "sheet-103.png",
+      "seen": true
+    },
+    {
+      "preview": "2346",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-ontology-overview-2560-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 872,
+        "height": 1247
+      },
+      "scale": 0.8944954128440367,
+      "resolution": "downscaled",
+      "sheet": "sheet-104.png",
+      "seen": true
+    },
+    {
+      "preview": "2349",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-ontology-source-2560.png",
+      "classification": "intended",
+      "reason": "Visible source and actions remain; intended sidebar type labels and spacing account for the change outside the editor.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2405,
+        "height": 1247
+      },
+      "scale": 0.32432432432432434,
+      "resolution": "downscaled",
+      "sheet": "sheet-105.png",
+      "native_details": [
+        {
+          "left": 320,
+          "top": 120,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 320,
+          "top": 120,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-105.png",
+      "seen": true
+    },
+    {
+      "preview": "2352",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-settings-2560-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2405,
+        "height": 1247
+      },
+      "scale": 0.32432432432432434,
+      "resolution": "downscaled",
+      "sheet": "sheet-105.png",
+      "native_details": [
+        {
+          "left": 660,
+          "top": 110,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 660,
+          "top": 110,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-105.png",
+      "seen": true
+    },
+    {
+      "preview": "2355",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-sidebar-projects-2560.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 872,
+        "height": 1247
+      },
+      "scale": 0.8944954128440367,
+      "resolution": "downscaled",
+      "sheet": "sheet-106.png",
+      "seen": true
+    },
+    {
+      "preview": "2358",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-source-control-remote-2560-full.png",
+      "classification": "intended",
+      "reason": "Intended sync/no-remote guidance and explanation for disabled commit; source-control or remote-dialog actions remain. Sidebar type labels and spacing are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1535,
+        "height": 1245
+      },
+      "scale": 0.50814332247557,
+      "resolution": "downscaled",
+      "sheet": "sheet-107.png",
+      "seen": true
+    },
+    {
+      "preview": "2361",
+      "baseline": "main",
+      "key": "light/2560/server-0/server-source-editor-2560.png",
+      "classification": "intended",
+      "reason": "Visible source and actions remain; intended sidebar type labels and spacing account for the change outside the editor.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2405,
+        "height": 1247
+      },
+      "scale": 0.32432432432432434,
+      "resolution": "downscaled",
+      "sheet": "sheet-107.png",
+      "native_details": [
+        {
+          "left": 320,
+          "top": 120,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 320,
+          "top": 120,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-107.png",
+      "seen": true
+    },
+    {
+      "preview": "2364",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-admin-access-check-2560-full.png",
+      "classification": "intended",
+      "reason": "Bounded desktop form/table width and spacing are intended; visible fields, row content and actions remain. Fixture times vary.",
+      "crop": {
+        "left": 228,
+        "top": 176,
+        "width": 2332,
+        "height": 517
+      },
+      "scale": 0.3344768439108062,
+      "resolution": "downscaled",
+      "sheet": "sheet-108.png",
+      "native_details": [
+        {
+          "left": 300,
+          "top": 140,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 300,
+          "top": 140,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-108.png",
+      "seen": true
+    },
+    {
+      "preview": "2371",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-admin-audit-2560.png",
+      "classification": "intended",
+      "reason": "Readable action labels and Allow/Deny emphasis replace raw action strings; filters and export actions remain, with bounded content width on desktop.",
+      "crop": {
+        "left": 228,
+        "top": 146,
+        "width": 2332,
+        "height": 1116
+      },
+      "scale": 0.3344768439108062,
+      "resolution": "downscaled",
+      "sheet": "sheet-108.png",
+      "native_details": [
+        {
+          "left": 300,
+          "top": 140,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 300,
+          "top": 140,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-108.png",
+      "seen": true
+    },
+    {
+      "preview": "2374",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-admin-grants-2560-full.png",
+      "classification": "intended",
+      "reason": "Bounded desktop form/table width and spacing are intended; visible fields, row content and actions remain. Fixture times vary.",
+      "crop": {
+        "left": 727,
+        "top": 171,
+        "width": 1833,
+        "height": 543
+      },
+      "scale": 0.425531914893617,
+      "resolution": "downscaled",
+      "sheet": "sheet-109.png",
+      "native_details": [
+        {
+          "left": 300,
+          "top": 140,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 300,
+          "top": 140,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-109.png",
+      "seen": true
+    },
+    {
+      "preview": "2379",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-admin-projects-2560.png",
+      "classification": "intended",
+      "reason": "Bounded desktop form/table width and spacing are intended; visible fields, row content and actions remain. Fixture times vary.",
+      "crop": {
+        "left": 864,
+        "top": 248,
+        "width": 1696,
+        "height": 1026
+      },
+      "scale": 0.45990566037735847,
+      "resolution": "downscaled",
+      "sheet": "sheet-109.png",
+      "native_details": [
+        {
+          "left": 300,
+          "top": 140,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 300,
+          "top": 140,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-109.png",
+      "seen": true
+    },
+    {
+      "preview": "2382",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-admin-settings-2560-full.png",
+      "classification": "intended",
+      "reason": "Save settings is placed with the session lifetime inputs it edits; remote policy and active-session controls remain. Wider layouts use bounded content width.",
+      "crop": {
+        "left": 228,
+        "top": 229,
+        "width": 1191,
+        "height": 712
+      },
+      "scale": 0.654911838790932,
+      "resolution": "downscaled",
+      "sheet": "sheet-110.png",
+      "seen": true
+    },
+    {
+      "preview": "2385",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-admin-users-2560.png",
+      "classification": "intended",
+      "reason": "Bounded desktop form/table width and spacing are intended; visible fields, row content and actions remain. Fixture times vary.",
+      "crop": {
+        "left": 447,
+        "top": 141,
+        "width": 2113,
+        "height": 342
+      },
+      "scale": 0.3691433980123048,
+      "resolution": "downscaled",
+      "sheet": "sheet-110.png",
+      "native_details": [
+        {
+          "left": 300,
+          "top": 140,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 300,
+          "top": 140,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-110.png",
+      "seen": true
+    },
+    {
+      "preview": "2388",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-clone-folder-refused-2560-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "scale": 0.4189044038668099,
+      "resolution": "downscaled",
+      "sheet": "sheet-111.png",
+      "native_details": [
+        {
+          "left": 840,
+          "top": 490,
+          "width": 780,
+          "height": 197
+        },
+        {
+          "left": 840,
+          "top": 490,
+          "width": 780,
+          "height": 197
+        }
+      ],
+      "detail_sheet": "sheet-111.png",
+      "seen": true
+    },
+    {
+      "preview": "2391",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-file-move-2560.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "scale": 0.4189044038668099,
+      "resolution": "downscaled",
+      "sheet": "sheet-111.png",
+      "native_details": [
+        {
+          "left": 840,
+          "top": 490,
+          "width": 780,
+          "height": 197
+        },
+        {
+          "left": 840,
+          "top": 490,
+          "width": 780,
+          "height": 197
+        }
+      ],
+      "detail_sheet": "sheet-111.png",
+      "seen": true
+    },
+    {
+      "preview": "2394",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-graph-model-options-2560-full.png",
+      "classification": "intended",
+      "reason": "Intended graph layout and readable entity names, responsive folded Controls where needed, and separate fullscreen action. Show count badge remains where exposed.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1247
+      },
+      "scale": 0.4189044038668099,
+      "resolution": "downscaled",
+      "sheet": "sheet-112.png",
+      "native_details": [
+        {
+          "left": 660,
+          "top": 110,
+          "width": 780,
+          "height": 238
+        },
+        {
+          "left": 660,
+          "top": 110,
+          "width": 780,
+          "height": 238
+        }
+      ],
+      "detail_sheet": "sheet-112.png",
+      "seen": true
+    },
+    {
+      "preview": "2397",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-graph-neighborhood-more-2560.png",
+      "classification": "intended",
+      "reason": "Intended neighborhood viewport fitting, compact readable cards and legend below the canvas. Center, connected entities and walk controls remain; wide views avoid oversized cards.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-112.png",
+      "native_details": [
+        {
+          "left": 1150,
+          "top": 630,
+          "width": 780,
+          "height": 238
+        },
+        {
+          "left": 1150,
+          "top": 630,
+          "width": 780,
+          "height": 238
+        }
+      ],
+      "detail_sheet": "sheet-112.png",
+      "seen": true
+    },
+    {
+      "preview": "2400",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-ontology-graph-fullscreen-2560-full.png",
+      "classification": "intended",
+      "reason": "Intended graph layout and readable entity names, responsive folded Controls where needed, and separate fullscreen action. Show count badge remains where exposed.",
+      "crop": {
+        "left": 565,
+        "top": 0,
+        "width": 1147,
+        "height": 1067
+      },
+      "scale": 0.6800348735832606,
+      "resolution": "downscaled",
+      "sheet": "sheet-113.png",
+      "seen": true
+    },
+    {
+      "preview": "2403",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-ontology-neighborhood-fullscreen-2560.png",
+      "classification": "intended",
+      "reason": "Intended neighborhood viewport fitting, compact readable cards and legend below the canvas. Center, connected entities and walk controls remain; wide views avoid oversized cards.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-113.png",
+      "native_details": [
+        {
+          "left": 900,
+          "top": 560,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 900,
+          "top": 560,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-113.png",
+      "seen": true
+    },
+    {
+      "preview": "2406",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-ontology-neighborhood-labels-zoomed-2560-full.png",
+      "classification": "intended",
+      "reason": "Intended neighborhood viewport fitting, compact readable cards and legend below the canvas. Center, connected entities and walk controls remain; wide views avoid oversized cards.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-114.png",
+      "native_details": [
+        {
+          "left": 1150,
+          "top": 630,
+          "width": 780,
+          "height": 238
+        },
+        {
+          "left": 1150,
+          "top": 630,
+          "width": 780,
+          "height": 238
+        }
+      ],
+      "detail_sheet": "sheet-114.png",
+      "seen": true
+    },
+    {
+      "preview": "2409",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-project-delete-2560.png",
+      "classification": "intended",
+      "reason": "Delete confirmation uses prospective Will move to trash wording; cancel and destructive confirmation remain. Sidebar type labels and graph layout changes are intended.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "scale": 0.4189044038668099,
+      "resolution": "downscaled",
+      "sheet": "sheet-114.png",
+      "native_details": [
+        {
+          "left": 840,
+          "top": 490,
+          "width": 780,
+          "height": 238
+        },
+        {
+          "left": 840,
+          "top": 490,
+          "width": 780,
+          "height": 238
+        }
+      ],
+      "detail_sheet": "sheet-114.png",
+      "seen": true
+    },
+    {
+      "preview": "2412",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-project-export-history-2560-full.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "scale": 0.4189044038668099,
+      "resolution": "downscaled",
+      "sheet": "sheet-115.png",
+      "native_details": [
+        {
+          "left": 840,
+          "top": 490,
+          "width": 780,
+          "height": 197
+        },
+        {
+          "left": 840,
+          "top": 490,
+          "width": 780,
+          "height": 197
+        }
+      ],
+      "detail_sheet": "sheet-115.png",
+      "seen": true
+    },
+    {
+      "preview": "2415",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-project-rename-2560.png",
+      "classification": "intended",
+      "reason": "Visible dialog or page content and actions remain; sidebar type labels, spacing and underlying graph layout are intended changes.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1862,
+        "height": 1245
+      },
+      "scale": 0.4189044038668099,
+      "resolution": "downscaled",
+      "sheet": "sheet-115.png",
+      "native_details": [
+        {
+          "left": 840,
+          "top": 490,
+          "width": 780,
+          "height": 197
+        },
+        {
+          "left": 840,
+          "top": 490,
+          "width": 780,
+          "height": 197
+        }
+      ],
+      "detail_sheet": "sheet-115.png",
+      "seen": true
+    },
+    {
+      "preview": "2418",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-remote-folder-refused-2560-full.png",
+      "classification": "intended",
+      "reason": "Intended sync/no-remote guidance and explanation for disabled commit; source-control or remote-dialog actions remain. Sidebar type labels and spacing are intentional.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 1282,
+        "height": 1245
+      },
+      "scale": 0.608424336973479,
+      "resolution": "downscaled",
+      "sheet": "sheet-116.png",
+      "seen": true
+    },
+    {
+      "preview": "2421",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-scm-diff-added-2560.png",
+      "classification": "intended",
+      "reason": "Theme-aware diff rows, filename header and gutter treatment; changed lines remain visible. Sidebar type labels and clearer source-control help are intended.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1247
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-116.png",
+      "native_details": [
+        {
+          "left": 1100,
+          "top": 130,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 1100,
+          "top": 130,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-116.png",
+      "seen": true
+    },
+    {
+      "preview": "2424",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-scm-diff-modified-2560-full.png",
+      "classification": "intended",
+      "reason": "Theme-aware diff rows, filename header and gutter treatment; changed lines remain visible. Sidebar type labels and clearer source-control help are intended.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2560,
+        "height": 1247
+      },
+      "scale": 0.3046875,
+      "resolution": "downscaled",
+      "sheet": "sheet-117.png",
+      "native_details": [
+        {
+          "left": 1100,
+          "top": 130,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 1100,
+          "top": 130,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-117.png",
+      "seen": true
+    },
+    {
+      "preview": "2427",
+      "baseline": "main",
+      "key": "light/2560/server-1/server-scm-stale-save-2560.png",
+      "classification": "intended",
+      "reason": "Theme-aware comparison colors, fitted dialog title and safer footer emphasis: Keep editing is primary and overwrite is explicitly destructive. Both versions remain available.",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "width": 2404,
+        "height": 1245
+      },
+      "scale": 0.324459234608985,
+      "resolution": "downscaled",
+      "sheet": "sheet-117.png",
+      "native_details": [
+        {
+          "left": 840,
+          "top": 500,
+          "width": 780,
+          "height": 250
+        },
+        {
+          "left": 840,
+          "top": 500,
+          "width": 780,
+          "height": 250
+        }
+      ],
+      "detail_sheet": "sheet-117.png",
+      "seen": true
+    }
+  ]
+}
