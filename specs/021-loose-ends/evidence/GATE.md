@@ -27,3 +27,16 @@ time here, next to the main baseline. The 30 s limit stays as it is; if it ever 
 | --- | --- | --- | --- | --- |
 | 1 (in the full suite) | `46091782` | no | 31.3 s | fail |
 | 1 (rerun) | `4f53093c` | yes | 26.3 s | pass |
+
+## Bundle size after the Ossie 0.3.0 draft base
+
+Measured by the Ossie pane with `bun --bun run build`, `main` `4efb44e2` against branch `021-ossie`:
+
+| Chunk | main | candidate | Change |
+| --- | --- | --- | --- |
+| Main application chunk | 2,970,373 B | 2,993,434 B | +23,061 B (+0.8%) |
+| 0.3 validators (loaded only for a 0.3.0.dev0 file) | none | 409,567 B | new, lazy |
+| Lint worker | | | +13.5 KB |
+
+The 0.3 validators stay out of the main chunk. The +23 KB is new code every user loads (the conversion entry point,
+the dialogs and the shared readers that accept both forms). Accepted; the final gate run measures it again.
