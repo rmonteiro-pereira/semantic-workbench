@@ -1,0 +1,19 @@
+version: 0.3.0.dev0
+name: Retail
+annotations:
+  imported_from: owl
+ontology:
+  - concept: Order
+    type: EntityType
+    description: A customer order.
+    annotations:
+      owl_class: ex:Order
+    relationships:
+      - name: placed_by
+        verbalizes:
+          - Order is placed by Customer
+        roles:
+          - concept: Order
+          - concept: Customer
+  - concept: Customer
+    type: EntityType

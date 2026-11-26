@@ -14,3 +14,7 @@ Each one is valid. Tests change one thing at a time to get each finding.
 0.2 commerce example (a metric with bindings, a dataset, a field and a concept), recorded with the
 reference finder as it was before the draft base. `tests/references-0.3.test.ts` checks that the
 current finder still gives exactly these lists.
+
+`retail.tessera.yaml` is a Tessera revision 1 ontology on the 0.3.0 draft base, with notes to drop
+and `annotations` to keep. `compile-golden/` holds what compiling it with the three sales files
+releases. Run the compile test with `UPDATE_GOLDEN=1` to record it again.

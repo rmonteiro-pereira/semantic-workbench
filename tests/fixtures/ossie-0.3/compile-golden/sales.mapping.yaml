@@ -1,0 +1,18 @@
+version: 0.3.0.dev0
+name: Sales mappings
+ontology_ref:
+  name: Sales ontology
+  iri: ./sales.ontology.yaml
+semantic_model_ref:
+  name: Sales semantic model
+  iri: ./sales.semantic.yaml
+concept_mappings:
+  - concept: Customer
+    object_mappings:
+      - referent_mappings:
+          - relationship: id
+            expression: customers.id
+nonportable_extensions:
+  - vendor_name: BI_TOOL
+    data:
+      folder: sales

@@ -1,0 +1,19 @@
+version: 0.3.0.dev0
+name: Sales ontology
+annotations:
+  imported_from: owl
+ontology:
+  - concept: Customer
+    type: EntityType
+    identify_by:
+      - id
+    annotations:
+      owl_class: ex:Customer
+    relationships:
+      - name: id
+        roles:
+          - concept: Identifier
+        verbalizes:
+          - "{Customer} has identifier {Identifier}"
+  - concept: Identifier
+    type: ValueType

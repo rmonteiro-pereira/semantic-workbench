@@ -1,0 +1,76 @@
+{
+  "reportVersion": 2,
+  "compiler": {
+    "name": "tessera",
+    "version": "1.1.0"
+  },
+  "base": {
+    "version": "0.3.0.dev0",
+    "label": "valid against the bundled Ossie 0.3.0 draft"
+  },
+  "options": {
+    "lossPolicy": null
+  },
+  "inputs": [
+    {
+      "path": "retail.tessera.yaml",
+      "sha256": "ec5e7786cd641a4fc71bc628cbe9ece93b350a7d075a7375cdf79f530d33e1e2",
+      "treatment": "compiled"
+    },
+    {
+      "path": "sales.mapping.yaml",
+      "sha256": "2c818cd28a7c7c24ff910c90828ca9934d91a590b73700e12b4396f1c5bcb7a5",
+      "treatment": "copied"
+    },
+    {
+      "path": "sales.ontology.yaml",
+      "sha256": "36c0cf114b17c5078070016ad09c818a7d2382de9ba722c5f63c241bf91d27fb",
+      "treatment": "copied"
+    },
+    {
+      "path": "sales.semantic.yaml",
+      "sha256": "c43ae69d4a5ce8652747c86ff1c3765383b5ac18574ec7920f3abad34405badc",
+      "treatment": "copied"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "retail.tessera.yaml",
+      "sha256": "7ad554717b12eb4c1d963b1cdf359666e9d21027ed9454ba5cbaadcc4a8b43ac"
+    },
+    {
+      "path": "sales.mapping.yaml",
+      "sha256": "2c818cd28a7c7c24ff910c90828ca9934d91a590b73700e12b4396f1c5bcb7a5"
+    },
+    {
+      "path": "sales.ontology.yaml",
+      "sha256": "36c0cf114b17c5078070016ad09c818a7d2382de9ba722c5f63c241bf91d27fb"
+    },
+    {
+      "path": "sales.semantic.yaml",
+      "sha256": "c43ae69d4a5ce8652747c86ff1c3765383b5ac18574ec7920f3abad34405badc"
+    }
+  ],
+  "losses": [
+    {
+      "document": "retail.tessera.yaml",
+      "item": "sw1:#ontology:Retail/concept:Order",
+      "property": "tessera_notes",
+      "pointer": "/ontology/0/tessera_notes",
+      "bytes": 45,
+      "sha256": "405a6cbcd46e9e53500c194e7df0fea7ab9786e3b0ae37308daf35c3577579b1"
+    },
+    {
+      "document": "retail.tessera.yaml",
+      "item": "sw1:#ontology:Retail",
+      "property": "tessera_notes",
+      "pointer": "/tessera_notes",
+      "bytes": 32,
+      "sha256": "ad874935234d2a9f2246ad41dd61ec1dc93da49acfd8c129783a44afca9c5282"
+    }
+  ],
+  "counts": {
+    "tessera_notes": 2
+  },
+  "digest": "sha256:f5c51aa375fb0ba16c4a9f1d2104be1e132288cc425a1e5f1c5d24f3b90438cb"
+}
