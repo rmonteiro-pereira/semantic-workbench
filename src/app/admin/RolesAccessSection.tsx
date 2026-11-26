@@ -1,10 +1,10 @@
+import { RecordList, type RecordColumn } from './RecordList';
 import { SavedNote, useSavedAt } from './SaveStatus';
 import { useState } from 'react';
 import { EmptyState } from '../projects/EmptyState';
 import { useMe } from '../auth/useMe';
 import { AdminConfirmation } from './AdminConfirmation';
 import { newIdentifier, whenLabel } from './helpers';
-import { MenuButton } from '../projects/Menu';
 import { adminApi } from './api';
 import { useAdminData } from './useAdminData';
 import { SectionStatus } from './SectionStatus';
@@ -81,54 +81,24 @@ export function RolesAccessSection({ view }: { view: 'grants' | 'roles' }) {
               Use Add grant to give a person or group a role in server mode.
             </EmptyState>
           )}
-          <div className="admin-table">
-            <table className="admin-records">
-              <thead>
-                <tr>
-                  <th>Member</th>
-                  <th>Role / scope</th>
-                  <th>Added</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.grants.map(item => (
-                  <tr key={item.id}>
-                    <td>
-                      {item.member.kind === 'email' ? (
-                        item.member.email
-                      ) : (
-                        <>
-                          {item.member.displayName ?? 'name not resolved'}
-                          <small className="admin-id">{item.member.groupId}</small>
-                        </>
-                      )}
-                    </td>
-                    <td>
-                      {[...data.roles.builtIn, ...data.roles.custom].find(role => role.id === item.roleId)?.name ?? item.roleId}
-                      <br />
-                      {scopeLabel(item.scope)}
-                    </td>
-                    <td>
-                      {item.addedBy}
-                      <br />
-                      {whenLabel(item.addedAt)}
-                    </td>
-                    <td>
-                      <MenuButton
-                        ariaLabel={`Actions for grant ${item.id}`}
-                        label="Actions"
-                        items={[
-                          { label: 'Change', run: () => setGrant(item) },
-                          { label: 'Remove', run: () => setRemoval(item) },
-                        ]}
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {data.grants.length > 0 && (
+            <RecordList
+              label="Access grants"
+              records={data.grants}
+              recordKey={item => item.id}
+              columns={grantColumns([...data.roles.builtIn, ...data.roles.custom])}
+              actions={item => (
+                <>
+                  <button aria-label={`Change the grant for ${memberName(item)}`} onClick={() => setGrant(item)}>
+                    Change
+                  </button>
+                  <button className="admin-remove" aria-label={`Remove the grant for ${memberName(item)}`} onClick={() => setRemoval(item)}>
+                    Remove
+                  </button>
+                </>
+              )}
+            />
+          )}
         </>
       )}
       {data && view === 'roles' && (
@@ -202,6 +172,50 @@ function RoleHolders({ roleId, grants }: { roleId: string; grants: number }) {
       {holders?.length === 0 && <p>No known person holds this role.</p>}
     </>
   );
+}
+
+/** The member of a grant as people know it: the address, or the group's name when known. */
+function memberName(grant: Grant): string {
+  if (grant.member.kind === 'email') return grant.member.email;
+  return grant.member.displayName ?? grant.member.groupId;
+}
+
+/** The grant list's columns; the role column needs the role names to show them instead of identifiers. */
+function grantColumns(roles: Role[]): RecordColumn<Grant>[] {
+  return [
+    {
+      label: 'Member',
+      value: grant =>
+        grant.member.kind === 'email' ? (
+          grant.member.email
+        ) : (
+          <>
+            {grant.member.displayName ?? 'Group name not resolved'}
+            <small className="admin-id">{grant.member.groupId}</small>
+          </>
+        ),
+    },
+    {
+      label: 'Role and scope',
+      value: grant => (
+        <>
+          {roles.find(role => role.id === grant.roleId)?.name ?? grant.roleId}
+          <br />
+          {scopeLabel(grant.scope)}
+        </>
+      ),
+    },
+    {
+      label: 'Added',
+      value: grant => (
+        <>
+          {grant.addedBy}
+          <br />
+          {whenLabel(grant.addedAt)}
+        </>
+      ),
+    },
+  ];
 }
 
 /** Names a grant by its role, member and scope, so a refusal says which change it refused. */

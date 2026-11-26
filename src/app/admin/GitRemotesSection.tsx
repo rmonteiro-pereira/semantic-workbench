@@ -1,3 +1,4 @@
+import { RecordList, type RecordColumn } from './RecordList';
 import { useState } from 'react';
 import { EmptyState } from '../projects/EmptyState';
 import { api, scm } from '../projects/api';
@@ -85,33 +86,24 @@ export function GitRemotesSection() {
       <SectionStatus subject="project remotes" loading={!data && !error} error={error} onRetry={reload} />
       {failure && <p role="alert">{failure}</p>}
       {data && (
-        <div className="admin-table">
-          <table className="admin-records">
-            <thead>
-              <tr>
-                <th>Project</th>
-                <th>Remote</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.map(project => (
-                <tr key={project.slug}>
-                  <td data-label="Project">{project.name}</td>
-                  <td data-label="Remote">{project.problem ?? remoteLabel(project)}</td>
-                  <td data-label="Actions">
-                    <div className="admin-actions">
-                      <button aria-label={`Set remote for ${project.name}`} onClick={() => setSetting(project.slug)}>
-                        Set remote
-                      </button>
-                      {project.remoteName && <button onClick={() => setRemoving(project)}>Remove remote</button>}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <RecordList
+          label="Project remotes"
+          records={data}
+          recordKey={project => project.slug}
+          columns={remoteColumns}
+          actions={project => (
+            <>
+              <button aria-label={`Set remote for ${project.name}`} onClick={() => setSetting(project.slug)}>
+                Set remote
+              </button>
+              {project.remoteName && (
+                <button className="admin-remove" onClick={() => setRemoving(project)}>
+                  Remove remote
+                </button>
+              )}
+            </>
+          )}
+        />
       )}
       {setting && <RemoteDialog project={setting} onClose={closeRemoteDialog} />}
       {removing && (
@@ -130,6 +122,11 @@ export function GitRemotesSection() {
     </>
   );
 }
+
+const remoteColumns: RecordColumn<ProjectRemote>[] = [
+  { label: 'Project', value: project => project.name },
+  { label: 'Remote', value: project => project.problem ?? remoteLabel(project) },
+];
 
 function remoteLabel(project: ProjectRemote) {
   if (!project.remoteName) return 'No remote';

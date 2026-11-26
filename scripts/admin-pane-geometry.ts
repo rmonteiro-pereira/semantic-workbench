@@ -5,15 +5,12 @@ import { adminArea, adminGeometry, cancelAdminDialog } from './helpers/admin-bro
 export async function adminPaneGeometry(page: Page) {
   await domainFieldsAlign(page);
   const grants = await adminArea(page, 'Access grants');
-  const actions = grants.getByRole('button', { name: /^Actions for grant/ }).first();
-  await actions.click();
-  await page.getByRole('menuitem', { name: 'Change', exact: true }).click();
+  await grants.getByRole('button', { name: /^Change the grant for / }).first().click();
   const change = page.getByRole('region', { name: 'Change grant', exact: true });
   await expect(change).toBeVisible();
   await adminGeometry(page, 'change-grant');
   await change.getByRole('button', { name: 'Back to grants', exact: true }).click();
-  await actions.click();
-  await page.getByRole('menuitem', { name: 'Remove', exact: true }).click();
+  await grants.getByRole('button', { name: /^Remove the grant for / }).first().click();
   await adminGeometry(page, 'remove-grant');
   await cancelAdminDialog(page);
   const users = await adminArea(page, 'Users & groups');

@@ -67,11 +67,11 @@ test('grant panes fit each viewport, and the dry-run preview is a dialog', async
   await adminGeometry(page, 'add-grant-preview');
   await cancelAdminDialog(page, 'Back to editing');
   await goBack('Add grant');
-  await chooseMenuItem(grants, 'Actions for grant g_erin', 'Change');
+  await grants.getByRole('button', { name: 'Change the grant for erin.with.a.long.address@subsidiary.example.org', exact: true }).click();
   await expect(pane('Change grant').getByLabel('E-mail address')).toBeVisible();
   await adminGeometry(page, 'change-grant');
   await goBack('Change grant');
-  await chooseMenuItem(grants, 'Actions for grant g_erin', 'Remove');
+  await grants.getByRole('button', { name: 'Remove the grant for erin.with.a.long.address@subsidiary.example.org', exact: true }).click();
   await adminGeometry(page, 'remove-grant');
   await cancelAdminDialog(page);
 }, 120_000);
