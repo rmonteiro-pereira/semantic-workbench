@@ -47,3 +47,12 @@ The bounded matrix reached the 110-image limit across the eight folders. The fol
 - Consent and setup credential: long-text variants. The consent uses the existing reference program; the setup page shows its initial form.
 - Error pages beyond the invalid-client authorization page, including setup failure and a revealed setup result, are not pictured.
 - Separate empty/loading consent and setup documents were not reached. These documents are rendered as pages; the asynchronous connection-list loading state is pictured instead.
+
+## Judged from the images
+
+- Fix: `person-loading-light-1280.png` says "Loading connections…" with an ellipsis.
+- Minor: in the empty and error dialogs the text sits tight against the link and the Refresh button. The setup-credential link uses the default link style.
+- Minor: `agent-programs-light-1280.png` uses multi-line text boxes for single-line fields.
+- Minor: in `person-long-text-light-1280.png` the connection block is indented further than the heading.
+- Minor: in `setup-credential-light-1280.png` the disabled Remote option shows a red push warning above "Your roles do not allow this".
+- The consent overlap flags are false positives: wrapped inline text sits beside a bold name, and no glyphs overlap.

@@ -46,3 +46,14 @@ The bounded matrix reached the 110-image limit across the eight folders. The fol
 - Used by: populated and error at light 1280, 768 and 390; empty at light 768 and 390. The fixture has no published import links; its empty Used by list is pictured at light 1280.
 - Part picker: populated at light 768 and 390; empty and error variants. The existing valid root/part fixture supplies the pictured light 1280 picker, and no picker-specific failure was injected.
 - Disclosure notice: light 768 and 390. Its light 1280 notice is pictured. No separate empty/error notice was reached; it is static explanatory text in the import form.
+
+## Judged from the images
+
+- Fix: at 768 px, light and dark, the sticky Definition details header covers the Imports heading.
+- Minor: "No imports in this ontology." stays above an open import editor and contradicts the provider error.
+- Minor: the import list lines carry no labels.
+- Minor: the pin option wraps under its checkbox.
+- Minor: the Used by button in the Mesh view has no gap above it.
+- Minor: the part picker does not show which part is open.
+- Minor: the loading texts in this area end with an ellipsis.
+- The overlap flag in `imports-populated-light-1280.png` is a false positive.

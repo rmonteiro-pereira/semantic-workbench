@@ -37,3 +37,11 @@ none found. Added, changed and removed each have a visible Not published label a
 ## Requested states without an image
 
 None in the listed state matrix.
+
+## Judged from the images
+
+- No fix-level findings.
+- Minor: the comparison dialog repeats its empty, error and loading message twice, and shows the chip legend when there are no changes.
+- Minor: group title bands hide edges, and the dark group titles are dim. At 390 px the changed nodes touch each other.
+- Minor: `publication-review-light-1280.png` says there are no unpublished item changes while Publish is active.
+- The long-name overlap flags are false positives.

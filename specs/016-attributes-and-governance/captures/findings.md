@@ -42,3 +42,9 @@ The bounded matrix reached the 110-image limit across the eight folders. The fol
 - Governance: empty, error and long-text forms; populated dark 1280, light 360 and dark 360 variants. The light 1280 deprecated and read-only states are pictured.
 - Agent context: empty and error states; populated dark 1280, light 360 and dark 360 variants. Its populated long-text fields are pictured at light 1280.
 - Read-only and deprecated item views at light 360. The corresponding Governance views are pictured at light 1280.
+
+## Judged from the images
+
+- Fix: in the four `attribute-error` images the single-line Reading sentence input hides the long text. The measurement missed it because it does not check inputs. At 360 px, text also shows under the sticky footer.
+- Fix: in `deprecated-light-1280.png` the Owner, Steward and Classification inputs have heavy black borders, unlike the other fields.
+- Minor: the attribute row controls are icons only. The agent context textarea gives no cue that more text follows. The read-only image shows no values and has a large gap.

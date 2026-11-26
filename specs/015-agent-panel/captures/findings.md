@@ -39,3 +39,10 @@ none found. The panel names Waiting for your agent, Connected and the error in t
 ## Requested states without an image
 
 None in the listed state matrix.
+
+## Judged from the images
+
+- Fix: in `long-text-light-1280.png` the long agent message is cut at the composer with no sign that more text follows.
+- Fix: `connecting-light-1280.png` cannot be told apart from the waiting panel.
+- Fix (capture): `closed-light-1280.png` was taken while the graph still showed "Arranging 10 graph nodes…".
+- Minor: the error text has no emphasis, the bullet list uses a larger font, and the 390 px title is not centred with its close button.

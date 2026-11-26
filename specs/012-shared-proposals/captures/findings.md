@@ -37,3 +37,10 @@ none found. Proposal states and actions have visible words.
 ## Requested states without an image
 
 None in the listed state matrix.
+
+## Judged from the images
+
+- Fix: `loading-light-1280.png` says "Loading proposals…" with an ellipsis.
+- Minor: in `create-light-1280.png` the project checkboxes sit above their labels, and the legend is larger than the rest of the dialog.
+- Minor: the disabled Promote button in the detail images has low contrast. Its hint explains why it is disabled.
+- Every other image shows its state with nothing clipped.

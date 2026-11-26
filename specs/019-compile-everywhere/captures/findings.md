@@ -41,3 +41,10 @@ none found. Compile outcomes have explicit text and symbols; acceptance and down
 ## Requested states without an image
 
 None in the listed state matrix.
+
+## Judged from the images
+
+- Fix: `loading-light-1280.png` says "Checking the project…" with an ellipsis.
+- Fix: `refused-light-1280.png` reads "Error ·" with nothing after the dot.
+- Minor: in `loss-1-light-1280.png` the warning mark is weak grey.
+- The 200-loss list scrolls inside the dialog as intended. Its overlap flags are false positives.

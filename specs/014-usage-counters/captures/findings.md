@@ -40,3 +40,13 @@ The bounded matrix reached the 110-image limit across the eight folders. The fol
 
 - Neighbourhood: empty, counters off for Admin and non-Admin, loading, error, partial and long names at light 1280. Its ready Traffic view is pictured.
 - Details: empty, counters off for Admin and non-Admin, loading, error, partial and long names at light 1280. Its 1,200,000-request view is pictured.
+
+## Judged from the images
+
+- Fix: `graph-loading-light-1280.png` ends its status line with an ellipsis.
+- Fix: at 360 px node labels break mid-word, for example "Consignmen/t", and node font sizes differ.
+- Fix: at 768 px the graph is scaled until labels are about 5 to 6 px.
+- Fix: the long concept names in `graph-long-names-light-1280.png` shrink into cramped lines.
+- Fix: in `neighbourhood-on-light-1280.png` the centre card's description is oversized, the group shows only as a coloured strip, and the Metric badge has low contrast.
+- Minor: the traffic mark is thin and the legend starts collapsed. The non-Admin off state looks the same as the Admin one.
+- The measurement does not cover graph-node labels, so these were judged from the images.
