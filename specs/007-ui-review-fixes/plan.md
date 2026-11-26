@@ -30,7 +30,7 @@ Fix the 24 major, 28 minor and 10 polish findings of the 2026-11-15 UI review of
 
 ## Constitution Check
 
-*GATE: passes before Phase 0 and after Phase 1. Written against constitution 3.2.0.*
+*GATE: passes before Phase 0 and after Phase 1. Written against constitution 3.2.0 and re-checked against 4.0.1 before merging: principle names are unchanged and no MUST conflicts.*
 
 | Principle | Result | How the plan complies |
 | --- | --- | --- |
@@ -60,7 +60,7 @@ specs/007-ui-review-fixes/
 ├── tasks.md             # Tasks per lane, with proof for each
 ├── capture-index.md     # (setup task) review screenshot name -> script, group, theme, widths
 ├── checklists/requirements.md
-├── changelog/           # (lanes write A.md ... E.md; the integrator folds them into CHANGELOG.md)
+├── changelog/           # (lanes wrote A.md ... E.md; folded into CHANGELOG.md and removed by T077)
 └── evidence/            # (lanes write A.md ... E.md and GATE.md: confirmed inferences, check output, image paths)
 ```
 

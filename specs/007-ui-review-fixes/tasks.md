@@ -81,9 +81,10 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: State that the fonts are bundled, name the licence, and describe how to replace them (swap files and the two tokens). The CSP needs no change because `default-src 'self'` already covers fonts from the origin; say so.
   - Proof: Docs build reads true against `src/server/static.ts`; `bun --bun run check` passes.
 
-- [ ] T009 [E] Run the foundation checks and merge: `bun test`, `bun --bun run check`, `bun --bun run build`, `bun run test:theme`, `bun run test:responsive`, `bun scripts/mutation-tests.ts`; then merge to the 007 branch so every other lane rebases on the final glyph metrics.
+- [x] T009 [E] Run the foundation checks and merge: `bun test`, `bun --bun run check`, `bun --bun run build`, `bun run test:theme`, `bun run test:responsive`, `bun scripts/mutation-tests.ts`; then merge to the 007 branch so every other lane rebases on the final glyph metrics.
   - Change: Fonts change text width everywhere, so no lane captures an 'after' image until it has rebased on this merge.
   - Proof: All six commands pass; merge commit id recorded in the gate log.
+  - Disposition (26 Nov 2026): closed by the merged-branch gate in `evidence/GATE.md` ("After merging main da54cf17"). Check and mutation pass, and the full unit suite runs again on the final commit before the merge; the foundation browser suites pass except test:responsive, test:graph, test:lineage and test:editor, which fail the same assertions on main da54cf17.
 
 - [x] T010 Create one worktree per lane from the 007 branch after the foundation commits: `wt switch -c 007-lane-a`, `-lane-b`, `-lane-c`, `-lane-d`, `-lane-e` under `/home/rodrigo/projetos/semantic-workbench-wt/`, each pointed at its own dev port in the 5200 range and its own `DATA_DIR`.
   - Change: Lane agents never share a dev server, a port or a data folder; each reads only its lane's files.
@@ -167,9 +168,10 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Replace the '250 visible business entities' sentence by the legibility rule as implemented, with the fixture and the check that measure it (Constitution VII); say plainly that very large models start as counted area cards and what Expand all does.
   - Proof: Every number in the docs is produced by `tests/overview-capacity.test.ts` or `test:graph` output; `bun run test:terminology` passes.
 
-- [ ] T023 [US1] [A] Run lane A checks: `bun test`, `bun --bun run check`, `bun --bun run build`, `bun run test:graph`, `bun run test:overview-areas`, `bun run test:edges`, `bun run test:grouping-validation`, `bun run test:responsive`, `bun run test:ui`, `bun run test:examples:ui`, `bun scripts/mutation-tests.ts`.
+- [x] T023 [US1] [A] Run lane A checks: `bun test`, `bun --bun run check`, `bun --bun run build`, `bun run test:graph`, `bun run test:overview-areas`, `bun run test:edges`, `bun run test:grouping-validation`, `bun run test:responsive`, `bun run test:ui`, `bun run test:examples:ui`, `bun scripts/mutation-tests.ts`.
   - Change: Fix every failure in lane A's files; a failure that points at another lane's file is reported, not patched.
   - Proof: All commands pass; command output saved to `specs/007-ui-review-fixes/evidence/A.md` with the before/after image paths.
+  - Disposition (26 Nov 2026): closed by the merged-branch gate in `evidence/GATE.md` ("After merging main da54cf17"). Check and mutation pass, and the full unit suite runs again on the final commit before the merge; the lane A browser suites pass except test:responsive, test:graph, test:lineage and test:editor, which fail the same assertions on main da54cf17.
 
 **Checkpoint**: lane A ready to merge.
 
@@ -324,10 +326,11 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Describe the staged-delete label, the phone diff view, the single invalid-draft message and the read-access note; no other section is edited.
   - Proof: Each sentence corresponds to a passing assertion named in `evidence/C.md`; `bun run test:terminology` passes.
 
-- [ ] T047 [US3] [C] Run lane C checks: `bun test`, `bun --bun run check`, `bun --bun run build`, `bun run test:scm`, `bun run test:editor`, `bun run test:validation`, `bun run test:autosave`, `bun run test:git-setup`, `bun run test:theme`, `bun run test:dialogs`, `bun run test:responsive`, `bun run test:ui`, `bun scripts/mutation-tests.ts`.
+- [x] T047 [US3] [C] Run lane C checks: `bun test`, `bun --bun run check`, `bun --bun run build`, `bun run test:scm`, `bun run test:editor`, `bun run test:validation`, `bun run test:autosave`, `bun run test:git-setup`, `bun run test:theme`, `bun run test:dialogs`, `bun run test:responsive`, `bun run test:ui`, `bun scripts/mutation-tests.ts`.
   - Files: `scripts/scm-mutants.ts`, `scripts/scm-mutation-cases.ts`
   - Change: Add mutants for the staged-delete label decision and the 'identical' guard, registered under lane C's sentinel.
   - Proof: All commands pass; results and image paths in `specs/007-ui-review-fixes/evidence/C.md`.
+  - Disposition (26 Nov 2026): closed by the merged-branch gate in `evidence/GATE.md` ("After merging main da54cf17"). Check and mutation pass, and the full unit suite runs again on the final commit before the merge; the lane C browser suites pass except test:responsive, test:graph, test:lineage and test:editor, which fail the same assertions on main da54cf17.
 
 **Checkpoint**: lane C ready to merge.
 
@@ -496,10 +499,11 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Edit only the sections named; keep each claim tied to a passing check.
   - Proof: `bun run test:terminology` passes; `bun --bun run check` passes.
 
-- [ ] T073 [US5] [E] Run lane E checks: `bun test`, `bun --bun run check`, `bun --bun run build`, `bun run test:ui`, `bun run test:responsive`, `bun run test:theme`, `bun run test:dialogs`, `bun run test:metrics`, `bun run test:trash`, `bun run test:projects`, `bun run test:sidebar`, `bun run test:mappings-layout`, `bun run test:item-edit`, `bun run test:clipping`, `bun scripts/mutation-tests.ts`.
+- [x] T073 [US5] [E] Run lane E checks: `bun test`, `bun --bun run check`, `bun --bun run build`, `bun run test:ui`, `bun run test:responsive`, `bun run test:theme`, `bun run test:dialogs`, `bun run test:metrics`, `bun run test:trash`, `bun run test:projects`, `bun run test:sidebar`, `bun run test:mappings-layout`, `bun run test:item-edit`, `bun run test:clipping`, `bun scripts/mutation-tests.ts`.
   - Files: `scripts/shell-mutants.ts`, `scripts/shell-mutation-cases.ts`
   - Change: Add mutants for the legibility-independent decisions in lane E: the trash section split with other-project files and the catalog empty-state condition.
   - Proof: All commands pass; results and image paths in `specs/007-ui-review-fixes/evidence/E.md`.
+  - Disposition (26 Nov 2026): closed by the merged-branch gate in `evidence/GATE.md` ("After merging main da54cf17"). Check and mutation pass, and the full unit suite runs again on the final commit before the merge; the lane E browser suites pass except test:responsive, test:graph, test:lineage and test:editor, which fail the same assertions on main da54cf17.
 
 **Checkpoint**: lane E ready to merge, last of the five.
 

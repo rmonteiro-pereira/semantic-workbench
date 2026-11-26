@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-16
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "Fix the UI." The owner's instruction is that one sentence. It rests on `/home/rodrigo/projetos/semantic-workbench-ui-review-20261115/REVIEW.md`, a review of `main` at e8b7d69 with no blocker, 24 major findings (M1-M24), 28 minor findings (m1-m28) and a polish list (here P1-P10). Screenshot paths below are relative to that folder's `screenshots/` directory and are the "before" side of every comparison.
 
@@ -212,7 +212,7 @@ Each requirement is checked by an existing browser check, extended where none ex
 - **FR-058**: One content-width rule applies to Catalog, Overview, Metrics list, Metric detail and Mappings, so at 2560x1440 their content starts at the same left edge (within 2 px).
 - **FR-059**: In Mappings at 390x844 choosing a concept replaces the list with its detail under a Back row, so the detail is on screen; resolved bindings are open by default; and the disclosures are styled as app sections instead of bare browser triangles.
 - **FR-060**: Without **Add project**, the 'SHARED WORKSPACE' label keeps the same gap under the logo as the other sidebar sections.
-- **FR-061**: Catalog cards in one row share a baseline and a top edge; a description that is cut ends at a word boundary with an ellipsis; the Edit action appears on hover or focus and in the details pane rather than as 45 identical buttons.
+- **FR-061**: Catalog cards in one row share a baseline and a top edge; descriptions are shown in full, never cut; the Edit action appears on hover or focus and in the details pane rather than as 45 identical buttons.
 - **FR-062**: The sidebar tree shows a fade at an edge that has more rows, and an entry's type is an inline badge.
 - **FR-063**: Validation errors in the metric wizard step 3 and the item editor appear under the field that caused them, the field is marked invalid, and a duplicate-name refusal marks the Name field; the same message is not repeated in the footer.
 - **FR-064**: Keyboard focus looks the same on every control: native selects, textareas, checkboxes, the commit textarea and the branch input use the `--color-focus` ring as tabs and dialog inputs do.

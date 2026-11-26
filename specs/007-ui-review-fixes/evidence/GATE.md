@@ -605,10 +605,10 @@ The conflict resolutions preserve operation boundary mutation coverage and the a
 - T002 is complete. The capture index introduced in `5f77711f` and refined in `ceaeed5d` and `6e301fd4` covers all 109 distinct PNG paths named in the spec and tasks.
 - T057 is complete within the gate scope. `81bee1e1` implements the catalog alignment, inline badges, sidebar scroll fade and humanized type labels. `77cd6447` and `7733dfb0` preserve complete descriptions and consistent row height. The 1440 px UBL and Commerce comparisons show aligned card titles, complete descriptions, humanized types and visible Edit actions. Commit `3731b0ae` shows Edit on hover and keyboard focus with a fine pointer, retains it on touch, and fades only the edges with more tree rows.
 Description shortening is excluded by the complete-text requirement.
-- T064 is partially accepted. `81bee1e1` preserves the sidebar spacing and reuses the content cap for the metrics list. The metric detail remains beside that list. Moving it onto the same left edge as other tabs would redesign the approved master/detail layout, so that portion is skipped. See the measured offsets in `E.md`.
+- T064 is complete. `81bee1e1` preserves the sidebar spacing and reuses the content cap for the metrics list. On 24 Nov main decided the open metric aligns to the common left edge while list and detail stay side by side: `73ececee` makes the list and detail share the content width at 1920 px and wider, and `62fbf688` makes the responsive shell tour open a metric and measure both outer edges.
 - T010 is recorded as complete from the five original lane refs and the lane evidence. `git show-ref --verify` found A `db4d394f`, B `ab5a420c`,
   C `837ab16b`, D `f676f076` and E `200044e6`. The owner confirmed the separate worktrees and the lane logs document their isolated ports and data.
-- T035 and T055 were already checked and their final lane evidence records successful runs. T009, T023, T047 and T073 remain unchecked because their lane evidence records failed or blocked checks. Pre-rebase results below do not settle the rebased gate.
+- T035 and T055 were already checked and their final lane evidence records successful runs. T009, T023, T047 and T073 stayed unchecked here because their lane evidence recorded failed or blocked checks; they are closed by the merged-branch gate at the top of this file. Pre-rebase results below do not settle the rebased gate.
 
 The rebased candidate under test is `c8a99063d82a2e1e92758da847de631bb80cb743`. Heavy verification runs through `sw-midgard-run` in the isolated Midgard checkout. Its Git transfer goes to the authorized scratch bare repository. No project remote received a push.
 
@@ -1005,7 +1005,7 @@ despite the visual transition. The replay uses the visible Exit full screen cont
   at the same assertion, independently of the responsive canvas-height check.
 - The 390 px workspace header shortens the UBL mapping filename in release, main and candidate. The matched label correction leaves that inherited
   header behavior visible in both themes.
-- The metric detail's same-left-edge proposal would displace the existing side-by-side list and detail. That design decision remains under T064.
+- The metric detail's same-left-edge question was settled under T064 on 24 Nov: list and detail stay side by side and share the common content width.
 
 ## Findings with opened visual evidence
 
