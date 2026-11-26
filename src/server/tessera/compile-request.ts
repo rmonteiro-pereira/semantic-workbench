@@ -18,7 +18,7 @@ export type RunRequest = { accept?: AcceptanceRequest; commit?: string; file?: F
 /** A parsed conversion request. */
 export type ConvertRequest = { path: string; baseHash: string; inputs: { path: string; sha256: string }[]; digest: string };
 /** The target a base conversion names. Only the Ossie 0.3.0 draft base can be converted to. */
-export const DRAFT_BASE_TARGET = 'ossie-0.3.0.dev0';
+const DRAFT_BASE_TARGET = 'ossie-0.3.0.dev0';
 /** A reviewed base conversion: the file, the version the preview read, and the hash of the converted text it showed. */
 export type BaseConvertRequest = { path: string; baseHash: string; target: typeof DRAFT_BASE_TARGET; converted: string };
 

@@ -10,11 +10,11 @@ import { METRIC_SCHEMA, VENDOR } from '../metrics/extension';
 import { sha256Hex } from './digest';
 
 /** The version a convertible document declares, and the one it gets. */
-export const CONVERSION_SOURCE = '0.2.0.dev0';
-export const CONVERSION_TARGET = '0.3.0.dev0';
+const CONVERSION_SOURCE = '0.2.0.dev0';
+const CONVERSION_TARGET = '0.3.0.dev0';
 
 /** How a legacy workbench status is renamed. A status that is not listed stays as it is. */
-export const LEGACY_STATUS: Readonly<Record<string, string>> = { draft: 'proposed' };
+const LEGACY_STATUS: Readonly<Record<string, string>> = { draft: 'proposed' };
 
 /** One change the conversion makes, at a JSON pointer of the original document. */
 export type BaseConversionChange = { pointer: string; kind: 'version' | 'extension-list' | 'extension-data' | 'metric-status'; before: unknown; after: unknown };

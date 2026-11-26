@@ -23,7 +23,7 @@ export type DraftValidators = {
 };
 
 /** The code of the finding that says the draft checks have not been loaded yet. */
-export const DRAFT_CHECKS_LOADING = 'draft-checks-loading';
+const DRAFT_CHECKS_LOADING = 'draft-checks-loading';
 
 let loaded: DraftValidators | null = null;
 let loading: Promise<DraftValidators> | null = null;
@@ -55,7 +55,7 @@ export function draftLoadCount(): number {
  * Tells whether a document's text declares the draft version, without parsing it. It errs towards
  * yes: a false yes only loads the module early, while a false no would give the loading finding.
  */
-export function declaresDraft030(text: string): boolean {
+function declaresDraft030(text: string): boolean {
   return text.includes(OSSIE_DRAFT_VERSION);
 }
 

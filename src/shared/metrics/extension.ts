@@ -49,7 +49,7 @@ const object = (v: unknown): v is Record<string, any> => !!v && typeof v === 'ob
 /** Where an item keeps its vendor extensions, and whether their `data` is an object or a JSON string. */
 export type ExtensionForm = { list: 'custom_extensions' | 'nonportable_extensions'; objectData: boolean };
 /** The Ossie 0.2.0.dev0 form: `custom_extensions` with JSON-string data. */
-export const CUSTOM_EXTENSIONS: ExtensionForm = { list: 'custom_extensions', objectData: false };
+const CUSTOM_EXTENSIONS: ExtensionForm = { list: 'custom_extensions', objectData: false };
 /** The Ossie 0.3.0 draft form: `nonportable_extensions` with object data. */
 export const NONPORTABLE_EXTENSIONS: ExtensionForm = { list: 'nonportable_extensions', objectData: true };
 const DRAFT_VERSION = '0.3.0.dev0';
@@ -81,7 +81,7 @@ export function workbenchEntry(owner: any): { index: number; data: unknown; form
 }
 
 /** The JSON pointer of the workbench entry's data, for findings. */
-export function workbenchDataPath(path: string, entry: { index: number; form: ExtensionForm }): string {
+function workbenchDataPath(path: string, entry: { index: number; form: ExtensionForm }): string {
   return `${path}/${entry.form.list}/${entry.index}/data`;
 }
 
