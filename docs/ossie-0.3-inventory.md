@@ -71,6 +71,26 @@ covers it. Every test is new unless it says "extend".
 | K1 | The compiler keeps the declared version and labels output with the new base. The compiler logic does not change; the base table drives the label and the schema | `tests/tessera/compile.test.ts` (extend) and `tests/compile/golden.test.ts` (extend): golden files for a 0.3.0.dev0 Tessera ontology and a standard 0.3.0.dev0 model |
 | K2 | Explicit conversion of a document from 0.2.0.dev0 to 0.3.0.dev0: rename C2, object `data` C3, version O1/M1. Preview of every change, base hashes, a clean committed file as backup, nothing applied without confirmation | `tests/compile/base-conversion.test.ts`: preview, confirm, stale hash, dirty file |
 | K3 | Metric payload conversion: a `SEMANTIC_WORKBENCH` entry moves from a JSON string to an object under `nonportable_extensions`. Other vendors' entries and `kpi_bindings` stay. Legacy `draft` maps to `proposed`, never to `approved` | `tests/compile/metric-conversion.test.ts`: every status, one mapping binding, two vendors in one file, and a refusal when the result would approve |
+| K4 | One compile has one base. A unit whose documents declare different Ossie versions is refused with a finding that names each file and its version. Mixing would give a loss report with two bases | `tests/tessera/compile.test.ts` (extend): a unit mixing 0.2.0.dev0 and 0.3.0.dev0 is refused, and a unit of one version is not |
+
+K2 starts from the existing convert dialog (`src/app/compile/ConvertDialog.tsx`). It gets one new option, "Convert to Ossie 0.3.0 draft", shown only for a 0.2.0.dev0 document. This is the one intended difference in the UI comparison. The server side reuses `src/server/tessera/convert-service.ts`: the same clean-file check, base hash, preview and ordinary save.
+
+### Pinned files
+
+| # | Change in the workbench | Test |
+| --- | --- | --- |
+| P1 | The four upstream files are stored unmodified in `schemas/` as `ossie-0.3.0.dev0.json`, `ossie-spec-0.3.0.dev0.yaml`, `ossie-ontology-0.3.0.dev0.json` and `ossie-mapping-0.3.0.dev0.json`. `schemas/README.md` gives the source address, commit, retrieval date and SHA-256 of each | `tests/tessera/pinned-schema-hashes.test.ts`: each file's SHA-256 equals the one in `schemas/README.md`, so changing one byte fails the test. On release, only the release identifier is added |
+
+### Editor and validators
+
+| # | Change in the workbench | Test |
+| --- | --- | --- |
+| E1 | The editor has no JSON-schema language association. Its diagnostics come from `validateStructured` (`src/app/editor/lint.ts`), which runs the generated validators. `scripts/compile-schemas.ts` adds separate 0.3 outputs, because upstream gives both versions the same remote `$id`. A 0.3 mapping's `$ref` then resolves to the 0.3 core schema, never to 0.2. The validator is chosen from the file's declared `version`. Unknown versions keep the Not validated notice and the write gate | `tests/validation-ossie-0.3.test.ts`: the same text with `version: 0.3.0.dev0` gets 0.3 findings, with `0.2.0.dev0` gets 0.2 findings, and with `0.4` gets Not validated. `tests/editor-lint-0.3.test.ts`: the editor's lint source shows a 0.3-only error (`custom_extensions` in a 0.3 model) at the right line |
+| E2 | New files stay 0.2.0.dev0. The New file dialog does not offer 0.3 while it is a draft base | Existing `tests/new-file.test.ts` stays unchanged |
+
+### Dataset-scoped metrics in the browser
+
+`src/shared/core/model.ts` lists each `datasets[i].metrics[j]` as a `Metric` item at that path, with edges to its dataset. Metrics in the graph, the catalog, the Neighborhood view and the item editor then appear without an app change. The item editor already treats any item under a `metrics` list as a metric (`src/shared/edit/item-model.ts`). The Metrics view builds its list in `src/server/agent/explain.ts`, which reads only model-scoped `metrics`. Until that file lists dataset metrics, the Metrics view leaves them out. `docs/compile.md` and the user guide name that limit. Test: `tests/core-model-0.3.test.ts` lists a dataset metric with its path and dataset edge. A 0.2 model's items are unchanged.
 
 ## Not changed for the workbench
 
