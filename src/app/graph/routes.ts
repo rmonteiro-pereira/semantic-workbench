@@ -283,10 +283,19 @@ function rectanglesOverlap(first: Box, second: Box) {
 function clearLabelPosition(text: string, candidates: [number, number][], obstacles: Box[], labelScale: number, viewport?: Box): [number, number] {
   const clear = (position: [number, number]) => !obstacles.some(obstacle => rectanglesOverlap(obstacle, labelBox(text, position, labelScale)));
   if (viewport) {
+    const width = labelBox(text, [0, 0], labelScale).width;
+    const visibleCandidates = candidates.flatMap(
+      ([x, y]) =>
+        [
+          [x, y],
+          [x - width, y],
+          [x + width, y],
+        ] as [number, number][],
+    );
     // Prefer a visible lane before searching beyond the canvas on a crowded route.
     const reach = Math.max(...candidates.map(([, y]) => Math.max(Math.abs(y - viewport.y), Math.abs(y - viewport.y - viewport.height))));
     for (let offset = 0; offset <= reach; offset += 22 * labelScale) {
-      for (const [x, y] of candidates) {
+      for (const [x, y] of visibleCandidates) {
         for (const position of [
           [x, y - offset],
           [x, y + offset],
