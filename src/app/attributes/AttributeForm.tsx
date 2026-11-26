@@ -87,7 +87,8 @@ export function AttributeForm({ section, conceptName, relationshipIndex, initial
         </label>
         <label>
           <span>Reading sentence</span>
-          <input value={reading} onChange={event => changeField('reading', event.target.value)} />
+          {/* A reading sentence is often longer than one line, so it wraps instead of scrolling sideways. */}
+          <textarea rows={2} value={reading} onChange={event => changeField('reading', event.target.value)} />
           <small>Say it as a sentence. The standard requires one, so a suggestion is filled in.</small>
         </label>
         <label>
