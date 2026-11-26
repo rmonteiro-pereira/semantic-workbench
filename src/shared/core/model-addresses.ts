@@ -78,7 +78,10 @@ const childLists: Partial<Record<ItemKind, [string, ItemKind][]>> = {
     ['relationships', 'join'],
     ['metrics', 'metric'],
   ],
-  dataset: [['fields', 'field']],
+  dataset: [
+    ['fields', 'field'],
+    ['metrics', 'metric'],
+  ],
   contract: [['schema', 'object']],
   object: [['properties', 'property']],
   property: [['properties', 'property']],

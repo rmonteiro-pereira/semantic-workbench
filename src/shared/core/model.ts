@@ -215,6 +215,13 @@ function importedDefinitions(aliases: ReturnType<typeof checkImports>['aliases']
   return imported;
 }
 
+/** The SQL texts of an Ossie expression: the 0.3 draft's portable `sql`, then each dialect's text. */
+function expressionTexts(expression: any): string[] {
+  const dialects = Array.isArray(expression?.dialects) ? expression.dialects : [];
+  const texts = dialects.map((dialect: any) => dialect?.expression).filter((text: unknown): text is string => typeof text === 'string');
+  return typeof expression?.sql === 'string' ? [expression.sql, ...texts] : texts;
+}
+
 function inspectStructuredModel(data: any, issues: Issue[]) {
   const entities: Entity[] = [];
   const edges: Relationship[] = [];
@@ -265,9 +272,7 @@ function inspectStructuredModel(data: any, issues: Issue[]) {
     const datasetNames = new Set(byName.keys());
     for (const [i, mx] of (semanticModel.metrics ?? []).entries()) {
       const metricId = add(mx, [...prefix, 'metrics', i], 'Metric');
-      const used = new Set(
-        (Array.isArray(mx.expression?.dialects) ? mx.expression.dialects : []).flatMap((d: any) => (typeof d?.expression === 'string' ? datasetReferences(d.expression, datasetNames) : [])),
-      );
+      const used = new Set(expressionTexts(mx.expression).flatMap(text => datasetReferences(text, datasetNames)));
       for (const name of used as Set<string>) {
         const dataset = byName.get(name)!;
         edges.push({
@@ -283,6 +288,20 @@ function inspectStructuredModel(data: any, issues: Issue[]) {
         });
       }
     }
+    addDatasetMetrics(semanticModel, prefix, mi);
+  };
+  // A 0.3 draft dataset may hold its own metrics. Each is a Metric item at its place under the
+  // dataset, used by nothing but that dataset, so the graph, catalog and item editor show it.
+  const addDatasetMetrics = (semanticModel: any, prefix: (string | number)[], mi: number) => {
+    semanticModel.datasets.forEach((dataset: any, i: number) => {
+      if (!Array.isArray(dataset.metrics)) return;
+      const datasetId = [...prefix, 'datasets', i].join('/');
+      dataset.metrics.forEach((metric: any, j: number) => {
+        const path = [...prefix, 'datasets', i, 'metrics', j];
+        const metricId = add(metric, path, 'Metric');
+        edges.push({ id: `metric-${mi}-${i}-${j}-dataset`, source: datasetId, target: metricId, label: 'used by metric', data: { path, definition: metric, kind: 'Metric expression reference' } });
+      });
+    });
   };
   let kind: string;
   if (isMapping(data)) {

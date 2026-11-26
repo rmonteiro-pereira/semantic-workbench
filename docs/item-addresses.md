@@ -49,7 +49,7 @@ The registry contains **17 kinds**. The portable conformance corpus contains **4
 | `dataset` | a dataset | `model` | `name` | when present; position otherwise |
 | `field` | a field of a dataset | `dataset` | `name` | when present; position otherwise |
 | `join` | a model relationship between datasets | `model` | `name` | when present; position otherwise |
-| `metric` | a metric | `model` | `name` | when present; position otherwise |
+| `metric` | a metric of a model, or a dataset-scoped metric of a dataset in an Ossie 0.3 draft model | `model`, `dataset` | `name` | when present; position otherwise |
 | `object` | an ODCS schema object | `contract` | `name` | when present; position otherwise |
 | `property` | an ODCS property or array-item schema node, nested to any depth up to the segment limit | `object`, `property` | `name` | when present; position otherwise |
 | `foreign-key` | an ODCS foreign key | `contract` | none | position |
