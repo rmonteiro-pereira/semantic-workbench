@@ -181,7 +181,7 @@ async function comparisonNotice(page: Page, expected: string) {
   await revealGraphControls(page);
   await page.getByRole('button', { name: 'Unpublished comparison details', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Unpublished comparison', exact: true });
-  await expect(dialog.getByRole('status')).toContainText(expected);
+  await expect(dialog.locator('.item-overlay-status')).toContainText(expected);
   await dialog.getByRole('button', { name: 'Close', exact: true }).click();
   await hideGraphControls(page);
 }
