@@ -390,7 +390,8 @@ they match current handles, with the **Layered / Network** control in the graph 
 toolbar also holds **Re-layout**, the crosshair select that zooms to an area (**Zoom to group**; a long area name ends in an ellipsis and hovering the select shows the full name),
 **Collapse areas**, **Expand all**, and the **Show** menu with switches for **Labels**, **Value types**, **Metrics**,
 **Mini-map** and **Traffic**. A badge on the **Show** button counts the switches that are on, and in the menu a check mark shows which
-are on. When space is limited these controls fold behind **Controls**. The canvas supports grouped areas,
+are on. When space is limited these controls fold behind **Controls**. Escape closes the
+open menu and returns focus to its button; a second Escape closes **Controls** and focuses its button. The canvas supports grouped areas,
 dragging, area zoom and selection. Resizing the window or the sidebar does not rearrange the
 graph or undo your drags; **Re-layout** plans it again for the current window. Network detail routing uses a shared background worker;
 whole-model views use less expensive paths.

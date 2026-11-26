@@ -39,6 +39,7 @@ export function useDismiss(container: React.RefObject<HTMLElement | null>, opene
     };
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
+      event.stopPropagation();
       close();
       trigger.current?.focus();
     };

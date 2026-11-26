@@ -83,7 +83,7 @@ async function unchangedExport(filename: string) {
 }
 const selectedText = (editor: Locator) => editorSelection(editor);
 async function attachmentFailureDetails() {
-  await page.screenshot({ path: '/tmp/workbench-grouping-attachment-failure.png' });
+  await page.screenshot({ path: 'out/workbench-grouping-attachment-failure.png' });
   const state = await page.evaluate(() => ({
     grouping: document.querySelector('.grouping-trigger')?.textContent,
     status: document.querySelector('.full-graph-status')?.textContent,
@@ -158,6 +158,26 @@ try {
   await page.goto(appUrl());
   await expectModelName(page, 'Flights');
   await graphReady();
+  await check('folded graph menus restore focus one Escape at a time', async () => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    for (const tab of ['Graph', 'Neighborhood']) {
+      await page.locator('.tabs').getByRole('button', { name: tab, exact: true }).click();
+      await revealGraphControls(page);
+      const controls = page.getByRole('button', { name: 'Controls', exact: true });
+      const show = page.getByRole('button', { name: /^Show(:|$)/ });
+      await show.click();
+      await page.keyboard.press('Escape');
+      await expect(show).toHaveAttribute('aria-expanded', 'false');
+      await expect(show).toBeFocused();
+      await expect(controls).toHaveAttribute('aria-expanded', 'true');
+      await page.keyboard.press('Escape');
+      await expect(controls).toHaveAttribute('aria-expanded', 'false');
+      await expect(controls).toBeFocused();
+    }
+    await page.setViewportSize({ width: 1600, height: 1000 });
+    await page.locator('.tabs').getByRole('button', { name: 'Graph', exact: true }).click();
+    await graphReady();
+  });
   await check('Flights grouping modes state provenance honestly and retain all graph connections', async () => {
     // Flights declares no domains and no IRIs, so the menu does not list those ways at all.
     expect(await groupingMenuLabels(page)).toEqual(['Suggested communities', 'Definition types', 'Automatic']);
@@ -187,7 +207,7 @@ try {
     await unchangedExport('flights.ontology.yaml');
     await page.getByRole('button', { name: 'Fit model', exact: true }).click();
     await allFlightsContained();
-    await page.screenshot({ path: '/tmp/workbench-grouping-flights.png' });
+    await page.screenshot({ path: 'out/workbench-grouping-flights.png' });
   });
   await check('grouping corrections persist across views, documents and reload without rewriting source', async () => {
     const airport = inspect(originals.get('flights.ontology.yaml')!, 'flights.ontology.yaml').entities.find(entity => entity.name === 'Airport')!;
@@ -222,7 +242,7 @@ try {
     await expect(custom).toBeVisible();
     await expect(custom.locator('[data-entity-id="' + airport.id + '"]')).toBeVisible();
     await unchangedExport('flights.ontology.yaml');
-    await page.screenshot({ path: '/tmp/workbench-grouping-correction.png' });
+    await page.screenshot({ path: 'out/workbench-grouping-correction.png' });
   });
   await check('UBL grouping provenance remains explicit and source exports remain unchanged', async () => {
     await page.getByRole('button', { name: 'ubl.ontology.yaml', exact: true }).click();
@@ -259,7 +279,7 @@ try {
     await page.locator('.tabs').getByRole('button', { name: 'Overview', exact: true }).click();
     await expect.poll(() => page.locator('.business-area').count()).toBeGreaterThan(1);
     await unchangedExport('mall.semantic.yaml');
-    await page.screenshot({ path: '/tmp/workbench-grouping-semantic.png' });
+    await page.screenshot({ path: 'out/workbench-grouping-semantic.png' });
     // The following checks edit the UBL ontology, so leave it open.
     const ubl = page.getByRole('button', { name: 'ubl.ontology.yaml', exact: true });
     await ubl.click();
@@ -285,7 +305,7 @@ try {
     await expect(editor).toBeFocused();
     expect(await selectedText(editor)).toContain('MissingSourceParent');
     expect(store.list().find(doc => doc.filename === 'ubl.ontology.yaml')?.source).toBe(originals.get('ubl.ontology.yaml')!);
-    await page.screenshot({ path: '/tmp/workbench-validation-line-focus.png' });
+    await page.screenshot({ path: 'out/workbench-validation-line-focus.png' });
     await fillEditor(editor, originals.get('ubl.ontology.yaml')!);
   });
   await check('mixed import repair highlights and locates the faulty file without modifying saved documents', async () => {
@@ -311,7 +331,7 @@ try {
     expect(await selectedText(editor)).toContain('MissingRepairParent');
     await expect(dialog.getByRole('button', { name: 'Import repaired files', exact: true })).toBeDisabled();
     expect(store.list().length).toBe(count);
-    await page.screenshot({ path: '/tmp/workbench-validation-import-line.png' });
+    await page.screenshot({ path: 'out/workbench-validation-import-line.png' });
     await dialog.getByLabel('File to review').selectOption('0');
     await expect(dialog.locator('.cm-lintRange-error')).toHaveCount(0);
     await dialog.getByRole('button', { name: 'Cancel import', exact: true }).click();
