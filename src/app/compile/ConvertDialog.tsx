@@ -91,7 +91,7 @@ function ConvertFooter({ control, confirmed, onClose }: { control: ConvertContro
       )}
       {(view.status === 'review' || view.status === 'converting') && (
         <button type="button" className="primary" disabled={!confirmed || view.status === 'converting'} onClick={control.convert}>
-          {view.status === 'converting' ? 'Converting…' : 'Convert to standard'}
+          {view.status === 'converting' ? 'Converting' : 'Convert to standard'}
         </button>
       )}
     </>
