@@ -93,7 +93,9 @@
 .item-fields label.attribute-reading {
   grid-column: auto;
 }
-.attribute-reading textarea {
+/* The details panel gives its textareas a tall minimum; the reading sentence sizes to its own text instead. */
+.item-fields .attribute-reading textarea {
   field-sizing: content;
+  min-height: 0;
   resize: none;
 }
