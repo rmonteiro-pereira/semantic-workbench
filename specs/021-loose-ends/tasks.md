@@ -28,6 +28,7 @@ targeted test green and the formatter applied. No task edits an existing test on
   cases for a curve inside, outside, grazing an edge with both ends off screen, and a chord-only crossing;
   `test:graph` shows the same counts as `main` on the UBL and Mall collapsed Network states.
   Proof: `sw-midgard-run -- bun test ./tests/label-route.test.ts ./tests/label-placement.test.ts ./tests/edge-labels.test.ts` — exit 0, 31 pass; `bun --bun run check` and `bun x oxfmt` — exit 0; `sw-midgard-run -- bun run test:graph` — exit 1 at the inherited height assertion (458.609375 < 480; main reference 409); 16 openings pass; label counts not printed.
+  Still to prove: the UBL and Mall collapsed Network label counts against `main`, in the T015 whole-journey comparison.
 - [x] T006 Shorten `useFullGraphEdges` (pass the input object through, extract the appearance builder) with
   no change in output. Proof: the existing label and edge tests pass unchanged; every function in the file
   is about 40 lines or less.
