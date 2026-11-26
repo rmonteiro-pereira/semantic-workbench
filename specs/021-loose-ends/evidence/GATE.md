@@ -17,3 +17,13 @@ The one failure is `tests/tessera/compile-scale.test.ts`, "a project of 200 docu
 within thirty seconds", at 31.3 s. Capture jobs and another pane's full suite were running on midgard at the same
 time. Rerun alone at `4f53093c`: 2 pass, 26.3 s. That is load, not a change in the compiler, but the margin to the
 30 s limit is small, so later gate runs keep midgard free of other jobs while this file runs.
+
+### Rule for later runs of `compile-scale.test.ts`
+
+Every gate run also runs `tests/tessera/compile-scale.test.ts` alone, with no other job on midgard, and records its
+time here, next to the main baseline. The 30 s limit stays as it is; if it ever changes, the merge line says so.
+
+| Run | Commit | Alone on midgard | Time | Result |
+| --- | --- | --- | --- | --- |
+| 1 (in the full suite) | `46091782` | no | 31.3 s | fail |
+| 1 (rerun) | `4f53093c` | yes | 26.3 s | pass |

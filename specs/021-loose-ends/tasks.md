@@ -74,7 +74,8 @@ targeted test green and the formatter applied. No task edits an existing test on
 
 - [ ] T014 Full unit suite, `bun run test:mutation`, every browser suite, `bun --bun run check` and
   `bun --bun run build` on midgard. Proof: commands and exit codes in `evidence/GATE.md`; failures matched
-  against `main`.
+  against `main`; `tests/tessera/compile-scale.test.ts` run alone on an idle midgard with its time recorded, for
+  both `main` and the candidate.
 - [ ] T015 UI regression comparison of the whole journey against `main` at `4efb44e2`. Proof: classification
   counts; zero unaccepted regressions. Include every screen that uses the light `--color-success` token
   (`src/app/style.css`, `governance.css`, `WorkspaceHeader.css`, `admin.css`), every item editor dialog (the shared
