@@ -113,7 +113,7 @@ async function interceptConversion(route: Route, state: State, path: string, hel
 
 async function waitForState(page: Page, state: State, base: boolean) {
   const dialog = page.getByRole('dialog').last();
-  if (state === 'loading') await expect(dialog.getByText('Reviewing the conversion…')).toBeVisible();
+  if (state === 'loading') await expect(dialog.getByText('Reviewing the conversion')).toBeVisible();
   if (state === 'review') await expect(dialog.locator('.convert-diff .cm-content').first()).toBeVisible();
   if (state === 'converting') await expect(dialog.getByRole('button', { name: 'Converting', exact: true })).toBeDisabled();
   if (state === 'done') await expect(dialog.getByText(/^Converted\./)).toBeVisible();
