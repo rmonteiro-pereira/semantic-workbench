@@ -12,10 +12,10 @@ export type CompileClient = Pick<CompileApi, 'check' | 'run' | 'download'>;
 export type CompileView =
   | { status: 'loading'; step: 'checking' | 'accepting' | 'downloading' }
   | { status: 'unavailable'; reason: string }
-  | { status: 'nothing-to-do'; commit: string; digest: string }
+  | { status: 'nothing-to-do'; commit: string; digest: string; base?: LossReport['base'] }
   | { status: 'refused'; source: SourceDescription; findings: CompileFinding[] }
   | { status: 'needs-acceptance'; commit: string; report: LossReport; notice?: string }
-  | { status: 'ready'; commit: string; digest: string }
+  | { status: 'ready'; commit: string; digest: string; base?: LossReport['base'] }
   | { status: 'released'; commit: string; digest: string }
   | { status: 'checked'; answer: CheckAnswer }
   | { status: 'error'; message: string };
@@ -57,8 +57,8 @@ export function viewOfPublishedCheck(answer: CheckAnswer): CompileView {
   const { commit } = answer.source;
   if (answer.result === 'refused') return { status: 'refused', source: answer.source, findings: answer.findings };
   if (answer.result === 'loss') return { status: 'needs-acceptance', commit, report: answer.report };
-  if (!hasTesseraDocument(answer)) return { status: 'nothing-to-do', commit, digest: answer.report.digest };
-  return { status: 'ready', commit, digest: answer.report.digest };
+  if (!hasTesseraDocument(answer)) return { status: 'nothing-to-do', commit, digest: answer.report.digest, base: answer.report.base };
+  return { status: 'ready', commit, digest: answer.report.digest, base: answer.report.base };
 }
 
 /** Reads the answer of a check of the working copy. It is never downloadable, so it keeps the label and offers nothing to accept. */
@@ -94,6 +94,22 @@ export async function acceptShownReport(client: CompileClient, project: string, 
     }
     return viewOfFailure(error);
   }
+}
+
+/** The Ossie base a view's report names, when the view carries one. */
+export function reportBaseOf(view: CompileView): LossReport['base'] | undefined {
+  if (view.status === 'needs-acceptance') return view.report.base;
+  if (view.status === 'checked') return view.answer.report?.base;
+  if (view.status === 'ready' || view.status === 'nothing-to-do') return view.base;
+  return undefined;
+}
+
+/** The last base a report named in this dialog, so the label stays after an accept or a reload of the view. */
+export function useReportBase(view: CompileView): LossReport['base'] | undefined {
+  const last = useRef<LossReport['base'] | undefined>(undefined);
+  const current = reportBaseOf(view);
+  if (current) last.current = current;
+  return last.current;
 }
 
 /** The control the dialog gets from the hook. */
