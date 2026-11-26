@@ -19,16 +19,19 @@ targeted test green and the formatter applied. No task edits an existing test on
 
 ## Phase 2: Collapsed Network labels (007 follow-ups)
 
-- [ ] T003 Ignore a label-route report after unmount in `src/app/graph/useFullGraphEdges.ts`. Proof: a test
+- [x] T003 Ignore a label-route report after unmount in `src/app/graph/useFullGraphEdges.ts`. Proof: a test
   reports after unmount and sees no state change and no scheduled frame.
-- [ ] T004 StrictMode remount test: report a route, remount under StrictMode, expect one measurement.
-  Proof: `bun test tests/label-route.test.ts`.
-- [ ] T005 Decide edge visibility against the painted curve, in the label placement module. Proof: unit
+  Proof: `sw-midgard-run -- bun test ./tests/label-route.test.ts` — exit 0, 5 pass; `bun --bun run check` — exit 0; `bun x oxfmt` on changed files — exit 0.
+- [x] T004 StrictMode remount test: report a route, remount under StrictMode, expect one measurement.
+  Proof: `sw-midgard-run -- bun test ./tests/label-route.test.ts` — exit 0, 6 pass, one measurement after StrictMode cleanup/setup; `bun --bun run check` — exit 0; `bun x oxfmt tests/label-route.test.ts tests/harness/label-route-harness.tsx` — exit 0.
+- [x] T005 Decide edge visibility against the painted curve, in the label placement module. Proof: unit
   cases for a curve inside, outside, grazing an edge with both ends off screen, and a chord-only crossing;
   `test:graph` shows the same counts as `main` on the UBL and Mall collapsed Network states.
-- [ ] T006 Shorten `useFullGraphEdges` (pass the input object through, extract the appearance builder) with
+  Proof: `sw-midgard-run -- bun test ./tests/label-route.test.ts ./tests/label-placement.test.ts ./tests/edge-labels.test.ts` — exit 0, 31 pass; `bun --bun run check` and `bun x oxfmt` — exit 0; `sw-midgard-run -- bun run test:graph` — exit 1 at the inherited height assertion (458.609375 < 480; main reference 409); 16 openings pass; label counts not printed.
+- [x] T006 Shorten `useFullGraphEdges` (pass the input object through, extract the appearance builder) with
   no change in output. Proof: the existing label and edge tests pass unchanged; every function in the file
   is about 40 lines or less.
+  Proof: `sw-midgard-run -- bun test ./tests/label-route.test.ts ./tests/label-placement.test.ts ./tests/edge-labels.test.ts` — exit 0, 31 pass unchanged; `bun --bun run check` and `bun x oxfmt src/app/graph/useFullGraphEdges.ts` — exit 0; TypeScript AST function spans — maximum 40 lines.
 
 ## Phase 3: Code and documentation tasks
 

@@ -31,31 +31,38 @@ function relationshipOpacity(emphasized: boolean, hasFocus: boolean) {
   return 0.48;
 }
 
+function measurePendingRoutes(pending: Map<string, SVGPathElement>, routes: Map<string, LabelRoute>) {
+  let changed = false;
+  for (const [edgeId, path] of pending) {
+    const previous = routes.get(edgeId);
+    if (previous?.path === path.getAttribute('d')) {
+      previous.element = path;
+      continue;
+    }
+    routes.set(edgeId, measureLabelRoute(path));
+    changed = true;
+  }
+  pending.clear();
+  return changed;
+}
+
 function useRenderedLabelRoutes(eligibleIds: Set<string>) {
   const [revision, setRevision] = useState(0);
   const routes = useRef(new Map<string, LabelRoute>());
   const pending = useRef(new Map<string, SVGPathElement>());
   const frame = useRef<number | undefined>(undefined);
+  const mounted = useRef(true);
   const scheduleMeasurement = useCallback(() => {
     if (frame.current !== undefined) return;
     frame.current = requestAnimationFrame(() => {
       frame.current = undefined;
-      let changed = false;
-      for (const [edgeId, path] of pending.current) {
-        const previous = routes.current.get(edgeId);
-        if (previous?.path === path.getAttribute('d')) {
-          previous.element = path;
-          continue;
-        }
-        routes.current.set(edgeId, measureLabelRoute(path));
-        changed = true;
-      }
-      pending.current.clear();
+      const changed = measurePendingRoutes(pending.current, routes.current);
       if (changed) setRevision(value => value + 1);
     });
   }, []);
   const reportLabelRoute = useCallback(
     (id: string, element: SVGPathElement) => {
+      if (!mounted.current) return;
       pending.current.set(id, element);
       scheduleMeasurement();
     },
@@ -66,9 +73,11 @@ function useRenderedLabelRoutes(eligibleIds: Set<string>) {
     for (const id of pending.current.keys()) if (!eligibleIds.has(id)) pending.current.delete(id);
   }, [eligibleIds]);
   useEffect(() => {
+    mounted.current = true;
     // A remounted effect must measure the routes reported before the remount.
     if (pending.current.size > 0) scheduleMeasurement();
     return () => {
+      mounted.current = false;
       if (frame.current === undefined) return;
       cancelAnimationFrame(frame.current);
       // Clearing the id lets the next mount schedule a new measurement.
@@ -88,155 +97,166 @@ function placeFullGraphLabels(edges: ReturnType<typeof useFullGraphEdgesBase>, r
   return placeLabels(items, obstacles, 1, viewport);
 }
 
-function useFullGraphEdgesBase({ connections, positions, selectedEdge, focus, labels, hoverEdge, algorithm, layoutRoutes, viewport, size, dragging }: Inputs) {
+type Connection = Inputs['connections'][number];
+
+function connectionHandles(connection: Connection, inputs: Inputs) {
+  const { positions, algorithm } = inputs;
+  const fromPosition = positions.get(connection.source);
+  const toPosition = positions.get(connection.target);
+  let source = 'e';
+  let target = 'w';
+  if (fromPosition && toPosition) {
+    const dx = toPosition.x - fromPosition.x;
+    const dy = toPosition.y - fromPosition.y;
+    if (Math.abs(dx) > Math.abs(dy)) {
+      source = dx >= 0 ? 'e' : 'w';
+      target = dx >= 0 ? 'w' : 'e';
+    } else {
+      source = dy >= 0 ? 's' : 'n';
+      target = dy >= 0 ? 'n' : 's';
+    }
+  }
+  if (connection.source === connection.target) {
+    source = 'e';
+    target = 's';
+  }
+  if (algorithm === 'layered') {
+    source = 'e';
+    target = 'w';
+  }
+  return { source, target };
+}
+
+function connectionRouteDetailed(connection: Connection, inputs: Inputs, active: boolean, adjacent: boolean) {
+  const { positions, viewport, size, dragging } = inputs;
+  const fromPosition = positions.get(connection.source);
+  const toPosition = positions.get(connection.target);
+  const visible = (position: any) =>
+    position &&
+    position.x * viewport.zoom + viewport.x > -220 * viewport.zoom &&
+    position.x * viewport.zoom + viewport.x < size.width + 30 &&
+    position.y * viewport.zoom + viewport.y > -90 * viewport.zoom &&
+    position.y * viewport.zoom + viewport.y < size.height + 30;
+  return !dragging && connection.source !== connection.target && (active || adjacent || (viewport.zoom >= 0.35 && visible(fromPosition) && visible(toPosition)));
+}
+
+function connectionAppearance(connection: Connection, inputs: Inputs) {
+  const { selectedEdge, focus, labels, hoverEdge, viewport } = inputs;
+  const active = connection.data.relationships.some(r => r.id === selectedEdge);
+  const adjacent = connection.source === focus || connection.target === focus;
+  let label: string | undefined;
+  if ((labels && (viewport.zoom >= 0.75 || adjacent)) || active || hoverEdge === connection.id) {
+    if (connection.data.relationships.length > 1) {
+      label = `${connection.data.relationships.length} relationships`;
+    } else {
+      label = connection.label;
+    }
+  } else {
+    label = undefined;
+  }
+  const style = {
+    stroke: active || adjacent ? 'var(--color-edge-active)' : 'var(--color-edge-idle)',
+    strokeWidth: active ? 2 : 1.2,
+    strokeOpacity: relationshipOpacity(active || adjacent, Boolean(focus)),
+  };
+  // A relationship with unsaved or unpublished changes is drawn with its change mark.
+  const change = (connection.data as { change?: ChangeState }).change;
+  const appearance = unpublishedEdge(label, connection.label, style, change);
+  return { active, adjacent, appearance };
+}
+
+function buildFullGraphEdge(connection: Connection, inputs: Inputs) {
+  const { algorithm, layoutRoutes } = inputs;
+  const handles = connectionHandles(connection, inputs);
+  const { active, adjacent, appearance } = connectionAppearance(connection, inputs);
+  const routeDetailed = connectionRouteDetailed(connection, inputs, active, adjacent);
+  return {
+    ...connection,
+    data: {
+      ...connection.data,
+      algorithm,
+      labelEligible: algorithm === 'network' && Boolean(appearance.label) && connection.source.startsWith('collapsed:') && connection.target.startsWith('collapsed:'),
+      routeDetailed,
+      layoutRoute: algorithm === 'layered' ? layoutRoutes[connection.id]?.flat() : undefined,
+    },
+    type: 'routed',
+    sourceHandle: 'source-' + handles.source,
+    targetHandle: 'target-' + handles.target,
+    selected: active,
+    ...appearance,
+    markerEnd: {
+      type: MarkerType.ArrowClosed,
+      color: active || adjacent ? 'var(--color-edge-active)' : 'var(--color-edge-idle)',
+      width: 13,
+      height: 13,
+    },
+    zIndex: -2,
+    interactionWidth: 24,
+  };
+}
+
+function useFullGraphEdgesBase(inputs: Inputs) {
+  const { connections, positions, selectedEdge, focus, labels, hoverEdge, algorithm, layoutRoutes, viewport, size, dragging } = inputs;
   return useMemo(
-    () =>
-      connections.map(connection => {
-        const fromPosition = positions.get(connection.source);
-        const toPosition = positions.get(connection.target);
-        let source = 'e';
-        let target = 'w';
-        if (fromPosition && toPosition) {
-          const dx = toPosition.x - fromPosition.x;
-          const dy = toPosition.y - fromPosition.y;
-          if (Math.abs(dx) > Math.abs(dy)) {
-            source = dx >= 0 ? 'e' : 'w';
-            target = dx >= 0 ? 'w' : 'e';
-          } else {
-            source = dy >= 0 ? 's' : 'n';
-            target = dy >= 0 ? 'n' : 's';
-          }
-        }
-        if (connection.source === connection.target) {
-          source = 'e';
-          target = 's';
-        }
-        if (algorithm === 'layered') {
-          source = 'e';
-          target = 'w';
-        }
-        const active = connection.data.relationships.some(r => r.id === selectedEdge);
-        const adjacent = connection.source === focus || connection.target === focus;
-        const visible = (position: any) =>
-          position &&
-          position.x * viewport.zoom + viewport.x > -220 * viewport.zoom &&
-          position.x * viewport.zoom + viewport.x < size.width + 30 &&
-          position.y * viewport.zoom + viewport.y > -90 * viewport.zoom &&
-          position.y * viewport.zoom + viewport.y < size.height + 30;
-        const routeDetailed = !dragging && connection.source !== connection.target && (active || adjacent || (viewport.zoom >= 0.35 && visible(fromPosition) && visible(toPosition)));
-        let label: string | undefined;
-        if ((labels && (viewport.zoom >= 0.75 || adjacent)) || active || hoverEdge === connection.id) {
-          if (connection.data.relationships.length > 1) {
-            label = `${connection.data.relationships.length} relationships`;
-          } else {
-            label = connection.label;
-          }
-        } else {
-          label = undefined;
-        }
-        const style = {
-          stroke: active || adjacent ? 'var(--color-edge-active)' : 'var(--color-edge-idle)',
-          strokeWidth: active ? 2 : 1.2,
-          strokeOpacity: relationshipOpacity(active || adjacent, Boolean(focus)),
-        };
-        // A relationship with unsaved or unpublished changes is drawn with its change mark.
-        const change = (connection.data as { change?: ChangeState }).change;
-        const appearance = unpublishedEdge(label, connection.label, style, change);
-        return {
-          ...connection,
-          data: {
-            ...connection.data,
-            algorithm,
-            labelEligible: algorithm === 'network' && Boolean(appearance.label) && connection.source.startsWith('collapsed:') && connection.target.startsWith('collapsed:'),
-            routeDetailed,
-            layoutRoute: algorithm === 'layered' ? layoutRoutes[connection.id]?.flat() : undefined,
-          },
-          type: 'routed',
-          sourceHandle: 'source-' + source,
-          targetHandle: 'target-' + target,
-          selected: active,
-          ...appearance,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            color: active || adjacent ? 'var(--color-edge-active)' : 'var(--color-edge-idle)',
-            width: 13,
-            height: 13,
-          },
-          zIndex: -2,
-          interactionWidth: 24,
-        };
-      }),
+    () => connections.map(connection => buildFullGraphEdge(connection, inputs)),
     [connections, positions, selectedEdge, focus, labels, hoverEdge, algorithm, layoutRoutes, viewport, size, dragging],
   );
 }
 
-/** Keeps graph connections stable until their layout, viewport or emphasis changes. */
-export function useFullGraphEdges({
-  connections,
-  positions,
-  labelObstacles,
-  labelViewportSize,
-  miniMapBounds,
-  selectedEdge,
-  focus,
-  labels,
-  hoverEdge,
-  algorithm,
-  layoutRoutes,
-  viewport,
-  size,
-  dragging,
-}: Inputs) {
-  const edges = useFullGraphEdgesBase({
-    connections,
-    positions,
-    labelObstacles,
-    labelViewportSize,
-    miniMapBounds,
-    selectedEdge,
-    focus,
-    labels,
-    hoverEdge,
-    algorithm,
-    layoutRoutes,
-    viewport,
-    size,
-    dragging,
+function fullGraphLabelPlane(inputs: Inputs, obstacles: Box[]) {
+  const { viewport, labelViewportSize, miniMapBounds } = inputs;
+  const visibleCanvas = {
+    x: (2 - viewport.x) / viewport.zoom,
+    y: (2 - viewport.y) / viewport.zoom,
+    width: (labelViewportSize.width - 4) / viewport.zoom,
+    height: (labelViewportSize.height - 4) / viewport.zoom,
+  };
+  const exclusions = [...obstacles];
+  if (miniMapBounds) {
+    exclusions.push({
+      x: (miniMapBounds.x - viewport.x) / viewport.zoom,
+      y: (miniMapBounds.y - viewport.y) / viewport.zoom,
+      width: miniMapBounds.width / viewport.zoom,
+      height: miniMapBounds.height / viewport.zoom,
+    });
+  }
+  return { visibleCanvas, exclusions };
+}
+
+function attachFullGraphLabels(
+  edges: ReturnType<typeof useFullGraphEdgesBase>,
+  routes: Map<string, LabelRoute>,
+  exclusions: Box[],
+  visibleCanvas: Box,
+  reportLabelRoute: (id: string, element: SVGPathElement) => void,
+) {
+  const labelPositions = placeFullGraphLabels(edges, routes, exclusions, visibleCanvas);
+  return edges.map(edge => {
+    const route = routes.get(edge.id);
+    const labelAt = labelPositions.get(edge.id);
+    return {
+      ...edge,
+      data: {
+        ...edge.data,
+        labelAt,
+        labelAnchor: labelAt && route ? labelRouteAnchor(route, labelAt) : undefined,
+        labelPoints: route?.points,
+        reportLabelRoute: edge.data.labelEligible ? reportLabelRoute : undefined,
+      },
+    };
   });
+}
+
+/** Keeps graph connections stable until their layout, viewport or emphasis changes. */
+export function useFullGraphEdges(inputs: Inputs) {
+  const { labelObstacles, labelViewportSize, miniMapBounds, viewport } = inputs;
+  const edges = useFullGraphEdgesBase(inputs);
   const eligibleIds = useMemo(() => new Set(edges.filter(edge => edge.data.labelEligible).map(edge => edge.id)), [edges]);
   const { routes, revision, reportLabelRoute } = useRenderedLabelRoutes(eligibleIds);
   const hasEligibleLabels = eligibleIds.size > 0;
   const obstacles = useMemo(() => (hasEligibleLabels ? labelObstacles() : []), [hasEligibleLabels, labelObstacles]);
   return useMemo(() => {
-    const visibleCanvas = {
-      x: (2 - viewport.x) / viewport.zoom,
-      y: (2 - viewport.y) / viewport.zoom,
-      width: (labelViewportSize.width - 4) / viewport.zoom,
-      height: (labelViewportSize.height - 4) / viewport.zoom,
-    };
-    const exclusions = [...obstacles];
-    if (miniMapBounds) {
-      exclusions.push({
-        x: (miniMapBounds.x - viewport.x) / viewport.zoom,
-        y: (miniMapBounds.y - viewport.y) / viewport.zoom,
-        width: miniMapBounds.width / viewport.zoom,
-        height: miniMapBounds.height / viewport.zoom,
-      });
-    }
-    const labelPositions = placeFullGraphLabels(edges, routes, exclusions, visibleCanvas);
-    return edges.map(edge => {
-      const route = routes.get(edge.id);
-      const labelAt = labelPositions.get(edge.id);
-      return {
-        ...edge,
-        data: {
-          ...edge.data,
-          labelAt,
-          labelAnchor: labelAt && route ? labelRouteAnchor(route, labelAt) : undefined,
-          labelPoints: route?.points,
-          reportLabelRoute: edge.data.labelEligible ? reportLabelRoute : undefined,
-        },
-      };
-    });
+    const { visibleCanvas, exclusions } = fullGraphLabelPlane(inputs, obstacles);
+    return attachFullGraphLabels(edges, routes, exclusions, visibleCanvas, reportLabelRoute);
   }, [edges, obstacles, viewport, labelViewportSize, miniMapBounds, routes, revision, reportLabelRoute]);
 }
