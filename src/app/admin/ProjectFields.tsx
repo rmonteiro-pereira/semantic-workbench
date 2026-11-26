@@ -2,6 +2,7 @@ import type { ProjectsConfig } from './types';
 import { LEVELS, type Level } from '../../shared/auth/actions';
 import { SelectField } from './SelectField';
 import { ListInput } from './ListInput';
+import { WrappingField } from './WrappingField';
 import { commaList } from './change-review';
 
 type Project = ProjectsConfig['projects'][string];
@@ -65,7 +66,7 @@ export function ProjectFields({ slug, project, domains, onChange }: { slug: stri
           <legend>Restriction {index + 1}</legend>
           <label>
             Pattern
-            <input value={rule.pattern} onChange={event => changeRule(index, 'pattern', event.target.value)} />
+            <WrappingField value={rule.pattern} onValueChange={pattern => changeRule(index, 'pattern', pattern)} />
           </label>
           <label>
             Groups
@@ -75,7 +76,9 @@ export function ProjectFields({ slug, project, domains, onChange }: { slug: stri
             E-mail addresses
             <ListInput value={rule.emails} onChange={values => changeRule(index, 'emails', values.join(', '))} />
           </label>
-          <button onClick={() => removeRestriction(index)}>Remove restriction</button>
+          <button className="admin-remove" onClick={() => removeRestriction(index)}>
+            Remove restriction
+          </button>
         </fieldset>
       ))}
       <button onClick={addRestriction}>Add restricted path</button>

@@ -1,3 +1,4 @@
+import { RecordList, type RecordColumn } from './RecordList';
 import { useCallback, useState } from 'react';
 import { useMe } from '../auth/useMe';
 import { whenLabel } from './helpers';
@@ -7,6 +8,8 @@ import { AdminPane } from './AdminPane';
 import { adminApi, AdminApiError, problemText } from './api';
 import { canOfferUserConfirmation } from './change-review';
 import { useAdminData } from './useAdminData';
+import { SectionStatus } from './SectionStatus';
+import { EmptyState } from '../projects/EmptyState';
 import { GrantForm, scopeLabel } from './GrantForm';
 import { AccessCheckSection } from './AccessCheckSection';
 import type { AdminUser } from './types';
@@ -55,74 +58,47 @@ export function UsersSection() {
         <input type="checkbox" checked={noAccess} onChange={event => setNoAccess(event.target.checked)} />
         No access
       </label>
-      {error && <p role="alert">{error}</p>}
-      <div className="admin-table">
-        <table className="admin-records">
-          <thead>
-            <tr>
-              <th>Person</th>
-              <th>Groups and roles</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data?.map(user => (
-              <tr key={user.id}>
-                <td>
-                  {user.name}
-                  <br />
-                  <small className="admin-id">{user.verifiedEmail ?? user.id}</small>
-                  Last sign-in: {user.lastSignInAt ? whenLabel(user.lastSignInAt) : 'never'}
-                  {user.access === 'none' && <p>No access</p>}
-                  {user.deactivated && <p>Deactivated</p>}
-                </td>
-                <td>
-                  {user.groups.map(group => (
-                    <p key={group.id}>
-                      {group.displayName ?? 'name not resolved'}
-                      <small className="admin-id">{group.id}</small>
-                    </p>
-                  ))}
-                  {user.roleSources.map((source, index) => (
-                    <span className="admin-chip" key={index}>
-                      {me?.roleNames[source.roleId] ?? source.roleId}
-                      {' · '}
-                      {scopeLabel(source.scope)} · {source.via === 'bootstrap' ? 'Bootstrap Admin' : source.via + ' grant'}
-                      {source.group && ` · ${source.group.name ?? source.group.id}`}
-                    </span>
-                  ))}
-                </td>
-                <td>
-                  <MenuButton
-                    label="Actions"
-                    ariaLabel={`Actions for ${user.name}`}
-                    items={[
-                      {
-                        label: 'Grant access',
-                        run: () => setGrant(user),
-                        disabled: !user.verifiedEmail && 'A verified e-mail address is required',
-                      },
-                      {
-                        label: user.deactivated ? 'Reactivate' : 'Deactivate',
-                        run: () =>
-                          setOperation({
-                            user,
-                            kind: user.deactivated ? 'reactivate' : 'deactivate',
-                          }),
-                      },
-                      {
-                        label: 'End sessions',
-                        run: () => setOperation({ user, kind: 'sessions' }),
-                      },
-                      { label: 'Check access', run: () => setCheck(user) },
-                    ]}
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <p className="admin-section-intro">Tick No access to list only the people who hold no role yet. It changes nobody's access.</p>
+      <SectionStatus subject="people and groups" loading={!data && !error} error={error} onRetry={reload} />
+      {data?.length === 0 && (
+        <EmptyState title={query || noAccess ? 'No one matches' : 'No one has signed in yet'}>
+          {query || noAccess ? 'Clear the search or the No access filter to see everyone.' : 'People appear here after they first sign in.'}
+        </EmptyState>
+      )}
+      {data && data.length > 0 && (
+        <RecordList
+          label="People and groups"
+          records={data}
+          recordKey={user => user.id}
+          columns={userColumns(me?.roleNames ?? {})}
+          actions={user => (
+            <MenuButton
+              label="Actions"
+              ariaLabel={`Actions for ${user.name}`}
+              items={[
+                {
+                  label: 'Grant access',
+                  run: () => setGrant(user),
+                  disabled: !user.verifiedEmail && 'A verified e-mail address is required',
+                },
+                {
+                  label: user.deactivated ? 'Reactivate' : 'Deactivate',
+                  run: () =>
+                    setOperation({
+                      user,
+                      kind: user.deactivated ? 'reactivate' : 'deactivate',
+                    }),
+                },
+                {
+                  label: 'End sessions',
+                  run: () => setOperation({ user, kind: 'sessions' }),
+                },
+                { label: 'Check access', run: () => setCheck(user) },
+              ]}
+            />
+          )}
+        />
+      )}
       {operation && (
         <UserOperation
           {...operation}
@@ -135,6 +111,55 @@ export function UsersSection() {
       )}
     </>
   );
+}
+
+/** The people list's columns: who the person is, and the groups and roles they hold. */
+function userColumns(roleNames: Record<string, string>): RecordColumn<AdminUser>[] {
+  return [
+    { label: 'Person', value: user => <PersonCell user={user} /> },
+    { label: 'Groups and roles', value: user => <GroupsCell user={user} roleNames={roleNames} /> },
+  ];
+}
+
+function PersonCell({ user }: { user: AdminUser }) {
+  return (
+    <>
+      {user.name}
+      <br />
+      <small className="admin-id">{user.verifiedEmail ?? user.id}</small>
+      Last sign-in: {user.lastSignInAt ? whenLabel(user.lastSignInAt) : 'never'}
+      {user.access === 'none' && <p>No access</p>}
+      {user.deactivated && <p>Deactivated</p>}
+    </>
+  );
+}
+
+function GroupsCell({ user, roleNames }: { user: AdminUser; roleNames: Record<string, string> }) {
+  return (
+    <>
+      {user.groups.map(group => (
+        <p key={group.id}>
+          {group.displayName ?? 'Group name not resolved'}
+          <small className="admin-id">{group.id}</small>
+        </p>
+      ))}
+      {user.roleSources.map((source, index) => (
+        <span className="admin-chip" key={index}>
+          {roleNames[source.roleId] ?? source.roleId}
+          {' · '}
+          {scopeLabel(source.scope)} · {source.via === 'bootstrap' ? 'Bootstrap Admin' : source.via + ' grant'}
+          {source.group && ` · ${source.group.name ?? source.group.id}`}
+        </span>
+      ))}
+    </>
+  );
+}
+
+/** What the person loses or regains, said before the change is confirmed. */
+export function userOperationEffect(name: string, kind: 'deactivate' | 'reactivate' | 'sessions'): string {
+  if (kind === 'deactivate') return `${name} will no longer be able to sign in, and their open sessions end.`;
+  if (kind === 'reactivate') return `${name} will be able to sign in again with the roles they hold.`;
+  return `${name} is signed out everywhere and has to sign in again.`;
 }
 
 function UserOperation({ user, kind, onCancel, onSaved }: { user: AdminUser; kind: 'deactivate' | 'reactivate' | 'sessions'; onCancel: () => void; onSaved: () => void }) {
@@ -175,12 +200,15 @@ function UserOperation({ user, kind, onCancel, onSaved }: { user: AdminUser; kin
         )
       }
     >
-      {!refused && <p>This changes only this workbench.</p>}
+      {!refused && <p>{userOperationEffect(user.name, kind)} This changes only this workbench.</p>}
       {!refused && kind !== 'sessions' && (
-        <label>
-          Reason
-          <input value={reason} onChange={event => setReason(event.target.value)} />
-        </label>
+        <>
+          <label>
+            Reason
+            <input value={reason} onChange={event => setReason(event.target.value)} />
+          </label>
+          <p className="admin-field-hint">Required. It is kept in the audit record.</p>
+        </>
       )}
       {error && <p role="alert">{error}</p>}
     </AdminConfirmation>

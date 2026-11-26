@@ -47,6 +47,17 @@
   border-radius: 6px;
   background: var(--color-surface);
 }
+/* A select keeps the native element and its arrow for keyboard and screen-reader use, but takes
+   the app's type and colours instead of the browser's own font. */
+.admin-scope select {
+  font-family: var(--font-sans);
+  font-size: inherit;
+  line-height: inherit;
+  color: var(--color-text);
+}
+.admin-scope select:hover:not(:disabled) {
+  border-color: var(--color-accent);
+}
 /* A form field never stretches across a wide screen; the audit filters keep their own grid. */
 .admin-pane input:not([type='checkbox'], [type='radio']),
 .admin-pane select,
@@ -397,23 +408,21 @@
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr);
   }
-  /* The sections become one strip that scrolls sideways, with the chevron cues of the view tabs. */
+  /* The sections wrap onto a few rows instead of a sideways strip, so every section and the
+     current one stay in view without scrolling. */
   .admin-nav {
     padding: 8px 12px;
-    overflow: hidden;
     border-right: 0;
     border-bottom: 1px solid var(--color-border-subtle);
   }
   .admin-nav-list {
     flex-direction: row;
+    flex-wrap: wrap;
     gap: 6px;
-    overflow-x: auto;
-    scrollbar-width: thin;
-    scroll-padding-inline: 18px;
+    overflow: visible;
   }
   .admin-nav-list a {
-    flex-shrink: 0;
-    white-space: nowrap;
+    flex-shrink: 1;
   }
   .admin-content {
     padding: 16px 16px 24px;
@@ -510,4 +519,66 @@
   min-width: 0;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+/* A one-line value grows downwards instead of scrolling sideways, so a long name or address is
+   read whole. It looks like the other text fields; only its height follows the text. */
+.admin-scope textarea.admin-wrapping-field {
+  field-sizing: content;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 7px 9px;
+  border-radius: 6px;
+  resize: none;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--font-sans);
+  font-size: inherit;
+  line-height: inherit;
+}
+/* The whole chosen value, written under a select that is too narrow to show it. */
+.admin-field-choice {
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+/* A row action that removes or ends something reads as destructive before it is pressed; the
+   confirmation that follows carries the filled danger button. */
+.admin-scope button.admin-remove:not(:disabled) {
+  color: var(--color-danger-text);
+  border-color: var(--color-danger-border);
+}
+
+/* Save state reads the same in every area: a quiet confirmation after saving, and a marked note
+   while a draft holds changes that are not saved yet. */
+.admin-saved {
+  margin: 4px 0;
+  color: var(--color-text-secondary);
+}
+.admin-unsaved {
+  margin: 4px 0;
+  padding-inline-start: 8px;
+  border-inline-start: 3px solid var(--color-accent);
+  font-size: var(--text-small);
+}
+/* A short explanation under a field, outside its label so the field keeps its own short name. */
+.admin-field-hint {
+  margin: -2px 0 6px;
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+}
+
+/* Admin dialog buttons wrap a long label onto a second line instead of cutting it; the shared
+   dialog footer keeps its buttons on one line for the short labels elsewhere in the app. */
+.workbench-dialog.admin-scope .dialog-footer button {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+/* On a wide screen a record's few actions sit side by side; on a phone card they may wrap. */
+@media (min-width: 601px) {
+  .admin-records td:last-child .admin-actions {
+    flex-wrap: nowrap;
+  }
 }

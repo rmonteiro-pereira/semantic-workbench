@@ -49,7 +49,7 @@ test('Git remotes lists each project with its address or No remote', async () =>
   await expect(sales.getByRole('button', { name: 'Remove remote', exact: true })).toBeVisible();
   const lab = remotes.getByRole('row').filter({ hasText: 'Lab notes' });
   await expect(lab).toContainText('No remote');
-  await expect(lab.getByRole('button', { name: 'Set remote…', exact: true })).toBeVisible();
+  await expect(lab.getByRole('button', { name: 'Set remote for Lab notes', exact: true })).toBeVisible();
   await expect(lab.getByRole('button', { name: 'Remove remote', exact: true })).toHaveCount(0);
 });
 
@@ -65,13 +65,13 @@ test('grant panes fit each viewport, and the dry-run preview is a dialog', async
   await grant.getByRole('button', { name: 'Review change', exact: true }).click();
   await expect(page.getByRole('dialog').getByRole('region', { name: 'Dry-run result' })).toBeVisible();
   await adminGeometry(page, 'add-grant-preview');
-  await cancelAdminDialog(page, 'Cancel changes');
+  await cancelAdminDialog(page, 'Back to editing');
   await goBack('Add grant');
-  await chooseMenuItem(grants, 'Actions for grant g_erin', 'Change');
+  await grants.getByRole('button', { name: 'Change the grant for erin.with.a.long.address@subsidiary.example.org', exact: true }).click();
   await expect(pane('Change grant').getByLabel('E-mail address')).toBeVisible();
   await adminGeometry(page, 'change-grant');
   await goBack('Change grant');
-  await chooseMenuItem(grants, 'Actions for grant g_erin', 'Remove');
+  await grants.getByRole('button', { name: 'Remove the grant for erin.with.a.long.address@subsidiary.example.org', exact: true }).click();
   await adminGeometry(page, 'remove-grant');
   await cancelAdminDialog(page);
 }, 120_000);
@@ -136,7 +136,7 @@ test('people, access check and settings confirmations fit each viewport', async 
   await adminGeometry(page, 'access-check-results');
   await goBack('Access check for Alice Andrade');
   const settings = await adminArea(page, 'Settings');
-  await settings.getByRole('button', { name: 'End session', exact: true }).first().click();
+  await settings.getByRole('button', { name: 'End sessions', exact: true }).first().click();
   await adminGeometry(page, 'settings-end-session');
   await cancelAdminDialog(page);
   await leaveAdmin(page);

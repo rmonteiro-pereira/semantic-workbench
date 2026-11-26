@@ -20,7 +20,7 @@ test('the connection list preserves long names, explicit state and empty state',
   expect(renderToStaticMarkup(<ConnectionListView connections={[]} administrator={false} onRevoke={() => {}} />)).toContain('No agent connections.');
   const html = renderToStaticMarkup(<ConnectionListView connections={[connection]} administrator={true} onRevoke={() => {}} />);
   expect(html).toContain(connection.programName);
-  expect(html).toContain('Origin: acp');
+  expect(html).toContain('Connected through: the agent panel');
   expect(html).toContain('A person');
   expect(html).toContain('Status: active');
   expect(html).toContain('Revoke ');

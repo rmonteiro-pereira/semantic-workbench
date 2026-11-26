@@ -20,3 +20,21 @@
   overflow-wrap: anywhere;
   max-width: 100%;
 }
+/* Revoking ends a live connection, so its button reads as a destructive action in the list. */
+.agent-connections .agent-connection-revoke {
+  color: var(--color-danger-text);
+  border-color: var(--color-danger-border);
+}
+/* The list and its link use the dialog's own text size and the app's link colour, so the dialog
+   reads like the rest of the workbench instead of browser defaults. */
+.agent-connections {
+  font-size: 13px;
+  color: var(--color-text);
+}
+.agent-connections-list strong {
+  font-size: 14px;
+}
+.agent-connections-setup {
+  font-size: 13px;
+  color: var(--color-accent-text);
+}

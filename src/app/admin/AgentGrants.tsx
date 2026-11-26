@@ -39,12 +39,14 @@ export function AgentGrants({ initial, version, onSaved }: { initial: AgentsConf
               )}
             </label>
           ))}
-          <button onClick={() => removeClient(index)}>Remove client</button>
+          <button className="admin-remove" onClick={() => removeClient(index)}>
+            Remove client
+          </button>
         </fieldset>
       ))}
       <button onClick={addClient}>Add client</button>
       <p>Preview client access before saving these grants.</p>
-      <ReviewChange area="agents" proposal={config} baseVersion={version} onSaved={onSaved} description="Save agent grants" />
+      <ReviewChange area="agents" proposal={config} baseVersion={version} onSaved={onSaved} description="Save agent grants" dirty={JSON.stringify(config) !== JSON.stringify(initial)} />
     </section>
   );
 }

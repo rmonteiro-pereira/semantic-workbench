@@ -16,7 +16,12 @@ import type { CodeEditorOptions } from './editorTypes';
 const recheck = StateEffect.define<null>();
 
 /** Creates one editor view and keeps external values, syntax and editability in sync. */
-export function useCodeMirror({ value, filename, documentId, onChange, ariaLabel, disabled = false, onIssues, validate, assumeOssieVersion = false }: CodeEditorOptions) {
+/** The line-wrapping extension when asked for, and nothing otherwise, so other editors keep scrolling sideways. */
+export function lineWrappingFor(wrapLines: boolean) {
+  return wrapLines ? EditorView.lineWrapping : [];
+}
+
+export function useCodeMirror({ value, filename, documentId, onChange, ariaLabel, disabled = false, onIssues, validate, assumeOssieVersion = false, wrapLines = false }: CodeEditorOptions) {
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
   const lineInput = useRef<HTMLInputElement>(null);
@@ -87,6 +92,7 @@ export function useCodeMirror({ value, filename, documentId, onChange, ariaLabel
       doc: value,
       extensions: [
         ...baseEditorExtensions(),
+        lineWrappingFor(wrapLines),
         language.current.of(languageFor(syntax, largeDocument.current)),
         editable.current.of([EditorView.editable.of(!disabled), EditorState.readOnly.of(disabled)]),
         linter(validateDocument, { delay: 300, needsRefresh: update => update.transactions.some(transaction => transaction.effects.some(effect => effect.is(recheck))) }),

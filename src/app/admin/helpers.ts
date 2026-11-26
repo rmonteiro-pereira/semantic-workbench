@@ -22,9 +22,19 @@ export function newIdentifier(prefix: 'g_' | 'r_' | 'p_'): string {
   return prefix + hex;
 }
 
+/** Words for the prefixes of audit rule codes such as `role:admin:1` or `scope:read`. */
+const RULE_PREFIXES: Record<string, string> = { role: 'Role', scope: 'Permission', policy: 'Rule', grant: 'Grant' };
+
 /** Turns audit action and rule codes into readable labels while preserving their titles. */
 export function auditLabel(code: string): string {
   if (code === 'signIn') return 'Signed in';
   if (code === 'signOut') return 'Signed out';
-  return actionLabel(code.replace(/^[BF]\d+-/, '').replaceAll('-', ' '));
+  const [prefix, name] = code.split(':');
+  if (name && prefix in RULE_PREFIXES) return `${RULE_PREFIXES[prefix]}: ${actionLabel(name)}`;
+  return actionLabel(
+    code
+      .replace(/^[BF]\d+-/, '')
+      .replaceAll('-', ' ')
+      .replaceAll('.', ' '),
+  );
 }

@@ -180,7 +180,7 @@ async function policyHistory(page: Page) {
   await rule.getByLabel('Enabled', { exact: true }).click();
   const disable = page.getByRole('dialog', { name: 'Disable Browser branch limit', exact: true });
   await adminGeometry(page, 'disable-policy');
-  await review(page, disable, 'disable browser branch limit');
+  await review(page, disable, 'disable Browser branch limit');
   await expect(disable).toHaveCount(0);
   await policies.getByRole('button', { name: 'History', exact: true }).click();
   const history = page.getByRole('region', { name: 'Version history', exact: true });

@@ -1,3 +1,4 @@
+import { SectionStatus } from './SectionStatus';
 import { useMe } from '../auth/useMe';
 import { useEffect, useState } from 'react';
 import { SelectField } from './SelectField';
@@ -63,11 +64,10 @@ export function GrantForm({
   email?: string;
   roleId?: string;
 }) {
-  const { data, error } = useAdminData(loadGrantForm);
+  const { data, error, reload } = useAdminData(loadGrantForm);
   return (
     <AdminPane title={initial ? 'Change grant' : 'Add grant'} backLabel={backLabel} onBack={onBack} lastAdminNotice={Boolean(initial)}>
-      {error && <p role="alert">{error}</p>}
-      {!data && !error && <p>Loading grants…</p>}
+      <SectionStatus subject="the roles and projects to grant" loading={!data && !error} error={error} onRetry={reload} />
       {data && <GrantFields {...data} initial={initial} email={email} roleId={roleId} onSaved={onSaved} />}
     </AdminPane>
   );

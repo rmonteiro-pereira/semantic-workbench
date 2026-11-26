@@ -37,9 +37,16 @@ export class AdminApiError extends Error {
   }
 }
 
+/** The words browsers use when a request never reached the server: Chrome, Firefox and Safari. */
+const NETWORK_FAILURES = ['Failed to fetch', 'NetworkError when attempting to fetch resource.', 'Load failed'];
+
 /** What a dialog shows for a failure: the refusal itself, not the HTTP request behind it. */
 export function problemText(problem: unknown): string {
   if (problem instanceof AdminApiError) return problem.reason;
+  // A request that never reached the server has no refusal to show, only the browser's own words.
+  if (problem instanceof TypeError && NETWORK_FAILURES.includes(problem.message)) {
+    return 'The server did not answer. Check that it is running and that this computer is online.';
+  }
   return problem instanceof Error ? problem.message : String(problem);
 }
 

@@ -8,6 +8,17 @@ export function proposalKey(proposal: Proposal, baseVersion: string): string {
 export function canConfirm(review: { key: string; result: DryRun } | null, key: string): boolean {
   return review !== null && review.key === key && Boolean(review.result.dryRunId);
 }
+/** Names a save by what it also removes, so a confirmation never hides a removal behind "Save". */
+export function changeDescription(save: string, removedNames: string[]): string {
+  if (!removedNames.length) return save;
+  return `${save} and remove ${removedNames.join(', ')}`;
+}
+
+/** Lower-cases only the first letter, so names inside a sentence keep their own capitals. */
+export function lowerFirst(text: string): string {
+  return text.charAt(0).toLowerCase() + text.slice(1);
+}
+
 /** Parses comma-separated user input without introducing empty members. */
 export function commaList(text: string): string[] {
   return [

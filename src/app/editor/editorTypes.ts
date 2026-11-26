@@ -16,4 +16,6 @@ export type CodeEditorOptions = {
   assumeOssieVersion?: boolean;
   /** Offered next to a "not validated" notice so the user can ask for that check. */
   onValidateAsShippedVersion?: () => void;
+  /** Wraps long lines instead of scrolling sideways, for short texts a reader must see whole. Off by default. */
+  wrapLines?: boolean;
 };

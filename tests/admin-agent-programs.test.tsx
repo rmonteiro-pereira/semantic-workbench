@@ -11,7 +11,7 @@ test('program fields preserve long names and identify every configurable part', 
     <ProgramFields program={{ clientId: 'reference-client', name, description: '', redirectUris: ['https://client.example/callback'], scopes: ['read'], setupNote: '' }} onChange={() => {}} />,
   );
   expect(html).toContain(name);
-  for (const label of ['Client id', 'Description', 'Redirect addresses', 'Allowed scopes', 'Setup note']) expect(html).toContain(label);
+  for (const label of ['Client ID', 'Description', 'Redirect addresses', 'Allowed scopes', 'Setup note']) expect(html).toContain(label);
   expect(html).not.toContain('administration');
   expect(ADMIN_SECTIONS.some(section => section.id === 'agent-programs')).toBe(true);
   expect(ADMIN_SECTIONS.some(section => section.id === 'agent-connections')).toBe(true);

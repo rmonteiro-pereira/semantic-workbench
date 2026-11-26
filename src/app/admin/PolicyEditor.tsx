@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AdminPane, type PaneProps } from './AdminPane';
 import { SelectField } from './SelectField';
+import { WrappingField } from './WrappingField';
 import { CodeEditor } from '../editor/CodeEditor';
 import { adminApi, problemText } from './api';
 import { ReviewChange } from './ReviewChange';
@@ -26,6 +27,11 @@ export function PolicyEditor({ initial, rules, version, onBack, onSaved }: PaneP
   const [error, setError] = useState('');
   const proposal = { rules: [...rules.filter(rule => rule.id !== policy.id), policy] };
   const key = JSON.stringify(proposal);
+  // Findings belong to the text they were checked against, so changing the text drops them.
+  function changePolicy(next: Policy) {
+    setPolicy(next);
+    setIssues([]);
+  }
   async function validate(text: string): Promise<Issue[]> {
     const proposedRules = [...rules.filter(rule => rule.id !== policy.id), { ...policy, text }];
     try {
@@ -63,7 +69,7 @@ export function PolicyEditor({ initial, rules, version, onBack, onSaved }: PaneP
     }
   }
   function applyTemplate(text: string) {
-    setPolicy({ ...policy, text, template });
+    changePolicy({ ...policy, text, template });
     setAdvanced(true);
     setValidated('');
   }
@@ -85,7 +91,7 @@ export function PolicyEditor({ initial, rules, version, onBack, onSaved }: PaneP
     <AdminPane title="Policy editor" backLabel="Back to policies" onBack={onBack}>
       <label>
         Description
-        <input value={policy.description} onChange={event => setPolicy({ ...policy, description: event.target.value })} />
+        <WrappingField value={policy.description} onValueChange={description => changePolicy({ ...policy, description })} />
       </label>
       <label>
         <input type="checkbox" checked={advanced} onChange={event => setAdvanced(event.target.checked)} />
@@ -108,7 +114,9 @@ export function PolicyEditor({ initial, rules, version, onBack, onSaved }: PaneP
           )}
         </>
       )}
-      {advanced && <CodeEditor value={policy.text} filename={policyEditorFilename(policy.id)} ariaLabel="Policy source" onChange={text => setPolicy({ ...policy, text })} validate={validate} />}
+      {advanced && (
+        <CodeEditor value={policy.text} filename={policyEditorFilename(policy.id)} ariaLabel="Policy source" wrapLines onChange={text => changePolicy({ ...policy, text })} validate={validate} />
+      )}
       <button onClick={validateProposal}>Validate</button>
       {error && <p role="alert">{error}</p>}
       {issues.map((issue, index) => (
@@ -117,7 +125,16 @@ export function PolicyEditor({ initial, rules, version, onBack, onSaved }: PaneP
         </p>
       ))}
       {validated === key && <p>Policy is valid.</p>}
-      <ReviewChange area="policies" changeLabel={`Save policy ${policy.description || policy.id}`} proposal={proposal} baseVersion={version} disabled={validated !== key} onSaved={onSaved} />
+      <ReviewChange
+        area="policies"
+        changeLabel={`Save policy ${policy.description || policy.id}`}
+        proposal={proposal}
+        baseVersion={version}
+        disabled={validated !== key}
+        unavailableReason="Validate the rule first; Review change opens once it is valid."
+        dirty={JSON.stringify(policy) !== JSON.stringify(initial)}
+        onSaved={onSaved}
+      />
     </AdminPane>
   );
 }

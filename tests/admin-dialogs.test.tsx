@@ -28,7 +28,7 @@ test('cancelled grant reviews require a new dry run and server guard errors stay
   const preview = page.getByRole('dialog');
   await browserExpect(preview.getByRole('region', { name: 'Dry-run result' })).toContainText('Erin');
   expect(await preview.evaluate(element => element.matches(':modal'))).toBe(true);
-  await preview.getByRole('button', { name: 'Cancel changes', exact: true }).click();
+  await preview.getByRole('button', { name: 'Back to editing', exact: true }).click();
   await form.getByLabel('Role', { exact: true }).selectOption('editor');
   await browserExpect(page.getByRole('button', { name: 'Confirm save changes' })).toHaveCount(0);
   await form.getByRole('button', { name: 'Review change', exact: true }).click();
@@ -98,7 +98,7 @@ test('project changes require review and preserve unrelated restrictions', async
   await area.getByLabel('Domain for sales', { exact: true }).selectOption('');
   await area.getByRole('region', { name: 'Save project access', exact: true }).getByRole('button', { name: 'Preview project access', exact: true }).click();
   await browserExpect(page.getByRole('dialog').getByRole('button', { name: 'Confirm save project access' })).toBeVisible();
-  await cancelAdminDialog(page, 'Cancel changes');
+  await cancelAdminDialog(page, 'Back to editing');
   const sent = requests.filter(request => request.path === '/api/admin/policies/dry-run').at(-1)!;
   expect(sent.body.projects.sales.domain).toBeUndefined();
   expect(sent.body.projects.sales.restricted).toEqual([]);

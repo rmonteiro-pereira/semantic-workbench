@@ -150,17 +150,23 @@ async function connectionStates(prefix: string, administrator: boolean) {
       } else await openDialog();
       const section = page.getByRole(administrator ? 'region' : 'dialog', { name: 'Agent connections', exact: true });
       if (state === 'empty') await expect(section.getByText('No agent connections.', { exact: true })).toBeVisible();
-      if (state === 'error') await expect(section.getByRole('alert')).toContainText('Connections could not be loaded');
+      if (state === 'error') {
+        await expect(section.getByRole('alert')).toContainText('Could not load connections.');
+        await expect(section.getByRole('button', { name: 'Try again', exact: true })).toBeVisible();
+      }
       if (state === 'long') {
         await section.getByRole('button', { name: 'Revoke ' + program.name, exact: true }).click();
-        const confirmation = section.getByRole('region', { name: 'Confirm revocation' });
+        const confirmation = page.getByRole('dialog', { name: `Revoke ${program.name}?`, exact: true });
         await expect(confirmation).toContainText(program.clientId);
-        await expect(confirmation).toContainText('Origin: acp');
+        await expect(confirmation).toContainText('connected through the agent panel');
       }
       if (state === 'loading') await expect(section.getByRole('status').filter({ hasText: 'Loading connections' })).toBeVisible();
       await capture(page, `${prefix}-${administrator ? 'admin' : 'person'}-${state}`);
       if (state === 'long') {
-        await section.getByRole('button', { name: 'Confirm revocation', exact: true }).click();
+        await page
+          .getByRole('dialog', { name: `Revoke ${program.name}?`, exact: true })
+          .getByRole('button', { name: 'Revoke', exact: true })
+          .click();
         await expect(section.getByText('Status: ended', { exact: true })).toBeVisible();
       }
     } finally {
@@ -180,9 +186,13 @@ async function programStates(prefix: string) {
     try {
       await navigateAdmin('agent-programs');
       await expect(page.getByRole('heading', { name: 'Agent programs', exact: true })).toBeVisible();
-      if (state === 'empty') await expect(page.getByText('No agent programs registered.', { exact: true })).toBeVisible();
+      if (state === 'empty') await expect(page.getByText('No agent programs registered', { exact: true })).toBeVisible();
       if (state === 'error') await expect(page.getByRole('alert').last()).toBeVisible();
-      if (state === 'long') await expect(page.getByRole('textbox', { name: 'Client id', exact: true })).toHaveValue(program.clientId);
+      if (state === 'long') {
+        // The list comes first; a program's fields open with its Edit button.
+        await page.getByRole('button', { name: `Edit ${program.name}`, exact: true }).click();
+        await expect(page.getByRole('textbox', { name: 'Client ID', exact: true })).toHaveValue(program.clientId);
+      }
       if (state === 'loading') await expect(page.getByRole('status').filter({ hasText: 'Loading agent programs' })).toBeVisible();
       await capture(page, prefix + '-programs-' + state);
     } finally {
