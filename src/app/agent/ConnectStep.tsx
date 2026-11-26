@@ -32,7 +32,12 @@ export function ConnectStep({ busy, replace, error, start, close }: { busy: bool
       </ul>
       <p>{NOT_OFFERED_NOTE}</p>
       {replace && <p>Starting a new session ends your other agent session. Its conversation will not resume.</p>}
-      {busy && <p role="status">Preparing the connection…</p>}
+      {busy && (
+        <section className="agent-connecting" role="status" aria-label="Connecting">
+          <h3>Connecting</h3>
+          <p>Preparing the connection to your agent. The command to run appears next.</p>
+        </section>
+      )}
       {error && <p role="alert">{error}</p>}
     </Modal>
   );

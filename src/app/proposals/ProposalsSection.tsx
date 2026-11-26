@@ -52,7 +52,7 @@ export function ProposalsSection({ project, projects, version }: Props) {
       </h3>
       {listing.state === 'loading' && (
         <p role="status" className="scm-empty">
-          Loading proposals…
+          Loading proposals
         </p>
       )}
       {listing.state === 'failed' && (

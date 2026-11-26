@@ -8,7 +8,7 @@ import type { MeshRead } from './use-mesh';
 
 /** Shows readable projects, unavailable endpoints and a text alternative for the links. */
 export function MeshContents({ state, selected, onSelect }: { state: MeshRead<MeshGraphView>; selected: string; onSelect: (project: string) => void }) {
-  if (state.status === 'loading') return <p role="status">Loading ontology mesh…</p>;
+  if (state.status === 'loading') return <p role="status">Loading ontology mesh</p>;
   if (state.status === 'error') return <p role="alert">{state.message}</p>;
   const graph = state.value;
   if (!graph.projects.length) return <p>No readable projects in the ontology mesh.</p>;

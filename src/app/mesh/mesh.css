@@ -31,6 +31,12 @@
   overflow-wrap: anywhere;
 }
 
+/* The open file is marked by weight and underline, the same way the Mesh view marks its selected project. */
+.mesh-unit-picker button[aria-current='true'] {
+  font-weight: bold;
+  text-decoration: underline;
+}
+
 .mesh-imports,
 .mesh-import-editor {
   display: grid;
@@ -39,9 +45,27 @@
   overflow-wrap: anywhere;
 }
 
+/* The details panel has a sticky title; scrolling to the section keeps its heading below that title. */
+.mesh-imports {
+  scroll-margin-top: 3rem;
+}
+
 .mesh-import-list {
   padding-inline-start: 1.25rem;
   margin: 0;
+}
+
+.mesh-import-list li {
+  padding-block: 0.25rem;
+}
+
+.mesh-import-list li > div {
+  margin-top: 0.15rem;
+}
+
+.mesh-import-list li > button {
+  display: block;
+  margin-top: 0.4rem;
 }
 
 .mesh-import-list:empty {
@@ -103,4 +127,9 @@
 .mesh-unavailable {
   border: 1px dashed currentColor;
   padding: 0.5rem;
+}
+
+/* Used by sits under the project's imports with room above it; the heading and its text keep their normal spacing. */
+.mesh-details > .mesh-imports {
+  margin-top: 0.75rem;
 }

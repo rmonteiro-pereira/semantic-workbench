@@ -53,7 +53,7 @@ export function DependencyUpdate({ project, baseHash, onUpdated }: { project: st
       <button disabled={working} type="button" onClick={() => void update()}>
         Update dependencies
       </button>
-      {working && <p role="status">Checking dependency versions…</p>}
+      {working && <p role="status">Checking dependency versions</p>}
       {error && <p role="alert">{error}</p>}
       {preview && (
         <>

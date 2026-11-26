@@ -203,7 +203,7 @@ test only to make it pass.
   geometry assertions; `--closed-only` opens the application, never opens the panel and fails on
   any request to `/api/acp/`. Run on the dev server: `sw-midgard-run -- bun run test:acp`. Proof:
   the run passes and writes its screenshots to the scratch folder.
-- [ ] T037 [US1] Screenshots for review: hand the capture to Codex using the screenshots brief
+- [x] T037 [US1] (captured and judged, see captures/findings.md; the scroll cue and the connecting state are fixed) Screenshots for review: hand the capture to Codex using the screenshots brief
   (fresh worktree of the current main with this branch applied, temporary `DATA_DIR`, a spare port,
   light and dark, 360, 768 and 1280 px, every state in the plan's table, long-text variants).
   Judge the screenshots here and fix what is wrong. Proof: a folder with an index and the findings
