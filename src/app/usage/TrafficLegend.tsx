@@ -21,7 +21,7 @@ export function TrafficLegend({ admin }: { admin?: boolean }) {
   if (traffic.status === 'loading' || traffic.status === 'idle')
     return (
       <p className="traffic-legend traffic-loading" role="status">
-        Loading {TRAFFIC_UNIT}…
+        Loading {TRAFFIC_UNIT}
       </p>
     );
   if (traffic.status === 'error') {

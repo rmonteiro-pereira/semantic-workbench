@@ -16,7 +16,7 @@ export async function readCounters(): Promise<CountersState> {
 
 /** The words for one state. */
 export function CountersSummary({ state }: { state: CountersState }) {
-  if (state.kind === 'loading') return <p role="status">Reading the state of usage counters…</p>;
+  if (state.kind === 'loading') return <p role="status">Reading the state of usage counters</p>;
   if (state.kind === 'error') return <p role="alert">{`Usage counters: ${state.message}`}</p>;
   if (state.kind === 'unknown') return <p>The state of usage counters shows once a project exists.</p>;
   if (!state.counters.enabled) return <p>Usage counters are off. An operator turns them on with SW_USAGE_COUNTERS.</p>;

@@ -43,7 +43,7 @@ export function AgentPanel({ onClose }: { onClose(): void }) {
             {view.agentName} · {view.state === 'working' ? 'Working' : 'Connected'}
           </p>
         )}
-        {session.disconnected && <p role="status">Disconnected from the event stream. Reconnecting…</p>}
+        {session.disconnected && <p role="status">Disconnected from the event stream. Reconnecting.</p>}
         {session.error && session.id && <p role="alert">{session.error} Try the action again.</p>}
         {session.id && <Transcript entries={view.entries} />}
         <TaskList entries={view.tasks} />
