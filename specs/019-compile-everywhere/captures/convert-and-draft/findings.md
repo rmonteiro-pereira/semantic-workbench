@@ -151,3 +151,18 @@ Rows at the same width follow light, then dark capture order.
 - draft-base-loading: BaseConvertView has no loading state. startBaseReview runs synchronously without an API request.
 
 Every other requested state/viewport is represented in manifest.md. No design judgement or app fix is included.
+
+## Judged from the images
+
+- Fix: in `convert-loading-light-1440.png` the conversion review says "Reviewing the conversion…" with an ellipsis.
+- Fix: in the four `draft-validation-02` images, the "Convert to Ossie 0.3.0 draft" button in Validation details has no line saying what it does or naming the file's current version.
+- Finding: the four `draft-validation-03` images show that a 0.3.0.dev0 file has no version label in Validation details. The draft base is named only in the compile and convert dialogs, so nothing in the editor says a file is on the draft base.
+- Fix, outside the compile area: in the 390 px `convert-editor` images the header cuts the file name with an ellipsis ("retail.ontology.ya…"). At 1440 px the Find concept placeholder is clipped ("synonyn").
+- Minor: on phone width the diffs of both conversions mark deleted lines by colour only. On desktop the deleted lines are also underlined and the columns are labelled.
+- Minor: in `convert-refused-light-1440.png` the finding location reads "retail.ontology.yaml · /".
+- Minor: during converting, the disabled button is the only sign of progress.
+- Minor: the compile title "Standard Ossie for Sales draft" can read as though "draft" were part of the project name.
+- The base conversion has no loading state, because it builds its preview without a request.
+- The previewed hash is sent with the confirmation and is not meant to be displayed.
+- Everything else shows its state with nothing clipped: convert review, converting, changed, error and done; base-conversion review, changed, error, refused and done; and the compile dialog's "Ossie 0.3.0 draft" label in all four viewports.
+- The measured overlap flags on the 390 px review and compile images are false positives: wrapped inline text, with no glyphs touching.
