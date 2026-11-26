@@ -562,6 +562,9 @@ the bundle outside the source trees.
 - `scripts/deploy.ts` owns delivery decisions behind real/fake Azure clients. Pipeline lint and
   dry-run interpret the shipped YAML offline. `deploy/` owns target setup, release hand-over and
   real acceptance; those operations do not happen during application startup.
+- `scripts/edge-proxy.ts` lets a sign-in edge reach a local-mode instance on loopback. It changes
+  only the public `Host` and `Origin`, so local mode's loopback checks still refuse everything else
+  ([guide](deploy/local-mode-behind-an-edge.md)).
 
 ## Request and state flow
 

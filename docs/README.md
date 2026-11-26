@@ -26,6 +26,7 @@ specific tasks without duplicating the same instructions in several places.
 | Verify the security audit chain | [Audit integrity](audit-tamper-evidence.md) |
 | Prepare an Azure target and delivery pipeline | [Target setup](../deploy/README.md) |
 | Accept a real deployment or test rollback | [Operator runbook](../deploy/trial-runbook.md) |
+| Put a single-person local-mode instance behind a sign-in edge | [Local mode behind an edge](../deploy/local-mode-behind-an-edge.md) |
 | Understand schema provenance and extensions | [Schema snapshots](../schemas/README.md) |
 | Review user-visible release changes | [Changelog](../CHANGELOG.md) |
 

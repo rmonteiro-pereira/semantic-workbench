@@ -878,6 +878,7 @@ by the locally recorded quality gate.
 | [Audit integrity](docs/audit-tamper-evidence.md) | Hash-chain checks, anchors and limitations |
 | [Azure setup](deploy/README.md) | Target resources, Entra, pipelines and source hand-over |
 | [Acceptance runbook](deploy/trial-runbook.md) | Real-target checks, smoke tests and rollback |
+| [Local mode behind an edge](deploy/local-mode-behind-an-edge.md) | One person's local-mode instance on a server, behind a sign-in proxy |
 | [Schemas](schemas/README.md) | Pinned standards and application-extension provenance |
 | [Changelog](CHANGELOG.md) | User-visible release changes |
 
