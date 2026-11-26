@@ -1,5 +1,6 @@
 import { expect, test } from 'bun:test';
 import { branchChangeNotice, overlaySummary } from '../../src/app/item-diff/OverlayControl';
+import { branchObservation } from '../../src/app/item-diff/use-item-diff';
 import type { ItemDiff } from '../../src/shared/item-diff/item-change';
 
 const diff: ItemDiff = {
@@ -25,4 +26,20 @@ test('branch replacement or removal is announced by name', () => {
   expect(branchChangeNotice('work/customer', 'main')).toContain('branch main');
   expect(branchChangeNotice('work/customer', 'work/customer', 'old', 'new')).toContain('Branch work/customer moved');
   expect(branchChangeNotice('work/customer', '')).toContain('Branch work/customer is no longer checked out');
+});
+
+test('switching projects on the same branch does not announce a branch move', () => {
+  const firstProject = branchObservation(undefined, 'first', 'main', 'first-head');
+  const loadingSecondProject = branchObservation(firstProject, 'second', 'main');
+  const secondProject = branchObservation(loadingSecondProject, 'second', 'main', 'second-head');
+  expect(loadingSecondProject.head).toBeUndefined();
+  expect(branchChangeNotice(loadingSecondProject.branch, secondProject.branch, loadingSecondProject.head, secondProject.head)).toBe('');
+});
+
+test('status loading retains a head only within the same project and branch', () => {
+  const observed = branchObservation(undefined, 'first', 'main', 'first-head');
+  expect(branchObservation(observed, 'first', 'main').head).toBe('first-head');
+  expect(branchObservation(observed, 'first', 'feature').head).toBeUndefined();
+  const updated = branchObservation(observed, 'first', 'main', 'updated-head');
+  expect(branchChangeNotice(observed.branch, updated.branch, observed.head, updated.head)).toContain('Branch main moved');
 });

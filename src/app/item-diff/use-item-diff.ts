@@ -38,9 +38,18 @@ export function branchChangeNotice(previous: string, next: string, previousHead?
   return '';
 }
 
+/** Identifies the project checkout whose head is being observed. */
+export type BranchObservation = { project: string; branch: string; head?: string };
+
+/** Retains the last known head while checkout status is loading. */
+export function branchObservation(previous: BranchObservation | undefined, project: string, branch: string, head?: string): BranchObservation {
+  const sameCheckout = previous?.project === project && previous.branch === branch;
+  return { project, branch, head: head ?? (sameCheckout ? previous.head : undefined) };
+}
+
 function useBranchNotice(project: string, branch: string, head?: string) {
   const [notice, setNotice] = useState('');
-  const previous = useRef<{ project: string; branch: string; head?: string }>(undefined);
+  const previous = useRef<BranchObservation>(undefined);
   useEffect(() => {
     const before = previous.current;
     if (before?.project === project) {
@@ -49,7 +58,7 @@ function useBranchNotice(project: string, branch: string, head?: string) {
     } else {
       setNotice('');
     }
-    previous.current = { project, branch, head: head ?? (before?.branch === branch ? before.head : undefined) };
+    previous.current = branchObservation(before, project, branch, head);
   }, [project, branch, head]);
   return notice;
 }

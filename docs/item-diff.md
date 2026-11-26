@@ -37,7 +37,8 @@ File and branch permissions still apply when it is off. A repository administrat
 access can read repository branches. The operation is available only to the workbench browser.
 
 The comparison reports when the checked-out branch changes or its tip moves, even while the graph controls are folded. Source Control
-status includes the checked-out commit ID when the branch has a commit.
+status includes the checked-out commit ID when the branch has a commit. Switching projects clears the previous project’s branch notice;
+projects with the same branch name keep independent head histories.
 
 ## Performance
 
