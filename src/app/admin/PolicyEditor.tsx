@@ -119,13 +119,11 @@ export function PolicyEditor({ initial, rules, version, onBack, onSaved }: PaneP
       )}
       <button onClick={validateProposal}>Validate</button>
       {error && <p role="alert">{error}</p>}
-      {/* In the raw editor the same findings already show beside their lines. */}
-      {!advanced &&
-        issues.map((issue, index) => (
-          <p role="alert" key={index}>
-            Line {issue.line}, column {issue.column}: {issue.message}
-          </p>
-        ))}
+      {issues.map((issue, index) => (
+        <p role="alert" key={index}>
+          Line {issue.line}, column {issue.column}: {issue.message}
+        </p>
+      ))}
       {validated === key && <p>Policy is valid.</p>}
       <ReviewChange area="policies" changeLabel={`Save policy ${policy.description || policy.id}`} proposal={proposal} baseVersion={version} disabled={validated !== key} onSaved={onSaved} />
     </AdminPane>
