@@ -1,7 +1,7 @@
 // Checks the compile dialog names the base the project's report declares: today's sentence for 0.2 and before a report, the draft label for a 0.3 report.
 import { expect, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { CompileDialog, CompileIntro } from '../../src/app/compile/CompileDialog';
+import { CompileDialog, CompileIntro, Findings } from '../../src/app/compile/CompileDialog';
 import { reportBaseOf, viewOfPublishedCheck, type CompileView } from '../../src/app/compile/use-compile';
 import type { ProjectInfo } from '../../src/app/projects/api';
 import { SUPPORTED_BASES } from '../../src/shared/tessera/bases';
@@ -41,4 +41,18 @@ test('every view that carries a report gives its base to the dialog', () => {
   expect(reportBaseOf(viewOfPublishedCheck({ ...answer, files: [] }))).toEqual(draftBase);
   expect(reportBaseOf({ status: 'needs-acceptance', commit: 'c', report: { base: draftBase } } as CompileView)).toEqual(draftBase);
   expect(reportBaseOf({ status: 'loading', step: 'checking' })).toBeUndefined();
+});
+
+test('a finding without a code shows its severity alone, and one with a code shows both', () => {
+  const finding = { document: 'a.yaml', severity: 'error' as const, path: '/', message: 'Broken.' };
+  const withoutCode = text(renderToStaticMarkup(<Findings findings={[{ ...finding, code: '' }]} />));
+  expect(withoutCode.startsWith('Error')).toBe(true);
+  expect(withoutCode).not.toContain('Error ·');
+  expect(text(renderToStaticMarkup(<Findings findings={[{ ...finding, code: 'schema' }]} />))).toContain('Error · schema');
+});
+
+test('the loading words carry no ellipsis', () => {
+  const html = text(renderToStaticMarkup(<CompileDialog project={project} onClose={() => {}} />));
+  expect(html).toContain('Checking the project');
+  expect(html).not.toContain('…');
 });

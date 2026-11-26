@@ -29,7 +29,8 @@ export function Findings({ findings }: { findings: CompileFinding[] }) {
       {findings.map((finding, index) => (
         <li key={index} className="compile-finding">
           <strong>
-            {finding.severity === 'error' ? 'Error' : 'Warning'} · {finding.code}
+            {finding.severity === 'error' ? 'Error' : 'Warning'}
+            {finding.code ? ` · ${finding.code}` : ''}
           </strong>
           <span>{finding.message}</span>
           <span className="compile-finding-where">
@@ -55,7 +56,7 @@ function StateTitle({ mark, children }: { mark: string; children: React.ReactNod
 }
 
 function LoadingText({ step }: { step: 'checking' | 'accepting' | 'downloading' }) {
-  const words = { checking: 'Checking the project…', accepting: 'Accepting the report…', downloading: 'Preparing the download…' };
+  const words = { checking: 'Checking the project', accepting: 'Accepting the report', downloading: 'Preparing the download' };
   return (
     <div className="compile-placeholder" role="status">
       {words[step]}
