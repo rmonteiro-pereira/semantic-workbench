@@ -110,3 +110,11 @@ test('a route report after unmount changes no state and schedules no frame', asy
   expect(result.after).toEqual(result.before);
   expect(result.pending).toBe(0);
 }, 30000);
+
+test('StrictMode effect remount measures a reported route exactly once', async () => {
+  const result = await routeLifecycleResult('strictRemount');
+  expect(result.cancellations).toBe(1);
+  expect(result.pending).toBe(1);
+  expect(result.measurements).toBe(1);
+  expect(result.renders).toBeGreaterThanOrEqual(2);
+}, 30000);

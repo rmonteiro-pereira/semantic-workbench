@@ -18,8 +18,8 @@ targeted test green and the formatter applied. No task edits an existing test on
 - [x] T003 Ignore a label-route report after unmount in `src/app/graph/useFullGraphEdges.ts`. Proof: a test
   reports after unmount and sees no state change and no scheduled frame.
   Proof: `sw-midgard-run -- bun test ./tests/label-route.test.ts` — exit 0, 5 pass; `bun --bun run check` — exit 0; `bun x oxfmt` on changed files — exit 0.
-- [ ] T004 StrictMode remount test: report a route, remount under StrictMode, expect one measurement.
-  Proof: `bun test tests/label-route.test.ts`.
+- [x] T004 StrictMode remount test: report a route, remount under StrictMode, expect one measurement.
+  Proof: `sw-midgard-run -- bun test ./tests/label-route.test.ts` — exit 0, 6 pass, one measurement after StrictMode cleanup/setup; `bun --bun run check` — exit 0; formatter — exit 0.
 - [ ] T005 Decide edge visibility against the painted curve, in the label placement module. Proof: unit
   cases for a curve inside, outside, grazing an edge with both ends off screen, and a chord-only crossing;
   `test:graph` shows the same counts as `main` on the UBL and Mall collapsed Network states.

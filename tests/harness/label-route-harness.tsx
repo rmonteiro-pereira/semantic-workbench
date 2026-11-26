@@ -1,4 +1,4 @@
-import { createElement, useLayoutEffect } from 'react';
+import { createElement, StrictMode, useLayoutEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import { useFullGraphEdges } from '../../src/app/graph/useFullGraphEdges';
@@ -6,6 +6,7 @@ import { useFullGraphEdges } from '../../src/app/graph/useFullGraphEdges';
 const frames = new Map<number, FrameRequestCallback>();
 let scheduled = 0;
 let measurements = 0;
+let cancellations = 0;
 let renders = 0;
 let report: (id: string, element: SVGPathElement) => void;
 const path = {
@@ -22,6 +23,7 @@ window.requestAnimationFrame = callback => {
   return scheduled;
 };
 window.cancelAnimationFrame = frame => {
+  cancellations++;
   frames.delete(frame);
 };
 
@@ -60,4 +62,17 @@ export function lateReport() {
   return { before, after: { scheduled, measurements, renders }, pending: frames.size };
 }
 
-Object.assign(window, { lateReport });
+/** Exercises effect teardown and setup before the route measurement frame runs. */
+export function strictRemount() {
+  const root = createRoot(document.body.appendChild(document.createElement('div')));
+  flushSync(() => root.render(createElement(StrictMode, null, createElement(GraphProbe))));
+  const pending = frames.size;
+  const callbacks = [...frames.values()];
+  frames.clear();
+  for (const callback of callbacks) flushSync(() => callback(0));
+  const result = { pending, measurements, cancellations, renders };
+  flushSync(() => root.unmount());
+  return result;
+}
+
+Object.assign(window, { lateReport, strictRemount });
