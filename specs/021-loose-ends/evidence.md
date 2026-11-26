@@ -39,3 +39,11 @@
 `gh api repos/apache/ossie/releases` returns nothing, and `gh api repos/apache/ossie/tags` returns only
 `osi-0.1.1-rc1`. `core-spec/spec.yaml` on upstream `main` declares `version: 0.3.0.dev0`, marked as a draft
 that may change before 0.3.0 is released.
+
+## Capture findings recorded for the owner (feature 022)
+
+From the shared capture review of features 012 to 019:
+
+- 014, usage overlay on the graph: at 360 px wide the graph labels break mid-word, and at 768 px they render at
+  about 5 px. Long names are cramped, and the neighbourhood group is shown by colour alone. A fix touches the
+  graph's label layout and its locked 9 px label floor, so it belongs in a graph change with its own comparison.
