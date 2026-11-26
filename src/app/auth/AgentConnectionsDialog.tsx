@@ -129,7 +129,9 @@ export function AgentConnectionsDialog({ onClose }: { onClose: () => void }) {
       }
     >
       <p>Connections act with your selected scopes and current roles. They end when you sign out or your session expires.</p>
-      <a href="/oauth/setup">Create a setup credential</a>
+      <a className="agent-connections-setup" href="/oauth/setup">
+        Create a setup credential
+      </a>
       <AgentConnections />
     </Modal>
   );

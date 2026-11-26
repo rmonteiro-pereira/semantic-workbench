@@ -186,9 +186,13 @@ async function programStates(prefix: string) {
     try {
       await navigateAdmin('agent-programs');
       await expect(page.getByRole('heading', { name: 'Agent programs', exact: true })).toBeVisible();
-      if (state === 'empty') await expect(page.getByText('No agent programs registered.', { exact: true })).toBeVisible();
+      if (state === 'empty') await expect(page.getByText('No agent programs registered', { exact: true })).toBeVisible();
       if (state === 'error') await expect(page.getByRole('alert').last()).toBeVisible();
-      if (state === 'long') await expect(page.getByRole('textbox', { name: 'Client id', exact: true })).toHaveValue(program.clientId);
+      if (state === 'long') {
+        // The list comes first; a program's fields open with its Edit button.
+        await page.getByRole('button', { name: `Edit ${program.name}`, exact: true }).click();
+        await expect(page.getByRole('textbox', { name: 'Client ID', exact: true })).toHaveValue(program.clientId);
+      }
       if (state === 'loading') await expect(page.getByRole('status').filter({ hasText: 'Loading agent programs' })).toBeVisible();
       await capture(page, prefix + '-programs-' + state);
     } finally {

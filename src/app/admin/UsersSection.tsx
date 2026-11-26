@@ -1,3 +1,4 @@
+import { RecordList, type RecordColumn } from './RecordList';
 import { useCallback, useState } from 'react';
 import { useMe } from '../auth/useMe';
 import { whenLabel } from './helpers';
@@ -57,6 +58,7 @@ export function UsersSection() {
         <input type="checkbox" checked={noAccess} onChange={event => setNoAccess(event.target.checked)} />
         No access
       </label>
+      <p className="admin-section-intro">Tick No access to list only the people who hold no role yet. It changes nobody's access.</p>
       <SectionStatus subject="people and groups" loading={!data && !error} error={error} onRetry={reload} />
       {data?.length === 0 && (
         <EmptyState title={query || noAccess ? 'No one matches' : 'No one has signed in yet'}>
@@ -64,73 +66,38 @@ export function UsersSection() {
         </EmptyState>
       )}
       {data && data.length > 0 && (
-        <div className="admin-table">
-          <table className="admin-records">
-            <thead>
-              <tr>
-                <th>Person</th>
-                <th>Groups and roles</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.map(user => (
-                <tr key={user.id}>
-                  <td>
-                    {user.name}
-                    <br />
-                    <small className="admin-id">{user.verifiedEmail ?? user.id}</small>
-                    Last sign-in: {user.lastSignInAt ? whenLabel(user.lastSignInAt) : 'never'}
-                    {user.access === 'none' && <p>No access</p>}
-                    {user.deactivated && <p>Deactivated</p>}
-                  </td>
-                  <td>
-                    {user.groups.map(group => (
-                      <p key={group.id}>
-                        {group.displayName ?? 'name not resolved'}
-                        <small className="admin-id">{group.id}</small>
-                      </p>
-                    ))}
-                    {user.roleSources.map((source, index) => (
-                      <span className="admin-chip" key={index}>
-                        {me?.roleNames[source.roleId] ?? source.roleId}
-                        {' · '}
-                        {scopeLabel(source.scope)} · {source.via === 'bootstrap' ? 'Bootstrap Admin' : source.via + ' grant'}
-                        {source.group && ` · ${source.group.name ?? source.group.id}`}
-                      </span>
-                    ))}
-                  </td>
-                  <td>
-                    <MenuButton
-                      label="Actions"
-                      ariaLabel={`Actions for ${user.name}`}
-                      items={[
-                        {
-                          label: 'Grant access',
-                          run: () => setGrant(user),
-                          disabled: !user.verifiedEmail && 'A verified e-mail address is required',
-                        },
-                        {
-                          label: user.deactivated ? 'Reactivate' : 'Deactivate',
-                          run: () =>
-                            setOperation({
-                              user,
-                              kind: user.deactivated ? 'reactivate' : 'deactivate',
-                            }),
-                        },
-                        {
-                          label: 'End sessions',
-                          run: () => setOperation({ user, kind: 'sessions' }),
-                        },
-                        { label: 'Check access', run: () => setCheck(user) },
-                      ]}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <RecordList
+          label="People and groups"
+          records={data}
+          recordKey={user => user.id}
+          columns={userColumns(me?.roleNames ?? {})}
+          actions={user => (
+            <MenuButton
+              label="Actions"
+              ariaLabel={`Actions for ${user.name}`}
+              items={[
+                {
+                  label: 'Grant access',
+                  run: () => setGrant(user),
+                  disabled: !user.verifiedEmail && 'A verified e-mail address is required',
+                },
+                {
+                  label: user.deactivated ? 'Reactivate' : 'Deactivate',
+                  run: () =>
+                    setOperation({
+                      user,
+                      kind: user.deactivated ? 'reactivate' : 'deactivate',
+                    }),
+                },
+                {
+                  label: 'End sessions',
+                  run: () => setOperation({ user, kind: 'sessions' }),
+                },
+                { label: 'Check access', run: () => setCheck(user) },
+              ]}
+            />
+          )}
+        />
       )}
       {operation && (
         <UserOperation
@@ -142,6 +109,48 @@ export function UsersSection() {
           }}
         />
       )}
+    </>
+  );
+}
+
+/** The people list's columns: who the person is, and the groups and roles they hold. */
+function userColumns(roleNames: Record<string, string>): RecordColumn<AdminUser>[] {
+  return [
+    { label: 'Person', value: user => <PersonCell user={user} /> },
+    { label: 'Groups and roles', value: user => <GroupsCell user={user} roleNames={roleNames} /> },
+  ];
+}
+
+function PersonCell({ user }: { user: AdminUser }) {
+  return (
+    <>
+      {user.name}
+      <br />
+      <small className="admin-id">{user.verifiedEmail ?? user.id}</small>
+      Last sign-in: {user.lastSignInAt ? whenLabel(user.lastSignInAt) : 'never'}
+      {user.access === 'none' && <p>No access</p>}
+      {user.deactivated && <p>Deactivated</p>}
+    </>
+  );
+}
+
+function GroupsCell({ user, roleNames }: { user: AdminUser; roleNames: Record<string, string> }) {
+  return (
+    <>
+      {user.groups.map(group => (
+        <p key={group.id}>
+          {group.displayName ?? 'Group name not resolved'}
+          <small className="admin-id">{group.id}</small>
+        </p>
+      ))}
+      {user.roleSources.map((source, index) => (
+        <span className="admin-chip" key={index}>
+          {roleNames[source.roleId] ?? source.roleId}
+          {' · '}
+          {scopeLabel(source.scope)} · {source.via === 'bootstrap' ? 'Bootstrap Admin' : source.via + ' grant'}
+          {source.group && ` · ${source.group.name ?? source.group.id}`}
+        </span>
+      ))}
     </>
   );
 }
@@ -193,10 +202,13 @@ function UserOperation({ user, kind, onCancel, onSaved }: { user: AdminUser; kin
     >
       {!refused && <p>{userOperationEffect(user.name, kind)} This changes only this workbench.</p>}
       {!refused && kind !== 'sessions' && (
-        <label>
-          Reason (required, kept in the audit record)
-          <input value={reason} onChange={event => setReason(event.target.value)} />
-        </label>
+        <>
+          <label>
+            Reason
+            <input value={reason} onChange={event => setReason(event.target.value)} />
+          </label>
+          <p className="admin-field-hint">Required. It is kept in the audit record.</p>
+        </>
       )}
       {error && <p role="alert">{error}</p>}
     </AdminConfirmation>
