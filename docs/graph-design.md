@@ -75,7 +75,8 @@ longer matches current endpoints.
 When a relayout still contains the selected entity, the camera returns to that card and its
 readable neighbors. The optional mini-map is
 off until requested. Fit reserves its corner above 650 px. Collapsed Network relationship labels
-avoid cards, area headers and the displayed mini-map, including change labels when Labels is off. Their placement and leader anchors follow
+avoid cards, area headers and the displayed mini-map, including change labels when Labels is off. Placement follows the live pan and zoom transform,
+coalesced to one update per animation frame, so the stationary mini-map remains excluded during movement. Their placement and leader anchors follow
 the rendered smart route or its live Bézier fallback. Leaders refine their endpoint on the painted
 curve rather than its sampled chords; a route must intersect the viewport to claim a visible label lane. The phone layout hides the map and
 uses the whole canvas width. A finite viewport cannot display an unlimited number of full-size labels;

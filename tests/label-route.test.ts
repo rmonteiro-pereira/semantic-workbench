@@ -58,9 +58,10 @@ test('unpublished collapsed labels reserve obstacles with ordinary labels off', 
   for (const change of [undefined, 'modified'] as const) {
     let obstacleCalls = 0;
     let eligible = false;
+    const connection = { id: 'bundle', source: 'collapsed:a', target: 'collapsed:b', label: 'owns', data: { relationships: [], path: [], definition: {}, kind: 'object', change } };
     function GraphProbe() {
       const edges = useFullGraphEdges({
-        connections: [{ id: 'bundle', source: 'collapsed:a', target: 'collapsed:b', label: 'owns', data: { relationships: [], change } }],
+        connections: [connection],
         positions: new Map(),
         labelObstacles: () => {
           obstacleCalls++;
