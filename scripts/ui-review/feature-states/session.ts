@@ -23,6 +23,8 @@ export interface CaptureSession {
   /** The folder of one spec; its sibling folders share the image limit. */
   output: string;
   imageLimit: number;
+  /** When set, only these states are photographed; the walk to reach them still runs. */
+  onlyStates?: ReadonlySet<string>;
 }
 
 export async function newPage(session: CaptureSession, width = 1280, theme: Theme = 'light') {
@@ -60,6 +62,7 @@ function cropSelector(selector: string) {
  * A file that already exists is measured again but not overwritten, so a rerun can fill in missing states.
  */
 export async function capture(session: CaptureSession, page: Page, state: string, selector: string, theme: Theme = 'light') {
+  if (session.onlyStates && !session.onlyStates.has(state)) return;
   const crop = cropSelector(selector);
   const width = page.viewportSize()!.width;
   const file = `${state}-${theme}-${width}.png`;

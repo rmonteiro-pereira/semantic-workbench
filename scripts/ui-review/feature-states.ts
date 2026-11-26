@@ -1,7 +1,8 @@
 // Photographs the states of one feature, each cropped to the region that shows it, and measures every image.
-// Usage, through sw-midgard-run: bun scripts/ui-review/feature-states.ts OUTPUT GROUP
+// Usage, through sw-midgard-run: bun scripts/ui-review/feature-states.ts OUTPUT GROUP [STATES]
 //   GROUP is proposals, connections, agent, closed, open, traffic, attributes, context, diff, mesh or compile.
 //   closed, open and context retake part of the agent and attributes groups.
+//   STATES is an optional comma-separated list, such as loading,error, for a targeted recapture.
 // OUTPUT is the folder of one feature. Images in it and its sibling folders count toward one shared limit.
 import { chromium } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
@@ -19,7 +20,7 @@ import { captureProposals } from './feature-states/proposals';
 import { attempt, type CaptureSession } from './feature-states/session';
 import { captureTraffic } from './feature-states/traffic';
 
-const [output, group = 'proposals'] = process.argv.slice(2);
+const [output, group = 'proposals', states] = process.argv.slice(2);
 if (!output) throw new Error('Expected OUTPUT GROUP');
 mkdirSync(output, { recursive: true });
 setActiveBrand(loadBrandBundle());
@@ -56,7 +57,8 @@ const STANDALONE_GROUPS = ['proposals', 'connections', 'agent', 'closed', 'open'
 const browser = await chromium.launch();
 // One capture job may hand at most this many images to the visual reviewers.
 const IMAGE_LIMIT = 110;
-const session: CaptureSession = { browser, output, imageLimit: IMAGE_LIMIT };
+const onlyStates = states ? new Set(states.split(',')) : undefined;
+const session: CaptureSession = { browser, output, imageLimit: IMAGE_LIMIT, onlyStates };
 await withCleanup(
   () => browser.close(),
   async () => {
