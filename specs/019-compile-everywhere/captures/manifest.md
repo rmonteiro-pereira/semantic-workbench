@@ -1,6 +1,7 @@
 # Compile and entry points: capture manifest
 
 The images are not kept in the repository. They are named here by file name and live in the capture output folder (`out/` locally, which git ignores).
+
 14 PNG images. Device scale factor is 1; the CSS crop dimensions below are the viewing scale. PNG pixel dimensions are retained in records.jsonl.
 
 | File | Screen | State | Theme | Width (CSS px) | Crop region | Device scale factor | Crop size (CSS px) | Command |
