@@ -1,13 +1,13 @@
 // The tool that checks proposed text with the save pipeline's own rules and writes nothing.
 import { GLOBAL_REQUEST_CAP_BYTES } from '../body-limits';
-import type { ToolDefinition } from '../tool-definition';
+import type { ToolContext, ToolDefinition } from '../tool-definition';
 import { findingsOf, MAXIMUM_FINDINGS, succeed, type Finding } from '../tool-results';
 import { EDIT_ARGUMENTS, PATCHES, READ_HINTS, VERSION } from './tool-arguments';
 
 const validateText: ToolDefinition = {
   name: 'validate_text',
   description:
-    'Check proposed text for a file exactly as saving would, without saving. Send the full source, or patches with the version they were made against. Tessera ontologies are accepted, and their findings carry the Tessera codes. Browser-only checks such as SHACL are not covered.',
+    'Check proposed text for a file exactly as saving would, without saving. Send the full source, or patches with the version they were made against. Tessera ontologies are accepted, and their findings carry the Tessera codes. Browser-only checks such as SHACL are not covered. For a root or part of an ontology set, setNotChecked true means the saved set could not be checked for you, so no findings does not mean the set passes.',
   inputSchema: {
     type: 'object',
     properties: { ...EDIT_ARGUMENTS, source: { type: 'string', maxLength: 2_000_000 }, patches: PATCHES, baseVersion: VERSION },
@@ -28,8 +28,23 @@ const validateText: ToolDefinition = {
     if (!called.ok) return called.failure;
     const answer = called.answer.body as { valid: boolean; version: string | null; findings: Finding[]; guard: Record<string, unknown> };
     const findings = findingsOf(answer.findings, MAXIMUM_FINDINGS);
-    return succeed({ valid: answer.valid, findings, findingCount: answer.findings.length, guard: answer.guard });
+    const setNotice = await savedSetNotice(args.project, args.path, context);
+    if (!setNotice.ok) return setNotice.failure;
+    return succeed({ valid: answer.valid, findings, findingCount: answer.findings.length, guard: answer.guard, ...setNotice.notice });
   },
 };
+
+/**
+ * Tells an agent whether the ontology set a root or part belongs to could be checked for this caller, as the file read
+ * in the browser does. Validation itself checks one file, so an empty answer for a part must not read as a passing set.
+ * The notice describes the saved set; a file that does not exist yet has none.
+ */
+async function savedSetNotice(project: string, path: string, context: ToolContext) {
+  const read = await context.twin('files.read', { params: { slug: project, '*': path } });
+  if (!read.ok && read.answer?.status === 404) return { ok: true as const, notice: {} };
+  if (!read.ok) return read;
+  const unitValidation = (read.answer.body as { unitValidation?: { setNotChecked: boolean } }).unitValidation;
+  return { ok: true as const, notice: unitValidation ? { setNotChecked: unitValidation.setNotChecked } : {} };
+}
 
 export const validationTools: ToolDefinition[] = [validateText];

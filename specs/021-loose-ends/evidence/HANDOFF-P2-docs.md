@@ -25,12 +25,9 @@ imports `src/server/usage/` or reads `layout.usage`. Nothing under `src/` was ch
 
 ## Open
 
-- `validate_text` on a part returns single-file findings and nothing about the set. The "set not checked"
-  notice that the 018 plan expected for it does not exist in any tool: only the browser's file read
-  (`GET /api/projects/:slug/files/*`) returns `unitValidation.setNotChecked`. `docs/mcp-contract.md` now
-  says this and warns agents not to read an empty answer for a part as a passing set. Adding the notice
-  to the tool means changing `src/server/mcp/tools/validation.ts` and the `files.validate` route, which
-  this branch does not own.
+- Closed after the first merge: `validate_text` on a root or part now returns `setNotChecked`, taken from the
+  `files.read` twin, so the tool and the browser's file read share one rule. `tests/mcp/validate-set-notice.test.ts`
+  (3 pass) fails without the change. The notice describes the saved set; a file not saved yet has none.
 - The explanation answer keeps the metric extension's own `owner` (a team name such as Finance). That is a
   public metric field, not the item governance owner, so the tool test checks the `owner` key only
   inside governance flags and checks the governance owner's value everywhere.
