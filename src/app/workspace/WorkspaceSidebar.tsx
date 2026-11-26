@@ -16,6 +16,7 @@ import { Suggestions } from '../projects/Suggestions';
 import { AddProjectMenu } from './AddProjectMenu';
 import { MeshView } from '../mesh/MeshView';
 import { SettingsPanel } from './SettingsPanel';
+import { prepareDraftChecks } from '../../shared/validation/draft-validators';
 
 type Props = {
   compact: boolean;
@@ -174,7 +175,8 @@ export const WorkspaceSidebar = React.memo(function WorkspaceSidebar({
     importInto.current = '';
     event.target.value = '';
     if (into)
-      void Promise.all(files.map(async f => ({ path: f.name, source: await f.text() }))).then(list => {
+      void Promise.all(files.map(async f => ({ path: f.name, source: await f.text() }))).then(async list => {
+        await Promise.all(list.map(file => prepareDraftChecks(file.source)));
         if (list.length) void importIntoProject(list, undefined, into);
       });
     else void importFiles(files);

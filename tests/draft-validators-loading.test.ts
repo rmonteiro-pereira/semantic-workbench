@@ -58,3 +58,35 @@ test('preparing a 0.3 file first loads the module once, and its check never show
   `);
   expect(outcome).toEqual({ codes: [], loads: 1 });
 });
+
+test('an imported 0.3 file shows no loading finding, and importing a 0.2 file never requests the draft module', () => {
+  const outcome = runFresh(`
+    import { readFileSync } from 'node:fs';
+    import { draftLoadCount } from './src/shared/validation/draft-validators';
+    import { validateInput } from './src/shared/validation/input';
+    import { readImportDrafts } from './src/app/workspace/hooks/useImport';
+    const oldDrafts = await readImportDrafts([new File([readFileSync('public/examples/billing/billing.semantic.yaml', 'utf8')], 'billing.semantic.yaml')]);
+    const loadsAfterOld = draftLoadCount();
+    const drafts = await readImportDrafts([new File([readFileSync('tests/fixtures/ossie-0.3/sales.semantic.yaml', 'utf8')], 'sales.semantic.yaml')]);
+    const codes = drafts.flatMap(draft => validateInput(draft.source, draft.filename).issues.map(issue => issue.code));
+    console.log(JSON.stringify({ oldValid: validateInput(oldDrafts[0].source, oldDrafts[0].filename).valid, loadsAfterOld, codes }));
+  `);
+  expect(outcome).toEqual({ oldValid: true, loadsAfterOld: 0, codes: [] });
+});
+
+test('a 0.3 file the workspace receives from the server is checked without the loading finding', () => {
+  const outcome = runFresh(`
+    import { readFileSync } from 'node:fs';
+    import { draftLoadCount } from './src/shared/validation/draft-validators';
+    import { validateInput } from './src/shared/validation/input';
+    import { api } from './src/app/projects/api';
+    const answer = path => ({ path, source: readFileSync(path, 'utf8'), hash: 'h', docType: 'ossie' });
+    globalThis.fetch = async url => Response.json(answer(String(url).includes('sales') ? 'tests/fixtures/ossie-0.3/sales.semantic.yaml' : 'public/examples/billing/billing.semantic.yaml'));
+    const old = await api.file('demo', 'billing.semantic.yaml');
+    const loadsAfterOld = draftLoadCount();
+    const file = await api.file('demo', 'sales.semantic.yaml');
+    const codes = validateInput(file.source, 'sales.semantic.yaml').issues.map(issue => issue.code);
+    console.log(JSON.stringify({ oldValid: validateInput(old.source, 'billing.semantic.yaml').valid, loadsAfterOld, codes }));
+  `);
+  expect(outcome).toEqual({ oldValid: true, loadsAfterOld: 0, codes: [] });
+});

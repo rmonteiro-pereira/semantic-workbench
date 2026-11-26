@@ -19,6 +19,7 @@ import { configureLogging, log } from './observability/log';
 import { configureActorSalt } from './observability/request-context';
 import { startTelemetry } from './observability/telemetry';
 import { CAPABILITY_FILE, openLocalCapability } from './mcp/local-capability';
+import { loadDraftValidators } from '../shared/validation/draft-validators';
 
 const config = readConfig();
 configureLogging({
@@ -87,6 +88,8 @@ async function initializeWorkspace() {
   });
   await logWorkspace(workspace);
 }
+// The server checks Ossie 0.3 draft files synchronously, so their validators load before the first request.
+await loadDraftValidators();
 const server = Bun.serve(
   serveOptions({
     hostname: config.host,
