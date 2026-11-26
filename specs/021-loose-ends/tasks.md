@@ -64,13 +64,21 @@ targeted test green and the formatter applied. No task edits an existing test on
   validation, planner, compile, conversion and capture tasks against that pin. T026 and T027 stay open until the
   release, and the docs say so. Proof: each 019 task's own proof, with the pin named.
 
+## Phase 4c: Settings review (worktree `021-settings`)
+
+- [ ] T020 Capture every settings and Admin screen and state, run an independent design review, send the findings
+  to main, then fix tier A and the light success colour as main decided in `shared/orch/sw/SETTINGS-DECISIONS.md`,
+  recapture and compare. Tier C goes to feature 022. Proof: review file, fix commits, before and after pairs.
+
 ## Phase 5: Batch gate
 
 - [ ] T014 Full unit suite, `bun run test:mutation`, every browser suite, `bun --bun run check` and
   `bun --bun run build` on midgard. Proof: commands and exit codes in `evidence/GATE.md`; failures matched
   against `main`.
 - [ ] T015 UI regression comparison of the whole journey against `main` at `4efb44e2`. Proof: classification
-  counts; zero unaccepted regressions.
+  counts; zero unaccepted regressions. Include every screen that uses the light `--color-success` token
+  (`src/app/style.css`, `governance.css`, `WorkspaceHeader.css`, `admin.css`), the UBL and Mall collapsed Network
+  label counts, and the settings journey.
 - [ ] T016 Architecture review, then Astra code review, at most three rounds. Proof: review files and fixes.
 - [ ] T017 Tick the batch-gate hand-off tasks closed by this gate (012 T042/T045, 013 T044, 015 T044) with a
   disposition, merge to `main` without force, and redeploy sw-dev. Proof: merge commit and `/healthz` commit.
