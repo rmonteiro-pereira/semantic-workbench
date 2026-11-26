@@ -10,9 +10,13 @@ const reachDecision = '(right - left) * zoom + margin * 2 <= view.width && (bott
 const packingDecision = '(OVERVIEW_H - 16) * zoom >= minimumNameHeight';
 const packingEligibility = '!cards.every(card => card.overview)';
 const capacityPath = resolve(process.cwd(), 'src/app/graph/overview-capacity.ts');
+// The mutation runner rewrites every quoted relative import in this file to an absolute path, so the
+// import lines to replace are matched by pattern rather than written out as text.
+const capacityImport = /from '\.\.\/graph\/overview-capacity'/;
+const lineageViewImport = /from '\.\/lineage-view'/;
 const source = await Bun.file(resolve(process.cwd(), 'src/app/odcs/lineage-view.ts')).text();
 const candidate = source
-  .replace("from '../graph/overview-capacity'", `from '${capacityPath}'`)
+  .replace(capacityImport, `from '${capacityPath}'`)
   .replace('Math.max(24, 24 / zoom)', targetCompensation)
   .replace('Math.max(CARD_NAME_PX, NAME_MIN_PX / zoom)', nameCompensation)
   .replace('(right - left) * zoom + margin * 2 <= view.width && (bottom - top) * zoom + margin * 2 <= view.height', reachDecision);
@@ -24,8 +28,8 @@ try {
   const layoutSource = await Bun.file(resolve(process.cwd(), 'src/app/odcs/lineage-layout.ts')).text();
   assert.ok(layoutSource.includes('(OVERVIEW_H - 16) * zoom >= minimumNameHeight'), 'The packing mutation must match the production predicate.');
   const layoutCandidate = layoutSource
-    .replace("from '../graph/overview-capacity'", `from '${capacityPath}'`)
-    .replace("from './lineage-view'", `from '${path}'`)
+    .replace(capacityImport, `from '${capacityPath}'`)
+    .replace(lineageViewImport, `from '${path}'`)
     .replace('(OVERVIEW_H - 16) * zoom >= minimumNameHeight', packingDecision)
     .replace('!cards.every(card => card.overview)', packingEligibility);
   const layoutPath = resolve(temporary, 'lineage-layout.ts');

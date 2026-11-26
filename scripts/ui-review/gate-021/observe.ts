@@ -25,7 +25,8 @@ export async function recordState(page: Page, file?: string) {
           lineHeight: style.lineHeight,
         };
       });
-      return { labels, inputs, title: document.title };
+      const lineageCenter = document.querySelector('.lineage-card.center')?.getAttribute('data-id');
+      return { labels, inputs, lineageCenter, title: document.title };
     })
     .catch(() => null);
   record({ file, viewport: page.viewportSize(), errors: [...errors], measurements });

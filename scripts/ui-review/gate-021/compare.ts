@@ -26,7 +26,8 @@ function records(path: string) {
 }
 
 function evidence(side: string, repeat: number, group: string, file: string) {
-  const directory = join(root, 'captures', side, String(repeat), group);
+  const parallel = join(root, 'captures', side, String(repeat + 2), group);
+  const directory = existsSync(parallel) ? parallel : join(root, 'captures', side, String(repeat), group);
   const observations = records(join(directory, 'observations.jsonl')).filter(record => basename(record.file ?? '') === file);
   const events = [...records(join(directory, 'events.jsonl')), ...records(join(directory, 'records.jsonl'))].filter(record => basename(record.file ?? '') === file);
   const loads = new Map<string, any>();
@@ -146,9 +147,11 @@ async function compare(paths: string[]) {
 
 const inventory = new Set<string>();
 for (const side of ['main', 'candidate']) {
-  for (const path of files(join(root, 'captures', side, '1'))) {
-    if (!path.endsWith('.png') || path.endsWith('-full.png')) continue;
-    inventory.add(path.replace(join(root, 'captures', side, '1') + '/', ''));
+  for (const repeat of [1, 3]) {
+    for (const path of files(join(root, 'captures', side, String(repeat)))) {
+      if (!path.endsWith('.png') || path.endsWith('-full.png')) continue;
+      inventory.add(path.replace(join(root, 'captures', side, String(repeat)) + '/', ''));
+    }
   }
 }
 
@@ -165,6 +168,11 @@ try {
       if (measurements.diffScore === 0) result.class = 'unchanged';
       else if (measurements.diffScore <= Math.max(...measurements.noise) + 0.00005) result.class = 'neutral';
       else result.class = 'pending-review';
+      const centers = sides.map(side => side[0].observations.at(-1)?.measurements?.lineageCenter);
+      if (centers[0] && centers[1] && centers[0] !== centers[1]) {
+        result.class = 'not-compared';
+        result.reason = `Different lineage centers: ${centers[0]} / ${centers[1]}.`;
+      }
       if (result.class === 'pending-review') {
         const stripName = identity.replaceAll('/', '__');
         writeFileSync(join(output, 'strips', stripName), Buffer.from(strip, 'base64'));

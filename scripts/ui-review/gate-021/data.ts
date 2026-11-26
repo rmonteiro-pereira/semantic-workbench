@@ -1,6 +1,6 @@
 import { appendFileSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { inspect } from '../../../src/shared/core/model';
 import { exampleSet } from '../../../src/shared/projects/examples';
 
@@ -9,7 +9,7 @@ export function recordFiles(files: { path: string; source: string }[], operation
   const records = files.map(file => {
     let counts: unknown;
     try {
-      const model = inspect(file.source, file.path);
+      const model = inspect(file.source, basename(file.path));
       counts = { entities: model.entities.length, relationships: model.relationships.length };
     } catch (error) {
       counts = { error: String(error).slice(0, 200) };

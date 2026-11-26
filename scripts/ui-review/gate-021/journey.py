@@ -126,7 +126,7 @@ def prepare(side, revision):
     return directory
 
 
-def capture_side(side, directory, repeat):
+def capture_side(side, directory, repeat, phase="all"):
     """Serialize each journey while keeping failures visible in the ledger."""
     server_log = (ROOT / f"{side}-static-{repeat}.log").open("w")
     server = subprocess.Popen(["bun", "scripts/ui-review/gate-021/static.ts"], cwd=directory, env=ENV, stdout=server_log, stderr=subprocess.STDOUT)
@@ -146,6 +146,8 @@ def capture_side(side, directory, repeat):
         for group in ["proposals", "connections", "agent", "traffic", "attributes", "diff", "mesh", "compile", "item-editors"]
     ]
     jobs += [("settings", ["specs/021-loose-ends/settings-review/capture-settings.ts"])]
+    if phase == "rest":
+        jobs = [(group, arguments) for group, arguments in jobs if not group.startswith("graphs-")]
     try:
         for group, arguments in jobs:
             output_group = "graphs" if group.startswith("graphs-") else group
@@ -169,10 +171,11 @@ def capture_side(side, directory, repeat):
 if __name__ == "__main__":
     ROOT.mkdir(parents=True, exist_ok=True)
     (ROOT / "temporary").mkdir(exist_ok=True)
-    if len(sys.argv) == 4 and sys.argv[1] == "worker":
+    if len(sys.argv) >= 4 and sys.argv[1] == "worker":
         side = sys.argv[2]
         repeat = int(sys.argv[3])
-        capture_side(side, ROOT / side, repeat)
+        phase = sys.argv[4] if len(sys.argv) > 4 else "all"
+        capture_side(side, ROOT / side, repeat, phase)
         (ROOT / f"COMPLETE-{side}-{repeat}").write_text("done\n")
     else:
         directories = {side: prepare(side, revision) for side, revision in REVISIONS.items()}

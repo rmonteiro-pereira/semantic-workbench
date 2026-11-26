@@ -35,6 +35,16 @@ export async function capture(...args: Parameters<typeof captureCurrent>) {
         session.write_text(text)
     settings = directory / "specs/021-loose-ends/settings-review/capture-settings.ts"
     text = settings.read_text()
+    if "const editProgram" not in text:
+        text = text.replace(
+            "const area = await adminArea(page, label);\n  await area.locator(ready)",
+            """const area = await adminArea(page, label);
+  if (label === 'Agent programs' && ready === '.agent-program-fields') {
+    const editProgram = area.getByRole('button', { name: /^Edit / }).first();
+    if (await editProgram.count()) await editProgram.click();
+  }
+  await area.locator(ready)""",
+        )
     if "async function shotCurrent" not in text:
         text = text.replace("async function shot(", "async function shotCurrent(")
         text += """

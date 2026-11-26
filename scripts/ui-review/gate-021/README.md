@@ -5,10 +5,14 @@ Application code stays unchanged. The scripts extend the existing UI review harn
 All browser and build commands run through `sw-midgard-run`.
 
 `journey.py` prepares the two source copies, installs each lockfile and builds each application.
-Its `worker SIDE REPEAT` command runs one passage against an existing copy. Graph commands run
+Its `worker SIDE REPEAT [rest]` command runs one passage against an existing copy; `rest` excludes
+graphs. Separate passage numbers allow these groups to run concurrently with graph captures. Graph commands run
 separately by viewport and theme. Other commands retain their original state sequences.
 `supplement.py` records collapsed Network edge-label text, with Labels enabled,
 filled connections, revocation, access decisions and the Ossie conversion entry point.
+Optional group arguments select a subset: `labels`, `gaps`, `conversion`, `policy` or `governance`.
+`patch-captures.py` expands feature and settings captures to the required variants and opens a
+program's editor when the screen presents its program list first.
 
 The capture environment uses `JOURNEY_OUTPUT` for artifacts, `JOURNEY_VIEWPORTS` for the
 graph viewport list, `SW_THEME` for the graph theme, `SW_BASE_URL` for the static frontend
@@ -21,6 +25,8 @@ Each concurrent passage requires its own network namespace.
 largest channel difference exceeds 12. It records within-side noise, a changed-pixel bounding
 box and a cropped side-by-side strip. A cross-version score at or below the larger within-side
 noise score plus 0.00005 is marked neutral. This numerical filter does not establish visual quality.
+Different recorded lineage centres remain non-comparable. `report.py OUTPUT` applies recorded
+visual decisions and recognises the approved success-colour transformation in stable pixels.
 Pairs above noise remain pending until visual review. Missing images remain explicitly unclassified.
 
 No command pushes to a project remote, changes application sources or updates task checkboxes.
