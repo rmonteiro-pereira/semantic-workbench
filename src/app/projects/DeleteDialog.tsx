@@ -211,7 +211,9 @@ async function runDeletion(target: DeleteTarget, removing: boolean, name: (slug:
   return { removed: false, entryIds: [result.entryId], undoUntil: result.undoUntil, label };
 }
 
-function actionText(removing: boolean, busy: boolean) {
+function actionText(target: DeleteTarget, removing: boolean, busy: boolean) {
+  // Clearing names its own action: the body says the projects move to the trash, so "Delete" would contradict it.
+  if (target.kind === 'clear') return busy ? 'Clearing the workspace' : 'Clear workspace';
   if (removing) return busy ? 'Removing…' : 'Remove from workspace';
   return busy ? 'Deleting…' : 'Delete';
 }
@@ -246,7 +248,7 @@ export function DeleteDialog({ target, projects, dirty, onCancel, onDeleted, onR
         Cancel
       </button>
       <button className={removing ? 'primary' : 'danger'} onClick={confirm} disabled={busy || waiting}>
-        {actionText(removing, busy)}
+        {actionText(target, removing, busy)}
       </button>
     </>
   );
