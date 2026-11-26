@@ -52,7 +52,7 @@ reveals the focused tab. Model views, Source and Source Control retain separate 
 states.
 
 **Settings → Admin** opens the administration page for people allowed to administer. Its **Git remotes**
-section lists every project with its remote address, or "No remote", with **Set remote…** and
+section lists every project with its remote address, or "No remote", with **Set remote** and
 **Remove remote** for each project. With no projects it says so and offers **Back to
 workspace**, where **Add project** is. Addresses are shown without credentials. The avatar at the right of the header
 shows the initials of who is working and opens **Admin** for those allowed. In server mode its

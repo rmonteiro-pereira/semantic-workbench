@@ -511,3 +511,21 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+/* A one-line value grows downwards instead of scrolling sideways, so a long name or address is
+   read whole. It looks like the other text fields; only its height follows the text. */
+.admin-wrapping-field {
+  field-sizing: content;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  resize: none;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: inherit;
+}
+/* The whole chosen value, written under a select that is too narrow to show it. */
+.admin-field-choice {
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}

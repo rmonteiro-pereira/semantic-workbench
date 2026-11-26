@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AdminPane, type PaneProps } from './AdminPane';
 import { SelectField } from './SelectField';
+import { WrappingField } from './WrappingField';
 import { CodeEditor } from '../editor/CodeEditor';
 import { adminApi, problemText } from './api';
 import { ReviewChange } from './ReviewChange';
@@ -85,7 +86,7 @@ export function PolicyEditor({ initial, rules, version, onBack, onSaved }: PaneP
     <AdminPane title="Policy editor" backLabel="Back to policies" onBack={onBack}>
       <label>
         Description
-        <input value={policy.description} onChange={event => setPolicy({ ...policy, description: event.target.value })} />
+        <WrappingField value={policy.description} onValueChange={description => setPolicy({ ...policy, description })} />
       </label>
       <label>
         <input type="checkbox" checked={advanced} onChange={event => setAdvanced(event.target.checked)} />
@@ -108,7 +109,9 @@ export function PolicyEditor({ initial, rules, version, onBack, onSaved }: PaneP
           )}
         </>
       )}
-      {advanced && <CodeEditor value={policy.text} filename={policyEditorFilename(policy.id)} ariaLabel="Policy source" onChange={text => setPolicy({ ...policy, text })} validate={validate} />}
+      {advanced && (
+        <CodeEditor value={policy.text} filename={policyEditorFilename(policy.id)} ariaLabel="Policy source" wrapLines onChange={text => setPolicy({ ...policy, text })} validate={validate} />
+      )}
       <button onClick={validateProposal}>Validate</button>
       {error && <p role="alert">{error}</p>}
       {issues.map((issue, index) => (

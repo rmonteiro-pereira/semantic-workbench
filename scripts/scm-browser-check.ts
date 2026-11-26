@@ -425,7 +425,7 @@ try {
     sh(extra, ['init', '-q', '--bare', '-b', 'main', adminBare]);
     const remotes = await adminArea(page, 'Git remotes');
     const projectRow = remotes.getByRole('row').filter({ hasText: commerce.name });
-    await projectRow.getByRole('button', { name: 'Set remote…', exact: true }).click();
+    await projectRow.getByRole('button', { name: `Set remote for ${commerce.name}`, exact: true }).click();
     const dialog = remoteDialog(page);
     await dialog.getByLabel('Remote URL').fill(adminBare);
     await dialog.getByRole('button', { name: 'Save remote' }).click();
@@ -438,7 +438,7 @@ try {
     await expect(projectRow).toContainText('No remote');
     expect(sh(dir, ['remote']).trim()).toBe('');
     // The later checks need a remote, so it is set again from the same section.
-    await projectRow.getByRole('button', { name: 'Set remote…', exact: true }).click();
+    await projectRow.getByRole('button', { name: `Set remote for ${commerce.name}`, exact: true }).click();
     await dialog.getByLabel('Remote URL').fill(bare);
     await dialog.getByRole('button', { name: 'Save remote' }).click();
     await expect(projectRow).toContainText(bare);

@@ -4,7 +4,8 @@ import { adminApi, problemText } from './api';
 import { useAdminData } from './useAdminData';
 import { commaList } from './change-review';
 import { ACTIONS } from '../../shared/auth/actions';
-import type { AccessExplanation } from './types';
+import type { AccessExplanation, AdminUser } from './types';
+import { WrappingField } from './WrappingField';
 
 /** Names the decision in words when the server sends `{allow}`, and shows any other shape as is. */
 export function decisionLabel(decision: unknown): string {
@@ -13,6 +14,14 @@ export function decisionLabel(decision: unknown): string {
   if (typeof allow === 'boolean') return allow ? 'Allowed' : 'Denied';
   return JSON.stringify(decision);
 }
+/** Who the typed ID belongs to, written out whole, since a long ID is cut inside its field. */
+export function personEcho(users: AdminUser[], id: string): string {
+  if (!id) return '';
+  const user = users.find(candidate => candidate.id === id);
+  if (!user) return id;
+  return user.verifiedEmail ? `${user.name} · ${user.verifiedEmail}` : user.name;
+}
+
 /** Checks known or hypothetical people and lists who can act on a project or path. */
 export function AccessCheckSection({ principal = '' }: { principal?: string }) {
   const { data: users, error: loadError } = useAdminData(adminApi.users);
@@ -80,6 +89,11 @@ export function AccessCheckSection({ principal = '' }: { principal?: string }) {
               ))}
             </datalist>
           </label>
+          {person && (
+            <p className="admin-field-choice" aria-live="polite">
+              {personEcho(users ?? [], person)}
+            </p>
+          )}
           <p id="access-person-guidance" className="admin-section-intro">
             Choose a signed-in person or copy their ID from Users &amp; groups.
           </p>
@@ -89,11 +103,11 @@ export function AccessCheckSection({ principal = '' }: { principal?: string }) {
         <>
           <label>
             Groups (comma separated)
-            <input value={groups} onChange={event => setGroups(event.target.value)} />
+            <WrappingField value={groups} onValueChange={setGroups} />
           </label>
           <label>
             E-mail address
-            <input type="email" value={email} onChange={event => setEmail(event.target.value)} />
+            <WrappingField inputMode="email" value={email} onValueChange={setEmail} />
           </label>
         </>
       )}
@@ -104,15 +118,15 @@ export function AccessCheckSection({ principal = '' }: { principal?: string }) {
       </SelectField>
       <label>
         Project
-        <input value={project} onChange={event => setProject(event.target.value)} />
+        <WrappingField value={project} onValueChange={setProject} />
       </label>
       <label>
         Path
-        <input value={path} onChange={event => setPath(event.target.value)} />
+        <WrappingField value={path} onValueChange={setPath} />
       </label>
       <label>
         Branch
-        <input value={branch} onChange={event => setBranch(event.target.value)} />
+        <WrappingField value={branch} onValueChange={setBranch} />
       </label>
       <p className="admin-section-intro" id="access-check-guidance">
         Choose a person or enable Hypothetical person for Check access. Leave Project blank to check workspace access. Enter a project for Who can access.

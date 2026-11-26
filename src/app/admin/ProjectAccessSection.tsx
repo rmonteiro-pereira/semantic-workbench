@@ -3,6 +3,7 @@ import { adminApi } from './api';
 import { useAdminData } from './useAdminData';
 import { ReviewChange } from './ReviewChange';
 import { ProjectFields } from './ProjectFields';
+import { WrappingField } from './WrappingField';
 import { AgentGrants } from './AgentGrants';
 import { VersionHistory } from './VersionHistory';
 import type { ProjectsConfig } from './types';
@@ -75,7 +76,7 @@ export function ProjectsEditor({ initial, version, onSaved }: { initial: Project
         <div key={domain.id} className="admin-row">
           <label>
             {domain.id}
-            <input aria-label={`Domain name ${domain.id}`} value={domain.name} onChange={event => renameDomain(domain.id, event.target.value)} />
+            <WrappingField aria-label={`Domain name ${domain.id}`} value={domain.name} onValueChange={name => renameDomain(domain.id, name)} />
           </label>
           <button aria-label={`Remove domain ${domain.id}`} onClick={() => removeDomain(domain.id)}>
             Remove
@@ -85,11 +86,11 @@ export function ProjectsEditor({ initial, version, onSaved }: { initial: Project
       <div className="admin-row">
         <label>
           New domain ID
-          <input value={newId} onChange={event => setNewId(event.target.value)} />
+          <WrappingField value={newId} onValueChange={setNewId} />
         </label>
         <label>
           New domain name
-          <input value={newName} onChange={event => setNewName(event.target.value)} />
+          <WrappingField value={newName} onValueChange={setNewName} />
         </label>
         <button disabled={!newId.trim() || !newName.trim()} onClick={addDomain}>
           Add domain
