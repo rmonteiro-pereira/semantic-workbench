@@ -9,3 +9,8 @@ Small documents that declare `version: 0.3.0.dev0` and use the forms the draft b
 - `sales.mapping.yaml`: a mapping with `nonportable_extensions`.
 
 Each one is valid. Tests change one thing at a time to get each finding.
+
+`references-0.2-baseline.json` holds the rename and delete reference lists for four targets in the
+0.2 commerce example (a metric with bindings, a dataset, a field and a concept), recorded with the
+reference finder as it was before the draft base. `tests/references-0.3.test.ts` checks that the
+current finder still gives exactly these lists.
