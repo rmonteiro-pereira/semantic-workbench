@@ -1,6 +1,6 @@
 // The tool that checks proposed text with the save pipeline's own rules and writes nothing.
 import { GLOBAL_REQUEST_CAP_BYTES } from '../body-limits';
-import type { ToolContext, ToolDefinition } from '../tool-definition';
+import type { ToolDefinition } from '../tool-definition';
 import { findingsOf, MAXIMUM_FINDINGS, succeed, type Finding } from '../tool-results';
 import { EDIT_ARGUMENTS, PATCHES, READ_HINTS, VERSION } from './tool-arguments';
 
@@ -26,25 +26,11 @@ const validateText: ToolDefinition = {
     };
     const called = await context.twin('files.validate', { params: { slug: args.project, '*': args.path }, body });
     if (!called.ok) return called.failure;
-    const answer = called.answer.body as { valid: boolean; version: string | null; findings: Finding[]; guard: Record<string, unknown> };
+    const answer = called.answer.body as { valid: boolean; version: string | null; findings: Finding[]; guard: Record<string, unknown>; setNotChecked?: boolean };
     const findings = findingsOf(answer.findings, MAXIMUM_FINDINGS);
-    const setNotice = await savedSetNotice(args.project, args.path, context);
-    if (!setNotice.ok) return setNotice.failure;
-    return succeed({ valid: answer.valid, findings, findingCount: answer.findings.length, guard: answer.guard, ...setNotice.notice });
+    const setNotice = answer.setNotChecked === undefined ? {} : { setNotChecked: answer.setNotChecked };
+    return succeed({ valid: answer.valid, findings, findingCount: answer.findings.length, guard: answer.guard, ...setNotice });
   },
 };
-
-/**
- * Tells an agent whether the ontology set a root or part belongs to could be checked for this caller, as the file read
- * in the browser does. Validation itself checks one file, so an empty answer for a part must not read as a passing set.
- * The notice describes the saved set; a file that does not exist yet has none.
- */
-async function savedSetNotice(project: string, path: string, context: ToolContext) {
-  const read = await context.twin('files.read', { params: { slug: project, '*': path } });
-  if (!read.ok && read.answer?.status === 404) return { ok: true as const, notice: {} };
-  if (!read.ok) return read;
-  const unitValidation = (read.answer.body as { unitValidation?: { setNotChecked: boolean } }).unitValidation;
-  return { ok: true as const, notice: unitValidation ? { setNotChecked: unitValidation.setNotChecked } : {} };
-}
 
 export const validationTools: ToolDefinition[] = [validateText];

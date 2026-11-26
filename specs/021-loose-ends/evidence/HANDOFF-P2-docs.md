@@ -25,8 +25,8 @@ imports `src/server/usage/` or reads `layout.usage`. Nothing under `src/` was ch
 
 ## Open
 
-- Closed after the first merge: `validate_text` on a root or part now returns `setNotChecked`, taken from the
-  `files.read` twin, so the tool and the browser's file read share one rule. `tests/mcp/validate-set-notice.test.ts`
+- Closed after the first merge: `validate_text` on a root or part now returns `setNotChecked`. The validate route
+  computes it with the same function as the file read and the tool passes it on, with no second call or audited read. `tests/mcp/validate-set-notice.test.ts`
   (3 pass) fails without the change. The notice describes the saved set; a file not saved yet has none.
 - The explanation answer keeps the metric extension's own `owner` (a team name such as Finance). That is a
   public metric field, not the item governance owner, so the tool test checks the `owner` key only
