@@ -228,7 +228,7 @@ suites use `SW_BASE_URL`. The full runner supplies fresh frontend processes as n
 | `test:responsive` | Viewport/theme tours, geometry, text, focus, raw resize errors and shared content bounds for the metric list alone and beside a selected metric |
 | `test:edges` | Rendered edge endpoints during movement and zoom |
 | `test:grouping-validation` | Grouping transitions, attachment, provenance and repair |
-| `test:item-diff` | Unpublished comparison, graph marks and branch and publication journeys in an isolated workspace |
+| `test:item-diff` | Unpublished comparison, legend layout, graph marks and branch and publication journeys in an isolated workspace |
 | `test:published-snapshot` | Published status, local Publish and Adopt, migration notice, Mappings preview label and published export in both modes |
 | `test:overview-areas` | Group menu only in Graph, Overview grouping note, cards packed into columns and capped at eight with Show all, Catalog area filter ending on leaving Catalog or changing file |
 | `test:examples:ui` | Example loading, mappings and governed metric presentation |
@@ -694,7 +694,7 @@ readiness is checked separately.
 ### Ontology mesh checks
 
 Run focused mesh tests with `bun test tests/mesh`. The isolated browser journey is
-`bun run test:mesh`. List the focused mutation cases with `bun scripts/mesh-mutants.ts --list`.
+`bun run test:mesh`; it also checks the imported graph card’s provenance layout and key. List the focused mutation cases with `bun scripts/mesh-mutants.ts --list`.
 
 The development server compiled the 200-part, 20-import, 20 MB fixture in 4,383 ms
 (`bun test tests/mesh/compile-scale.test.ts`). The test checks the measured compile time

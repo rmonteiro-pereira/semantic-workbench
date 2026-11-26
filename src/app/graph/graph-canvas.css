@@ -277,3 +277,21 @@
     max-height: 40%;
   }
 }
+
+.mesh-imported-key,
+.mesh-imported-origin {
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.full-entity:has(.mesh-imported-origin) {
+  display: grid;
+  align-content: center;
+  gap: 0.2rem;
+}
+
+.full-entity:has(.mesh-imported-origin) strong {
+  display: block;
+  overflow: visible;
+}

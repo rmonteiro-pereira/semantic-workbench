@@ -1,6 +1,8 @@
 /** Exercises authoring and publication links in an isolated browser workspace. */
 import { chromium, expect, type Page } from '@playwright/test';
 import { LOCAL_READER } from '../src/server/projects/reader';
+import { hideGraphControls, revealGraphControls } from './helpers/graph-options';
+import { fileTab } from './helpers/screen-tour';
 import { appUrl } from './helpers/base-url';
 import { clippedTextProblems } from './helpers/clipped-text';
 import { layoutProblems } from './helpers/layout-geometry';
@@ -60,7 +62,7 @@ async function seed(api: IsolatedApi) {
   return retail.slug;
 }
 
-async function editImport(page: Page) {
+async function editImport(page: Page, api: IsolatedApi, project: string) {
   const tree = page.getByRole('tree', { name: 'Projects' });
   await tree.getByRole('button', { name: root, exact: true }).click();
   await page.locator('.tabs').getByRole('button', { name: 'Catalog', exact: true }).click();
@@ -76,6 +78,10 @@ async function editImport(page: Page) {
   await expect(editor.getByText('Compatibility not judged')).toBeVisible();
   await editor.getByRole('button', { name: 'Save dependency manifest' }).click();
   await expect(editor.getByRole('button', { name: 'Save dependency manifest' })).toHaveCount(0);
+  const saved = api.ws.readFile(project, root);
+  const data = JSON.parse(saved.source);
+  data.ontology[0].extends = ['fin.Invoice'];
+  await api.ws.saveFile(project, root, { baseHash: saved.hash, source: JSON.stringify(data) }, LOCAL_READER);
 }
 
 async function publish(page: Page, api: IsolatedApi, project: string) {
@@ -101,6 +107,27 @@ async function publish(page: Page, api: IsolatedApi, project: string) {
   const published = await response;
   expect(published.ok()).toBe(true);
   expect(published.request().postDataJSON()).toMatchObject({ disclosureShown: true });
+}
+
+async function checkImportedGraphCard(page: Page) {
+  // Direct fixture writes do not refresh the browser's document cache.
+  await page.reload();
+  await fileTab(root, 'Graph')(page);
+  const card = page.locator('.full-entity:has(.mesh-imported-origin)').first();
+  const origin = card.locator('.mesh-imported-origin');
+  const key = page.locator('.mesh-imported-key');
+  await expect(origin).toBeVisible();
+  await expect(card).toHaveCSS('display', 'grid');
+  await expect(card).toHaveCSS('align-content', 'center');
+  await expect(card.locator('strong')).toHaveCSS('display', 'block');
+  await expect(card.locator('strong')).toHaveCSS('overflow', 'visible');
+  await expect(origin).toHaveCSS('white-space', 'normal');
+  await expect(origin).toHaveCSS('overflow-wrap', 'anywhere');
+  await revealGraphControls(page);
+  await expect(key).toHaveCSS('white-space', 'normal');
+  const originColor = await origin.evaluate(element => getComputedStyle(element).color);
+  await expect(key).toHaveCSS('color', originColor);
+  await hideGraphControls(page);
 }
 
 async function checkMesh(page: Page, theme: 'light' | 'dark') {
@@ -129,8 +156,9 @@ try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     await routeApi(page, api);
     await page.goto(appUrl());
-    await editImport(page);
+    await editImport(page, api, retail);
     await publish(page, api, retail);
+    await checkImportedGraphCard(page);
     await page.getByRole('complementary', { name: 'Workspace documents' }).getByRole('button', { name: 'Mesh', exact: true }).click();
     for (const width of [1440, 768, 390]) {
       await page.setViewportSize({ width, height: 900 });

@@ -124,6 +124,19 @@ async function settledCardGeometry(page: Page) {
   return itemDiffCardGeometry(page);
 }
 
+async function checkComparisonLegend(page: Page) {
+  await revealGraphControls(page);
+  await page.getByRole('button', { name: 'Unpublished comparison details', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Unpublished comparison', exact: true });
+  const legend = dialog.locator('.item-overlay-legend');
+  await expect(legend).toHaveCSS('display', 'inline-flex');
+  await expect(legend).toHaveCSS('align-items', 'baseline');
+  await expect(legend).toHaveCSS('flex-wrap', 'wrap');
+  await expect(legend).toHaveCSS('gap', '5px');
+  await dialog.getByRole('button', { name: 'Close', exact: true }).click();
+  await hideGraphControls(page);
+}
+
 async function checkViewport(width: number, scheme: 'light' | 'dark') {
   const page = await browser.newPage({ viewport: { width, height: 900 }, colorScheme: scheme });
   try {
@@ -131,6 +144,7 @@ async function checkViewport(width: number, scheme: 'light' | 'dark') {
     await serveBrowser(page);
     await itemDiffTab(page, 'Graph');
     await checkItemMarks(page);
+    await checkComparisonLegend(page);
     await setItemDiffOverlay(page, false);
     await expect(page.locator('.full-graph .item-change-mark')).toHaveCount(0);
     await expect(page.locator('.full-graph-loading')).toHaveCount(0);

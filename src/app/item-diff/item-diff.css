@@ -100,3 +100,12 @@
 .node > .item-change-mark {
   color: var(--color-text);
 }
+
+.item-overlay-legend {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 5px;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
