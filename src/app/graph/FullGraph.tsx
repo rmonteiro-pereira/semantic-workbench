@@ -26,7 +26,6 @@ import { VALUE_KINDS, kpisKey, readFlag, readHideValues, writeFlag, writeHideVal
 import type { Entity, Relationship } from '../../shared/core/model';
 import { edgeTypes, nodeTypes } from './FullGraphNodes';
 import { FullscreenButton } from './FullscreenButton';
-export { FullscreenButton } from './FullscreenButton';
 import { useFullGraphEdges } from './useFullGraphEdges';
 import { fitFullGraph, fitGraphArea, focusFullGraph } from './full-graph-viewport';
 import { useFullGraphLayout } from './useFullGraphLayout';

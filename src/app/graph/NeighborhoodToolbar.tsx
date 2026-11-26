@@ -10,7 +10,7 @@ import { useUnpublishedWorkShowItem } from '../item-diff/unpublished-work-show-i
 import { ShowMenu } from './ShowMenu';
 import { PierceControls } from './PierceControls';
 import { ZoomButtons } from './ZoomButtons';
-import { FullscreenButton } from './FullGraph';
+import { FullscreenButton } from './FullscreenButton';
 import type { Fullscreen } from './fullscreen';
 import type { Direction } from './expansion';
 import type { Entity } from '../../shared/core/model';

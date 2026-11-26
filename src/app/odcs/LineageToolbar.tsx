@@ -244,7 +244,7 @@ export function LineageSubbar({ busy, context, viewportControls, foreignKeys, st
   );
 }
 
-/** Groups viewport actions beside the walk and hop controls. */
+/** Uses an icon-only full-screen button with lineage’s labels to fit beside the walk and hop controls. */
 export function LineageViewportControls({ fullscreen, onZoomIn, onZoomOut }: { fullscreen?: Fullscreen; onZoomIn: () => void; onZoomOut: () => void }) {
   return (
     <span className="lineage-viewport-controls" role="group" aria-label="Viewport">
