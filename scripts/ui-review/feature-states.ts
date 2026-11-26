@@ -1,6 +1,6 @@
 // Photographs the states of one feature, each cropped to the region that shows it, and measures every image.
 // Usage, through sw-midgard-run: bun scripts/ui-review/feature-states.ts OUTPUT GROUP [STATES]
-//   GROUP is proposals, connections, agent, closed, open, traffic, attributes, context, diff, mesh, compile or item-editors.
+//   GROUP is proposals, connections, agent, closed, open, traffic, attributes, context, diff, mesh, compile, convert or item-editors.
 //   closed, open and context retake part of the agent and attributes groups.
 //   STATES is an optional comma-separated list, such as loading,error, for a targeted recapture.
 // OUTPUT is the folder of one feature. Images in it and its sibling folders count toward one shared limit.
@@ -12,6 +12,7 @@ import { withCleanup } from '../helpers/processes';
 import { captureAgentPanel } from './feature-states/agent-panel';
 import { captureAttributes } from './feature-states/attributes';
 import { captureCompile } from './feature-states/compile';
+import { captureConvert } from './feature-states/convert';
 import { captureConnections } from './feature-states/connections';
 import { startDevServer } from './feature-states/dev-server';
 import { captureItemEditors } from './feature-states/item-editors';
@@ -51,6 +52,7 @@ async function runWithWorkspace(session: CaptureSession) {
       if (group === 'attributes') await attempt(session, group, () => captureAttributes(session, api));
       if (group === 'context') await attempt(session, group, () => captureAttributes(session, api, true));
       if (group === 'compile') await attempt(session, group, () => captureCompile(session, api));
+      if (group === 'convert') await attempt(session, group, () => captureConvert(session, api));
     },
   );
 }
