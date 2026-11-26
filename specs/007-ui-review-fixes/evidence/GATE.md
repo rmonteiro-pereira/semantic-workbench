@@ -71,46 +71,46 @@ All heavy commands used the unchanged `sw-midgard-run` wrapper. No origin push w
 Candidate browser commands were `bun scripts/ci-validate.ts --step browser --suite SUITE`.
 Main comparisons used an archived `da54cf17` source tree, the same installed dependencies and isolated fixtures.
 
-| Suite                    | Candidate exit/result                                                   | Main da54cf17                                                                                       |
-| ------------------------ | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| test:ui                  | 0                                                                       | Batch 2: no failure recorded                                                                        |
-| test:responsive          | 1, fullscreen restores a different zoom                                 | 1, matched fullscreen assertion; original run stops at canvas height                                |
-| test:edges               | 0                                                                       | Batch 2: no failure recorded                                                                        |
-| test:grouping-validation | 0                                                                       | Batch 2: no failure recorded                                                                        |
-| test:examples:ui         | 0                                                                       | Batch 2: no failure recorded                                                                        |
-| test:graph               | 1, neighborhood canvas 458.61 px below 480 px                           | Matched measurement 409 px, also below 480 px; original suite fails pierce timing                   |
-| test:lineage             | 1, UBL table first view exceeds 2000 ms                                 | Matched isolated check: 5195 ms; candidate 4874 ms; original main run stops at sidebar interception |
-| test:odcs                | 0                                                                       | Batch 2: no failure recorded                                                                        |
-| test:mapping-graph       | 0, 12 checks                                                            | Batch 2: no failure recorded                                                                        |
-| test:scm                 | 0 after harness repair                                                  | 0, rerun                                                                                            |
-| test:editor              | 1, 59.72 ms/key against 30 ms                                           | 1, same assertion, 58.51 ms/key                                                                     |
-| test:validation          | 0                                                                       | Batch 2: no failure recorded                                                                        |
-| test:theme               | 0                                                                       | Batch 2: no failure recorded                                                                        |
-| test:dialogs             | 0, 9 checks                                                             | Batch 2: no failure recorded                                                                        |
-| test:admin               | 0                                                                       | Batch 2: no failure recorded                                                                        |
-| test:auth                | 0                                                                       | Batch 2: no failure recorded                                                                        |
-| test:brand               | 0                                                                       | Batch 2: no failure recorded                                                                        |
-| test:metrics             | 0                                                                       | Batch 2: no failure recorded                                                                        |
-| test:trash               | 0                                                                       | Batch 2: no failure recorded                                                                        |
-| test:projects            | 0                                                                       | Batch 2: no failure recorded                                                                        |
-| test:sidebar             | 0, 4 checks                                                             | Batch 2: passed rerun                                                                               |
-| test:mappings-layout     | 0, 8 checks                                                             | Batch 2: no failure recorded                                                                        |
-| test:back-history        | 0                                                                       | Batch 2: inherited failure                                                                          |
-| test:tessera             | 0 after harness repair                                                  | 0, rerun                                                                                            |
-| test:item-diff           | 0 after DOM baseline refresh                                            | 0, rerun                                                                                            |
-| test:attributes          | 0                                                                       | Batch 2: no failure recorded                                                                        |
-| test:mesh                | 0                                                                       | Batch 2: no failure recorded                                                                        |
-| test:compile             | 0                                                                       | Batch 2: no failure recorded                                                                        |
-| test:usage-traffic       | 0, 51 checks after phone fix and harness refresh                        | 0, rerun                                                                                            |
-| test:connections         | 0                                                                       | Not individually rerun                                                                              |
-| test:mcp:browser         | 0                                                                       | Not individually rerun                                                                              |
-| test:proposals           | 0                                                                       | Batch 2: passed                                                                                     |
-| test:acp                 | 0                                                                       | Not individually rerun                                                                              |
-| test:mcp                 | 0                                                                       | Not individually rerun                                                                              |
-| mutation                 | Command exit 0: 958/958 killed, all baselines passed; outer wrapper 143 | Batch 2 records 942/942 killed; publication fixture failure reproduced directly                     |
-| check                    | 0 at df201d11                                                           | Batch 2: 0                                                                                          |
-| unit                     | Supplied result at d5d84e57: 4383 pass, 0 fail, exit 0                  | Batch 2 records two compile timing failures                                                         |
-| build                    | Supplied exit 0 before this round                                       | Batch 2: 0                                                                                          |
+| Suite | Candidate exit/result | Main da54cf17 |
+| --- | --- | --- |
+| test:ui | 0 | Batch 2: no failure recorded |
+| test:responsive | 1, fullscreen restores a different zoom | 1, matched fullscreen assertion; original run stops at canvas height |
+| test:edges | 0 | Batch 2: no failure recorded |
+| test:grouping-validation | 0 | Batch 2: no failure recorded |
+| test:examples:ui | 0 | Batch 2: no failure recorded |
+| test:graph | 1, neighborhood canvas 458.61 px below 480 px | Matched measurement 409 px, also below 480 px; original suite fails pierce timing |
+| test:lineage | 1, UBL table first view exceeds 2000 ms | Matched isolated check: 5195 ms; candidate 4874 ms; original main run stops at sidebar interception |
+| test:odcs | 0 | Batch 2: no failure recorded |
+| test:mapping-graph | 0, 12 checks | Batch 2: no failure recorded |
+| test:scm | 0 after harness repair | 0, rerun |
+| test:editor | 1, 59.72 ms/key against 30 ms | 1, same assertion, 58.51 ms/key |
+| test:validation | 0 | Batch 2: no failure recorded |
+| test:theme | 0 | Batch 2: no failure recorded |
+| test:dialogs | 0, 9 checks | Batch 2: no failure recorded |
+| test:admin | 0 | Batch 2: no failure recorded |
+| test:auth | 0 | Batch 2: no failure recorded |
+| test:brand | 0 | Batch 2: no failure recorded |
+| test:metrics | 0 | Batch 2: no failure recorded |
+| test:trash | 0 | Batch 2: no failure recorded |
+| test:projects | 0 | Batch 2: no failure recorded |
+| test:sidebar | 0, 4 checks | Batch 2: passed rerun |
+| test:mappings-layout | 0, 8 checks | Batch 2: no failure recorded |
+| test:back-history | 0 | Batch 2: inherited failure |
+| test:tessera | 0 after harness repair | 0, rerun |
+| test:item-diff | 0 after DOM baseline refresh | 0, rerun |
+| test:attributes | 0 | Batch 2: no failure recorded |
+| test:mesh | 0 | Batch 2: no failure recorded |
+| test:compile | 0 | Batch 2: no failure recorded |
+| test:usage-traffic | 0, 51 checks after phone fix and harness refresh | 0, rerun |
+| test:connections | 0 | Not individually rerun |
+| test:mcp:browser | 0 | Not individually rerun |
+| test:proposals | 0 | Batch 2: passed |
+| test:acp | 0 | Not individually rerun |
+| test:mcp | 0 | Not individually rerun |
+| mutation | Command exit 0: 958/958 killed, all baselines passed; outer wrapper 143 | Batch 2 records 942/942 killed; publication fixture failure reproduced directly |
+| check | 0 at df201d11 | Batch 2: 0 |
+| unit | Supplied result at d5d84e57: 4383 pass, 0 fail, exit 0 | Batch 2 records two compile timing failures |
+| build | Supplied exit 0 before this round | Batch 2: 0 |
 
 “Batch 2” entries cite main's own `git show da54cf17:GATE.md`, rather than a fresh run.
 Browser totals: 29 suites pass, four fail; the additional MCP command passes.
@@ -147,13 +147,13 @@ The first completed pixel-comparison snapshot contains 1529 pairs against main a
 007 baseline, at RGB tolerance 16. Changed previews were reviewed in batches of at most 30,
 with a longest side of at most 1600 px. Full-page counterparts inherit the matching viewport disposition.
 
-| Classification               | Pairs in this snapshot |
-| ---------------------------- | ---------------------: |
-| Fixed                        |                      0 |
-| Intended                     |                   1296 |
-| Unchanged                    |                    225 |
-| Regression                   |                      0 |
-| Excluded: different fixtures |                      8 |
+| Classification | Pairs in this snapshot |
+| --- | ---: |
+| Fixed | 0 |
+| Intended | 1296 |
+| Unchanged | 225 |
+| Regression | 0 |
+| Excluded: different fixtures | 8 |
 
 These are partial counts, not a claim that every matrix image has been classified. Later completed
 capture batches and additional accepted-baseline matches still require comparison and review.
@@ -213,6 +213,7 @@ confirmed regression before marking the gate complete.
 - Metric detail aligns to the common left edge. At 1920 px and wider the list and the open metric together take the shared
   content width (`--content-max-width`), centred like Catalog, Overview, Mappings and the metrics list. The side-by-side list
   and detail is kept. The responsive content-width check measures the list and the detail as one page.
+
 
 ## Focused regressions and suite retries
 
@@ -325,26 +326,26 @@ confirmed regression before marking the gate complete.
 mutant triggered the actual clipping assertion, and the examples module baseline passed. The browser gate covered all 36 registered suites. Twenty-nine
 passed after focused harness fixes. The seven remaining suite failures have a matching main failure at the failing behavior.
 
-| Suite             | Candidate                                                                                              | Pinned main                                                                                                      |
-| ----------------- | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| `test:admin`      | Times out waiting for Dry-run result.                                                                  | Same timeout on the canonical suite.                                                                             |
-| `test:autosave`   | The UI commits, then the fixture cannot resolve `main`.                                                | Same unknown-revision error after the UI commit.                                                                 |
-| `test:git-setup`  | The default branch has no commits after a UI working-copy commit.                                      | Same Git error after the UI commit.                                                                              |
-| `test:editor`     | 55.31 ms/key for the 1.9 MB source against a 30 ms limit.                                              | 55.36 ms/key at the same assertion.                                                                              |
-| `test:graph`      | 287 ms longest task on Both-direction Full pierce against a 100 ms limit.                              | 240 ms at the same assertion.                                                                                    |
-| `test:lineage`    | The UBL canonical suite exceeds 2 s. The matched switch with frozen imports also exceeds 2 s.          | The canonical suite stops earlier at a Walk click; the matched switch with the same timed lab steps exceeds 2 s. |
-| `test:responsive` | Passes the compact Full Graph threshold (511 px). The phone tour fails the ODCS contract-ID assertion. | Fails the earlier Full Graph threshold (481 px). The focused phone ODCS run fails the same ID assertion.         |
+| Suite | Candidate | Pinned main |
+| --- | --- | --- |
+| `test:admin` | Times out waiting for Dry-run result. | Same timeout on the canonical suite. |
+| `test:autosave` | The UI commits, then the fixture cannot resolve `main`. | Same unknown-revision error after the UI commit. |
+| `test:git-setup` | The default branch has no commits after a UI working-copy commit. | Same Git error after the UI commit. |
+| `test:editor` | 55.31 ms/key for the 1.9 MB source against a 30 ms limit. | 55.36 ms/key at the same assertion. |
+| `test:graph` | 287 ms longest task on Both-direction Full pierce against a 100 ms limit. | 240 ms at the same assertion. |
+| `test:lineage` | The UBL canonical suite exceeds 2 s. The matched switch with frozen imports also exceeds 2 s. | The canonical suite stops earlier at a Walk click; the matched switch with the same timed lab steps exceeds 2 s. |
+| `test:responsive` | Passes the compact Full Graph threshold (511 px). The phone tour fails the ODCS contract-ID assertion. | Fails the earlier Full Graph threshold (481 px). The focused phone ODCS run fails the same ID assertion. |
 
 The Mall ODCS canvas is separate from those responsive checks. It remains 389 px on both main and candidate against 421 px in the equivalent Example
 view. The candidate's 30 px Full Graph gain comes from the Full Graph toolbar, not from lane B's lineage changes.
 
 ### Verification after the graph corrections
 
-| Command               | Summary                                                                                                               |
-| --------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `bun test`            | Exit 0. 2,448 pass, 0 fail, 346,969 assertions across 350 files (1,859.88 s).                                         |
+| Command | Summary |
+| --- | --- |
+| `bun test` | Exit 0. 2,448 pass, 0 fail, 346,969 assertions across 350 files (1,859.88 s). |
 | `bun --bun run check` | Exit 0. TypeScript passed, 1,180 files formatted, 2,661 lint warnings and 0 errors. Comments, theme and brand passed. |
-| `bun --bun run build` | Exit 0. Vite built in 3.18 s with the chunk-size advisory.                                                            |
+| `bun --bun run build` | Exit 0. Vite built in 3.18 s with the chunk-size advisory. |
 
 The application revision includes `481d012b`. The retry of the browser history suite changes its test fingerprint only.
 `sw-midgard-run -- bash scripts/ui-review/gate-007/retry-launch.sh` started the browser retry followed by mutation and the checkpointed capture.
@@ -602,13 +603,13 @@ speculative worker change was retained. The standalone main suite still stops ea
 
 These pairs compare the candidate before and after each correction. The scores are percentages of changed RGBA pixels at the original dimensions.
 
-| Image in `before/fixes/` and `after/fixes/` | Finding | Changed pixels | Observation                                                                       |
-| ------------------------------------------- | ------- | -------------: | --------------------------------------------------------------------------------- |
-| `mall-mapping-fit-1440.png`                 | M4      |     25.618750% | The layout uses the available width. Complete names wrap inside all fitted cards. |
-| `ubl-neighborhood-walk-1600.png`            | M15     |     13.231375% | The first target and its Walk control are inside the canvas.                      |
-| `ubl-neighborhood-walk-reached-1600.png`    | M15     |     11.775875% | The two relationship paths enter the reached card separately.                     |
-| `ubl-area-headings-1280.png`                | m9      |      1.119575% | The two wrapped title plates have visible clearance above their cards.            |
-| `mall-graph-back-1440.png`                  | M2, M13 |     40.086034% | Back restores 12 readable counted areas in place of 195 tiny individual cards.    |
+| Image in `before/fixes/` and `after/fixes/` | Finding | Changed pixels | Observation |
+| --- | --- | ---: | --- |
+| `mall-mapping-fit-1440.png` | M4 | 25.618750% | The layout uses the available width. Complete names wrap inside all fitted cards. |
+| `ubl-neighborhood-walk-1600.png` | M15 | 13.231375% | The first target and its Walk control are inside the canvas. |
+| `ubl-neighborhood-walk-reached-1600.png` | M15 | 11.775875% | The two relationship paths enter the reached card separately. |
+| `ubl-area-headings-1280.png` | m9 | 1.119575% | The two wrapped title plates have visible clearance above their cards. |
+| `mall-graph-back-1440.png` | M2, M13 | 40.086034% | Back restores 12 readable counted areas in place of 195 tiny individual cards. |
 
 ### Full Graph area headings
 
@@ -634,7 +635,7 @@ The conflict resolutions preserve operation boundary mutation coverage and the a
 
 - T002 is complete. The capture index introduced in `5f77711f` and refined in `ceaeed5d` and `6e301fd4` covers all 109 distinct PNG paths named in the spec and tasks.
 - T057 is complete within the gate scope. `81bee1e1` implements the catalog alignment, inline badges, sidebar scroll fade and humanized type labels. `77cd6447` and `7733dfb0` preserve complete descriptions and consistent row height. The 1440 px UBL and Commerce comparisons show aligned card titles, complete descriptions, humanized types and visible Edit actions. Commit `3731b0ae` shows Edit on hover and keyboard focus with a fine pointer, retains it on touch, and fades only the edges with more tree rows.
-  Description shortening is excluded by the complete-text requirement.
+Description shortening is excluded by the complete-text requirement.
 - T064 is complete. `81bee1e1` preserves the sidebar spacing and reuses the content cap for the metrics list. On 24 Nov main decided the open metric aligns to the common left edge while list and detail stay side by side: `73ececee` makes the list and detail share the content width at 1920 px and wider, and `62fbf688` makes the responsive shell tour open a metric and measure both outer edges.
 - T010 is recorded as complete from the five original lane refs and the lane evidence. `git show-ref --verify` found A `db4d394f`, B `ab5a420c`,
   C `837ab16b`, D `f676f076` and E `200044e6`. The owner confirmed the separate worktrees and the lane logs document their isolated ports and data.
@@ -646,48 +647,48 @@ The suite driver checks available memory before each command, waits below 8 GB, 
 
 Completed checks on the rebased candidate:
 
-| Command                                                                      | Summary                                                                                                                                                                                                                                  |
-| ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `bun test`                                                                   | 2,446 pass, 0 fail, 347,024 assertions across 350 files (2,030.75 s).                                                                                                                                                                    |
-| `bun --bun run check`                                                        | Exit 0 in 46.8 s. TypeScript passed, 1,180 files formatted, lint reported 2,661 warnings and 0 errors. Comments, theme and brand checks passed.                                                                                          |
-| `bun --bun run build`                                                        | Exit 0 in 6.2 s. Vite built in 3.24 s with the chunk-size advisory.                                                                                                                                                                      |
-| `bun scripts/ci-validate.ts --step mutation`                                 | Exit 1 in 2,994.7 s. `Surviving UI mutant: clamped catalog description without its full-text tooltip`. All unmodified module baselines passed.                                                                                           |
-| `bun scripts/ci-validate.ts --step browser --suite test:auth`                | Exit 1 in 47.0 s. Read-only role check expects an accessible name beginning with `Commit to` but the disabled button is named `Commit`.                                                                                                  |
-| `bun scripts/ci-validate.ts --step browser --suite test:two-editors`         | Exit 1 in 73.7 s. Personal edits, branches and commit authors all passed. The publication step waited for the obsolete button name `Sync…`.                                                                                              |
-| `bun scripts/ci-validate.ts --step browser --suite test:admin`               | Exit 1 in 35.6 s. The candidate failed at the `Dry-run result` region, the same assertion reported on main.                                                                                                                              |
-| `bun scripts/ci-validate.ts --step browser --suite test:ui`                  | Exit 0 in 65.8 s. `20 UI checks passed`, including no browser runtime errors.                                                                                                                                                            |
-| `bun scripts/ci-validate.ts --step browser --suite test:responsive`          | Exit 1 in 105.1 s. The candidate passed the 1280×720 compact-shell assertion that main fails. At the next phone viewport, loading the UBL model timed out before the heading appeared. The Mall ODCS check still needs a standalone run. |
-| `bun scripts/ci-validate.ts --step browser --suite test:edges`               | 6 edge attachment UI checks passed (32.8 s).                                                                                                                                                                                             |
-| `bun scripts/ci-validate.ts --step browser --suite test:grouping-validation` | 8 grouping and validation UI checks passed (60.9 s).                                                                                                                                                                                     |
-| `bun scripts/ci-validate.ts --step browser --suite test:overview-areas`      | 7 overview area checks passed (37.9 s).                                                                                                                                                                                                  |
-| `bun scripts/ci-validate.ts --step browser --suite test:published-snapshot`  | 2 published snapshot browser checks passed (32.6 s).                                                                                                                                                                                     |
-| `bun scripts/ci-validate.ts --step browser --suite test:examples:ui`         | 19 example UI checks passed, no browser runtime errors (129.7 s).                                                                                                                                                                        |
-| `bun scripts/ci-validate.ts --step browser --suite test:projects`            | 8 project checks passed (37.3 s).                                                                                                                                                                                                        |
-| `bun scripts/ci-validate.ts --step browser --suite test:trash`               | 13 trash checks passed (43.0 s).                                                                                                                                                                                                         |
-| `bun scripts/ci-validate.ts --step browser --suite test:sidebar`             | Exit 1 in 67.8 s. Timed out opening a desktop viewport before the project tree or empty state appeared.                                                                                                                                  |
-| `bun scripts/ci-validate.ts --step browser --suite test:metrics`             | 11 metrics checks passed (69.3 s), including phone and wide-screen containment.                                                                                                                                                          |
-| `bun scripts/ci-validate.ts --step browser --suite test:graph`               | Exit 1 in 115.3 s. The Mall ontology Graph passed the 473 px minimum. Later, the Neighborhood trail intercepted pointer events for Walk to AllowanceCharge.                                                                              |
-| `bun scripts/ci-validate.ts --step browser --suite test:editor`              | Exit 1 in 56.3 s. The 1.9 MB editor check measured 55.31 ms per keystroke with a limit below 30 ms.                                                                                                                                      |
-| `bun scripts/ci-validate.ts --step browser --suite test:item-edit`           | Exit 1 in 50.5 s. The first two edit checks passed. The next still selected the raw EntityType label instead of the humanized catalog row.                                                                                               |
-| `bun scripts/ci-validate.ts --step browser --suite test:addresses`           | 4 item address browser checks passed (18.1 s).                                                                                                                                                                                           |
-| `bun scripts/ci-validate.ts --step browser --suite test:rdf-edit`            | 9 RDF edit checks passed (40.4 s).                                                                                                                                                                                                       |
-| `bun scripts/ci-validate.ts --step browser --suite test:validation`          | Exit 0 in 22.1 s.                                                                                                                                                                                                                        |
-| `bun scripts/ci-validate.ts --step browser --suite test:scm`                 | 20 Source Control checks passed (59.7 s), including phone containment and read-only actions.                                                                                                                                             |
-| `bun scripts/ci-validate.ts --step browser --suite test:odcs`                | 10 ODCS checks passed (39.2 s).                                                                                                                                                                                                          |
-| `bun scripts/ci-validate.ts --step browser --suite test:lineage`             | Exit 1 in 63.7 s. Commerce and Mall edge rendering passed. The 169-table UBL first view measured 3,784 ms with a 2,000 ms limit.                                                                                                         |
-| `bun scripts/ci-validate.ts --step browser --suite test:autosave`            | Exit 1 in 25.6 s. Save and commit assertions passed, followed by a Git log assertion that could not resolve main.                                                                                                                        |
-| `bun scripts/ci-validate.ts --step browser --suite test:sql`                 | 10 SQL checks passed (36.0 s).                                                                                                                                                                                                           |
-| `bun scripts/ci-validate.ts --step browser --suite test:git-setup`           | Exit 1 in 12.3 s. Setting identity and committing through the UI passed. The fixture repository had no commits on its current main branch.                                                                                               |
-| `bun scripts/ci-validate.ts --step browser --suite test:monorepo`            | Exit 1 in 30.7 s. Clone finished with “Cloned monorepo.” but the browser check required “Cloned.”.                                                                                                                                       |
-| `bun scripts/ci-validate.ts --step browser --suite test:dialogs`             | 9 dialog checks passed across six viewports (326.5 s).                                                                                                                                                                                   |
-| `bun scripts/ci-validate.ts --step browser --suite test:telemetry`           | Exit 1 in 104.8 s. Seven reporting and privacy checks passed. The disabled-report scenario could not open Catalog.                                                                                                                       |
-| `bun scripts/ci-validate.ts --step browser --suite test:terminology`         | Exit 0 in 104.2 s.                                                                                                                                                                                                                       |
-| `bun scripts/ci-validate.ts --step browser --suite test:mappings-layout`     | 8 mapping layout checks passed (78.6 s).                                                                                                                                                                                                 |
-| `bun scripts/ci-validate.ts --step browser --suite test:clipping`            | Exit 0 in 28.8 s.                                                                                                                                                                                                                        |
-| `bun scripts/ci-validate.ts --step browser --suite test:mapping-graph`       | Exit 1 in 109.1 s. Fit left five Mall overview card names outside their cards at 9 px.                                                                                                                                                   |
-| `bun scripts/ci-validate.ts --step browser --suite test:back-history`        | Exit 1 in 52.2 s. The Neighborhood trail covered the second Mall neighbor and prevented the first selection.                                                                                                                             |
-| `bun scripts/ci-validate.ts --step browser --suite test:theme`               | Exit 1 in 56.7 s. Both font loads, offline first-run fonts, theme switching and contrast checks passed. The light sidebar assertion counted a disabled status indicator as an outlined action.                                           |
-| `bun scripts/ci-validate.ts --step browser --suite test:brand`               | Exit 0 in 11.9 s.                                                                                                                                                                                                                        |
+| Command | Summary |
+| --- | --- |
+| `bun test` | 2,446 pass, 0 fail, 347,024 assertions across 350 files (2,030.75 s). |
+| `bun --bun run check` | Exit 0 in 46.8 s. TypeScript passed, 1,180 files formatted, lint reported 2,661 warnings and 0 errors. Comments, theme and brand checks passed. |
+| `bun --bun run build` | Exit 0 in 6.2 s. Vite built in 3.24 s with the chunk-size advisory. |
+| `bun scripts/ci-validate.ts --step mutation` | Exit 1 in 2,994.7 s. `Surviving UI mutant: clamped catalog description without its full-text tooltip`. All unmodified module baselines passed. |
+| `bun scripts/ci-validate.ts --step browser --suite test:auth` | Exit 1 in 47.0 s. Read-only role check expects an accessible name beginning with `Commit to` but the disabled button is named `Commit`. |
+| `bun scripts/ci-validate.ts --step browser --suite test:two-editors` | Exit 1 in 73.7 s. Personal edits, branches and commit authors all passed. The publication step waited for the obsolete button name `Sync…`. |
+| `bun scripts/ci-validate.ts --step browser --suite test:admin` | Exit 1 in 35.6 s. The candidate failed at the `Dry-run result` region, the same assertion reported on main. |
+| `bun scripts/ci-validate.ts --step browser --suite test:ui` | Exit 0 in 65.8 s. `20 UI checks passed`, including no browser runtime errors. |
+| `bun scripts/ci-validate.ts --step browser --suite test:responsive` | Exit 1 in 105.1 s. The candidate passed the 1280×720 compact-shell assertion that main fails. At the next phone viewport, loading the UBL model timed out before the heading appeared. The Mall ODCS check still needs a standalone run. |
+| `bun scripts/ci-validate.ts --step browser --suite test:edges` | 6 edge attachment UI checks passed (32.8 s). |
+| `bun scripts/ci-validate.ts --step browser --suite test:grouping-validation` | 8 grouping and validation UI checks passed (60.9 s). |
+| `bun scripts/ci-validate.ts --step browser --suite test:overview-areas` | 7 overview area checks passed (37.9 s). |
+| `bun scripts/ci-validate.ts --step browser --suite test:published-snapshot` | 2 published snapshot browser checks passed (32.6 s). |
+| `bun scripts/ci-validate.ts --step browser --suite test:examples:ui` | 19 example UI checks passed, no browser runtime errors (129.7 s). |
+| `bun scripts/ci-validate.ts --step browser --suite test:projects` | 8 project checks passed (37.3 s). |
+| `bun scripts/ci-validate.ts --step browser --suite test:trash` | 13 trash checks passed (43.0 s). |
+| `bun scripts/ci-validate.ts --step browser --suite test:sidebar` | Exit 1 in 67.8 s. Timed out opening a desktop viewport before the project tree or empty state appeared. |
+| `bun scripts/ci-validate.ts --step browser --suite test:metrics` | 11 metrics checks passed (69.3 s), including phone and wide-screen containment. |
+| `bun scripts/ci-validate.ts --step browser --suite test:graph` | Exit 1 in 115.3 s. The Mall ontology Graph passed the 473 px minimum. Later, the Neighborhood trail intercepted pointer events for Walk to AllowanceCharge. |
+| `bun scripts/ci-validate.ts --step browser --suite test:editor` | Exit 1 in 56.3 s. The 1.9 MB editor check measured 55.31 ms per keystroke with a limit below 30 ms. |
+| `bun scripts/ci-validate.ts --step browser --suite test:item-edit` | Exit 1 in 50.5 s. The first two edit checks passed. The next still selected the raw EntityType label instead of the humanized catalog row. |
+| `bun scripts/ci-validate.ts --step browser --suite test:addresses` | 4 item address browser checks passed (18.1 s). |
+| `bun scripts/ci-validate.ts --step browser --suite test:rdf-edit` | 9 RDF edit checks passed (40.4 s). |
+| `bun scripts/ci-validate.ts --step browser --suite test:validation` | Exit 0 in 22.1 s. |
+| `bun scripts/ci-validate.ts --step browser --suite test:scm` | 20 Source Control checks passed (59.7 s), including phone containment and read-only actions. |
+| `bun scripts/ci-validate.ts --step browser --suite test:odcs` | 10 ODCS checks passed (39.2 s). |
+| `bun scripts/ci-validate.ts --step browser --suite test:lineage` | Exit 1 in 63.7 s. Commerce and Mall edge rendering passed. The 169-table UBL first view measured 3,784 ms with a 2,000 ms limit. |
+| `bun scripts/ci-validate.ts --step browser --suite test:autosave` | Exit 1 in 25.6 s. Save and commit assertions passed, followed by a Git log assertion that could not resolve main. |
+| `bun scripts/ci-validate.ts --step browser --suite test:sql` | 10 SQL checks passed (36.0 s). |
+| `bun scripts/ci-validate.ts --step browser --suite test:git-setup` | Exit 1 in 12.3 s. Setting identity and committing through the UI passed. The fixture repository had no commits on its current main branch. |
+| `bun scripts/ci-validate.ts --step browser --suite test:monorepo` | Exit 1 in 30.7 s. Clone finished with “Cloned monorepo.” but the browser check required “Cloned.”. |
+| `bun scripts/ci-validate.ts --step browser --suite test:dialogs` | 9 dialog checks passed across six viewports (326.5 s). |
+| `bun scripts/ci-validate.ts --step browser --suite test:telemetry` | Exit 1 in 104.8 s. Seven reporting and privacy checks passed. The disabled-report scenario could not open Catalog. |
+| `bun scripts/ci-validate.ts --step browser --suite test:terminology` | Exit 0 in 104.2 s. |
+| `bun scripts/ci-validate.ts --step browser --suite test:mappings-layout` | 8 mapping layout checks passed (78.6 s). |
+| `bun scripts/ci-validate.ts --step browser --suite test:clipping` | Exit 0 in 28.8 s. |
+| `bun scripts/ci-validate.ts --step browser --suite test:mapping-graph` | Exit 1 in 109.1 s. Fit left five Mall overview card names outside their cards at 9 px. |
+| `bun scripts/ci-validate.ts --step browser --suite test:back-history` | Exit 1 in 52.2 s. The Neighborhood trail covered the second Mall neighbor and prevented the first selection. |
+| `bun scripts/ci-validate.ts --step browser --suite test:theme` | Exit 1 in 56.7 s. Both font loads, offline first-run fonts, theme switching and contrast checks passed. The light sidebar assertion counted a disabled status indicator as an outlined action. |
+| `bun scripts/ci-validate.ts --step browser --suite test:brand` | Exit 0 in 11.9 s. |
 
 The first pass ran all 36 registered browser suites. Twenty passed and sixteen failed.
 
@@ -698,11 +699,11 @@ Reported failures on middle revision `5597ae52`: `test:responsive` observed a 48
 
 The first repeated capture batch measured the viewport at 1280×720 on the same frozen inputs.
 
-| Local Graph canvas | v0.6.1 |   Main | Candidate |
-| ------------------ | -----: | -----: | --------: |
-| UBL ontology       | 481 px | 481 px |    511 px |
-| Mall ontology      | 481 px | 481 px |    511 px |
-| Mall ODCS          | 389 px | 389 px |    389 px |
+| Local Graph canvas | v0.6.1 | Main | Candidate |
+| --- | ---: | ---: | ---: |
+| UBL ontology | 481 px | 481 px | 511 px |
+| Mall ontology | 481 px | 481 px | 511 px |
+| Mall ODCS | 389 px | 389 px | 389 px |
 
 The 30 px UBL gain is in the Full Graph surface owned by lane A. The Mall ODCS canvas uses the lineage surface owned by lane B.
 The frozen-import ODCS geometry is below the suite's 421 px threshold on all versions. The standalone suite still needs to check
@@ -724,11 +725,11 @@ The per-file inventories returned the same 5,298 entities and 12,145 relationshi
 The UBL server import went into HR for the reader's journey. The other server imports went into Sales.
 The unbound project was renamed through the UI after import to distinguish it from the other Mapped commerce project.
 
-| Capture version          | Commit                                     | Vite build | Local import         | Server import        | Entities | Relationships |
-| ------------------------ | ------------------------------------------ | ---------- | -------------------- | -------------------- | -------- | ------------- |
-| v0.6.1                   | `3b1c2c10bc6ae96c6c603301764bde4cfdc4dcd4` | 3.10 s     | 9 projects, 43 files | 9 projects, 43 files | 5,298    | 12,145        |
-| Main                     | `5597ae52c55cb76a864aa242873dbbe7083a000e` | 3.12 s     | 9 projects, 43 files | 9 projects, 43 files | 5,298    | 12,145        |
-| Candidate at preparation | `e090f17691f0a6dc593386a916fb6ac90317a52d` | 3.01 s     | 9 projects, 43 files | 9 projects, 43 files | 5,298    | 12,145        |
+| Capture version | Commit | Vite build | Local import | Server import | Entities | Relationships |
+| --- | --- | --- | --- | --- | --- | --- |
+| v0.6.1 | `3b1c2c10bc6ae96c6c603301764bde4cfdc4dcd4` | 3.10 s | 9 projects, 43 files | 9 projects, 43 files | 5,298 | 12,145 |
+| Main | `5597ae52c55cb76a864aa242873dbbe7083a000e` | 3.12 s | 9 projects, 43 files | 9 projects, 43 files | 5,298 | 12,145 |
+| Candidate at preparation | `e090f17691f0a6dc593386a916fb6ac90317a52d` | 3.01 s | 9 projects, 43 files | 9 projects, 43 files | 5,298 | 12,145 |
 
 `sw-midgard-run` launched the detached comparison preparation and returned status 0 for the full prepare phase.
 `bun --bun run build` ran within each checkout. Each used the same dependency lock.
@@ -738,47 +739,47 @@ The serial Import driver verified each response file hash and closed Chromium an
 <details>
 <summary>Frozen input hashes</summary>
 
-| Frozen source                            | SHA-256                                                            |
-| ---------------------------------------- | ------------------------------------------------------------------ |
-| `billing/billing.mapping.yaml`           | `8df7269adfa49bae09ebedd26da75e03a8b7e134333a96c44e1b4cfeb7c481f4` |
-| `billing/billing.odcs.yaml`              | `3f3bbda2933f10e6e42e3ffaaaef58b7de9ab78eaef1405c8ec7096fbcb4d078` |
-| `billing/billing.ontology.yaml`          | `faf35e9592ade9fe15ff5107bf24258b7156c3346f8443b43e6c479d8554b1a3` |
-| `billing/billing.semantic.yaml`          | `2653c136378a00df30b90649ca1fd06d5268d5a7bb0adcb588cbb07f3e3bbdc0` |
-| `commerce/commerce-business.ossie.yaml`  | `7ad7245528e26cac6ba14f8fba5541562d5aed76399b126aae40bef06bb911b0` |
-| `commerce/commerce-data.ttl`             | `3ff01477fdba89c0f36030cbc271b7a73c618682f06c405dcde8c0634e98d31a` |
-| `commerce/commerce-scale.ttl`            | `e93b0b93f039617d868f49cc52f5cfc04db2d8be245f45c88170be11f5d389e3` |
+| Frozen source | SHA-256 |
+| --- | --- |
+| `billing/billing.mapping.yaml` | `8df7269adfa49bae09ebedd26da75e03a8b7e134333a96c44e1b4cfeb7c481f4` |
+| `billing/billing.odcs.yaml` | `3f3bbda2933f10e6e42e3ffaaaef58b7de9ab78eaef1405c8ec7096fbcb4d078` |
+| `billing/billing.ontology.yaml` | `faf35e9592ade9fe15ff5107bf24258b7156c3346f8443b43e6c479d8554b1a3` |
+| `billing/billing.semantic.yaml` | `2653c136378a00df30b90649ca1fd06d5268d5a7bb0adcb588cbb07f3e3bbdc0` |
+| `commerce/commerce-business.ossie.yaml` | `7ad7245528e26cac6ba14f8fba5541562d5aed76399b126aae40bef06bb911b0` |
+| `commerce/commerce-data.ttl` | `3ff01477fdba89c0f36030cbc271b7a73c618682f06c405dcde8c0634e98d31a` |
+| `commerce/commerce-scale.ttl` | `e93b0b93f039617d868f49cc52f5cfc04db2d8be245f45c88170be11f5d389e3` |
 | `commerce/commerce.mapped-ontology.yaml` | `21f1ff7a40946b0fc7cd46bdc130390e243f904dbb00fbd9c5f35f16f2e80a01` |
 | `commerce/commerce.mapped-semantic.yaml` | `64c18fb46af93c4f00f804a578312f9af7f476157cf89b373dd3ab556ee6168e` |
-| `commerce/commerce.mapping.yaml`         | `bed274e8cb6d3b632e7dfe1d5e02f70d8a3af1b8e0fd162a717899887e423599` |
-| `commerce/commerce.odcs.yaml`            | `30cbafad91dac376320668e6a3df16913f171bdf156c2114913e5d17a80e1992` |
-| `commerce/commerce.owl`                  | `d92ee09aaeea891f6774a822f46aefa1de5065ff2c5be03c8374e8646b422a3a` |
-| `commerce/commerce.owl.ttl`              | `cc7f01232bb10a8fd73bc394ba3378765572112b32662a4a4bddb11bd90178f1` |
-| `commerce/commerce.shacl.ttl`            | `0ee9a65a3aa413f3478419e8260fdadcfd6b8f71a2ee43ff47ac8e08da60a552` |
-| `commerce/sales.mapping.yaml`            | `e4d29469e30fd486805980b377976338a4127341255bb75ad1d45affed505c49` |
-| `commerce/sales.ossie.yaml`              | `42d5fd7389861ef34349b2d5d9b9be91c4a80528b55ba2720aac9e51de6f2232` |
-| `mall/mall-data.ttl`                     | `b2a24c09086d44b178210fb6a0376d1529d103ee552399b2e3a5e3e0e1faa532` |
-| `mall/mall.mapping.yaml`                 | `ddfe91807d88a22a91948e790852dff9dcfe28f962cc90b3a0ad74e3ea28177f` |
-| `mall/mall.odcs.yaml`                    | `707d338f3f3fdee63b5fa5e2e9fa1ed1d8f7a0b14b7c20863a1b84dfa333c400` |
-| `mall/mall.ontology.yaml`                | `5d11b246f6890a4e3a11a0ed17e08810945dfeac458d369d0726dec54a8fe4f7` |
-| `mall/mall.owl.ttl`                      | `df4b7eb7fead55f9061ee194f7ba482fab1bdebd4015fa8a39fa5c552b1e02b2` |
-| `mall/mall.semantic.yaml`                | `ce3ba1ed501bd170d24e30cd6c04746a9319dab7734943a8e3de99dcfb5692e1` |
-| `mall/mall.shacl.ttl`                    | `0f9f4e5c3b4e069018c7c8768f7b8bf841ef26db505a4984b71fefaee96711b9` |
-| `ossie/flights.mapping.yaml`             | `dd62e2614097d0fa3f457fdb15a4ac431cfbbc088fa0a46148d2671ca6b1215c` |
-| `ossie/flights.metrics.mapping.yaml`     | `73a7a1061c2b5f6c273cee8e3b8c93a2a8f8c73affbe1f1c469dbba3d6deaa0b` |
-| `ossie/flights.metrics.semantic.yaml`    | `2d7aa9fada288ae70acb41921f4f58f555b928b26b009d7a0517d531cddb1c86` |
-| `ossie/flights.odcs.yaml`                | `9a7c220945419e97b815f185a707ecbc692110366bb1fc74a67262a3ba2a7d61` |
-| `ossie/flights.ontology.yaml`            | `4035aa22494a1dfc739f5fe6689ffa74d07338497ef67a7acab69c568eae00fd` |
-| `ossie/flights.semantic_model.yaml`      | `e0652e489c1bbf69066c9c17109175721e7d9e7e27d302a5cae9747cabbac75e` |
-| `ossie/flights.yaml`                     | `1d716be212d952422885fd74997583b466d267c78f5add3a71fd357f84012130` |
-| `ubl/ubl.odcs.yaml`                      | `bd2eedd821abef9b834e2bbad8e70495042b922ee73ca1a67ed06dba8e35efb4` |
-| `ubl/ubl.ontology.yaml`                  | `ac8343193ce8b087c9975583e6b047caf653e59c2416dc40c043bb35bea63b2f` |
-| `ubl/ubl.owl.ttl`                        | `4ae7d7872dcde977f71fc2e50ec22a7b0bf453919db954fe5c9ac72062a221de` |
-| `ubl/ubl.semantic-mapping.yaml`          | `ad70e22d7a6b171b1644d1e113b307f440f9c934de218af16dbbfedee455a6a0` |
-| `ubl/ubl.semantic.yaml`                  | `3b97121ee492a6eaea2a3798ced9810462e7da58701445bb272b232b898ad6ab` |
-| `ubl/ubl.shacl.ttl`                      | `a40474f3e9e2593664ffb2d4561afa40670171c810832070d48141d953f7282d` |
-| `sql/case-when.ossie.yaml`               | `17c3bfc8909fb2420224b0fc83aab7db65e21333ebf70fbb27862d9e9e056415` |
-| `sql/case-when-broken.ossie.yaml`        | `23ba6a85d5d846fb00fb2fb326ba324f43d0ad62988bc6191f548e810f7f3cf1` |
-| `unbound/commerce.mapping.yaml`          | `ae4b63433db73d910c9536d77313a7841b22c223e1f17d3a3d504b0cbdbbd4fc` |
+| `commerce/commerce.mapping.yaml` | `bed274e8cb6d3b632e7dfe1d5e02f70d8a3af1b8e0fd162a717899887e423599` |
+| `commerce/commerce.odcs.yaml` | `30cbafad91dac376320668e6a3df16913f171bdf156c2114913e5d17a80e1992` |
+| `commerce/commerce.owl` | `d92ee09aaeea891f6774a822f46aefa1de5065ff2c5be03c8374e8646b422a3a` |
+| `commerce/commerce.owl.ttl` | `cc7f01232bb10a8fd73bc394ba3378765572112b32662a4a4bddb11bd90178f1` |
+| `commerce/commerce.shacl.ttl` | `0ee9a65a3aa413f3478419e8260fdadcfd6b8f71a2ee43ff47ac8e08da60a552` |
+| `commerce/sales.mapping.yaml` | `e4d29469e30fd486805980b377976338a4127341255bb75ad1d45affed505c49` |
+| `commerce/sales.ossie.yaml` | `42d5fd7389861ef34349b2d5d9b9be91c4a80528b55ba2720aac9e51de6f2232` |
+| `mall/mall-data.ttl` | `b2a24c09086d44b178210fb6a0376d1529d103ee552399b2e3a5e3e0e1faa532` |
+| `mall/mall.mapping.yaml` | `ddfe91807d88a22a91948e790852dff9dcfe28f962cc90b3a0ad74e3ea28177f` |
+| `mall/mall.odcs.yaml` | `707d338f3f3fdee63b5fa5e2e9fa1ed1d8f7a0b14b7c20863a1b84dfa333c400` |
+| `mall/mall.ontology.yaml` | `5d11b246f6890a4e3a11a0ed17e08810945dfeac458d369d0726dec54a8fe4f7` |
+| `mall/mall.owl.ttl` | `df4b7eb7fead55f9061ee194f7ba482fab1bdebd4015fa8a39fa5c552b1e02b2` |
+| `mall/mall.semantic.yaml` | `ce3ba1ed501bd170d24e30cd6c04746a9319dab7734943a8e3de99dcfb5692e1` |
+| `mall/mall.shacl.ttl` | `0f9f4e5c3b4e069018c7c8768f7b8bf841ef26db505a4984b71fefaee96711b9` |
+| `ossie/flights.mapping.yaml` | `dd62e2614097d0fa3f457fdb15a4ac431cfbbc088fa0a46148d2671ca6b1215c` |
+| `ossie/flights.metrics.mapping.yaml` | `73a7a1061c2b5f6c273cee8e3b8c93a2a8f8c73affbe1f1c469dbba3d6deaa0b` |
+| `ossie/flights.metrics.semantic.yaml` | `2d7aa9fada288ae70acb41921f4f58f555b928b26b009d7a0517d531cddb1c86` |
+| `ossie/flights.odcs.yaml` | `9a7c220945419e97b815f185a707ecbc692110366bb1fc74a67262a3ba2a7d61` |
+| `ossie/flights.ontology.yaml` | `4035aa22494a1dfc739f5fe6689ffa74d07338497ef67a7acab69c568eae00fd` |
+| `ossie/flights.semantic_model.yaml` | `e0652e489c1bbf69066c9c17109175721e7d9e7e27d302a5cae9747cabbac75e` |
+| `ossie/flights.yaml` | `1d716be212d952422885fd74997583b466d267c78f5add3a71fd357f84012130` |
+| `ubl/ubl.odcs.yaml` | `bd2eedd821abef9b834e2bbad8e70495042b922ee73ca1a67ed06dba8e35efb4` |
+| `ubl/ubl.ontology.yaml` | `ac8343193ce8b087c9975583e6b047caf653e59c2416dc40c043bb35bea63b2f` |
+| `ubl/ubl.owl.ttl` | `4ae7d7872dcde977f71fc2e50ec22a7b0bf453919db954fe5c9ac72062a221de` |
+| `ubl/ubl.semantic-mapping.yaml` | `ad70e22d7a6b171b1644d1e113b307f440f9c934de218af16dbbfedee455a6a0` |
+| `ubl/ubl.semantic.yaml` | `3b97121ee492a6eaea2a3798ced9810462e7da58701445bb272b232b898ad6ab` |
+| `ubl/ubl.shacl.ttl` | `a40474f3e9e2593664ffb2d4561afa40670171c810832070d48141d953f7282d` |
+| `sql/case-when.ossie.yaml` | `17c3bfc8909fb2420224b0fc83aab7db65e21333ebf70fbb27862d9e9e056415` |
+| `sql/case-when-broken.ossie.yaml` | `23ba6a85d5d846fb00fb2fb326ba324f43d0ad62988bc6191f548e810f7f3cf1` |
+| `unbound/commerce.mapping.yaml` | `ae4b63433db73d910c9536d77313a7841b22c223e1f17d3a3d504b0cbdbbd4fc` |
 
 </details>
 
@@ -796,7 +797,6 @@ The 75-state phone replay (local, light, 390×844) was opened across 25 contact 
 opened the named mapping and its Source tab. The Source view preserves the empty concept list. The transient empty-bindings frame
 is timing noise, confirmed by the settled Identifier replay. The candidate also shows the full line-23 SQL warning and a green
 keyboard focus ring on the metric grouping control. The empty Trash dialog keeps its explanation and Close action.
-
 - `bash .data/gate/pull-review-007.sh .data/gate/empty-mapping-confirmed local/light/390/empty-mapping` returned five strips, all opened.
   The 390×844 linked control succeeded twice per version. Candidate shows 9 cards, no empty note, and enabled Mapping steps.
   Both references show 2 cards and enabled steps. Unlinked Identifier renders one card and enabled steps in both references.
@@ -904,14 +904,14 @@ no schema details. This targeted comparison is separate from the canonical suite
 
 - `bash .data/gate/pull-review-007.sh` for phone Full Graph and Admin exported 43 and six captured strips respectively.
 - `python3 .data/gate/contact-sheet-007.py` produced 15 Full Graph sheets and two Admin sheets. All were opened.
-  The desktop Admin replay shows the same confirm order and contextual access results. Both last-Admin steps passed twice on each build.
-  The candidate names the account and uses a danger action before refusal, then replaces the raw refusal code with one sentence and leaves Cancel.
-  The dark Source Control replay shows dark gutters and collapsed lines in the modified, staged, added and deleted diffs. The stale-save dialog
-  also keeps the gutters dark and makes Keep editing primary. The explicit Publish step appears in main and candidate. The dark Source editor keeps
-  the same YAML with separate blue tokens for keys and values. DM Sans and Manrope load from registered local faces in the candidate. The matched
-  first-run screenshot shows the Manrope heading in place of the release and main serif heading.
-  The dark phone auth replay shows primary actions and the no-support-URL administrator guidance in all three candidate screens. The error explains
-  that the sign-in link expired or was already used.
+The desktop Admin replay shows the same confirm order and contextual access results. Both last-Admin steps passed twice on each build.
+The candidate names the account and uses a danger action before refusal, then replaces the raw refusal code with one sentence and leaves Cancel.
+The dark Source Control replay shows dark gutters and collapsed lines in the modified, staged, added and deleted diffs. The stale-save dialog
+also keeps the gutters dark and makes Keep editing primary. The explicit Publish step appears in main and candidate. The dark Source editor keeps
+the same YAML with separate blue tokens for keys and values. DM Sans and Manrope load from registered local faces in the candidate. The matched
+first-run screenshot shows the Manrope heading in place of the release and main serif heading.
+The dark phone auth replay shows primary actions and the no-support-URL administrator guidance in all three candidate screens. The error explains
+that the sign-in link expired or was already used.
 
 - `bash .data/gate/pull-review-007.sh` for desktop Admin, last Admin, dark Source Control, typography, diffs and auth pulled all scored strips.
 - `python3 .data/gate/contact-sheet-007.py` generated 10 sheets for those six groups. All were opened.
@@ -986,9 +986,9 @@ single control row leave the lineage region y=214–1402. The main/candidate sco
 The extra frozen lineage fixture imports one ODCS table and one semantic dataset. Each file has one entity and zero in-file relationships.
 The pair resolves nine lineage reads across files. All six Imports verified the same hashes:
 
-| File                      | SHA-256                                                            |
-| ------------------------- | ------------------------------------------------------------------ |
-| `wide/wide.odcs.yaml`     | `eb129c1913684711753e77d45b12d587f6a7878e40df7b758e9525160f3f85fa` |
+| File | SHA-256 |
+| --- | --- |
+| `wide/wide.odcs.yaml` | `eb129c1913684711753e77d45b12d587f6a7878e40df7b758e9525160f3f85fa` |
 | `wide/wide.semantic.yaml` | `5da5d53c4a4238164996490f0046b4d2fdf5a8f062e5c57cc3573ffc337d00af` |
 
 `bash .data/gate/pull-review-007.sh` exported the 2560 px Properties strip and the two 1440 px wide-fixture strips. Each was opened
@@ -1043,57 +1043,57 @@ despite the visual transition. The replay uses the visible Exit full screen cont
 Paths in this table are step identifiers in `manifest.csv`, except for the explicit correction pairs above. The table covers the opened pilot and focused
 replays. The outstanding findings still require a matched screenshot or a recorded exclusion.
 
-| Finding  | Opened step                                                                 | Observation                                                                                                                                     |
-| -------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| M2, M13  | `local/light/1280/geometry/mall.ontology.yaml/canvas-dimensions`            | Counted areas replace undersized names and the toolbar leaves 30 px more graph height.                                                          |
-| M3       | `local/light/390/full-graph-controls/full-graph-layered/areas-collapsed`    | The replay frames all four counted areas, even with an entity selected.                                                                         |
-| M4       | `local/light/1440/mapping-fit/mall-mapping/fitted-names`                    | The follow-up correction keeps the Mall mapping labels inside cards at Fit.                                                                     |
-| M5, m24  | `local/dark/1440/diff-surfaces/scm-stale-save/tour`                         | The merge gutters stay dark and Keep editing is primary.                                                                                        |
-| M7       | `local/light/390/import/workspace/empty-before-import`                      | The first-run heading changes from serif to Manrope and remains whole.                                                                          |
-| M9       | `server/light/1440/admin/grant-form/validation-error`                       | A short email error appears next to its input.                                                                                                  |
-| M10      | `server/light/1440/last-admin/last-admin/refused`                           | The refusal leaves Cancel and explains the last-active-Admin rule.                                                                              |
-| m18      | `local/dark/1440/typography/typography/yaml-source`                         | The same YAML displays light-blue keys and deeper-blue plain values.                                                                            |
-| m26      | `server/dark/390/auth/auth/sign-in-error`                                   | The sign-in error gives a primary retry and administrator guidance.                                                                             |
-| M11      | `server/light/1440/admin/access-check/allowed`                              | The allowed result gives its reason in the banner. The matched 390 px replay also shows both banners inside the viewport.                       |
-| M14      | `local/light/390/graphs/full-graph-network/labels-on`                       | Selecting Order exposes its nearby relationship labels.                                                                                         |
-| M15, m10 | `local/light/1440/files/commerce.mapping.yaml/neighborhood`                 | One normal-size card, no empty neighbor count and cross-file links in Other files.                                                              |
-| M16      | `local/light/390/graphs/mapping-graph/node-selected`                        | Selecting Customer opens its path and editable binding details.                                                                                 |
-| M17      | `local/light/1280/dataset-chrome/mall-properties-lineage-chrome/first-view` | Hops, path, keys, trail and viewport actions share a row above the complete cards.                                                              |
-| M19      | `local/light/390/states/add-concept/field-errors`                           | Save to file is visibly disabled while Type is missing.                                                                                         |
-| M21      | `local/light/390/states/editing/stages`                                     | The located editor error wraps without a second copy below the editor.                                                                          |
-| M22      | `server/light/1440/reader/reader/admin-refusal`                             | A reader who opens Admin sees the role refusal.                                                                                                 |
-| m1       | `local/light/1440/neighborhood-pierce/ubl-neighborhood/pierce-alone`        | After pierce, the candidate offers Fit for all 45 entities.                                                                                     |
-| m2       | `local/light/390/walked-lineage-fit/mall-three-hop-lineage/fit`             | The caption names the walked centre and the original Properties centre.                                                                         |
-| m3       | `local/light/390/graphs/contract-lineage/more-columns`                      | The expanded Properties card shows its heading, CENTER badge, all 13 rows and Show fewer.                                                       |
-| m4       | `local/light/390/files/commerce.owl/overview`                               | The Order group uses the new non-error tint.                                                                                                    |
-| m5       | `local/light/390/empty-mapping/mapping-steps/unlinked`                      | The unlinked mapping explains the empty canvas and disables Mapping steps.                                                                      |
-| m6       | Documentation only                                                          | The graph guide names one to three foreign-key hops and one to five mapping steps. There is no requested screen change.                         |
-| m7       | `local/light/390/graphs/mapping-graph/fullscreen`                           | Full screen keeps zoom and exit controls visible, with all nine compact assets in the pane.                                                     |
-| m8       | `before/fixes/ubl-mapping-labels-390-light.png` and its after frame         | The compact graph removes the overlapping raw path labels and keeps hovered relationship names available.                                       |
-| m9       | `before/fixes/ubl-area-headings-1280.png` and its after frame               | Wrapped headings have clear space above their cards.                                                                                            |
-| m11      | `local/dark/1440/mini-map-framing/full-graph-minimap-framing/minimap-on`    | The framed mini-map marks the viewport and reserves its corner.                                                                                 |
-| m12      | `local/light/390/graphs/full-graph-layered/zoomed-in`                       | Zoom leaves the selected Order name and Metric badge legible.                                                                                   |
-| m13      | `local/light/1440/files/commerce-data.ttl/graph`                            | The Order line area title uses word boundaries.                                                                                                 |
-| m14, m15 | `local/light/1440/files/commerce-data.ttl/catalog`                          | Card starts align and type badges read as words. The dedicated Catalog and sidebar strips show hover, keyboard, touch and both scroll edges.    |
-| m27      | `local/light/1440/files/ubl.ontology.yaml/mappings`                         | The empty view offers Import and Load example. The separate phone detail transition is M24.                                                     |
-| M1       | `local/light/390/followup/mall-properties-lineage/bundled-line-split`       | The collapsed dataset header leaves a visible lineage canvas with multiple whole cards. The frame does not establish a successful bundle split. |
-| M6       | `local/light/390/tour/scm-diff-deleted/tour`                                | The staged deletion labels the right side Deleted (staged).                                                                                     |
-| M8, m14  | `local/light/390/files/ubl.semantic.yaml/catalog`                           | All 178 results are counted. The two bridge descriptions include the formerly hidden source occurrence range.                                   |
-| M12      | `local/light/390/source-control/source-control/modified-diff`               | The changed file opens in a unified diff with Back to changes.                                                                                  |
-| M18      | `local/light/390/states/metric-wizard/primary-hover`                        | The phone wizard retains its heading, active step and visible footer actions.                                                                   |
-| M20      | `local/light/390/trash/trash/another-project`                               | A deleted file shows its project and Switch to project alongside the outlined empty-trash action.                                               |
-| M23      | `local/light/2560/dataset-chrome/mall-properties-lineage-chrome/first-view` | The header and graph edges match within a pixel, compared with 155 px overshoot in both references.                                             |
-| M24      | `local/light/390/followup/mapped-commerce-mappings/ai-context-open`         | The details view has a Back to concepts action within the phone layout.                                                                         |
-| m13      | `before/fixes/ubl-center-picker-390.png` and its after frame                | The center picker accommodates the full label without dropping an action.                                                                       |
-| m16      | `local/light/390/followup/add-concept/duplicate-name-refusal`               | The duplicate-name refusal appears under Name and disables Save.                                                                                |
-| m17      | `local/light/390/states/metrics/keyboard-focus`                             | The grouping control shows the candidate focus outline.                                                                                         |
-| m19      | `local/light/390/states/shell/avatar-menu`                                  | The local identity menu gives its administration action a distinct name.                                                                        |
-| m20      | `local/light/390/import/workspace/empty-before-import`                      | The empty workspace offers Import files without inactive tabs and search.                                                                       |
-| m21      | `local/light/1280/refused-import/import/refused-file`                       | The unsupported-format notice leaves the workspace visible.                                                                                     |
-| m22      | `local/light/390/source-control/source-control/clean`                       | The why-disabled message and remote guidance wrap as body text. Branch and publication changes came from main.                                  |
-| m23      | `local/light/390/tour/admin-settings/tour`                                  | The Save settings control sits under Session lifetimes, apart from Remote policy.                                                               |
-| m25      | `local/light/390/tour/admin-audit/tour`                                     | Audit rows give readable action labels and decision colors.                                                                                     |
-| m28      | `local/light/390/tour/ontology-neighborhood-fullscreen/tour`                | Exit full screen is exposed in the primary row on the phone.                                                                                    |
+| Finding | Opened step | Observation |
+| --- | --- | --- |
+| M2, M13 | `local/light/1280/geometry/mall.ontology.yaml/canvas-dimensions` | Counted areas replace undersized names and the toolbar leaves 30 px more graph height. |
+| M3 | `local/light/390/full-graph-controls/full-graph-layered/areas-collapsed` | The replay frames all four counted areas, even with an entity selected. |
+| M4 | `local/light/1440/mapping-fit/mall-mapping/fitted-names` | The follow-up correction keeps the Mall mapping labels inside cards at Fit. |
+| M5, m24 | `local/dark/1440/diff-surfaces/scm-stale-save/tour` | The merge gutters stay dark and Keep editing is primary. |
+| M7 | `local/light/390/import/workspace/empty-before-import` | The first-run heading changes from serif to Manrope and remains whole. |
+| M9 | `server/light/1440/admin/grant-form/validation-error` | A short email error appears next to its input. |
+| M10 | `server/light/1440/last-admin/last-admin/refused` | The refusal leaves Cancel and explains the last-active-Admin rule. |
+| m18 | `local/dark/1440/typography/typography/yaml-source` | The same YAML displays light-blue keys and deeper-blue plain values. |
+| m26 | `server/dark/390/auth/auth/sign-in-error` | The sign-in error gives a primary retry and administrator guidance. |
+| M11 | `server/light/1440/admin/access-check/allowed` | The allowed result gives its reason in the banner. The matched 390 px replay also shows both banners inside the viewport. |
+| M14 | `local/light/390/graphs/full-graph-network/labels-on` | Selecting Order exposes its nearby relationship labels. |
+| M15, m10 | `local/light/1440/files/commerce.mapping.yaml/neighborhood` | One normal-size card, no empty neighbor count and cross-file links in Other files. |
+| M16 | `local/light/390/graphs/mapping-graph/node-selected` | Selecting Customer opens its path and editable binding details. |
+| M17 | `local/light/1280/dataset-chrome/mall-properties-lineage-chrome/first-view` | Hops, path, keys, trail and viewport actions share a row above the complete cards. |
+| M19 | `local/light/390/states/add-concept/field-errors` | Save to file is visibly disabled while Type is missing. |
+| M21 | `local/light/390/states/editing/stages` | The located editor error wraps without a second copy below the editor. |
+| M22 | `server/light/1440/reader/reader/admin-refusal` | A reader who opens Admin sees the role refusal. |
+| m1 | `local/light/1440/neighborhood-pierce/ubl-neighborhood/pierce-alone` | After pierce, the candidate offers Fit for all 45 entities. |
+| m2 | `local/light/390/walked-lineage-fit/mall-three-hop-lineage/fit` | The caption names the walked centre and the original Properties centre. |
+| m3 | `local/light/390/graphs/contract-lineage/more-columns` | The expanded Properties card shows its heading, CENTER badge, all 13 rows and Show fewer. |
+| m4 | `local/light/390/files/commerce.owl/overview` | The Order group uses the new non-error tint. |
+| m5 | `local/light/390/empty-mapping/mapping-steps/unlinked` | The unlinked mapping explains the empty canvas and disables Mapping steps. |
+| m6 | Documentation only | The graph guide names one to three foreign-key hops and one to five mapping steps. There is no requested screen change. |
+| m7 | `local/light/390/graphs/mapping-graph/fullscreen` | Full screen keeps zoom and exit controls visible, with all nine compact assets in the pane. |
+| m8 | `before/fixes/ubl-mapping-labels-390-light.png` and its after frame | The compact graph removes the overlapping raw path labels and keeps hovered relationship names available. |
+| m9 | `before/fixes/ubl-area-headings-1280.png` and its after frame | Wrapped headings have clear space above their cards. |
+| m11 | `local/dark/1440/mini-map-framing/full-graph-minimap-framing/minimap-on` | The framed mini-map marks the viewport and reserves its corner. |
+| m12 | `local/light/390/graphs/full-graph-layered/zoomed-in` | Zoom leaves the selected Order name and Metric badge legible. |
+| m13 | `local/light/1440/files/commerce-data.ttl/graph` | The Order line area title uses word boundaries. |
+| m14, m15 | `local/light/1440/files/commerce-data.ttl/catalog` | Card starts align and type badges read as words. The dedicated Catalog and sidebar strips show hover, keyboard, touch and both scroll edges. |
+| m27 | `local/light/1440/files/ubl.ontology.yaml/mappings` | The empty view offers Import and Load example. The separate phone detail transition is M24. |
+| M1 | `local/light/390/followup/mall-properties-lineage/bundled-line-split` | The collapsed dataset header leaves a visible lineage canvas with multiple whole cards. The frame does not establish a successful bundle split. |
+| M6 | `local/light/390/tour/scm-diff-deleted/tour` | The staged deletion labels the right side Deleted (staged). |
+| M8, m14 | `local/light/390/files/ubl.semantic.yaml/catalog` | All 178 results are counted. The two bridge descriptions include the formerly hidden source occurrence range. |
+| M12 | `local/light/390/source-control/source-control/modified-diff` | The changed file opens in a unified diff with Back to changes. |
+| M18 | `local/light/390/states/metric-wizard/primary-hover` | The phone wizard retains its heading, active step and visible footer actions. |
+| M20 | `local/light/390/trash/trash/another-project` | A deleted file shows its project and Switch to project alongside the outlined empty-trash action. |
+| M23 | `local/light/2560/dataset-chrome/mall-properties-lineage-chrome/first-view` | The header and graph edges match within a pixel, compared with 155 px overshoot in both references. |
+| M24 | `local/light/390/followup/mapped-commerce-mappings/ai-context-open` | The details view has a Back to concepts action within the phone layout. |
+| m13 | `before/fixes/ubl-center-picker-390.png` and its after frame | The center picker accommodates the full label without dropping an action. |
+| m16 | `local/light/390/followup/add-concept/duplicate-name-refusal` | The duplicate-name refusal appears under Name and disables Save. |
+| m17 | `local/light/390/states/metrics/keyboard-focus` | The grouping control shows the candidate focus outline. |
+| m19 | `local/light/390/states/shell/avatar-menu` | The local identity menu gives its administration action a distinct name. |
+| m20 | `local/light/390/import/workspace/empty-before-import` | The empty workspace offers Import files without inactive tabs and search. |
+| m21 | `local/light/1280/refused-import/import/refused-file` | The unsupported-format notice leaves the workspace visible. |
+| m22 | `local/light/390/source-control/source-control/clean` | The why-disabled message and remote guidance wrap as body text. Branch and publication changes came from main. |
+| m23 | `local/light/390/tour/admin-settings/tour` | The Save settings control sits under Session lifetimes, apart from Remote policy. |
+| m25 | `local/light/390/tour/admin-audit/tour` | Audit rows give readable action labels and decision colors. |
+| m28 | `local/light/390/tour/ontology-neighborhood-fullscreen/tour` | Exit full screen is exposed in the primary row on the phone. |
 
 ## Scope ledger
 
@@ -1106,16 +1106,16 @@ replays. The outstanding findings still require a matched screenshot or a record
 
 All commands run from this worktree. Raw output is retained in `.data/gate/logs/` unless a row names another location. No push, remote changes or deployment is authorized.
 
-| Command                                                                             | Summary                                                                                      |
-| ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `pwd; git status --short; cat README.md; cat ARCHITECTURE.md`                       | Correct integration worktree; initially clean; existing architecture read.                   |
-| `cat specs/007-ui-review-fixes/{tasks,plan,quickstart,capture-index}.md`            | Merge boundaries, suites and capture matrix read.                                            |
-| `git merge --no-ff 007-lane-a -m 'merge: integrate graph review fixes from lane A'` | `f1398bf8`; clean merge, no conflicts.                                                       |
-| `bun test`                                                                          | Running after merge A; raw log `A-test.log`.                                                 |
-| `bun --bun run check`                                                               | Passed after A; formatter, lint, comments, theme and brand checks passed.                    |
-| `bun --bun run build`                                                               | Passed after A; `built in 1.51s`.                                                            |
-| `find <baseline>/screenshots -type f -name '*.png'`                                 | Exactly 3,559 baseline PNG images.                                                           |
-| `df -h . /tmp; free -h`                                                             | 59 GiB worktree filesystem free; 8.3 GiB temporary filesystem free; 25 GiB available memory. |
+| Command | Summary |
+| --- | --- |
+| `pwd; git status --short; cat README.md; cat ARCHITECTURE.md` | Correct integration worktree; initially clean; existing architecture read. |
+| `cat specs/007-ui-review-fixes/{tasks,plan,quickstart,capture-index}.md` | Merge boundaries, suites and capture matrix read. |
+| `git merge --no-ff 007-lane-a -m 'merge: integrate graph review fixes from lane A'` | `f1398bf8`; clean merge, no conflicts. |
+| `bun test` | Running after merge A; raw log `A-test.log`. |
+| `bun --bun run check` | Passed after A; formatter, lint, comments, theme and brand checks passed. |
+| `bun --bun run build` | Passed after A; `built in 1.51s`. |
+| `find <baseline>/screenshots -type f -name '*.png'` | Exactly 3,559 baseline PNG images. |
+| `df -h . /tmp; free -h` | 59 GiB worktree filesystem free; 8.3 GiB temporary filesystem free; 25 GiB available memory. |
 
 ## Historical validation journal
 
@@ -1369,6 +1369,7 @@ Exit 1; raw output `suite-ui.log`.
 Bun v1.4.0 (Linux x64)
 error: script "test:ui" exited with code 1
 ```
+
 
 ### Complete text and integrated canvas geometry
 
@@ -1781,8 +1782,8 @@ The trace stopped after the wildcard IPv6 probe's listening event, before its cl
 A delayed close did not resolve it. The temporary launcher now uses Vite's supported middleware mode with its existing configuration,
 a real HTTP listener on 5261 and the same listener for HMR. This avoids the failing port probe; it changes no application or suite assertions.
 Every stopped diagnostic and completed suite reported `OWNED_PROCESSES_REMAINING []`.
-
 - `bun --bun run check` after theme selection changes: exit 0; all 1044 matched files formatted; TypeScript, lint, comments, theme and brand passed.
+
 
 ## Follow-ups
 
