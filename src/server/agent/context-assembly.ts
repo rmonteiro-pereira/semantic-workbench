@@ -5,7 +5,7 @@ import { formatAddress, type Address } from '../../shared/core/item-address';
 import { absoluteItemAddress, addressAtModelPath } from '../../shared/core/model-addresses';
 import { OSSIE_BUILTINS, builtinConcept } from '../../shared/mappings/ossie-builtins';
 import { metricDependencies as syntaxDependencies } from '../../shared/metrics/deps';
-import { readKpiBindings, workbenchEntry } from '../../shared/metrics/extension';
+import { extensionFormOf, readKpiBindings, workbenchEntry } from '../../shared/metrics/extension';
 import { resolveBindings } from '../../shared/metrics/bindings';
 import { columnRefs, parseExpression } from './sql';
 import { BadRequestError } from '../projects/errors';
@@ -114,7 +114,8 @@ function emptyContext(assembly: Assembly, { ontologyTarget, semanticTarget }: Re
       ontologyRef: entry.data.ontology_ref,
       semanticModelRef: entry.data.semantic_model_ref,
       description: entry.data.description,
-      customExtensions: entry.data.custom_extensions,
+      // The field keeps its name; a 0.3 draft mapping supplies its nonportable_extensions here.
+      customExtensions: entry.data[extensionFormOf(entry.data).list],
       embedded: !!entry.ontology,
       evidence: evidence(entry.doc, entry.path),
     },
@@ -393,9 +394,11 @@ function readMetricBindings(assembly: Assembly, context: RuntimeContext, catalog
   const kpiOwner = entry.ontology ? entry.data.semantic_model : entry.data;
   const kpiPath = entry.ontology ? [...entry.path, 'semantic_model'] : entry.path;
   const kpi = readKpiBindings(kpiOwner, '', !entry.ontology);
-  const extIndex = workbenchEntry(kpiOwner)?.index ?? 0;
+  const workbench = workbenchEntry(kpiOwner);
+  const extIndex = workbench?.index ?? 0;
+  const extList = workbench?.form.list ?? 'custom_extensions';
   context.metricBindings = resolveBindings(kpi.value, ontology, new Set(catalog.metrics.keys())).map((resolvedBinding, i) => {
-    const bindingEvidence = evidence(entry.doc, [...kpiPath, 'custom_extensions', extIndex, 'data', 'kpi_bindings', i]);
+    const bindingEvidence = evidence(entry.doc, [...kpiPath, extList, extIndex, 'data', 'kpi_bindings', i]);
     return {
       metric: resolvedBinding.metric,
       measures: resolvedBinding.measures,

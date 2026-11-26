@@ -4,8 +4,21 @@ import { rdfSyntax } from '../validation/rdf';
 import { isMapping } from '../mappings/mapping-schema';
 import { applyPatches } from '../editor/patch';
 import { insertPatches, valuePatches, itemValue } from '../edit/yaml-patch';
-import { extensionOf, semanticModelPrefix, writeExtension, type Path } from '../edit/item-model';
-import { MAPPING_SCHEMA, METRIC_SCHEMA, VENDOR, readMetricExtension, readKpiBindings, type KpiBinding, type MetricExtension } from './extension';
+import { declaredVersion, extensionOf, semanticModelPrefix, writeExtension, type Path } from '../edit/item-model';
+import {
+  MAPPING_SCHEMA,
+  METRIC_SCHEMA,
+  VENDOR,
+  decodeExtensionData,
+  encodeExtensionData,
+  extensionFormFor,
+  extensionFormOf,
+  readMetricExtension,
+  readKpiBindings,
+  type ExtensionForm,
+  type KpiBinding,
+  type MetricExtension,
+} from './extension';
 // The metric and its extension belong in the semantic model. Concept bindings are sorted by metric
 // name in the mapping root extension, or the embedded model root; a minimal mapping is planned if
 // none exists.
@@ -52,30 +65,38 @@ export const sortedBindings = (list: KpiBinding[], next: KpiBinding) =>
     return 0;
   });
 
-/** Patches a binding into the selected root extension of YAML or JSON source. */
+/** New bindings data in a form: the readable one-binding-per-line text for 0.2, an object for the 0.3 draft. */
+function newBindingsData(form: ExtensionForm, bindings: KpiBinding[]): unknown {
+  return form.objectData ? { schema: MAPPING_SCHEMA, kpi_bindings: bindings } : bindingsText(bindings);
+}
+
+/** Patches a binding into the selected root extension of YAML or JSON source, in the form its document's version uses. */
 export function addBinding(source: string, owner: Path, binding: KpiBinding, filename = ''): string {
   const root = itemValue(source, owner) ?? {};
-  const list: any[] = Array.isArray(root.custom_extensions) ? root.custom_extensions : [];
+  const form = extensionFormOf(root, declaredVersion(source));
+  const list: any[] = Array.isArray(root[form.list]) ? root[form.list] : [];
   const index = list.findIndex(e => e?.vendor_name === VENDOR);
   if (index >= 0) {
     const current = readKpiBindings(root, '', true);
     if (current.issues.length) throw new KpiError(`The mapping's metric bindings need repair first: ${current.issues[0].message}`);
     if (current.value.some(b => b.metric === binding.metric)) throw new KpiError(`Metric "${binding.metric}" is already bound in this mapping.`);
-    const data = JSON.parse(list[index].data);
-    return applyPatches(source, valuePatches(source, [...owner, 'custom_extensions', index, 'data'], JSON.stringify({ ...data, kpi_bindings: sortedBindings(current.value, binding) }), filename));
+    const data = decodeExtensionData(form, list[index].data).value;
+    const next = { ...data, kpi_bindings: sortedBindings(current.value, binding) };
+    return applyPatches(source, valuePatches(source, [...owner, form.list, index, 'data'], form.objectData ? next : JSON.stringify(next), filename));
   }
-  const entry = { vendor_name: VENDOR, data: bindingsText([binding]) };
-  return applyPatches(
-    source,
-    list.length ? insertPatches(source, [...owner, 'custom_extensions'], entry, undefined, filename) : valuePatches(source, [...owner, 'custom_extensions'], [entry], filename),
-  );
+  const entry = { vendor_name: VENDOR, data: newBindingsData(form, [binding]) };
+  return applyPatches(source, list.length ? insertPatches(source, [...owner, form.list], entry, undefined, filename) : valuePatches(source, [...owner, form.list], [entry], filename));
 }
 const stem = (path: string) =>
   basename(path)
     .replace(/\.(ya?ml|json)$/i, '')
     .replace(/\.(semantic_model|semantic|ossie)$/i, '');
-/** Builds a minimal mapping document for the supplied model and metric binding. */
-export function minimalMapping(name: string, ontology: { name: string; path: string }, model: { name: string; path: string }, binding: KpiBinding) {
+/**
+ * Builds a minimal mapping document for the supplied model and metric binding. It declares the
+ * model's Ossie version, so a 0.3 draft model gets a 0.3 draft mapping.
+ */
+export function minimalMapping(name: string, ontology: { name: string; path: string }, model: { name: string; path: string }, binding: KpiBinding, version: unknown = '0.2.0.dev0') {
+  if (extensionFormFor(version).objectData) return minimalDraftMapping(name, ontology, model, binding);
   const data = bindingsText([binding])
     .split('\n')
     .filter(Boolean)
@@ -95,6 +116,28 @@ export function minimalMapping(name: string, ontology: { name: string; path: str
     `  - vendor_name: ${VENDOR}`,
     '    data: |',
     data,
+  ];
+  return lines.join('\n') + '\n';
+}
+
+/** The minimal mapping of a 0.3 draft model: `nonportable_extensions` with the bindings as an object. */
+function minimalDraftMapping(name: string, ontology: { name: string; path: string }, model: { name: string; path: string }, binding: KpiBinding) {
+  const lines = [
+    'version: 0.3.0.dev0',
+    `name: ${JSON.stringify(name)}`,
+    'ontology_ref:',
+    `  name: ${JSON.stringify(ontology.name)}`,
+    `  iri: ${JSON.stringify('./' + ontology.path)}`,
+    'semantic_model_ref:',
+    `  name: ${JSON.stringify(model.name)}`,
+    `  iri: ${JSON.stringify('./' + model.path)}`,
+    'concept_mappings: []',
+    'nonportable_extensions:',
+    `  - vendor_name: ${VENDOR}`,
+    '    data:',
+    `      schema: ${MAPPING_SCHEMA}`,
+    '      kpi_bindings:',
+    `        - ${JSON.stringify(binding)}`,
   ];
   return lines.join('\n') + '\n';
 }
@@ -120,6 +163,7 @@ export function planKpiSave(files: ProjectFile[], req: KpiRequest): KpiPlan {
   const checked = readMetricExtension({
     custom_extensions: [{ vendor_name: VENDOR, data: JSON.stringify(extension) }],
   });
+  const form = extensionFormFor(declaredVersion(file.source));
   if (checked.issues.length) throw new KpiError(checked.issues.map(i => i.message).join(' '));
   const metric: any = {
     name,
@@ -128,15 +172,15 @@ export function planKpiSave(files: ProjectFile[], req: KpiRequest): KpiPlan {
     expression: {
       dialects: [{ dialect: 'ANSI_SQL', expression: String(req.metric.expression ?? '').trim() }],
     },
-    custom_extensions: [{ vendor_name: VENDOR, data: JSON.stringify(extension, null, 2) + '\n' }],
+    [form.list]: [{ vendor_name: VENDOR, data: encodeExtensionData(form, extension) }],
   };
   const listPath = [...prefix, 'metrics'];
   let semantic: string;
   if (req.existing) {
     // Only the extension entry is added to the existing metric.
-    const entry = metric.custom_extensions[0];
-    const own = model.metrics[at].custom_extensions;
-    const path = [...listPath, at, 'custom_extensions'];
+    const entry = metric[form.list][0];
+    const own = model.metrics[at][form.list];
+    const path = [...listPath, at, form.list];
     semantic = applyPatches(file.source, Array.isArray(own) ? insertPatches(file.source, path, entry, undefined, file.path) : valuePatches(file.source, path, [entry], file.path));
   } else
     semantic = applyPatches(file.source, Array.isArray(model.metrics) ? insertPatches(file.source, listPath, metric, undefined, file.path) : valuePatches(file.source, listPath, [metric], file.path));
@@ -175,7 +219,7 @@ export function planKpiSave(files: ProjectFile[], req: KpiRequest): KpiPlan {
         for (let n = 2; taken.has(path); n++) path = `${stem(file.path)}-${n}.mapping.yaml`;
         writes.push({
           path,
-          source: minimalMapping(`${model.name} mappings`, { name: ontologies[0].d.name, path: ontologies[0].f.path }, { name: model.name, path: file.path }, binding),
+          source: minimalMapping(`${model.name} mappings`, { name: ontologies[0].d.name, path: ontologies[0].f.path }, { name: model.name, path: file.path }, binding, declaredVersion(file.source)),
           created: true,
         });
       }
@@ -204,8 +248,9 @@ export function withMetricAttributes(source: string, filename: string, metricPat
   const extension = extensionOf(metric);
   if (!extension) throw new KpiError(`No workbench attributes at /${metricPath.join('/')}.`);
   const rewritten = writeExtension(metric, { ...extension.value, ...changes });
-  const dataPath = [...metricPath, 'custom_extensions', extension.index, 'data'];
-  const data = rewritten.custom_extensions[extension.index].data;
+  const list = extensionFormOf(metric).list;
+  const dataPath = [...metricPath, list, extension.index, 'data'];
+  const data = rewritten[list][extension.index].data;
   return applyPatches(source, valuePatches(source, dataPath, data, filename));
 }
 

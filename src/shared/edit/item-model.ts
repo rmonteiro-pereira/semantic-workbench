@@ -1,8 +1,9 @@
 /** Defines editable item kinds, field schemas and status rules for each document format. */
-import { VENDOR, GRAINS } from '../metrics/extension';
+import { VENDOR, GRAINS, decodeExtensionData, encodeExtensionData, extensionFormOf, workbenchEntry } from '../metrics/extension';
 import { isMapping } from '../mappings/mapping-schema';
 import { OSSIE_BUILTINS } from '../mappings/ossie-builtins';
 import { isObject } from './source-text';
+import { itemValue } from './yaml-patch';
 // Field paths address either the item or its workbench metric extension. Child lists and insertion
 // locations depend on the document format.
 /** Names a document item that supports structured editing. */
@@ -252,18 +253,17 @@ export const childLists: Partial<Record<ItemKind, { key: string; kind: ItemKind;
   'odcs-property': [{ key: 'relationships', kind: 'odcs-foreign-key', label: 'Foreign keys' }],
 };
 
-/** Reads an item's workbench extension and its list position. */
+/** The Ossie version a document declares in its top-level `version` key, read through the YAML and JSON parser. */
+export function declaredVersion(source: string): unknown {
+  return itemValue(source, ['version']);
+}
+
+/** Reads an item's workbench extension and its list position, in the 0.2 or the 0.3 draft form. */
 export function extensionOf(item: any): { index: number; value: any } | null {
-  const list = item?.custom_extensions;
-  if (!Array.isArray(list)) return null;
-  const index = list.findIndex((e: any) => e?.vendor_name === VENDOR);
-  if (index < 0) return null;
-  try {
-    const value = JSON.parse(list[index].data);
-    return isObject(value) ? { index, value } : null;
-  } catch {
-    return null;
-  }
+  const entry = workbenchEntry(item);
+  if (!entry) return null;
+  const value = decodeExtensionData(entry.form, entry.data).value;
+  return isObject(value) ? { index: entry.index, value } : null;
 }
 const getAt = (v: any, path: Path) => path.reduce((x, k) => x?.[k], v);
 function setAt(current: any, path: Path, value: any): any {
@@ -303,21 +303,25 @@ export function fieldValue(spec: FieldSpec, input: string | boolean): any {
   }
   return text === '' && !spec.required ? undefined : text;
 }
-/** Writes a field into an item or its extension. */
-export function writeField(item: any, spec: FieldSpec, value: any) {
+/**
+ * Writes a field into an item or its extension. `version` is the document's declared Ossie version,
+ * which decides the extension form when the item has no extension list yet.
+ */
+export function writeField(item: any, spec: FieldSpec, value: any, version?: unknown) {
   if (!spec.extension) return setAt(item, spec.at, value);
   const ext = extensionOf(item);
   const data = setAt(ext?.value ?? { schema: 'semantic-workbench/metric/v1' }, spec.at, value);
-  return writeExtension(item, data);
+  return writeExtension(item, data, version);
 }
-/** Updates the workbench extension while preserving other vendors' entries. */
-export function writeExtension(item: any, data: any) {
+/** Updates the workbench extension in the item's form while preserving other vendors' entries. */
+export function writeExtension(item: any, data: any, version?: unknown) {
   const ext = extensionOf(item);
-  const text = JSON.stringify(data, null, 2) + '\n';
-  const list = Array.isArray(item.custom_extensions) ? [...item.custom_extensions] : [];
-  if (ext) list[ext.index] = { ...list[ext.index], data: text };
-  else list.push({ vendor_name: VENDOR, data: text });
-  return { ...item, custom_extensions: list };
+  const form = extensionFormOf(item, version);
+  const stored = encodeExtensionData(form, data);
+  const list = Array.isArray(item[form.list]) ? [...item[form.list]] : [];
+  if (ext) list[ext.index] = { ...list[ext.index], data: stored };
+  else list.push({ vendor_name: VENDOR, data: stored });
+  return { ...item, [form.list]: list };
 }
 
 const GOVERNANCE = new Set(['status', 'replaced_by', 'deprecation_reason', 'owner', 'steward', 'label']);

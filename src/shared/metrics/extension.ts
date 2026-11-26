@@ -1,12 +1,13 @@
-/** Reads and validates workbench metric attributes stored as JSON in Ossie custom extensions. */
+/** Reads and validates workbench metric attributes stored in Ossie vendor extensions, in the 0.2 or the 0.3 draft form. */
 import { itemKeyLookup } from '../core/item-key-adapters';
 import type { ValidateFunction } from 'ajv';
 import { metric as checkMetric, mapping as checkMapping } from '../../generated/validators.js';
 import { schemaErrorPath, type Issue } from '../validation/diagnostics';
 import { ansiExpression, expressionRefs, metricDependencies } from './deps';
-// Metric attributes in Ossie `custom_extensions`: an entry with vendor_name SEMANTIC_WORKBENCH
-// whose `data` is a JSON string. Validated against the pinned application schemas by the same code
-// in the browser, the file store and the API.
+// Metric attributes in an Ossie vendor extension: an entry with vendor_name SEMANTIC_WORKBENCH.
+// Ossie 0.2.0.dev0 keeps it in `custom_extensions` with `data` as a JSON string; the 0.3.0 draft
+// keeps it in `nonportable_extensions` with `data` as an object. Validated against the pinned
+// application schemas by the same code in the browser, the file store and the API.
 export const VENDOR = 'SEMANTIC_WORKBENCH';
 export const METRIC_SCHEMA = 'semantic-workbench/metric/v1';
 export const MAPPING_SCHEMA = 'semantic-workbench/mapping/v1';
@@ -45,14 +46,61 @@ export type MetricExtension = {
 export type KpiBinding = { metric: string; measures: string; of?: string };
 const object = (v: unknown): v is Record<string, any> => !!v && typeof v === 'object' && !Array.isArray(v);
 
-/** Finds the workbench extension and its index for validation paths. */
-export function workbenchEntry(owner: any): { index: number; data: unknown } | null {
-  const list = owner?.custom_extensions;
+/** Where an item keeps its vendor extensions, and whether their `data` is an object or a JSON string. */
+export type ExtensionForm = { list: 'custom_extensions' | 'nonportable_extensions'; objectData: boolean };
+/** The Ossie 0.2.0.dev0 form: `custom_extensions` with JSON-string data. */
+export const CUSTOM_EXTENSIONS: ExtensionForm = { list: 'custom_extensions', objectData: false };
+/** The Ossie 0.3.0 draft form: `nonportable_extensions` with object data. */
+export const NONPORTABLE_EXTENSIONS: ExtensionForm = { list: 'nonportable_extensions', objectData: true };
+const DRAFT_VERSION = '0.3.0.dev0';
+
+/** The form a document of this declared version uses. Anything but the draft keeps the 0.2 form. */
+export function extensionFormFor(version: unknown): ExtensionForm {
+  return version === DRAFT_VERSION ? NONPORTABLE_EXTENSIONS : CUSTOM_EXTENSIONS;
+}
+
+/** The form an item already uses, or the one its document's version calls for when it has no extension list. */
+export function extensionFormOf(owner: any, version?: unknown): ExtensionForm {
+  if (Array.isArray(owner?.nonportable_extensions)) return NONPORTABLE_EXTENSIONS;
+  if (Array.isArray(owner?.custom_extensions)) return CUSTOM_EXTENSIONS;
+  return extensionFormFor(version);
+}
+
+/** Stores extension data the way a form writes it: an object, or JSON text that ends with a newline. */
+export function encodeExtensionData(form: ExtensionForm, value: unknown): unknown {
+  return form.objectData ? value : JSON.stringify(value, null, 2) + '\n';
+}
+
+/** Finds the workbench extension, its index and its form, for validation paths. */
+export function workbenchEntry(owner: any): { index: number; data: unknown; form: ExtensionForm } | null {
+  const form = extensionFormOf(owner);
+  const list = owner?.[form.list];
   if (!Array.isArray(list)) return null;
   const index = list.findIndex((e: any) => e?.vendor_name === VENDOR);
-  return index < 0 ? null : { index, data: list[index]?.data };
+  return index < 0 ? null : { index, data: list[index]?.data, form };
 }
-function parseData(data: unknown, path: string): { value?: any; issues: Issue[] } {
+
+/** The JSON pointer of the workbench entry's data, for findings. */
+export function workbenchDataPath(path: string, entry: { index: number; form: ExtensionForm }): string {
+  return `${path}/${entry.form.list}/${entry.index}/data`;
+}
+
+/** Reads an entry's data in either form. Object data is taken as it is; JSON text is parsed. */
+export function decodeExtensionData(form: ExtensionForm, data: unknown): { value?: any; error?: string } {
+  if (form.objectData) return object(data) ? { value: data } : { error: 'The SEMANTIC_WORKBENCH extension data must be an object.' };
+  if (typeof data !== 'string') return { error: 'The SEMANTIC_WORKBENCH extension data must be a JSON string.' };
+  try {
+    return { value: JSON.parse(data) };
+  } catch (error) {
+    return { error: `The SEMANTIC_WORKBENCH extension data is not valid JSON: ${(error as Error).message}` };
+  }
+}
+
+function parseData(data: unknown, path: string, form: ExtensionForm): { value?: any; issues: Issue[] } {
+  if (form.objectData) {
+    const decoded = decodeExtensionData(form, data);
+    return decoded.error ? { issues: [{ severity: 'error', code: 'extension', path, message: decoded.error }] } : { value: decoded.value, issues: [] };
+  }
   if (typeof data !== 'string')
     return {
       issues: [
@@ -129,8 +177,8 @@ function schemaIssues(validate: ValidateFunction, value: unknown, path: string, 
 export function readMetricExtension(metric: any, path = ''): { value: MetricExtension | null; issues: Issue[] } {
   const entry = workbenchEntry(metric);
   if (!entry) return { value: null, issues: [] };
-  const dataPath = `${path}/custom_extensions/${entry.index}/data`;
-  const parsed = parseData(entry.data, dataPath);
+  const dataPath = workbenchDataPath(path, entry);
+  const parsed = parseData(entry.data, dataPath, entry.form);
   if (parsed.issues.length) return { value: null, issues: parsed.issues };
   const issues = schemaIssues(checkMetric, parsed.value, dataPath, metricRules(parsed.value));
   return { value: issues.length ? null : parsed.value, issues };
@@ -140,8 +188,8 @@ export function readMetricExtension(metric: any, path = ''): { value: MetricExte
 export function readKpiBindings(owner: any, path = '', mappingDocument = true): { value: KpiBinding[]; issues: Issue[] } {
   const entry = workbenchEntry(owner);
   if (!entry) return { value: [], issues: [] };
-  const dataPath = `${path}/custom_extensions/${entry.index}/data`;
-  const parsed = parseData(entry.data, dataPath);
+  const dataPath = workbenchDataPath(path, entry);
+  const parsed = parseData(entry.data, dataPath, entry.form);
   if (parsed.issues.length) return { value: [], issues: parsed.issues };
   // On a semantic model root the entry may hold model defaults instead of metric bindings.
   if (!mappingDocument && !(object(parsed.value) && parsed.value.schema === MAPPING_SCHEMA)) return { value: [], issues: [] };
@@ -243,7 +291,7 @@ export function metricLayerIssues(model: any, prefix: string, _fieldNames: Map<s
     const { value, issues: own } = readMetricExtension(metric, path);
     issues.push(...own);
     if (!value) return;
-    const dataPath = `${path}/custom_extensions/${workbenchEntry(metric)!.index}/data`;
+    const dataPath = workbenchDataPath(path, workbenchEntry(metric)!);
     const err = (inner: string, message: string, code = 'kpi-reference') => issues.push({ severity: 'error', code, path: dataPath, innerPath: inner, message });
     for (const [key, ref] of [
       ['numerator', value.numerator],

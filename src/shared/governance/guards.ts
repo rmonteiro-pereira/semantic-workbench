@@ -5,6 +5,7 @@
 import { parseSource } from '../edit/yaml-patch';
 import { withMetricAttributes } from '../metrics/metric-save';
 import { extensionOf, semanticModelPaths, type Path } from '../edit/item-model';
+import { extensionFormOf } from '../metrics/extension';
 import { deepEqual, isObject } from '../edit/source-text';
 import { demoteOntologyItem, isApprovedOntologyItem, ontologyItemChanges, ontologyItemLabel } from './ontology-guards';
 
@@ -126,14 +127,15 @@ export function ownerMatches(owner: string, person: { verifiedEmail?: string | n
 
 /** A metric as it is compared for the approved-metric rule: everything but its description. */
 function comparable(metric: any) {
-  const { description: _description, custom_extensions: extensions, ...rest } = metric;
+  const form = extensionFormOf(metric);
+  const { description: _description, [form.list]: extensions, ...rest } = metric;
   const values = list(extensions).map(entry => {
-    const parsedEntry = extensionOf({ custom_extensions: [entry] });
+    const parsedEntry = extensionOf({ [form.list]: [entry] });
     if (!parsedEntry) return entry;
     const { status: _status, ...data } = parsedEntry.value;
     return { ...entry, data };
   });
-  return { ...rest, custom_extensions: values };
+  return { ...rest, [form.list]: values };
 }
 
 type Located = { path: Path; value: any };
