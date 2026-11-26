@@ -243,7 +243,6 @@ font-face declarations before the theme stylesheet. Fonts are served from the ap
   Delegated Git credential updates use the session store reference under its existing mutation lock,
   preserving the browser session idle clock and refusing updates after session end.
 
-
 - `src/server/auth/request-surface.ts` records the authenticated caller’s browser or consumer surface through
   `request-scope.ts` at the operation boundary, using a symbol on the request and one setter.
   The HTTP adapter supplies validated browser metadata; MCP callers always consume published definitions.
@@ -519,7 +518,8 @@ the bundle outside the source trees.
   (positions, chunked reveal, separation by measured size) and `NeighborhoodToolbar.tsx`. `FullGraph.tsx` composes `useFullGraphLayout.ts` (layout cache, the Network worker
   and ELK layout) and `FullGraphNodes.tsx` (entity, area and relationship renderers).
   `useFullGraphOpening.ts` measures the painted first viewport and chooses its readable opening representation.
-  `useFullGraphEdges.ts` builds connections from the current layout and focus.
+  `useFullGraphEdges.ts` builds connections and shares final-label eligibility with obstacle placement.
+  `label-route.ts` caches painted route bounds, samples visible curves and refines leader endpoints on the SVG path.
   `full-graph-viewport.ts` owns Fit, area framing and readable selection framing.
   `useNeighborhoodViewport.ts` owns neighborhood fitting, anchoring and viewport restoration.
   `CompactControls.tsx` folds toolbar controls into a disclosure when space is limited.
@@ -654,23 +654,23 @@ matches that tip.
 
 ## Where to change a behavior
 
-| Behavior | Starting point |
-| --- | --- |
-| Runtime setting | `src/server/config.ts`, then `docs/configuration.md` |
-| Route/resource | `src/server/routes/` and `auth/route-actions.ts` |
-| Access decision | `auth/authorize.ts`, Cedar policies and grant/compiler modules |
-| Content protection | `src/shared/governance/`, then server/client bindings |
-| Item address kind | `shared/core/address-kinds.ts`, model derivation, conformance fixtures, properties and `docs/item-addresses.md` |
-| Definition syntax | `src/shared/core/model.ts`, `src/shared/validation/`, `src/shared/odcs/` and pinned schemas |
-| Tessera addition, base or compiler | `src/shared/tessera/registry.ts` (read its header), `bases.ts`, `compile-document.ts`; the command line in `scripts/tessera.ts` |
-| Byte-preserving item edit | `src/shared/edit/`, `src/app/edit/` and `src/shared/editor/patch.ts` |
-| Metrics/bindings/plans | `src/shared/metrics/`, `src/app/metrics/`, `src/server/agent/` |
-| Usage counts and the Traffic display | `src/server/usage/`, `src/shared/usage/counted-operations.json`, `src/app/usage/`, `docs/usage-counters.md` |
-| Graph layout/routing | `FullGraph.tsx`, `src/app/graph/`, `src/app/odcs/` |
-| Git/repository behavior | `src/server/projects/git.ts`, `scm.ts`, working-copy modules |
-| Theme/brand | Tokens and `public/brand/`; server sanitation under `src/server/brand/` |
-| Diagnostics/export | `src/server/observability/`, browser report schema and recorder |
-| Quality gate | `scripts/gate-suites.ts`, container suites and `ci-validate.ts` |
+| Behavior                             | Starting point                                                                                                                  |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| Runtime setting                      | `src/server/config.ts`, then `docs/configuration.md`                                                                            |
+| Route/resource                       | `src/server/routes/` and `auth/route-actions.ts`                                                                                |
+| Access decision                      | `auth/authorize.ts`, Cedar policies and grant/compiler modules                                                                  |
+| Content protection                   | `src/shared/governance/`, then server/client bindings                                                                           |
+| Item address kind                    | `shared/core/address-kinds.ts`, model derivation, conformance fixtures, properties and `docs/item-addresses.md`                 |
+| Definition syntax                    | `src/shared/core/model.ts`, `src/shared/validation/`, `src/shared/odcs/` and pinned schemas                                     |
+| Tessera addition, base or compiler   | `src/shared/tessera/registry.ts` (read its header), `bases.ts`, `compile-document.ts`; the command line in `scripts/tessera.ts` |
+| Byte-preserving item edit            | `src/shared/edit/`, `src/app/edit/` and `src/shared/editor/patch.ts`                                                            |
+| Metrics/bindings/plans               | `src/shared/metrics/`, `src/app/metrics/`, `src/server/agent/`                                                                  |
+| Usage counts and the Traffic display | `src/server/usage/`, `src/shared/usage/counted-operations.json`, `src/app/usage/`, `docs/usage-counters.md`                     |
+| Graph layout/routing                 | `FullGraph.tsx`, `src/app/graph/`, `src/app/odcs/`                                                                              |
+| Git/repository behavior              | `src/server/projects/git.ts`, `scm.ts`, working-copy modules                                                                    |
+| Theme/brand                          | Tokens and `public/brand/`; server sanitation under `src/server/brand/`                                                         |
+| Diagnostics/export                   | `src/server/observability/`, browser report schema and recorder                                                                 |
+| Quality gate                         | `scripts/gate-suites.ts`, container suites and `ci-validate.ts`                                                                 |
 
 Use [the development guide](docs/development.md) for command syntax, fixture rules and validation.
 Keep configuration/API/operation details in their canonical guides instead of appending release
@@ -682,7 +682,6 @@ history or per-control instructions to this architecture map.
 adapter into the operation boundary. `src/shared/agent-panel/` holds the content statement and
 event contracts. `src/app/agent/` owns the in-memory browser event reduction and panel transport;
 it uses the ordinary browser API wrapper for write intent and ordinary guarded saves for Undo.
-
 
 The person menu dynamically imports `AgentPanelHost` only on selection. The host mounts a sheet
 beside the existing canvas and removes its container on close, leaving closed-screen geometry

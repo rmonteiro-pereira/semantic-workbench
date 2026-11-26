@@ -42,7 +42,7 @@ export function RelationshipLabel({ edge, text, points, fallback, traffic }: Lab
   const bounds = labelBox(String(text), label, scale);
   const visible = useStore(state => labelInViewport(bounds, state.transform, state.width, state.height));
   if (!visible) return null;
-  const anchor = nearestRoutePoint(points, label);
+  const anchor = (edge.data?.labelAnchor as [number, number] | undefined) ?? nearestRoutePoint(points, label);
   const displaced = Math.hypot(anchor[0] - label[0], anchor[1] - label[1]) > 1;
   return (
     <>

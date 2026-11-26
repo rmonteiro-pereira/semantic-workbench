@@ -63,7 +63,9 @@ it is not a drop-in performance switch.
 
 `src/app/graph/full-layout.ts` and its workers own engine input/output.
 `full-graph-viewport.ts` owns Fit and readable selection framing; `useFullGraphEdges.ts` builds
-connections from the current layout and focus. `useFullGraphOpening.ts` measures the painted
+connections from the current layout and focus. `label-route.ts` caches painted bounds and samples
+visible paths with bounded, curvature-aware refinement. Changed paths are batched per animation
+frame, and removed connections release their cached geometry. `useFullGraphOpening.ts` measures the painted
 first viewport and chooses its automatic representation after layout.
 `src/app/graph/overview-capacity.ts` sizes cards and decides when areas start as counted cards. Its `NAME_MIN_PX` constant supplies the shared nine-pixel name floor for graph text fitting and lineage layouts and views.
 `src/app/graph/edge-styles.ts` supplies line/legend styles and SVG-safe appearance;
@@ -73,8 +75,9 @@ longer matches current endpoints.
 When a relayout still contains the selected entity, the camera returns to that card and its
 readable neighbors. The optional mini-map is
 off until requested. Fit reserves its corner above 650 px. Collapsed Network relationship labels
-avoid cards, area headers and the displayed mini-map. Their placement and leader anchors follow
-the rendered smart route or its live Bézier fallback; a route must intersect the viewport to claim a visible label lane. The phone layout hides the map and
+avoid cards, area headers and the displayed mini-map, including change labels when Labels is off. Their placement and leader anchors follow
+the rendered smart route or its live Bézier fallback. Leaders refine their endpoint on the painted
+curve rather than its sampled chords; a route must intersect the viewport to claim a visible label lane. The phone layout hides the map and
 uses the whole canvas width. A finite viewport cannot display an unlimited number of full-size labels;
 area collapse, zoom and focused views make that trade-off explicit.
 

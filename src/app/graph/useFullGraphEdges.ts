@@ -1,16 +1,17 @@
 /** Builds full-model relationship paths and labels from the current layout and focus. */
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MarkerType } from '@xyflow/react';
 import type { groupRelationships } from './graph-view';
 import type { FullLayoutResult } from './full-layout';
 import { unpublishedEdge } from './edge-styles';
 import { placeLabels, type Box } from './routes';
+import { measureLabelRoute, visibleLabelRoute, labelRouteAnchor, type LabelRoute } from './label-route';
 import type { ChangeState } from '../../shared/item-diff/item-change';
 
 type Inputs = {
   connections: ReturnType<typeof groupRelationships>;
   positions: Map<string, { x: number; y: number; width: number; height: number }>;
-  labelObstacles: Box[];
+  labelObstacles: () => Box[];
   miniMapBounds?: Box;
   labelViewportSize: { width: number; height: number };
   selectedEdge: string;
@@ -30,42 +31,55 @@ function relationshipOpacity(emphasized: boolean, hasFocus: boolean) {
   return 0.48;
 }
 
-/** Keeps graph connections stable until their layout, viewport or emphasis changes. */
-export function useFullGraphEdges({
-  connections,
-  positions,
-  labelObstacles,
-  labelViewportSize,
-  miniMapBounds,
-  selectedEdge,
-  focus,
-  labels,
-  hoverEdge,
-  algorithm,
-  layoutRoutes,
-  viewport,
-  size,
-  dragging,
-}: Inputs) {
-  const [renderedRoutes, setRenderedRoutes] = useState(new Map<string, { path: string; points: [number, number][]; candidates: [number, number][] }>());
+function useRenderedLabelRoutes(eligibleIds: Set<string>) {
+  const [revision, setRevision] = useState(0);
+  const routes = useRef(new Map<string, LabelRoute>());
+  const pending = useRef(new Map<string, SVGPathElement>());
+  const frame = useRef<number | undefined>(undefined);
   const reportLabelRoute = useCallback((id: string, element: SVGPathElement) => {
-    const path = element.getAttribute('d') ?? '';
-    setRenderedRoutes(previous => {
-      if (previous.get(id)?.path === path) return previous;
-      const length = element.getTotalLength();
-      const steps = Math.max(1, Math.ceil(length / 4));
-      const points: [number, number][] = Array.from({ length: steps + 1 }, (_, index) => {
-        const point = element.getPointAtLength((length * index) / steps);
-        return [point.x, point.y];
-      });
-      const candidates: [number, number][] = [0.5, 0.4, 0.6, 0.3, 0.7, 0.2, 0.8].map(fraction => {
-        const point = element.getPointAtLength(length * fraction);
-        return [point.x, point.y];
-      });
-      return new Map(previous).set(id, { path, points, candidates });
+    pending.current.set(id, element);
+    if (frame.current !== undefined) return;
+    frame.current = requestAnimationFrame(() => {
+      frame.current = undefined;
+      let changed = false;
+      for (const [edgeId, path] of pending.current) {
+        const previous = routes.current.get(edgeId);
+        if (previous?.path === path.getAttribute('d')) {
+          previous.element = path;
+          continue;
+        }
+        routes.current.set(edgeId, measureLabelRoute(path));
+        changed = true;
+      }
+      pending.current.clear();
+      if (changed) setRevision(value => value + 1);
     });
   }, []);
-  const edges = useMemo(
+  useEffect(() => {
+    for (const id of routes.current.keys()) if (!eligibleIds.has(id)) routes.current.delete(id);
+    for (const id of pending.current.keys()) if (!eligibleIds.has(id)) pending.current.delete(id);
+  }, [eligibleIds]);
+  useEffect(
+    () => () => {
+      if (frame.current !== undefined) cancelAnimationFrame(frame.current);
+    },
+    [],
+  );
+  return { routes: routes.current, revision, reportLabelRoute };
+}
+
+function placeFullGraphLabels(edges: ReturnType<typeof useFullGraphEdgesBase>, routes: Map<string, LabelRoute>, obstacles: Box[], viewport: Box) {
+  const items = edges.flatMap(edge => {
+    if (!edge.data.labelEligible) return [];
+    const route = routes.get(edge.id);
+    const geometry = route && visibleLabelRoute(route, viewport);
+    return geometry ? [{ id: edge.id, text: String(edge.label), ...geometry }] : [];
+  });
+  return placeLabels(items, obstacles, 1, viewport);
+}
+
+function useFullGraphEdgesBase({ connections, positions, selectedEdge, focus, labels, hoverEdge, algorithm, layoutRoutes, viewport, size, dragging }: Inputs) {
+  return useMemo(
     () =>
       connections.map(connection => {
         const fromPosition = positions.get(connection.source);
@@ -123,6 +137,7 @@ export function useFullGraphEdges({
           data: {
             ...connection.data,
             algorithm,
+            labelEligible: algorithm === 'network' && Boolean(appearance.label) && connection.source.startsWith('collapsed:') && connection.target.startsWith('collapsed:'),
             routeDetailed,
             layoutRoute: algorithm === 'layered' ? layoutRoutes[connection.id]?.flat() : undefined,
           },
@@ -143,33 +158,75 @@ export function useFullGraphEdges({
       }),
     [connections, positions, selectedEdge, focus, labels, hoverEdge, algorithm, layoutRoutes, viewport, size, dragging],
   );
+}
+
+/** Keeps graph connections stable until their layout, viewport or emphasis changes. */
+export function useFullGraphEdges({
+  connections,
+  positions,
+  labelObstacles,
+  labelViewportSize,
+  miniMapBounds,
+  selectedEdge,
+  focus,
+  labels,
+  hoverEdge,
+  algorithm,
+  layoutRoutes,
+  viewport,
+  size,
+  dragging,
+}: Inputs) {
+  const edges = useFullGraphEdgesBase({
+    connections,
+    positions,
+    labelObstacles,
+    labelViewportSize,
+    miniMapBounds,
+    selectedEdge,
+    focus,
+    labels,
+    hoverEdge,
+    algorithm,
+    layoutRoutes,
+    viewport,
+    size,
+    dragging,
+  });
+  const eligibleIds = useMemo(() => new Set(edges.filter(edge => edge.data.labelEligible).map(edge => edge.id)), [edges]);
+  const { routes, revision, reportLabelRoute } = useRenderedLabelRoutes(eligibleIds);
+  const hasEligibleLabels = eligibleIds.size > 0;
+  const obstacles = useMemo(() => (hasEligibleLabels ? labelObstacles() : []), [hasEligibleLabels, labelObstacles]);
   return useMemo(() => {
-    const items = edges.flatMap(edge => {
-      if (algorithm !== 'network' || !edge.label || !edge.source.startsWith('collapsed:') || !edge.target.startsWith('collapsed:')) return [];
-      const points = renderedRoutes.get(edge.id)?.points;
-      if (!points) return [];
-      return [{ id: edge.id, text: String(edge.label), points, candidates: renderedRoutes.get(edge.id)?.candidates }];
-    });
-    // Area headers draw above edge paths. Reserve them and the cards, then share one label plane.
     const visibleCanvas = {
       x: (2 - viewport.x) / viewport.zoom,
       y: (2 - viewport.y) / viewport.zoom,
       width: (labelViewportSize.width - 4) / viewport.zoom,
       height: (labelViewportSize.height - 4) / viewport.zoom,
     };
-    const obstacles = [...labelObstacles];
+    const exclusions = [...obstacles];
     if (miniMapBounds) {
-      obstacles.push({
+      exclusions.push({
         x: (miniMapBounds.x - viewport.x) / viewport.zoom,
         y: (miniMapBounds.y - viewport.y) / viewport.zoom,
         width: miniMapBounds.width / viewport.zoom,
         height: miniMapBounds.height / viewport.zoom,
       });
     }
-    const labelPositions = placeLabels(items, obstacles, 1, visibleCanvas);
+    const labelPositions = placeFullGraphLabels(edges, routes, exclusions, visibleCanvas);
     return edges.map(edge => {
-      const eligible = algorithm === 'network' && edge.label && edge.source.startsWith('collapsed:') && edge.target.startsWith('collapsed:');
-      return { ...edge, data: { ...edge.data, labelAt: labelPositions.get(edge.id), labelPoints: renderedRoutes.get(edge.id)?.points, reportLabelRoute: eligible ? reportLabelRoute : undefined } };
+      const route = routes.get(edge.id);
+      const labelAt = labelPositions.get(edge.id);
+      return {
+        ...edge,
+        data: {
+          ...edge.data,
+          labelAt,
+          labelAnchor: labelAt && route ? labelRouteAnchor(route, labelAt) : undefined,
+          labelPoints: route?.points,
+          reportLabelRoute: edge.data.labelEligible ? reportLabelRoute : undefined,
+        },
+      };
     });
-  }, [edges, labelObstacles, algorithm, viewport, labelViewportSize, miniMapBounds, renderedRoutes, reportLabelRoute]);
+  }, [edges, obstacles, viewport, labelViewportSize, miniMapBounds, routes, revision, reportLabelRoute]);
 }

@@ -341,18 +341,7 @@ export function FullGraph(props: Props) {
         }),
     );
   }, [nodes]);
-  const labelObstacles = useMemo(() => {
-    const eligible =
-      algorithm === 'network' &&
-      connections.some(
-        connection =>
-          connection.source.startsWith('collapsed:') &&
-          connection.target.startsWith('collapsed:') &&
-          ((labels && (viewport.zoom >= 0.75 || connection.source === focus || connection.target === focus)) ||
-            connection.id === hoverEdge ||
-            connection.data.relationships.some(relationship => relationship.id === props.selectedEdge)),
-      );
-    if (!eligible) return [];
+  const labelObstacles = useCallback(() => {
     const firstChildY = new Map<string, number>();
     const areas = [];
     for (const node of nodes) {
@@ -369,7 +358,7 @@ export function FullGraph(props: Props) {
         height: Math.min(Number(node.style.height), firstChildY.get(node.id) ?? Infinity),
       })),
     ];
-  }, [nodes, positions, algorithm, connections, labels, viewport.zoom, focus, hoverEdge, props.selectedEdge]);
+  }, [nodes, positions]);
   const dragging = nodes.some(n => n.dragging);
   const edges = useFullGraphEdges({
     connections,
