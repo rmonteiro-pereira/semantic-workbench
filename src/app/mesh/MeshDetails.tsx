@@ -9,7 +9,7 @@ export function MeshDetails({ project, graph }: { project: MeshProjectView; grap
   const names = new Map(graph.projects.map(project => [project.project, project.name]));
   const outgoing = graph.links.filter(link => link.consumer === project.project);
   return (
-    <section aria-label="Project imports">
+    <section className="mesh-details" aria-label="Project imports">
       <h3>{project.name}</h3>
       {outgoing.length === 0 && <p>No published imports.</p>}
       <ul className="mesh-import-list">

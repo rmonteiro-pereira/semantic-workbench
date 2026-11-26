@@ -14,25 +14,32 @@ import { DependentsList } from './DependentsList';
 import { DependencyUpdate } from './DependencyUpdate';
 import type { DependencyState } from './api';
 
-type ImportsViewProps = { state: MeshRead<DependencyState | undefined>; canEdit: boolean; onOpen: () => void; onEdit?: (entry: UnitImport) => void };
+type ImportsViewProps = {
+  state: MeshRead<DependencyState | undefined>;
+  canEdit: boolean;
+  editing?: boolean;
+  onOpen: () => void;
+  onEdit?: (entry: UnitImport) => void;
+};
 
 /** Displays explicit status text for loading, errors, empty declarations and draft imports. */
-export function ImportsView({ state, canEdit, onOpen, onEdit }: ImportsViewProps) {
-  if (state.status === 'loading') return <p role="status">Loading imports…</p>;
+export function ImportsView({ state, canEdit, editing = false, onOpen, onEdit }: ImportsViewProps) {
+  if (state.status === 'loading') return <p role="status">Loading imports</p>;
   if (state.status === 'error') return <p role="alert">{state.message}</p>;
   const imports = state.value?.imports ?? [];
   return (
     <>
       {state.value?.state === 'update-available' && <p role="status">Update available</p>}
-      {!imports.length && <p>No imports in this ontology.</p>}
+      {/* While the editor is open, its own content says what is being added. */}
+      {!imports.length && !editing && <p>No imports in this ontology.</p>}
       <ul className="mesh-import-list">
         {imports.map(entry => (
           <li key={entry.alias}>
             <strong>{entry.alias}</strong> from {entry.project}
             {entry.ontology ? ` / ${entry.ontology}` : ''}
-            <div>{entry.concepts.join(', ')}</div>
-            <div>{entry.version === 'latest' ? 'Latest published version' : `Pin ${entry.version.pin}`}</div>
-            {state.value?.state === 'needs-update' && <div>Not published</div>}
+            <div>Concepts: {entry.concepts.join(', ')}</div>
+            <div>Version: {entry.version === 'latest' ? 'latest published' : `pinned to ${entry.version.pin}`}</div>
+            {state.value?.state === 'needs-update' && <div>State: Not published</div>}
             {canEdit && onEdit && (
               <button type="button" onClick={() => onEdit(entry)}>
                 Edit import {entry.alias}
@@ -88,11 +95,11 @@ export function ImportsSection({
   return (
     <section className="mesh-imports" aria-label="Imports">
       <h3>Imports</h3>
-      <ImportsView state={state} canEdit={access.can('edit') && !dirty && !editing} onOpen={() => setEditing('new')} onEdit={setEditing} />
+      <ImportsView state={state} canEdit={access.can('edit') && !dirty && !editing} editing={!!editing} onOpen={() => setEditing('new')} onEdit={setEditing} />
       {access.can('edit') && !dirty && !editing && state.status === 'ready' && state.value && (state.value.imports.length > 0 || state.value.state === 'needs-update') && (
         <DependencyUpdate project={doc.project} baseHash={state.value.manifestHash ?? null} onUpdated={() => setRefresh(refresh + 1)} />
       )}
-      {editing && providers.status === 'loading' && <p role="status">Loading published providers…</p>}
+      {editing && providers.status === 'loading' && <p role="status">Loading published providers</p>}
       {editing && providers.status === 'error' && <p role="alert">{providers.message}</p>}
       {editing && providers.status === 'ready' && (
         <ImportEditor

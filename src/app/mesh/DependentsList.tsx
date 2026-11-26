@@ -5,7 +5,7 @@ import type { MeshRead } from './use-mesh';
 
 /** Renders text descriptions of the list's loading, failure and completed states. */
 export function DependentsContent({ state }: { state: MeshRead<DependentView[]> }) {
-  if (state.status === 'loading') return <p role="status">Loading published dependents…</p>;
+  if (state.status === 'loading') return <p role="status">Loading published dependents</p>;
   if (state.status === 'error') return <p role="alert">{state.message}</p>;
   if (!state.value.length) return <p>No published project imports this ontology.</p>;
   return (

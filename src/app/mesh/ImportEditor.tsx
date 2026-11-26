@@ -72,7 +72,8 @@ export function ImportEditor({ providers, existing, aliases, onAdd, onCancel }: 
             ))}
           </fieldset>
           <label className="mesh-option">
-            <input type="checkbox" checked={pin} onChange={event => setPin(event.target.checked)} /> Pin a published commit or release tag
+            <input type="checkbox" checked={pin} onChange={event => setPin(event.target.checked)} />
+            <span>Pin a published commit or release tag</span>
           </label>
           {pin && (
             <label>
@@ -88,7 +89,7 @@ export function ImportEditor({ providers, existing, aliases, onAdd, onCancel }: 
           Cancel
         </button>
         <button type="submit" className="primary" disabled={!canSave}>
-          {saving ? 'Saving…' : 'Save import'}
+          {saving ? 'Saving' : 'Save import'}
         </button>
       </div>
     </form>
