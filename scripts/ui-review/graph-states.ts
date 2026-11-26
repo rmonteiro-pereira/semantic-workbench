@@ -1,5 +1,5 @@
 /** Captures comparable graph stages through the workspace's navigation and controls. */
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { fileTab } from '../helpers/screen-tour';
 import { hideGraphControls, revealGraphControls, viewOptions, chooseLayout, setShown, showEveryEntity } from '../helpers/graph-options';
 import { openGroupMenu, groupingMenuLabels, chooseGrouping } from '../helpers/grouping-menu';
@@ -250,6 +250,7 @@ async function lineageWalkTarget(page: Page, visited: string[]) {
   let title = await uncoveredLineageTarget(page, `${cards} .lineage-card-title`, visited);
   if (!title) {
     await press(page, /^Fit( model| neighborhood)?$/);
+    await expect.poll(() => uncoveredLineageTarget(page, `${cards} .lineage-card-title`, visited), { timeout: 5000 }).not.toBeNull();
     title = await uncoveredLineageTarget(page, `${cards} .lineage-card-title`, visited);
   }
   if (!title) throw new Error('No uncovered lineage card title or Walk here button');
