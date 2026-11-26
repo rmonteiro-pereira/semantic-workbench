@@ -536,3 +536,16 @@
   color: var(--color-danger-text);
   border-color: var(--color-danger-border);
 }
+
+/* Save state reads the same in every area: a quiet confirmation after saving, and a marked note
+   while a draft holds changes that are not saved yet. */
+.admin-saved {
+  margin: 4px 0;
+  color: var(--color-text-secondary);
+}
+.admin-unsaved {
+  margin: 4px 0;
+  padding-inline-start: 8px;
+  border-inline-start: 3px solid var(--color-accent);
+  font-size: var(--text-small);
+}

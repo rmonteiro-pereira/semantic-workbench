@@ -1,3 +1,4 @@
+import { SavedNote, useSavedAt } from './SaveStatus';
 import { useState } from 'react';
 import { AdminConfirmation } from './AdminConfirmation';
 import { newIdentifier } from './helpers';
@@ -20,9 +21,11 @@ export function PoliciesSection() {
   const [edit, setEdit] = useState<Policy | null>(null);
   const [change, setChange] = useState<{ rules: Policy[]; description: string; deleted?: string } | null>(null);
   const [history, setHistory] = useState(false);
+  const { savedAt, markSaved } = useSavedAt();
   function saved() {
     setEdit(null);
     setChange(null);
+    markSaved();
     reload();
   }
   function create() {
@@ -64,6 +67,7 @@ export function PoliciesSection() {
         <button onClick={() => setHistory(true)}>History</button>
       </div>
       <SectionStatus subject="access rules" loading={!data && !error} error={error} onRetry={reload} />
+      <SavedNote at={savedAt} />
       {data && (
         <>
           <h3>Admin rules</h3>

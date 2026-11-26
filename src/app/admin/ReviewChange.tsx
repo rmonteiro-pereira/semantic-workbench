@@ -1,3 +1,4 @@
+import { UnsavedChangesNote } from './SaveStatus';
 import { useState } from 'react';
 import { adminApi, AdminApiError } from './api';
 import { AdminConfirmation } from './AdminConfirmation';
@@ -59,6 +60,8 @@ export function ReviewChange({
   description = 'Save changes',
   changeLabel,
   destructive = false,
+  dirty = false,
+  unavailableReason,
   inline = false,
 }: {
   area: AccessArea;
@@ -71,6 +74,10 @@ export function ReviewChange({
   changeLabel?: string;
   /** The change removes or ends something, so its confirm button is the danger one. */
   destructive?: boolean;
+  /** The draft differs from what is saved, so the reader is told it is not saved yet. */
+  dirty?: boolean;
+  /** Why the review button is unavailable, shown beside it instead of a silent grey button. */
+  unavailableReason?: string;
   /**
    * Shows the result and the confirm button in place, for a review that already sits in a
    * confirmation dialog. Otherwise the result opens in its own dialog.
@@ -142,6 +149,8 @@ export function ReviewChange({
         </button>
         {inline && ready && review && confirmButtons}
       </div>
+      {disabled && unavailableReason && <p className="admin-unsaved">{unavailableReason}</p>}
+      {dirty && !ready && <UnsavedChangesNote action={previewLabels[area] ?? 'Review change'} />}
       {!inline && ready && review && (
         <AdminConfirmation title={changeLabel ?? description} onCancel={() => setReview(null)} cancelLabel="Back to editing" actions={confirmButtons}>
           <DryRunResult result={review.result} />

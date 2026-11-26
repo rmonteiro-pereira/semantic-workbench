@@ -125,7 +125,16 @@ export function PolicyEditor({ initial, rules, version, onBack, onSaved }: PaneP
         </p>
       ))}
       {validated === key && <p>Policy is valid.</p>}
-      <ReviewChange area="policies" changeLabel={`Save policy ${policy.description || policy.id}`} proposal={proposal} baseVersion={version} disabled={validated !== key} onSaved={onSaved} />
+      <ReviewChange
+        area="policies"
+        changeLabel={`Save policy ${policy.description || policy.id}`}
+        proposal={proposal}
+        baseVersion={version}
+        disabled={validated !== key}
+        unavailableReason="Validate the rule first; Review change opens once it is valid."
+        dirty={JSON.stringify(policy) !== JSON.stringify(initial)}
+        onSaved={onSaved}
+      />
     </AdminPane>
   );
 }

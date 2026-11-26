@@ -1,3 +1,4 @@
+import { SavedNote, useSavedAt } from './SaveStatus';
 import { changeDescription } from './change-review';
 import { SectionStatus } from './SectionStatus';
 import { useState } from 'react';
@@ -68,14 +69,17 @@ export function AgentProgramsSection() {
   function removeProgram(index: number) {
     setDraft(programs.filter((_, currentIndex) => currentIndex !== index));
   }
+  const { savedAt, markSaved } = useSavedAt();
   function saved() {
     setDraft(null);
+    markSaved();
     reload();
   }
   const removed = data?.programs.filter(before => !programs.some(program => program.clientId === before.clientId)) ?? [];
   return (
     <div className="agent-programs">
       <SectionStatus subject="agent programs" loading={!data && !error} error={error} onRetry={reload} />
+      <SavedNote at={savedAt} />
       {data && (
         <>
           {!programs.length && <p>No agent programs registered.</p>}
@@ -102,6 +106,7 @@ export function AgentProgramsSection() {
                   removed.map(program => program.name),
                 )}
                 destructive={removed.length > 0}
+                dirty
               />
               <button onClick={() => setDraft(null)}>Discard changes</button>
             </>

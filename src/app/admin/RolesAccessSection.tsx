@@ -1,3 +1,4 @@
+import { SavedNote, useSavedAt } from './SaveStatus';
 import { useState } from 'react';
 import { EmptyState } from '../projects/EmptyState';
 import { useMe } from '../auth/useMe';
@@ -27,10 +28,12 @@ export function RolesAccessSection({ view }: { view: 'grants' | 'roles' }) {
   const [role, setRole] = useState<Role | null>(null);
   const [removal, setRemoval] = useState<Grant | Role | null>(null);
   const [history, setHistory] = useState(false);
+  const { savedAt, markSaved } = useSavedAt();
   function saved() {
     setGrant(null);
     setRole(null);
     setRemoval(null);
+    markSaved();
     reload();
   }
   function duplicate(source?: Role) {
@@ -69,6 +72,7 @@ export function RolesAccessSection({ view }: { view: 'grants' | 'roles' }) {
         <button onClick={() => setHistory(true)}>History</button>
       </div>
       <SectionStatus subject={view === 'grants' ? 'access grants' : 'roles'} loading={!data && !error} error={error} onRetry={reload} />
+      <SavedNote at={savedAt} />
       {data && view === 'grants' && (
         <>
           {data.grants.length === 0 && (

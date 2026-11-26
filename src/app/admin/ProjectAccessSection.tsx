@@ -1,3 +1,4 @@
+import { SavedNote, useSavedAt } from './SaveStatus';
 import { changeDescription } from './change-review';
 import { SectionStatus } from './SectionStatus';
 import { useState } from 'react';
@@ -18,6 +19,11 @@ async function loadProjects() {
 /** Manages domains, project restrictions and application client grants. */
 export function ProjectAccessSection() {
   const { data, error, reload } = useAdminData(loadProjects);
+  const { savedAt, markSaved } = useSavedAt();
+  function saved() {
+    markSaved();
+    reload();
+  }
   const [history, setHistory] = useState(false);
   if (history) {
     return (
@@ -35,10 +41,11 @@ export function ProjectAccessSection() {
     <>
       <button onClick={() => setHistory(true)}>History</button>
       <SectionStatus subject="project access" loading={!data && !error} error={error} onRetry={reload} />
+      <SavedNote at={savedAt} />
       {data && (
         <>
-          <ProjectsEditor key={data.projects.version} initial={data.projects.document} version={data.projects.version} onSaved={reload} />
-          <AgentGrants key={'agents-' + data.agents.version} initial={data.agents.document} version={data.agents.version} onSaved={reload} />
+          <ProjectsEditor key={data.projects.version} initial={data.projects.document} version={data.projects.version} onSaved={saved} />
+          <AgentGrants key={'agents-' + data.agents.version} initial={data.agents.document} version={data.agents.version} onSaved={saved} />
         </>
       )}
     </>
@@ -119,6 +126,7 @@ export function ProjectsEditor({ initial, version, onSaved }: { initial: Project
         onSaved={onSaved}
         description={changeDescription('Save project access', projectRemovals(initial, config))}
         destructive={projectRemovals(initial, config).length > 0}
+        dirty={JSON.stringify(config) !== JSON.stringify(initial)}
       />
     </>
   );

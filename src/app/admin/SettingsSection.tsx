@@ -1,3 +1,4 @@
+import { SavedNote, UnsavedChangesNote, useSavedAt } from './SaveStatus';
 import { Fragment, useCallback, useState } from 'react';
 import { useMe } from '../auth/useMe';
 import { EmptyState } from '../projects/EmptyState';
@@ -19,6 +20,11 @@ export function SettingsSection() {
     return { version: settings.version, settings: settings.document, sessions, provider };
   }, [local]);
   const { data, error, reload } = useAdminData(load);
+  const { savedAt, markSaved } = useSavedAt();
+  function saved() {
+    markSaved();
+    reload();
+  }
   const [end, setEnd] = useState<{ principal: string; name: string } | null>(null);
   const [failure, setFailure] = useState('');
   const [history, setHistory] = useState(false);
@@ -49,13 +55,14 @@ export function SettingsSection() {
       <button onClick={() => setHistory(true)}>History</button>
       <SectionStatus subject="the workspace settings" loading={!data && !error} error={error} onRetry={reload} />
       {failure && <p role="alert">{failure}</p>}
+      <SavedNote at={savedAt} />
       {data && (
         <>
           <h3>Provider status</h3>
           {local && <p>Provider settings apply in server mode.</p>}
           {data.provider && <ProviderFacts provider={data.provider} />}
           <UsageCountersStatus />
-          <SettingsEditor key={data.version} initial={data.settings} version={data.version} onSaved={reload} />
+          <SettingsEditor key={data.version} initial={data.settings} version={data.version} onSaved={saved} />
           <section aria-label="Active sessions">
             <h3>Active sessions</h3>
             {data.sessions.length === 0 && (
@@ -161,13 +168,14 @@ function SettingsEditor({ initial, version, onSaved }: { initial: Settings; vers
       <button disabled={busy || settings.session.idleHours <= 0 || settings.session.absoluteHours <= 0} onClick={() => setConfirm(true)}>
         Save settings
       </button>
+      {!confirm && JSON.stringify(settings) !== JSON.stringify(initial) && <UnsavedChangesNote action="Save settings" />}
       {confirm && (
         <>
           <p>Save these session lifetimes?</p>
           <button disabled={busy} onClick={save}>
             Confirm save settings
           </button>
-          <button onClick={() => setConfirm(false)}>Cancel changes</button>
+          <button onClick={() => setConfirm(false)}>Cancel</button>
         </>
       )}
       <h3>Remote-credential policy</h3>
