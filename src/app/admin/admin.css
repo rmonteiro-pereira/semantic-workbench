@@ -582,3 +582,12 @@
     flex-wrap: nowrap;
   }
 }
+/* Each scope reads as its checkbox with the sentence of what it allows underneath. */
+.agent-program-scope .admin-field-hint {
+  margin: 0 0 6px 24px;
+}
+/* What a policy rule allows or denies, in one sentence under its name. */
+.admin-rule-sentence {
+  margin: 2px 0 6px;
+  color: var(--color-text-secondary);
+}
