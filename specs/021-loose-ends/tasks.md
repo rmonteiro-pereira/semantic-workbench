@@ -77,7 +77,8 @@ targeted test green and the formatter applied. No task edits an existing test on
   against `main`.
 - [ ] T015 UI regression comparison of the whole journey against `main` at `4efb44e2`. Proof: classification
   counts; zero unaccepted regressions. Include every screen that uses the light `--color-success` token
-  (`src/app/style.css`, `governance.css`, `WorkspaceHeader.css`, `admin.css`), the UBL and Mall collapsed Network
+  (`src/app/style.css`, `governance.css`, `WorkspaceHeader.css`, `admin.css`), every item editor dialog (the shared
+  `.item-fields` input rule in `edit.css`), the UBL and Mall collapsed Network
   label counts, and the settings journey.
 - [ ] T016 Architecture review, then Astra code review, at most three rounds. Proof: review files and fixes.
 - [ ] T017 Tick the batch-gate hand-off tasks closed by this gate (012 T042/T045, 013 T044, 015 T044) with a
