@@ -29,6 +29,25 @@ Remote `$ref` identifiers resolve to these local files. The earlier core semanti
 upstream paths contain identical schema bytes. Versioned ontologies use the pinned ontology
 schema; unversioned compatibility layouts retain their documented structural profile.
 
+### Ossie 0.3.0 draft base
+
+Ossie 0.3.0 is not released. The workbench supports its development version `0.3.0.dev0` as a
+**draft base**, labelled "Ossie 0.3.0 draft". Upstream says this schema may change before 0.3.0 is
+released. The files come unmodified from Apache Ossie commit
+`34e4d3752b8bc35cb5d6afbfa079bf89cffccb72` (`main`, 2026-11-26), retrieved on 2026-11-26:
+
+| Upstream path | File | SHA-256 |
+| --- | --- | --- |
+| `core-spec/ossie-schema.json` | `ossie-0.3.0.dev0.json` | `b833534b1da935e373cb75517f8b983dff9d57b399283bac5f78870c928ca1bb` |
+| `core-spec/spec.yaml` | `ossie-spec-0.3.0.dev0.yaml` | `dbde39599e51339ad3918609dedf51f512ae70e67d4ea0fbe52de93ae7f8f829` |
+| `ontology/ontology.json` | `ossie-ontology-0.3.0.dev0.json` | `4e4732da74596b03a8ecc10f01fb98c612ce5c75c0e050619b16283c27689923` |
+| `ontology/mapping.json` | `ossie-mapping-0.3.0.dev0.json` | `dfeb28d3be05d1bd0645dfdd42924155c17c3b5ab6ad10ae297e6e8c8f7909bd` |
+
+`tests/tessera/pinned-schema-hashes.test.ts` fails when a byte of these files differs from this
+table. When upstream releases 0.3.0, the released files replace these. The table then gains the
+release identifier, and the label drops "draft". What changed from 0.2.0.dev0, and the test for
+each change, is in [the 0.3 inventory](../docs/ossie-0.3-inventory.md).
+
 The Agent Client Protocol schema `acp-1.32.0.json` is the unmodified `schema/v1/schema.json` of the
 protocol's release `schema-v1.32.0` (Apache-2.0), retrieved on 2026-11-17. It is an external
 protocol, not a definition standard. The server uses it to validate every frame of the agent panel;
@@ -46,6 +65,7 @@ These schemas describe workbench storage conventions, not additions to the upstr
 | `semantic-workbench-access-v1.json` | Roles, grants, projects, agents and server settings |
 | `tessera-ontology-2-ossie-0.2.0.dev0.json` | Tessera revision 2 ontology workbench schema on the same pinned Ossie base |
 | `tessera-ontology-1-ossie-0.2.0.dev0.json` | Tessera revision 1 ontologies on the Ossie 0.2.0.dev0 base. A workbench schema, not part of the Ossie standard |
+| `tessera-ontology-{1,2,3}-ossie-0.3.0.dev0.json`, `tessera-part-3-ossie-0.3.0.dev0.json` | The same Tessera schemas derived from the pinned Ossie 0.3.0 draft ontology schema |
 
 Metric attributes are JSON in an Ossie `custom_extensions` entry with
 `vendor_name: SEMANTIC_WORKBENCH`. Bindings live in the mapping root, or the semantic model inside
@@ -78,9 +98,13 @@ references and deprecation rules. Standard ontology output drops all three prope
 
 ## Updating validators
 
+`bun run schemas:compile` writes `src/generated/validators.js` for the 0.2.0.dev0 base and
+`src/generated/validators-0.3.js` for the 0.3.0 draft, which the browser loads only for a file that
+declares the draft.
+
 ```sh
 bun run schemas:compile
-bun test tests/validation.test.ts
+bun test tests/validation.test.ts tests/validation-ossie-0.3.test.ts
 bun run build
 ```
 

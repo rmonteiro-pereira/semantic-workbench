@@ -2,6 +2,7 @@
 // a fan-out-safe declared join path and compiles the expressions. The plan is a preview; nothing is run.
 import { matchesLegacyFieldKey } from '../../shared/core/item-key-adapters';
 import { columnRefs, parseExpression, scalar, expressionSql, quoteIdentifier, sourceSql } from './sql';
+import { aggregateCalls, datasetMetric, plannerExpression } from './metric-expression';
 import { BadRequestError } from '../projects/errors';
 import { agentGovernanceFlag, metricGovernanceOf, type AgentGovernance } from '../../shared/governance/item-governance';
 import { AGENT_GOVERNANCE_KEY } from '../../shared/tessera/agent-view';
@@ -119,9 +120,6 @@ function planJoins(context: RuntimeContext, root: string, required: Set<string>)
 function orderedJoinDatasets(joins: Map<string, any>) {
   return [...joins.values()].flatMap(j => [j.from, j.to]);
 }
-function ansiSqlExpression(definition: any): string | undefined {
-  return definition.expression?.dialects?.find((d: any) => d.dialect === 'ANSI_SQL')?.expression;
-}
 /** Replaces a node in place, so the parsed expression tree keeps its identity while its content changes. */
 function replaceNode(node: any, replacement: any) {
   for (const key of Object.keys(node)) delete node[key];
@@ -130,7 +128,7 @@ function replaceNode(node: any, replacement: any) {
 /** The scalar physical expression of a field, with its columns pinned to the field's dataset. */
 function physicalExpression(runtimeField: RuntimeField, aliases: Set<string>) {
   if (!aliases.has(runtimeField.dataset)) throw new BadRequestError(`Dataset ${runtimeField.dataset} is not in the declared join plan.`);
-  const fieldExpr = ansiSqlExpression(runtimeField.definition);
+  const fieldExpr = plannerExpression(runtimeField.definition);
   if (!fieldExpr) throw new BadRequestError(`Field ${runtimeField.dataset}.${runtimeField.name} has no ANSI_SQL expression.`);
   const physical = parseExpression(fieldExpr).expression;
   if (!scalar(physical)) throw new BadRequestError(`Field ${runtimeField.dataset}.${runtimeField.name} is not scalar.`);
@@ -146,15 +144,33 @@ type Compile = (expression: string, currentDataset?: string, active?: Set<string
 function createCompiler(context: RuntimeContext, aliases: Set<string>): Compile {
   const metricMap = new Map(context.metrics.map(m => [m.id, m]));
   const fieldMap = new Map(context.fields.map(f => [f.id, f]));
+  /** Inlines AGG(dataset.metric) as that dataset metric's expression, read inside its dataset. */
+  const inlineAggregates = (ast: any, active: Set<string>) => {
+    const calls = aggregateCalls(ast);
+    for (const call of calls) {
+      const key = `${call.dataset}.${call.metric}`;
+      if (active.has(key)) throw new BadRequestError('Metric cycle.');
+      const inner = plannerExpression(datasetMetric(context.datasets, call.dataset, call.metric));
+      if (!inner) throw new BadRequestError(`Dataset metric ${key} has no sql or ANSI_SQL expression.`);
+      const replacement = compile(inner, call.dataset, new Set([...active, key]));
+      if (PARENTHESIZED_TYPES.includes(replacement.type)) replacement.parentheses = true;
+      replaceNode(call.node, replacement);
+    }
+    return new Set(calls.map(call => call.argument));
+  };
   const compile: Compile = (expression, currentDataset, active = new Set<string>()) => {
     const ast = parseExpression(expression).expression;
-    for (const ref of columnRefs(ast)) {
+    // Column references are collected before inlining, so inlined physical columns are not read again.
+    const refs = columnRefs(ast);
+    const aggregateArguments = inlineAggregates(ast, active);
+    for (const ref of refs) {
+      if (aggregateArguments.has(ref.node)) continue;
       if (!ref.table && !currentDataset && metricMap.has(ref.column)) {
         if (active.has(ref.column)) throw new BadRequestError('Metric cycle.');
         const next = new Set(active);
         next.add(ref.column);
         const dep = metricMap.get(ref.column)!;
-        const replacement = compile(ansiSqlExpression(dep.definition)!, undefined, next);
+        const replacement = compile(plannerExpression(dep.definition)!, undefined, next);
         if (PARENTHESIZED_TYPES.includes(replacement.type)) replacement.parentheses = true;
         replaceNode(ref.node, replacement);
         continue;
@@ -192,7 +208,7 @@ function selectColumns(compile: Compile, request: PlanRequest, { dimensions, tim
 function measureColumns(compile: Compile, metrics: RuntimeMetric[]) {
   return metrics.map((metric, i) => ({
     alias: `metric_${i + 1}`,
-    sql: expressionSql(compile(ansiSqlExpression(metric.definition)!)),
+    sql: expressionSql(compile(plannerExpression(metric.definition)!)),
     metricId: metric.id,
     governedExpression: metric.definition.expression,
     evidence: metric.evidence,

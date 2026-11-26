@@ -7,7 +7,7 @@ import { Modal } from '../projects/Modal';
 import type { ProjectInfo } from '../projects/api';
 import { LossPreview } from './LossPreview';
 import type { CompileSource } from './api';
-import { NOT_PUBLISHED_REASON, useCompile, type CompileControl, type CompileView } from './use-compile';
+import { NOT_PUBLISHED_REASON, useCompile, useReportBase, type CompileControl, type CompileView } from './use-compile';
 import './compile.css';
 
 type Props = { project: ProjectInfo; initialSource?: CompileSource; onClose: () => void };
@@ -29,7 +29,8 @@ export function Findings({ findings }: { findings: CompileFinding[] }) {
       {findings.map((finding, index) => (
         <li key={index} className="compile-finding">
           <strong>
-            {finding.severity === 'error' ? 'Error' : 'Warning'} · {finding.code}
+            {finding.severity === 'error' ? 'Error' : 'Warning'}
+            {finding.code ? ` · ${finding.code}` : ''}
           </strong>
           <span>{finding.message}</span>
           <span className="compile-finding-where">
@@ -55,7 +56,7 @@ function StateTitle({ mark, children }: { mark: string; children: React.ReactNod
 }
 
 function LoadingText({ step }: { step: 'checking' | 'accepting' | 'downloading' }) {
-  const words = { checking: 'Checking the project…', accepting: 'Accepting the report…', downloading: 'Preparing the download…' };
+  const words = { checking: 'Checking the project', accepting: 'Accepting the report', downloading: 'Preparing the download' };
   return (
     <div className="compile-placeholder" role="status">
       {words[step]}
@@ -195,15 +196,21 @@ export function CompileFooter({ control, source, onClose }: { control: CompileCo
   );
 }
 
+/** What the dialog says it produces. Until a report arrives the shipped base is named; then the base the project's documents declare. */
+export function CompileIntro({ reportBase }: { reportBase?: { label: string } }) {
+  const label = reportBase?.label ?? findBase(SUPPORTED_BASES, OSSIE_SCHEMA_VERSION)?.label ?? 'standard Ossie';
+  return <p className="dialog-intro">Compiles the Tessera documents of this project to standard Ossie. Output is {label}. Your files are not changed.</p>;
+}
+
 /** The dialog. The published snapshot is the default source; the working copy can only be checked. */
 export function CompileDialog({ project, initialSource = 'published', onClose }: Props) {
   const [source, setSource] = useState<CompileSource>(initialSource);
   const unavailable = publishedUnavailableReason(project);
   const control = useCompile(project.slug, source, unavailable);
-  const base = findBase(SUPPORTED_BASES, OSSIE_SCHEMA_VERSION);
+  const reportBase = useReportBase(control.view);
   return (
     <Modal title={`Standard Ossie for ${project.name}`} size="wide" onCancel={onClose} footer={<CompileFooter control={control} source={source} onClose={onClose} />}>
-      <p className="dialog-intro">Compiles the Tessera documents of this project to standard Ossie. Output is {base?.label ?? 'standard Ossie'}. Your files are not changed.</p>
+      <CompileIntro reportBase={reportBase} />
       <SourceChoice source={source} onChange={setSource} canPublish={!unavailable} />
       {source === 'working' && (
         <p className="compile-unpublished" role="note">

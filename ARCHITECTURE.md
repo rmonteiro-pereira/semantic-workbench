@@ -322,7 +322,12 @@ font-face declarations before the theme stylesheet. Fonts are served from the ap
 
 - `src/shared/core/model.ts` projects supported definitions into entities and relationships.
   `src/shared/validation/` owns input checks, diagnostics and RDF parsing; it validates Ossie files
-  against the one shipped schema version (`OSSIE_SCHEMA_VERSION`). A file with another or no version
+  against the schema of the version they declare: `OSSIE_SCHEMA_VERSION` (0.2.0.dev0) or the
+  [Ossie 0.3.0 draft](docs/compile.md#ossie-030-draft). The draft's generated validators live in
+  `src/generated/validators-0.3.js`, which `draft-validators.ts` loads on first need, so a browser
+  that opens only 0.2 files never downloads them; validation stays synchronous, and a draft file
+  checked before the module loads gets a blocking finding. `metric-scoping.ts` holds the draft's
+  rules the schema cannot express (dataset metrics, `AGG`, the reserved `METRIC`). A file with another or no version
   still gets the syntax, family, reference and cycle checks, so the write gate keeps refusing broken
   files; only the pinned-schema step is skipped, and an info notice (`NOT_VALIDATED`) says so.
   `shacl.ts` runs a shapes file, SPARQL constraints included, against a data file with
@@ -350,7 +355,8 @@ font-face declarations before the theme stylesheet. Fonts are served from the ap
 - `src/server/agent/explain.ts`, `context.ts`, `runtime.ts` and `sql.ts` produce filtered catalog/context,
   definition-preserving metric explanations and governed query plans. `context.ts` is the entry for resolving a mapping into
   fields, metrics, bindings and findings (`context-types.ts`, `context-documents.ts`, `context-assembly.ts`,
-  `context-selection.ts`); `query-plan.ts` builds the SQL preview;
+  `context-selection.ts`); `query-plan.ts` builds the SQL preview; `metric-expression.ts` says which
+  expression the planner reads (the draft's portable `sql` first) and inlines `AGG(dataset.metric)`;
   `runtime.ts` re-exports both as the public entry point. They never execute a plan or
   call an LLM. Synthetic example execution belongs only to verification scripts/tests.
 
@@ -406,7 +412,10 @@ command line.
   leaves the Tessera names alone. Its pinned schema data is copied into `src/generated/` by
   `scripts/compile-schemas.ts`, keeping schema-file imports outside the shared layer.
   `schema-derivation.ts` derives the Tessera ontology schema from a pinned schema and the registry; `scripts/derive-tessera-schema.ts` writes it to
-  `schemas/tessera-ontology-1-ossie-0.2.0.dev0.json` and the revision 2 counterpart. `scripts/compile-schemas.ts` compiles both.
+  `schemas/tessera-ontology-1-ossie-0.2.0.dev0.json` and the revision 2 counterpart, and the same
+  files for the [Ossie 0.3.0 draft](docs/compile.md#ossie-030-draft) base. `scripts/compile-schemas.ts`
+  compiles each base on its own compilers, because upstream gives every version the same schema
+  identifiers. `base-conversion.ts` is the reviewed conversion of one 0.2.0.dev0 document to the draft.
 - `src/shared/tessera/unit-structure.ts` resolves the root’s declared parts and reports structural
   findings from parsed project files. It never follows links or reads the filesystem.
   `unit-model.ts` combines the concepts in include order and maps item addresses to source files.

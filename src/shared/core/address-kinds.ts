@@ -23,7 +23,7 @@ export const addressKinds = {
   dataset: { parents: ['model'], nameField: 'name', named: 'when-present' },
   field: { parents: ['dataset'], nameField: 'name', named: 'when-present' },
   join: { parents: ['model'], nameField: 'name', named: 'when-present' },
-  metric: { parents: ['model'], nameField: 'name', named: 'when-present' },
+  metric: { parents: ['model', 'dataset'], nameField: 'name', named: 'when-present' },
   object: { parents: ['contract'], nameField: 'name', named: 'when-present' },
   property: { parents: ['object', 'property'], nameField: 'name', named: 'when-present' },
   'foreign-key': { parents: ['contract'], nameField: null, named: false },

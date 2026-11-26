@@ -48,11 +48,26 @@ for CLI-identical manifest provenance. This continuation adds documentation bloc
 owning digest implementation; vite.config.ts loses the obsolete resolver block. No generated file
 was hand-edited. The complete departures list is in evidence.md.
 
+## Phase 7 on the Ossie 0.3.0 draft base (2026-11-26)
+
+Main decided to adopt `0.3.0.dev0` as a draft base pinned at Apache Ossie
+`34e4d3752b8bc35cb5d6afbfa079bf89cffccb72`, because 0.3.0 is still unreleased. T025 and T028-T032
+are done against that pin and T039 records the status. Each inventory row of
+`docs/ossie-0.3-inventory.md` names its test. User-facing behaviour and limits are in
+`docs/compile.md#ossie-030-draft`.
+
+When upstream releases 0.3.0: replace the four pinned files in `schemas/` with the released ones,
+add the release identifier and new hashes to `schemas/README.md` (the hash test reads them there),
+change the base entry in `src/shared/tessera/bases.ts` to the release version, label without
+"draft", `draft: false`, rerun `bun scripts/derive-tessera-schema.ts` and `bun run schemas:compile`,
+then rerun the 0.3 tests listed in the inventory. That closes T026 and T027. T033 (captures of the
+0.3 labels and the conversion preview) goes to the captures lane.
+
 ## Waiting and batch gate
 
 Leave T015 and T020 for the later screenshot job; T021-T023 and the MCP portion of T036 for MCP
-integration; multi-file/dependency work for the complete-unit feature. T025-T033 require the stable
-upstream release, and metric conversion additionally needs its adapter. T039 and T040 stay unticked.
+integration; multi-file/dependency work for the complete-unit feature. T026 and T027 wait for the
+released 0.3.0; T033 waits for its capture. T040 stays unticked.
 
 The integrated-batch owner runs once before merge: full bun test, test:mutation, test:compile,
 test:validation, test:auth, the remaining browser suites, UI comparison with the last release and

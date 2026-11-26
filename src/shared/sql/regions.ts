@@ -58,8 +58,9 @@ export function grammarOf(dialect: string | null, odcs = false): string | null {
 }
 const pointerOf = (path: (string | number)[]) => '/' + path.map(p => String(p).replace(/~/g, '~0').replace(/\//g, '~1')).join('/');
 const pattern = (path: (string | number)[]) => path.map(p => (typeof p === 'number' ? '*' : p)).join('/');
-// Key paths that can contain SQL expressions or statements.
-const MODEL = '(?:datasets/\\*/fields/\\*|metrics/\\*)/expression/dialects/\\*/expression';
+// Key paths that can contain SQL expressions or statements. An Ossie 0.3 draft expression may also
+// hold its portable form in `sql`, and a 0.3 dataset may hold its own metrics.
+const MODEL = '(?:datasets/\\*/fields/\\*|datasets/\\*/metrics/\\*|metrics/\\*)/expression/(?:dialects/\\*/expression|sql)';
 const OSSIE_MODEL = new RegExp(`^(?:semantic_model(?:/\\*)?/|ontology_mappings/\\*/semantic_model(?:/\\*)?/)?${MODEL}$`);
 const OSSIE_MAPPING = /(?:^|\/)concept_mappings\/.*(?:object_mappings|referent_mappings|link_mappings)\/\*\/expression$/;
 const PROPS = 'properties/\\*(?:/(?:items/)?properties/\\*)*';
@@ -110,7 +111,8 @@ export function sqlRegions(source: string, filename = ''): SqlRegion[] {
       } else if (OSSIE_MODEL.test(pathText)) {
         kind = 'expression';
         const declaredDialect = isMap(parent) ? parent.get('dialect') : undefined;
-        dialect = typeof declaredDialect === 'string' ? declaredDialect : null;
+        if (path.at(-1) === 'sql') dialect = 'OSSIE_SQL_2026';
+        else dialect = typeof declaredDialect === 'string' ? declaredDialect : null;
         grammar = grammarOf(dialect);
       } else if (OSSIE_MAPPING.test(pathText)) {
         kind = 'expression';

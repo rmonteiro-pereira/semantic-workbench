@@ -9,7 +9,7 @@ test('the synthetic base differs from the pinned schema only in version, id and 
   const { $id: syntheticId, title: syntheticTitle, ...syntheticRest } = structuredClone(synthetic);
   expect(syntheticId).not.toBe(pinnedId);
   expect(syntheticTitle).not.toBe(pinnedTitle);
-  expect(syntheticRest.properties.version.const).toBe('0.3.0.dev0');
+  expect(syntheticRest.properties.version.const).toBe('0.4.0.dev0');
   syntheticRest.properties.version.const = pinnedRest.properties.version.const;
   expect(syntheticRest).toEqual(pinnedRest as typeof syntheticRest);
 });

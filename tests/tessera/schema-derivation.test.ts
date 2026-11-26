@@ -12,12 +12,14 @@ const base = SUPPORTED_BASES[0];
 
 test('the checked-in derived schema equals a fresh derivation byte for byte', () => {
   const files = derivedSchemaFiles();
-  expect(files.map(file => file.path)).toEqual([
-    `schemas/${derivedSchemaFileName(base, 1)}`,
-    `schemas/${derivedSchemaFileName(base, 2)}`,
-    `schemas/${derivedSchemaFileName(base, 3)}`,
-    `schemas/tessera-part-3-ossie-${base.version}.json`,
-  ]);
+  expect(files.map(file => file.path)).toEqual(
+    SUPPORTED_BASES.flatMap(each => [
+      `schemas/${derivedSchemaFileName(each, 1)}`,
+      `schemas/${derivedSchemaFileName(each, 2)}`,
+      `schemas/${derivedSchemaFileName(each, 3)}`,
+      `schemas/tessera-part-3-ossie-${each.version}.json`,
+    ]),
+  );
   for (const file of files) expect(readFileSync(file.path, 'utf8')).toBe(file.text);
 });
 

@@ -180,6 +180,46 @@ export function rewriteExpressionRefs(sql: string, rewrite: (name: string) => st
   }
   return result;
 }
+/** One function call in an expression: its name as written and its argument when that is a single name chain. */
+export type FunctionCall = { name: string; argument: ExprRef | null };
+
+/** Index of the parenthesis that closes the one at `open`, or the token count when it never closes. */
+function closingParenthesis(tokens: Token[], open: number): number {
+  let depth = 0;
+  for (let i = open; i < tokens.length; i++) {
+    if (tokens[i].kind !== 'punct') continue;
+    if (tokens[i].value === '(') depth++;
+    if (tokens[i].value === ')' && --depth === 0) return i;
+  }
+  return tokens.length;
+}
+
+/** Reads `a.b.c` from a token span when the span is exactly one name chain, or null otherwise. */
+function singleReference(span: Token[]): ExprRef | null {
+  if (!span.length || span.length % 2 === 0) return null;
+  const names = span.filter((_token, index) => index % 2 === 0);
+  const dots = span.filter((_token, index) => index % 2 === 1);
+  if (!names.every(isName) || !dots.every(token => token.kind === 'punct' && token.value === '.')) return null;
+  const values = names.map(token => token.value);
+  return { table: values.length > 1 ? values.slice(0, -1).join('.') : null, column: values.at(-1)! };
+}
+
+/** Lists function calls outside literals and comments, so callers can apply rules to reserved names. */
+export function functionCalls(sql: string): FunctionCall[] {
+  if (typeof sql !== 'string') return [];
+  const tokens = tokenize(sql);
+  const calls: FunctionCall[] = [];
+  for (let i = 0; i < tokens.length - 1; i++) {
+    const token = tokens[i];
+    const next = tokens[i + 1];
+    if (token.kind !== 'ident' || next.kind !== 'punct' || next.value !== '(') continue;
+    if (tokens[i - 1]?.kind === 'punct' && tokens[i - 1].value === '.') continue;
+    const close = closingParenthesis(tokens, i + 1);
+    calls.push({ name: token.value, argument: singleReference(tokens.slice(i + 2, close)) });
+  }
+  return calls;
+}
+
 /** Builds a comparable key for a qualified or unqualified expression reference. */
 export const refKey = (r: ExprRef) => `${r.table ?? ''}.${r.column}`;
 
@@ -204,8 +244,12 @@ export function datasetReferences(sql: string, datasetNames: Set<string>) {
     ),
   ];
 }
-/** Reads an ANSI SQL expression from a supported expression definition. */
+/**
+ * Reads the SQL expression of a definition. An Ossie 0.3 expression may carry its portable form in
+ * `sql`, which upstream makes authoritative, so it wins. Otherwise ANSI SQL, then the first dialect.
+ */
 export function ansiExpression(definition: any): string | undefined {
+  if (typeof definition?.expression?.sql === 'string') return definition.expression.sql;
   const dialects = definition?.expression?.dialects;
   if (!Array.isArray(dialects)) return undefined;
   const chosen = dialects.find((d: any) => d?.dialect === 'ANSI_SQL') ?? dialects[0];

@@ -11,7 +11,7 @@ import { classifyFile, type ClassifiedFile, type UnitFile } from './document-kin
 import { COMPILER_NAME, COMPILER_VERSION } from './format';
 import { buildLossReport, type GovernanceStatusKey, type LossEntry, type LossReport, type ReportInput, type ReportOutput } from './loss-report';
 import { documentMeaningFailures, meshMeaningFailures, summarizeItems, unitMeaningFailures, type DocumentReading } from './meaning-check';
-import { SUPPORTED_BASES, findBase } from './bases';
+import { SUPPORTED_BASES, findBase, type SupportedBase } from './bases';
 import { meshAddressMap, type CompiledAddress } from './mesh-address-map';
 import { compileMeshRoot } from './compile-mesh';
 import { declaredImports, type ResolvedImportInterface } from './imports';
@@ -217,6 +217,31 @@ function byFailureOrder(first: CompileFailure, second: CompileFailure): number {
   return compareText(first.document ?? '', second.document ?? '') || compareText(first.code, second.code) || compareText(first.message, second.message);
 }
 
+/** The Ossie version each Ossie document of the unit declares, by path. Parts and other files declare none. */
+function declaredVersions(classified: ClassifiedFile[]): Map<string, unknown> {
+  const versions = new Map<string, unknown>();
+  for (const entry of classified) {
+    if (entry.kind !== 'ossie' && entry.kind !== 'tessera-ontology') continue;
+    const data = entry.reading.data;
+    if (isObject(data) && data.version !== undefined) versions.set(entry.file.path, data.version);
+  }
+  return versions;
+}
+
+/**
+ * The one base a compile is reported against. A unit whose documents declare more than one
+ * supported Ossie version is refused, because its loss report could name only one base.
+ */
+function unitBase(classified: ClassifiedFile[]): { base: SupportedBase; failures: CompileFailure[] } {
+  const versions = declaredVersions(classified);
+  const supported = [...new Set(versions.values())].filter(version => findBase(SUPPORTED_BASES, version));
+  const fallback = findBase(SUPPORTED_BASES, OSSIE_SCHEMA_VERSION)!;
+  if (supported.length <= 1) return { base: findBase(SUPPORTED_BASES, supported[0]) ?? fallback, failures: [] };
+  const named = [...versions].map(([path, version]) => `${path} (${String(version)})`).join(', ');
+  const message = `The documents declare different Ossie versions: ${named}. A compile has one base; convert them to one version first.`;
+  return { base: fallback, failures: [...versions.keys()].map(document => ({ code: 'translation' as const, document, message })) };
+}
+
 function providerVersionFailures(providers: CompileOptions['providers']): CompileFailure[] {
   if (!providers) return [];
   const seen = new Map<string, string>();
@@ -237,12 +262,12 @@ function providerVersionFailures(providers: CompileOptions['providers']): Compil
 export function compileUnit(files: UnitFile[], options: CompileOptions, steps: UnitSteps = DEFAULT_STEPS): CompileResult {
   const sorted = files.filter(file => !isAddressHistoryPath(file.path)).sort((first, second) => compareText(first.path, second.path));
   const limits = [...limitFailures(sorted), ...providerVersionFailures(options.providers)];
-  const base = findBase(SUPPORTED_BASES, OSSIE_SCHEMA_VERSION)!;
   const empty = { outputs: [], losses: [], governanceStatuses: [], failures: [], treatments: new Map() } as Compiled;
   const classified = limits.length ? [] : sorted.map(classifyFile);
+  const { base, failures: baseFailures } = unitBase(classified);
   const compiled = limits.length ? empty : compileFiles(classified, steps, options);
   const collisions = collisionFailures(compiled.outputs);
-  const failures = [...limits, ...compiled.failures, ...collisions].sort(byFailureOrder);
+  const failures = [...limits, ...baseFailures, ...compiled.failures, ...collisions].sort(byFailureOrder);
   const inputs: ReportInput[] = sorted.map(file => ({ path: file.path, sha256: sha256Hex(file.bytes), treatment: compiled.treatments.get(file.path) ?? 'not-included' }));
   const outputs: ReportOutput[] = compiled.outputs.map(output => ({ path: output.path, sha256: sha256Hex(output.bytes) }));
   const report = buildLossReport({

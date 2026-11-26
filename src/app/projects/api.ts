@@ -13,6 +13,7 @@ import type { CloneEvent } from '../../server/projects/clone';
 import type { ProjectCandidates } from '../../server/projects/repository-projects';
 import type { RepositoryProject } from '../../server/projects/repositories';
 import type { ClassificationSettings, Person } from '../../shared/governance/guards';
+import { prepareDraftChecks } from '../../shared/validation/draft-validators';
 // Browser client for the project API (contracts/http-api.md).
 /** Summarizes a project file’s type, validation, visibility, Git state and hash. */
 export type ProjectFile = {
@@ -324,7 +325,14 @@ export const api = {
   projects: () => apiFetch('/api/projects').then(r => json<ProjectInfo[]>(r)),
   /** People a metric owner in this project can be chosen from; empty in local mode. */
   people: (project: string) => apiFetch(`/api/projects/${encodeURIComponent(project)}/people`).then(response => json<Person[]>(response)),
-  file: (project: string, path: string) => apiFetch(fileUrl(project, path)).then(r => json<{ path: string; source: string; hash: string; docType: string; unitValidation?: ReaderValidation }>(r)),
+  file: (project: string, path: string) =>
+    apiFetch(fileUrl(project, path))
+      .then(r => json<{ path: string; source: string; hash: string; docType: string; unitValidation?: ReaderValidation }>(r))
+      .then(async file => {
+        // A 0.3 draft file needs its validators before the workspace checks it synchronously.
+        await prepareDraftChecks(file.source);
+        return file;
+      }),
   // A save sends patches against the version it started from when it has them, else the text.
   async save(
     project: string,

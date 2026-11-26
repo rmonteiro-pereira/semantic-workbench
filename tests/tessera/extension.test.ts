@@ -61,18 +61,18 @@ test('the same document at revision 2 fails the compile when the addition must b
 });
 
 test('a registered second base validates with its own derived schema and labels its output with its own name', () => {
-  const next: SupportedBase = { version: '0.3.0.dev0', label: baseLabel('0.3.0.dev0', true), draft: true, ontologySchema: synthetic, validators: {} };
+  const next: SupportedBase = { version: '0.4.0.dev0', label: baseLabel('0.4.0.dev0', true), draft: true, ontologySchema: synthetic, validators: {} };
   next.validators[1] = compiledValidator(deriveTesseraSchema(next, REGISTRY, 1));
   const bases = registerBase(SUPPORTED_BASES, next);
-  const data = { tessera: 1, version: '0.3.0.dev0', name: 'Retail', ontology: [{ concept: 'Order', type: 'EntityType', tessera_notes: 'a note' }] };
+  const data = { tessera: 1, version: '0.4.0.dev0', name: 'Retail', ontology: [{ concept: 'Order', type: 'EntityType', tessera_notes: 'a note' }] };
   const result = tesseraIssues(data, { bases });
   expect(result.issues).toEqual([]);
-  expect(result.format).toMatchObject({ base: '0.3.0.dev0', baseLabel: 'valid against the bundled Ossie 0.3.0.dev0 draft' });
+  expect(result.format).toMatchObject({ base: '0.4.0.dev0', baseLabel: 'valid against the bundled Ossie 0.4.0.dev0 draft' });
   expect(tesseraIssues({ ...data, version: '0.2.0.dev0' }, { bases }).issues).toEqual([]);
 });
 
 test('a base whose schema already defines a Tessera property is refused', () => {
-  expect(() => registerBase(SUPPORTED_BASES, { version: '0.3.0.dev0', label: 'x', draft: true, ontologySchema: colliding, validators: {} })).toThrow('tessera_flag');
+  expect(() => registerBase(SUPPORTED_BASES, { version: '0.4.0.dev0', label: 'x', draft: true, ontologySchema: colliding, validators: {} })).toThrow('tessera_flag');
 });
 
 test('this file uses the marker, validator and report code only through their public functions', () => {

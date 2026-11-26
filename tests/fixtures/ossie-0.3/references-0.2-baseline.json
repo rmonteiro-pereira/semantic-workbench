@@ -1,0 +1,706 @@
+[
+ {
+  "target": "metric:gross_revenue",
+  "references": [
+   {
+    "docId": "commerce.mapped-semantic.yaml",
+    "path": [
+     "metrics",
+     2,
+     "custom_extensions",
+     0,
+     "data"
+    ],
+    "from": 2838,
+    "to": 2851,
+    "dependent": {
+     "path": [
+      "metrics",
+      2
+     ],
+     "label": "metric average_order_value"
+    }
+   },
+   {
+    "docId": "commerce.mapping.yaml",
+    "path": [
+     "concept_mappings",
+     2,
+     "object_mappings",
+     0,
+     "expression"
+    ],
+    "from": 1405,
+    "to": 1418,
+    "dependent": {
+     "path": [
+      "concept_mappings",
+      2,
+      "object_mappings",
+      0
+     ],
+     "label": "concept mapping Revenue"
+    }
+   },
+   {
+    "docId": "commerce.mapping.yaml",
+    "path": [
+     "custom_extensions",
+     0,
+     "data"
+    ],
+    "from": 1788,
+    "to": 1801,
+    "dependent": {
+     "path": [],
+     "label": "metric binding of gross_revenue",
+     "binding": {
+      "dataPath": [
+       "custom_extensions",
+       0,
+       "data"
+      ],
+      "metric": "gross_revenue"
+     }
+    }
+   },
+   {
+    "docId": "sales.mapping.yaml",
+    "path": [
+     "custom_extensions",
+     0,
+     "data"
+    ],
+    "from": 1722,
+    "to": 1735,
+    "dependent": {
+     "path": [],
+     "label": "metric binding of gross_revenue",
+     "binding": {
+      "dataPath": [
+       "custom_extensions",
+       0,
+       "data"
+      ],
+      "metric": "gross_revenue"
+     }
+    }
+   },
+   {
+    "docId": "sales.ossie.yaml",
+    "path": [
+     "metrics",
+     2,
+     "expression",
+     "dialects",
+     0,
+     "expression"
+    ],
+    "from": 5880,
+    "to": 5893,
+    "dependent": {
+     "path": [
+      "metrics",
+      2
+     ],
+     "label": "metric average_order_value"
+    }
+   },
+   {
+    "docId": "sales.ossie.yaml",
+    "path": [
+     "metrics",
+     2,
+     "custom_extensions",
+     0,
+     "data"
+    ],
+    "from": 6163,
+    "to": 6176,
+    "dependent": {
+     "path": [
+      "metrics",
+      2
+     ],
+     "label": "metric average_order_value"
+    }
+   }
+  ]
+ },
+ {
+  "target": "dataset:customers",
+  "references": [
+   {
+    "docId": "commerce.mapped-semantic.yaml",
+    "path": [
+     "relationships",
+     0,
+     "to"
+    ],
+    "from": 1086,
+    "to": 1095,
+    "dependent": {
+     "path": [
+      "relationships",
+      0
+     ],
+     "label": "dataset relationship orders_customer"
+    }
+   },
+   {
+    "docId": "commerce.mapped-semantic.yaml",
+    "path": [
+     "metrics",
+     0,
+     "custom_extensions",
+     0,
+     "data"
+    ],
+    "from": 1718,
+    "to": 1727,
+    "dependent": {
+     "path": [
+      "metrics",
+      0
+     ],
+     "label": "metric gross_revenue"
+    }
+   },
+   {
+    "docId": "commerce.mapped-semantic.yaml",
+    "path": [
+     "metrics",
+     1,
+     "custom_extensions",
+     0,
+     "data"
+    ],
+    "from": 2335,
+    "to": 2344,
+    "dependent": {
+     "path": [
+      "metrics",
+      1
+     ],
+     "label": "metric order_count"
+    }
+   },
+   {
+    "docId": "commerce.mapped-semantic.yaml",
+    "path": [
+     "metrics",
+     2,
+     "custom_extensions",
+     0,
+     "data"
+    ],
+    "from": 3108,
+    "to": 3117,
+    "dependent": {
+     "path": [
+      "metrics",
+      2
+     ],
+     "label": "metric average_order_value"
+    }
+   },
+   {
+    "docId": "commerce.mapped-semantic.yaml",
+    "path": [
+     "metrics",
+     3,
+     "custom_extensions",
+     0,
+     "data"
+    ],
+    "from": 3847,
+    "to": 3856,
+    "dependent": {
+     "path": [
+      "metrics",
+      3
+     ],
+     "label": "metric active_customers"
+    }
+   },
+   {
+    "docId": "commerce.mapping.yaml",
+    "path": [
+     "concept_mappings",
+     0,
+     "object_mappings",
+     0,
+     "referent_mappings",
+     0,
+     "expression"
+    ],
+    "from": 377,
+    "to": 386,
+    "dependent": null
+   },
+   {
+    "docId": "commerce.mapping.yaml",
+    "path": [
+     "concept_mappings",
+     0,
+     "link_mappings",
+     0,
+     "object_mapping",
+     "referent_mappings",
+     0,
+     "expression"
+    ],
+    "from": 528,
+    "to": 537,
+    "dependent": null
+   },
+   {
+    "docId": "commerce.mapping.yaml",
+    "path": [
+     "concept_mappings",
+     0,
+     "link_mappings",
+     0,
+     "children",
+     0,
+     "object_mapping",
+     "expression"
+    ],
+    "from": 685,
+    "to": 694,
+    "dependent": null
+   },
+   {
+    "docId": "sales.mapping.yaml",
+    "path": [
+     "concept_mappings",
+     0,
+     "object_mappings",
+     0,
+     "expression"
+    ],
+    "from": 502,
+    "to": 511,
+    "dependent": null
+   },
+   {
+    "docId": "sales.ossie.yaml",
+    "path": [
+     "relationships",
+     0,
+     "to"
+    ],
+    "from": 3393,
+    "to": 3402,
+    "dependent": {
+     "path": [
+      "relationships",
+      0
+     ],
+     "label": "dataset relationship orders_customer"
+    }
+   },
+   {
+    "docId": "sales.ossie.yaml",
+    "path": [
+     "metrics",
+     0,
+     "custom_extensions",
+     0,
+     "data"
+    ],
+    "from": 4719,
+    "to": 4728,
+    "dependent": {
+     "path": [
+      "metrics",
+      0
+     ],
+     "label": "metric gross_revenue"
+    }
+   },
+   {
+    "docId": "sales.ossie.yaml",
+    "path": [
+     "metrics",
+     1,
+     "custom_extensions",
+     0,
+     "data"
+    ],
+    "from": 5673,
+    "to": 5682,
+    "dependent": {
+     "path": [
+      "metrics",
+      1
+     ],
+     "label": "metric order_count"
+    }
+   },
+   {
+    "docId": "sales.ossie.yaml",
+    "path": [
+     "metrics",
+     2,
+     "custom_extensions",
+     0,
+     "data"
+    ],
+    "from": 6724,
+    "to": 6733,
+    "dependent": {
+     "path": [
+      "metrics",
+      2
+     ],
+     "label": "metric average_order_value"
+    }
+   },
+   {
+    "docId": "sales.ossie.yaml",
+    "path": [
+     "metrics",
+     3,
+     "custom_extensions",
+     0,
+     "data"
+    ],
+    "from": 8001,
+    "to": 8010,
+    "dependent": {
+     "path": [
+      "metrics",
+      3
+     ],
+     "label": "metric units_sold"
+    }
+   },
+   {
+    "docId": "sales.ossie.yaml",
+    "path": [
+     "metrics",
+     4,
+     "custom_extensions",
+     0,
+     "data"
+    ],
+    "from": 9079,
+    "to": 9088,
+    "dependent": {
+     "path": [
+      "metrics",
+      4
+     ],
+     "label": "metric line_revenue"
+    }
+   },
+   {
+    "docId": "sales.ossie.yaml",
+    "path": [
+     "metrics",
+     5,
+     "custom_extensions",
+     0,
+     "data"
+    ],
+    "from": 10210,
+    "to": 10219,
+    "dependent": {
+     "path": [
+      "metrics",
+      5
+     ],
+     "label": "metric revenue_per_unit"
+    }
+   }
+  ]
+ },
+ {
+  "target": "field:customer_id",
+  "references": [
+   {
+    "docId": "commerce.mapping.yaml",
+    "path": [
+     "concept_mappings",
+     0,
+     "object_mappings",
+     0,
+     "referent_mappings",
+     0,
+     "expression"
+    ],
+    "from": 387,
+    "to": 398,
+    "dependent": null
+   },
+   {
+    "docId": "commerce.mapping.yaml",
+    "path": [
+     "concept_mappings",
+     0,
+     "link_mappings",
+     0,
+     "object_mapping",
+     "referent_mappings",
+     0,
+     "expression"
+    ],
+    "from": 538,
+    "to": 549,
+    "dependent": null
+   },
+   {
+    "docId": "sales.mapping.yaml",
+    "path": [
+     "concept_mappings",
+     0,
+     "object_mappings",
+     0,
+     "expression"
+    ],
+    "from": 512,
+    "to": 523,
+    "dependent": null
+   }
+  ]
+ },
+ {
+  "target": "concept:Customer",
+  "references": [
+   {
+    "docId": "commerce.mapped-ontology.yaml",
+    "path": [
+     "ontology",
+     4,
+     "relationships",
+     1,
+     "roles",
+     0,
+     "concept"
+    ],
+    "from": 1521,
+    "to": 1529,
+    "dependent": {
+     "path": [
+      "ontology",
+      4,
+      "relationships",
+      1
+     ],
+     "label": "relationship customer of Order"
+    }
+   },
+   {
+    "docId": "commerce.mapping.yaml",
+    "path": [
+     "concept_mappings",
+     0,
+     "concept"
+    ],
+    "from": 267,
+    "to": 275,
+    "dependent": {
+     "path": [
+      "concept_mappings",
+      0
+     ],
+     "label": "concept mapping Customer"
+    }
+   },
+   {
+    "docId": "commerce.mapping.yaml",
+    "path": [
+     "concept_mappings",
+     1,
+     "link_mappings",
+     0,
+     "children",
+     1,
+     "object_mapping",
+     "concept"
+    ],
+    "from": 1217,
+    "to": 1225,
+    "dependent": {
+     "path": [
+      "concept_mappings",
+      1
+     ],
+     "label": "concept mapping Order"
+    }
+   },
+   {
+    "docId": "commerce.mapping.yaml",
+    "path": [
+     "custom_extensions",
+     0,
+     "data"
+    ],
+    "from": 1680,
+    "to": 1688,
+    "dependent": {
+     "path": [],
+     "label": "metric binding of active_customers",
+     "binding": {
+      "dataPath": [
+       "custom_extensions",
+       0,
+       "data"
+      ],
+      "metric": "active_customers"
+     }
+    }
+   },
+   {
+    "docId": "commerce.mapping.yaml",
+    "path": [
+     "custom_extensions",
+     0,
+     "data"
+    ],
+    "from": 1757,
+    "to": 1765,
+    "dependent": {
+     "path": [],
+     "label": "metric binding of average_order_value",
+     "binding": {
+      "dataPath": [
+       "custom_extensions",
+       0,
+       "data"
+      ],
+      "metric": "average_order_value"
+     }
+    }
+   },
+   {
+    "docId": "commerce.mapping.yaml",
+    "path": [
+     "custom_extensions",
+     0,
+     "data"
+    ],
+    "from": 1830,
+    "to": 1838,
+    "dependent": {
+     "path": [],
+     "label": "metric binding of gross_revenue",
+     "binding": {
+      "dataPath": [
+       "custom_extensions",
+       0,
+       "data"
+      ],
+      "metric": "gross_revenue"
+     }
+    }
+   },
+   {
+    "docId": "commerce.mapping.yaml",
+    "path": [
+     "custom_extensions",
+     0,
+     "data"
+    ],
+    "from": 1904,
+    "to": 1912,
+    "dependent": {
+     "path": [],
+     "label": "metric binding of order_count",
+     "binding": {
+      "dataPath": [
+       "custom_extensions",
+       0,
+       "data"
+      ],
+      "metric": "order_count"
+     }
+    }
+   },
+   {
+    "docId": "sales.mapping.yaml",
+    "path": [
+     "concept_mappings",
+     0,
+     "concept"
+    ],
+    "from": 452,
+    "to": 460,
+    "dependent": {
+     "path": [
+      "concept_mappings",
+      0
+     ],
+     "label": "concept mapping Customer"
+    }
+   },
+   {
+    "docId": "sales.mapping.yaml",
+    "path": [
+     "custom_extensions",
+     0,
+     "data"
+    ],
+    "from": 1691,
+    "to": 1699,
+    "dependent": {
+     "path": [],
+     "label": "metric binding of average_order_value",
+     "binding": {
+      "dataPath": [
+       "custom_extensions",
+       0,
+       "data"
+      ],
+      "metric": "average_order_value"
+     }
+    }
+   },
+   {
+    "docId": "sales.mapping.yaml",
+    "path": [
+     "custom_extensions",
+     0,
+     "data"
+    ],
+    "from": 1762,
+    "to": 1770,
+    "dependent": {
+     "path": [],
+     "label": "metric binding of gross_revenue",
+     "binding": {
+      "dataPath": [
+       "custom_extensions",
+       0,
+       "data"
+      ],
+      "metric": "gross_revenue"
+     }
+    }
+   },
+   {
+    "docId": "sales.mapping.yaml",
+    "path": [
+     "custom_extensions",
+     0,
+     "data"
+    ],
+    "from": 1904,
+    "to": 1912,
+    "dependent": {
+     "path": [],
+     "label": "metric binding of order_count",
+     "binding": {
+      "dataPath": [
+       "custom_extensions",
+       0,
+       "data"
+      ],
+      "metric": "order_count"
+     }
+    }
+   }
+  ]
+ }
+]

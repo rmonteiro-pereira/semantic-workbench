@@ -131,8 +131,9 @@ application API and command scripts run with Bun.
 | node-sql-parser | 5.4.0 | Supported SQL expression parsing and previews |
 
 React Flow remains the renderer for both graph layouts. Sigma/WebGL is not an implemented mode.
-Standards snapshots cover ODCS 3.1.0 and Apache Ossie 0.2.0.dev0; the latter is an unreleased
-upstream draft. See [schema provenance and coverage](schemas/README.md).
+Standards snapshots cover ODCS 3.1.0, Apache Ossie 0.2.0.dev0 and the
+[Ossie 0.3.0 draft](docs/compile.md#ossie-030-draft) (`0.3.0.dev0`, pinned at one upstream commit);
+both Ossie versions are unreleased upstream drafts. See [schema provenance and coverage](schemas/README.md).
 
 The checked-in Bun patch for React Flow batches observer-driven node and pane measurements into
 animation frames and cancels pending work on unmount. It does not suppress errors or replace the
@@ -406,11 +407,12 @@ are not complete semantic-conformance certification. In a SHACL shapes file, Val
 lists the project's RDF files; pick one and the shapes (SPARQL constraints included) run against it
 in the browser, with each finding naming the focus node, the shape and the rule. This is
 instance validation of one file against one shapes file, with no warehouse connection and no OWL
-reasoning. An Ossie file is validated against the one Ossie schema the app ships, 0.2.0.dev0. A
-file that names another version, or none, still gets its syntax, structure, reference and cycle
-checks, shows "Not validated" once because the schema was not applied, and has a button to validate
-it as 0.2.0.dev0. The status bar reads "Not validated" in that case. Mapping files must declare
-0.2.0.dev0, because the agent runtime reads only that version.
+reasoning. An Ossie file is validated against the schema of the version it declares: 0.2.0.dev0, or the
+[Ossie 0.3.0 draft](docs/compile.md#ossie-030-draft) for `0.3.0.dev0`. A file that names another
+version, or none, still gets its syntax, structure, reference and cycle checks, shows "Not
+validated" once because the schema was not applied, and has a button to validate it as 0.2.0.dev0.
+The status bar reads "Not validated" in that case. Mapping files must declare 0.2.0.dev0 or
+0.3.0.dev0, because the agent runtime reads only those versions.
 
 SQL highlighting and warning coverage are dialect-dependent. Non-SQL expressions such as DAX or
 MDX remain plain with a not-checked note. Syntax warnings do not block autosave. The planner
@@ -515,8 +517,9 @@ Tests: `tests/tessera/compile.test.ts`, `tests/tessera/determinism.test.ts`,
 
 ### Limits
 
-- The compiled output is "valid against the bundled Ossie 0.2.0.dev0 draft". That Ossie version is an
-  unreleased draft; the workbench pins its own copy.
+- The compiled output is "valid against the bundled Ossie 0.2.0.dev0 draft", or against the
+  [Ossie 0.3.0 draft](docs/compile.md#ossie-030-draft) for a project of 0.3.0.dev0 documents. Both
+  are unreleased drafts; the workbench pins its own copies.
 - Comments and layout of a compiled YAML or JSON document may not survive. Values and key order do,
   and so does a comment above the marker.
 - Notes are authoring-only: compiling drops them, and nothing recovers them. There is no

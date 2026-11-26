@@ -14,6 +14,7 @@ import { readSnapshotMesh } from '../src/server/tessera/snapshot-mesh';
 import { readSnapshot } from '../src/server/tessera/snapshot-source';
 import { USAGE, UsageError, parseTesseraArguments, type CheckArguments, type CompileArguments } from './tessera-arguments';
 import { EXIT, exitStatusOf, renderJson, renderText, type RunOutcome } from './tessera-output';
+import { loadDraftValidators } from '../src/shared/validation/draft-validators';
 
 type Policy = { policy: LossPolicy; sha256: string };
 
@@ -109,6 +110,7 @@ async function runCheck(args: CheckArguments): Promise<RunOutcome> {
 /** Runs the command and returns its exit status, writing the answer to the given streams. */
 export async function main(argv: string[], out: (text: string) => void = text => process.stdout.write(text), err: (text: string) => void = text => process.stderr.write(text)): Promise<number> {
   try {
+    await loadDraftValidators();
     const args = parseTesseraArguments(argv);
     const outcome = args.command === 'compile' ? await runCompile(args) : await runCheck(args);
     out(args.json ? renderJson(outcome) : renderText(outcome));

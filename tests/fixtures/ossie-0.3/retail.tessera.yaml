@@ -1,0 +1,22 @@
+tessera: 1
+version: 0.3.0.dev0
+name: Retail
+tessera_notes: Owned by the retail data team.
+annotations:
+  imported_from: owl
+ontology:
+  - concept: Order
+    type: EntityType
+    description: A customer order.
+    tessera_notes: Ask finance before adding a Return concept.
+    annotations:
+      owl_class: ex:Order
+    relationships:
+      - name: placed_by
+        verbalizes:
+          - Order is placed by Customer
+        roles:
+          - concept: Order
+          - concept: Customer
+  - concept: Customer
+    type: EntityType

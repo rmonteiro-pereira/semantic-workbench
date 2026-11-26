@@ -2,6 +2,7 @@
 import { validateInput } from '../../shared/validation/input';
 import { isGitignore } from '../../shared/scm/gitignore';
 import { browserSqlFindings, browserSqlTextFindings } from '../sql/browser';
+import { prepareDraftChecks } from '../../shared/validation/draft-validators';
 // Shared validation rules off the main thread: typing never waits for a parse. SQL inside
 // definitions is linted here too: warnings with exact positions, grammar builds loaded on first
 // need. A request with `sql` lints one SQL text (form fields).
@@ -24,6 +25,7 @@ self.onmessage = async (
     (self as any).postMessage({ id, issues });
     return;
   }
+  await prepareDraftChecks(source);
   let issues;
   try {
     issues = isGitignore(filename) ? [] : validateInput(source, filename, { assumeOssieVersion: event.data.assumeOssieVersion }).issues;

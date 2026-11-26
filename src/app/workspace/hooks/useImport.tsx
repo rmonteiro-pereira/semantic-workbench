@@ -5,10 +5,18 @@ import { validateInput } from '../../../shared/validation/input';
 import type { Doc } from '../../projects/api';
 import { api } from '../../projects/api';
 import { type ImportDraft } from '../../validation/ValidationPanel';
+import { prepareDraftChecks } from '../../../shared/validation/draft-validators';
 
 /** Accepts the definition file extensions offered by the import picker. */
 export function supportedImportFile(filename: string) {
   return /\.(yaml|yml|json|odcs|ossie|ttl|nt|rdf|owl|xml|shacl|n3)$/i.test(filename);
+}
+
+/** Reads chosen files as import drafts, loading the Ossie 0.3 draft checks first when a file declares that version. */
+export async function readImportDrafts(files: File[]): Promise<ImportDraft[]> {
+  const drafts = await Promise.all(files.map(async file => ({ filename: file.name, source: await file.text() })));
+  await Promise.all(drafts.map(draft => prepareDraftChecks(draft.source)));
+  return drafts;
 }
 
 type Options = {
@@ -87,7 +95,7 @@ export function useImport({
     if (compact) closeWorkspace();
     await leaveCurrent();
     try {
-      const drafts = await Promise.all(supported.map(async file => ({ filename: file.name, source: await file.text() })));
+      const drafts = await readImportDrafts(supported);
       if (drafts.some(d => !validateInput(d.source, d.filename).valid)) {
         setPendingImport(drafts);
         return;

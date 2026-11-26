@@ -1,0 +1,61 @@
+version: 0.3.0.dev0
+name: Sales semantic model
+datasets:
+  - name: orders
+    source: sales.orders
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          sql: id
+      - name: customer_id
+        expression:
+          sql: customer_id
+      - name: amount
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: amount
+    metrics:
+      - name: total_revenue
+        expression:
+          sql: SUM(amount)
+  - name: customers
+    source: sales.customers
+    primary_key:
+      - id
+    fields:
+      - name: id
+        expression:
+          sql: id
+      - name: region
+        expression:
+          sql: region
+relationships:
+  - name: order_customer
+    from: orders
+    to: customers
+    from_columns:
+      - customer_id
+    to_columns:
+      - id
+metrics:
+  - name: revenue
+    expression:
+      sql: AGG(orders.total_revenue)
+    nonportable_extensions:
+      - vendor_name: SEMANTIC_WORKBENCH
+        data:
+          schema: semantic-workbench/metric/v1
+          type: simple
+          status: proposed
+      - vendor_name: BI_TOOL
+        data:
+          format: currency
+  - name: order_count
+    expression:
+      sql: COUNT(orders.id)
+      dialects:
+        - dialect: BI_EXPRESSION
+          expression: COUNTROWS(orders)

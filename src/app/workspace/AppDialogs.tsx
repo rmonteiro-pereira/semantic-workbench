@@ -19,7 +19,8 @@ import { Modal } from '../projects/Modal';
 import type { Deleted, Doc, ProjectInfo } from '../projects/api';
 import type { AutosaveState } from '../projects/autosave';
 import { CompileDialog } from '../compile/CompileDialog';
-import { ConvertDialog } from '../compile/ConvertDialog';
+import { BaseConvertDialog, ConvertDialog } from '../compile/ConvertDialog';
+import { declaredVersion } from '../../shared/edit/item-model';
 import { FileDialogs } from './FileDialogs';
 import { RdfItemDialogs } from './RdfItemDialogs';
 import { SaveDialogs } from './SaveDialogs';
@@ -239,6 +240,7 @@ export function AppDialogs({
   const openGitSetup = useGitSetup();
   const [checkingStandard, setCheckingStandard] = React.useState(false);
   const [convertingStandard, setConvertingStandard] = React.useState(false);
+  const [convertingDraftBase, setConvertingDraftBase] = React.useState(false);
   function handleValidationPanelLocate(issue: import('../../shared/validation/diagnostics').Issue) {
     setShowValidation(false);
     setTab('source');
@@ -258,6 +260,8 @@ export function AppDialogs({
   const activeFormat = formatOfInspection(validation.model);
   const unitValidation = useUnitSet(current ?? undefined, showValidation && activeFormat?.family === 'tessera' && activeFormat.revision === 3);
   const mayEditCurrent = !currentProject?.actions || currentProject.actions.includes('edit');
+  // Only a document that declares Ossie 0.2.0.dev0 can be converted to the 0.3.0 draft base.
+  const declaresOssie020 = React.useMemo(() => showValidation && !!current && declaredVersion(current.source) === '0.2.0.dev0', [showValidation, current]);
   function handleConverted() {
     void refresh().then(docs => {
       const converted = docs.find(doc => doc.project === current?.project && doc.path === current?.path);
@@ -382,6 +386,7 @@ export function AppDialogs({
             onValidateAsShippedVersion={validateAsShippedVersion}
             onCheckStandard={currentProject ? () => setCheckingStandard(true) : undefined}
             onConvertToStandard={currentProject && mayEditCurrent ? () => setConvertingStandard(true) : undefined}
+            onConvertToDraftBase={currentProject && mayEditCurrent && declaresOssie020 ? () => setConvertingDraftBase(true) : undefined}
           />
           {validation.model?.kind === 'SHACL' && current && <ShaclCheck shapes={current} shapesSource={source} projectDocs={docs} />}
         </Modal>
@@ -394,6 +399,16 @@ export function AppDialogs({
           gitState={currentProject.files.find(file => file.path === current.path)?.gitState ?? 'unknown'}
           unsaved={source !== current.source}
           onClose={() => setConvertingStandard(false)}
+          onConverted={handleConverted}
+        />
+      )}
+      {convertingDraftBase && currentProject && current && (
+        <BaseConvertDialog
+          project={currentProject}
+          target={{ path: current.path, source: current.source, hash: current.hash }}
+          gitState={currentProject.files.find(file => file.path === current.path)?.gitState ?? 'unknown'}
+          unsaved={source !== current.source}
+          onClose={() => setConvertingDraftBase(false)}
           onConverted={handleConverted}
         />
       )}

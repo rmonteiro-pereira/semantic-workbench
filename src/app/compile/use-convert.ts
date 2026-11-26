@@ -4,6 +4,7 @@ import { compileDocument } from '../../shared/tessera/compile-document';
 import type { CompileFinding } from '../../shared/tessera/compile-findings';
 import type { LossReport } from '../../shared/tessera/loss-report';
 import { REGISTRY } from '../../shared/tessera/registry';
+import { BaseConversionRefusal, convertToDraftBase, type BaseConversionChange } from '../../shared/tessera/base-conversion';
 import { compileApi, isCompileFailure, type CompileApi, type ConvertBody } from './api';
 
 /** The calls the conversion dialog makes. */
@@ -106,4 +107,55 @@ export function useConvert(project: string, target: ConvertTarget, onConverted: 
     });
   }, [client, onConverted, project, target, view]);
   return { view, convert, reload: review };
+}
+
+/** What a base conversion preview showed: the text before and after, every change, and the hash the confirmation must name. */
+export type BaseReview = { before: string; after: string; changes: BaseConversionChange[]; converted: string };
+
+/** What the base conversion dialog shows. */
+export type BaseConvertView =
+  | { status: 'refused'; findings: CompileFinding[] }
+  | { status: 'review'; review: BaseReview }
+  | { status: 'converting'; review: BaseReview }
+  | { status: 'done'; path: string }
+  | { status: 'changed'; message: string }
+  | { status: 'error'; message: string };
+
+/** Converts the file here, so the person sees every change before anything is saved. The server converts again before it writes. */
+export function startBaseReview(target: ConvertTarget): BaseConvertView {
+  try {
+    const conversion = convertToDraftBase(target.source, target.path);
+    return { status: 'review', review: { before: target.source, after: conversion.text, changes: conversion.changes, converted: conversion.sha256 } };
+  } catch (error) {
+    if (!(error instanceof BaseConversionRefusal)) throw error;
+    return { status: 'refused', findings: [{ document: target.path, severity: 'error', code: error.code, path: '/', message: error.message }] };
+  }
+}
+
+/** Sends the confirmation with the file version and the hash of the converted text on screen. */
+export async function confirmBaseConversion(client: Pick<CompileApi, 'convertBase'>, project: string, target: ConvertTarget, review: BaseReview): Promise<BaseConvertView> {
+  try {
+    await client.convertBase(project, { path: target.path, baseHash: target.hash, target: 'ossie-0.3.0.dev0', converted: review.converted });
+    return { status: 'done', path: target.path };
+  } catch (error) {
+    return viewOfConversionFailure(error) as BaseConvertView;
+  }
+}
+
+/** The control the base conversion dialog gets. */
+export type BaseConvertControl = { view: BaseConvertView; convert: () => void };
+
+/** Previews the base conversion when the dialog opens and exposes the confirmation. */
+export function useBaseConvert(project: string, target: ConvertTarget, onConverted: () => void, client: Pick<CompileApi, 'convertBase'> = compileApi): BaseConvertControl {
+  const [view, setView] = useState<BaseConvertView>(() => startBaseReview(target));
+  const convert = useCallback(() => {
+    if (view.status !== 'review') return;
+    const shown = view.review;
+    setView({ status: 'converting', review: shown });
+    void confirmBaseConversion(client, project, target, shown).then(next => {
+      setView(next);
+      if (next.status === 'done') onConverted();
+    });
+  }, [client, onConverted, project, target, view]);
+  return { view, convert };
 }

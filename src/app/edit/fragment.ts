@@ -4,7 +4,7 @@ import type { Issue } from '../../shared/validation/diagnostics';
 import { applyPatches } from '../../shared/editor/patch';
 import { parseSource, valuePatches, itemValue } from '../../shared/edit/yaml-patch';
 import { dedent, itemSpan, reindent } from '../../shared/edit/source-text';
-import { applyStatusRules, fieldValue, writeField, type FieldSpec, type ItemKind, type Path } from '../../shared/edit/item-model';
+import { applyStatusRules, declaredVersion, fieldValue, writeField, type FieldSpec, type ItemKind, type Path } from '../../shared/edit/item-model';
 // The item editor's draft: the item's own lines, without their indentation, are edited on their
 // own (as fields or as source) and put back into the file in place. Every byte outside the item
 // stays as it was; inside it, only the changed values change.
@@ -16,6 +16,8 @@ export type Fragment = {
   text: string;
   path: Path;
   line: number;
+  /** The Ossie version the whole document declares, which the item's own text cannot show. */
+  version?: unknown;
 };
 /** Extracts an item's source lines with their common indentation removed. */
 export function openFragment(base: string, path: Path): Fragment {
@@ -30,6 +32,7 @@ export function openFragment(base: string, path: Path): Fragment {
     text,
     path: /^-[ \t]/.test(text) ? [0] : [],
     line: base.slice(0, span.from).split(/\r\n|\r|\n/).length,
+    version: declaredVersion(base),
   };
 }
 /** Restores fragment indentation and preserves all bytes outside the item. */
@@ -79,7 +82,7 @@ export function setField(text: string, fragment: Fragment, change: FieldChange) 
   const { filename, kind, spec, input, original } = change;
   const current = fragmentValue(fragment, text);
   if (!current.value) return { text, reopened: false };
-  let next = writeField(current.value, spec, fieldValue(spec, input));
+  let next = writeField(current.value, spec, fieldValue(spec, input), fragment.version);
   let reopened = false;
   if (kind === 'metric') {
     const rules = applyStatusRules(original, next);

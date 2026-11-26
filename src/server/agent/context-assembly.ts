@@ -5,9 +5,10 @@ import { formatAddress, type Address } from '../../shared/core/item-address';
 import { absoluteItemAddress, addressAtModelPath } from '../../shared/core/model-addresses';
 import { OSSIE_BUILTINS, builtinConcept } from '../../shared/mappings/ossie-builtins';
 import { metricDependencies as syntaxDependencies } from '../../shared/metrics/deps';
-import { readKpiBindings, workbenchEntry } from '../../shared/metrics/extension';
+import { extensionFormOf, readKpiBindings, workbenchEntry } from '../../shared/metrics/extension';
 import { resolveBindings } from '../../shared/metrics/bindings';
 import { columnRefs, parseExpression } from './sql';
+import { aggregateCalls, datasetMetric, plannerExpression } from './metric-expression';
 import { BadRequestError } from '../projects/errors';
 import { contextDocument, evidence, fieldKey, policy, type BindingKind, type Evidence, type Finding, type RuntimeContext, type RuntimeField, type RuntimeMetric } from './context-types';
 import { identity, targets, type Entry, type Parsed, type Target } from './context-documents';
@@ -114,7 +115,8 @@ function emptyContext(assembly: Assembly, { ontologyTarget, semanticTarget }: Re
       ontologyRef: entry.data.ontology_ref,
       semanticModelRef: entry.data.semantic_model_ref,
       description: entry.data.description,
-      customExtensions: entry.data.custom_extensions,
+      // The field keeps its name; a 0.3 draft mapping supplies its nonportable_extensions here.
+      customExtensions: entry.data[extensionFormOf(entry.data).list],
       embedded: !!entry.ontology,
       evidence: evidence(entry.doc, entry.path),
     },
@@ -203,14 +205,31 @@ function collectMetrics(context: RuntimeContext, catalog: Catalog, semanticTarge
   );
 }
 type ExpressionRefs = { fields: string[]; metrics: string[]; condition: unknown };
-/** Resolves the fields and metrics an expression names, refusing unknown or ambiguous references. */
-function resolveExpressionRefs(context: RuntimeContext, catalog: Catalog, expression: string): ExpressionRefs {
+/**
+ * Resolves the fields and metrics an expression names, refusing unknown or ambiguous references.
+ * Inside a dataset metric, `scope` is its dataset, which unqualified names belong to. An
+ * AGG(dataset.metric) call contributes the fields of that dataset metric.
+ */
+function resolveExpressionRefs(context: RuntimeContext, catalog: Catalog, expression: string, scope?: string): ExpressionRefs {
   const ast = parseExpression(expression, { conditional: true });
   const fieldMap = catalog.fields;
   const fields = new Set<string>();
   const metrics = new Set<string>();
+  const aggregates = aggregateCalls(ast.expression);
+  for (const call of aggregates) {
+    const definition = datasetMetric(context.datasets, call.dataset, call.metric);
+    const inner = plannerExpression(definition);
+    if (!inner) throw new BadRequestError(`Dataset metric ${call.dataset}.${call.metric} has no sql or ANSI_SQL expression.`);
+    for (const id of resolveExpressionRefs(context, catalog, inner, call.dataset).fields) fields.add(id);
+  }
+  const aggregateArguments = new Set(aggregates.map(call => call.argument));
   for (const ref of columnRefs([ast.expression, ast.condition])) {
-    if (ref.table) {
+    if (aggregateArguments.has(ref.node)) continue;
+    if (!ref.table && scope) {
+      const id = fieldKey(context.semanticModel.address, scope, ref.column);
+      if (!fieldMap.has(id)) throw new BadRequestError(`Unknown field ${ref.column} of dataset ${scope}.`);
+      fields.add(id);
+    } else if (ref.table) {
       const id = fieldKey(context.semanticModel.address, ref.table, ref.column);
       if (!fieldMap.has(id)) throw new BadRequestError(`Unknown semantic field ${ref.table}.${ref.column}. Mapping expressions must use declared logical fields.`);
       fields.add(id);
@@ -235,11 +254,10 @@ function resolveMetricDependencies(assembly: Assembly, context: RuntimeContext, 
     if (active.size > 64) throw new BadRequestError('Metric dependency depth exceeds 64.');
     const next = new Set(active);
     next.add(name);
-    const expressions = metric.definition.expression.dialects;
-    const selected = expressions.find((d: any) => d.dialect === 'ANSI_SQL');
+    const selected = plannerExpression(metric.definition);
     if (!selected) throw new BadRequestError(`Metric ${name} has no ANSI_SQL expression; choose a supported dialect before planning.`);
-    const refs = resolveExpressionRefs(context, catalog, selected.expression);
-    metric.dependsOn = syntaxDependencies(selected.expression, new Set(metricMap.keys()));
+    const refs = resolveExpressionRefs(context, catalog, selected);
+    metric.dependsOn = syntaxDependencies(selected, new Set(metricMap.keys()));
     const fields = new Set(refs.fields);
     for (const dep of refs.metrics) for (const id of metricDependencies(dep, next).fields) fields.add(id);
     metric.fields = [...fields];
@@ -393,9 +411,11 @@ function readMetricBindings(assembly: Assembly, context: RuntimeContext, catalog
   const kpiOwner = entry.ontology ? entry.data.semantic_model : entry.data;
   const kpiPath = entry.ontology ? [...entry.path, 'semantic_model'] : entry.path;
   const kpi = readKpiBindings(kpiOwner, '', !entry.ontology);
-  const extIndex = workbenchEntry(kpiOwner)?.index ?? 0;
+  const workbench = workbenchEntry(kpiOwner);
+  const extIndex = workbench?.index ?? 0;
+  const extList = workbench?.form.list ?? 'custom_extensions';
   context.metricBindings = resolveBindings(kpi.value, ontology, new Set(catalog.metrics.keys())).map((resolvedBinding, i) => {
-    const bindingEvidence = evidence(entry.doc, [...kpiPath, 'custom_extensions', extIndex, 'data', 'kpi_bindings', i]);
+    const bindingEvidence = evidence(entry.doc, [...kpiPath, extList, extIndex, 'data', 'kpi_bindings', i]);
     return {
       metric: resolvedBinding.metric,
       measures: resolvedBinding.measures,

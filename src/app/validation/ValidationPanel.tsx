@@ -16,6 +16,7 @@ export function ValidationPanel({
   onValidateAsShippedVersion,
   onCheckStandard,
   onConvertToStandard,
+  onConvertToDraftBase,
   source,
   format,
   unitValidation,
@@ -29,6 +30,8 @@ export function ValidationPanel({
   onCheckStandard?: () => void;
   /** Offered for a Tessera document to a person who may edit it: opens the reviewed conversion. */
   onConvertToStandard?: () => void;
+  /** Offered for a document that declares Ossie 0.2.0.dev0 to a person who may edit it: opens the reviewed conversion to the 0.3.0 draft. */
+  onConvertToDraftBase?: () => void;
   source?: string;
 }) {
   const notValidated = allIssues.find(isNotValidated);
@@ -85,6 +88,13 @@ export function ValidationPanel({
               Convert to standard
             </button>
           )}
+        </div>
+      )}
+      {onConvertToDraftBase && (
+        <div className="validation-standard-actions">
+          <button type="button" onClick={onConvertToDraftBase}>
+            Convert to Ossie 0.3.0 draft
+          </button>
         </div>
       )}
       {!notValidated && (

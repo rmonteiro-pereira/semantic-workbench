@@ -3,7 +3,7 @@
 import { ambiguousMappingRelationships, mappingRelationshipTargets } from './relationship-references';
 import { isMap, isScalar, isSeq, parseDocument, type Document } from 'yaml';
 import { rdfSyntax } from '../../shared/validation/rdf';
-import { VENDOR } from '../../shared/metrics/extension';
+import { NONPORTABLE_EXTENSIONS, VENDOR, decodeExtensionData, readKpiBindings, workbenchEntry } from '../../shared/metrics/extension';
 import { itemValue, removePatches, valuePatches, edit } from '../../shared/edit/yaml-patch';
 import type { ItemKind, Path } from '../../shared/edit/item-model';
 import type { Patch } from '../../shared/edit/source-text';
@@ -14,6 +14,23 @@ import { ATTRIBUTE_ORDER_PROPERTY } from '../../shared/tessera/additions/attribu
 // References to an item across the project's YAML/JSON files: what breaks when it is deleted (each
 // with the item that would be removed with it) and what still names it after a rename (each
 // occurrence rewritten only when the user ticks it). Nothing is rewritten silently.
+/** Where a scalar sits inside the object data of a 0.3 draft workbench entry, or null when it is elsewhere. */
+type WorkbenchObjectSite = { owner: Path; dataPath: Path; inner: Path };
+
+/**
+ * Finds the 0.3 draft workbench entry a scalar belongs to. In that form the attributes and bindings
+ * are ordinary YAML under `nonportable_extensions[i].data`, so each value is its own scalar.
+ */
+function workbenchObjectSite(path: Path, data: any): WorkbenchObjectSite | null {
+  const at = path.lastIndexOf(NONPORTABLE_EXTENSIONS.list);
+  if (at < 0 || path[at + 2] !== 'data' || typeof path[at + 1] !== 'number') return null;
+  const owner = path.slice(0, at);
+  const ownerValue = owner.reduce((value: any, part) => value?.[part], data);
+  const entry = workbenchEntry(ownerValue);
+  if (!entry || entry.form !== NONPORTABLE_EXTENSIONS || entry.index !== path[at + 1]) return null;
+  return { owner, dataPath: path.slice(0, at + 3), inner: path.slice(at + 3) };
+}
+
 /** Provides document identity and source for cross-file reference analysis. */
 export type ProjectDoc = { id: string; path: string; filename: string; source: string };
 /** Locates an item or metric binding removed with its dependency. */
@@ -115,6 +132,26 @@ export function unrewritableReferences(target: Target, docs: ProjectDoc[]): { fi
 }
 
 /** Finds references affected by renaming or deleting the target item. */
+/**
+ * Decides whether one value inside 0.3 draft workbench data names the target, and what is removed
+ * with it: a binding goes by its metric name, an attribute with its metric.
+ */
+function objectSiteReference(site: WorkbenchObjectSite, value: string, target: Target, data: any): { pattern: RegExp; dependent?: Dependent } | null {
+  const name = target.name!;
+  const [list, index, field] = site.inner;
+  if (list === 'kpi_bindings' && typeof index === 'number') {
+    const ownerValue = site.owner.reduce((item: any, part) => item?.[part], data);
+    const binding = readKpiBindings(ownerValue, '', true).value[index];
+    const hit = (target.kind === 'metric' && field === 'metric') || (target.kind === 'concept' && (field === 'measures' || field === 'of'));
+    if (!binding || !hit || value !== name) return null;
+    return { pattern: new RegExp(escape(name), 'g'), dependent: { path: site.owner, label: `metric binding of ${binding.metric}`, binding: { dataPath: site.dataPath, metric: binding.metric } } };
+  }
+  if (target.kind === 'metric' && value === name) return { pattern: new RegExp(escape(name), 'g') };
+  if (target.kind === 'dataset' && value.startsWith(`${name}.`)) return { pattern: new RegExp(`${escape(name)}(?=\\.)`, 'g') };
+  if (target.kind === 'field' && value === `${target.owner ?? ''}.${name}`) return { pattern: new RegExp(`(?<=\\.)${escape(name)}(?![\\w$])`, 'g') };
+  return null;
+}
+
 export function findReferences(target: Target, docs: ProjectDoc[]): Reference[] {
   const out: Reference[] = [];
   const name = target.name;
@@ -159,6 +196,13 @@ export function findReferences(target: Target, docs: ProjectDoc[]): Reference[] 
       const key = path.at(-1);
       // The item itself (and what it contains) is not a reference to itself.
       if (self && startsWith(path, target.path)) continue;
+      // Metric bindings and metric attributes of a 0.3 draft file: YAML values inside a SEMANTIC_WORKBENCH entry.
+      const site = workbenchObjectSite(path, data);
+      if (site) {
+        const found = objectSiteReference(site, String(value), target, data);
+        if (found) add(path, within(src, node, found.pattern).slice(0, 1), found.dependent ?? dep(upTo(path, 'metrics')));
+        continue;
+      }
       // Metric bindings and metric extensions: JSON inside a SEMANTIC_WORKBENCH block.
       if (key === 'data' && path.at(-3) === 'custom_extensions') {
         const owner = path.slice(0, -3);
@@ -318,7 +362,13 @@ export function removeDependents(docs: ProjectDoc[], dependents: { docId: string
       .sort((a, b) => cmp(b.binding?.dataPath ?? b.path, a.binding?.dataPath ?? a.path));
     const steps = items.map(x => (text: string): Patch[] => {
       if (!x.binding) return removePatches(text, x.path, projectDoc.filename);
-      const json = JSON.parse(itemValue(text, x.binding.dataPath));
+      const stored = itemValue(text, x.binding.dataPath);
+      if (x.binding.dataPath.includes(NONPORTABLE_EXTENSIONS.list)) {
+        const value = decodeExtensionData(NONPORTABLE_EXTENSIONS, stored).value ?? {};
+        const kept = (value.kpi_bindings ?? []).filter((b: any) => b.metric !== x.binding!.metric);
+        return valuePatches(text, x.binding.dataPath, { ...value, kpi_bindings: kept }, projectDoc.filename);
+      }
+      const json = JSON.parse(stored);
       return valuePatches(
         text,
         x.binding.dataPath,

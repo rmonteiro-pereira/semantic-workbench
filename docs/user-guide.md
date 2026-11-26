@@ -576,11 +576,15 @@ unsupported YAML tags and unsafe alias expansion, duplicate identifiers, danglin
 inheritance cycles, declared keys/joins and supported schema checks. Ordinary relationship cycles,
 self-links and disconnected components remain legal.
 
-ODCS 3.1.0 and Ossie 0.2.0.dev0 definitions use pinned companion schemas. An Ossie file that names
-another version, or none, still gets its syntax, structure, reference and cycle checks, but its
-schema is not applied: Validation details and the editor say "Not validated" once, and **Validate
-as Ossie 0.2.0.dev0** checks it against the shipped schema for that file. Mapping files are the
-exception: they must declare 0.2.0.dev0, because the agent runtime reads only that version. RDF/XML is checked
+ODCS 3.1.0 and Ossie 0.2.0.dev0 definitions use pinned companion schemas, and so do files that
+declare the [Ossie 0.3.0 draft](compile.md#ossie-030-draft) (`version: 0.3.0.dev0`), which also get
+its rules for dataset metrics, `AGG` and the reserved `METRIC`. An Ossie file that names another
+version, or none, still gets its syntax, structure, reference and cycle checks, but its schema is not
+applied: Validation details and the editor say "Not validated" once, and **Validate as Ossie
+0.2.0.dev0** checks it against the shipped schema for that file. Mapping files are the exception:
+they must declare 0.2.0.dev0 or 0.3.0.dev0, because the agent runtime reads only those versions.
+What the 0.3 draft does not cover yet is listed under
+[Ossie 0.3.0 draft: limits](compile.md#ossie-030-draft-limits). RDF/XML is checked
 for XML errors and rejects DTD/entity declarations. RDF imports never fetch remote ontologies or
 `owl:imports`.
 
@@ -670,7 +674,9 @@ escapes, never modify bytes, and never block saving. Nothing is executed.
 
 ## Metrics and governed definitions
 
-The **Metrics** tab lists every metric in the open file's project. Search and the Group by, Type, Status
+The **Metrics** tab lists every model metric in the open file's project. A dataset-scoped metric
+of an Ossie 0.3.0 draft model is opened from the graph, the catalog or the item editor instead; see
+[Ossie 0.3.0 draft: limits](compile.md#ossie-030-draft-limits). Search and the Group by, Type, Status
 and Owner selects beside it support owner, type, status, concept and file views; **Governed only** keeps metrics with workbench
 attributes. A metric without attributes can use **Add attributes** without changing its name or
 formula. Metric badges connect concepts and graph nodes to the relevant definitions.

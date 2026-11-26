@@ -1,7 +1,7 @@
 // One governance view for ontology items and metrics. Ontology items keep it in an added property and metrics keep it in their extension; callers see one shape.
 import { extensionOf } from '../edit/item-model';
 import { isObject } from '../edit/source-text';
-import { VENDOR } from '../metrics/extension';
+import { VENDOR, extensionFormOf } from '../metrics/extension';
 import { GOVERNANCE_KEYS, GOVERNANCE_PROPERTY, GOVERNANCE_STATUSES } from '../tessera/additions/governance';
 
 /** Where an item keeps its governance. */
@@ -58,7 +58,8 @@ export function governanceOf(item: unknown): ItemGovernance {
 
 /** Reads the governance of a metric from its first workbench extension, the way the existing reader does. Nothing is written. */
 export function metricGovernanceOf(metric: unknown): ItemGovernance {
-  const entries = isObject(metric) && Array.isArray(metric.custom_extensions) ? metric.custom_extensions.filter(entry => entry?.vendor_name === VENDOR) : [];
+  const list = isObject(metric) ? metric[extensionFormOf(metric).list] : undefined;
+  const entries = Array.isArray(list) ? list.filter(entry => entry?.vendor_name === VENDOR) : [];
   const stored = extensionOf(metric)?.value ?? {};
   return fromStored('metric', stored, entries.length > 1);
 }

@@ -1,7 +1,9 @@
 // The table of Ossie bases a Tessera document may declare, and the check that a base leaves the Tessera names alone.
 import type { ValidateFunction } from 'ajv';
 import ontologySchema020 from '../../generated/ossie-ontology-0.2.0.dev0.json';
+import ontologySchemaDraft030 from '../../generated/ossie-ontology-0.3.0.dev0.json';
 import { tessera as tesseraValidator020, tesseraRevisionThree as tesseraRevisionThreeValidator020, tesseraRevisionTwo as tesseraRevisionTwoValidator020 } from '../../generated/validators.js';
+import { draftValidators } from '../validation/draft-validators';
 import { hasTesseraPrefix, TesseraNames } from './format';
 
 /** A parsed JSON Schema document. */
@@ -29,6 +31,19 @@ export function baseLabel(version: string, draft: boolean): string {
   return `valid against the bundled Ossie ${version}${draft ? ' draft' : ''}`;
 }
 
+/** The draft base's validators by revision. Each is absent until the draft module is loaded. */
+const draftValidatorsByRevision = {
+  get 1() {
+    return draftValidators()?.tesseraDraft030;
+  },
+  get 2() {
+    return draftValidators()?.tesseraRevisionTwoDraft030;
+  },
+  get 3() {
+    return draftValidators()?.tesseraRevisionThreeDraft030;
+  },
+} as Record<number, ValidateFunction>;
+
 /** The bases this workbench ships. */
 export const SUPPORTED_BASES: readonly SupportedBase[] = [
   {
@@ -37,6 +52,15 @@ export const SUPPORTED_BASES: readonly SupportedBase[] = [
     draft: true,
     ontologySchema: ontologySchema020,
     validators: { 1: tesseraValidator020, 2: tesseraRevisionTwoValidator020, 3: tesseraRevisionThreeValidator020 },
+  },
+  // Upstream has not released 0.3.0. This base pins its development version at one commit
+  // (schemas/README.md), so the label says draft and names the release it is heading for.
+  {
+    version: '0.3.0.dev0',
+    label: baseLabel('0.3.0', true),
+    draft: true,
+    ontologySchema: ontologySchemaDraft030,
+    validators: draftValidatorsByRevision,
   },
 ];
 
