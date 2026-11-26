@@ -14,6 +14,8 @@ import { readOntologySet } from '../mesh/unit-reader';
 import { BadRequestError, HiddenResourceError, NotFoundError, SnapshotUnavailableError } from '../projects/errors';
 const HASH = /^[0-9a-f]{64}$/;
 
+type SavedFile = ReturnType<Workspace['readFile']>;
+
 function readableSource(ws: Workspace, project: string, path: string, reader: Reader) {
   if (reader.view && !reader.view.canRead(project, path)) return null;
   try {
@@ -46,6 +48,40 @@ async function checkSetImports(ws: Workspace, project: string, reader: Reader, u
   });
 }
 
+/** Checks the saved ontology set a root or part belongs to, as far as the reader may see it. Other files have no set. */
+function savedSetValidation(ws: Workspace, slug: string, file: SavedFile, reader: Reader) {
+  return readOntologySet(
+    file,
+    {
+      available: name => {
+        const indexed = ws.indexedFile(slug, name, reader);
+        const readable = !reader.view || reader.view.canRead(slug, name);
+        return Boolean(indexed?.visible && readable);
+      },
+      read: name => readableSource(ws, slug, name, reader),
+      rootPaths: () =>
+        ws
+          .documentsFor(reader)
+          .filter(doc => doc.project === slug)
+          .map(doc => doc.path),
+    },
+    unit => checkSetImports(ws, slug, reader, unit),
+  );
+}
+
+/** Whether the saved set of a root or part could be checked; validation itself checks only the proposed file. A file not saved yet has no set. */
+async function savedSetNotice(ws: Workspace, slug: string, path: string, reader: Reader) {
+  let file: SavedFile;
+  try {
+    file = ws.readFile(slug, path, reader);
+  } catch (error) {
+    if (error instanceof NotFoundError) return {};
+    throw error;
+  }
+  const validation = await savedSetValidation(ws, slug, file, reader);
+  return validation ? { setNotChecked: validation.setNotChecked } : {};
+}
+
 /** Checks proposed text with the save pipeline and answers its findings and guard outcome without writing. */
 async function validateRoute(ws: Workspace, req: Request, slug: string, path: string) {
   const body = await readJson(req, FILE_SAVE_REQUEST_LIMIT);
@@ -56,7 +92,9 @@ async function validateRoute(ws: Workspace, req: Request, slug: string, path: st
   if ((body.source === undefined) === (body.patches === undefined)) throw new BadRequestError('Send either source or patches.');
   if (body.source !== undefined && typeof body.source !== 'string') throw new BadRequestError('source must be text.');
   if (body.patches !== undefined && body.baseHash === undefined) throw new BadRequestError('Patches need the baseHash they were made against.');
-  return Response.json(await ws.validateFile(slug, path, body, requestReader(req)));
+  const reader = requestReader(req);
+  const validation = await ws.validateFile(slug, path, body, reader);
+  return Response.json({ ...validation, ...(await savedSetNotice(ws, slug, path, reader)) });
 }
 /** Handles file reads, saves and save-free validation, with base hashes to detect stale edits. */
 export const fileRoutes: Route = async (ws, req, url) => {
@@ -69,23 +107,7 @@ export const fileRoutes: Route = async (ws, req, url) => {
   const reader = requestReader(req);
   if (req.method === 'GET') {
     const file = ws.readFile(slug, path, reader);
-    const validation = await readOntologySet(
-      file,
-      {
-        available: name => {
-          const indexed = ws.indexedFile(slug, name, reader);
-          const readable = !reader.view || reader.view.canRead(slug, name);
-          return Boolean(indexed?.visible && readable);
-        },
-        read: name => readableSource(ws, slug, name, reader),
-        rootPaths: () =>
-          ws
-            .documentsFor(reader)
-            .filter(doc => doc.project === slug)
-            .map(doc => doc.path),
-      },
-      unit => checkSetImports(ws, slug, reader, unit),
-    );
+    const validation = await savedSetValidation(ws, slug, file, reader);
     return Response.json(validation ? { ...file, unitValidation: validation } : file);
   }
   if (req.method === 'PUT') {

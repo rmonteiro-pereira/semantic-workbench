@@ -22,7 +22,7 @@ The bridge reads the capability file for every message, so `bun run mcp:rotate` 
 
 Directly over HTTP, for clients that take a URL and a header: URL `http://127.0.0.1:4310/api/mcp` and the header `Authorization: Bearer <contents of data/state/mcp-capability>`. Browser-based clients cannot connect, by design.
 
-Codex CLI has not been tried with this endpoint yet; `docs/mcp-acceptance.md` records what is verified and what is not. Only the reference client of the protocol library has been run against it. The registration command differs by client, so follow that client's own documentation and point it at `bun scripts/mcp-stdio.ts` with `DATA_DIR` set to your data folder.
+Codex CLI 0.169.1 has been run through the bridge, as well as the reference client of the protocol library; `docs/mcp-acceptance.md` has its configuration and records what is verified and what is not. Codex asks before any tool that is not read-only, so a non-interactive `codex exec` needs the server's tools approved in its configuration. For other clients the registration command differs, so follow that client's own documentation and point it at `bun scripts/mcp-stdio.ts` with `DATA_DIR` set to your data folder.
 
 Rotate the secret with `bun run mcp:rotate` (`scripts/mcp-rotate.ts`). The bridge gives up on a call that gets no answer after 35 seconds, a little after the server's own 30-second deadline. The old value stops working on the next request.
 
@@ -54,11 +54,13 @@ There are 23 tools. `tools/list` returns them sorted by name, and only the tools
 | `read_file` | Read a file by byte range, with its version | read |
 | `restore_file` | Restore a trashed file without overwriting; needs an idempotency key | change |
 | `save_file` | Replace a file by patches or full text, from the version you read | change |
-| `validate_text` | Check proposed text exactly as saving would, writing nothing | read |
+| `validate_text` | Check proposed text exactly as saving would, writing nothing; for a root or part of an ontology set, `setNotChecked` says whether the set could be checked | read |
 
 Each tool is the twin of an existing route and runs through the same operation boundary, so its authorization, content guards, version checks and audit record are the browser's own. `docs/operations.md` lists the routes.
 
 The four published-only tools (`get_mapping_catalog`, `get_mapping_context`, `plan_query`, `explain_metric`) answer from the immutable published snapshot, include its id and answer `not_published` until the project has been published from the browser. An unpublished edit never appears in them.
+
+Three of them also carry the agent context and the status flag that authors set on items, read from the same published snapshot. `get_mapping_context` lists each item's context in `aiContext` (one entry per item, with its item address in `scope` and the text or the instructions, synonyms and examples in `value`) and gives each concept that has a governance entry a `governance` flag: `status`, and for a deprecated item `replacedBy` and `reason`. `plan_query` adds `governance`, one flag for each concept and metric the plan uses, with `kind` and `name`; proposed and deprecated items stay in the plan and are flagged, never dropped. `explain_metric` adds `conceptGovernance` for the concepts the metric is linked to, beside the metric's own status. An item's owner, steward, classification and notes never reach an agent, nor does an unpublished change to its context.
 
 The two standard Ossie tools are twins of the compile routes described in [compile.md](compile.md). `check_standard` returns findings and the loss report only, never compiled files; with `source: "working"` it reads your unpublished working copy and the answer says `unpublished: true`. `compile_standard` reads only the published snapshot. Without `acceptDigest`, a compile that drops anything answers `loss-needs-acceptance` with the report summary and its digest; the tool never accepts a loss on its own, so the digest must come back in your arguments. A released compile lists the manifest and files; read a file with `path`, `offset` and the commit in `source.commit`, at most 32,768 bytes of text per part. If the published commit moves between two calls the answer is `version_changed`; start again from the report. Converting a document to standard Ossie is not an agent operation yet.
 

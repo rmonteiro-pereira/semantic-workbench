@@ -1,5 +1,5 @@
 /** Measures painted paths only when their bounds reach the visible label plane. */
-import { nearestRoutePoint, routeBoundsIntersect, type Box } from './routes';
+import { nearestRoutePoint, routeBounds, routeBoundsIntersect, type Box } from './routes';
 
 type Point = [number, number];
 type Sample = { offset: number; point: Point };
@@ -45,11 +45,56 @@ function sampleVisibleRoute(route: LabelRoute) {
   route.candidates = [0.5, 0.4, 0.6, 0.3, 0.7, 0.2, 0.8].map(fraction => pathSample(route.element, length * fraction).point);
 }
 
+function distanceToViewport(point: Point, viewport: Box) {
+  const dx = Math.max(viewport.x - point[0], 0, point[0] - viewport.x - viewport.width);
+  const dy = Math.max(viewport.y - point[1], 0, point[1] - viewport.y - viewport.height);
+  return Math.hypot(dx, dy);
+}
+
+function paintedIntervalReachesViewport(route: LabelRoute, start: Sample, end: Sample, viewport: Box) {
+  let left = start.offset;
+  let right = end.offset;
+  // Refine on the actual curve so a tangent or a crossing chord cannot decide visibility.
+  for (let iteration = 0; iteration < 32; iteration++) {
+    const first = pathSample(route.element, left + (right - left) / 3);
+    const second = pathSample(route.element, right - (right - left) / 3);
+    const firstDistance = distanceToViewport(first.point, viewport);
+    const secondDistance = distanceToViewport(second.point, viewport);
+    if (firstDistance === 0 || secondDistance === 0) return true;
+    if (firstDistance < secondDistance) right = second.offset;
+    else left = first.offset;
+  }
+  return distanceToViewport(pathSample(route.element, (left + right) / 2).point, viewport) <= 1e-7;
+}
+
+function paintedRouteIntersects(route: LabelRoute, viewport: Box) {
+  if (!routeBoundsIntersect(route.bounds, viewport)) return false;
+  const samples = route.samples!;
+  if (samples.some(sample => distanceToViewport(sample.point, viewport) === 0)) return true;
+  for (let index = 1; index < samples.length; index++) {
+    const start = samples[index - 1];
+    const end = samples[index];
+    const bounds = routeBounds([start.point, end.point]);
+    // Arc length bounds the reach even when placement sampling hits its depth cap.
+    const padding = (end.offset - start.offset) / 2;
+    const padded = { x: bounds.x - padding, y: bounds.y - padding, width: bounds.width + 2 * padding, height: bounds.height + 2 * padding };
+    if (!routeBoundsIntersect(padded, viewport)) continue;
+    if (paintedIntervalReachesViewport(route, start, end, viewport)) return true;
+  }
+  return false;
+}
+
 /** Samples visible routes once per painted path, with cached bounds for offscreen culling. */
 export function visibleLabelRoute(route: LabelRoute, viewport: Box) {
   if (!routeBoundsIntersect(route.bounds, viewport)) return undefined;
   if (!route.samples) sampleVisibleRoute(route);
-  return { points: route.points!, candidates: route.candidates, bounds: route.bounds };
+  if (!paintedRouteIntersects(route, viewport)) return undefined;
+  return {
+    points: route.points!,
+    candidates: route.candidates,
+    bounds: route.bounds,
+    intersectsViewport: (visible: Box) => paintedRouteIntersects(route, visible),
+  };
 }
 
 /** Refines the nearest sampled segment on the painted curve instead of ending on its chord. */
