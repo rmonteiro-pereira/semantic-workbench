@@ -16,6 +16,13 @@ import tesseraOntology from '../schemas/tessera-ontology-1-ossie-0.2.0.dev0.json
 import tesseraOntologyRevisionTwo from '../schemas/tessera-ontology-2-ossie-0.2.0.dev0.json';
 import tesseraOntologyRevisionThree from '../schemas/tessera-ontology-3-ossie-0.2.0.dev0.json';
 import tesseraPart from '../schemas/tessera-part-3-ossie-0.2.0.dev0.json';
+import ossieDraft030 from '../schemas/ossie-0.3.0.dev0.json';
+import ontologyDraft030 from '../schemas/ossie-ontology-0.3.0.dev0.json';
+import mappingDraft030 from '../schemas/ossie-mapping-0.3.0.dev0.json';
+import tesseraOntologyDraft030 from '../schemas/tessera-ontology-1-ossie-0.3.0.dev0.json';
+import tesseraOntologyRevisionTwoDraft030 from '../schemas/tessera-ontology-2-ossie-0.3.0.dev0.json';
+import tesseraOntologyRevisionThreeDraft030 from '../schemas/tessera-ontology-3-ossie-0.3.0.dev0.json';
+import tesseraPartDraft030 from '../schemas/tessera-part-3-ossie-0.3.0.dev0.json';
 import tesseraDependencies from '../schemas/tessera-dependencies-v1.json';
 import metric from '../schemas/semantic-workbench-metric-v1.json';
 import bindings from '../schemas/semantic-workbench-mapping-v1.json';
@@ -29,22 +36,60 @@ const contracts = new Ajv2019(options);
 const semantics = new Ajv2020(options);
 const mappings = new Ajv2020(options);
 const extensions = new Ajv2020(options);
-for (const validator of [contracts, semantics, mappings]) addFormats(validator);
-mappings.addFormat('iri', /^[a-z][a-z\d+.-]*:[^\s]+$/i);
+// Upstream gives every Ossie version the same remote identifiers, so each version needs its own
+// compilers. A 0.3 mapping's reference then resolves to the 0.3 core schema, never to 0.2.
+const semanticsDraft030 = new Ajv2020(options);
+const mappingsDraft030 = new Ajv2020(options);
+for (const validator of [contracts, semantics, mappings, semanticsDraft030, mappingsDraft030]) addFormats(validator);
 const ontologyId = 'https://raw.githubusercontent.com/apache/ossie/main/ontology/ontology.json';
-mappings.addSchema(ossie, 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json');
-mappings.addSchema(ontology, ontologyId);
-mappings.addSchema(tesseraOntology, tesseraOntology.$id);
-mappings.addSchema(tesseraOntologyRevisionTwo, tesseraOntologyRevisionTwo.$id);
-mappings.addSchema(tesseraOntologyRevisionThree, tesseraOntologyRevisionThree.$id);
-mappings.addSchema(tesseraPart, tesseraPart.$id);
-mappings.addSchema(tesseraDependencies, tesseraDependencies.$id);
+const coreId = 'https://raw.githubusercontent.com/apache/ossie/main/core-spec/ossie-schema.json';
 const mappingRef = 'urn:semantic-workbench:mapping';
 const embeddedMappingRef = 'urn:semantic-workbench:embedded-mapping';
 const metricRef = 'urn:semantic-workbench:metric';
 const mappingExtensionRef = 'urn:semantic-workbench:mapping-extension';
+
+/** The pinned upstream schemas of one Ossie version and the Tessera schemas derived from them. */
+type VersionSchemas = {
+  core: object;
+  ontology: object;
+  tessera: { $id: string };
+  tesseraRevisionTwo: { $id: string };
+  tesseraRevisionThree: { $id: string };
+  tesseraPart: { $id: string };
+};
+
+/** Registers one version's schemas on its own compiler, in the order the generated code depends on. */
+function addVersionSchemas(compiler: Ajv2020, schemas: VersionSchemas) {
+  compiler.addFormat('iri', /^[a-z][a-z\d+.-]*:[^\s]+$/i);
+  compiler.addSchema(schemas.core, coreId);
+  compiler.addSchema(schemas.ontology, ontologyId);
+  compiler.addSchema(schemas.tessera, schemas.tessera.$id);
+  compiler.addSchema(schemas.tesseraRevisionTwo, schemas.tesseraRevisionTwo.$id);
+  compiler.addSchema(schemas.tesseraRevisionThree, schemas.tesseraRevisionThree.$id);
+  compiler.addSchema(schemas.tesseraPart, schemas.tesseraPart.$id);
+}
+
+addVersionSchemas(mappings, {
+  core: ossie,
+  ontology,
+  tessera: tesseraOntology,
+  tesseraRevisionTwo: tesseraOntologyRevisionTwo,
+  tesseraRevisionThree: tesseraOntologyRevisionThree,
+  tesseraPart,
+});
+mappings.addSchema(tesseraDependencies, tesseraDependencies.$id);
 mappings.addSchema(mapping, mappingRef);
 mappings.addSchema({ $ref: `${ontologyId}#/$defs/OntologyMap` }, embeddedMappingRef);
+addVersionSchemas(mappingsDraft030, {
+  core: ossieDraft030,
+  ontology: ontologyDraft030,
+  tessera: tesseraOntologyDraft030,
+  tesseraRevisionTwo: tesseraOntologyRevisionTwoDraft030,
+  tesseraRevisionThree: tesseraOntologyRevisionThreeDraft030,
+  tesseraPart: tesseraPartDraft030,
+});
+mappingsDraft030.addSchema(mappingDraft030, mappingRef);
+mappingsDraft030.addSchema({ $ref: `${ontologyId}#/$defs/OntologyMap` }, embeddedMappingRef);
 extensions.addSchema(metric, metricRef);
 extensions.addSchema(bindings, mappingExtensionRef);
 const outputs = [
@@ -82,6 +127,34 @@ const outputs = [
       tesseraDependencies: tesseraDependencies.$id,
       tesseraPart: tesseraPart.$id,
       tesseraRevisionThree: tesseraOntologyRevisionThree.$id,
+    },
+  },
+  {
+    name: 'semanticDraft030',
+    compiler: semanticsDraft030,
+    validator: semanticsDraft030.compile(ossieDraft030),
+    schemaRoots: [{ name: 'ossieSemanticModelDraft030', schema: ossieDraft030 }],
+  },
+  {
+    name: 'mappingsDraft030',
+    compiler: mappingsDraft030,
+    schemaRoots: [
+      { name: 'ossieMappingDraft030', schema: mappingDraft030 },
+      { name: 'ossieOntologyDraft030', schema: ontologyDraft030 },
+      { name: 'tesseraOntologyDraft030', schema: tesseraOntologyDraft030 },
+      { name: 'tesseraOntologyRevisionTwoDraft030', schema: tesseraOntologyRevisionTwoDraft030 },
+      { name: 'tesseraPartDraft030', schema: tesseraPartDraft030 },
+      { name: 'tesseraOntologyRevisionThreeDraft030', schema: tesseraOntologyRevisionThreeDraft030 },
+      { name: 'ossieSemanticModelDraft030', schema: ossieDraft030 },
+    ],
+    validators: {
+      standaloneDraft030: mappingRef,
+      embeddedDraft030: embeddedMappingRef,
+      ontologyDraft030: ontologyId,
+      tesseraDraft030: tesseraOntologyDraft030.$id,
+      tesseraRevisionTwoDraft030: tesseraOntologyRevisionTwoDraft030.$id,
+      tesseraPartDraft030: tesseraPartDraft030.$id,
+      tesseraRevisionThreeDraft030: tesseraOntologyRevisionThreeDraft030.$id,
     },
   },
   {
@@ -286,6 +359,8 @@ export function compileSchemas(destination = 'src/generated') {
   }
   const ontologyPath = join(destination, 'ossie-ontology-0.2.0.dev0.json');
   writeFileSync(ontologyPath, JSON.stringify(ontology, null, 2) + '\n');
+  const ontologyDraft030Path = join(destination, 'ossie-ontology-0.3.0.dev0.json');
+  writeFileSync(ontologyDraft030Path, JSON.stringify(ontologyDraft030, null, 2) + '\n');
   const jsPath = join(destination, 'validators.js');
   const declarationPath = join(destination, 'validators.d.ts');
   writeFileSync(jsPath, `// generated, do not edit\n${[...imports].join('\n')}\n${modules.join('\n')}\n${exports.join('\n')}\n`);
@@ -297,7 +372,7 @@ export function compileSchemas(destination = 'src/generated') {
       if (existsSync(path)) unlinkSync(path);
     }
   }
-  const formatted = Bun.spawnSync([process.execPath, 'x', 'oxfmt', '--config', join(process.cwd(), '.oxfmtrc.json'), jsPath, declarationPath, ontologyPath]);
+  const formatted = Bun.spawnSync([process.execPath, 'x', 'oxfmt', '--config', join(process.cwd(), '.oxfmtrc.json'), jsPath, declarationPath, ontologyPath, ontologyDraft030Path]);
   if (formatted.exitCode !== 0) {
     throw new Error(`Oxfmt failed to format generated validators: ${formatted.stderr.toString()}`);
   }
