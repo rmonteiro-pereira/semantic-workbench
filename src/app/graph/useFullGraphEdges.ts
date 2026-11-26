@@ -36,8 +36,7 @@ function useRenderedLabelRoutes(eligibleIds: Set<string>) {
   const routes = useRef(new Map<string, LabelRoute>());
   const pending = useRef(new Map<string, SVGPathElement>());
   const frame = useRef<number | undefined>(undefined);
-  const reportLabelRoute = useCallback((id: string, element: SVGPathElement) => {
-    pending.current.set(id, element);
+  const scheduleMeasurement = useCallback(() => {
     if (frame.current !== undefined) return;
     frame.current = requestAnimationFrame(() => {
       frame.current = undefined;
@@ -55,16 +54,27 @@ function useRenderedLabelRoutes(eligibleIds: Set<string>) {
       if (changed) setRevision(value => value + 1);
     });
   }, []);
+  const reportLabelRoute = useCallback(
+    (id: string, element: SVGPathElement) => {
+      pending.current.set(id, element);
+      scheduleMeasurement();
+    },
+    [scheduleMeasurement],
+  );
   useEffect(() => {
     for (const id of routes.current.keys()) if (!eligibleIds.has(id)) routes.current.delete(id);
     for (const id of pending.current.keys()) if (!eligibleIds.has(id)) pending.current.delete(id);
   }, [eligibleIds]);
-  useEffect(
-    () => () => {
-      if (frame.current !== undefined) cancelAnimationFrame(frame.current);
-    },
-    [],
-  );
+  useEffect(() => {
+    // A remounted effect must measure the routes reported before the remount.
+    if (pending.current.size > 0) scheduleMeasurement();
+    return () => {
+      if (frame.current === undefined) return;
+      cancelAnimationFrame(frame.current);
+      // Clearing the id lets the next mount schedule a new measurement.
+      frame.current = undefined;
+    };
+  }, [scheduleMeasurement]);
   return { routes: routes.current, revision, reportLabelRoute };
 }
 
