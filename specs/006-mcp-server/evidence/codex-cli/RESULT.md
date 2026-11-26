@@ -6,16 +6,16 @@ Version: `codex-cli 0.169.1`.
 
 ## Server and preparation
 
-Working directory: `/home/rodrigo/projetos/semantic-workbench-wt/021-docs`.
+Working directory: `<worktrees>/021-docs`.
 API command: `bun src/server/index.ts` (the API child used by `bun run dev`; no Vite process).
 Environment:
 
 ```sh
-DATA_DIR=/home/rodrigo/scratch/sw-docs/p3/local-data
+DATA_DIR=<scratch>/p3/local-data
 SW_PORT=5451
-TMPDIR=/home/rodrigo/scratch/sw-docs/p3/tmp
-XDG_CACHE_HOME=/home/rodrigo/scratch/sw-docs/p3/cache
-GIT_CONFIG_GLOBAL=/home/rodrigo/scratch/sw-docs/p3/gitconfig
+TMPDIR=<scratch>/p3/tmp
+XDG_CACHE_HOME=<scratch>/p3/cache
+GIT_CONFIG_GLOBAL=<scratch>/p3/gitconfig
 GIT_CONFIG_NOSYSTEM=1
 ```
 
@@ -42,7 +42,7 @@ The three MCP overrides were identical in every attempt:
 ```sh
 -c 'mcp_servers.sw_accept.command="bun"'
 -c 'mcp_servers.sw_accept.args=["scripts/mcp-stdio.ts"]'
--c 'mcp_servers.sw_accept.env={DATA_DIR="/home/rodrigo/scratch/sw-docs/p3/local-data",SW_PORT="5451"}'
+-c 'mcp_servers.sw_accept.env={DATA_DIR="<scratch>/p3/local-data",SW_PORT="5451"}'
 ```
 
 The first attempt used the default Codex home with `--ignore-user-config --ignore-rules --json`,
@@ -53,7 +53,7 @@ it produced no JSON session events and exited 1. Its empty original log is retai
 The watchdog log was temporarily used as a termination control and restored from that original;
 no synthetic events are counted as model calls.
 
-Final attempt: `CODEX_HOME=/home/rodrigo/scratch/sw-docs/p3/nested-home`, initially empty,
+Final attempt: `CODEX_HOME=<scratch>/p3/nested-home`, initially empty,
 plus the scratch environment above. Exact argv, including task:
 
 ```sh
@@ -62,14 +62,14 @@ codex \
   --ignore-user-config \
   --ignore-rules \
   -c \
-  'sqlite_home="/home/rodrigo/scratch/sw-docs/p3/sqlite"' \
+  'sqlite_home="<scratch>/p3/sqlite"' \
   -c \
-  'log_dir="/home/rodrigo/scratch/sw-docs/p3/codex-logs"' \
+  'log_dir="<scratch>/p3/codex-logs"' \
   -c \
   features.shell_snapshot=false \
   --json \
   -C \
-  /home/rodrigo/projetos/semantic-workbench-wt/021-docs \
+  <worktrees>/021-docs \
   -s \
   workspace-write \
   -c \
@@ -77,9 +77,9 @@ codex \
   -c \
   'mcp_servers.sw_accept.args=["scripts/mcp-stdio.ts"]' \
   -c \
-  'mcp_servers.sw_accept.env={DATA_DIR="/home/rodrigo/scratch/sw-docs/p3/local-data",SW_PORT="5451"}' \
+  'mcp_servers.sw_accept.env={DATA_DIR="<scratch>/p3/local-data",SW_PORT="5451"}' \
   -o \
-  /home/rodrigo/scratch/sw-docs/p3/nested-final.txt \
+  <scratch>/p3/nested-final.txt \
   'Use only sw_accept MCP tools. No shell, other tools, filesystem access, subagents or browsers. Do not read instructions. At most 35 model turns. Acceptance: enumerate the sw_accept tools available to you; list files of mapped-commerce; read commerce.mapped-semantic.yaml; validate its full text with exactly one new leading YAML comment "# Acceptance review complete"; save that one-line edit with baseVersion; get branch/head as needed and git_commit only that file using its saved version, expectedBranch, expectedHead, a unique idempotencyKey, message "Review commerce definitions". This commit is authorized only inside the disposable workbench data repository through MCP, never in the source checkout. Finally get_mapping_catalog for mapped-commerce (already published). Summarize each step pass/fail and answers. Do not publish. Never expose capability or credentials.'
 ```
 
@@ -111,7 +111,7 @@ No trust setting was persisted.
 Nested session final message: none; the output-last-message file is empty.
 This result does not identify a bridge protocol failure: the model session never completed startup.
 
-Raw evidence remains under `/home/rodrigo/scratch/sw-docs/p3/`:
+Raw evidence remains under `<scratch>/p3/`:
 `run.log`, `retry.log`, `final-attempt.log`, `nested-command.json`, `nested.jsonl`,
 `nested-retry-original.jsonl`, `nested-stderr.log`, `nested-final.txt`, and `local-server.log`.
 Later attempts overwrite the shared client/server logs; the three run logs preserve lifecycle results.
@@ -128,10 +128,10 @@ as above). User configuration and rules were ignored, so the bridge was the only
 
 ```sh
 codex exec -m gpt-6.1-sol --ignore-user-config --ignore-rules -s read-only --json \
-  -C /home/rodrigo/projetos/semantic-workbench-wt/021-docs \
+  -C <worktrees>/021-docs \
   -c 'mcp_servers.sw_accept.command="bun"' \
   -c 'mcp_servers.sw_accept.args=["scripts/mcp-stdio.ts"]' \
-  -c 'mcp_servers.sw_accept.env={DATA_DIR="/home/rodrigo/scratch/sw-docs/p3/local-data",SW_PORT="5451"}' \
+  -c 'mcp_servers.sw_accept.env={DATA_DIR="<scratch>/p3/local-data",SW_PORT="5451"}' \
   -c 'mcp_servers.sw_accept.default_tools_approval_mode="approve"' \
   '<the same task as above>'
 ```
@@ -152,4 +152,4 @@ answered every call it received. Allowed values are `auto`, `prompt`, `writes` a
 
 Seven distinct tools were called (`list_files`, `read_file`, `validate_text`, `save_file`, `git_status`,
 `git_commit`, `get_mapping_catalog`). Raw logs: `rerun2.jsonl`, `rerun2-final.txt` and `rerun-server.log` under
-`/home/rodrigo/scratch/sw-docs/p3/`. The API was stopped by its exact PID.
+`<scratch>/p3/`. The API was stopped by its exact PID.

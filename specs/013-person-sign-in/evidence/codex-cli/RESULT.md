@@ -15,14 +15,14 @@ Version: `codex-cli 0.169.1`.
 
 ## Test server
 
-Command: `SW_PORT=5452 bun /home/rodrigo/scratch/sw-docs/p3/oauth-server.ts`.
+Command: `SW_PORT=5452 bun <scratch>/p3/oauth-server.ts`.
 The helper imports `openConnectionServer` from `tests/helpers/connection-server.ts`,
 the same fixture used by `scripts/connections-acceptance.ts`.
 It uses `oidcTransport('keycloak')`, an in-process repository test transport;
 there is no real Keycloak instance, external identity provider or owner sign-in.
 
-`DATA_DIR=/home/rodrigo/scratch/sw-docs/p3/server-data` is supplied; the fixture independently
-creates its actual disposable workspace beneath `TMPDIR=/home/rodrigo/scratch/sw-docs/p3/tmp`.
+`DATA_DIR=<scratch>/p3/server-data` is supplied; the fixture independently
+creates its actual disposable workspace beneath `TMPDIR=<scratch>/p3/tmp`.
 Its temporary access repository registers this programs.json payload:
 
 ```json
@@ -40,8 +40,8 @@ Add exposes `--oauth-client-id`, `--oauth-client-secret`, `--oauth-client-regist
 and `--oauth-resource`. Login exposes `--scopes`, `--no-browser` and
 `--oauth-client-registration`; no client-id or callback flag appears on login.
 
-Both commands run with initially empty `CODEX_HOME=/home/rodrigo/scratch/sw-docs/p3/oauth-home`,
-`TMPDIR=/home/rodrigo/scratch/sw-docs/p3/tmp`, scratch caches, `BROWSER=/bin/false`,
+Both commands run with initially empty `CODEX_HOME=<scratch>/p3/oauth-home`,
+`TMPDIR=<scratch>/p3/tmp`, scratch caches, `BROWSER=/bin/false`,
 and closed stdin. Neither command modifies the owner's Codex configuration.
 
 ```sh
@@ -84,7 +84,7 @@ The duplicate resource parameter is retained above because it is part of the act
 `response_type=code` names the OAuth response type; no issued code appears in these records.
 No end-to-end OAuth support is claimed.
 
-Raw logs: `/home/rodrigo/scratch/sw-docs/p3/oauth-server.log`, `oauth-client-0.log`,
+Raw logs: `<scratch>/p3/oauth-server.log`, `oauth-client-0.log`,
 `oauth-client-1.log`, `oauth-commands.json`, and `run.log`.
 Server PID 174 received SIGTERM and exited 0. Timeout wrapper PID 449 exited 124;
 its client was terminated by timeout. Login wrapper PID 493 exited 1 with its client.
