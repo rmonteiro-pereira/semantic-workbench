@@ -166,3 +166,12 @@
     flex-direction: column;
   }
 }
+/* On a phone the conversion diff is one column. A sign before each line says removed or added, so colour is never the only cue. */
+.convert-diff .diff-additions-only .cm-deletedChunk .cm-deletedLine::before {
+  content: '− ';
+  font-weight: 700;
+}
+.convert-diff .diff-additions-only .cm-line.cm-changedLine::before {
+  content: '+ ';
+  font-weight: 700;
+}

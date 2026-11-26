@@ -55,3 +55,9 @@
   gap: 8px;
   margin: 8px 0;
 }
+/* The line under the conversion button says what the conversion does; it takes its own row and wraps. */
+.validation-report .validation-convert-note {
+  flex-basis: 100%;
+  font-size: var(--text-small);
+  color: var(--color-text-muted);
+}

@@ -6,9 +6,24 @@ import type { Issue } from '../../shared/validation/diagnostics';
 import { validateInput } from '../../shared/validation/input';
 import { OSSIE_SCHEMA_VERSION, isNotValidated } from '../../shared/validation/validation';
 import { TesseraNames, type DocumentFormat } from '../../shared/tessera/format';
+import { declaredVersion } from '../../shared/edit/item-model';
 import { featureLabeler } from '../editor/feature';
 import { CodeEditor, type CodeEditorHandle } from '../editor/CodeEditor';
 import './validation-editor.css';
+/** How the panel names an Ossie version: the draft base by its label, any other by its number. */
+function ossieName(version: unknown): string {
+  return version === '0.3.0.dev0' ? 'Ossie 0.3.0 draft' : `Ossie ${String(version)}`;
+}
+
+/**
+ * The words before the counts that name the document's base. A Tessera document names its revision
+ * and base; a standard file names its base only when it is the 0.3.0 draft, so 0.2 files read as before.
+ */
+export function baseLabelFor(format: DocumentFormat | undefined, source: string | undefined): string {
+  if (format?.family === 'tessera') return `${TesseraNames.product} ${format.revision} on ${ossieName(format.base)} · `;
+  return source !== undefined && declaredVersion(source) === '0.3.0.dev0' ? `${ossieName('0.3.0.dev0')} · ` : '';
+}
+
 /** Displays document findings and links to their source locations. */
 export function ValidationPanel({
   issues: allIssues,
@@ -60,7 +75,7 @@ export function ValidationPanel({
     'tessera-governance-deprecation': 'Set the status to deprecated, or remove the replacement and the reason.',
   };
   const showStandardControls = format?.family === 'tessera';
-  const formatLabel = format?.family === 'tessera' ? `${TesseraNames.product} ${format.revision} on Ossie ${format.base} · ` : '';
+  const formatLabel = baseLabelFor(format, source);
   return (
     <div className="validation-report" aria-label="Validation report">
       <UnitSetNotice validation={unitValidation} />
@@ -95,6 +110,9 @@ export function ValidationPanel({
           <button type="button" onClick={onConvertToDraftBase}>
             Convert to Ossie 0.3.0 draft
           </button>
+          <span className="validation-convert-note">
+            This file declares Ossie 0.2.0.dev0. Converting rewrites it for the Ossie 0.3.0 draft base, and you review every change before anything is applied.
+          </span>
         </div>
       )}
       {!notValidated && (
