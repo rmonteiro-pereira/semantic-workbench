@@ -93,9 +93,17 @@
 .item-fields label.attribute-reading {
   grid-column: auto;
 }
-/* The details panel gives its textareas a tall minimum; the reading sentence sizes to its own text instead. */
+/* The reading sentence looks and lines up like the dialog's inputs (.item-fields in edit.css): same font size, padding,
+   frame and colour, so one line is exactly an input's height beside Multiplicity. It still grows with a longer sentence.
+   These undo the details panel's own textarea style, which is taller, smaller and indented from the top. */
 .item-fields .attribute-reading textarea {
   field-sizing: content;
   min-height: 0;
+  margin-top: 0;
+  padding: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  color: var(--color-text);
+  font-size: 13px;
   resize: none;
 }
