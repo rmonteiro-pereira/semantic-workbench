@@ -150,7 +150,10 @@ async function connectionStates(prefix: string, administrator: boolean) {
       } else await openDialog();
       const section = page.getByRole(administrator ? 'region' : 'dialog', { name: 'Agent connections', exact: true });
       if (state === 'empty') await expect(section.getByText('No agent connections.', { exact: true })).toBeVisible();
-      if (state === 'error') await expect(section.getByRole('alert')).toContainText('Connections could not be loaded');
+      if (state === 'error') {
+        await expect(section.getByRole('alert')).toContainText('Could not load connections.');
+        await expect(section.getByRole('button', { name: 'Try again', exact: true })).toBeVisible();
+      }
       if (state === 'long') {
         await section.getByRole('button', { name: 'Revoke ' + program.name, exact: true }).click();
         const confirmation = section.getByRole('region', { name: 'Confirm revocation' });

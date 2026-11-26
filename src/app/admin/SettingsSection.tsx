@@ -5,6 +5,7 @@ import { whenLabel } from './helpers';
 import { AdminConfirmation } from './AdminConfirmation';
 import { adminApi, problemText } from './api';
 import { useAdminData } from './useAdminData';
+import { SectionStatus } from './SectionStatus';
 import { VersionHistory } from './VersionHistory';
 import type { Provider, Settings } from './types';
 import { UsageCountersStatus } from '../usage/UsageCountersStatus';
@@ -45,14 +46,15 @@ export function SettingsSection() {
   }
   return (
     <>
-      {(error || failure) && <p role="alert">{error || failure}</p>}
       <button onClick={() => setHistory(true)}>History</button>
-      <h3>Provider status</h3>
-      {local && <p>Provider settings apply in server mode.</p>}
-      {data?.provider && <ProviderFacts provider={data.provider} />}
-      <UsageCountersStatus />
+      <SectionStatus subject="the workspace settings" loading={!data && !error} error={error} onRetry={reload} />
+      {failure && <p role="alert">{failure}</p>}
       {data && (
         <>
+          <h3>Provider status</h3>
+          {local && <p>Provider settings apply in server mode.</p>}
+          {data.provider && <ProviderFacts provider={data.provider} />}
+          <UsageCountersStatus />
           <SettingsEditor key={data.version} initial={data.settings} version={data.version} onSaved={reload} />
           <section aria-label="Active sessions">
             <h3>Active sessions</h3>

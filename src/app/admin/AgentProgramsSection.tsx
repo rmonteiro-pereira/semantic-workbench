@@ -1,3 +1,4 @@
+import { SectionStatus } from './SectionStatus';
 import { useState } from 'react';
 import type { Program } from '../../server/connections/programs';
 import { adminApi } from './api';
@@ -73,8 +74,7 @@ export function AgentProgramsSection() {
   const removed = data?.programs.filter(before => !programs.some(program => program.clientId === before.clientId)) ?? [];
   return (
     <div className="agent-programs">
-      {error && <p role="alert">{error}</p>}
-      {!data && !error && <p role="status">Loading agent programs…</p>}
+      <SectionStatus subject="agent programs" loading={!data && !error} error={error} onRetry={reload} />
       {data && (
         <>
           {!programs.length && <p>No agent programs registered.</p>}

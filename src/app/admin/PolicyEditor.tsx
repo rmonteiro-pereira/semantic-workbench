@@ -27,6 +27,11 @@ export function PolicyEditor({ initial, rules, version, onBack, onSaved }: PaneP
   const [error, setError] = useState('');
   const proposal = { rules: [...rules.filter(rule => rule.id !== policy.id), policy] };
   const key = JSON.stringify(proposal);
+  // Findings belong to the text they were checked against, so changing the text drops them.
+  function changePolicy(next: Policy) {
+    setPolicy(next);
+    setIssues([]);
+  }
   async function validate(text: string): Promise<Issue[]> {
     const proposedRules = [...rules.filter(rule => rule.id !== policy.id), { ...policy, text }];
     try {
@@ -64,7 +69,7 @@ export function PolicyEditor({ initial, rules, version, onBack, onSaved }: PaneP
     }
   }
   function applyTemplate(text: string) {
-    setPolicy({ ...policy, text, template });
+    changePolicy({ ...policy, text, template });
     setAdvanced(true);
     setValidated('');
   }
@@ -86,7 +91,7 @@ export function PolicyEditor({ initial, rules, version, onBack, onSaved }: PaneP
     <AdminPane title="Policy editor" backLabel="Back to policies" onBack={onBack}>
       <label>
         Description
-        <WrappingField value={policy.description} onValueChange={description => setPolicy({ ...policy, description })} />
+        <WrappingField value={policy.description} onValueChange={description => changePolicy({ ...policy, description })} />
       </label>
       <label>
         <input type="checkbox" checked={advanced} onChange={event => setAdvanced(event.target.checked)} />
@@ -110,15 +115,17 @@ export function PolicyEditor({ initial, rules, version, onBack, onSaved }: PaneP
         </>
       )}
       {advanced && (
-        <CodeEditor value={policy.text} filename={policyEditorFilename(policy.id)} ariaLabel="Policy source" wrapLines onChange={text => setPolicy({ ...policy, text })} validate={validate} />
+        <CodeEditor value={policy.text} filename={policyEditorFilename(policy.id)} ariaLabel="Policy source" wrapLines onChange={text => changePolicy({ ...policy, text })} validate={validate} />
       )}
       <button onClick={validateProposal}>Validate</button>
       {error && <p role="alert">{error}</p>}
-      {issues.map((issue, index) => (
-        <p role="alert" key={index}>
-          Line {issue.line}, column {issue.column}: {issue.message}
-        </p>
-      ))}
+      {/* In the raw editor the same findings already show beside their lines. */}
+      {!advanced &&
+        issues.map((issue, index) => (
+          <p role="alert" key={index}>
+            Line {issue.line}, column {issue.column}: {issue.message}
+          </p>
+        ))}
       {validated === key && <p>Policy is valid.</p>}
       <ReviewChange area="policies" changeLabel={`Save policy ${policy.description || policy.id}`} proposal={proposal} baseVersion={version} disabled={validated !== key} onSaved={onSaved} />
     </AdminPane>

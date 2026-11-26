@@ -1,3 +1,4 @@
+import { SectionStatus } from './SectionStatus';
 import { useState } from 'react';
 import { adminApi } from './api';
 import { useAdminData } from './useAdminData';
@@ -31,8 +32,8 @@ export function ProjectAccessSection() {
   }
   return (
     <>
-      {error && <p role="alert">{error}</p>}
       <button onClick={() => setHistory(true)}>History</button>
+      <SectionStatus subject="project access" loading={!data && !error} error={error} onRetry={reload} />
       {data && (
         <>
           <ProjectsEditor key={data.projects.version} initial={data.projects.document} version={data.projects.version} onSaved={reload} />

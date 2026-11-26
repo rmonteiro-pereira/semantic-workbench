@@ -3,6 +3,8 @@ import { auditLabel, whenLabel } from './helpers';
 import { SelectField } from './SelectField';
 import { adminApi, problemText } from './api';
 import { useAdminData } from './useAdminData';
+import { SectionStatus } from './SectionStatus';
+import { EmptyState } from '../projects/EmptyState';
 
 const filterLabels: Record<string, string> = {
   principal: 'Person',
@@ -26,7 +28,7 @@ export function AuditSection() {
   const [previous, setPrevious] = useState<string[]>([]);
   const [error, setError] = useState('');
   const load = useCallback(() => adminApi.audit({ ...filters, cursor }), [filters, cursor]);
-  const { data, error: loadError } = useAdminData(load);
+  const { data, error: loadError, reload } = useAdminData(load);
   function filter(name: string, value: string) {
     setFilters({ ...filters, [name]: value });
     setCursor('');
@@ -73,49 +75,57 @@ export function AuditSection() {
           </SelectField>
         </div>
       </details>
-      {(error || loadError) && <p role="alert">{error || loadError}</p>}
+      <SectionStatus subject="the audit record" loading={!data && !loadError} error={loadError} onRetry={reload} />
+      {error && <p role="alert">{error}</p>}
       <div className="admin-actions">
         <button onClick={() => void download('jsonl')}>Export JSONL</button>
         <button onClick={() => void download('csv')}>Export CSV</button>
       </div>
-      <div className="admin-table">
-        <table className="admin-records">
-          <thead>
-            <tr>
-              <th>When / person</th>
-              <th>Action / resource</th>
-              <th>Decision</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data?.entries.map((entry, index) => (
-              <tr key={entry.requestId + index}>
-                <td data-label="When / person">
-                  {whenLabel(entry.at)}
-                  <br />
-                  {entry.principal.name ?? entry.principal.id}
-                </td>
-                <td data-label="Action / resource">
-                  <span title={entry.action}>{auditLabel(entry.action)}</span>
-                  {entry.tool && ` · ${entry.tool}`}
-                  <br />
-                  {Object.values(entry.resource).join(' · ')}
-                </td>
-                <td data-label="Decision" className={`admin-audit-decision ${entry.decision}`}>
-                  {auditLabel(entry.decision)}
-                  {entry.outcome && ` · ${entry.outcome}`}
-                  <br />
-                  {entry.rules.map(rule => (
-                    <span key={rule} title={rule}>
-                      {auditLabel(rule)}{' '}
-                    </span>
-                  ))}
-                </td>
+      {data?.entries.length === 0 && (
+        <EmptyState title={activeFilterCount(filters) > 0 ? 'No decisions match these filters' : 'No access decisions recorded yet'}>
+          {activeFilterCount(filters) > 0 ? 'Change or clear the filters to see more.' : 'Decisions appear here as people use the workbench.'}
+        </EmptyState>
+      )}
+      {data && data.entries.length > 0 && (
+        <div className="admin-table">
+          <table className="admin-records">
+            <thead>
+              <tr>
+                <th>When / person</th>
+                <th>Action / resource</th>
+                <th>Decision</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {data.entries.map((entry, index) => (
+                <tr key={entry.requestId + index}>
+                  <td data-label="When / person">
+                    {whenLabel(entry.at)}
+                    <br />
+                    {entry.principal.name ?? entry.principal.id}
+                  </td>
+                  <td data-label="Action / resource">
+                    <span title={entry.action}>{auditLabel(entry.action)}</span>
+                    {entry.tool && ` · ${entry.tool}`}
+                    <br />
+                    {Object.values(entry.resource).join(' · ')}
+                  </td>
+                  <td data-label="Decision" className={`admin-audit-decision ${entry.decision}`}>
+                    {auditLabel(entry.decision)}
+                    {entry.outcome && ` · ${entry.outcome}`}
+                    <br />
+                    {entry.rules.map(rule => (
+                      <span key={rule} title={rule}>
+                        {auditLabel(rule)}{' '}
+                      </span>
+                    ))}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
       <div className="admin-actions">
         <button disabled={!previous.length} onClick={back}>
           Previous page

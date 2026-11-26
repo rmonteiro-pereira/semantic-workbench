@@ -3,6 +3,8 @@ import { AdminConfirmation } from './AdminConfirmation';
 import { newIdentifier } from './helpers';
 import { adminApi } from './api';
 import { useAdminData } from './useAdminData';
+import { SectionStatus } from './SectionStatus';
+import { EmptyState } from '../projects/EmptyState';
 import { PolicyEditor } from './PolicyEditor';
 import { ReviewChange } from './ReviewChange';
 import { VersionHistory } from './VersionHistory';
@@ -57,45 +59,49 @@ export function PoliciesSection() {
   }
   return (
     <>
-      {error && <p role="alert">{error}</p>}
       <div className="admin-actions">
         <button onClick={create}>New rule</button>
         <button onClick={() => setHistory(true)}>History</button>
       </div>
-      <h3>Admin rules</h3>
-      {data?.rules.length === 0 && <p>No custom rules yet.</p>}
-      {data?.rules.map(rule => (
-        <section key={rule.id}>
-          <h4>{rule.description || rule.id}</h4>
-          <label>
-            <input type="checkbox" checked={rule.enabled} onChange={() => toggle(rule)} />
-            Enabled
-          </label>
-          <button onClick={() => setEdit(rule)}>Edit</button>
-          <button
-            onClick={() =>
-              setChange({
-                rules: data.rules.filter(item => item.id !== rule.id),
-                description: `Delete ${rule.description || rule.id}`,
-              })
-            }
-          >
-            Delete
-          </button>
-        </section>
-      ))}
-      <details className="admin-builtin-rules">
-        <summary>Built-in rules ({data?.baseline.length ?? 0}) — read-only</summary>
-        {data?.baseline.map(rule => (
-          <details key={rule.id}>
-            <summary>
-              🔒 {rule.id}
-              {rule.description && ` · ${rule.description}`}
-            </summary>
-            <pre>{rule.text}</pre>
+      <SectionStatus subject="access rules" loading={!data && !error} error={error} onRetry={reload} />
+      {data && (
+        <>
+          <h3>Admin rules</h3>
+          {data.rules.length === 0 && <EmptyState title="No rules of your own yet">Use New rule to add one. The built-in rules below always apply.</EmptyState>}
+          {data.rules.map(rule => (
+            <section key={rule.id}>
+              <h4>{rule.description || rule.id}</h4>
+              <label>
+                <input type="checkbox" checked={rule.enabled} onChange={() => toggle(rule)} />
+                Enabled
+              </label>
+              <button onClick={() => setEdit(rule)}>Edit</button>
+              <button
+                onClick={() =>
+                  setChange({
+                    rules: data.rules.filter(item => item.id !== rule.id),
+                    description: `Delete ${rule.description || rule.id}`,
+                  })
+                }
+              >
+                Delete
+              </button>
+            </section>
+          ))}
+          <details className="admin-builtin-rules">
+            <summary>Built-in rules ({data.baseline.length}) — read-only</summary>
+            {data.baseline.map(rule => (
+              <details key={rule.id}>
+                <summary>
+                  🔒 {rule.id}
+                  {rule.description && ` · ${rule.description}`}
+                </summary>
+                <pre>{rule.text}</pre>
+              </details>
+            ))}
           </details>
-        ))}
-      </details>
+        </>
+      )}
       {change && data && (
         <AdminConfirmation title={change.description} onCancel={() => setChange(null)}>
           <ReviewChange area="policies" proposal={{ rules: change.rules }} baseVersion={data.version} onSaved={saved} description={change.description} inline />

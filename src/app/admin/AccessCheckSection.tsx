@@ -1,3 +1,4 @@
+import { SectionStatus } from './SectionStatus';
 import { useEffect, useRef, useState } from 'react';
 import { SelectField } from './SelectField';
 import { adminApi, problemText } from './api';
@@ -71,7 +72,8 @@ export function AccessCheckSection({ principal = '' }: { principal?: string }) {
   }
   return (
     <>
-      {(error || loadError) && <p role="alert">{error || loadError}</p>}
+      <SectionStatus subject="the list of signed-in people" loading={false} error={loadError} />
+      {error && <p role="alert">{error}</p>}
       <label>
         <input type="checkbox" checked={hypothetical} onChange={event => setHypothetical(event.target.checked)} />
         Hypothetical person

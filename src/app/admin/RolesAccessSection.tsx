@@ -6,6 +6,7 @@ import { newIdentifier, whenLabel } from './helpers';
 import { MenuButton } from '../projects/Menu';
 import { adminApi } from './api';
 import { useAdminData } from './useAdminData';
+import { SectionStatus } from './SectionStatus';
 import { GrantForm, scopeLabel } from './GrantForm';
 import { RoleMatrix } from './RoleMatrix';
 import { RoleEditor } from './RoleEditor';
@@ -63,11 +64,11 @@ export function RolesAccessSection({ view }: { view: 'grants' | 'roles' }) {
   }
   return (
     <>
-      {error && <p role="alert">{error}</p>}
       <div className="admin-actions">
         {view === 'grants' ? <button onClick={() => setGrant('new')}>Add grant</button> : <button onClick={() => duplicate()}>New role</button>}
         <button onClick={() => setHistory(true)}>History</button>
       </div>
+      <SectionStatus subject={view === 'grants' ? 'access grants' : 'roles'} loading={!data && !error} error={error} onRetry={reload} />
       {data && view === 'grants' && (
         <>
           {data.grants.length === 0 && (
@@ -185,7 +186,7 @@ function RoleHolders({ roleId, grants }: { roleId: string; grants: number }) {
       <p>
         {grants} {grants === 1 ? 'grant uses' : 'grants use'} this role.
       </p>
-      {error && <p role="alert">{error}</p>}
+      <SectionStatus subject="the people who hold this role" loading={!data && !error} error={error} />
       {holders?.map(person => (
         <p key={person.id}>
           {person.name} ({person.verifiedEmail ?? person.id})

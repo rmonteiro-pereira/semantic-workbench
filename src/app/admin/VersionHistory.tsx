@@ -1,3 +1,4 @@
+import { SectionStatus } from './SectionStatus';
 import { useCallback, useState } from 'react';
 import { AdminConfirmation } from './AdminConfirmation';
 import { AdminPane, type PaneProps } from './AdminPane';
@@ -76,7 +77,8 @@ export function VersionHistory({ area = '', backLabel, onBack }: PaneProps & { a
   }
   return (
     <AdminPane title="Version history" backLabel={backLabel} onBack={onBack}>
-      {(error || loadError) && <p role="alert">{error || loadError}</p>}
+      <SectionStatus subject="the version history" loading={!data && !loadError} error={loadError} onRetry={reload} />
+      {error && <p role="alert">{error}</p>}
       <SelectField label="Version" value={selected} onChange={event => selectVersion(event.target.value)}>
         <option value="">Choose a version</option>
         {data?.versions.map(item => (

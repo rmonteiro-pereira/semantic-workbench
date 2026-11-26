@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Modal } from '../projects/Modal';
 import { loadConnections, revokeConnection, type ConnectionView } from './connection-api';
 import './AgentConnectionsDialog.css';
+import { SectionStatus } from '../admin/SectionStatus';
+import { problemText } from '../admin/api';
 
 /** A wrapping connection list with explicit status text and named revocation actions. */
 export function ConnectionListView({ connections, administrator, onRevoke }: { connections: ConnectionView[]; administrator: boolean; onRevoke: (connection: ConnectionView) => void }) {
@@ -35,6 +37,7 @@ export function ConnectionListView({ connections, administrator, onRevoke }: { c
 /** Loads and revokes the current person's connections, or all connections for an Admin. */
 export function AgentConnections({ administrator = false }: { administrator?: boolean }) {
   const [connections, setConnections] = useState<ConnectionView[] | null>(null);
+  const [loadError, setLoadError] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [selected, setSelected] = useState<ConnectionView | null>(null);
@@ -42,13 +45,13 @@ export function AgentConnections({ administrator = false }: { administrator?: bo
   useEffect(() => {
     let active = true;
     setConnections(null);
-    setError('');
+    setLoadError('');
     loadConnections(administrator)
       .then(value => {
         if (active) setConnections(value);
       })
-      .catch(() => {
-        if (active) setError('Connections could not be loaded. Try again.');
+      .catch(problem => {
+        if (active) setLoadError(problemText(problem));
       });
     return () => {
       active = false;
@@ -73,8 +76,8 @@ export function AgentConnections({ administrator = false }: { administrator?: bo
   }
   return (
     <div className="agent-connections">
+      <SectionStatus subject="connections" loading={!loadError && connections === null} error={loadError} onRetry={reload} />
       {error && <p role="alert">{error}</p>}
-      {!error && connections === null && <p role="status">Loading connections…</p>}
       {connections && <ConnectionListView connections={connections} administrator={administrator} onRevoke={setSelected} />}
       {selected && (
         <section aria-label="Confirm revocation">

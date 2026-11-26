@@ -7,6 +7,8 @@ import { AdminPane } from './AdminPane';
 import { adminApi, AdminApiError, problemText } from './api';
 import { canOfferUserConfirmation } from './change-review';
 import { useAdminData } from './useAdminData';
+import { SectionStatus } from './SectionStatus';
+import { EmptyState } from '../projects/EmptyState';
 import { GrantForm, scopeLabel } from './GrantForm';
 import { AccessCheckSection } from './AccessCheckSection';
 import type { AdminUser } from './types';
@@ -55,74 +57,81 @@ export function UsersSection() {
         <input type="checkbox" checked={noAccess} onChange={event => setNoAccess(event.target.checked)} />
         No access
       </label>
-      {error && <p role="alert">{error}</p>}
-      <div className="admin-table">
-        <table className="admin-records">
-          <thead>
-            <tr>
-              <th>Person</th>
-              <th>Groups and roles</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data?.map(user => (
-              <tr key={user.id}>
-                <td>
-                  {user.name}
-                  <br />
-                  <small className="admin-id">{user.verifiedEmail ?? user.id}</small>
-                  Last sign-in: {user.lastSignInAt ? whenLabel(user.lastSignInAt) : 'never'}
-                  {user.access === 'none' && <p>No access</p>}
-                  {user.deactivated && <p>Deactivated</p>}
-                </td>
-                <td>
-                  {user.groups.map(group => (
-                    <p key={group.id}>
-                      {group.displayName ?? 'name not resolved'}
-                      <small className="admin-id">{group.id}</small>
-                    </p>
-                  ))}
-                  {user.roleSources.map((source, index) => (
-                    <span className="admin-chip" key={index}>
-                      {me?.roleNames[source.roleId] ?? source.roleId}
-                      {' · '}
-                      {scopeLabel(source.scope)} · {source.via === 'bootstrap' ? 'Bootstrap Admin' : source.via + ' grant'}
-                      {source.group && ` · ${source.group.name ?? source.group.id}`}
-                    </span>
-                  ))}
-                </td>
-                <td>
-                  <MenuButton
-                    label="Actions"
-                    ariaLabel={`Actions for ${user.name}`}
-                    items={[
-                      {
-                        label: 'Grant access',
-                        run: () => setGrant(user),
-                        disabled: !user.verifiedEmail && 'A verified e-mail address is required',
-                      },
-                      {
-                        label: user.deactivated ? 'Reactivate' : 'Deactivate',
-                        run: () =>
-                          setOperation({
-                            user,
-                            kind: user.deactivated ? 'reactivate' : 'deactivate',
-                          }),
-                      },
-                      {
-                        label: 'End sessions',
-                        run: () => setOperation({ user, kind: 'sessions' }),
-                      },
-                      { label: 'Check access', run: () => setCheck(user) },
-                    ]}
-                  />
-                </td>
+      <SectionStatus subject="people and groups" loading={!data && !error} error={error} onRetry={reload} />
+      {data?.length === 0 && (
+        <EmptyState title={query || noAccess ? 'No one matches' : 'No one has signed in yet'}>
+          {query || noAccess ? 'Clear the search or the No access filter to see everyone.' : 'People appear here after they first sign in.'}
+        </EmptyState>
+      )}
+      {data && data.length > 0 && (
+        <div className="admin-table">
+          <table className="admin-records">
+            <thead>
+              <tr>
+                <th>Person</th>
+                <th>Groups and roles</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {data.map(user => (
+                <tr key={user.id}>
+                  <td>
+                    {user.name}
+                    <br />
+                    <small className="admin-id">{user.verifiedEmail ?? user.id}</small>
+                    Last sign-in: {user.lastSignInAt ? whenLabel(user.lastSignInAt) : 'never'}
+                    {user.access === 'none' && <p>No access</p>}
+                    {user.deactivated && <p>Deactivated</p>}
+                  </td>
+                  <td>
+                    {user.groups.map(group => (
+                      <p key={group.id}>
+                        {group.displayName ?? 'name not resolved'}
+                        <small className="admin-id">{group.id}</small>
+                      </p>
+                    ))}
+                    {user.roleSources.map((source, index) => (
+                      <span className="admin-chip" key={index}>
+                        {me?.roleNames[source.roleId] ?? source.roleId}
+                        {' · '}
+                        {scopeLabel(source.scope)} · {source.via === 'bootstrap' ? 'Bootstrap Admin' : source.via + ' grant'}
+                        {source.group && ` · ${source.group.name ?? source.group.id}`}
+                      </span>
+                    ))}
+                  </td>
+                  <td>
+                    <MenuButton
+                      label="Actions"
+                      ariaLabel={`Actions for ${user.name}`}
+                      items={[
+                        {
+                          label: 'Grant access',
+                          run: () => setGrant(user),
+                          disabled: !user.verifiedEmail && 'A verified e-mail address is required',
+                        },
+                        {
+                          label: user.deactivated ? 'Reactivate' : 'Deactivate',
+                          run: () =>
+                            setOperation({
+                              user,
+                              kind: user.deactivated ? 'reactivate' : 'deactivate',
+                            }),
+                        },
+                        {
+                          label: 'End sessions',
+                          run: () => setOperation({ user, kind: 'sessions' }),
+                        },
+                        { label: 'Check access', run: () => setCheck(user) },
+                      ]}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
       {operation && (
         <UserOperation
           {...operation}
