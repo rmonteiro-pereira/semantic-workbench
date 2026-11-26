@@ -1,5 +1,6 @@
 // The scope vocabulary of an agent connection: what each scope allows, what the consent page says about it, and which operation effects it carries.
 import type { OperationEffect } from '../auth/operation-inventory';
+import { SCOPE_WORDING as SHARED_SCOPE_WORDING } from '../../shared/connections/scope-wording';
 
 /** Every scope name. `administration` is reserved and is never offered or accepted. */
 export const SCOPES = ['read', 'validate', 'edit', 'commit', 'remote', 'publish', 'administration'] as const;
@@ -25,15 +26,9 @@ export const SCOPE_EFFECTS: Readonly<Record<Scope, readonly OperationEffect[]>> 
   administration: ['administration'],
 };
 
-/** What the consent page says each scope allows, in plain words. */
-export const SCOPE_WORDING: Readonly<Record<OfferedScope, { label: string; allows: string }>> = {
-  read: { label: 'Read', allows: 'Read definitions, findings, history and published context you may read.' },
-  validate: { label: 'Validate', allows: 'Check proposed text without saving it.' },
-  edit: { label: 'Edit', allows: 'Create, change and delete files in your own working copy, as you. Nothing is published.' },
-  commit: { label: 'Commit', allows: 'Commit the files it names to your working branch, with your name as author.' },
-  remote: { label: 'Remote', allows: 'Use your Git credential held by this server to fetch, pull and push.' },
-  publish: { label: 'Publish', allows: 'Move the published branch that every consumer reads.' },
-};
+/** What the consent page says each scope allows, in plain words. The wording lives in the shared
+ * layer so the Admin page can show it too; this typed view fails to compile if a scope lacks it. */
+export const SCOPE_WORDING: Readonly<Record<OfferedScope, { label: string; allows: string }>> = SHARED_SCOPE_WORDING;
 
 /** The scopes people can choose, in the order the page shows them. */
 export function offeredScopes(): OfferedScope[] {

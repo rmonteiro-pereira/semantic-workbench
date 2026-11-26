@@ -234,6 +234,8 @@ font-face declarations before the theme stylesheet. Fonts are served from the ap
 ### Identity, authorization, governance and administration
 
 - `src/server/connections/` owns program registrations, consent grants, token rotation and session-bound connections.
+  The plain-words meaning of each scope lives in `src/shared/connections/scope-wording.ts`, so the consent page
+  and the Admin's Agent programs show the same sentence.
   Server MCP authenticates through `mcp/server-mode-gate.ts` and supplies a fresh caller to the existing
   operation boundary for every request. Scopes narrow effects; the connection end signal cancels its work.
   Receipt replay uses the same inventoried route and authorization checks, with the original

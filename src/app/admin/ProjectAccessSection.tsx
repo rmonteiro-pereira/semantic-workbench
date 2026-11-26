@@ -104,7 +104,7 @@ export function ProjectsEditor({ initial, version, onSaved }: { initial: Project
       ))}
       <div className="admin-row">
         <label>
-          New domain ID
+          New domain identifier, such as sales
           <WrappingField value={newId} onValueChange={setNewId} />
         </label>
         <label>

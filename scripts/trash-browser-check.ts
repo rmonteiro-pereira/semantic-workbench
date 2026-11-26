@@ -264,7 +264,7 @@ try {
     const dialog = page.getByRole('dialog', { name: 'Clear workspace?' });
     await expect(dialog).toContainText('Flights');
     await expect(dialog.locator('.delete-file-count')).toHaveText(/^\d+ files? in \d+ projects?:$/);
-    await dialog.getByRole('button', { name: 'Delete', exact: true }).click();
+    await dialog.getByRole('button', { name: 'Clear workspace', exact: true }).click();
     await expect(page.getByText('No projects yet.')).toBeVisible();
     await expectNoFileOpen(page);
     await page.screenshot({ path: '/tmp/workbench-trash-cleared.png' });
@@ -279,7 +279,7 @@ try {
   });
   await check('Clear again, then empty the trash with confirmation', async () => {
     await chooseSetting(page, 'Clear workspace');
-    await page.getByRole('dialog').getByRole('button', { name: 'Delete', exact: true }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Clear workspace', exact: true }).click();
     await expect(page.getByText('No projects yet.')).toBeVisible();
     await page.getByRole('button', { name: 'Trash', exact: true }).click();
     const trash = page.getByRole('dialog', { name: 'Trash' });

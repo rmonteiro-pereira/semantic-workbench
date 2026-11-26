@@ -1,3 +1,4 @@
+import { policySentence } from './policy-summary';
 import { SavedNote, useSavedAt } from './SaveStatus';
 import { useState } from 'react';
 import { AdminConfirmation } from './AdminConfirmation';
@@ -75,6 +76,7 @@ export function PoliciesSection() {
           {data.rules.map(rule => (
             <section key={rule.id}>
               <h4>{rule.description || rule.id}</h4>
+              <p className="admin-rule-sentence">{policySentence(rule.text)}</p>
               <label>
                 <input type="checkbox" checked={rule.enabled} onChange={() => toggle(rule)} />
                 Enabled
@@ -102,6 +104,7 @@ export function PoliciesSection() {
                   🔒 {rule.id}
                   {rule.description && ` · ${rule.description}`}
                 </summary>
+                <p className="admin-rule-sentence">{policySentence(rule.text)}</p>
                 <pre>{rule.text}</pre>
               </details>
             ))}
