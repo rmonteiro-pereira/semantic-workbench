@@ -130,6 +130,18 @@ const outputs = [
     },
   },
   {
+    name: 'extensions',
+    compiler: extensions,
+    schemaRoots: [
+      { name: 'metricExtension', schema: metric },
+      { name: 'mappingExtension', schema: bindings },
+    ],
+    validators: { metric: metricRef, mapping: mappingExtensionRef },
+  },
+] as const;
+// The draft base's validators go in a module of their own, so the browser loads them only for a file that declares 0.3.0.dev0.
+const draftOutputs = [
+  {
     name: 'semanticDraft030',
     compiler: semanticsDraft030,
     validator: semanticsDraft030.compile(ossieDraft030),
@@ -156,15 +168,6 @@ const outputs = [
       tesseraPartDraft030: tesseraPartDraft030.$id,
       tesseraRevisionThreeDraft030: tesseraOntologyRevisionThreeDraft030.$id,
     },
-  },
-  {
-    name: 'extensions',
-    compiler: extensions,
-    schemaRoots: [
-      { name: 'metricExtension', schema: metric },
-      { name: 'mappingExtension', schema: bindings },
-    ],
-    validators: { metric: metricRef, mapping: mappingExtensionRef },
   },
 ] as const;
 const oldOutputs = ['contract', 'semantic', 'embedded-mapping', 'extensions', 'mapping-extension', 'mapping', 'mappings', 'metric', 'ontology', 'validators'];
@@ -263,24 +266,16 @@ function schemaNames(roots: readonly { name: string; schema: object }[]): WeakMa
   return names;
 }
 
-/** Writes deterministic standalone modules and their TypeScript declarations. */
-export function compileSchemas(destination = 'src/generated') {
-  mkdirSync(destination, { recursive: true });
-  const legacyDirectory = join(destination, 'schema-validators');
-  if (existsSync(legacyDirectory)) {
-    for (const name of oldOutputs) {
-      for (const extension of ['.js', '.d.ts']) {
-        const path = join(legacyDirectory, `${name}${extension}`);
-        if (existsSync(path)) unlinkSync(path);
-      }
-    }
-    if (readdirSync(legacyDirectory).length === 0) rmdirSync(legacyDirectory);
-  }
+/** One schema output of the compiler: a single validator or a named set from one compiler. */
+type SchemaOutput = (typeof outputs)[number] | (typeof draftOutputs)[number];
+
+/** Writes one generated module holding the given outputs, and its TypeScript declarations. */
+function writeValidatorModule(moduleOutputs: readonly SchemaOutput[], jsPath: string, declarationPath: string) {
   const imports = new Set<string>();
   const modules: string[] = [];
   const exports: string[] = [];
   const declarations: string[] = [];
-  for (const output of outputs) {
+  for (const output of moduleOutputs) {
     const runtimeImports: string[] = [];
     const generated = ('validator' in output ? standaloneCode(output.compiler, output.validator) : standaloneCode(output.compiler, output.validators)).replace(/^"use strict";/, '');
     const knownSchemaNames = schemaNames(output.schemaRoots);
@@ -357,14 +352,33 @@ export function compileSchemas(destination = 'src/generated') {
     exports.push(...outputNames.map(name => `export const ${name} = ${moduleName}.${name};`));
     declarations.push(...outputNames.map(name => `export declare const ${name}: ValidateFunction;`));
   }
+  writeFileSync(jsPath, `// generated, do not edit\n${[...imports].join('\n')}\n${modules.join('\n')}\n${exports.join('\n')}\n`);
+  writeFileSync(declarationPath, "// generated, do not edit\nimport type { ValidateFunction } from 'ajv';\n" + `${declarations.join('\n')}\n`);
+}
+
+/** Writes deterministic standalone modules and their TypeScript declarations. */
+export function compileSchemas(destination = 'src/generated') {
+  mkdirSync(destination, { recursive: true });
+  const legacyDirectory = join(destination, 'schema-validators');
+  if (existsSync(legacyDirectory)) {
+    for (const name of oldOutputs) {
+      for (const extension of ['.js', '.d.ts']) {
+        const path = join(legacyDirectory, `${name}${extension}`);
+        if (existsSync(path)) unlinkSync(path);
+      }
+    }
+    if (readdirSync(legacyDirectory).length === 0) rmdirSync(legacyDirectory);
+  }
   const ontologyPath = join(destination, 'ossie-ontology-0.2.0.dev0.json');
   writeFileSync(ontologyPath, JSON.stringify(ontology, null, 2) + '\n');
   const ontologyDraft030Path = join(destination, 'ossie-ontology-0.3.0.dev0.json');
   writeFileSync(ontologyDraft030Path, JSON.stringify(ontologyDraft030, null, 2) + '\n');
   const jsPath = join(destination, 'validators.js');
   const declarationPath = join(destination, 'validators.d.ts');
-  writeFileSync(jsPath, `// generated, do not edit\n${[...imports].join('\n')}\n${modules.join('\n')}\n${exports.join('\n')}\n`);
-  writeFileSync(declarationPath, "// generated, do not edit\nimport type { ValidateFunction } from 'ajv';\n" + `${declarations.join('\n')}\n`);
+  writeValidatorModule(outputs, jsPath, declarationPath);
+  const draftJsPath = join(destination, 'validators-0.3.js');
+  const draftDeclarationPath = join(destination, 'validators-0.3.d.ts');
+  writeValidatorModule(draftOutputs, draftJsPath, draftDeclarationPath);
   for (const name of oldOutputs) {
     if (name === 'validators') continue;
     for (const extension of ['.js', '.d.ts']) {
@@ -372,7 +386,19 @@ export function compileSchemas(destination = 'src/generated') {
       if (existsSync(path)) unlinkSync(path);
     }
   }
-  const formatted = Bun.spawnSync([process.execPath, 'x', 'oxfmt', '--config', join(process.cwd(), '.oxfmtrc.json'), jsPath, declarationPath, ontologyPath, ontologyDraft030Path]);
+  const formatted = Bun.spawnSync([
+    process.execPath,
+    'x',
+    'oxfmt',
+    '--config',
+    join(process.cwd(), '.oxfmtrc.json'),
+    jsPath,
+    declarationPath,
+    draftJsPath,
+    draftDeclarationPath,
+    ontologyPath,
+    ontologyDraft030Path,
+  ]);
   if (formatted.exitCode !== 0) {
     throw new Error(`Oxfmt failed to format generated validators: ${formatted.stderr.toString()}`);
   }

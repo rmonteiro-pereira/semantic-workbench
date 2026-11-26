@@ -1,6 +1,7 @@
 // Findings for a Tessera document: the marker, the revision, the Ossie base, the registered properties, then the derived schema.
 import type { ValidateFunction } from 'ajv';
 import { tesseraPart } from '../../generated/validators.js';
+import { draftChecksLoadingIssue, draftValidators, OSSIE_DRAFT_VERSION } from '../validation/draft-validators';
 import { PART_PROPERTY } from './additions/part';
 import { isObject } from '../edit/source-text';
 import type { Issue } from '../validation/diagnostics';
@@ -181,6 +182,10 @@ export function tesseraIssues(data: unknown, options: TesseraOptions = {}): Tess
   issues.push(...properties);
   const usable = declaredRevision !== undefined && revisions.includes(declaredRevision) && isOntology && base;
   if (!usable) return { issues, format: null };
+  if (base.version === OSSIE_DRAFT_VERSION && !draftValidators()) {
+    issues.push(draftChecksLoadingIssue());
+    return { issues, format: null };
+  }
   if (!base.validators[declaredRevision]) {
     issues.push(error('tessera-base', '/version', `Ossie ${base.version} has no schema for ${TesseraNames.product} revision ${declaredRevision}.`));
     return { issues, format: null };

@@ -1,5 +1,6 @@
 // Checks the base table accepts the shipped bases and a clean next base and refuses a base that uses a Tessera name.
 import { expect, test } from 'bun:test';
+import { loadDraftValidators } from '../../src/shared/validation/draft-validators';
 import { SUPPORTED_BASES, baseLabel, findBase, registerBase, type SupportedBase } from '../../src/shared/tessera/bases';
 import synthetic from '../fixtures/ossie-next-base/synthetic-ontology.json';
 import colliding from '../fixtures/ossie-next-base/colliding-ontology.json';
@@ -14,7 +15,8 @@ test('the shipped bases are labelled as drafts and are accepted by the collision
   expect(registerBase(registerBase([], SUPPORTED_BASES[0]), SUPPORTED_BASES[1])).toHaveLength(2);
 });
 
-test('the 0.3 draft base checks each Tessera revision with its own derived validator', () => {
+test('the 0.3 draft base checks each Tessera revision with its own derived validator', async () => {
+  await loadDraftValidators();
   const base = findBase(SUPPORTED_BASES, '0.3.0.dev0')!;
   const document = { tessera: 1, version: '0.3.0.dev0', name: 'Retail', ontology: [{ concept: 'Order', type: 'EntityType', annotations: { source: 'owl' } }] };
   expect(base.validators[1](document)).toBe(true);
