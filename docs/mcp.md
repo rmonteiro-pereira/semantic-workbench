@@ -22,7 +22,7 @@ The bridge reads the capability file for every message, so `bun run mcp:rotate` 
 
 Directly over HTTP, for clients that take a URL and a header: URL `http://127.0.0.1:4310/api/mcp` and the header `Authorization: Bearer <contents of data/state/mcp-capability>`. Browser-based clients cannot connect, by design.
 
-Codex CLI has not been tried with this endpoint yet; `docs/mcp-acceptance.md` records what is verified and what is not. Only the reference client of the protocol library has been run against it. The registration command differs by client, so follow that client's own documentation and point it at `bun scripts/mcp-stdio.ts` with `DATA_DIR` set to your data folder.
+Codex CLI 0.169.1 has been run through the bridge, as well as the reference client of the protocol library; `docs/mcp-acceptance.md` has its configuration and records what is verified and what is not. Codex asks before any tool that is not read-only, so a non-interactive `codex exec` needs the server's tools approved in its configuration. For other clients the registration command differs, so follow that client's own documentation and point it at `bun scripts/mcp-stdio.ts` with `DATA_DIR` set to your data folder.
 
 Rotate the secret with `bun run mcp:rotate` (`scripts/mcp-rotate.ts`). The bridge gives up on a call that gets no answer after 35 seconds, a little after the server's own 30-second deadline. The old value stops working on the next request.
 
