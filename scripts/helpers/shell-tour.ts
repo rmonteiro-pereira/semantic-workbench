@@ -101,6 +101,9 @@ export async function contentWidthProblems(page: Page, width: number): Promise<s
     const canvasElement = detail ? textPage.closest<HTMLElement>('.metrics-view')!.parentElement! : textPage.parentElement!;
     const canvas = canvasElement.getBoundingClientRect();
     if (detail) {
+      const columns = [...textPage.querySelectorAll<HTMLElement>('.metrics-table thead th')];
+      if (columns.some(column => getComputedStyle(column).display === 'none')) found.push('the open metric hides list columns');
+      if (detail.getBoundingClientRect().width < 600) found.push('the metric detail is narrower than 600px');
       const contentWidth = Math.min(limit, canvas.width);
       const contentLeft = canvas.left + (canvas.width - contentWidth) / 2;
       const contentRight = contentLeft + contentWidth;

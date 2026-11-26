@@ -697,6 +697,9 @@ Bindings live in the mapping root, or the embedded model of a consolidated Ossie
 preserved storage key `kpi_bindings`. These are application extensions, not standard Ossie
 semantics. Their schemas are versioned under `schemas/`.
 
+At window widths of 1920 px and above, an open metric shares the common content width with its list.
+All six list columns remain visible beside the detail.
+
 Metric statuses are draft, proposed, approved and deprecated. The metric field editor reopens an
 approved metric as proposed when its definition changes beyond governance fields. That is not a
 universal rule for raw Source saves: server guards apply according to the caller's permission and

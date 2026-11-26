@@ -1041,9 +1041,10 @@
     max-width: var(--content-max-width);
     justify-self: center;
   }
-  /* With a metric open, the list and its detail together take the shared content width, so the
-     list starts at the same left edge as every other text page. */
+  /* The list and detail share the common content width and left edge. Equal columns keep the
+     list above its compact-column breakpoint while leaving room to read the detail. */
   .metrics-view.has-detail {
+    grid-template-columns: minmax(800px, 1fr) minmax(0, 1fr);
     padding-inline: max(0px, calc((100% - var(--content-max-width)) / 2));
   }
   .metrics-filters {
