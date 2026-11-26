@@ -55,23 +55,23 @@ covers it. Every test is new unless it says "extend".
 | # | Upstream change | Workbench readers today | Test |
 | --- | --- | --- | --- |
 | O1 | `version` const is `0.3.0.dev0` | `src/shared/tessera/bases.ts` (one base), the mapping and ontology validators | `tests/tessera/bases.test.ts` (extend): two bases, the new one labelled "Ossie 0.3.0 draft" with `draft: true`. `tests/tessera/standard-unchanged.test.ts` (extend): the 0.2 fixtures are unchanged |
-| O2 | `annotations`, an open object on the ontology, components, relationships and roles | None. The Tessera collision check covers only `tessera_` names | `tests/tessera/schema-derivation.test.ts` (extend): the revision 1-3 schemas derived from the 0.3 ontology keep `annotations`, and the collision check passes. `tests/tessera/compile-0.3.test.ts`: standard output keeps a source document's `annotations` |
+| O2 | `annotations`, an open object on the ontology, components, relationships and roles | None. The Tessera collision check covers only `tessera_` names | `tests/tessera/schema-derivation.test.ts` (extend): the checked-in revision 1-3 schemas of both bases equal a fresh derivation; `tests/tessera/bases.test.ts` registers both bases through the collision check. `tests/tessera/compile-0.3.test.ts`: standard output keeps a source document's `annotations` |
 | O3 | `uniqueItems` on `requires`, `derived_by`, `extends`, `identify_by` and `verbalizes`. `minLength: 1` on names and IRIs | Schema-driven only | `tests/validation-ossie-0.3.test.ts`: a repeated `extends` entry and an empty concept name are errors in 0.3 and not in 0.2 |
 
 ### Mapping (`ontology/mapping.json`)
 
 | # | Upstream change | Workbench readers today | Test |
 | --- | --- | --- | --- |
-| M1 | `version` const is `0.3.0.dev0`, and `custom_extensions` is renamed `nonportable_extensions` | `src/shared/mappings/mapping-schema.ts` (strict, one version) | `tests/mapping-schema-0.3.test.ts`: a 0.3 mapping validates against the 0.3 schema. Mappings stay strict: an unknown version is still an error, not Not validated |
+| M1 | `version` const is `0.3.0.dev0`, and `custom_extensions` is renamed `nonportable_extensions` | `src/shared/mappings/mapping-schema.ts` (strict, one version) | `tests/validation-ossie-0.3.test.ts`: a 0.3 mapping validates against the 0.3 schema. Mappings stay strict: an unknown version is still an error, not Not validated |
 
 ### Compile and conversion
 
 | # | Change in the workbench | Test |
 | --- | --- | --- |
-| K1 | The compiler keeps the declared version and labels output with the new base. The compiler logic does not change; the base table drives the label and the schema | `tests/tessera/compile.test.ts` (extend) and `tests/compile/golden.test.ts` (extend): golden files for a 0.3.0.dev0 Tessera ontology and a standard 0.3.0.dev0 model |
+| K1 | The compiler keeps the declared version and labels output with the new base. The compiler logic does not change; the base table drives the label and the schema | `tests/tessera/compile-0.3.test.ts`: golden files in `tests/fixtures/ossie-0.3/compile-golden/` for a 0.3.0.dev0 Tessera ontology with the standard 0.3.0.dev0 sales files |
 | K2 | Explicit conversion of a document from 0.2.0.dev0 to 0.3.0.dev0: rename C2, object `data` C3, version O1/M1. Preview of every change, base hashes, a clean committed file as backup, nothing applied without confirmation | `tests/compile/base-conversion.test.ts`: preview, confirm, stale hash, dirty file |
 | K3 | Metric payload conversion: a `SEMANTIC_WORKBENCH` entry moves from a JSON string to an object under `nonportable_extensions`. Other vendors' entries and `kpi_bindings` stay. Legacy `draft` maps to `proposed`, never to `approved` | `tests/compile/metric-conversion.test.ts`: every status, one mapping binding, two vendors in one file, and a refusal when the result would approve |
-| K4 | One compile has one base. A unit whose documents declare different Ossie versions is refused with a finding that names each file and its version. Mixing would give a loss report with two bases | `tests/tessera/compile.test.ts` (extend): a unit mixing 0.2.0.dev0 and 0.3.0.dev0 is refused, and a unit of one version is not |
+| K4 | One compile has one base. A unit whose documents declare different Ossie versions is refused with a finding that names each file and its version. Mixing would give a loss report with two bases | `tests/tessera/compile-0.3.test.ts`: a unit mixing 0.2.0.dev0 and 0.3.0.dev0 is refused, and a unit of one version is not |
 
 K2 starts from the existing convert dialog (`src/app/compile/ConvertDialog.tsx`). It gets one new option, "Convert to Ossie 0.3.0 draft", shown only for a 0.2.0.dev0 document. This is the one intended difference in the UI comparison. The server side reuses `src/server/tessera/convert-service.ts`: the same clean-file check, base hash, preview and ordinary save.
 
@@ -122,3 +122,21 @@ K2 starts from the existing convert dialog (`src/app/compile/ConvertDialog.tsx`)
 - The shared readers handle both forms, so no browser screen changes. The whole-journey UI
   comparison on 0.2 data shows no difference.
 - The generated validators in `src/generated/` come only from `bun run schemas:compile`.
+
+## Status on 2026-11-26
+
+Every row above is implemented on the draft base with its test, except storing the *released*
+schemas with a release identifier and a base without "draft", which wait for the 0.3.0 release.
+Rows added during the work:
+
+| # | Change in the workbench | Test |
+| --- | --- | --- |
+| A1 | A metric's address may sit under a dataset, so a dataset metric has its own durable address | `tests/model-addresses-0.3.test.ts` |
+| A2 | The approved-metric guard and the attribute schema check cover dataset metrics | `tests/governance/guards-0.3.test.ts`, `tests/validation-ossie-0.3.test.ts` |
+| A3 | Rename and delete find bindings and attribute values in 0.3 object data; 0.2 lists are unchanged | `tests/references-0.3.test.ts` |
+| A4 | The draft validators load only for a file that declares the draft | `tests/draft-validators-loading.test.ts` |
+| A5 | The compile dialog names the base the report declares | `tests/compile/compile-dialog-base.test.tsx` |
+| A6 | The Metrics view governs model metrics only; a dataset metric's status is set in the item editor | `tests/metrics-view-0.3.test.ts` |
+
+Where a dataset metric is and is not listed, and the other limits of the draft base, are in
+[Ossie 0.3.0 draft: limits](compile.md#ossie-030-draft-limits).

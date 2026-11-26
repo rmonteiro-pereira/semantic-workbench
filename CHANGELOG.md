@@ -13,6 +13,28 @@ not configure a production deployment.
 
 ### Added
 
+- Ossie 0.3.0 draft base: Ossie 0.3.0 is not released, so the workbench adopts `0.3.0.dev0` as a
+  draft base pinned at Apache Ossie commit `34e4d3752b8b`, labelled "Ossie 0.3.0 draft". The pinned
+  files are checked by SHA-256. See `tests/tessera/pinned-schema-hashes.test.ts`.
+- Files that declare `0.3.0.dev0` get the 0.3 schema and rules: `sql` expressions, dataset-scoped
+  metrics, `AGG(dataset.metric)` and the reserved `METRIC`. Their validators load only for such a
+  file. See `tests/validation-ossie-0.3.test.ts` and `tests/draft-validators-loading.test.ts`.
+- Workbench metric attributes and bindings in a 0.3 file are read and written as
+  `nonportable_extensions` object data; 0.2 files keep their JSON text byte for byte. See
+  `tests/metric-extension-0.3.test.ts` and `tests/references-0.3.test.ts`.
+- Dataset-scoped metrics are items with their own addresses in the graph, catalog and item editor,
+  and pass the approved-metric guard. The Metrics view keeps model metrics only. See
+  `tests/model-addresses-0.3.test.ts`, `tests/governance/guards-0.3.test.ts` and
+  `tests/metrics-view-0.3.test.ts`.
+- The planner reads a metric's portable `sql` first and inlines `AGG(dataset.metric)`. See
+  `tests/agent-query-plan-0.3.test.ts`.
+- A compile is reported against the base its documents declare; a project mixing 0.2 and 0.3 is
+  refused. See `tests/tessera/compile-0.3.test.ts`.
+- **Convert to Ossie 0.3.0 draft** rewrites one clean 0.2.0.dev0 file after a preview of every
+  change; a legacy `draft` metric status becomes `proposed` and nothing becomes approved. See
+  `tests/compile/base-conversion.test.ts` and `tests/compile/metric-conversion.test.ts`.
+- Ossie 0.3.0 status: not released on 2026-11-26; 0.3.0.dev0 adopted as a draft base at
+  `34e4d3752b8b`. The released 0.3.0 is not supported until upstream publishes it.
 - Two agent tools, `check_standard` and `compile_standard`, check and compile a project to standard
   Ossie through the compile routes. The compile tool needs the caller's digest to accept a loss and
   reads output files in commit-bound parts. See `tests/mcp/standard-output.test.ts`.

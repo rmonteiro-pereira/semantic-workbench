@@ -65,6 +65,7 @@ These schemas describe workbench storage conventions, not additions to the upstr
 | `semantic-workbench-access-v1.json` | Roles, grants, projects, agents and server settings |
 | `tessera-ontology-2-ossie-0.2.0.dev0.json` | Tessera revision 2 ontology workbench schema on the same pinned Ossie base |
 | `tessera-ontology-1-ossie-0.2.0.dev0.json` | Tessera revision 1 ontologies on the Ossie 0.2.0.dev0 base. A workbench schema, not part of the Ossie standard |
+| `tessera-ontology-{1,2,3}-ossie-0.3.0.dev0.json`, `tessera-part-3-ossie-0.3.0.dev0.json` | The same Tessera schemas derived from the pinned Ossie 0.3.0 draft ontology schema |
 
 Metric attributes are JSON in an Ossie `custom_extensions` entry with
 `vendor_name: SEMANTIC_WORKBENCH`. Bindings live in the mapping root, or the semantic model inside
@@ -97,9 +98,13 @@ references and deprecation rules. Standard ontology output drops all three prope
 
 ## Updating validators
 
+`bun run schemas:compile` writes `src/generated/validators.js` for the 0.2.0.dev0 base and
+`src/generated/validators-0.3.js` for the 0.3.0 draft, which the browser loads only for a file that
+declares the draft.
+
 ```sh
 bun run schemas:compile
-bun test tests/validation.test.ts
+bun test tests/validation.test.ts tests/validation-ossie-0.3.test.ts
 bun run build
 ```
 
