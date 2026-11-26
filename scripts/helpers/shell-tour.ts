@@ -104,7 +104,8 @@ export async function contentWidthProblems(page: Page, width: number): Promise<s
       const columns = [...textPage.querySelectorAll<HTMLElement>('.metrics-table thead th')];
       for (const name of ['Metric', 'Type', 'Unit', 'Status', 'Owner', 'Concept']) {
         const column = columns.find(column => column.textContent?.trim() === name);
-        if (!column || !column.checkVisibility() || column.getBoundingClientRect().width === 0) found.push(`the open metric is missing visible ${name} header`);
+        if (!column || !column.checkVisibility({ visibilityProperty: true, opacityProperty: true }) || column.getBoundingClientRect().width === 0)
+          found.push(`the open metric is missing visible ${name} header`);
       }
       if (detail.getBoundingClientRect().width < 600) found.push('the metric detail is narrower than 600px');
       const contentWidth = Math.min(limit, canvas.width);
