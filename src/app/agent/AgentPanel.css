@@ -34,6 +34,20 @@
   min-height: 0;
   overflow: auto;
   padding: 16px;
+  /* A shadow at the top or bottom edge shows that more of the conversation is scrolled out of view.
+     The surface-coloured covers move with the content and hide each shadow once its end is reached. */
+  background:
+    linear-gradient(var(--color-surface) 30%, transparent) 0 0 / 100% 24px no-repeat local,
+    linear-gradient(transparent, var(--color-surface) 70%) 0 100% / 100% 24px no-repeat local,
+    radial-gradient(farthest-side at 50% 0, color-mix(in srgb, var(--color-shadow) 25%, transparent), transparent) 0 0 / 100% 10px no-repeat scroll,
+    radial-gradient(farthest-side at 50% 100%, color-mix(in srgb, var(--color-shadow) 25%, transparent), transparent) 0 100% / 100% 10px no-repeat scroll,
+    var(--color-surface);
+}
+.agent-connecting {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
 }
 .agent-panel p,
 .agent-panel li,
