@@ -31,3 +31,12 @@ imports `src/server/usage/` or reads `layout.usage`. Nothing under `src/` was ch
 - The explanation answer keeps the metric extension's own `owner` (a team name such as Finance). That is a
   public metric field, not the item governance owner, so the tool test checks the `owner` key only
   inside governance flags and checks the governance owner's value everywhere.
+
+## Codex CLI acceptance (T010)
+
+Commit `d6298790`. Local stdio bridge: pass, every step, with Codex CLI 0.169.1
+(`specs/006-mcp-server/evidence/codex-cli/RESULT.md`). Server sign-in: stopped at the browser sign-in as expected,
+with discovery path, callback port, client id and resource indicator recorded
+(`specs/013-person-sign-in/evidence/codex-cli/RESULT.md`). `docs/mcp-acceptance.md`, `docs/agent-connections.md` and
+`docs/mcp.md` updated; `bun test ./tests/docs-agent-connections.test.ts ./tests/mcp/docs-claims.test.ts` and
+`bun --bun run check` exit 0. The token exchange of the server sign-in was not run and stays open.

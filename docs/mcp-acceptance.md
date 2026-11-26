@@ -21,6 +21,15 @@ consent flow and the stdio bridge exchange and refresh checks.
 
 ## Codex CLI
 
-Status: not done. Codex CLI has not been run against this endpoint, and nothing here claims it works.
+Local stdio bridge: passes. On 2026-11-26, `codex-cli 0.169.1` drove a local-mode workbench through `bun scripts/mcp-stdio.ts` with a temporary data folder. It listed the 23 tools, listed the files of Mapped commerce, read one, validated and saved a one-line edit, committed it with `git_commit` and read the published catalog. The configuration, passed as overrides so no Codex configuration file changed:
 
-The run needs a real agent session with a model and the owner's Codex configuration, which an automated change cannot start. Before release, register the bridge with Codex (for example `codex mcp add semantic-workbench --env DATA_DIR=<data folder> -- bun scripts/mcp-stdio.ts`, checked against `codex mcp add --help`), ask the agent to list the files of a project, read one, validate and save one change and commit it, and record here the output of `codex --version`, the configuration used and the result. Until that is recorded, only the reference client is verified.
+```text
+mcp_servers.<name>.command = "bun"
+mcp_servers.<name>.args    = ["scripts/mcp-stdio.ts"]
+mcp_servers.<name>.env     = { DATA_DIR = "<data folder>", SW_PORT = "<workbench port>" }
+mcp_servers.<name>.default_tools_approval_mode = "approve"   # only for a non-interactive codex exec
+```
+
+Codex asks before calling a tool that is not read-only. In a non-interactive `codex exec` it cannot ask, so it refuses `save_file` and the other writes unless the server's tools are approved in its configuration as above; an interactive session asks instead. The record is `specs/006-mcp-server/evidence/codex-cli/RESULT.md`.
+
+Server sign-in: not established. Against a server-mode test instance with its test identity provider, the same version found the endpoint through `/.well-known/oauth-protected-resource/api/mcp` and `/.well-known/oauth-authorization-server`, used a pre-registered client id, a fixed loopback callback and the resource indicator, and stopped where a person must sign in in the browser. The token exchange and calls after it were not run. The record, with the exact settings, is `specs/013-person-sign-in/evidence/codex-cli/RESULT.md`.

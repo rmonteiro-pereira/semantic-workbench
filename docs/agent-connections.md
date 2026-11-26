@@ -49,10 +49,20 @@ consent in the browser. No client secret is used.
 
 ## Codex CLI
 
-Status: not tested. Server authorization compatibility, including a fixed callback port and a
-pre-registered client id, needs an acceptance record before this program can be called supported.
-There is no confirmed server-mode configuration to copy. Local bridge configuration is described
-in [the MCP guide](mcp.md).
+Status: not tested end to end. Codex CLI 0.169.1 reached the browser sign-in of a test instance, but the
+sign-in, token exchange and later calls were not run, so there is no confirmed server-mode configuration. What was observed
+against a test instance, for an Admin preparing a registration:
+
+- Register the program with an exact loopback callback such as `http://127.0.0.1:5453/callback`. Codex uses
+  that port when started with `-c mcp_oauth_callback_port=5453`; without it the port is not fixed.
+- `codex mcp add <name> --url <SW_PUBLIC_URL>/api/mcp --oauth-client-id <client id> --oauth-resource
+  <SW_PUBLIC_URL>/api/mcp` sends the pre-registered client id and the resource indicator, and makes no dynamic
+  registration request.
+- Run `codex mcp login <name> --scopes read,validate` with the registered scopes. Without `--scopes`, Codex asks
+  for every scope the server advertises, which is more than a program is usually allowed.
+
+The record is `specs/013-person-sign-in/evidence/codex-cli/RESULT.md`. The local bridge works with Codex CLI; see
+[the acceptance record](mcp-acceptance.md).
 
 ## Manage connections
 
