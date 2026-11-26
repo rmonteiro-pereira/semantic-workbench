@@ -47,6 +47,15 @@
   border-radius: 6px;
   background: var(--color-surface);
 }
+/* A select keeps the native element and its arrow for keyboard and screen-reader use, but takes
+   the app's type and colours instead of the browser's own font. */
+.admin-scope select {
+  font: inherit;
+  color: var(--color-text);
+}
+.admin-scope select:hover:not(:disabled) {
+  border-color: var(--color-accent);
+}
 /* A form field never stretches across a wide screen; the audit filters keep their own grid. */
 .admin-pane input:not([type='checkbox'], [type='radio']),
 .admin-pane select,
@@ -512,11 +521,13 @@
 
 /* A one-line value grows downwards instead of scrolling sideways, so a long name or address is
    read whole. It looks like the other text fields; only its height follows the text. */
-.admin-wrapping-field {
+.admin-scope textarea.admin-wrapping-field {
   field-sizing: content;
   width: 100%;
   min-width: 0;
   min-height: 0;
+  padding: 7px 9px;
+  border-radius: 6px;
   resize: none;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
