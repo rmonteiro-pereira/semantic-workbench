@@ -43,15 +43,15 @@ export function ProjectFields({ slug, project, domains, onChange }: { slug: stri
       </SelectField>
       <label>
         <input type="checkbox" checked={project.everyoneCanRead ?? false} onChange={event => onChange({ ...project, everyoneCanRead: event.target.checked })} />
-        Everyone with access can read
+        Every signed-in person may read this project, its history and exports
       </label>
       <label>
-        Listed Stewards (informational)
+        Steward contacts (comma separated)
         <ListInput value={project.stewards} onChange={stewards => onChange({ ...project, stewards })} />
       </label>
       <p>These contacts grant no permissions. Assign roles in Access grants.</p>
       <label>
-        Protected branches
+        Protected branches (comma separated)
         <ListInput value={project.protectedBranches} onChange={protectedBranches => onChange({ ...project, protectedBranches })} />
       </label>
       <SelectField label="Protected classification level" value={project.protectedLevel ?? ''} onChange={event => changeLevel(event.target.value)}>
@@ -61,19 +61,20 @@ export function ProjectFields({ slug, project, domains, onChange }: { slug: stri
         ))}
       </SelectField>
       <h4>Restricted paths</h4>
+      <p className="admin-field-hint">A restricted path is hidden from everyone outside its listed groups and addresses, except Admins.</p>
       {project.restricted.map((rule, index) => (
         <fieldset key={index}>
           <legend>Restriction {index + 1}</legend>
           <label>
-            Pattern
+            Path pattern, such as private/**
             <WrappingField value={rule.pattern} onValueChange={pattern => changeRule(index, 'pattern', pattern)} />
           </label>
           <label>
-            Groups
+            Groups allowed (comma separated)
             <ListInput value={rule.groups} onChange={values => changeRule(index, 'groups', values.join(', '))} />
           </label>
           <label>
-            E-mail addresses
+            E-mail addresses allowed (comma separated)
             <ListInput value={rule.emails} onChange={values => changeRule(index, 'emails', values.join(', '))} />
           </label>
           <button className="admin-remove" onClick={() => removeRestriction(index)}>
