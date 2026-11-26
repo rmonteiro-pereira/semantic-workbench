@@ -2,8 +2,8 @@
 
 ## After merging main da54cf17
 
-The gate is incomplete. The browser reruns leave four failures reproduced on main. No merge regression is open. The full
-capture matrix and comparison with the accepted review images remain pending; completion stays unchecked.
+The gate is incomplete. The browser reruns leave four failures reproduced on main. No merge regression is open. The stock tour matrix is complete. Graph/rest captures and the remaining accepted-image comparisons
+are incomplete; completion stays unchecked.
 
 All heavy commands used the unchanged `sw-midgard-run` wrapper. No origin push was performed.
 Candidate browser commands were `bun scripts/ci-validate.ts --step browser --suite SUITE`.
@@ -45,7 +45,7 @@ Main comparisons used an archived `da54cf17` source tree, the same installed dep
 | test:proposals | 0 | Batch 2: passed |
 | test:acp | 0 | Not individually rerun |
 | test:mcp | 0 | Not individually rerun |
-| mutation | 1, latest full run stopped at proposals baseline; focused repairs pass | Batch 2 records 942/942 killed; publication fixture failure reproduced directly |
+| mutation | Command exit 0: 958/958 killed, all baselines passed; outer wrapper 143 | Batch 2 records 942/942 killed; publication fixture failure reproduced directly |
 | check | 0 at df201d11 | Batch 2: 0 |
 | unit | Supplied result at d5d84e57: 4383 pass, 0 fail, exit 0 | Batch 2 records two compile timing failures |
 | build | Supplied exit 0 before this round | Batch 2: 0 |
@@ -76,60 +76,71 @@ the candidate has more canvas space than main at the matched 1280 px viewport.
 
 ### Capture comparison disposition
 
-Only the initial focused graph-region comparison is complete. Three candidate/main pairs were pixel-compared
-and visually reviewed: UBL neighborhood at 1280×720 and 1440×900, and Traffic at 360×780 after repair.
-Classification counts for those three graph regions: fixed 0, intended 3, unchanged 0, regression 0. Full-screen sidebar behavior is excluded from those region counts.
-They preserve the approved legend placement, larger readable center descriptions and compact controls.
-The separate before/after phone pair confirms the regression repair above. These counts do not
-represent the requested stock-tour matrix or the accepted review baseline.
+The stock tour is captured on candidate and main at 390, 1280, 1440 and 2560 px, in light/dark and
+local/server modes. All 64 split-tour commands returned 0, producing 4096 images. Each command
+produced 64 images, below the 120-image limit. The earlier 12 focused commands produced another
+176 images. Graph and remaining-state batches were stopped at the session budget limit; their disposition is in the handoff.
 
-An earlier accepted neighborhood file contains Mall data while the focused capture contains UBL.
-That mismatched pair is excluded. Compare matching Mall captures before assigning a classification.
-The 2560 px combined metric content width now has matched light/dark captures and both candidate measurements report `CONTENT_WIDTH 2560 []`. The light content region was visually reviewed and matches the approved centered list/detail layout. The filtered responsive
-content-width run made no progress for five minutes and was stopped by its exact owned timeout PID,
-exit 143; it establishes no result.
+The first completed pixel-comparison snapshot contains 1529 pairs against main and the accepted
+007 baseline, at RGB tolerance 16. Changed previews were reviewed in batches of at most 30,
+with a longest side of at most 1600 px. Full-page counterparts inherit the matching viewport disposition.
 
-The frozen candidate at `df201d11` and main each completed neighborhood batches at 1280 and
-1440 px in light/dark (21 images per command), plus metric-detail batches at 2560 px in light/dark
-(two images per command). All 12 capture commands returned 0: 176 images total, at most 21 per job.
-The graph helper nevertheless records unreachable actions and label-size problems; command exit 0
-is not a clean visual gate. Logs retain those findings. Preview images were reduced to at most 1600 px.
+| Classification | Pairs in this snapshot |
+| --- | ---: |
+| Fixed | 0 |
+| Intended | 1296 |
+| Unchanged | 225 |
+| Regression | 0 |
+| Excluded: different fixtures | 8 |
 
-`critical-diff/pixels.tsv` records six candidate/main first-view comparisons and three candidate/accepted
-comparisons. All nine differ at RGB tolerance 16. Of the six main comparisons, three light pairs were
-first classified as a regression for a blank Mesh row. A second review below withdrew that. Four pairs
-(neighborhood 1280 light and dark, 1440 light, metric detail 2560 light) are classified intended; the
-1440 dark and 2560 dark pairs still need a look.
-The three accepted full-screen pairs have different surrounding project inventories and are excluded
-from full-screen counts; their matching content regions require separate comparison/classification.
-The reviewed light metric region has the intended shared width. No unchanged pair was found in this subset.
+These are partial counts, not a claim that every matrix image has been classified. Later completed
+capture batches and additional accepted-baseline matches still require comparison and review.
+`matrix-diff/pixels.tsv` retains pixel measurements; `matrix-diff/classifications.tsv` records the
+per-pair dispositions for this snapshot. Screenshots remain outside git.
 
-**Mesh navigation row: not a regression.** A second review of the same `critical-diff` images
-(candidate 1280 light and dark, 1440 light, 2560 light) shows the Mesh icon and label below Source control
-in every one, as on main. The earlier "blank row" reading is withdrawn.
-The four reviewed main pairs are classified as intended. On the candidate the toolbar folds behind **Controls** and the
-"Continue in" links behind **Other files** below 1400 px, the neighborhood legend sits under the canvas,
-project kinds show as chips, and the center card shows its description at a readable size. All of these are
-007 changes. The green dot after LOCAL WORKSPACE is absent because 007 removed it on purpose (commit f4d1e8dc).
+An expanded snapshot contains 2603 pairs. Another 121 changed previews were reviewed as intended,
+recorded with baseline paths in `matrix-diff/additional-reviewed-session3.tsv`. These additional reviews
+do not complete the expanded snapshot. Its wrapper returned 143 after producing the measurements;
+it is not recorded as a clean comparison-command pass.
 
-The first 390 px light local stock-tour batch was interrupted at the budget stop; it is not a completed
-matrix entry. The driver was stopped by exact owned PID 568991 and its trap stops its active timeout
-and both owned frontend PIDs. Server tours, the remaining local tours, full graph/rest states and the
-other task-specific capture scripts remain pending. No full journey classification is claimed.
+The reviewed pairs retain the folded graph controls, readable graph names, catalog result count,
+empty states, phone diff view, Show menu badge, Mesh navigation and main's other visible additions.
+The 1440 dark neighborhood and 2560 dark metric pairs have now been reviewed against main.
+The neighborhood legend remains below the canvas at 1280 and 1440 px in both themes. The metric
+list/detail retains the approved shared content width at 2560 px in both themes; the prior matched
+measurements report `CONTENT_WIDTH 2560 []`.
+
+Older accepted mapping and query-composer images sometimes use Commerce while the new tour uses
+Mall; some source-editor images use UBL while the new tour uses Commerce. Those content comparisons
+are excluded. Different sidebar project inventories, generated commit hashes, timestamps, async
+loading states and nondeterministic graph ordering are distinguished from product regressions.
+The additional 2560 px whole-model comparison shows a different force-layout arrangement. The layout
+source is unchanged from the accepted revision and randomizes positions; no merge regression was
+confirmed from that arrangement.
+
+**Mesh navigation row: not a regression.** The earlier blank-row finding is withdrawn. No Mesh change
+was made. The prior focused Traffic repair remains the confirmed product regression and is recorded above.
+
+The capture helper can return 0 while recording unreachable actions. Initial light phone full-graph
+and lineage batches aborted early under its 3-second action timeout. Both revisions were retried
+with the same 10-second timeout in isolated capture source copies. All four retry commands returned 0:
+43 full-graph and 57 lineage images on each revision. This changes only the capture
+harness, not tracked application code. A clean command exit alone does not clear those states.
 
 ### Evidence and remaining work
 
-Ignored evidence lives under `out/after-main-da54cf17/` in the development checkout on Midgard.
-`results.txt` records initial exits; `main/` contains main reruns; `retries/` contains passing repairs;
-`focused/` holds the matched geometry and phone screenshots. Initial mutation invocation was stopped
-with exit 143 because no frontend was running. The next full run failed the publication fixture baseline,
-exit 1. The subsequent run passed all baselines and killed mutants 0–769, then stopped at survivor 770,
-exit 1. Targeted lineage repair exits 0 with 5/5 killed. The latest full rerun stops at the timing-dependent proposals baseline, exit 1, before mutation execution. A focused proposal rerun exits 0 with 14/14 killed after repair. These partial runs are not a full mutation pass.
+Ignored evidence remains under `out/after-main-da54cf17/` on Midgard. The frozen candidate source
+is `df201d11`; later commits before this session change evidence only. Main is `da54cf17`.
+`matrix/commands.tsv` records each capture command's revision, theme, viewport, group, selection,
+exit code and image count. Each batch has its own `run.log` and any `failures.jsonl` findings.
 
-Next: obtain a clean full mutation run, capture the complete matched matrix and task-specific states, compare
-pixels against main and the accepted review images, review only changed regions, and record every
-classification. Preserve the approved neighborhood footer legend and verify the shared metric width
-at 2560 px. Do not mark completion until all pairs are classified and no regression remains.
+The full mutation rerun and remaining graph/rest capture results are recorded in
+`HANDOFF-SOL-20261126.md`. Historical failed mutation attempts remain documented in the previous
+handoff; they do not substitute for a clean full pass.
+
+Completion stays unchecked. Finish the matched graph/rest matrix, audit missing and unreachable
+states, classify all remaining changed pairs against main and the accepted captures, and resolve any
+confirmed regression before marking the gate complete.
 
 ## Layout decisions after merging main da54cf17
 
