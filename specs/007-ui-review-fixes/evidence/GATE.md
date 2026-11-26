@@ -40,6 +40,11 @@ The two regressions were found in the full-resolution recheck and fixed:
 Two suspected regressions were capture timing: the Admin Git remotes table at 2560 px (pairs 1857 and 2372) loaded its five
 rows within 0.6 s in 20 of 20 attempts on both versions (HANDOFF-SOL-20261127-6.md).
 
+The label fix went through three code-review rounds. Round 3 found defects in the live-pan placement (ff92022c); main chose to
+revert it (74563cb7) and to clear the measurement frame id on cleanup (557c7345). A separate code read of those two commits
+found no blocking item. `test:graph` keeps only the inherited height failure, and the six UBL states at 1440, 1920 and 2560 px,
+light and dark, show all ten counts and the relationship name with no collision or clipping (HANDOFF-SOL-20261127g.md).
+
 The 11 comparisons with no main image: three are the Group menu and Collapse areas states, cleared by the focused checks
 above. Two have no image on either side (`full-graph--stages-failed-390`, `lineage--contract-stages-failed-390`). The
 mapping graph `edge-hovered-390` failed on main and passed on the candidate. The other five are the 390 px dataset lineage:
@@ -1838,6 +1843,11 @@ Every stopped diagnostic and completed suite reported `OWNED_PROCESSES_REMAINING
 - Name capture scripts after the screens they capture, document their commands in the development guide, and identify each as a manual tool or connect it to the gate.
 - Move identifier humanization beside text fitting so the catalog does not import it from a component file.
 - Pass the fitted zoom from the layout hook into whole-graph layout calculations so the layout module no longer imports React Flow.
+- Collapsed Network labels: decide visibility at the viewport edge against the painted curve, not its sampled chords, so a curve
+  that grazes the edge neither loses its count nor claims a visible lane while off screen (final code review, item 2).
+- Shorten `useFullGraphEdges`: pass the input object to the base hook and extract the per-connection appearance builder.
+- Add a test that reports a label route, remounts the graph hook under StrictMode and expects one measurement.
+- Ignore a label-route report that arrives after the graph hook unmounts.
 
 ## Metrics and collapsed Network regression recheck
 

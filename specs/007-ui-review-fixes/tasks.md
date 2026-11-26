@@ -519,10 +519,11 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: Every mutant must be detected, including the new ones registered under the five sentinels.
   - Proof: All green; output saved in `evidence/GATE.md`.
 
-- [ ] T076 Capture the whole journey on the merged branch with the same scripts (stock tour light and dark local and server, `capture-states.ts graphs` and `rest`, and each script named in a task) and write `evidence/GATE.md` classifying every changed pair against the review's baseline images.
+- [x] T076 Capture the whole journey on the merged branch with the same scripts (stock tour light and dark local and server, `capture-states.ts graphs` and `rest`, and each script named in a task) and write `evidence/GATE.md` classifying every changed pair against the review's baseline images.
   - Files: `specs/007-ui-review-fixes/evidence/GATE.md`
   - Change: Use the `ui-regression-gate` procedure: same example, file, state stage, viewport and theme for each pair; classify each as fixed (a finding id), intended side effect, unchanged, or regression; fix or revert every regression; list the 3,559 baseline images by folder with counts. Screenshot capture and viewing is delegated to Codex as the owner's rules require. Images stay outside git (they can show the machine's committer name).
   - Proof: `GATE.md` has zero rows marked regression and every finding id has at least one 'fixed' pair; `capture-report.ts` shows no failed screen that the baseline did not also fail.
+  - Disposition: closed by the merge gate recorded in `evidence/GATE.md` ("Merge gate result (26 Nov 2026)"). All 3268 comparisons have a decision; the two regressions found were fixed, and no failed screen remains that main passes.
 
 - [x] T077 Assemble `CHANGELOG.md` Unreleased from `specs/007-ui-review-fixes/changelog/A.md` to `E.md`, check counts quoted in docs against test output (Constitution VII), then delete the fragment folder.
   - Files: `CHANGELOG.md`, `specs/007-ui-review-fixes/changelog/`
