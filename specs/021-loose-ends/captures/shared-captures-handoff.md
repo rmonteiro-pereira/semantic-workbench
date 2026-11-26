@@ -31,6 +31,5 @@ The concept, metric and contract-field editors are byte-identical before and aft
 ## Left for the batch gate
 
 - The attribute dialog with a one-line sentence is 13 px taller than before. About 5 px is the textarea frame, and about 8 px is the details panel's textarea top margin, which still applies to the reading box.
-
 - The app status bar overlaps the bottom of the tall governance crop in `deprecated-light-1280.png`. The section now reaches below the viewport, so this is a crop artefact and not a layout change.
 - The `.item-fields` input height change is in the pairs for the owner to judge.
