@@ -68,31 +68,12 @@ const MINI_MAP_RESERVED_WIDTH = 216;
 export function FullGraph(props: Props) {
   const container = useRef<HTMLDivElement | null>(null);
   const [viewport, setViewport] = useState({ x: 0, y: 0, zoom: 1 });
-  const pendingViewport = useRef(viewport);
-  const viewportFrame = useRef<number | undefined>(undefined);
-  const followViewport = useCallback((_: unknown, next: typeof viewport) => {
-    pendingViewport.current = next;
-    if (viewportFrame.current !== undefined) return;
-    viewportFrame.current = requestAnimationFrame(() => {
-      viewportFrame.current = undefined;
-      flushSync(() => {
-        setViewport(pendingViewport.current);
-        setZoomStep(Math.floor(pendingViewport.current.zoom * 20) / 20);
-      });
-    });
-  }, []);
-  useEffect(
-    () => () => {
-      if (viewportFrame.current !== undefined) cancelAnimationFrame(viewportFrame.current);
-    },
-    [],
-  );
   // The zoom rounded down in steps of 0.05. Text sizes follow it while the canvas moves, never
   // read smaller than planned, and do not redraw every edge on each frame.
   const [fittedZoom, setFittedZoom] = useState(0.05);
   const [zoomStep, setZoomStep] = useState(1);
   const [zoomedGroupId, setZoomedGroupId] = useState('');
-
+  const followZoom = (zoom: number) => setZoomStep(Math.floor(zoom * 20) / 20);
   const [size, setSize] = useState({ width: 1200, height: 650 });
   const [labelViewportSize, setLabelViewportSize] = useState({ width: 0, height: 0 });
   const [miniMapBounds, setMiniMapBounds] = useState<Box | undefined>();
@@ -512,8 +493,8 @@ export function FullGraph(props: Props) {
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             onNodesChange={onNodesChange}
-            onMove={followViewport}
-            onMoveEnd={followViewport}
+            onMove={(_, v) => followZoom(v.zoom)}
+            onMoveEnd={(_, v) => setViewport(v)}
             onInit={instance => {
               flow.current = instance;
               if (nodes.length) setTimeout(fit, 80);
