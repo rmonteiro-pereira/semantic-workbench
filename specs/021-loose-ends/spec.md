@@ -1,4 +1,4 @@
-# Feature Specification: Loose Ends of Features 012 to 018 and the 007 Gate
+# Feature Specification: Loose Ends of Features 006 and 012 to 019 and the 007 Gate
 
 **Feature Branch**: `021-loose-ends`
 
@@ -28,12 +28,17 @@ that names the file and test that do it:
 | 007 | follow-up | Shorten `useFullGraphEdges`: pass the input object to the base hook and extract the per-connection appearance builder. |
 | 007 | follow-up | A test that reports a label route, remounts the graph hook under StrictMode and expects one measurement. |
 | 007 | follow-up | Ignore a label-route report that arrives after the graph hook unmounts. |
-| 012-018 | captures | One shared capture job in place of 012 T041, 013 T037, 014 T035, 015 T037, 016 T030, 017 T035 and 018 T053, then 018 T054 (fix what the capture finds in the Mesh screens). |
+| 012-019 | captures | One shared capture job in place of 012 T041, 013 T037, 014 T035, 015 T037, 016 T030, 017 T035, 018 T053, 019 T015 and 019 T020, then 018 T054 (fix what the capture finds in the Mesh screens). |
+| 006 | T013, T035 | Superseded on `main` (010's replay sample; 008 merged). Tick with a disposition. |
+| 006 | T065 | The Codex CLI half of the acceptance run, done together with 013 T039. |
+| 019 | Phase 7 | Adopt Ossie 0.3.0.dev0, pinned at one upstream commit, as a draft base (T025, T028 to T033). T026 and T027 keep waiting for the release, and the documents say so. Worked in its own worktree `021-ossie`. |
+| 019 | T036, T039 | The operation inventory and contract check, and the 0.3.0 status record (draft base, not released). |
 
 Out of scope, and why:
 
-- 019 Phase 7 (Ossie 0.3.0): waits for an upstream release that has not happened.
-- The batch-gate hand-off tasks (012 T042/T045, 013 T044, 015 T044, 019 T036/T040): this feature's own
+- 019 T026 and T027: they store the released schemas and a non-draft base, so they wait for the Ossie 0.3.0 release.
+- 003 OA-1 to OA-3: owner actions that need the trial Azure DevOps organisation, the real Entra tenant and the Azure Repos mirror.
+- The batch-gate hand-off tasks (012 T042/T045, 013 T044, 015 T044, 019 T040): this feature's own
   gate closes them, by recording that the integrated batch passed.
 - The six other 007 architecture follow-ups (lineage phase union, toolbar widths, layout timings,
   capture-script names, humanization module, fitted zoom): refactors with no behaviour asked for; they
@@ -59,8 +64,8 @@ Out of scope, and why:
 
 ## Success criteria
 
-- No unticked task in `specs/012` to `specs/018` except the Ossie 0.3.0 phase of 019, each with proof or
-  a disposition.
+- No unticked task in `specs/006` and `specs/012` to `specs/019` except 019 T026 and T027 (waiting for the
+  Ossie 0.3.0 release), each with proof or a disposition. 003's owner actions stay with the owner.
 - The four 007 label follow-ups are closed with tests.
 - The batch gate passes: full unit suite, mutation, browser suites with only inherited failures, the UI
   regression comparison with no unaccepted regression, and a clean code review in at most three rounds.
