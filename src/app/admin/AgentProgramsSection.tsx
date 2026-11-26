@@ -1,3 +1,4 @@
+import { changeDescription } from './change-review';
 import { SectionStatus } from './SectionStatus';
 import { useState } from 'react';
 import type { Program } from '../../server/connections/programs';
@@ -81,7 +82,9 @@ export function AgentProgramsSection() {
           {programs.map((program, index) => (
             <section key={index}>
               <ProgramFields program={program} onChange={value => changeProgram(index, value)} />
-              <button onClick={() => removeProgram(index)}>Remove {program.name || 'agent program'}</button>
+              <button className="admin-remove" onClick={() => removeProgram(index)}>
+                Remove {program.name || 'agent program'}
+              </button>
             </section>
           ))}
           <button onClick={addProgram}>Add agent program</button>
@@ -89,7 +92,17 @@ export function AgentProgramsSection() {
             <>
               {removed.length > 0 && <p>Removing {removed.map(program => program.name).join(', ')} ends its active connections when confirmed.</p>}
               <p>Removing a redirect or scope also ends affected connections. Dry run shows the affected count before confirmation.</p>
-              <ReviewChange area="programs" proposal={{ formatVersion: 1, programs }} baseVersion={data.version} onSaved={saved} description="Save agent programs" />
+              <ReviewChange
+                area="programs"
+                proposal={{ formatVersion: 1, programs }}
+                baseVersion={data.version}
+                onSaved={saved}
+                description={changeDescription(
+                  'Save agent programs',
+                  removed.map(program => program.name),
+                )}
+                destructive={removed.length > 0}
+              />
               <button onClick={() => setDraft(null)}>Discard changes</button>
             </>
           )}

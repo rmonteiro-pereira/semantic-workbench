@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { adminApi, AdminApiError } from './api';
 import { AdminConfirmation } from './AdminConfirmation';
-import { canConfirm, proposalKey, reviewProblemText } from './change-review';
+import { canConfirm, proposalKey, reviewProblemText, lowerFirst } from './change-review';
 import type { AccessArea, DryRun, Proposal } from './types';
 
 const previewLabels: Partial<Record<AccessArea, string>> = {
@@ -58,6 +58,7 @@ export function ReviewChange({
   confirmDeleteInUse = false,
   description = 'Save changes',
   changeLabel,
+  destructive = false,
   inline = false,
 }: {
   area: AccessArea;
@@ -68,6 +69,8 @@ export function ReviewChange({
   confirmDeleteInUse?: boolean;
   description?: string;
   changeLabel?: string;
+  /** The change removes or ends something, so its confirm button is the danger one. */
+  destructive?: boolean;
   /**
    * Shows the result and the confirm button in place, for a review that already sits in a
    * confirmation dialog. Otherwise the result opens in its own dialog.
@@ -119,12 +122,12 @@ export function ReviewChange({
   }
   const confirmButtons = (
     <>
-      <button className="primary" disabled={busy || disabled} onClick={save}>
-        Confirm {description.toLowerCase()}
+      <button className={destructive ? 'danger' : 'primary'} disabled={busy || disabled} onClick={save}>
+        Confirm {lowerFirst(description)}
       </button>
       {inline && (
         <button disabled={busy} onClick={() => setReview(null)}>
-          Cancel changes
+          Cancel
         </button>
       )}
     </>
@@ -140,7 +143,7 @@ export function ReviewChange({
         {inline && ready && review && confirmButtons}
       </div>
       {!inline && ready && review && (
-        <AdminConfirmation title={changeLabel ?? description} onCancel={() => setReview(null)} cancelLabel="Cancel changes" actions={confirmButtons}>
+        <AdminConfirmation title={changeLabel ?? description} onCancel={() => setReview(null)} cancelLabel="Back to editing" actions={confirmButtons}>
           <DryRunResult result={review.result} />
         </AdminConfirmation>
       )}

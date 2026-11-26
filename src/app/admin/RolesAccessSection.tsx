@@ -142,7 +142,9 @@ export function RolesAccessSection({ view }: { view: 'grants' | 'roles' }) {
               <h3>{item.name}</h3>
               <p>{item.description}</p>
               <button onClick={() => setRole(item)}>Edit</button>
-              <button onClick={() => setRemoval(item)}>Delete</button>
+              <button className="admin-remove" onClick={() => setRemoval(item)}>
+                Delete
+              </button>
             </section>
           ))}
         </>
@@ -165,6 +167,7 @@ function RemoveAccess({ item, data, onCancel, onSaved }: { item: Grant | Role; d
         proposal={proposal}
         baseVersion={data.version}
         confirmDeleteInUse={!grant}
+        destructive
         onSaved={onSaved}
         description={grant ? 'Remove grant' : 'Delete role and grants'}
         changeLabel={question.slice(0, -1)}
@@ -200,6 +203,6 @@ function RoleHolders({ roleId, grants }: { roleId: string; grants: number }) {
 /** Names a grant by its role, member and scope, so a refusal says which change it refused. */
 export function grantSummary(grant: Grant, roles: { builtIn: Role[]; custom: Role[] }): string {
   const role = [...roles.builtIn, ...roles.custom].find(entry => entry.id === grant.roleId);
-  const member = grant.member.kind === 'email' ? grant.member.email : grant.member.groupId;
+  const member = grant.member.kind === 'email' ? grant.member.email : (grant.member.displayName ?? grant.member.groupId);
   return `the ${role?.name ?? grant.roleId} grant for ${member} (${scopeLabel(grant.scope)})`;
 }

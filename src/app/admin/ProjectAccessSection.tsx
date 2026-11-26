@@ -1,3 +1,4 @@
+import { changeDescription } from './change-review';
 import { SectionStatus } from './SectionStatus';
 import { useState } from 'react';
 import { adminApi } from './api';
@@ -44,6 +45,16 @@ export function ProjectAccessSection() {
   );
 }
 
+/** Names the domains and restricted paths a draft removes, for the review's title and button. */
+export function projectRemovals(before: ProjectsConfig, after: ProjectsConfig): string[] {
+  const domains = before.domains.filter(domain => !after.domains.some(kept => kept.id === domain.id)).map(domain => `domain ${domain.name || domain.id}`);
+  const restrictions = Object.entries(before.projects).flatMap(([slug, project]) => {
+    const keptPatterns = new Set((after.projects[slug]?.restricted ?? []).map(rule => rule.pattern));
+    return project.restricted.filter(rule => !keptPatterns.has(rule.pattern)).map(rule => `restriction ${rule.pattern} on ${slug}`);
+  });
+  return [...domains, ...restrictions];
+}
+
 /** Edits project access data while retaining classification aliases outside this form. */
 export function ProjectsEditor({ initial, version, onSaved }: { initial: ProjectsConfig; version: string; onSaved: () => void }) {
   const [config, setConfig] = useState(initial);
@@ -79,7 +90,7 @@ export function ProjectsEditor({ initial, version, onSaved }: { initial: Project
             {domain.id}
             <WrappingField aria-label={`Domain name ${domain.id}`} value={domain.name} onValueChange={name => renameDomain(domain.id, name)} />
           </label>
-          <button aria-label={`Remove domain ${domain.id}`} onClick={() => removeDomain(domain.id)}>
+          <button className="admin-remove" aria-label={`Remove domain ${domain.id}`} onClick={() => removeDomain(domain.id)}>
             Remove
           </button>
         </div>
@@ -101,7 +112,14 @@ export function ProjectsEditor({ initial, version, onSaved }: { initial: Project
         <ProjectFields key={slug} slug={slug} project={project} domains={config.domains} onChange={value => changeProject(slug, value)} />
       ))}
       <p>Preview changes to domains and project access before saving.</p>
-      <ReviewChange area="projects" proposal={config} baseVersion={version} onSaved={onSaved} description="Save project access" />
+      <ReviewChange
+        area="projects"
+        proposal={config}
+        baseVersion={version}
+        onSaved={onSaved}
+        description={changeDescription('Save project access', projectRemovals(initial, config))}
+        destructive={projectRemovals(initial, config).length > 0}
+      />
     </>
   );
 }

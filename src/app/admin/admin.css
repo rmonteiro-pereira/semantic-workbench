@@ -529,3 +529,10 @@
   color: var(--color-text-secondary);
   overflow-wrap: anywhere;
 }
+
+/* A row action that removes or ends something reads as destructive before it is pressed; the
+   confirmation that follows carries the filled danger button. */
+.admin-scope button.admin-remove:not(:disabled) {
+  color: var(--color-danger-text);
+  border-color: var(--color-danger-border);
+}

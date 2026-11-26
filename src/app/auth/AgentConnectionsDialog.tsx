@@ -4,6 +4,14 @@ import { loadConnections, revokeConnection, type ConnectionView } from './connec
 import './AgentConnectionsDialog.css';
 import { SectionStatus } from '../admin/SectionStatus';
 import { problemText } from '../admin/api';
+import { whenLabel } from '../admin/helpers';
+
+/** Says how a program reached the workbench in words, instead of the protocol code. */
+export function originWords(origin: string): string {
+  if (origin === 'mcp') return 'the MCP server';
+  if (origin === 'acp') return 'the agent panel';
+  return origin;
+}
 
 /** A wrapping connection list with explicit status text and named revocation actions. */
 export function ConnectionListView({ connections, administrator, onRevoke }: { connections: ConnectionView[]; administrator: boolean; onRevoke: (connection: ConnectionView) => void }) {
@@ -13,18 +21,18 @@ export function ConnectionListView({ connections, administrator, onRevoke }: { c
       {connections.map(connection => (
         <li key={connection.id}>
           <strong>{connection.programName}</strong>
-          <span>{connection.clientId}</span>
-          {administrator && <span>{connection.personName}</span>}
-          <span>Origin: {connection.origin}</span>
-          <span>Scopes: {connection.scopes.join(', ') || 'none'}</span>
-          <span>Created: {connection.createdAt}</span>
-          <span>Last used: {connection.lastUsedAt}</span>
+          <span>Client ID: {connection.clientId}</span>
+          {administrator && <span>Person: {connection.personName}</span>}
+          <span>Connected through: {originWords(connection.origin)}</span>
+          <span>Permissions: {connection.scopes.join(', ') || 'none'}</span>
+          <span>Created: {whenLabel(connection.createdAt)}</span>
+          <span>Last used: {whenLabel(connection.lastUsedAt)}</span>
           <span>
             Status: {connection.state}
             {connection.endReason ? ` (${connection.endReason})` : ''}
           </span>
           {connection.state === 'active' && (
-            <button type="button" onClick={() => onRevoke(connection)}>
+            <button type="button" className="agent-connection-revoke" onClick={() => onRevoke(connection)}>
               Revoke {connection.programName}
             </button>
           )}
@@ -80,18 +88,25 @@ export function AgentConnections({ administrator = false }: { administrator?: bo
       {error && <p role="alert">{error}</p>}
       {connections && <ConnectionListView connections={connections} administrator={administrator} onRevoke={setSelected} />}
       {selected && (
-        <section aria-label="Confirm revocation">
+        <Modal
+          title={`Revoke ${selected.programName}?`}
+          onCancel={() => setSelected(null)}
+          size="narrow"
+          footer={
+            <>
+              <button type="button" disabled={busy} onClick={() => setSelected(null)}>
+                Cancel
+              </button>
+              <button type="button" className="danger" disabled={busy} onClick={confirmRevocation}>
+                Revoke
+              </button>
+            </>
+          }
+        >
           <p>
-            Revoke {selected.programName} ({selected.clientId})? Its current work will stop. A new connection needs consent again.
+            {selected.programName} (client ID {selected.clientId}, connected through {originWords(selected.origin)}) stops working now. Connecting it again needs consent again.
           </p>
-          <p>Origin: {selected.origin}</p>
-          <button type="button" disabled={busy} onClick={confirmRevocation}>
-            Confirm revocation
-          </button>
-          <button type="button" disabled={busy} onClick={() => setSelected(null)}>
-            Cancel
-          </button>
-        </section>
+        </Modal>
       )}
       <button type="button" disabled={busy} onClick={reload}>
         Refresh connections

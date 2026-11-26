@@ -156,14 +156,17 @@ async function connectionStates(prefix: string, administrator: boolean) {
       }
       if (state === 'long') {
         await section.getByRole('button', { name: 'Revoke ' + program.name, exact: true }).click();
-        const confirmation = section.getByRole('region', { name: 'Confirm revocation' });
+        const confirmation = page.getByRole('dialog', { name: `Revoke ${program.name}?`, exact: true });
         await expect(confirmation).toContainText(program.clientId);
-        await expect(confirmation).toContainText('Origin: acp');
+        await expect(confirmation).toContainText('connected through the agent panel');
       }
       if (state === 'loading') await expect(section.getByRole('status').filter({ hasText: 'Loading connections' })).toBeVisible();
       await capture(page, `${prefix}-${administrator ? 'admin' : 'person'}-${state}`);
       if (state === 'long') {
-        await section.getByRole('button', { name: 'Confirm revocation', exact: true }).click();
+        await page
+          .getByRole('dialog', { name: `Revoke ${program.name}?`, exact: true })
+          .getByRole('button', { name: 'Revoke', exact: true })
+          .click();
         await expect(section.getByText('Status: ended', { exact: true })).toBeVisible();
       }
     } finally {

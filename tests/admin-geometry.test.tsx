@@ -65,7 +65,7 @@ test('grant panes fit each viewport, and the dry-run preview is a dialog', async
   await grant.getByRole('button', { name: 'Review change', exact: true }).click();
   await expect(page.getByRole('dialog').getByRole('region', { name: 'Dry-run result' })).toBeVisible();
   await adminGeometry(page, 'add-grant-preview');
-  await cancelAdminDialog(page, 'Cancel changes');
+  await cancelAdminDialog(page, 'Back to editing');
   await goBack('Add grant');
   await chooseMenuItem(grants, 'Actions for grant g_erin', 'Change');
   await expect(pane('Change grant').getByLabel('E-mail address')).toBeVisible();
@@ -136,7 +136,7 @@ test('people, access check and settings confirmations fit each viewport', async 
   await adminGeometry(page, 'access-check-results');
   await goBack('Access check for Alice Andrade');
   const settings = await adminArea(page, 'Settings');
-  await settings.getByRole('button', { name: 'End session', exact: true }).first().click();
+  await settings.getByRole('button', { name: 'End sessions', exact: true }).first().click();
   await adminGeometry(page, 'settings-end-session');
   await cancelAdminDialog(page);
   await leaveAdmin(page);

@@ -18,7 +18,7 @@ async function loadPolicies() {
 export function PoliciesSection() {
   const { data, error, reload } = useAdminData(loadPolicies);
   const [edit, setEdit] = useState<Policy | null>(null);
-  const [change, setChange] = useState<{ rules: Policy[]; description: string } | null>(null);
+  const [change, setChange] = useState<{ rules: Policy[]; description: string; deleted?: string } | null>(null);
   const [history, setHistory] = useState(false);
   function saved() {
     setEdit(null);
@@ -77,10 +77,12 @@ export function PoliciesSection() {
               </label>
               <button onClick={() => setEdit(rule)}>Edit</button>
               <button
+                className="admin-remove"
                 onClick={() =>
                   setChange({
                     rules: data.rules.filter(item => item.id !== rule.id),
                     description: `Delete ${rule.description || rule.id}`,
+                    deleted: rule.description || rule.id,
                   })
                 }
               >
@@ -103,8 +105,9 @@ export function PoliciesSection() {
         </>
       )}
       {change && data && (
-        <AdminConfirmation title={change.description} onCancel={() => setChange(null)}>
-          <ReviewChange area="policies" proposal={{ rules: change.rules }} baseVersion={data.version} onSaved={saved} description={change.description} inline />
+        <AdminConfirmation title={`${change.description}?`} onCancel={() => setChange(null)}>
+          {change.deleted && <p>The rule {change.deleted} stops applying once the change is saved. The built-in rules are not affected.</p>}
+          <ReviewChange area="policies" proposal={{ rules: change.rules }} baseVersion={data.version} onSaved={saved} description={change.description} destructive={Boolean(change.deleted)} inline />
         </AdminConfirmation>
       )}
     </>

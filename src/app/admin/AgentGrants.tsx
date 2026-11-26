@@ -39,7 +39,9 @@ export function AgentGrants({ initial, version, onSaved }: { initial: AgentsConf
               )}
             </label>
           ))}
-          <button onClick={() => removeClient(index)}>Remove client</button>
+          <button className="admin-remove" onClick={() => removeClient(index)}>
+            Remove client
+          </button>
         </fieldset>
       ))}
       <button onClick={addClient}>Add client</button>

@@ -20,3 +20,8 @@
   overflow-wrap: anywhere;
   max-width: 100%;
 }
+/* Revoking ends a live connection, so its button reads as a destructive action in the list. */
+.agent-connections .agent-connection-revoke {
+  color: var(--color-danger-text);
+  border-color: var(--color-danger-border);
+}

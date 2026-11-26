@@ -19,17 +19,17 @@ export function SettingsSection() {
     return { version: settings.version, settings: settings.document, sessions, provider };
   }, [local]);
   const { data, error, reload } = useAdminData(load);
-  const [end, setEnd] = useState<string | null>(null);
+  const [end, setEnd] = useState<{ principal: string; name: string } | null>(null);
   const [failure, setFailure] = useState('');
   const [history, setHistory] = useState(false);
   async function endSessions() {
     if (!end) return;
     try {
-      await adminApi.endSessions(end);
+      await adminApi.endSessions(end.principal);
       setEnd(null);
       reload();
     } catch (problem) {
-      setFailure(`End sessions for ${end}: ${problemText(problem)}`);
+      setFailure(`End sessions for ${end.name}: ${problemText(problem)}`);
     }
   }
   if (history) {
@@ -69,7 +69,9 @@ export function SettingsSection() {
                 <p>
                   {session.name} ({session.principal}) · created {whenLabel(session.createdAt)} · last seen {whenLabel(session.lastSeenAt)}
                 </p>
-                <button onClick={() => setEnd(session.principal)}>End session</button>
+                <button className="admin-remove" onClick={() => setEnd({ principal: session.principal, name: session.name })}>
+                  End sessions
+                </button>
               </section>
             ))}
           </section>
@@ -77,16 +79,16 @@ export function SettingsSection() {
       )}
       {end && (
         <AdminConfirmation
-          title="End sessions"
+          title={`End sessions for ${end.name}?`}
           onCancel={() => setEnd(null)}
           size="narrow"
           actions={
-            <button className="primary" onClick={endSessions}>
-              Confirm end sessions
+            <button className="danger" onClick={endSessions}>
+              End sessions
             </button>
           }
         >
-          <p>End all sessions for {end}?</p>
+          <p>{end.name} is signed out everywhere and has to sign in again. Their roles do not change.</p>
           {failure && <p role="alert">{failure}</p>}
         </AdminConfirmation>
       )}

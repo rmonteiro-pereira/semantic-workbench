@@ -76,7 +76,9 @@ export function ProjectFields({ slug, project, domains, onChange }: { slug: stri
             E-mail addresses
             <ListInput value={rule.emails} onChange={values => changeRule(index, 'emails', values.join(', '))} />
           </label>
-          <button onClick={() => removeRestriction(index)}>Remove restriction</button>
+          <button className="admin-remove" onClick={() => removeRestriction(index)}>
+            Remove restriction
+          </button>
         </fieldset>
       ))}
       <button onClick={addRestriction}>Add restricted path</button>

@@ -146,6 +146,13 @@ export function UsersSection() {
   );
 }
 
+/** What the person loses or regains, said before the change is confirmed. */
+export function userOperationEffect(name: string, kind: 'deactivate' | 'reactivate' | 'sessions'): string {
+  if (kind === 'deactivate') return `${name} will no longer be able to sign in, and their open sessions end.`;
+  if (kind === 'reactivate') return `${name} will be able to sign in again with the roles they hold.`;
+  return `${name} is signed out everywhere and has to sign in again.`;
+}
+
 function UserOperation({ user, kind, onCancel, onSaved }: { user: AdminUser; kind: 'deactivate' | 'reactivate' | 'sessions'; onCancel: () => void; onSaved: () => void }) {
   const [reason, setReason] = useState('');
   const [error, setError] = useState('');
@@ -184,10 +191,10 @@ function UserOperation({ user, kind, onCancel, onSaved }: { user: AdminUser; kin
         )
       }
     >
-      {!refused && <p>This changes only this workbench.</p>}
+      {!refused && <p>{userOperationEffect(user.name, kind)} This changes only this workbench.</p>}
       {!refused && kind !== 'sessions' && (
         <label>
-          Reason
+          Reason (required, kept in the audit record)
           <input value={reason} onChange={event => setReason(event.target.value)} />
         </label>
       )}
