@@ -1,6 +1,7 @@
 /** Builds left-to-right ELK geometry with row ports; layout runs in ELK's worker. */
 import type { LineageCard, LineageColumn } from './lineage';
-import { NAME_MIN_PX, type ViewSize } from './lineage-view';
+import type { ViewSize } from './lineage-view';
+import { NAME_MIN_PX } from '../graph/overview-capacity';
 // Layout of the lineage canvas: ELK `layered`, left to right, one port per visible row on each
 // side of a card (FIXED_POS, so lines leave and enter at their rows). Pure geometry here; the ELK
 // run happens in ELK's own worker (elk-worker), off the main thread.

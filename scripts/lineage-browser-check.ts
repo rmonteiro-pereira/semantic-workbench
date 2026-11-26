@@ -3,7 +3,7 @@ import { screenshotPath } from './helpers/screenshots';
 import { addressesOfModel } from '../src/shared/core/model-addresses';
 import { formatAddress } from '../src/shared/core/item-address';
 import { lineageDisplayKey } from '../tests/helpers/lineage-display-keys';
-import { NAME_MIN_PX } from '../src/app/odcs/lineage-view';
+import { NAME_MIN_PX } from '../src/app/graph/overview-capacity';
 import { checkOverviewNames, showCardDetails, fitOverview, checkReadableWalks, checkFittedWalk } from './helpers/odcs-graph-walk';
 import { checkDatasetLineageRoom, checkHopsRow } from './helpers/odcs-graph-review';
 import { appUrl } from './helpers/base-url';

@@ -1,6 +1,6 @@
 // Measures the ODCS graph in screen coordinates: whole cards, no overlaps, readable column text,
 // clear lines and labels, the legend and the foreign-key hop row.
-import { NAME_MIN_PX } from '../../src/app/odcs/lineage-view';
+import { NAME_MIN_PX } from '../../src/app/graph/overview-capacity';
 import type { Page } from '@playwright/test';
 
 /** The smallest size, on screen, of a column name in the first view. */

@@ -1,10 +1,11 @@
 /** Estimates how much room graph names need, so cards and tiles are sized to show them whole. */
 
+import { NAME_MIN_PX } from './overview-capacity';
+
 // Wide enough for capitals and bold weights in the interface font, so the estimate errs towards
 // more room instead of a clipped name.
 const AVERAGE_GLYPH_EM = 0.62;
 const LINE_HEIGHT_EM = 1.25;
-const SMALLEST_FONT_PX = 9;
 
 // Space inside an entity card around its name: border, colour bar and padding.
 const CARD_SIDE_SPACE = 33;
@@ -40,11 +41,11 @@ export function lineCount(text: string, boxWidth: number, fontPx: number): numbe
 
 /** The largest font size, up to the wanted one, at which the whole text fits the box. */
 export function fittingFontSize(text: string, boxWidth: number, boxHeight: number, wantedPx: number): number {
-  for (let fontPx = Math.floor(wantedPx); fontPx > SMALLEST_FONT_PX; fontPx--) {
+  for (let fontPx = Math.floor(wantedPx); fontPx > NAME_MIN_PX; fontPx--) {
     const linesThatFit = Math.floor(boxHeight / (fontPx * LINE_HEIGHT_EM));
     if (linesThatFit >= lineCount(text, boxWidth, fontPx)) return fontPx;
   }
-  return SMALLEST_FONT_PX;
+  return NAME_MIN_PX;
 }
 
 const CARD_WIDTH_STEP = 40;

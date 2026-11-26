@@ -1,7 +1,8 @@
 // Tests which cards open whole in the first view of the lineage canvas.
 import { cardHeight, portY, elkGraph, compactOverviewNamesFit, compactOverviewZoomFloor, compactOverviewNeedsPacking, packOverviewCards, OVERVIEW_H } from '../src/app/odcs/lineage-layout';
 import { test, expect } from 'bun:test';
-import { planFirstView, walkTargetSize, fitsReadableView, overviewNameSize, NAME_MIN_PX } from '../src/app/odcs/lineage-view';
+import { planFirstView, walkTargetSize, fitsReadableView, overviewNameSize } from '../src/app/odcs/lineage-view';
+import { NAME_MIN_PX } from '../src/app/graph/overview-capacity';
 
 // customers -> orders -> order_lines -> metric, each 200 tall.
 const heights = new Map([

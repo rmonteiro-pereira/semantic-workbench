@@ -65,7 +65,7 @@ it is not a drop-in performance switch.
 `full-graph-viewport.ts` owns Fit and readable selection framing; `useFullGraphEdges.ts` builds
 connections from the current layout and focus. `useFullGraphOpening.ts` measures the painted
 first viewport and chooses its automatic representation after layout.
-`src/app/graph/overview-capacity.ts` sizes cards and decides when areas start as counted cards.
+`src/app/graph/overview-capacity.ts` sizes cards and decides when areas start as counted cards. Its `NAME_MIN_PX` constant supplies the shared nine-pixel name floor for graph text fitting and lineage layouts and views.
 `src/app/graph/edge-styles.ts` supplies line/legend styles and SVG-safe appearance;
 `src/app/graph/RoutedEdge.tsx` keeps fallback routes attached while a worker result is pending or no
 longer matches current endpoints.

@@ -1,6 +1,6 @@
 /** Exercises readable card targets and fitted-card selection through native canvas gestures. */
 import { expect, type Locator, type Page } from '@playwright/test';
-import { NAME_MIN_PX } from '../../src/app/odcs/lineage-view';
+import { NAME_MIN_PX } from '../../src/app/graph/overview-capacity';
 
 /** Zooms around a compact card until its detailed rows and actions return. */
 export async function showCardDetails(page: Page, card: Locator) {

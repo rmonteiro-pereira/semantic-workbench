@@ -6,6 +6,7 @@
 // one column left of the card the line enters. The estimate adds cards nearest first and keeps
 // each one only while the columns still fit the pane.
 import type { CardKind } from './lineage';
+import { NAME_MIN_PX } from '../graph/overview-capacity';
 
 /** Describes the canvas pane the first view has to fit into, in screen pixels. */
 export type ViewSize = { width: number; height: number };
@@ -87,8 +88,6 @@ export function planFirstView(plan: Plan): Set<string> {
   return chosen;
 }
 
-/** Smallest on-screen card name used by both lineage and mapping overviews. */
-export const NAME_MIN_PX = 9;
 /** Native card-name size shared by detailed and compact cards. */
 export const CARD_NAME_PX = 14;
 

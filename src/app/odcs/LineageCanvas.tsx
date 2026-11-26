@@ -23,7 +23,8 @@ import { closure, findAssets, foreignKeyPath, cardRows, COLLAPSED_MAX, selection
 import { LineageCardNode, type CardData } from './LineageCard';
 import { cardHeight, cardGeometry, compactOverviewZoomFloor, CARD_W, HEADER_H, ROW_H, MORE_H, FILTER_H, FOOT_H, LIST_ROWS, type LayoutCard, type LayoutEdge } from './lineage-layout';
 import { buildLineLabels, type LineLabel } from './edge-labels';
-import { kindOrder, planFirstView, CARD_NAME_PX, NAME_MIN_PX } from './lineage-view';
+import { kindOrder, planFirstView, CARD_NAME_PX } from './lineage-view';
+import { NAME_MIN_PX } from '../graph/overview-capacity';
 import { edgeTypes } from './LineageEdge';
 import { LineageSubbar, LineageToolbar, LineageViewportControls } from './LineageToolbar';
 import { MeasurementWatchdog, useLayout, useMeasuredNodeSizes } from './useLineageLayout';
