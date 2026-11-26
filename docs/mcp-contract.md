@@ -46,6 +46,8 @@ the normal bearer refusal.
 
 Usage counters (`SW_USAGE_COUNTERS=on`) count three of these tools, through their twin routes and with the origin `mcp`: `get_mapping_context` (`agent.context.read`), `plan_query` (`agent.plan`) and `explain_metric` (`metrics.explain`). No other tool is counted, including `get_mapping_catalog` and every file read. The counting is done by the operation boundary after the answer exists, so a tool cannot skip it or change the answer. `tests/usage/usage-mcp-tools.test.ts` drives the three tools through a reference client.
 
+The same three tools carry published agent context and status flags: `get_mapping_context` in `aiContext` and in `governance` on each governed concept, `plan_query` in `governance` (`kind`, `name`, `status`, `replacedBy`, `reason`), and `explain_metric` in `conceptGovernance`. Each flag holds only `status`, `replacedBy` and `reason`. Owner, steward, classification and notes are never in an answer. `tests/mcp/agent-context-tools.test.ts` publishes the governed fixture project and checks each tool for every one of these fields by name.
+
 A `git_commit` answer is `{ commit, branch, files }`, plus `movedFrom` when the commit left the default branch and `altered` (the paths whose committed bytes differ from the listed versions) when a hook or filter rewrote them. An altered commit is a success, so its receipt is kept.
 
 ## Route dispositions
