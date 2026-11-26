@@ -56,14 +56,16 @@
 }
 
 .mesh-import-list li {
-  display: grid;
-  gap: 0.25rem;
   padding-block: 0.25rem;
 }
 
+.mesh-import-list li > div {
+  margin-top: 0.15rem;
+}
+
 .mesh-import-list li > button {
-  justify-self: start;
-  margin-top: 0.25rem;
+  display: block;
+  margin-top: 0.4rem;
 }
 
 .mesh-import-list:empty {
@@ -91,7 +93,6 @@
   overflow-wrap: anywhere;
 }
 
-.mesh-details,
 .mesh-view,
 .mesh-domains {
   display: grid;
@@ -126,4 +127,9 @@
 .mesh-unavailable {
   border: 1px dashed currentColor;
   padding: 0.5rem;
+}
+
+/* Used by sits under the project's imports with room above it; the heading and its text keep their normal spacing. */
+.mesh-details > .mesh-imports {
+  margin-top: 0.75rem;
 }

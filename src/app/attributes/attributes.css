@@ -88,3 +88,12 @@
 .attribute-actions button {
   padding: 2px 6px;
 }
+
+/* The reading sentence keeps its half-width cell beside Multiplicity, and its box grows to show the whole sentence. */
+.item-fields label.attribute-reading {
+  grid-column: auto;
+}
+.attribute-reading textarea {
+  field-sizing: content;
+  resize: none;
+}

@@ -85,7 +85,7 @@ export function AttributeForm({ section, conceptName, relationshipIndex, initial
           </select>
           <small>The value types of this file, then the built-in ones.</small>
         </label>
-        <label>
+        <label className="attribute-reading">
           <span>Reading sentence</span>
           {/* A reading sentence is often longer than one line, so it wraps instead of scrolling sideways. */}
           <textarea rows={2} value={reading} onChange={event => changeField('reading', event.target.value)} />
