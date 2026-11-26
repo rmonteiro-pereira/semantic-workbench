@@ -363,13 +363,21 @@ function segmentIntersectsViewport(start: [number, number], end: [number, number
 }
 
 /** Puts each label clear of other labels and nodes, adding lanes when routes are crowded. */
-export function placeLabels(items: { id: string; text: string; points: [number, number][]; candidates?: [number, number][]; bounds?: Box }[], boxes: Box[], labelScale = 1, viewport?: Box) {
+export function placeLabels(
+  items: { id: string; text: string; points: [number, number][]; candidates?: [number, number][]; bounds?: Box; intersectsViewport?: (viewport: Box) => boolean }[],
+  boxes: Box[],
+  labelScale = 1,
+  viewport?: Box,
+) {
   const obstacles = [...boxes];
   const positions = new Map<string, [number, number]>();
   for (const item of items) {
     if (viewport) {
       if (!routeBoundsIntersect(item.bounds ?? routeBounds(item.points), viewport)) continue;
-      if (!item.points.some((point, index) => index > 0 && segmentIntersectsViewport(item.points[index - 1], point, viewport))) continue;
+      const intersects = item.intersectsViewport
+        ? item.intersectsViewport(viewport)
+        : item.points.some((point, index) => index > 0 && segmentIntersectsViewport(item.points[index - 1], point, viewport));
+      if (!intersects) continue;
     }
     const candidates = item.candidates ?? labelCandidates(item.points);
     if (!candidates.length) continue;

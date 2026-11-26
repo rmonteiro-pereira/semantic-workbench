@@ -77,7 +77,7 @@ readable neighbors. The optional mini-map is
 off until requested. Fit reserves its corner above 650 px. Collapsed Network relationship labels
 avoid cards, area headers and the displayed mini-map, including change labels when Labels is off. Their placement and leader anchors follow
 the rendered smart route or its live Bézier fallback. Leaders refine their endpoint on the painted
-curve rather than its sampled chords; a route must intersect the viewport to claim a visible label lane. Placement updates when a pan or zoom
+curve rather than its sampled chords; a route must intersect the viewport to claim a visible label lane. Visibility refines the painted curve at the viewport edge, including tangencies, independently of placement chords. Placement updates when a pan or zoom
 settles, so a count can pass under the mini-map while the canvas is still moving. The phone layout hides the map and
 uses the whole canvas width. A finite viewport cannot display an unlimited number of full-size labels;
 area collapse, zoom and focused views make that trade-off explicit.

@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { measureLabelRoute, visibleLabelRoute, labelRouteAnchor } from '../src/app/graph/label-route';
-import { nearestRoutePoint } from '../src/app/graph/routes';
+import { nearestRoutePoint, placeLabels } from '../src/app/graph/routes';
 import { useFullGraphEdges } from '../src/app/graph/useFullGraphEdges';
 
 function paintedPath(length: number, at: (offset: number) => { x: number; y: number }, bounds = { x: 0, y: 0, width: 100, height: 100 }) {
@@ -118,3 +118,35 @@ test('StrictMode effect remount measures a reported route exactly once', async (
   expect(result.measurements).toBe(1);
   expect(result.renders).toBeGreaterThanOrEqual(2);
 }, 30000);
+
+const edgeViewport = { x: 0, y: 0, width: 100, height: 100 };
+
+test('a painted curve inside the viewport receives a label', () => {
+  const path = paintedPath(80, offset => ({ x: 10 + offset, y: 50 + 10 * Math.sin((offset / 80) * Math.PI) }));
+  const geometry = visibleLabelRoute(measureLabelRoute(path.element), edgeViewport)!;
+  expect(placeLabels([{ id: 'inside', text: '2', ...geometry }], [], 1, edgeViewport).has('inside')).toBe(true);
+});
+
+test('a painted curve outside overlapping bounds receives no label', () => {
+  const path = paintedPath(100, offset => ({ x: -100 + offset * 1.5, y: 50 - offset * 1.5 }), { x: -100, y: -100, width: 150, height: 150 });
+  expect(visibleLabelRoute(measureLabelRoute(path.element), edgeViewport)).toBeUndefined();
+});
+
+test('a painted curve grazing an edge stays visible with both ends offscreen', () => {
+  const tangent = 50.7;
+  const path = paintedPath(100, offset => ({ x: offset, y: -(((offset - tangent) / 50) ** 2) }), { x: 0, y: -2, width: 100, height: 2 });
+  const geometry = visibleLabelRoute(measureLabelRoute(path.element), edgeViewport)!;
+  expect(geometry).toBeDefined();
+  expect(geometry.points.every(point => point[1] < 0)).toBe(true);
+  expect(placeLabels([{ id: 'grazing', text: '2', ...geometry }], [], 1, edgeViewport).has('grazing')).toBe(true);
+});
+
+test('a chord crossing alone cannot give an offscreen painted curve a label', () => {
+  const radius = 100;
+  const narrowViewport = { x: 99.85, y: 3, width: 0.01, height: 0.1 };
+  const path = paintedPath((Math.PI * radius) / 2, offset => ({ x: radius * Math.cos(offset / radius), y: radius * Math.sin(offset / radius) }));
+  const route = measureLabelRoute(path.element);
+  visibleLabelRoute(route, viewport);
+  expect(placeLabels([{ id: 'chord', text: '2', points: route.points! }], [], 1, narrowViewport).has('chord')).toBe(true);
+  expect(visibleLabelRoute(route, narrowViewport)).toBeUndefined();
+});
