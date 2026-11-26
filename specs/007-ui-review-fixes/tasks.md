@@ -529,9 +529,10 @@ Repository paths are relative to the worktree root. `<out>` is the lane's output
   - Change: One integrator edits CHANGELOG.md once so lanes never conflict on it.
   - Proof: `bun --bun run check` passes; `rg -n 'one to five|Dry run|first view shows every entity' docs README.md` shows only intended text.
 
-- [ ] T078 Run `speckit-analyze` again on the final artefacts, then the architecture review (`architecture-reviewer`) and record it with `review_marker.py mark` before the pull request.
+- [x] T078 Run `speckit-analyze` again on the final artefacts, then the architecture review (`architecture-reviewer`) and record it with `review_marker.py mark` before the pull request.
   - Change: Fix findings in the lane that owns the file.
   - Proof: Analyze report has no CRITICAL; reviewer verdict recorded.
+  - Disposition (26 Nov 2026): speckit-analyze reported no CRITICAL finding; its record mismatches were fixed in b868bec9. The architecture review approved with follow-ups; its four fix-before-merge items were fixed in 54e54c8f, 3175d9e1, 5c671d21 and 2e524d23, and a second pass approved them. Follow-ups are listed at the end of evidence/GATE.md.
 
 ---
 

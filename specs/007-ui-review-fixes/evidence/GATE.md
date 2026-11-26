@@ -2,6 +2,10 @@
 
 ## After merging main da54cf17
 
+**Pre-merge reviews (26 Nov 2026).** Code review: three rounds; round 3 is clean. Specification analysis: no CRITICAL
+finding; record mismatches fixed in b868bec9. Architecture review: approve with follow-ups; its four fix-before-merge items
+were fixed in 54e54c8f, 3175d9e1, 5c671d21 and 2e524d23 and approved on a second pass.
+
 ### Architecture refinements
 
 The four architecture findings are addressed in separate local commits. Form error wording, field placement, graph sizing and full-screen presentation are preserved.
