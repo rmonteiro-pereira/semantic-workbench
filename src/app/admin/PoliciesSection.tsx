@@ -109,7 +109,7 @@ export function PoliciesSection() {
         </>
       )}
       {change && data && (
-        <AdminConfirmation title={`${change.description}?`} onCancel={() => setChange(null)}>
+        <AdminConfirmation title={change.deleted ? `${change.description}?` : change.description} onCancel={() => setChange(null)}>
           {change.deleted && <p>The rule {change.deleted} stops applying once the change is saved. The built-in rules are not affected.</p>}
           <ReviewChange area="policies" proposal={{ rules: change.rules }} baseVersion={data.version} onSaved={saved} description={change.description} destructive={Boolean(change.deleted)} inline />
         </AdminConfirmation>

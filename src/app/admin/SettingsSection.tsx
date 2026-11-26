@@ -160,10 +160,12 @@ function SettingsEditor({ initial, version, onSaved }: { initial: Settings; vers
         Idle hours
         <input type="number" min="1" value={settings.session.idleHours} onChange={event => lifetime('idleHours', event.target.value)} />
       </label>
+      <p className="admin-field-hint">Signs a person out after this many hours without activity.</p>
       <label>
         Absolute hours
         <input type="number" min="1" value={settings.session.absoluteHours} onChange={event => lifetime('absoluteHours', event.target.value)} />
       </label>
+      <p className="admin-field-hint">Signs a person out this many hours after they signed in, even while active.</p>
       {error && <p role="alert">{error}</p>}
       <button disabled={busy || settings.session.idleHours <= 0 || settings.session.absoluteHours <= 0} onClick={() => setConfirm(true)}>
         Save settings

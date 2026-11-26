@@ -25,7 +25,7 @@ export const ADMIN_SECTIONS = [
   {
     id: 'projects',
     label: 'Projects access',
-    description: 'Set which domains and projects each group can see.',
+    description: 'Group projects into domains, list their contacts, and protect branches and restricted paths.',
   },
   {
     id: 'git-remotes',
