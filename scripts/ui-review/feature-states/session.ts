@@ -70,7 +70,8 @@ export async function capture(session: CaptureSession, page: Page, state: string
   const region = page.locator(crop).first();
   await region.waitFor({ state: 'visible' });
   await page.waitForTimeout(100);
-  await region.scrollIntoViewIfNeeded();
+  // The browser's own scrolling honours scroll-margin, so sticky titles do not cover the region's top.
+  await region.evaluate(element => element.scrollIntoView({ block: 'nearest' }));
   const box = await region.boundingBox();
   if (!box) throw new Error(`The crop ${crop} has no box for ${file}.`);
   if (Math.max(box.width, box.height) > LONGEST_CROP_SIDE) throw new Error(`The crop ${crop} is larger than ${LONGEST_CROP_SIDE} CSS pixels for ${file}.`);

@@ -38,11 +38,23 @@ async function sendMessage(page: Page, text: string) {
   await page.getByRole('button', { name: 'Send message', exact: true }).click();
 }
 
-/** Starts a session and returns its id once the panel waits for the agent. */
-async function startSession(page: Page) {
+/**
+ * Starts a session, photographing the connecting state while the server's answer is held,
+ * and returns the session id once the panel waits for the agent.
+ */
+async function startSession(session: CaptureSession, page: Page) {
+  const held = Promise.withResolvers<void>();
+  await page.route('**/api/acp/sessions', async route => {
+    await held.promise;
+    await route.continue();
+  });
   const pending = page.waitForResponse(response => response.url().endsWith('/api/acp/sessions') && response.request().method() === 'POST');
   await page.getByRole('button', { name: 'Start session', exact: true }).click();
+  await page.getByRole('heading', { name: 'Connecting', exact: true }).waitFor();
+  await capture(session, page, 'connecting', 'dialog[open]');
+  held.resolve();
   const created = await (await pending).json();
+  await page.unroute('**/api/acp/sessions');
   await page.getByText(/Waiting for your agent/).waitFor();
   return created.id as string;
 }
@@ -59,8 +71,8 @@ async function captureSessionError(session: CaptureSession, page: Page) {
 async function captureConversation(session: CaptureSession, server: PanelServer, page: Page) {
   await capture(session, page, 'open-empty', 'dialog[open]');
   await captureSessionError(session, page);
-  const sessionId = await startSession(page);
-  await capture(session, page, 'connecting', '.agent-panel');
+  const sessionId = await startSession(session, page);
+  await capture(session, page, 'waiting', '.agent-panel');
   const stored = server.service.store.findForRelay(sessionId)!;
   const replies = [[{ say: 'Definitions reviewed.' }], [{ say: 'Long definition path/'.repeat(100) }]];
   const relay = await startRelay(server, { id: stored.id, code: stored.code! }, replies);
