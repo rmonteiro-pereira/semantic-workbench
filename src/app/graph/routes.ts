@@ -280,8 +280,24 @@ function rectanglesOverlap(first: Box, second: Box) {
   return first.x < second.x + second.width && second.x < first.x + first.width && first.y < second.y + second.height && second.y < first.y + first.height;
 }
 
-function clearLabelPosition(text: string, candidates: [number, number][], obstacles: Box[], labelScale: number): [number, number] {
+function clearLabelPosition(text: string, candidates: [number, number][], obstacles: Box[], labelScale: number, viewport?: Box): [number, number] {
   const clear = (position: [number, number]) => !obstacles.some(obstacle => rectanglesOverlap(obstacle, labelBox(text, position, labelScale)));
+  if (viewport) {
+    // Prefer a visible lane before searching beyond the canvas on a crowded route.
+    const reach = Math.max(...candidates.map(([, y]) => Math.max(Math.abs(y - viewport.y), Math.abs(y - viewport.y - viewport.height))));
+    for (let offset = 0; offset <= reach; offset += 22 * labelScale) {
+      for (const [x, y] of candidates) {
+        for (const position of [
+          [x, y - offset],
+          [x, y + offset],
+        ] as [number, number][]) {
+          const box = labelBox(text, position, labelScale);
+          const inside = box.x >= viewport.x && box.y >= viewport.y && box.x + box.width <= viewport.x + viewport.width && box.y + box.height <= viewport.y + viewport.height;
+          if (inside && clear(position)) return position;
+        }
+      }
+    }
+  }
   const onRoute = candidates.find(clear);
   if (onRoute) return onRoute;
   // Dense routes need more than a fixed number of lanes to keep enlarged labels off cards.
@@ -296,13 +312,13 @@ function clearLabelPosition(text: string, candidates: [number, number][], obstac
 }
 
 /** Puts each label clear of other labels and nodes, adding lanes when routes are crowded. */
-export function placeLabels(items: { id: string; text: string; points: [number, number][] }[], boxes: Box[], labelScale = 1) {
+export function placeLabels(items: { id: string; text: string; points: [number, number][] }[], boxes: Box[], labelScale = 1, viewport?: Box) {
   const obstacles = [...boxes];
   const positions = new Map<string, [number, number]>();
   for (const item of items) {
     const candidates = labelCandidates(item.points);
     if (!candidates.length) continue;
-    const position = clearLabelPosition(item.text, candidates, obstacles, labelScale);
+    const position = clearLabelPosition(item.text, candidates, obstacles, labelScale, viewport);
     obstacles.push(labelBox(item.text, position, labelScale));
     positions.set(item.id, position);
   }

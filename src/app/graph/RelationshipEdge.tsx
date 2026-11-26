@@ -35,7 +35,8 @@ type LabelProps = {
   traffic?: ItemTraffic | null;
 };
 
-function RelationshipLabel({ edge, text, points, fallback, traffic }: LabelProps) {
+/** Draws a relationship label above paths, with a leader when its position is displaced. */
+export function RelationshipLabel({ edge, text, points, fallback, traffic }: LabelProps) {
   const label = (edge.data?.labelAt as [number, number] | undefined) ?? fallback;
   const scale = (edge.data?.labelScale as number | undefined) ?? 1;
   const bounds = labelBox(String(text), label, scale);

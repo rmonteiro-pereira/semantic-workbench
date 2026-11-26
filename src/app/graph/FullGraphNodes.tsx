@@ -7,6 +7,7 @@ import type { Relationship } from '../../shared/core/model';
 import { pathMatchesEndpoints } from './edge-path';
 import { edgeAppearance } from './edge-styles';
 import { RoutedEdge } from './RoutedEdge';
+import { RelationshipLabel } from './RelationshipEdge';
 import { entityCountLabel } from './overview-capacity';
 import { EntityName, humanizeIdentifier } from './EntityName';
 import { shownName } from './text-fit';
@@ -77,6 +78,20 @@ export const GraphEdge = memo((plainProps: EdgeProps) => {
   // With Traffic off the line is drawn from the props it always had.
   const traffic = useBundleTraffic(plainProps.data?.relationships as Relationship[] | undefined);
   const props = traffic?.level ? { ...plainProps, style: { ...plainProps.style, strokeWidth: trafficStrokeWidth(Number(plainProps.style?.strokeWidth ?? 1.2), traffic.level) } } : plainProps;
+  if (!props.data?.labelAt || !props.label) return <GraphPath {...props} />;
+  const points: [number, number][] = [
+    [props.sourceX, props.sourceY],
+    [props.targetX, props.targetY],
+  ];
+  return (
+    <>
+      <GraphPath {...props} label={undefined} />
+      <RelationshipLabel edge={props} text={props.label} points={points} fallback={points[0]} />
+    </>
+  );
+});
+
+function GraphPath(props: EdgeProps) {
   const appearance = edgeAppearance(props);
   const points = props.data?.layoutRoute as Point[] | undefined;
   const path = points && roundedPath(points, 8);
@@ -104,6 +119,6 @@ export const GraphEdge = memo((plainProps: EdgeProps) => {
   }
   if (!props.data?.routeDetailed) return <BezierEdge {...props} />;
   return <RoutedEdge {...props} />;
-});
+}
 export const nodeTypes = { entity: EntityNode, businessArea: AreaNode };
 export const edgeTypes = { routed: GraphEdge };

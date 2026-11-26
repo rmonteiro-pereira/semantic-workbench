@@ -74,6 +74,7 @@ export function FullGraph(props: Props) {
   const [zoomedGroupId, setZoomedGroupId] = useState('');
   const followZoom = (zoom: number) => setZoomStep(Math.floor(zoom * 20) / 20);
   const [size, setSize] = useState({ width: 1200, height: 650 });
+  const [labelViewportSize, setLabelViewportSize] = useState({ width: 0, height: 0 });
   // The first layout waits for a real measurement, so it is planned for the pane the person sees.
   const [paneMeasured, setPaneMeasured] = useState(false);
   const flow = useRef<ReactFlowInstance<any, any> | null>(null);
@@ -181,8 +182,14 @@ export function FullGraph(props: Props) {
       });
     });
     observer.observe(el);
+    const canvas = el.querySelector('.react-flow');
+    const canvasObserver = new ResizeObserver(([entry]) => {
+      setLabelViewportSize({ width: entry.contentRect.width, height: entry.contentRect.height });
+    });
+    if (canvas) canvasObserver.observe(canvas);
     return () => {
       observer.disconnect();
+      canvasObserver.disconnect();
       cancelAnimationFrame(resizeFrame);
       clearTimeout(settleTimer);
     };
@@ -262,8 +269,14 @@ export function FullGraph(props: Props) {
       }, 100);
     });
     observer.observe(el);
+    const canvas = el.querySelector('.react-flow');
+    const canvasObserver = new ResizeObserver(([entry]) => {
+      setLabelViewportSize({ width: entry.contentRect.width, height: entry.contentRect.height });
+    });
+    if (canvas) canvasObserver.observe(canvas);
     return () => {
       observer.disconnect();
+      canvasObserver.disconnect();
       clearTimeout(timer);
     };
   }, [busy, opening.checking, opening.automaticCollapse, collapseChoice, fitWithin, focusSelection, algorithm, zoomedGroupId, miniMapReservedWidth]);
@@ -330,8 +343,37 @@ export function FullGraph(props: Props) {
         }),
     );
   }, [nodes]);
+  const labelObstacles = useMemo(
+    () => [
+      ...positions.values(),
+      ...nodes
+        .filter(node => node.type === 'businessArea')
+        .map(node => ({
+          x: node.position.x,
+          y: node.position.y,
+          width: Number(node.style.width),
+          // The header ends where the first child card begins; its name stays clear of labels.
+          height: Math.min(Number(node.style.height), ...nodes.filter(child => child.parentId === node.id).map(child => child.position.y)),
+        })),
+    ],
+    [nodes, positions],
+  );
   const dragging = nodes.some(n => n.dragging);
-  const edges = useFullGraphEdges({ connections, positions, selectedEdge: props.selectedEdge, focus, labels, hoverEdge, algorithm, layoutRoutes, viewport, size, dragging });
+  const edges = useFullGraphEdges({
+    connections,
+    positions,
+    labelObstacles,
+    labelViewportSize,
+    selectedEdge: props.selectedEdge,
+    focus,
+    labels,
+    hoverEdge,
+    algorithm,
+    layoutRoutes,
+    viewport,
+    size,
+    dragging,
+  });
   useEffect(() => {
     if (!props.search || busy) return;
     const match = overview.entities.find(e => e.name.toLowerCase().includes(props.search.toLowerCase()) || e.id.toLowerCase().includes(props.search.toLowerCase()));

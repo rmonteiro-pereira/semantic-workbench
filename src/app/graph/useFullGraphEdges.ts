@@ -4,11 +4,14 @@ import { MarkerType } from '@xyflow/react';
 import type { groupRelationships } from './graph-view';
 import type { FullLayoutResult } from './full-layout';
 import { unpublishedEdge } from './edge-styles';
+import { placeLabels, type Box } from './routes';
 import type { ChangeState } from '../../shared/item-diff/item-change';
 
 type Inputs = {
   connections: ReturnType<typeof groupRelationships>;
   positions: Map<string, { x: number; y: number; width: number; height: number }>;
+  labelObstacles: Box[];
+  labelViewportSize: { width: number; height: number };
   selectedEdge: string;
   focus: string;
   labels: boolean;
@@ -27,7 +30,7 @@ function relationshipOpacity(emphasized: boolean, hasFocus: boolean) {
 }
 
 /** Keeps graph connections stable until their layout, viewport or emphasis changes. */
-export function useFullGraphEdges({ connections, positions, selectedEdge, focus, labels, hoverEdge, algorithm, layoutRoutes, viewport, size, dragging }: Inputs) {
+export function useFullGraphEdges({ connections, positions, labelObstacles, labelViewportSize, selectedEdge, focus, labels, hoverEdge, algorithm, layoutRoutes, viewport, size, dragging }: Inputs) {
   const edges = useMemo(
     () =>
       connections.map(connection => {
@@ -106,5 +109,26 @@ export function useFullGraphEdges({ connections, positions, selectedEdge, focus,
       }),
     [connections, positions, selectedEdge, focus, labels, hoverEdge, algorithm, layoutRoutes, viewport, size, dragging],
   );
-  return edges;
+  return useMemo(() => {
+    const items = edges.flatMap(edge => {
+      if (algorithm !== 'network' || !edge.label || !edge.source.startsWith('collapsed:') || !edge.target.startsWith('collapsed:')) return [];
+      const source = positions.get(edge.source);
+      const target = positions.get(edge.target);
+      if (!source || !target) return [];
+      const points: [number, number][] = [
+        [source.x + source.width / 2, source.y + source.height / 2],
+        [target.x + target.width / 2, target.y + target.height / 2],
+      ];
+      return [{ id: edge.id, text: String(edge.label), points }];
+    });
+    // Area headers draw above edge paths. Reserve them and the cards, then share one label plane.
+    const visibleCanvas = {
+      x: (2 - viewport.x) / viewport.zoom,
+      y: (2 - viewport.y) / viewport.zoom,
+      width: (labelViewportSize.width - 4) / viewport.zoom,
+      height: (labelViewportSize.height - 4) / viewport.zoom,
+    };
+    const labelPositions = placeLabels(items, labelObstacles, 1, visibleCanvas);
+    return edges.map(edge => ({ ...edge, data: { ...edge.data, labelAt: labelPositions.get(edge.id) } }));
+  }, [edges, positions, labelObstacles, algorithm, viewport, labelViewportSize]);
 }

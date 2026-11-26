@@ -400,7 +400,8 @@ Network first lays out the model and measures its smallest rendered entity name 
 Fit zoom. If any name is smaller than 9 screen pixels, it opens with one counted card per area
 instead; models above 250 visible entities use counted cards immediately as a layout safety cap.
 Expand an area or choose **Expand all** to show its entities and internal relationships. Your
-explicit area choices are preserved. Counted-card text compensates for zoom.
+explicit area choices are preserved. Counted-card text compensates for zoom. In Network, enabled
+relationship labels between counted areas occupy separate positions clear of area cards and names.
 
 Layered opens on the first area in the existing area order, at readable name scale. Pan to reach
 the other areas, or choose **Fit model** to see the complete layout. Fit may make individual

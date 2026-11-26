@@ -149,6 +149,7 @@
 .neighborhood-graph .react-flow__edges {
   z-index: 0;
 }
+.full-graph .react-flow__edgelabel-renderer,
 .neighborhood-graph .react-flow__edgelabel-renderer {
   z-index: 1;
 }
