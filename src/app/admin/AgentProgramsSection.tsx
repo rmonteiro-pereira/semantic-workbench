@@ -128,8 +128,8 @@ export function AgentProgramsSection() {
                   <button aria-label={`Edit ${program.name || 'new agent program'}`} onClick={() => setEditing(index)}>
                     Edit
                   </button>
-                  <button className="admin-remove" onClick={() => removeProgram(index)}>
-                    Remove {program.name || 'agent program'}
+                  <button className="admin-remove" aria-label={`Remove ${program.name || 'agent program'}`} onClick={() => removeProgram(index)}>
+                    Remove
                   </button>
                 </>
               )}
@@ -168,6 +168,7 @@ function ProgramsReview({
         onSaved={onSaved}
         description={changeDescription('Save agent programs', removedNames)}
         destructive={removedNames.length > 0}
+        confirmLabel={removedNames.length > 0 ? 'Save and remove' : undefined}
         dirty
       />
       <button onClick={onDiscard}>Discard changes</button>

@@ -126,6 +126,7 @@ export function ProjectsEditor({ initial, version, onSaved }: { initial: Project
         onSaved={onSaved}
         description={changeDescription('Save project access', projectRemovals(initial, config))}
         destructive={projectRemovals(initial, config).length > 0}
+        confirmLabel={projectRemovals(initial, config).length > 0 ? 'Save and remove' : undefined}
         dirty={JSON.stringify(config) !== JSON.stringify(initial)}
       />
     </>

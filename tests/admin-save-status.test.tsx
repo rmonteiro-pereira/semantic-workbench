@@ -22,4 +22,9 @@ test('a draft with changes says they are not saved and names the button that sav
 test('an unavailable review says why instead of only greying its button', () => {
   const html = renderToStaticMarkup(<ReviewChange area="policies" proposal={{ grants: [] }} baseVersion="v1" onSaved={() => {}} disabled unavailableReason="Validate the rule first." />);
   expect(html).toContain('Validate the rule first.');
+  // While the review is unavailable its reason stands alone; 'use Review change' would contradict it.
+  const dirtyButUnavailable = renderToStaticMarkup(
+    <ReviewChange area="policies" proposal={{ grants: [] }} baseVersion="v1" onSaved={() => {}} disabled unavailableReason="Validate the rule first." dirty />,
+  );
+  expect(dirtyButUnavailable).not.toContain('Unsaved changes.');
 });

@@ -60,6 +60,7 @@ export function ReviewChange({
   description = 'Save changes',
   changeLabel,
   destructive = false,
+  confirmLabel,
   dirty = false,
   unavailableReason,
   inline = false,
@@ -74,6 +75,8 @@ export function ReviewChange({
   changeLabel?: string;
   /** The change removes or ends something, so its confirm button is the danger one. */
   destructive?: boolean;
+  /** A short confirm label for when the title already names everything the change removes. */
+  confirmLabel?: string;
   /** The draft differs from what is saved, so the reader is told it is not saved yet. */
   dirty?: boolean;
   /** Why the review button is unavailable, shown beside it instead of a silent grey button. */
@@ -130,7 +133,7 @@ export function ReviewChange({
   const confirmButtons = (
     <>
       <button className={destructive ? 'danger' : 'primary'} disabled={busy || disabled} onClick={save}>
-        Confirm {lowerFirst(description)}
+        {confirmLabel ?? `Confirm ${lowerFirst(description)}`}
       </button>
       {inline && (
         <button disabled={busy} onClick={() => setReview(null)}>
@@ -150,7 +153,7 @@ export function ReviewChange({
         {inline && ready && review && confirmButtons}
       </div>
       {disabled && unavailableReason && <p className="admin-unsaved">{unavailableReason}</p>}
-      {dirty && !ready && <UnsavedChangesNote action={previewLabels[area] ?? 'Review change'} />}
+      {dirty && !ready && !disabled && <UnsavedChangesNote action={previewLabels[area] ?? 'Review change'} />}
       {!inline && ready && review && (
         <AdminConfirmation title={changeLabel ?? description} onCancel={() => setReview(null)} cancelLabel="Back to editing" actions={confirmButtons}>
           <DryRunResult result={review.result} />
