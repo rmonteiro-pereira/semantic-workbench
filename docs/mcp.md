@@ -54,7 +54,7 @@ There are 23 tools. `tools/list` returns them sorted by name, and only the tools
 | `read_file` | Read a file by byte range, with its version | read |
 | `restore_file` | Restore a trashed file without overwriting; needs an idempotency key | change |
 | `save_file` | Replace a file by patches or full text, from the version you read | change |
-| `validate_text` | Check proposed text exactly as saving would, writing nothing | read |
+| `validate_text` | Check proposed text exactly as saving would, writing nothing; for a root or part of an ontology set, `setNotChecked` says whether the set could be checked | read |
 
 Each tool is the twin of an existing route and runs through the same operation boundary, so its authorization, content guards, version checks and audit record are the browser's own. `docs/operations.md` lists the routes.
 

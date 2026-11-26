@@ -7,7 +7,7 @@ import { EDIT_ARGUMENTS, PATCHES, READ_HINTS, VERSION } from './tool-arguments';
 const validateText: ToolDefinition = {
   name: 'validate_text',
   description:
-    'Check proposed text for a file exactly as saving would, without saving. Send the full source, or patches with the version they were made against. Tessera ontologies are accepted, and their findings carry the Tessera codes. Browser-only checks such as SHACL are not covered.',
+    'Check proposed text for a file exactly as saving would, without saving. Send the full source, or patches with the version they were made against. Tessera ontologies are accepted, and their findings carry the Tessera codes. Browser-only checks such as SHACL are not covered. For a root or part of an ontology set, setNotChecked true means the saved set could not be checked for you, so no findings does not mean the set passes.',
   inputSchema: {
     type: 'object',
     properties: { ...EDIT_ARGUMENTS, source: { type: 'string', maxLength: 2_000_000 }, patches: PATCHES, baseVersion: VERSION },
@@ -26,9 +26,10 @@ const validateText: ToolDefinition = {
     };
     const called = await context.twin('files.validate', { params: { slug: args.project, '*': args.path }, body });
     if (!called.ok) return called.failure;
-    const answer = called.answer.body as { valid: boolean; version: string | null; findings: Finding[]; guard: Record<string, unknown> };
+    const answer = called.answer.body as { valid: boolean; version: string | null; findings: Finding[]; guard: Record<string, unknown>; setNotChecked?: boolean };
     const findings = findingsOf(answer.findings, MAXIMUM_FINDINGS);
-    return succeed({ valid: answer.valid, findings, findingCount: answer.findings.length, guard: answer.guard });
+    const setNotice = answer.setNotChecked === undefined ? {} : { setNotChecked: answer.setNotChecked };
+    return succeed({ valid: answer.valid, findings, findingCount: answer.findings.length, guard: answer.guard, ...setNotice });
   },
 };
 
