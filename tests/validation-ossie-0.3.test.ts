@@ -133,3 +133,11 @@ test('a 0.3 mapping uses the 0.3 mapping schema, and mappings stay strict about 
   expect(errorCodes(oldForm)).toContain('schema');
   expect(errorCodes({ ...mapping, version: '0.4.0' })).toContain('schema');
 });
+
+test('workbench attributes on a dataset metric are checked against the metric schema', () => {
+  const model = fixture('sales.semantic.yaml');
+  model.datasets[0].metrics[0].nonportable_extensions = [{ vendor_name: 'SEMANTIC_WORKBENCH', data: { schema: 'semantic-workbench/metric/v1', type: 'unknown' } }];
+  expect(findings(model)).toContain('extension at /datasets/0/metrics/0/nonportable_extensions/0/data');
+  model.datasets[0].metrics[0].nonportable_extensions[0].data.type = 'simple';
+  expect(findings(model)).toEqual([]);
+});

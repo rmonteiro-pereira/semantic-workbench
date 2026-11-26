@@ -140,24 +140,32 @@ function comparable(metric: any) {
 
 type Located = { path: Path; value: any };
 
-/** Metrics keyed by their model and name, so reordering a list changes nothing. */
+/** Adds one list of metrics under a key prefix. A repeated name gets its own key, so one copy cannot hide changes to another. */
+function addMetrics(found: Map<string, Located>, keyPrefix: string, metrics: unknown, listPath: Path) {
+  const seen = new Map<string, number>();
+  list(metrics).forEach((metric, index) => {
+    if (!isObject(metric) || typeof (metric as any).name !== 'string') return;
+    const name = (metric as any).name;
+    const repeat = (seen.get(name) ?? 0) + 1;
+    seen.set(name, repeat);
+    const suffix = repeat > 1 ? '#' + repeat : '';
+    found.set(keyPrefix + '#' + name + suffix, { path: [...listPath, index], value: metric });
+  });
+}
+
+/**
+ * Metrics keyed by their model and name, so reordering a list changes nothing. A 0.3 draft
+ * dataset's own metrics are keyed by their dataset too, so they get the same protection.
+ */
 function metricsOf(document: any): Map<string, Located> {
   const found = new Map<string, Located>();
   if (!document) return found;
   for (const modelPath of semanticModelPaths(document)) {
     const model = modelPath.reduce((value: any, key) => value?.[key], document);
-    const seen = new Map<string, number>();
-    list(model?.metrics).forEach((metric, index) => {
-      if (!isObject(metric) || typeof (metric as any).name !== 'string') return;
-      const name = (metric as any).name;
-      // A repeated name gets its own key, so one copy cannot hide changes to another.
-      const repeat = (seen.get(name) ?? 0) + 1;
-      seen.set(name, repeat);
-      const suffix = repeat > 1 ? '#' + repeat : '';
-      found.set(pointerOf(modelPath) + '#' + name + suffix, {
-        path: [...modelPath, 'metrics', index],
-        value: metric,
-      });
+    addMetrics(found, pointerOf(modelPath), model?.metrics, [...modelPath, 'metrics']);
+    list(model?.datasets).forEach((dataset, index) => {
+      if (!isObject(dataset) || !Array.isArray((dataset as any).metrics)) return;
+      addMetrics(found, `${pointerOf(modelPath)}@${String((dataset as any).name)}`, (dataset as any).metrics, [...modelPath, 'datasets', index, 'metrics']);
     });
   }
   return found;

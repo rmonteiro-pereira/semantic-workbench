@@ -5,6 +5,7 @@
  * vendor dialects stay opaque.
  */
 import { datasetReferences, functionCalls, type FunctionCall } from '../metrics/deps';
+import { readMetricExtension } from '../metrics/extension';
 import type { Issue } from './diagnostics';
 
 /** Where an expression sits, which decides the `AGG` form it may use. */
@@ -103,6 +104,8 @@ function datasetIssues(dataset: Record<string, any>, path: string, datasetNames:
       issues.push(error('duplicate', `${metricPath}/name`, `"${metric.name}" is already a field or metric of dataset "${dataset.name}". Fields and metrics share one namespace.`));
     taken.add(metric.name);
     issues.push(...crossDatasetIssues(metric, metricPath, dataset.name, datasetNames));
+    // Workbench attributes on a dataset metric get the same schema check as on a model metric.
+    issues.push(...readMetricExtension(metric, metricPath).issues);
     issues.push(...expressionIssues(metric.expression, `${metricPath}/expression`, { kind: 'dataset-metric', dataset: dataset.name }, datasetMetrics));
   });
   return issues;
