@@ -214,6 +214,52 @@ async function neighborhood(page: Page, identity: CaptureIdentity) {
   await graphControls(page, identity, screen);
 }
 
+async function uncoveredLineageTarget(page: Page, selector: string, visited: string[]) {
+  return page.locator(selector).evaluateAll((elements, visited) => {
+    for (const element of elements) {
+      const id = element.closest('.lineage-card')?.getAttribute('data-id');
+      const box = element.getBoundingClientRect();
+      const point = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+      const hit = document.elementFromPoint(point.x, point.y);
+      if (id && !visited.includes(id) && hit && element.contains(hit)) return { id, ...point };
+    }
+    return null;
+  }, visited);
+}
+
+async function lineageWalkTarget(page: Page, visited: string[]) {
+  await closeSelectedPath(page);
+  const cards = '.lineage-card:not(.center):not(.group)';
+  // Detailed cards remain the first choice before using the overview's selection action.
+  const buttons = page.locator(cards).getByRole('button', { name: 'Walk here', exact: true });
+  const index = await buttons.evaluateAll(
+    (elements, visited) =>
+      elements.findIndex(element => {
+        const id = element.closest('.lineage-card')?.getAttribute('data-id');
+        const box = element.getBoundingClientRect();
+        const hit = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
+        return !!id && !visited.includes(id) && !!hit && element.contains(hit);
+      }),
+    visited,
+  );
+  if (index >= 0) {
+    const button = buttons.nth(index);
+    const id = await button.evaluate(element => element.closest('.lineage-card')!.getAttribute('data-id')!);
+    return { id, button };
+  }
+  let title = await uncoveredLineageTarget(page, `${cards} .lineage-card-title`, visited);
+  if (!title) {
+    await press(page, /^Fit( model| neighborhood)?$/);
+    title = await uncoveredLineageTarget(page, `${cards} .lineage-card-title`, visited);
+  }
+  if (!title) throw new Error('No uncovered lineage card title or Walk here button');
+  await page.mouse.click(title.x, title.y);
+  const path = page.getByRole('dialog', { name: 'Selected path', exact: true });
+  const button = path.getByRole('button', { name: 'Walk here', exact: true });
+  await button.waitFor({ state: 'visible' });
+  return { id: title.id, button };
+}
+
 async function lineage(page: Page, identity: CaptureIdentity, dataset: boolean) {
   const screen = dataset ? 'dataset-lineage' : 'contract-lineage';
   if (dataset) {
@@ -250,26 +296,19 @@ async function lineage(page: Page, identity: CaptureIdentity, dataset: boolean) 
   const visited = new Set([await page.locator('.lineage-card.center').getAttribute('data-id')]);
   for (let walk = 1; walk <= 3; walk++) {
     await capture(page, identity, screen, `walk-${walk}-before`);
-    const buttons = page.locator('.lineage-card:not(.center):not(.group)').getByRole('button', { name: 'Walk here', exact: true });
-    const reachable = await buttons.evaluateAll(
-      (elements, visited) =>
-        elements.findIndex(element => {
-          const id = element.closest('.lineage-card')?.getAttribute('data-id');
-          const box = element.getBoundingClientRect();
-          const hit = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
-          return !visited.includes(id ?? '') && !!hit && element.contains(hit);
-        }),
-      [...visited].filter((id): id is string => !!id),
-    );
+    let target: Awaited<ReturnType<typeof lineageWalkTarget>>;
     await attempt(page, identity, screen, `walk-${walk}-hover`, async () => {
-      if (reachable < 0) throw new Error('No uncovered Walk here button in the current canvas');
-      await buttons.nth(reachable).hover();
+      target = await lineageWalkTarget(
+        page,
+        [...visited].filter((id): id is string => !!id),
+      );
+      await target.button.hover();
     });
     await attempt(page, identity, screen, `walk-${walk}-after`, async () => {
-      if (reachable < 0) throw new Error('No uncovered Walk here button in the current canvas');
-      const id = await buttons.nth(reachable).evaluate(element => element.closest('.lineage-card')?.getAttribute('data-id'));
-      await buttons.nth(reachable).click();
-      if (id) visited.add(id);
+      if (!target) throw new Error('No uncovered lineage walk target');
+      await target.button.click();
+      await page.waitForFunction(id => document.querySelector('.lineage-card.center')?.getAttribute('data-id') === id, target.id);
+      visited.add(target.id);
     });
   }
   await graphControls(page, identity, screen);
