@@ -2,6 +2,33 @@
 
 ## After merging main da54cf17
 
+### Architecture refinements
+
+The four architecture findings are addressed in separate local commits. Form error wording, field placement, graph sizing and full-screen presentation are preserved.
+
+| Finding                                             | Resolution                                                                                                                            | Commit                                       |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| Form findings depend on labels or message text      | Planner field metadata, validation issue codes, typed wizard keys and a shared field-control component                                | `54e54c8f`                                   |
+| Repeated minimum name size                          | Graph text fitting and lineage consume the single constant in `overview-capacity.ts`; browser and mutation fixtures follow that owner | `3175d9e1`                                   |
+| Full-screen component imported through a graph view | Neighborhood imports its control directly; lineage documents its compact control                                                      | `5c671d21`                                   |
+| Incomplete browser architecture map                 | Opening, edge, viewport and control owners are listed; compact lineage cards and the shared legend are assigned to the lineage module | Documentation commit containing this section |
+
+| Check                              | Result                                                                                   | Main comparison                                                            |
+| ---------------------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `test:item-edit`, before refactor  | Exit 0; 12 checks, including new inline-error assertions                                 | No rerun needed for the characterization baseline                          |
+| `test:item-edit`, after refactor   | Exit 0; the same 12 checks                                                               | No changed assertion failure                                               |
+| `test:metrics`                     | Exit 0; 11 checks                                                                        | No changed assertion failure                                               |
+| Focused sizing unit files          | Exit 0; 38 tests across 4 files                                                          | No changed assertion failure                                               |
+| `test:overview-areas`              | Exit 0; 7 checks                                                                         | No changed assertion failure                                               |
+| Lineage mutation fixture baseline  | Exit 0                                                                                   | Full mutation gate not repeated                                            |
+| `test:lineage`                     | Exit 1; UBL first view 4,070 ms, limit 2,000 ms; ten earlier checks passed               | Existing gate records the same timed assertion failing on main at 5,195 ms |
+| Focused full-screen browser checks | Exit 0; whole-model, neighborhood and lineage controls enter and exit; no runtime errors | No changed assertion failure                                               |
+| `bun run check`                    | Exit 0 after each code finding                                                           | Not rerun on main                                                          |
+
+The initial sizing browser attempt exposed stale imports in three test drivers after removing the duplicate constant export. Those imports are corrected in `3175d9e1`; the corrected lineage run reaches the inherited timing failure. Its disposable mutation fixture also resolves the shared constant from its owning module.
+
+No new product regression is identified by these targeted checks. The inherited UBL timing failure remains open. The broader capture classification remains incomplete, and the journey completion checkbox stays unchecked. The full unit suite, full mutation suite and capture matrix were not repeated for these internal refactors. Deferred architecture work is listed under **Follow-ups** at the end of this record.
+
 ### Focused Group menu and Collapse areas checks
 
 Both suspected regressions are cleared for the Mall semantic model (`mall.semantic.yaml`), in local mode on candidate `3fc01797` and main `da54cf17`. No application or browser-suite source
@@ -1752,3 +1779,13 @@ A delayed close did not resolve it. The temporary launcher now uses Vite's suppo
 a real HTTP listener on 5261 and the same listener for HMR. This avoids the failing port probe; it changes no application or suite assertions.
 Every stopped diagnostic and completed suite reported `OWNED_PROCESSES_REMAINING []`.
 - `bun --bun run check` after theme selection changes: exit 0; all 1044 matched files formatted; TypeScript, lint, comments, theme and brand passed.
+
+
+## Follow-ups
+
+- Give lineage overview and detail transitions one owner in the viewport hook, using a discriminated phase union instead of scattered framing flags. Apply the same approach to the smaller whole-graph resize decision.
+- Name the toolbar folding widths and measure the same pane or window dimension in both graph views, including the phone breakpoint used by compact controls.
+- Report layout timings through browser reporting or a ref instead of React state used only for data attributes.
+- Name capture scripts after the screens they capture, document their commands in the development guide, and identify each as a manual tool or connect it to the gate.
+- Move identifier humanization beside text fitting so the catalog does not import it from a component file.
+- Pass the fitted zoom from the layout hook into whole-graph layout calculations so the layout module no longer imports React Flow.

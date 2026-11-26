@@ -517,8 +517,14 @@ the bundle outside the source trees.
   workers, controls, name wrapping and shared edge appearance. `NeighborhoodGraph.tsx` composes
   `useNeighborhoodView.ts` (filtering, walk canvas, shown entities and edges), `useNeighborhoodNodes.ts`
   (positions, chunked reveal, separation by measured size) and `NeighborhoodToolbar.tsx`. `FullGraph.tsx` composes `useFullGraphLayout.ts` (layout cache, the Network worker
-  and ELK layout) and `FullGraphNodes.tsx` (entity, area and relationship renderers). `overview.ts` and `communities.ts`
-  decide display grouping, not standard semantics. The toolbars' drop-down menus, the Group menu
+  and ELK layout) and `FullGraphNodes.tsx` (entity, area and relationship renderers).
+  `useFullGraphOpening.ts` measures the painted first viewport and chooses its readable opening representation.
+  `useFullGraphEdges.ts` builds connections from the current layout and focus.
+  `full-graph-viewport.ts` owns Fit, area framing and readable selection framing.
+  `useNeighborhoodViewport.ts` owns neighborhood fitting, anchoring and viewport restoration.
+  `CompactControls.tsx` folds toolbar controls into a disclosure when space is limited.
+  `FullscreenButton.tsx` supplies the shared whole-model and neighborhood full-screen control.
+  `overview.ts` and `communities.ts` decide display grouping, not standard semantics. The toolbars' drop-down menus, the Group menu
   (`GroupingControls.tsx`) and the Show menu (`ShowMenu.tsx`), share placement, dismissal and keyboard
   focus through `toolbar-menu.ts`. Features add their own Show menu entries through a hook that returns
   a `ShowItem` or null: Traffic (`src/app/usage/traffic-show-item.ts`) and Unpublished work
@@ -529,6 +535,8 @@ the bundle outside the source trees.
   `useLineageWalk.ts` (recorded walk, centre, hops), `useLineageReach.ts` (which cards show),
   `useLineageLayout.ts` (ELK worker, card measurements), `useLineagePierce.ts` (full pierce worker),
   `useLineageViewport.ts` (first view, Fit, card anchoring), `LineageEdge.tsx` and `LineageToolbar.tsx`.
+  `LineageOverviewCard.tsx` renders compact name-only cards shared by lineage and mapping canvases.
+  `LineageLegend.tsx` owns the shared asset and line legend for those canvases; line appearance comes from `graph/edge-styles.ts`.
 - `docs/graph-design.md` describes the Network (fCoSE) and Layered (ELK) layouts, worker routing, card measurement,
   viewport fitting and the pinned React Flow observer patch. No WebGL/Sigma renderer is active.
 
