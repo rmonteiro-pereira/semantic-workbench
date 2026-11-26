@@ -53,7 +53,7 @@ function ConvertBody({ control, path, confirmed, onConfirm }: { control: Convert
   if (view.status === 'loading')
     return (
       <div className="compile-placeholder" role="status">
-        Reviewing the conversion…
+        Reviewing the conversion
       </div>
     );
   if (view.status === 'review' || view.status === 'converting') return <Review review={view.review} path={path} confirmed={confirmed} onConfirm={onConfirm} />;

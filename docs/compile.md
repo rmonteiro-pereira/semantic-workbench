@@ -124,7 +124,7 @@ and what changed from 0.2.0.dev0 is in [the 0.3 inventory](ossie-0.3-inventory.m
 schemas and a base without "draft" wait for that release.
 
 A file that declares `version: 0.3.0.dev0` gets the 0.3 schema and rules; a 0.2.0.dev0 file keeps
-the 0.2 schema, and any other version is still Not validated. A compile has one base: a project of
+the 0.2 schema, and any other version is still Not validated. Validation details names the base beside the counts of a 0.3 file ("Ossie 0.3.0 draft"). A compile has one base: a project of
 0.3 documents is reported against the draft base, and a project that mixes 0.2 and 0.3 documents is
 refused with each file and its version named until every document declares the same version.
 

@@ -34,8 +34,7 @@ export function Findings({ findings }: { findings: CompileFinding[] }) {
           </strong>
           <span>{finding.message}</span>
           <span className="compile-finding-where">
-            {finding.document ? `${finding.document} · ` : ''}
-            {finding.path}
+            {[finding.document, finding.path === '/' ? '' : finding.path].filter(Boolean).join(' · ')}
             {finding.line ? ` · Line ${finding.line}, column ${finding.column ?? 1}` : ''}
           </span>
         </li>
