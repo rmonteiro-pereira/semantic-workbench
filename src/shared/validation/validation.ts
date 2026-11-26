@@ -13,8 +13,12 @@ import { checkImports, type ProviderInterface } from '../tessera/imports';
 import { TesseraNames } from '../tessera/format';
 import { readMarker } from '../tessera/marker';
 import { tesseraIssues, withoutRepeatedSchemaFindings } from '../tessera/validate';
-/** The one Ossie schema version this app ships validators for. */
+import { draftChecksLoadingIssue, draftValidators, OSSIE_DRAFT_VERSION } from './draft-validators';
+import { draftModelIssues } from './metric-scoping';
+/** The Ossie schema version new files use and unknown versions are compared with. */
 export const OSSIE_SCHEMA_VERSION = '0.2.0.dev0';
+/** Every Ossie version this app has a schema for. The 0.3.0.dev0 draft base is checked too. */
+const CHECKED_OSSIE_VERSIONS: readonly unknown[] = [OSSIE_SCHEMA_VERSION, OSSIE_DRAFT_VERSION];
 const object = (v: any) => v !== null && typeof v === 'object' && !Array.isArray(v);
 const text = (v: any) => typeof v === 'string' && !!v.trim();
 
@@ -141,7 +145,7 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
   // The notice goes last so the findings that block a save stay first.
   let notice: Issue | null = null;
   // Mapping files keep their strict schema, which names the one version the agent runtime reads.
-  if (!marked && applyPinnedSchema && isOssieDocument(data) && !isMapping(data) && data.version !== OSSIE_SCHEMA_VERSION) {
+  if (!marked && applyPinnedSchema && isOssieDocument(data) && !isMapping(data) && !CHECKED_OSSIE_VERSIONS.includes(data.version)) {
     if (options.assumeOssieVersion) {
       data = { ...data, version: OSSIE_SCHEMA_VERSION };
     } else {
@@ -255,7 +259,7 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
     if (applyPinnedSchema) issues.push(...mappingSchemaIssues(data, 'ontology'));
     arr(data.ontology_mappings, '/ontology_mappings').forEach((embeddedMapping, i) => {
       const prefix = `/ontology_mappings/${i}`;
-      const schemaIssues = mappingSchemaIssues(embeddedMapping, 'embedded', prefix);
+      const schemaIssues = mappingSchemaIssues(embeddedMapping, 'embedded', prefix, data.version);
       issues.push(...schemaIssues);
       if (!schemaIssues.length)
         try {
@@ -278,6 +282,8 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
     });
   } else {
     const models = data.semantic_model !== undefined ? arr(data.semantic_model, '/semantic_model', true) : [data];
+    // A 0.3 expression may hold its portable form in `sql` alone, so `dialects` becomes optional there.
+    const draft = data.version === OSSIE_DRAFT_VERSION;
     if (data.semantic_model !== undefined) warn('/semantic_model', 'Legacy multi-model wrapper checked structurally; the pinned Ossie schema describes one model per document.');
     models.forEach((model, mi) => {
       const modelPath = data.semantic_model !== undefined ? `/semantic_model/${mi}` : '';
@@ -335,25 +341,32 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
                   .map((f, j) => ({ value: f.expression, path: `${itemPath}/fields/${j}/expression` }))
               : [{ value: x.expression, path: itemPath + '/expression' }];
           for (const { value, path } of expressions)
-            if (obj(value, path))
-              arr(value.dialects, path + '/dialects', true).forEach((dialectEntry, j) => {
+            if (obj(value, path)) {
+              const portableOnly = draft && value.sql !== undefined;
+              if (portableOnly) str(value.sql, path + '/sql');
+              arr(value.dialects, path + '/dialects', !portableOnly).forEach((dialectEntry, j) => {
                 if (obj(dialectEntry, `${path}/dialects/${j}`)) {
                   str(dialectEntry.dialect, `${path}/dialects/${j}/dialect`);
                   str(dialectEntry.expression, `${path}/dialects/${j}/expression`);
                 }
               });
+            }
         }
+      if (draft) issues.push(...draftModelIssues(model, modelPath));
       // Metrics-layer extensions and metric bindings on this model.
       issues.push(...metricLayerIssues(model, modelPath, fieldNames), ...readKpiBindings(model, modelPath, false).issues);
     });
   }
-  let validator: typeof contract | typeof semantic | null;
+  let validator: typeof contract | typeof semantic | null | undefined;
   if (!applyPinnedSchema) {
     validator = null;
   } else if (data.kind === 'DataContract' && data.apiVersion === 'v3.1.0') {
     validator = contract;
-  } else if (data.version === '0.2.0.dev0' && data.datasets !== undefined) {
+  } else if (data.version === OSSIE_SCHEMA_VERSION && data.datasets !== undefined) {
     validator = semantic;
+  } else if (data.version === OSSIE_DRAFT_VERSION && data.datasets !== undefined) {
+    validator = draftValidators()?.semanticDraft030;
+    if (!validator) issues.push(draftChecksLoadingIssue());
   } else {
     validator = null;
   }
