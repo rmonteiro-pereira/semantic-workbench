@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import type { Issue } from '../../shared/validation/diagnostics';
 import { Modal } from '../projects/Modal';
+import { FieldControl } from '../projects/FieldControl';
 import { api, StaleSave, type Doc } from '../projects/api';
 import { applyPatches, diffPatches } from '../../shared/editor/patch';
 import { validateInWorker } from '../editor/lint';
@@ -14,6 +15,7 @@ import {
   fieldsFor,
   fieldValue,
   itemName,
+  nameKey,
   kindLabel,
   listPathFor,
   newItem,
@@ -94,9 +96,10 @@ export function AddItem({ doc: originalDoc, base: originalBase, document: origin
   );
   const listPath = kind ? listPathFor(kind, document, owner, semanticModelPrefix(document) ?? []) : null;
   type Plan =
-    | { error: string; incomplete?: boolean; text?: undefined }
+    | { error: string; field?: 'name'; incomplete?: boolean; text?: undefined }
     | {
         error?: undefined;
+        field?: undefined;
         incomplete?: undefined;
         text: string;
         inserted: string;
@@ -119,9 +122,9 @@ export function AddItem({ doc: originalDoc, base: originalBase, document: origin
         doc.path,
         destinations.map(destination => ({ path: destination.doc.path, document: destination.document })),
       );
-      if (duplicate) return { error: duplicate };
+      if (duplicate) return { error: duplicate, field: 'name' };
     }
-    if (Array.isArray(list) && name && list.some(x => itemName(kind, x) === name)) return { error: `${kindLabel[kind]} ${name} already exists here.` };
+    if (Array.isArray(list) && name && list.some(x => itemName(kind, x) === name)) return { error: `${kindLabel[kind]} ${name} already exists here.`, field: 'name' };
     try {
       const patches = Array.isArray(list) ? insertPatches(base, listPath, item, undefined, doc.filename) : valuePatches(base, listPath, [item], doc.filename);
       const text = applyPatches(base, patches);
@@ -230,7 +233,7 @@ export function AddItem({ doc: originalDoc, base: originalBase, document: origin
         <div className="item-fields">
           {fields.map(spec => {
             const id = `add-field-${spec.key}`;
-            const nameError = spec.label === 'Name' && plan.error && /already exists/.test(plan.error) ? plan.error : '';
+            const nameError = kind && spec.key === nameKey(kind) && plan.field === 'name' ? plan.error : '';
             let fieldControl;
             if (spec.input === 'boolean') {
               fieldControl = <input id={id} aria-labelledby={id + '-label'} type="checkbox" checked={!!raw[spec.key]} onChange={e => set(spec, e.target.checked)} />;
@@ -258,15 +261,14 @@ export function AddItem({ doc: originalDoc, base: originalBase, document: origin
                   {spec.label}
                   {spec.required && <em aria-hidden> *</em>}
                 </span>
-                {nameError && React.isValidElement(fieldControl) ? React.cloneElement(fieldControl as React.ReactElement<Record<string, unknown>>, { 'aria-invalid': true }) : fieldControl}
-                {nameError && <small className="field-error">{nameError}</small>}
+                <FieldControl control={fieldControl} error={nameError} />
                 {spec.hint && <small>{spec.hint}</small>}
               </label>
             );
           })}
         </div>
       )}
-      {plan.error !== undefined && !plan.incomplete && !/already exists/.test(plan.error) && <p className="item-note">{plan.error}</p>}
+      {plan.error !== undefined && !plan.incomplete && !plan.field && <p className="item-note">{plan.error}</p>}
       {plan.error === undefined && (
         <div className="item-preview">
           <strong>Will be added at line {plan.line}</strong>

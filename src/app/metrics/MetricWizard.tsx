@@ -5,6 +5,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import type { KpiExplanation, KpiSummary } from '../../server/agent/explain';
 import { Modal } from '../projects/Modal';
+import { FieldControl } from '../projects/FieldControl';
 import { api, StaleSave, type Doc, type KpiSaveRequest } from '../projects/api';
 import { validateInput } from '../../shared/validation/input';
 import { semanticModelPrefix, STATUSES, type Path } from '../../shared/edit/item-model';
@@ -38,6 +39,8 @@ function prefill(kpiSummary: KpiSummary): Partial<Draft> {
 const STEPS = ['Concept', 'Data', 'Type and inputs', 'Time and breakdowns', 'Targets', 'Governance', 'Explanation and SQL', 'Save'] as const;
 /** What the wizard's dropdown helper needs: the chosen value, its change handler, the option list and the accessible label. */
 type SelectProps = { value: string; onChange: (value: string) => void; options: React.ReactNode; aria: string; empty?: string };
+
+type WizardField = keyof Draft;
 
 type Model = {
   file: string;
@@ -184,28 +187,27 @@ export function MetricWizard({
     ...(draft.measures && !bound ? { binding: { measures: draft.measures, ...(draft.of ? { of: draft.of } : {}) } } : {}),
   };
   // What blocks each step.
-  const problems = (i: number): { field: string; message: string }[] => {
-    const out: { field: string; message: string }[] = [];
-    if (i === 1 && !model) out.push({ field: 'Semantic model', message: 'Choose the semantic model that holds the data.' });
+  const problems = (i: number): { field: WizardField; message: string }[] => {
+    const out: { field: WizardField; message: string }[] = [];
+    if (i === 1 && !model) out.push({ field: 'file', message: 'Choose the semantic model that holds the data.' });
     if (i === 2) {
-      if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(draft.name)) out.push({ field: 'Name', message: 'Give the metric a name of letters, digits and underscores.' });
-      else if (!existing && model?.metrics.includes(draft.name)) out.push({ field: 'Name', message: `${draft.name} already exists in ${model.name}.` });
-      if (!draft.label.trim()) out.push({ field: 'Label', message: 'Give the metric a label people will read.' });
+      if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(draft.name)) out.push({ field: 'name', message: 'Give the metric a name of letters, digits and underscores.' });
+      else if (!existing && model?.metrics.includes(draft.name)) out.push({ field: 'name', message: `${draft.name} already exists in ${model.name}.` });
+      if (!draft.label.trim()) out.push({ field: 'label', message: 'Give the metric a label people will read.' });
     }
     if (i === 2 && !existing) {
-      if (draft.type === 'simple' && !draft.field) out.push({ field: 'Field', message: 'Choose the field to aggregate.' });
-      if (draft.type === 'ratio' && (!draft.numerator || !draft.denominator)) out.push({ field: 'Numerator', message: 'Choose the numerator and the denominator.' });
-      if (draft.type === 'ratio' && draft.numerator && draft.numerator === draft.denominator) out.push({ field: 'Denominator', message: 'Numerator and denominator must differ.' });
-      if (['derived', 'cumulative', 'filtered'].includes(draft.type) && !list(draft.inputs).length) out.push({ field: 'Input metrics', message: 'Choose the input metrics.' });
-      if (['derived', 'cumulative', 'filtered'].includes(draft.type) && !expression) out.push({ field: 'Expression', message: 'Write the expression over the input metrics.' });
-      if (draft.type === 'filtered' && !draft.filterField) out.push({ field: 'Filter field', message: 'Choose the filter field.' });
+      if (draft.type === 'simple' && !draft.field) out.push({ field: 'field', message: 'Choose the field to aggregate.' });
+      if (draft.type === 'ratio' && (!draft.numerator || !draft.denominator)) out.push({ field: 'numerator', message: 'Choose the numerator and the denominator.' });
+      if (draft.type === 'ratio' && draft.numerator && draft.numerator === draft.denominator) out.push({ field: 'denominator', message: 'Numerator and denominator must differ.' });
+      if (['derived', 'cumulative', 'filtered'].includes(draft.type) && !list(draft.inputs).length) out.push({ field: 'inputs', message: 'Choose the input metrics.' });
+      if (['derived', 'cumulative', 'filtered'].includes(draft.type) && !expression) out.push({ field: 'expression', message: 'Write the expression over the input metrics.' });
+      if (draft.type === 'filtered' && !draft.filterField) out.push({ field: 'filterField', message: 'Choose the filter field.' });
     }
-    if (i === 3 && draft.timeDimension && !/^[^.\s]+\.[^.\s]+$/.test(draft.timeDimension)) out.push({ field: 'Time dimension', message: 'The time dimension is a dataset.field.' });
-    if (i === 3 && draft.minGrain && draft.grains.length && !draft.grains.includes(draft.minGrain))
-      out.push({ field: 'Allowed grains', message: 'The allowed grains must include the minimum grain.' });
-    if (i === 4 && draft.direction && (draft.target.trim() === '' || Number.isNaN(Number(draft.target)))) out.push({ field: 'Target', message: 'The target is a number.' });
-    if (i === 4 && [draft.warning, draft.critical].some(v => v.trim() !== '' && Number.isNaN(Number(v)))) out.push({ field: 'Warning at', message: 'Thresholds are numbers.' });
-    if (i === 5 && !draft.owner.trim()) out.push({ field: 'Owner', message: 'Name the owner who answers for this metric.' });
+    if (i === 3 && draft.timeDimension && !/^[^.\s]+\.[^.\s]+$/.test(draft.timeDimension)) out.push({ field: 'timeDimension', message: 'The time dimension is a dataset.field.' });
+    if (i === 3 && draft.minGrain && draft.grains.length && !draft.grains.includes(draft.minGrain)) out.push({ field: 'grains', message: 'The allowed grains must include the minimum grain.' });
+    if (i === 4 && draft.direction && (draft.target.trim() === '' || Number.isNaN(Number(draft.target)))) out.push({ field: 'target', message: 'The target is a number.' });
+    if (i === 4 && [draft.warning, draft.critical].some(v => v.trim() !== '' && Number.isNaN(Number(v)))) out.push({ field: 'warning', message: 'Thresholds are numbers.' });
+    if (i === 5 && !draft.owner.trim()) out.push({ field: 'owner', message: 'Name the owner who answers for this metric.' });
     if (i >= 2 && i <= 5) {
       const checked = readMetricExtension({
         custom_extensions: [
@@ -215,7 +217,7 @@ export function MetricWizard({
           },
         ],
       });
-      if (i === 5) out.push(...checked.issues.map(issue => ({ field: 'Status', message: issue.message })));
+      if (i === 5) out.push(...checked.issues.map(issue => ({ field: 'status' as const, message: issue.message })));
     }
     return out;
   };
@@ -257,21 +259,15 @@ export function MetricWizard({
     setStep(i);
     setDone(x => Math.max(x, i));
   };
-  const field = (label: string, control: React.ReactNode, hint?: string, wide = false) => {
-    const findings = blocking.filter(problem => problem.field === label);
+  const field = (key: WizardField, label: string, control: React.ReactNode, hint?: string, wide = false) => {
+    const findings = blocking.filter(problem => problem.field === key);
     const errorId = `wizard-error-${label.replaceAll(' ', '-').toLowerCase()}`;
-    const markedControl =
-      findings.length && React.isValidElement(control) ? React.cloneElement(control as React.ReactElement<Record<string, unknown>>, { 'aria-invalid': true, 'aria-describedby': errorId }) : control;
     return (
       <label className={wide ? 'wide' : ''}>
         <span>{label}</span>
-        {markedControl}
-        {hint && <small>{hint}</small>}
-        {findings.length > 0 && (
-          <small id={errorId} className="field-error">
-            {findings.map(problem => problem.message).join(' ')}
-          </small>
-        )}
+        <FieldControl control={control} error={findings.map(problem => problem.message).join(' ')} errorId={errorId}>
+          {hint && <small>{hint}</small>}
+        </FieldControl>
       </label>
     );
   };
@@ -334,11 +330,13 @@ export function MetricWizard({
               <p>Which business concept does this metric measure, and what is it about? The binding is stored in the project's mapping document.</p>
               <div className="item-fields">
                 {field(
+                  'measures',
                   'Business concept',
                   <input list="kpi-concepts" aria-label="Concept measured" value={draft.measures} onChange={e => set({ measures: e.target.value })} placeholder="Concept name" />,
                   'The concept this metric measures. Leave empty to save the metric without one.',
                 )}
                 {field(
+                  'of',
                   'Computed per',
                   <input list="kpi-concepts" aria-label="Concept it is about" value={draft.of} onChange={e => set({ of: e.target.value })} placeholder="Entity name" />,
                   'Optional. The entity the value is computed for, such as Property.',
@@ -367,6 +365,7 @@ export function MetricWizard({
                   </p>
                 ) : (
                   field(
+                    'file',
                     'Semantic model',
                     select({
                       value: draft.file,
@@ -409,9 +408,10 @@ export function MetricWizard({
           )}
           {step === 2 && existing && (
             <div className="item-fields">
-              {field('Label', <input aria-label="Label" value={draft.label} onChange={e => set({ label: e.target.value })} />)}
-              {field('Name', <input aria-label="Name" value={draft.name} readOnly />, 'As written in the semantic model')}
+              {field('label', 'Label', <input aria-label="Label" value={draft.label} onChange={e => set({ label: e.target.value })} />)}
+              {field('name', 'Name', <input aria-label="Name" value={draft.name} readOnly />, 'As written in the semantic model')}
               {field(
+                'type',
                 'Type',
                 select({
                   value: draft.type,
@@ -427,13 +427,22 @@ export function MetricWizard({
               )}
               {draft.type === 'ratio' && (
                 <>
-                  {field('Numerator', select({ value: draft.numerator, onChange: v => set({ numerator: v }), options: model?.metrics.map(metricOption), aria: 'Numerator', empty: 'Choose…' }))}
-                  {field('Denominator', select({ value: draft.denominator, onChange: v => set({ denominator: v }), options: model?.metrics.map(metricOption), aria: 'Denominator', empty: 'Choose…' }))}
+                  {field(
+                    'numerator',
+                    'Numerator',
+                    select({ value: draft.numerator, onChange: v => set({ numerator: v }), options: model?.metrics.map(metricOption), aria: 'Numerator', empty: 'Choose…' }),
+                  )}
+                  {field(
+                    'denominator',
+                    'Denominator',
+                    select({ value: draft.denominator, onChange: v => set({ denominator: v }), options: model?.metrics.map(metricOption), aria: 'Denominator', empty: 'Choose…' }),
+                  )}
                 </>
               )}
               {['derived', 'cumulative', 'filtered'].includes(draft.type) &&
-                field('Input metrics', <input aria-label="Input metrics" value={draft.inputs} onChange={e => set({ inputs: e.target.value })} />, 'Metric names, separated by commas')}
+                field('inputs', 'Input metrics', <input aria-label="Input metrics" value={draft.inputs} onChange={e => set({ inputs: e.target.value })} />, 'Metric names, separated by commas')}
               {field(
+                'additivity',
                 'Additivity',
                 select({
                   value: draft.additivity,
@@ -451,6 +460,7 @@ export function MetricWizard({
           {step === 2 && !existing && (
             <div className="item-fields">
               {field(
+                'label',
                 'Label',
                 <input
                   aria-label="Label"
@@ -464,8 +474,9 @@ export function MetricWizard({
                   placeholder="Vacancy rate"
                 />,
               )}
-              {field('Name', <input aria-label="Name" value={draft.name} onChange={e => set({ name: e.target.value })} />, 'The metric name in the semantic model')}
+              {field('name', 'Name', <input aria-label="Name" value={draft.name} onChange={e => set({ name: e.target.value })} />, 'The metric name in the semantic model')}
               {field(
+                'type',
                 'Type',
                 select({
                   value: draft.type,
@@ -481,10 +492,12 @@ export function MetricWizard({
               {draft.type === 'simple' && (
                 <>
                   {field(
+                    'aggregation',
                     'Aggregation',
                     select({ value: draft.aggregation, onChange: v => set({ aggregation: v || 'SUM' }), options: AGGREGATIONS.map(a => <option key={a}>{a}</option>), aria: 'Aggregation' }),
                   )}
                   {field(
+                    'field',
                     'Field',
                     select({ value: draft.field, onChange: v => set({ field: v }), options: fields.map(f => <option key={f}>{f}</option>), aria: 'Field to aggregate', empty: 'Choose…' }),
                   )}
@@ -492,8 +505,13 @@ export function MetricWizard({
               )}
               {draft.type === 'ratio' && (
                 <>
-                  {field('Numerator', select({ value: draft.numerator, onChange: v => set({ numerator: v }), options: model?.metrics.map(metricOption), aria: 'Numerator', empty: 'Choose…' }))}
                   {field(
+                    'numerator',
+                    'Numerator',
+                    select({ value: draft.numerator, onChange: v => set({ numerator: v }), options: model?.metrics.map(metricOption), aria: 'Numerator', empty: 'Choose…' }),
+                  )}
+                  {field(
+                    'denominator',
                     'Denominator',
                     select({ value: draft.denominator, onChange: v => set({ denominator: v }), options: model?.metrics.map(metricOption), aria: 'Denominator', empty: 'Choose…' }),
                     'Division by zero gives no value (NULLIF)',
@@ -503,6 +521,7 @@ export function MetricWizard({
               {['derived', 'cumulative', 'filtered'].includes(draft.type) && (
                 <>
                   {field(
+                    'inputs',
                     'Input metrics',
                     <input
                       aria-label="Input metrics"
@@ -523,6 +542,7 @@ export function MetricWizard({
                     ))}
                   </datalist>
                   {field(
+                    'expression',
                     'Expression',
                     <SqlField ariaLabel="Expression" dialect="ANSI_SQL" rows={2} value={draft.expression} onChange={v => set({ expression: v })} />,
                     'ANSI SQL over the input metrics; warnings never block',
@@ -532,15 +552,28 @@ export function MetricWizard({
               )}
               {draft.type === 'cumulative' && (
                 <>
-                  {field('Window', select({ value: draft.window, onChange: v => set({ window: v }), options: ['to_date', 'rolling', 'all'].map(w => <option key={w}>{w}</option>), aria: 'Window' }))}
-                  {field('Window grain', select({ value: draft.windowGrain, onChange: v => set({ windowGrain: v }), options: GRAINS.map(g => <option key={g}>{g}</option>), aria: 'Window grain' }))}
-                  {draft.window === 'rolling' && field('Length', <input aria-label="Window length" value={draft.windowLength} onChange={e => set({ windowLength: e.target.value })} />)}
+                  {field(
+                    'window',
+                    'Window',
+                    select({ value: draft.window, onChange: v => set({ window: v }), options: ['to_date', 'rolling', 'all'].map(w => <option key={w}>{w}</option>), aria: 'Window' }),
+                  )}
+                  {field(
+                    'windowGrain',
+                    'Window grain',
+                    select({ value: draft.windowGrain, onChange: v => set({ windowGrain: v }), options: GRAINS.map(g => <option key={g}>{g}</option>), aria: 'Window grain' }),
+                  )}
+                  {draft.window === 'rolling' && field('windowLength', 'Length', <input aria-label="Window length" value={draft.windowLength} onChange={e => set({ windowLength: e.target.value })} />)}
                 </>
               )}
               {draft.type === 'filtered' && (
                 <>
-                  {field('Filter field', select({ value: draft.filterField, onChange: v => set({ filterField: v }), options: fields.map(f => <option key={f}>{f}</option>), aria: 'Filter field' }))}
                   {field(
+                    'filterField',
+                    'Filter field',
+                    select({ value: draft.filterField, onChange: v => set({ filterField: v }), options: fields.map(f => <option key={f}>{f}</option>), aria: 'Filter field' }),
+                  )}
+                  {field(
+                    'filterOperator',
                     'Operator',
                     select({
                       value: draft.filterOperator,
@@ -549,10 +582,11 @@ export function MetricWizard({
                       aria: 'Filter operator',
                     }),
                   )}
-                  {field('Value', <input aria-label="Filter value" value={draft.filterValue} onChange={e => set({ filterValue: e.target.value })} />)}
+                  {field('filterValue', 'Value', <input aria-label="Filter value" value={draft.filterValue} onChange={e => set({ filterValue: e.target.value })} />)}
                 </>
               )}
               {field(
+                'additivity',
                 'Additivity',
                 select({
                   value: draft.additivity,
@@ -563,7 +597,7 @@ export function MetricWizard({
                 }),
                 draft.type === 'ratio' ? 'A ratio is never summed across groups' : undefined,
               )}
-              {field('Description', <textarea aria-label="Description" rows={2} value={draft.description} onChange={e => set({ description: e.target.value })} />, undefined, true)}
+              {field('description', 'Description', <textarea aria-label="Description" rows={2} value={draft.description} onChange={e => set({ description: e.target.value })} />, undefined, true)}
               <p className="wide formula-line">
                 Expression: <code>{expression || '—'}</code>
               </p>
@@ -572,18 +606,25 @@ export function MetricWizard({
           {step === 3 && (
             <div className="item-fields">
               {field(
+                'timeDimension',
                 'Time dimension',
                 select({ value: draft.timeDimension, onChange: v => set({ timeDimension: v }), options: fields.map(f => <option key={f}>{f}</option>), aria: 'Time dimension', empty: 'None' }),
                 'The date field the metric is reported over',
               )}
-              {field('Minimum grain', select({ value: draft.minGrain, onChange: v => set({ minGrain: v }), options: GRAINS.map(g => <option key={g}>{g}</option>), aria: 'Minimum grain' }))}
               {field(
+                'minGrain',
+                'Minimum grain',
+                select({ value: draft.minGrain, onChange: v => set({ minGrain: v }), options: GRAINS.map(g => <option key={g}>{g}</option>), aria: 'Minimum grain' }),
+              )}
+              {field(
+                'grains',
                 'Allowed grains',
                 multi(draft.grains, [...GRAINS], v => set({ grains: v }), 'Allowed grains'),
                 undefined,
                 true,
               )}
               {field(
+                'dimensions',
                 'Breakdowns',
                 multi(draft.dimensions, fields, v => set({ dimensions: v }), 'Breakdowns'),
                 'Fields the metric may be broken down by',
@@ -594,6 +635,7 @@ export function MetricWizard({
           {step === 4 && (
             <div className="item-fields">
               {field(
+                'direction',
                 'Direction',
                 select({
                   value: draft.direction,
@@ -610,23 +652,36 @@ export function MetricWizard({
                   empty: 'No target',
                 }),
               )}
-              {field('Target', <input aria-label="Target value" inputMode="decimal" value={draft.target} onChange={e => set({ target: e.target.value })} disabled={!draft.direction} />)}
-              {field('Per', select({ value: draft.targetGrain, onChange: v => set({ targetGrain: v }), options: GRAINS.map(g => <option key={g}>{g}</option>), aria: 'Target grain' }))}
-              {field('Warning at', <input aria-label="Warning threshold" inputMode="decimal" value={draft.warning} onChange={e => set({ warning: e.target.value })} disabled={!draft.direction} />)}
-              {field('Critical at', <input aria-label="Critical threshold" inputMode="decimal" value={draft.critical} onChange={e => set({ critical: e.target.value })} disabled={!draft.direction} />)}
+              {field('target', 'Target', <input aria-label="Target value" inputMode="decimal" value={draft.target} onChange={e => set({ target: e.target.value })} disabled={!draft.direction} />)}
+              {field('targetGrain', 'Per', select({ value: draft.targetGrain, onChange: v => set({ targetGrain: v }), options: GRAINS.map(g => <option key={g}>{g}</option>), aria: 'Target grain' }))}
+              {field(
+                'warning',
+                'Warning at',
+                <input aria-label="Warning threshold" inputMode="decimal" value={draft.warning} onChange={e => set({ warning: e.target.value })} disabled={!draft.direction} />,
+              )}
+              {field(
+                'critical',
+                'Critical at',
+                <input aria-label="Critical threshold" inputMode="decimal" value={draft.critical} onChange={e => set({ critical: e.target.value })} disabled={!draft.direction} />,
+              )}
             </div>
           )}
           {step === 5 && (
             <div className="item-fields">
-              {field('Owner', <OwnerInput project={project} value={draft.owner} onChange={owner => set({ owner })} verified={draft.owner === existing?.owner ? existing?.ownerVerified : undefined} />)}
-              {field('Steward', <input aria-label="Steward" value={draft.steward} onChange={e => set({ steward: e.target.value })} />)}
               {field(
+                'owner',
+                'Owner',
+                <OwnerInput project={project} value={draft.owner} onChange={owner => set({ owner })} verified={draft.owner === existing?.owner ? existing?.ownerVerified : undefined} />,
+              )}
+              {field('steward', 'Steward', <input aria-label="Steward" value={draft.steward} onChange={e => set({ steward: e.target.value })} />)}
+              {field(
+                'status',
                 'Status',
                 select({ value: draft.status, onChange: v => set({ status: v || 'proposed' }), options: STATUSES.slice(0, 2).map(s => <option key={s}>{s}</option>), aria: 'Status' }),
                 'A new metric is a draft or proposed for review',
               )}
-              {field('Unit', <input aria-label="Unit" value={draft.unit} onChange={e => set({ unit: e.target.value })} placeholder="ratio, m², BRL" />)}
-              {field('Format', <input aria-label="Format" value={draft.format} onChange={e => set({ format: e.target.value })} placeholder="0.0%" />)}
+              {field('unit', 'Unit', <input aria-label="Unit" value={draft.unit} onChange={e => set({ unit: e.target.value })} placeholder="ratio, m², BRL" />)}
+              {field('format', 'Format', <input aria-label="Format" value={draft.format} onChange={e => set({ format: e.target.value })} placeholder="0.0%" />)}
             </div>
           )}
           {step === 6 &&

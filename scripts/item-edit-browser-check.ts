@@ -115,6 +115,28 @@ async function saveDialog(dialog: ReturnType<typeof editor>) {
 }
 try {
   await page.goto(appUrl());
+  await check('duplicate names stay under the name control when adding and editing', async () => {
+    await openFile('commerce-business.ossie.yaml');
+    await newItem(page, 'Add concept…');
+    const addDialog = page.getByRole('dialog', { name: /^Add concept/ });
+    await addDialog.getByRole('textbox', { name: 'Name', exact: true }).fill('Customer');
+    await addDialog.getByLabel('Type').selectOption('EntityType');
+    const addName = addDialog.getByRole('textbox', { name: 'Name', exact: true });
+    await expect(addName).toHaveAttribute('aria-invalid', 'true');
+    await expect(addName.locator('..').locator('.field-error')).toContainText('already exists');
+    await expect(addDialog.getByRole('button', { name: 'Save to file' })).toBeDisabled();
+    await addDialog.getByRole('button', { name: 'Cancel' }).click();
+
+    await tabs().getByRole('button', { name: 'Catalog', exact: true }).click();
+    await page.getByRole('button', { name: 'Edit Customer', exact: true }).click();
+    const editDialog = editor('Customer');
+    const editName = editDialog.getByRole('textbox', { name: 'Name', exact: true });
+    await editName.fill('Order');
+    await expect(editName).toHaveAttribute('aria-invalid', 'true');
+    await expect(editName.locator('..').locator('.field-error')).toContainText('Duplicate');
+    await expect(editDialog.getByRole('button', { name: 'Save to file' })).toBeDisabled();
+    await editDialog.getByRole('button', { name: 'Cancel' }).click();
+  });
   await check('catalog → Edit a concept: one field changes one line of the YAML file', async () => {
     await openFile('commerce-business.ossie.yaml');
     await tabs().getByRole('button', { name: 'Catalog' }).click();
@@ -283,6 +305,16 @@ try {
     await dialog.getByRole('button', { name: 'Next' }).click();
     await dialog.getByLabel('Label').fill('Vacancy rate');
     await expect(dialog.getByRole('textbox', { name: 'Name', exact: true })).toHaveValue('vacancy_rate');
+    const metricName = dialog.getByRole('textbox', { name: 'Name', exact: true });
+    await metricName.fill('total_gla');
+    await expect(metricName).toHaveAttribute('aria-invalid', 'true');
+    await expect(metricName.locator('..').locator('.field-error')).toContainText('already exists');
+    await expect(dialog.getByRole('button', { name: 'Next' })).toBeDisabled();
+    await metricName.fill('vacancy_rate');
+    await dialog.getByLabel('Numerator').selectOption('total_gla');
+    await dialog.getByLabel('Denominator').selectOption('total_gla');
+    await expect(dialog.getByLabel('Denominator')).toHaveAttribute('aria-invalid', 'true');
+    await expect(dialog.getByLabel('Denominator').locator('..').locator('.field-error')).toHaveText('Numerator and denominator must differ.');
     await expectWizardFits(page, dialog);
     await dialog.getByLabel('Metric type').selectOption('ratio');
     await dialog.getByLabel('Numerator').selectOption('vacant_gla');

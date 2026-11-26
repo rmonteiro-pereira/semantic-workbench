@@ -511,6 +511,8 @@ the bundle outside the source trees.
   administration feature, reached from the sidebar's Settings panel through `admin-entry.ts`: it proposes/reviews access changes through its typed client and is
   separate from the server's versioned `DATA_DIR/admin/` configuration repository. Admin URL hashes
   select sections; no general routing framework computes authorization in the browser.
+- `src/app/projects/FieldControl.tsx` shares invalid-control marking and inline findings for item forms and the metric wizard.
+  Item plans and validation issue codes identify fields independently of message wording; wizard draft keys identify fields independently of visible labels.
 - `src/app/graph/` owns whole-model and neighborhood views, traversal, grouping projection, layout,
   workers, controls, name wrapping and shared edge appearance. `NeighborhoodGraph.tsx` composes
   `useNeighborhoodView.ts` (filtering, walk canvas, shown entities and edges), `useNeighborhoodNodes.ts`

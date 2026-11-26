@@ -5,13 +5,14 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, FileCode, Pencil, Plus, Trash2 } from 'lucide-react';
 import type { Issue } from '../../shared/validation/diagnostics';
 import { Modal } from '../projects/Modal';
+import { FieldControl } from '../projects/FieldControl';
 import { api, StaleSave, type Doc } from '../projects/api';
 import { CodeEditor } from '../editor/CodeEditor';
 import { diffPatches } from '../../shared/editor/patch';
 import { validateInWorker } from '../editor/lint';
 import { itemValue } from '../../shared/edit/yaml-patch';
 import { openFragment, splice, fragmentValue, fragmentIssues, setField } from './fragment';
-import { allowedStatuses, childLists, extensionOf, fieldsFor, itemName, kindLabel, readField, type Choices, type FieldSpec, type ItemKind, type Path } from '../../shared/edit/item-model';
+import { allowedStatuses, childLists, extensionOf, fieldsFor, itemName, nameKey, kindLabel, readField, type Choices, type FieldSpec, type ItemKind, type Path } from '../../shared/edit/item-model';
 import { findReferences, rewriteReferences, unrewritableReferences, type Reference } from './references';
 import './edit.css';
 import { SqlField } from '../editor/SqlField';
@@ -237,11 +238,10 @@ export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClos
               if (fieldIndex === 0) firstField.current = el;
             };
             const fieldPath = '/' + [...path, ...spec.at].join('/');
-            const fieldIssues = errors.filter(issue => issue.path === fieldPath || (spec.label === 'Name' && /already exists|duplicate/i.test(issue.message)));
+            const fieldIssues = errors.filter(issue => issue.path === fieldPath || (spec.key === nameKey(kind) && issue.code === 'duplicate'));
             const common = {
               id,
               'aria-labelledby': id + '-label',
-              'aria-invalid': fieldIssues.length > 0 || undefined,
               'aria-describedby': spec.hint ? id + '-hint' : undefined,
             };
             let input: React.ReactNode;
@@ -280,16 +280,16 @@ export function ItemEditor({ doc, base, path, kind, projectDocs, choices, onClos
                   {spec.label}
                   {spec.required && <em aria-hidden> *</em>}
                 </span>
-                {input}
-                {spec.input !== 'select' && spec.options?.length ? (
-                  <datalist id={id + '-options'}>
-                    {spec.options.map(o => (
-                      <option key={o} value={o} />
-                    ))}
-                  </datalist>
-                ) : null}
-                {spec.hint && <small id={id + '-hint'}>{spec.hint}</small>}
-                {fieldIssues.length > 0 && <small className="field-error">{fieldIssues.map(issue => issue.message).join(' ')}</small>}
+                <FieldControl control={input} error={fieldIssues.map(issue => issue.message).join(' ')}>
+                  {spec.input !== 'select' && spec.options?.length ? (
+                    <datalist id={id + '-options'}>
+                      {spec.options.map(o => (
+                        <option key={o} value={o} />
+                      ))}
+                    </datalist>
+                  ) : null}
+                  {spec.hint && <small id={id + '-hint'}>{spec.hint}</small>}
+                </FieldControl>
               </label>
             );
           })}
