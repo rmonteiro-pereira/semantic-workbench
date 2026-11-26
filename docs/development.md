@@ -340,6 +340,10 @@ Additional reproducible state captures live in `scripts/ui-review/`. Run
 `SW_BASE_URL=http://127.0.0.1:5201 bun scripts/ui-review/known-issues.ts OUTPUT 1 1`
 against a frontend using temporary data. The shared local fixture sets neutral Git author and
 committer names and emails. See `specs/007-ui-review-fixes/capture-index.md` for state commands.
+`bun scripts/ui-review/feature-states.ts OUTPUT GROUP [STATES]` photographs one feature's states, each cropped to
+its region, and writes `records.jsonl` with the measured clipping, ellipsis, overlap and contrast. Run it on midgard
+through `sw-midgard-run --pull OUTPUT -- ...`. The groups and the optional comma-separated `STATES` filter are listed
+at the top of the script, and one run stops at 110 images across OUTPUT and its sibling folders.
 `SW_ONLY` selects supported state groups. Additional-state scripts accept `SW_THEME=light` or
 `SW_THEME=dark` for a single-theme batch and reject unsupported themes; omitting it retains both. Follow-up captures use
 `SW_FOLLOWUP_WIDTH` and `SW_FOLLOWUP_ONLY`. Follow-up and server fixtures use dynamically allocated
