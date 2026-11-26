@@ -6,6 +6,6 @@ test('published consumer answers equal the recorded responses with unpublished s
   const baseline = await Bun.file('tests/fixtures/item-diff/baseline.json').json();
   using fixture = await itemDiffBaselineWorkspace();
   expect(await itemDiffAgentAnswers(fixture)).toEqual(baseline.agent);
-  expect(Object.keys(baseline.dom).sort()).toEqual(['catalog', 'entityDetails', 'fullGraph', 'neighborhoodGraph', 'publish', 'relationshipDetails']);
+  expect(Object.keys(baseline.dom).sort()).toEqual(['catalog', 'entityDetails', 'fullGraph', 'fullGraphToolbar', 'neighborhoodGraph', 'neighborhoodToolbar', 'publish', 'relationshipDetails']);
   for (const answer of Object.values(baseline.agent)) expect(answer).not.toContain('+ 987');
 });
