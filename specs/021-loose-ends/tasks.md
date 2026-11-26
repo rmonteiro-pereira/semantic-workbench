@@ -81,7 +81,9 @@ targeted test green and the formatter applied. No task edits an existing test on
   (`src/app/style.css`, `governance.css`, `WorkspaceHeader.css`, `admin.css`), every item editor dialog (the shared
   `.item-fields` input rule in `edit.css`), the UBL and Mall collapsed Network
   label counts, and the settings journey. In the attribute dialog, check that the reading sentence uses the
-  same font face, size and height as the Name input beside it.
+  same font face, size and height as the Name input beside it. Also the settings states the settings gate could
+  not compare: filled Agent connections and its revoke, Access check, the green outside Admin (governance badges,
+  workspace header), and the policy editor's unsaved note.
 - [ ] T016 Architecture review, then Astra code review, at most three rounds. Proof: review files and fixes.
 - [ ] T017 Tick the batch-gate hand-off tasks closed by this gate (012 T042/T045, 013 T044, 015 T044) with a
   disposition, merge to `main` without force, and redeploy sw-dev. Proof: merge commit and `/healthz` commit.
