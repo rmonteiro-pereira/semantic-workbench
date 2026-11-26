@@ -28,7 +28,7 @@ async function addLongAttribute(page: Page) {
   const attributes = page.locator('aside[aria-label="Definition details"]').getByRole('region', { name: 'Attributes' });
   await attributes.getByRole('button', { name: 'Add attribute' }).click();
   const dialog = page.getByRole('dialog', { name: 'Add an attribute to Customer' });
-  await dialog.getByLabel('Name').fill(LONG_NAME);
+  await dialog.getByRole('textbox', { name: 'Name', exact: true }).fill(LONG_NAME);
   await dialog.getByRole('button', { name: 'Add attribute', exact: true }).click();
   await attributes.getByText(LONG_NAME, { exact: true }).waitFor();
   return attributes;
@@ -41,7 +41,7 @@ async function failAttributeSave(page: Page) {
     else await route.fallback();
   });
   const editDialog = page.getByRole('dialog', { name: `Edit attribute ${LONG_NAME}`, exact: true });
-  await editDialog.getByLabel('Name').fill('phone');
+  await editDialog.getByRole('textbox', { name: 'Name', exact: true }).fill('phone');
   await page.getByRole('button', { name: 'Save attribute', exact: true }).click();
   await editDialog.getByRole('alert').waitFor();
 }

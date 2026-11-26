@@ -50,8 +50,18 @@ async function startSession(session: CaptureSession, page: Page) {
   });
   const pending = page.waitForResponse(response => response.url().endsWith('/api/acp/sessions') && response.request().method() === 'POST');
   await page.getByRole('button', { name: 'Start session', exact: true }).click();
-  await page.getByRole('heading', { name: 'Connecting', exact: true }).waitFor();
-  await capture(session, page, 'connecting', 'dialog[open]');
+  const connecting = page.getByRole('heading', { name: 'Connecting', exact: true });
+  const hasConnecting = await connecting.waitFor({ timeout: 1500 }).then(
+    () => true,
+    () => false,
+  );
+  if (hasConnecting) {
+    await capture(session, page, 'connecting', 'dialog[open]');
+  } else {
+    await attempt(session, 'connecting', async () => {
+      throw new Error('The base version has no Connecting block while session creation is pending.');
+    });
+  }
   held.resolve();
   const created = await (await pending).json();
   await page.unroute('**/api/acp/sessions');
