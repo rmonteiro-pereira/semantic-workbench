@@ -87,3 +87,26 @@ test('unpublished collapsed labels reserve obstacles with ordinary labels off', 
     expect(obstacleCalls).toBe(change ? 1 : 0);
   }
 });
+
+async function routeLifecycleResult(operation: string) {
+  const { chromium } = await import('@playwright/test');
+  const bundle = await Bun.build({ entrypoints: ['tests/harness/label-route-harness.tsx'], target: 'browser', format: 'esm', define: { 'process.env.NODE_ENV': '"development"' } });
+  expect(bundle.success).toBe(true);
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage();
+    page.on('pageerror', error => console.error(error));
+    await page.setContent('<!doctype html><body></body>');
+    await page.addScriptTag({ type: 'module', content: await bundle.outputs[0].text() });
+    await page.waitForFunction(name => typeof (window as any)[name] === 'function', operation);
+    return await page.evaluate(name => (window as any)[name](), operation);
+  } finally {
+    await browser.close();
+  }
+}
+
+test('a route report after unmount changes no state and schedules no frame', async () => {
+  const result = await routeLifecycleResult('lateReport');
+  expect(result.after).toEqual(result.before);
+  expect(result.pending).toBe(0);
+}, 30000);

@@ -15,8 +15,9 @@ targeted test green and the formatter applied. No task edits an existing test on
 
 ## Phase 2: Collapsed Network labels (007 follow-ups)
 
-- [ ] T003 Ignore a label-route report after unmount in `src/app/graph/useFullGraphEdges.ts`. Proof: a test
+- [x] T003 Ignore a label-route report after unmount in `src/app/graph/useFullGraphEdges.ts`. Proof: a test
   reports after unmount and sees no state change and no scheduled frame.
+  Proof: `sw-midgard-run -- bun test ./tests/label-route.test.ts` — exit 0, 5 pass; `bun --bun run check` — exit 0; `bun x oxfmt` on changed files — exit 0.
 - [ ] T004 StrictMode remount test: report a route, remount under StrictMode, expect one measurement.
   Proof: `bun test tests/label-route.test.ts`.
 - [ ] T005 Decide edge visibility against the painted curve, in the label placement module. Proof: unit

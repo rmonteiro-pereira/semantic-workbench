@@ -65,7 +65,7 @@ it is not a drop-in performance switch.
 `full-graph-viewport.ts` owns Fit and readable selection framing; `useFullGraphEdges.ts` builds
 connections from the current layout and focus. `label-route.ts` caches painted bounds and samples
 visible paths with bounded, curvature-aware refinement. Changed paths are batched per animation
-frame, and removed connections release their cached geometry. `useFullGraphOpening.ts` measures the painted
+frame, and removed connections release their cached geometry. Reports after the graph unmounts are ignored. `useFullGraphOpening.ts` measures the painted
 first viewport and chooses its automatic representation after layout.
 `src/app/graph/overview-capacity.ts` sizes cards and decides when areas start as counted cards. Its `NAME_MIN_PX` constant supplies the shared nine-pixel name floor for graph text fitting and lineage layouts and views.
 `src/app/graph/edge-styles.ts` supplies line/legend styles and SVG-safe appearance;
