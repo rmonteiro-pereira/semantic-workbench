@@ -1,5 +1,6 @@
 import { expect, type Locator, type Page } from '@playwright/test';
-import { expectShown, setShown, viewOptions } from './graph-options';
+import { createHash } from 'node:crypto';
+import { hideGraphControls, revealGraphControls, expectShown, setShown, viewOptions } from './graph-options';
 
 /** Shows a model tab using its ordinary workspace controls. */
 export function itemDiffTab(page: Page, name: string) {
@@ -40,6 +41,14 @@ export async function itemDiffStructure(locator: Locator) {
     }
     return visit(element);
   });
+}
+
+/** Records the expanded toolbar independently of the graph's folded first view. */
+export async function itemDiffToolbarSignature(page: Page, selector: string) {
+  await revealGraphControls(page);
+  const structure = await itemDiffStructure(page.locator(selector));
+  await hideGraphControls(page);
+  return createHash('sha256').update(JSON.stringify(structure)).digest('hex');
 }
 
 /** Reads unscaled card dimensions and first-view layout positions from the rendered graph. */

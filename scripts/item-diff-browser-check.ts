@@ -3,7 +3,7 @@ import { chromium, expect, type Locator, type Page, type Route } from '@playwrig
 import { itemDiffBaselineWorkspace } from '../tests/helpers/item-diff-baseline';
 import { appUrl } from './helpers/base-url';
 import { editorValue, fillEditor } from './helpers/code-editor';
-import { checkItemMarks, itemDiffCardGeometry, itemDiffStructure, itemDiffTab, expectItemDiffOverlay, setItemDiffOverlay } from './helpers/item-diff-browser';
+import { checkItemMarks, itemDiffCardGeometry, itemDiffStructure, itemDiffToolbarSignature, itemDiffTab, expectItemDiffOverlay, setItemDiffOverlay } from './helpers/item-diff-browser';
 import { routeApi, startIsolatedApi, type IsolatedApi } from './helpers/isolated-api';
 import { hideGraphControls, revealGraphControls } from './helpers/graph-options';
 import { openSyncDialog } from './helpers/sync-dialog';
@@ -81,6 +81,7 @@ async function compareRecordedGraph(page: Page) {
   await expect(page.locator('.full-graph .react-flow__node-entity')).toHaveCount(5, { timeout: 60000 });
   await expect(page.locator('.full-graph-loading')).toHaveCount(0);
   await expect.poll(() => itemDiffStructure(page.locator('.full-graph'))).toEqual(recorded.dom.fullGraph);
+  expect(await itemDiffToolbarSignature(page, '.full-graph-tools')).toBe(recorded.dom.fullGraphToolbar);
   await itemDiffTab(page, 'Catalog');
   await expect.poll(() => itemDiffStructure(page.locator('.catalog'))).toEqual(recorded.dom.catalog);
   await page
@@ -100,12 +101,13 @@ async function compareRecordedGraph(page: Page) {
   await itemDiffTab(page, 'Neighborhood');
   await expect(page.locator('.neighborhood-canvas .react-flow__node')).not.toHaveCount(0);
   await expect.poll(() => itemDiffStructure(page.locator('.neighborhood-canvas'))).toEqual(recorded.dom.neighborhoodGraph);
+  expect(await itemDiffToolbarSignature(page, '.neighborhood-tools')).toBe(recorded.dom.neighborhoodToolbar);
   await page.getByRole('button', { name: /^Source control/ }).click();
   function publicationStructure(value: unknown) {
     return JSON.stringify(value).replace(/ @ [a-f0-9]{7}/g, ' @ <commit>');
   }
   await expect.poll(async () => publicationStructure(await itemDiffStructure(page.getByLabel('Published snapshot')))).toBe(publicationStructure(recorded.dom.publish));
-  console.log('PASS overlay off matches all six recorded DOM structures');
+  console.log('PASS overlay off matches six recorded DOM structures and two expanded toolbars');
 }
 
 async function writeOverlayFixture(target: IsolatedApi) {

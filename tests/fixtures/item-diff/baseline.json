@@ -1521,6 +1521,7 @@
         }
       ]
     },
+    "fullGraphToolbar": "69e05df4e0e1c951a0b0ffa6bd174ba4502765f0c544bc5dda728cec697c1031",
     "neighborhoodGraph": {
       "tag": "div",
       "attributes": [
@@ -2592,6 +2593,7 @@
         }
       ]
     },
+    "neighborhoodToolbar": "a66ce5775c30dcdb29a4e31850500863ae9eb803b9ea7427f4f1db4e8eefeef2",
     "entityDetails": {
       "tag": "aside",
       "attributes": [

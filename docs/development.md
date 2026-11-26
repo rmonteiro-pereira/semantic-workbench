@@ -100,7 +100,7 @@ for the options and exit statuses (0 success, 1 refused, 2 loss needs acceptance
   The integrated mutation gate runs these cases with the rest of its inventory.
 - `bun scripts/item-diff-planner-browser-check.ts` checks metric status labels, geometry and contrast
   in the query composer at phone and desktop widths in both themes, using an isolated API.
-- `bun scripts/record-item-diff-baseline.ts` records six rendered workbench structures, with the
+- `bun scripts/record-item-diff-baseline.ts` records six rendered workbench structures and two expanded graph toolbar signatures, with the
   Unpublished work overlay switched off, and the published context, plan and explanation responses,
   against isolated published and unpublished definitions. The browser check compares the same
   overlay-off structures.
@@ -498,7 +498,8 @@ unimplemented or superseded detail.
 
 `bun test tests/usage/ tests/auth/usage-read-parity.test.ts` covers counting, the store, migration, retention,
 the read operation and privacy; `tests/usage-*.test.ts*` and `tests/admin-settings-usage.test.tsx` cover the Traffic
-display. `bun run test:usage-traffic` drives the display in a browser against a mocked usage answer. Its
+display. `bun run test:usage-traffic` drives the display in a browser against a mocked usage answer.
+Its off-state signatures cover both folded graphs and expanded secondary toolbars. Its
 `--record` option rewrites `tests/fixtures/usage/dom-baseline.json`, the structure of every view with
 Traffic off. The Traffic switch sits in the closed Show menu and adds no element, so the recorded
 structure is the one these views have without the Traffic option; record it again only when a view's

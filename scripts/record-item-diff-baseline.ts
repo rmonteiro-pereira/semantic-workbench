@@ -3,7 +3,7 @@ import { chromium, expect } from '@playwright/test';
 import { writeFileSync } from 'node:fs';
 import { configureLogging } from '../src/server/observability/log';
 import { appUrl } from './helpers/base-url';
-import { itemDiffStructure as structure, setItemDiffOverlay } from './helpers/item-diff-browser';
+import { itemDiffStructure as structure, itemDiffToolbarSignature, setItemDiffOverlay } from './helpers/item-diff-browser';
 import { itemDiffAgentAnswers, itemDiffBaselineWorkspace } from '../tests/helpers/item-diff-baseline';
 
 configureLogging({ level: 'error', format: 'text' });
@@ -39,6 +39,7 @@ try {
   await expect(page.locator('.full-graph .react-flow__node-entity')).toHaveCount(5, { timeout: 60000 });
   await expect(page.locator('.full-graph-loading')).toHaveCount(0);
   const fullGraph = await structure(page.locator('.full-graph'));
+  const fullGraphToolbar = await itemDiffToolbarSignature(page, '.full-graph-tools');
   await tab('Catalog');
   const catalog = await structure(page.locator('.catalog'));
   await page
@@ -58,15 +59,20 @@ try {
   await tab('Neighborhood');
   await expect(page.locator('.neighborhood-canvas .react-flow__node')).not.toHaveCount(0);
   const neighborhoodGraph = await structure(page.locator('.neighborhood-canvas'));
+  const neighborhoodToolbar = await itemDiffToolbarSignature(page, '.neighborhood-tools');
   await page.getByRole('button', { name: /^Source control/ }).click();
   await page.getByLabel('Published snapshot').waitFor();
   const publish = await structure(page.getByLabel('Published snapshot'));
   if (errors.length) throw new Error(errors.join('\n'));
   writeFileSync(
     'tests/fixtures/item-diff/baseline.json',
-    JSON.stringify({ dom: { fullGraph, neighborhoodGraph, entityDetails, relationshipDetails, catalog, publish }, agent: await itemDiffAgentAnswers(fixture) }, null, 2) + '\n',
+    JSON.stringify(
+      { dom: { fullGraph, fullGraphToolbar, neighborhoodGraph, neighborhoodToolbar, entityDetails, relationshipDetails, catalog, publish }, agent: await itemDiffAgentAnswers(fixture) },
+      null,
+      2,
+    ) + '\n',
   );
-  console.log('PASS recorded six rendered structures and three consumer answers with saved unpublished definitions');
+  console.log('PASS recorded six rendered structures and two expanded toolbars and three consumer answers with saved unpublished definitions');
 } finally {
   await page.close();
   await browser.close();

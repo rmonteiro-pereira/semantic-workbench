@@ -14,7 +14,7 @@ import { fileTab, openFile } from './helpers/screen-tour';
 import { inspect, isStructuredEntity } from '../src/shared/core/model';
 import { graphCanvasProblems } from './helpers/graph-canvas-geometry';
 import { neighborhoodCardProblems } from './helpers/card-geometry';
-import { setShown, showEveryEntity, viewOptions } from './helpers/graph-options';
+import { hideGraphControls, revealGraphControls, setShown, showEveryEntity, viewOptions } from './helpers/graph-options';
 import { tokenContrast } from './helpers/theme-tour';
 import { cardSizes, countedItems, domSignature, usageInterceptor, type UsageMock } from './helpers/usage-traffic';
 
@@ -80,12 +80,18 @@ async function offStructure(page: Page) {
   await openTab(page, 'Graph');
   await page.waitForTimeout(1200);
   signatures.graph = await domSignature(page, '.full-graph');
+  await revealGraphControls(page);
+  signatures.graphToolbar = await domSignature(page, '.full-graph-tools');
+  await hideGraphControls(page);
   await page.locator('.full-entity').first().click();
   await expect(page.locator('.inspector h2')).toBeVisible();
   signatures.details = await domSignature(page, '.inspector');
   await openTab(page, 'Neighborhood');
   await page.waitForTimeout(1200);
   signatures.neighborhood = await domSignature(page, '.neighborhood-graph');
+  await revealGraphControls(page);
+  signatures.neighborhoodToolbar = await domSignature(page, '.neighborhood-tools');
+  await hideGraphControls(page);
   return signatures;
 }
 
