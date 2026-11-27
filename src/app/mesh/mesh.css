@@ -133,3 +133,12 @@
 .mesh-details > .mesh-imports {
   margin-top: 0.75rem;
 }
+
+/* On a phone the details panel runs behind the status bar at the foot of the screen (main > footer in style.css: at
+   least 30px, about 48px when its text wraps to two lines). The same room below the last Mesh section lets its last
+   control, such as Used by, scroll clear of the bar. */
+@media (max-width: 650px) {
+  .inspector > .mesh-imports:last-child {
+    padding-bottom: 48px;
+  }
+}
