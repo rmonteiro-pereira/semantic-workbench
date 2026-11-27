@@ -1,4 +1,5 @@
 import { SavedNote, useSavedAt } from './SaveStatus';
+import { removalTitle } from './change-review';
 import { SectionStatus } from './SectionStatus';
 import { useState } from 'react';
 import { adminApi } from './api';
@@ -62,25 +63,6 @@ export function projectRemovals(before: ProjectsConfig, after: ProjectsConfig): 
     return project.restricted.filter(rule => !keptPatterns.has(rule.pattern)).map(rule => `restriction ${rule.pattern} on ${slug}`);
   });
   return { domains, restrictions };
-}
-
-/** How many of one kind a draft removes, as "a restriction" or "3 restrictions". */
-function removedCount(count: number, noun: string): string {
-  if (count === 1) return `a ${noun}`;
-  return `${count} ${noun}s`;
-}
-
-/**
- * A short dialog title that names only the kind of removal, such as "Remove a restriction". The
- * names themselves can be long paths, so they go in the dialog body where they wrap.
- */
-export function removalTitle(removals: ProjectRemovals): string | undefined {
-  const domainCount = removals.domains.length;
-  const restrictionCount = removals.restrictions.length;
-  if (domainCount && restrictionCount) return 'Remove domains and restrictions';
-  if (domainCount) return `Remove ${removedCount(domainCount, 'domain')}`;
-  if (restrictionCount) return `Remove ${removedCount(restrictionCount, 'restriction')}`;
-  return undefined;
 }
 
 /** Edits project access data while retaining classification aliases outside this form. */
@@ -148,7 +130,7 @@ export function ProjectsEditor({ initial, version, onSaved }: { initial: Project
         baseVersion={version}
         onSaved={onSaved}
         description="Save project access"
-        changeLabel={removalTitle(removals)}
+        changeLabel={removalTitle({ domain: removals.domains.length, restriction: removals.restrictions.length })}
         removedNames={removedNames}
         destructive={removedNames.length > 0}
         confirmLabel={removedNames.length > 0 ? 'Save and remove' : undefined}

@@ -8,10 +8,23 @@ export function proposalKey(proposal: Proposal, baseVersion: string): string {
 export function canConfirm(review: { key: string; result: DryRun } | null, key: string): boolean {
   return review !== null && review.key === key && Boolean(review.result.dryRunId);
 }
-/** Names a save by what it also removes, so a confirmation never hides a removal behind "Save". */
-export function changeDescription(save: string, removedNames: string[]): string {
-  if (!removedNames.length) return save;
-  return `${save} and remove ${removedNames.join(', ')}`;
+/** How many of one kind a change removes, as "a restriction" or "3 restrictions". */
+function removedCount(count: number, noun: string): string {
+  if (count === 1) return `a ${noun}`;
+  return `${count} ${noun}s`;
+}
+
+/**
+ * A short dialog title that names only the kind of removal, such as "Remove a restriction" or
+ * "Remove domains and restrictions". The removed names can be long, so they go in the dialog body
+ * where they wrap. Counts are keyed by the singular noun; with nothing removed there is no title.
+ */
+export function removalTitle(counts: Record<string, number>): string | undefined {
+  const removed = Object.entries(counts).filter(([, count]) => count > 0);
+  if (!removed.length) return undefined;
+  if (removed.length > 1) return `Remove ${removed.map(([noun]) => `${noun}s`).join(' and ')}`;
+  const [noun, count] = removed[0];
+  return `Remove ${removedCount(count, noun)}`;
 }
 
 /** Lower-cases only the first letter, so names inside a sentence keep their own capitals. */
