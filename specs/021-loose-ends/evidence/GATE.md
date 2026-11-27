@@ -120,3 +120,26 @@ accepted them as a small layout choice with no feature removed:
 
 Covered or overlapping elements stay regressions. Mesh "Used by" under the fixed validation status bar at 390 is open
 with its fix.
+
+## Whole-journey comparison: round 3 and its review shards (2026-11-27)
+
+Round 3 compared `main` `4efb44e2` with the frozen candidate `5a8c6102` and left 892 changed pairs to review. Eight
+Sol review shards looked at them, each pair's changed region cropped 1:1 from the native captures:
+
+| Result | Pairs |
+| --- | --- |
+| Reviewed | 694 of 892 (198 not reached) |
+| Seen at 1:1 | 677 of 694 |
+| Intended | 86 |
+| Improvement | 6 |
+| Neutral | 126 |
+| Regression | 4 (one issue) |
+| Not compared: capture failure | 426 |
+| Not compared: state unreachable on both sides | 42 |
+| Not compared: data-dependent | 4 |
+
+The regression: at 390 px the fixed Admin header covers the top of the Access check heading and the first row of the
+Roles editor navigation, after the phone navigation was made to scroll with the section. Sent to the settings pane.
+
+Most capture failures are graph states where the two sides caught a different layout, zoom or loading stage. The
+final recapture therefore waits for a settled, deterministic graph state on both sides before each screenshot.
