@@ -49,7 +49,9 @@ function aggregateCallIssue(call: FunctionCall, scope: ExpressionScope, datasetM
   const argument = call.argument;
   if (scope.kind === 'field') return error('reserved-function', path, 'AGG is reserved outside metrics. A field expression cannot call it.');
   if (scope.kind === 'dataset-metric') {
-    if (argument?.table === 'source') return null;
+    if (isSourceQualifier(argument?.table) && call.filtered)
+      return error('reserved-function', path, `In a dataset metric, AGG over a source measure cannot have a FILTER clause. Dataset "${scope.dataset}" adds one.`);
+    if (isSourceQualifier(argument?.table)) return null;
     return error('reserved-function', path, `In a dataset metric, AGG takes one source measure, as in AGG(source.total). Dataset "${scope.dataset}" gives it something else.`);
   }
   if (!argument?.table || argument.table.includes('.')) return error('reserved-function', path, 'In a model metric, AGG takes one dataset metric, as in AGG(orders.total_revenue).');
@@ -75,7 +77,7 @@ function expressionIssues(expression: unknown, path: string, scope: ExpressionSc
 
 /** A dataset metric must not reach into another dataset. Columns of the dataset's source are read as source.column. */
 function crossDatasetIssues(metric: Record<string, any>, path: string, dataset: string, datasetNames: Set<string>): Issue[] {
-  const others = new Set([...datasetNames].filter(name => name !== dataset && name !== 'source'));
+  const others = new Set([...datasetNames].filter(name => name !== dataset && !isSourceQualifier(name)));
   const issues: Issue[] = [];
   for (const portable of portableTexts(metric.expression, `${path}/expression`)) {
     for (const other of datasetReferences(portable.text, others))

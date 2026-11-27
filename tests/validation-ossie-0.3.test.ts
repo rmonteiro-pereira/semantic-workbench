@@ -93,6 +93,16 @@ test('AGG is allowed only in the metric forms the draft defines', () => {
   expect(findings(wrongDatasetForm)).toContain('reserved-function at /datasets/0/metrics/1/expression/sql');
 });
 
+test('the source qualifier of AGG reads in any letter case, and AGG over a source measure takes no FILTER', () => {
+  const model = fixture('sales.semantic.yaml');
+  const upper = structuredClone(model);
+  upper.datasets[0].metrics.push({ name: 'measured', expression: { sql: 'AGG(SOURCE.total)' } });
+  expect(findings(upper)).toEqual([]);
+  const filtered = structuredClone(model);
+  filtered.datasets[0].metrics.push({ name: 'active_total', expression: { sql: 'AGG(source.total) FILTER (WHERE active)' } });
+  expect(findings(filtered)).toContain('reserved-function at /datasets/0/metrics/1/expression/sql');
+});
+
 test('METRIC is reserved in portable expressions in any capitalization, and not in vendor dialects', () => {
   const model = fixture('sales.semantic.yaml');
   for (const text of ['METRIC(SUM(amount))', 'metric(SUM(amount))']) {

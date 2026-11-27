@@ -181,7 +181,8 @@ export function rewriteExpressionRefs(sql: string, rewrite: (name: string) => st
   return result;
 }
 /** One function call in an expression: its name as written and its argument when that is a single name chain. */
-export type FunctionCall = { name: string; argument: ExprRef | null };
+/** One function call: its name, its argument when that is a single name chain, and whether a FILTER clause follows the call. */
+export type FunctionCall = { name: string; argument: ExprRef | null; filtered: boolean };
 
 /** Index of the parenthesis that closes the one at `open`, or the token count when it never closes. */
 function closingParenthesis(tokens: Token[], open: number): number {
@@ -215,7 +216,9 @@ export function functionCalls(sql: string): FunctionCall[] {
     if (token.kind !== 'ident' || next.kind !== 'punct' || next.value !== '(') continue;
     if (tokens[i - 1]?.kind === 'punct' && tokens[i - 1].value === '.') continue;
     const close = closingParenthesis(tokens, i + 1);
-    calls.push({ name: token.value, argument: singleReference(tokens.slice(i + 2, close)) });
+    const following = tokens[close + 1];
+    const filtered = following?.kind === 'ident' && following.value.toUpperCase() === 'FILTER';
+    calls.push({ name: token.value, argument: singleReference(tokens.slice(i + 2, close)), filtered });
   }
   return calls;
 }
