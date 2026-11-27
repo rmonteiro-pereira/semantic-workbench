@@ -5,8 +5,8 @@ Application code stays unchanged. The scripts extend the existing UI review harn
 All browser and build commands run through `sw-midgard-run`.
 
 `journey.py` prepares the two source copies, installs each lockfile and builds each application.
-Its `worker SIDE REPEAT [rest]` command runs one passage against an existing copy; `rest` excludes
-graphs. Separate passage numbers allow these groups to run concurrently with graph captures. Graph commands run
+Its `worker SIDE REPEAT [rest|features]` command runs one passage against an existing copy; `rest` excludes
+graphs; `features` selects Admin, feature states and settings. Separate passage numbers allow these groups to run concurrently with graph captures. Graph commands run
 separately by viewport and theme. Other commands retain their original state sequences.
 `supplement.py` records collapsed Network edge-label text, with Labels enabled,
 filled connections, revocation, access decisions and the Ossie conversion entry point.
@@ -30,3 +30,16 @@ visual decisions and recognises the approved success-colour transformation in st
 Pairs above noise remain pending until visual review. Missing images remain explicitly unclassified.
 
 No command pushes to a project remote, changes application sources or updates task checkboxes.
+
+`catalog.ts` records fixture hashes and parser counts using filenames without directory prefixes.
+`stop-passages.py graphs|tours` stops only workers with a successful final command in that block, checking exact PIDs and start times.
+Keep at most eight capture workers on the shared transport and run comparisons after capture slots become available.
+
+`evidence.py ROOT` summarises selected passages, unreachable actions, example hashes, label counts and attribute input measurements.
+
+`JOURNEY_EXCLUDE_GROUPS` compares completed blocks first; `JOURNEY_GROUPS` replaces only those named blocks in the existing comparison results.
+Feature variants resize a live state before restoring its original viewport and theme; they do not replay that action independently for each screenshot.
+
+`preview.ts` renders the offline report at 390 and 1440 px through a temporary loopback server on port 5420, then closes its browser and server.
+
+The report preserves unreachable actions and console errors. Custom fixtures without recorded input hashes remain not compared even when their screenshots have a visual disposition.

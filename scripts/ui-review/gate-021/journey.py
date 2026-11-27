@@ -148,6 +148,8 @@ def capture_side(side, directory, repeat, phase="all"):
     jobs += [("settings", ["specs/021-loose-ends/settings-review/capture-settings.ts"])]
     if phase == "rest":
         jobs = [(group, arguments) for group, arguments in jobs if not group.startswith("graphs-")]
+    if phase == "features":
+        jobs = [(group, arguments) for group, arguments in jobs if not group.startswith("graphs-") and group != "rest" and "tour" not in group]
     try:
         for group, arguments in jobs:
             output_group = "graphs" if group.startswith("graphs-") else group

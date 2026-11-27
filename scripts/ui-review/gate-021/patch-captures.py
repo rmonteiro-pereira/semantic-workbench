@@ -19,6 +19,12 @@ for side in ["main", "candidate"]:
     text = processes.read_text()
     if "Math.random() * 18" in text:
         processes.write_text("let nextCapturePort = 5430;\n" + text.replace("5430 + Math.floor(Math.random() * 18)", "nextCapturePort++"))
+    agent = directory / "scripts/ui-review/feature-states/agent-panel.ts"
+    text = agent.read_text()
+    if "recordExample" not in text:
+        text = "import { recordExample } from '../gate-021/data';\n" + text
+        text = text.replace("const server = await startPanelServer", "recordExample('mapped-commerce');\n  const server = await startPanelServer")
+        agent.write_text(text)
     session = directory / "scripts/ui-review/feature-states/session.ts"
     text = session.read_text()
     if "matrixCapture" not in text:
