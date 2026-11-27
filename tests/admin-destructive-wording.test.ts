@@ -1,16 +1,10 @@
 // Destructive Admin confirmations name what is removed and what the person loses.
 import { expect, test } from 'bun:test';
-import { changeDescription, lowerFirst } from '../src/app/admin/change-review';
-import { projectRemovals, removalTitle } from '../src/app/admin/ProjectAccessSection';
+import { removalTitle } from '../src/app/admin/change-review';
+import { projectRemovals } from '../src/app/admin/ProjectAccessSection';
 import { userOperationEffect } from '../src/app/admin/UsersSection';
 import { originWords } from '../src/app/auth/AgentConnectionsDialog';
 import type { ProjectsConfig } from '../src/app/admin/types';
-
-test('a save that removes something says so in its name', () => {
-  expect(changeDescription('Save agent programs', [])).toBe('Save agent programs');
-  expect(changeDescription('Save agent programs', ['Catalog sync'])).toBe('Save agent programs and remove Catalog sync');
-  expect(`Confirm ${lowerFirst(changeDescription('Save agent programs', ['Catalog sync']))}`).toBe('Confirm save agent programs and remove Catalog sync');
-});
 
 test('project access names the domains and restricted paths a draft removes', () => {
   const before = {
@@ -25,13 +19,13 @@ test('project access names the domains and restricted paths a draft removes', ()
   expect(projectRemovals(before, before)).toEqual({ domains: [], restrictions: [] });
 });
 
-test('a project access removal keeps a short title and leaves the long names to the dialog body', () => {
-  const longPath = 'contracts/archive/'.repeat(12) + '**';
-  expect(removalTitle({ domains: [], restrictions: [`restriction ${longPath} on sales-contracts`] })).toBe('Remove a restriction');
-  expect(removalTitle({ domains: [], restrictions: ['restriction a/** on x', 'restriction b/** on x'] })).toBe('Remove 2 restrictions');
-  expect(removalTitle({ domains: ['domain People'], restrictions: [] })).toBe('Remove a domain');
-  expect(removalTitle({ domains: ['domain People'], restrictions: ['restriction a/** on x'] })).toBe('Remove domains and restrictions');
-  expect(removalTitle({ domains: [], restrictions: [] })).toBeUndefined();
+test('a removal keeps a short title and leaves the long names to the dialog body', () => {
+  expect(removalTitle({ domain: 0, restriction: 1 })).toBe('Remove a restriction');
+  expect(removalTitle({ domain: 0, restriction: 2 })).toBe('Remove 2 restrictions');
+  expect(removalTitle({ domain: 1, restriction: 0 })).toBe('Remove a domain');
+  expect(removalTitle({ domain: 1, restriction: 1 })).toBe('Remove domains and restrictions');
+  expect(removalTitle({ domain: 0, restriction: 0 })).toBeUndefined();
+  expect(removalTitle({ program: 1 })).toBe('Remove a program');
 });
 
 test('deactivating, reactivating and ending sessions each say what happens to the person', () => {

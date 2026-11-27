@@ -52,21 +52,33 @@ type Box = { x: number; y: number; width: number; height: number };
 function insideViewport(box: Box | null, width: number, height: number): box is Box {
   return !!box && box.x >= 0 && box.y >= 0 && box.x + box.width <= width + 1 && box.y + box.height <= height + 1;
 }
+/** The navigation's and content's places within the scrolling layout, independent of how far it is scrolled. */
+async function phoneLayoutOrder(page: Page) {
+  return page.evaluate(() => {
+    const nav = document.querySelector<HTMLElement>('.admin-nav')!;
+    const content = document.querySelector<HTMLElement>('.admin-content')!;
+    return { navBottom: nav.offsetTop + nav.offsetHeight, contentTop: content.offsetTop };
+  });
+}
 /** Checks that the navigation, content and Back button fit the viewport without page scroll. */
 async function adminPageFits(page: Page, name: string, width: number, height: number) {
   const where = `${name} at ${width}×${height}`;
-  const nav = await page.locator('.admin-nav').boundingBox();
-  const content = await page.locator('.admin-content').boundingBox();
   const back = await page.getByRole('button', { name: 'Back to workspace', exact: true }).boundingBox();
-  assert(insideViewport(nav, width, height), `${where}: navigation leaves the viewport`);
-  assert(insideViewport(content, width, height), `${where}: content leaves the viewport`);
   assert(insideViewport(back, width, height), `${where}: Back to workspace is not reachable`);
   const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
   assert(scrollWidth <= width + 1, `${where}: page scrolls sideways (${scrollWidth})`);
   if (width <= 760) {
-    assert(nav.y + nav.height <= content.y + 1, `${where}: section strip should sit above content`);
+    // On a phone the wrapped navigation scrolls away with the section, inside the layout box.
+    const layout = await page.locator('.admin-layout').boundingBox();
+    assert(insideViewport(layout, width, height), `${where}: the scrolling layout leaves the viewport`);
+    const order = await phoneLayoutOrder(page);
+    assert(order.navBottom <= order.contentTop + 1, `${where}: section strip should sit above content`);
     return;
   }
+  const nav = await page.locator('.admin-nav').boundingBox();
+  const content = await page.locator('.admin-content').boundingBox();
+  assert(insideViewport(nav, width, height), `${where}: navigation leaves the viewport`);
+  assert(insideViewport(content, width, height), `${where}: content leaves the viewport`);
   assert(nav.x + nav.width <= content.x + 1, `${where}: navigation should sit left of content`);
   assert(content.width > width / 2, `${where}: content should use the width beside the navigation`);
 }

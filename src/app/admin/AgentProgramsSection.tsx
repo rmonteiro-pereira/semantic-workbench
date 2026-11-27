@@ -3,7 +3,7 @@ import { RecordList, type RecordColumn } from './RecordList';
 import { WrappingField } from './WrappingField';
 import { EmptyState } from '../projects/EmptyState';
 import { SavedNote, useSavedAt } from './SaveStatus';
-import { changeDescription } from './change-review';
+import { removalTitle } from './change-review';
 import { SectionStatus } from './SectionStatus';
 import { useId, useState } from 'react';
 import type { Program } from '../../server/connections/programs';
@@ -174,7 +174,9 @@ function ProgramsReview({
         proposal={proposal}
         baseVersion={baseVersion}
         onSaved={onSaved}
-        description={changeDescription('Save agent programs', removedNames)}
+        description="Save agent programs"
+        changeLabel={removalTitle({ program: removedNames.length })}
+        removedNames={removedNames}
         destructive={removedNames.length > 0}
         confirmLabel={removedNames.length > 0 ? 'Save and remove' : undefined}
         dirty

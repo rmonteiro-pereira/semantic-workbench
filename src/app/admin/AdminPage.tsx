@@ -1,7 +1,7 @@
 import { AgentProgramsSection } from './AgentProgramsSection';
 import { AgentConnectionsSection } from './AgentConnectionsSection';
 import { ArrowLeft } from 'lucide-react';
-import type { ComponentType } from 'react';
+import { useLayoutEffect, useRef, type ComponentType } from 'react';
 import { PersonMenu } from '../auth/PersonMenu';
 import { ScrollStrip } from '../components/ScrollStrip';
 import { AccessCheckSection } from './AccessCheckSection';
@@ -46,10 +46,36 @@ function AdminNav({ current }: { current: AdminSectionId }) {
   );
 }
 
+/** The width at which the navigation wraps above the content instead of sitting beside it. */
+const PHONE_LAYOUT = '(max-width: 760px)';
+
+/**
+ * On a phone the wrapped navigation sits above the section and scrolls with it, so it can push the
+ * section's fields and actions below the window. Showing any section but the first brings its
+ * heading to the top; the navigation stays one scroll up. Entering Admin keeps the navigation in view.
+ */
+function useSectionInView(section: AdminSectionId) {
+  const content = useRef<HTMLElement>(null);
+  useLayoutEffect(() => {
+    if (section === ADMIN_SECTIONS[0].id) return;
+    const phone = globalThis.matchMedia?.(PHONE_LAYOUT);
+    if (!phone) return;
+    const bringIntoView = () => {
+      if (phone.matches) content.current?.scrollIntoView({ block: 'start' });
+    };
+    bringIntoView();
+    // A window narrowed to phone width moves the navigation above the section, so bring it back.
+    phone.addEventListener('change', bringIntoView);
+    return () => phone.removeEventListener('change', bringIntoView);
+  }, [section]);
+  return content;
+}
+
 /** The Admin workspace: a section navigation and the full-width content of one section. */
 export function AdminPage({ section, onBackToWorkspace }: { section: AdminSectionId; onBackToWorkspace: () => void }) {
   const View = sectionViews[section];
   const { label, description } = adminSection(section);
+  const content = useSectionInView(section);
   return (
     <div className="admin-page admin-scope">
       <header className="admin-page-header">
@@ -62,7 +88,7 @@ export function AdminPage({ section, onBackToWorkspace }: { section: AdminSectio
       </header>
       <div className="admin-layout">
         <AdminNav current={section} />
-        <section className="admin-content" aria-label={label}>
+        <section ref={content} className="admin-content" aria-label={label}>
           <h2>{label}</h2>
           <p className="admin-section-intro">{description}</p>
           <BootstrapNotice />
