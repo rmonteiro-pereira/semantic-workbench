@@ -580,12 +580,30 @@
 }
 /* On a wide screen a record's few actions sit side by side, each label on one line: the actions
    ask the table for their full width, so a long value in another column wraps instead of them.
-   On a phone card they may wrap. */
+   The buttons are compact, and the middle columns keep a readable width, so the actions do not
+   squeeze short values such as a role and its scope into narrow stacks. On a phone card they may wrap. */
 @media (min-width: 601px) {
   .admin-records td:last-child .admin-actions {
     flex-wrap: nowrap;
+    gap: 4px;
     width: max-content;
   }
+  .admin-records td:last-child .admin-actions button {
+    padding-inline: 8px;
+  }
+  .admin-records td:not(:first-child, :last-child) {
+    min-width: 7em;
+  }
+}
+/* Related number fields sit side by side, each with its hint underneath; on a narrow screen they stack. */
+.admin-field-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 24px;
+}
+.admin-field-row > div {
+  flex: 1 1 220px;
+  max-width: 340px;
 }
 /* Each scope reads as its checkbox with the sentence of what it allows underneath. */
 .agent-program-scope .admin-field-hint {
