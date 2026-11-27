@@ -143,3 +143,34 @@ Roles editor navigation, after the phone navigation was made to scroll with the 
 
 Most capture failures are graph states where the two sides caught a different layout, zoom or loading stage. The
 final recapture therefore waits for a settled, deterministic graph state on both sides before each screenshot.
+
+## Run 3: full gate on `c783616a` (2026-11-27)
+
+All steps through `sw-midgard-run`, one after another, logs in `out/gate-021d/` on the midgard checkout.
+
+| Step | Exit | Time |
+| --- | --- | --- |
+| `bun --bun run check` | 0 | 67 s |
+| `bun --bun run build` | 0 | 6 s |
+| `bun test ./tests` | 0 (4,524 pass, 0 fail, 668 files) | 4,164 s |
+| `bun run ci:validate -- --step mutation` | 0 (958 of 958 targeted mutants killed, every baseline passed) | 3,494 s |
+| Browser suites, `ci:validate --step browser --suite <name>` | 46 of 54 pass | - |
+
+Compile-scale timing, inside the full suite (not alone): `tests/tessera/compile-scale.test.ts` 26.51 s and
+`tests/compile/compile-scale.test.ts` 27.12 s, against the unchanged 30 s limit. The alone run for both `main` and the
+candidate is part of the final run.
+
+The eight failing suites:
+
+| Suite | Verdict | Evidence |
+| --- | --- | --- |
+| `test:graph`, `test:editor`, `test:item-diff`, `test:lineage`, `test:responsive`, `test:usage-traffic` | inherited | same assertions fail on `main` `4efb44e2` (run 2 table) |
+| `test:theme` | load, not a change | a graph edge path was still hidden in the accent check; rerun alone it passes on `e431dab1`, `09d6ac6f` and `main` |
+| `test:sidebar` | inherited timing margin | see below |
+
+`test:sidebar` waits 5 s for the project tree after each example click. It failed twice alone on `e431dab1`, while
+bisecting the five merges after `09d6ac6f` gave pass and fail in no order (a5ed985c fail, cb3fab2d pass, 5a8c6102 fail,
+e43fa7bc fail, c783616a pass). With the load time of each example logged, the first UBL load takes 4.6 to 5.3 s on the
+candidate (three runs) and 4.8 to 5.1 s on `main` (two runs); later UBL loads take a median of about 3.35 s on both.
+The check's margin on the first UBL load is the same on both sides, so this is inherited, not a regression. The 5 s
+wait was not changed.
