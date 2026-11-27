@@ -20,7 +20,7 @@ import type { Deleted, Doc, ProjectInfo } from '../projects/api';
 import type { AutosaveState } from '../projects/autosave';
 import { CompileDialog } from '../compile/CompileDialog';
 import { BaseConvertDialog, ConvertDialog } from '../compile/ConvertDialog';
-import { declaredVersion } from '../../shared/edit/item-model';
+import { declaredVersion } from '../../shared/validation/ossie-version';
 import { FileDialogs } from './FileDialogs';
 import { RdfItemDialogs } from './RdfItemDialogs';
 import { SaveDialogs } from './SaveDialogs';

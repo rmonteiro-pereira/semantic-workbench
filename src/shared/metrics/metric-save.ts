@@ -4,7 +4,8 @@ import { rdfSyntax } from '../validation/rdf';
 import { isMapping } from '../mappings/mapping-schema';
 import { applyPatches } from '../editor/patch';
 import { insertPatches, valuePatches, itemValue } from '../edit/yaml-patch';
-import { declaredVersion, extensionOf, semanticModelPrefix, writeExtension, type Path } from '../edit/item-model';
+import { extensionOf, semanticModelPrefix, writeExtension, type Path } from '../edit/item-model';
+import { declaredVersion } from '../validation/ossie-version';
 import {
   MAPPING_SCHEMA,
   METRIC_SCHEMA,

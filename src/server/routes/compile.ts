@@ -1,11 +1,11 @@
-// Serves check, compile and bundle of a project as standard Ossie, and routes conversion. Answers carry the source label, and refusals come before any byte of a zip.
+// Serves check, compile and bundle of a project as standard Ossie, and the two conversions: to standard Ossie and to the Ossie 0.3.0 draft base. Answers carry the source label, and refusals come before any byte of a zip.
 import { requestReader } from '../auth/request-scope';
 import { authorizeWrite } from '../auth/write-access';
 import { SnapshotUnavailableError, TooLargeError } from '../projects/errors';
 import { zipSize, zipStream, type ZipEntry } from '../projects/zip';
 import { FILE_SAVE_REQUEST_LIMIT, decodeSegment, readJson } from '../request';
 import { SnapshotChangedError, checkUnit, compilePublished, runCompile, type CompileOutcome } from '../tessera/compile-service';
-import { isBaseConvertBody, parseBaseConvertRequest, parseBundleQuery, parseCheckRequest, parseConvertRequest, parseRunRequest } from '../tessera/compile-request';
+import { parseBaseConvertRequest, parseBundleQuery, parseCheckRequest, parseConvertRequest, parseRunRequest } from '../tessera/compile-request';
 import { ConvertRefusal, convertBase, convertToStandard } from '../tessera/convert-service';
 import { OutputPartError } from '../tessera/output-part';
 import { UnitLimitError } from '../tessera/unit-source';
@@ -15,7 +15,7 @@ import type { Workspace } from '../projects/workspace';
 import { EXPORT_LIMIT_BYTES } from './export';
 import type { Route } from './http';
 
-const COMPILE_ROUTE = /^\/api\/projects\/([^/]+)\/compile(?:\/(check|bundle|convert))?$/;
+const COMPILE_ROUTE = /^\/api\/projects\/([^/]+)\/compile(?:\/(check|bundle|convert|convert-base))?$/;
 
 function convertRefusalResponse(error: ConvertRefusal): Response {
   if (error.code === 'refused') return Response.json({ error: 'refused', message: error.message, findings: error.findings }, { status: 422 });
@@ -66,16 +66,15 @@ function zipEntries(outcome: Extract<CompileOutcome, { result: 'released' }>): Z
 }
 
 async function convertRoute(ws: Workspace, req: Request, slug: string): Promise<Response> {
-  const body = await readJson(req, FILE_SAVE_REQUEST_LIMIT);
-  // A body that names a target converts a 0.2 document to the 0.3 draft base; otherwise a Tessera ontology becomes standard Ossie.
-  if (isBaseConvertBody(body)) {
-    const baseRequest = parseBaseConvertRequest(body);
-    authorizeWrite(req, 'edit', [{ type: 'file', project: slug, path: baseRequest.path }]);
-    return answering(async () => Response.json(await convertBase(workspaceConversion(ws, slug, requestReader(req)), baseRequest)));
-  }
-  const request = parseConvertRequest(body);
+  const request = parseConvertRequest(await readJson(req, FILE_SAVE_REQUEST_LIMIT));
   authorizeWrite(req, 'edit', [{ type: 'file', project: slug, path: request.path }]);
   return answering(async () => Response.json(await convertToStandard(workspaceConversion(ws, slug, requestReader(req)), request)));
+}
+
+async function convertBaseRoute(ws: Workspace, req: Request, slug: string): Promise<Response> {
+  const request = parseBaseConvertRequest(await readJson(req, FILE_SAVE_REQUEST_LIMIT));
+  authorizeWrite(req, 'edit', [{ type: 'file', project: slug, path: request.path }]);
+  return answering(async () => Response.json(await convertBase(workspaceConversion(ws, slug, requestReader(req)), request)));
 }
 
 /** Builds the zip download of a released compile, or refuses when it is over the ceiling. Nothing is streamed before this returns. */
@@ -115,6 +114,7 @@ export function createCompileRoutes(options: { maxBundleBytes: number } = { maxB
     if (operation === 'check') return checkRoute(ws, req, slug);
     if (operation === 'run') return runRoute(ws, req, slug);
     if (operation === 'convert') return convertRoute(ws, req, slug);
+    if (operation === 'convert-base') return convertBaseRoute(ws, req, slug);
     return null;
   };
 }

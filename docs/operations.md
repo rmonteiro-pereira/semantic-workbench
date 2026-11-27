@@ -47,6 +47,7 @@ Regenerate this page with `bun scripts/operation-inventory-table.ts` after revie
 | compile.run | POST /api/projects/:slug/compile | export | project | read | FILE_SAVE_REQUEST_LIMIT | local-edit |
 | compile.bundle | GET /api/projects/:slug/compile/bundle | export | project | read | none | never |
 | compile.convert | POST /api/projects/:slug/compile/convert | edit | project | localWrite | FILE_SAVE_REQUEST_LIMIT | later |
+| compile.convertBase | POST /api/projects/:slug/compile/convert-base | edit | project | localWrite | FILE_SAVE_REQUEST_LIMIT | later |
 | itemAddresses.resolve | POST /api/projects/:slug/item-addresses/resolve | read | project | read | ITEM_ADDRESS_REQUEST_LIMIT | local-edit |
 | itemAddresses.reconcile | POST /api/projects/:slug/item-addresses/reconcile/* | edit | file | localWrite | ITEM_ADDRESS_REQUEST_LIMIT | local-edit |
 | files.ignore | POST /api/projects/:slug/gitignore | edit | project | localWrite | GIT_REQUEST_LIMIT | local-edit |
@@ -201,6 +202,7 @@ These steps run inside the admitted route and share its authorization and audit 
 | compile.run | snapshot.read |
 | compile.bundle | snapshot.read |
 | compile.convert | snapshot.read |
+| compile.convertBase | snapshot.read |
 | itemAddresses.resolve | snapshot.read |
 | metrics.list | snapshot.read |
 | usage.read | snapshot.read |

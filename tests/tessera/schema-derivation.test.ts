@@ -54,7 +54,7 @@ test('the derivation adds only the identifier, the comment, the marker and the n
 });
 
 test('the compiled validator accepts a marked document with notes and refuses one with the wrong marker or an empty note', () => {
-  const validate = base.validators[1];
+  const validate = base.validators[1]!;
   const document = { tessera: 1, version: '0.2.0.dev0', name: 'Retail', tessera_notes: 'Hello', ontology: [{ concept: 'Order', type: 'EntityType', tessera_notes: 'A note' }] };
   expect(validate(document)).toBe(true);
   expect(validate({ ...document, tessera: 2 })).toBe(false);

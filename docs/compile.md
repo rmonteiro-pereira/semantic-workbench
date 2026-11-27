@@ -65,7 +65,7 @@ Send JSON bodies with the normal application write headers and authentication.
 | `POST /api/projects/:slug/compile` | Optional `accept` (`digest` or `lossPolicy`), `commit`, `file` (`path`, `offset`) | `result`: `refused`, `loss-needs-acceptance` or `released`; released metadata includes `manifest`, `report`, `files` and optional `part` |
 | `GET /api/projects/:slug/compile/bundle` | Optional query `accept` (digest) and `commit` | ZIP with `X-Compile-Commit`, `X-Compile-Digest` and `Cache-Control: no-store` |
 | `POST /api/projects/:slug/compile/convert` | `path`, `baseHash`, `inputs` (path and SHA-256 per input), `accept.digest` | `path`, new `version` hash, accepted `lossDigest` |
-| `POST /api/projects/:slug/compile/convert` to the 0.3 draft | `path`, `baseHash`, `target: "ossie-0.3.0.dev0"`, `converted` (SHA-256 of the previewed text) | `path`, new `version` hash, `converted` |
+| `POST /api/projects/:slug/compile/convert-base` | `path`, `baseHash`, `converted` (SHA-256 of the previewed text); converts to the Ossie 0.3.0 draft | `path`, new `version` hash, `converted` |
 
 A check's `accepted` says whether its report would be acceptable under the supplied policy; it
 never releases bytes. Only working-copy sources carry `unpublished: true`; published sources name
@@ -134,7 +134,8 @@ Convert to Ossie 0.3.0 draft**. The preview lists every change: the declared ver
 object. A workbench metric with the legacy status `draft` becomes `proposed`; nothing becomes
 `approved`. Tick the confirmation and convert. The server converts the file again and saves only
 when the result equals the preview, the file is unchanged since the preview and Git holds it clean.
-Nothing is committed. New files are still created as 0.2.0.dev0.
+If the file changed in the meantime, or the conversion fails, **Review again** reads the saved file
+and shows a new preview to confirm. Nothing is committed. New files are still created as 0.2.0.dev0.
 
 ### Ossie 0.3.0 draft: limits
 

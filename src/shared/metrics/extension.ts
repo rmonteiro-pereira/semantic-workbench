@@ -3,6 +3,7 @@ import { itemKeyLookup } from '../core/item-key-adapters';
 import type { ValidateFunction } from 'ajv';
 import { metric as checkMetric, mapping as checkMapping } from '../../generated/validators.js';
 import { schemaErrorPath, type Issue } from '../validation/diagnostics';
+import { OSSIE_DRAFT_VERSION } from '../validation/ossie-version';
 import { ansiExpression, expressionRefs, metricDependencies } from './deps';
 // Metric attributes in an Ossie vendor extension: an entry with vendor_name SEMANTIC_WORKBENCH.
 // Ossie 0.2.0.dev0 keeps it in `custom_extensions` with `data` as a JSON string; the 0.3.0 draft
@@ -52,11 +53,10 @@ export type ExtensionForm = { list: 'custom_extensions' | 'nonportable_extension
 const CUSTOM_EXTENSIONS: ExtensionForm = { list: 'custom_extensions', objectData: false };
 /** The Ossie 0.3.0 draft form: `nonportable_extensions` with object data. */
 export const NONPORTABLE_EXTENSIONS: ExtensionForm = { list: 'nonportable_extensions', objectData: true };
-const DRAFT_VERSION = '0.3.0.dev0';
 
 /** The form a document of this declared version uses. Anything but the draft keeps the 0.2 form. */
 export function extensionFormFor(version: unknown): ExtensionForm {
-  return version === DRAFT_VERSION ? NONPORTABLE_EXTENSIONS : CUSTOM_EXTENSIONS;
+  return version === OSSIE_DRAFT_VERSION ? NONPORTABLE_EXTENSIONS : CUSTOM_EXTENSIONS;
 }
 
 /** The form an item already uses, or the one its document's version calls for when it has no extension list. */
@@ -97,35 +97,9 @@ export function decodeExtensionData(form: ExtensionForm, data: unknown): { value
 }
 
 function parseData(data: unknown, path: string, form: ExtensionForm): { value?: any; issues: Issue[] } {
-  if (form.objectData) {
-    const decoded = decodeExtensionData(form, data);
-    return decoded.error ? { issues: [{ severity: 'error', code: 'extension', path, message: decoded.error }] } : { value: decoded.value, issues: [] };
-  }
-  if (typeof data !== 'string')
-    return {
-      issues: [
-        {
-          severity: 'error',
-          code: 'extension',
-          path,
-          message: 'The SEMANTIC_WORKBENCH extension data must be a JSON string.',
-        },
-      ],
-    };
-  try {
-    return { value: JSON.parse(data), issues: [] };
-  } catch (error) {
-    return {
-      issues: [
-        {
-          severity: 'error',
-          code: 'extension',
-          path,
-          message: `The SEMANTIC_WORKBENCH extension data is not valid JSON: ${(error as Error).message}`,
-        },
-      ],
-    };
-  }
+  const decoded = decodeExtensionData(form, data);
+  if (decoded.error) return { issues: [{ severity: 'error', code: 'extension', path, message: decoded.error }] };
+  return { value: decoded.value, issues: [] };
 }
 // Rules stated in plain language; the schema's if/then branches would otherwise report bare
 // `required`.

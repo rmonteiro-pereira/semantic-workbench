@@ -12,9 +12,7 @@
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "later",
@@ -29,9 +27,7 @@
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "later",
@@ -46,9 +42,7 @@
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "later",
@@ -57,17 +51,13 @@
     },
     "POST /api/projects/:slug/proposals": {
       "id": "proposals.create",
-      "handlerChecks": [
-        "authorizeProposal"
-      ],
+      "handlerChecks": ["authorizeProposal"],
       "limits": {
         "request": "GIT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "later",
@@ -76,18 +66,13 @@
     },
     "POST /api/projects/:slug/proposals/:id/work": {
       "id": "proposals.work",
-      "handlerChecks": [
-        "authorizeProposal",
-        "authorizeCheckout"
-      ],
+      "handlerChecks": ["authorizeProposal", "authorizeCheckout"],
       "limits": {
         "request": "GIT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "later",
@@ -96,17 +81,13 @@
     },
     "POST /api/projects/:slug/proposals/:id/synchronize": {
       "id": "proposals.synchronize",
-      "handlerChecks": [
-        "authorizeProposal"
-      ],
+      "handlerChecks": ["authorizeProposal"],
       "limits": {
         "request": "GIT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "later",
@@ -115,17 +96,13 @@
     },
     "POST /api/projects/:slug/proposals/:id/contribute": {
       "id": "proposals.contribute",
-      "handlerChecks": [
-        "authorizeProposal"
-      ],
+      "handlerChecks": ["authorizeProposal"],
       "limits": {
         "request": "GIT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "commit"
-      ],
+      "effects": ["commit"],
       "dispatch": "twin",
       "exposure": {
         "increment": "later",
@@ -134,63 +111,45 @@
     },
     "GET /api/projects/:slug/proposals/:id/promotion-check": {
       "id": "proposals.check",
-      "handlerChecks": [
-        "authorizeProposal"
-      ],
+      "handlerChecks": ["authorizeProposal"],
       "limits": {
         "request": "none",
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "read"
-      ],
+      "effects": ["read"],
       "dispatch": "twin",
       "exposure": {
         "increment": "later",
         "reason": "Shared proposal tools require a later agent increment."
       },
-      "steps": [
-        "snapshot.read"
-      ]
+      "steps": ["snapshot.read"]
     },
     "POST /api/projects/:slug/proposals/:id/promote": {
       "id": "proposals.promote",
-      "handlerChecks": [
-        "authorizeProposal"
-      ],
+      "handlerChecks": ["authorizeProposal"],
       "limits": {
         "request": "GIT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "publish"
-      ],
+      "effects": ["publish"],
       "dispatch": "twin",
       "exposure": {
         "increment": "later",
         "reason": "Shared proposal tools require a later agent increment."
       },
-      "steps": [
-        "publication.advance",
-        "publication.abandon",
-        "snapshot.read"
-      ]
+      "steps": ["publication.advance", "publication.abandon", "snapshot.read"]
     },
     "POST /api/projects/:slug/proposals/:id/close": {
       "id": "proposals.close",
-      "handlerChecks": [
-        "authorizeProposal"
-      ],
+      "handlerChecks": ["authorizeProposal"],
       "limits": {
         "request": "GIT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "later",
@@ -199,17 +158,13 @@
     },
     "POST /api/projects/:slug/proposals/:id/restore": {
       "id": "proposals.restore",
-      "handlerChecks": [
-        "authorizeProposal"
-      ],
+      "handlerChecks": ["authorizeProposal"],
       "limits": {
         "request": "GIT_REQUEST_LIMIT",
         "response": "bounded",
         "work": "git"
       },
-      "effects": [
-        "localWrite"
-      ],
+      "effects": ["localWrite"],
       "dispatch": "twin",
       "exposure": {
         "increment": "later",
@@ -641,6 +596,22 @@
     },
     "POST /api/projects/:slug/compile/convert": {
       "id": "compile.convert",
+      "handlerChecks": ["authorizeWrite"],
+      "limits": {
+        "request": "FILE_SAVE_REQUEST_LIMIT",
+        "response": "bounded",
+        "work": "scan"
+      },
+      "effects": ["localWrite"],
+      "dispatch": "twin",
+      "exposure": {
+        "increment": "later",
+        "reason": "Rewrites a source file; not an agent operation yet."
+      },
+      "steps": ["snapshot.read"]
+    },
+    "POST /api/projects/:slug/compile/convert-base": {
+      "id": "compile.convertBase",
       "handlerChecks": ["authorizeWrite"],
       "limits": {
         "request": "FILE_SAVE_REQUEST_LIMIT",

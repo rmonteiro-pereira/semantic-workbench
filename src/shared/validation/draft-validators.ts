@@ -6,9 +6,7 @@
  */
 import type { ValidateFunction } from 'ajv';
 import type { Issue } from './diagnostics';
-
-/** The Ossie development version of the draft base. */
-export const OSSIE_DRAFT_VERSION = '0.3.0.dev0';
+import { OSSIE_DRAFT_VERSION } from './ossie-version';
 
 /** The validators the draft module exports. */
 export type DraftValidators = {
@@ -23,7 +21,7 @@ export type DraftValidators = {
 };
 
 /** The code of the finding that says the draft checks have not been loaded yet. */
-const DRAFT_CHECKS_LOADING = 'draft-checks-loading';
+export const DRAFT_CHECKS_LOADING = 'draft-checks-loading';
 
 let loaded: DraftValidators | null = null;
 let loading: Promise<DraftValidators> | null = null;
@@ -34,14 +32,26 @@ export function draftValidators(): DraftValidators | null {
   return loaded;
 }
 
-/** Loads the draft validators once. Later calls return the same module. */
-export function loadDraftValidators(): Promise<DraftValidators> {
+const importDraftModule = (): Promise<DraftValidators> => import('../../generated/validators-0.3.js');
+
+/**
+ * Loads the draft validators once. Later calls return the same module. A failed load is forgotten,
+ * so the next call tries again instead of failing for the rest of the session. A test passes its
+ * own import to make a load fail.
+ */
+export function loadDraftValidators(importModule: () => Promise<DraftValidators> = importDraftModule): Promise<DraftValidators> {
   if (!loading) {
     loadCount += 1;
-    loading = import('../../generated/validators-0.3.js').then(module => {
-      loaded = module;
-      return module;
-    });
+    loading = importModule().then(
+      module => {
+        loaded = module;
+        return module;
+      },
+      error => {
+        loading = null;
+        throw error;
+      },
+    );
   }
   return loading;
 }
@@ -65,11 +75,19 @@ export async function prepareDraftChecks(text: string): Promise<void> {
 }
 
 /** The blocking finding for a draft document checked before its validators are loaded. */
-export function draftChecksLoadingIssue(): Issue {
+function draftChecksLoadingIssue(path: string): Issue {
   return {
     severity: 'error',
     code: DRAFT_CHECKS_LOADING,
-    path: '/version',
+    path,
     message: 'The Ossie 0.3.0 draft checks are still loading. Check the file again in a moment.',
   };
+}
+
+/**
+ * One draft validator when the module is loaded, or the blocking finding at `path` before that.
+ * Every check of a draft document goes through here, so none of them passes silently while loading.
+ */
+export function draftValidator<T>(pick: (validators: DraftValidators) => T, path = '/version'): { validate: T } | { issue: Issue } {
+  return loaded ? { validate: pick(loaded) } : { issue: draftChecksLoadingIssue(path) };
 }

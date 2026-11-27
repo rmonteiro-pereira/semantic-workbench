@@ -5,6 +5,7 @@ import type { CompileFinding } from '../../shared/tessera/compile-findings';
 import type { LossReport } from '../../shared/tessera/loss-report';
 import { REGISTRY } from '../../shared/tessera/registry';
 import { BaseConversionRefusal, convertToDraftBase, type BaseConversionChange } from '../../shared/tessera/base-conversion';
+import { api } from '../projects/api';
 import { compileApi, isCompileFailure, type CompileApi, type ConvertBody } from './api';
 
 /** The calls the conversion dialog makes. */
@@ -114,12 +115,18 @@ export type BaseReview = { before: string; after: string; changes: BaseConversio
 
 /** What the base conversion dialog shows. */
 export type BaseConvertView =
+  | { status: 'loading' }
   | { status: 'refused'; findings: CompileFinding[] }
   | { status: 'review'; review: BaseReview }
   | { status: 'converting'; review: BaseReview }
   | { status: 'done'; path: string }
   | { status: 'changed'; message: string }
   | { status: 'error'; message: string };
+
+/** The calls the base conversion dialog makes: read the saved file again, and confirm. */
+export type BaseConvertClient = Pick<CompileApi, 'convertBase'> & { file: (project: string, path: string) => Promise<ConvertTarget> };
+
+const baseConvertClient: BaseConvertClient = { convertBase: compileApi.convertBase, file: (project, path) => api.file(project, path) };
 
 /** Converts the file here, so the person sees every change before anything is saved. The server converts again before it writes. */
 export function startBaseReview(target: ConvertTarget): BaseConvertView {
@@ -132,10 +139,21 @@ export function startBaseReview(target: ConvertTarget): BaseConvertView {
   }
 }
 
+/** Reads the saved file again and previews its conversion, for a review that went stale or failed. */
+export async function reviewSavedFile(client: Pick<BaseConvertClient, 'file'>, project: string, path: string): Promise<{ target?: ConvertTarget; view: BaseConvertView }> {
+  try {
+    const file = await client.file(project, path);
+    const target = { path: file.path, source: file.source, hash: file.hash };
+    return { target, view: startBaseReview(target) };
+  } catch (error) {
+    return { view: viewOfConversionFailure(error) as BaseConvertView };
+  }
+}
+
 /** Sends the confirmation with the file version and the hash of the converted text on screen. */
 export async function confirmBaseConversion(client: Pick<CompileApi, 'convertBase'>, project: string, target: ConvertTarget, review: BaseReview): Promise<BaseConvertView> {
   try {
-    await client.convertBase(project, { path: target.path, baseHash: target.hash, target: 'ossie-0.3.0.dev0', converted: review.converted });
+    await client.convertBase(project, { path: target.path, baseHash: target.hash, converted: review.converted });
     return { status: 'done', path: target.path };
   } catch (error) {
     return viewOfConversionFailure(error) as BaseConvertView;
@@ -143,11 +161,29 @@ export async function confirmBaseConversion(client: Pick<CompileApi, 'convertBas
 }
 
 /** The control the base conversion dialog gets. */
-export type BaseConvertControl = { view: BaseConvertView; convert: () => void };
+export type BaseConvertControl = { view: BaseConvertView; convert: () => void; reload: () => void };
 
-/** Previews the base conversion when the dialog opens and exposes the confirmation. */
-export function useBaseConvert(project: string, target: ConvertTarget, onConverted: () => void, client: Pick<CompileApi, 'convertBase'> = compileApi): BaseConvertControl {
-  const [view, setView] = useState<BaseConvertView>(() => startBaseReview(target));
+/** Previews the base conversion when the dialog opens, exposes the confirmation, and reviews the saved file again on request. */
+export function useBaseConvert(project: string, opened: ConvertTarget, onConverted: () => void, client: BaseConvertClient = baseConvertClient): BaseConvertControl {
+  // The confirmation names the file version the preview on screen was made from, which a new review replaces.
+  const [target, setTarget] = useState(opened);
+  const [view, setView] = useState<BaseConvertView>(() => startBaseReview(opened));
+  const generation = useRef(0);
+  useEffect(
+    () => () => {
+      generation.current += 1;
+    },
+    [],
+  );
+  const reload = useCallback(() => {
+    const mine = ++generation.current;
+    setView({ status: 'loading' });
+    void reviewSavedFile(client, project, target.path).then(next => {
+      if (mine !== generation.current) return;
+      if (next.target) setTarget(next.target);
+      setView(next.view);
+    });
+  }, [client, project, target.path]);
   const convert = useCallback(() => {
     if (view.status !== 'review') return;
     const shown = view.review;
@@ -157,5 +193,5 @@ export function useBaseConvert(project: string, target: ConvertTarget, onConvert
       if (next.status === 'done') onConverted();
     });
   }, [client, onConverted, project, target, view]);
-  return { view, convert };
+  return { view, convert, reload };
 }

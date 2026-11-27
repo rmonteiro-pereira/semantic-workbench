@@ -12,8 +12,8 @@ export type CompileFailure = Error & { status: number; body: { error?: string; m
 
 /** What the person confirmed in the conversion dialog: the file version and input hashes the review saw, and the digest accepted. */
 export type ConvertBody = { path: string; baseHash: string; inputs: { path: string; sha256: string }[]; accept: { digest: string } };
-/** A confirmed base conversion: the file, the version the preview read, and the hash of the converted text it showed. */
-export type BaseConvertBody = { path: string; baseHash: string; target: 'ossie-0.3.0.dev0'; converted: string };
+/** A confirmed conversion to the Ossie 0.3.0 draft base: the file, the version the preview read, and the hash of the converted text it showed. */
+export type BaseConvertBody = { path: string; baseHash: string; converted: string };
 
 /** A downloaded bundle: the zip and the name the server gave it. */
 export type BundleDownload = { blob: Blob; fileName: string };
@@ -138,7 +138,7 @@ export const compileApi = {
   },
   convert: (project: string, body: ConvertBody) => post(`${compilePath(project)}/convert`, body).then(response => answerOf<ConvertAnswer>(response, answer => validConversion(answer, body))),
   convertBase: (project: string, body: BaseConvertBody) =>
-    post(`${compilePath(project)}/convert`, body).then(response => answerOf<BaseConvertAnswer>(response, answer => validBaseConversion(answer, body))),
+    post(`${compilePath(project)}/convert-base`, body).then(response => answerOf<BaseConvertAnswer>(response, answer => validBaseConversion(answer, body))),
 };
 
 /** The shape the dialogs depend on, so a test can pass a fake. */

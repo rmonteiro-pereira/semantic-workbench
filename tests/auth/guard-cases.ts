@@ -436,6 +436,7 @@ export const GUARDED_ROUTES: Record<string, keyof typeof GUARD_CASES> = {
   'POST /api/projects/:slug/kpis': 'metric save',
   'PUT /api/projects/:slug/files/*': 'Source save',
   'POST /api/projects/:slug/compile/convert': 'Source save',
+  'POST /api/projects/:slug/compile/convert-base': 'Source save',
   'DELETE /api/projects/:slug/files/*': 'delete',
   'POST /api/trash/:entry/undo': 'restore',
   'POST /api/trash/:entry/restore': 'restore',

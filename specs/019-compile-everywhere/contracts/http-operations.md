@@ -92,3 +92,22 @@ with this file standard; save the compiled bytes through the ordinary save pipel
 
 Response `200`: `{ path, version, lossDigest }`. `409` with `{ error: "version-changed" | "dirty" | "no-history" | "not-tessera" | "digest-mismatch" }`. `422` with findings when a guard or a check refuses.
 Not exposed to MCP now: increment `later`, reason "rewrites a source file; not an agent operation yet".
+
+## `POST /api/projects/:slug/compile/convert-base` — id `compile.convertBase`
+
+Action `edit` on the file. Handler check `authorizeWrite`. Effects `localWrite`.
+
+Request:
+
+```json
+{ "path": "…", "baseHash": "<file version the preview read>", "converted": "<SHA-256 of the previewed text>" }
+```
+
+Steps: refuse unless the file is the version the preview read; refuse unless it has no uncommitted
+change and Git holds its committed version; convert the Ossie 0.2.0.dev0 document to the 0.3.0 draft
+base again and refuse when the result's hash differs from `converted`; save the converted text through
+the ordinary save pipeline with `baseHash`.
+
+Response `200`: `{ path, version, converted }`. `409` with `{ error: "version-changed" | "dirty" | "no-history" | "digest-mismatch" }`. `422` `refused` when the document
+does not declare 0.2.0.dev0, holds extension data that is not a JSON object, or a status rename would approve a metric.
+Not exposed to MCP now: increment `later`, reason "rewrites a source file; not an agent operation yet".

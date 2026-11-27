@@ -1,7 +1,8 @@
 /** Validates standalone and embedded mappings against the pinned mapping schema of the declared Ossie version. */
 import { standalone, embedded, ontology as versionedOntology } from '../../generated/validators.js';
 import { schemaErrorPath, type Issue } from '../validation/diagnostics';
-import { draftChecksLoadingIssue, draftValidators, OSSIE_DRAFT_VERSION, type DraftValidators } from '../validation/draft-validators';
+import { draftValidator, type DraftValidators } from '../validation/draft-validators';
+import { OSSIE_DRAFT_VERSION } from '../validation/ossie-version';
 
 type MappingMode = 'standalone' | 'embedded' | 'ontology';
 
@@ -24,10 +25,9 @@ export function isMapping(data: any) {
  * An embedded mapping has no version of its own, so the caller passes the version of the ontology around it.
  */
 export function mappingSchemaIssues(data: any, mode: MappingMode = 'standalone', prefix = '', version: unknown = data?.version): Issue[] {
-  const draft = version === OSSIE_DRAFT_VERSION;
-  const loaded = draftValidators();
-  if (draft && !loaded) return [{ ...draftChecksLoadingIssue(), path: prefix + '/version' }];
-  const validate = draft && loaded ? draftValidatorFor(mode, loaded) : VALIDATORS_020[mode];
+  const draft = version === OSSIE_DRAFT_VERSION ? draftValidator(validators => draftValidatorFor(mode, validators), prefix + '/version') : null;
+  if (draft && 'issue' in draft) return [draft.issue];
+  const validate = draft ? draft.validate : VALIDATORS_020[mode];
   if (validate(data)) return [];
   const versionName = draft ? OSSIE_DRAFT_VERSION : '0.2.0.dev0';
   return (validate.errors ?? []).map(error => ({

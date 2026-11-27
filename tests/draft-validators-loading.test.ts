@@ -90,3 +90,34 @@ test('a 0.3 file the workspace receives from the server is checked without the l
   `);
   expect(outcome).toEqual({ oldValid: true, loadsAfterOld: 0, codes: [] });
 });
+
+test('a failed load of the draft module is retried by the next request instead of failing for good', () => {
+  const outcome = runFresh(`
+    import { readFileSync } from 'node:fs';
+    import { draftLoadCount, loadDraftValidators } from './src/shared/validation/draft-validators';
+    import { validateInput } from './src/shared/validation/input';
+    const failed = await loadDraftValidators(() => Promise.reject(new Error('offline'))).then(() => 'loaded', error => error.message);
+    await loadDraftValidators();
+    const codes = validateInput(readFileSync('tests/fixtures/ossie-0.3/sales.semantic.yaml', 'utf8'), 'sales.semantic.yaml').issues.map(issue => issue.code);
+    console.log(JSON.stringify({ failed, loads: draftLoadCount(), codes }));
+  `);
+  expect(outcome).toEqual({ failed: 'offline', loads: 2, codes: [] });
+});
+
+test('a 0.3 file still opens when the draft module cannot load, and its check is blocked by the loading finding', () => {
+  const outcome = runFresh(`
+    import { readFileSync } from 'node:fs';
+    import { loadDraftValidators } from './src/shared/validation/draft-validators';
+    import { validateInput } from './src/shared/validation/input';
+    import { api } from './src/app/projects/api';
+    const path = 'tests/fixtures/ossie-0.3/sales.semantic.yaml';
+    globalThis.fetch = async () => Response.json({ path, source: readFileSync(path, 'utf8'), hash: 'h', docType: 'ossie' });
+    // The load fails while the file is being opened, so opening joins the failing load.
+    const failing = loadDraftValidators(() => new Promise((_, reject) => setTimeout(() => reject(new Error('offline')), 50))).catch(() => undefined);
+    const file = await api.file('demo', 'sales.semantic.yaml');
+    await failing;
+    const result = validateInput(file.source, 'sales.semantic.yaml');
+    console.log(JSON.stringify({ opened: file.path, valid: result.valid, codes: result.issues.map(issue => issue.code) }));
+  `);
+  expect(outcome).toEqual({ opened: 'tests/fixtures/ossie-0.3/sales.semantic.yaml', valid: false, codes: ['draft-checks-loading'] });
+});

@@ -328,7 +328,9 @@ font-face declarations before the theme stylesheet. Fonts are served from the ap
   [Ossie 0.3.0 draft](docs/compile.md#ossie-030-draft). The draft's generated validators live in
   `src/generated/validators-0.3.js`, which `draft-validators.ts` loads on first need, so a browser
   that opens only 0.2 files never downloads them; validation stays synchronous, and a draft file
-  checked before the module loads gets a blocking finding. `metric-scoping.ts` holds the draft's
+  checked before the module loads gets a blocking finding until the workspace loads it and checks
+  again. `ossie-version.ts` names the draft version and reads the version a document declares.
+  `metric-scoping.ts` holds the draft's
   rules the schema cannot express (dataset metrics, `AGG`, the reserved `METRIC`). A file with another or no version
   still gets the syntax, family, reference and cycle checks, so the write gate keeps refusing broken
   files; only the pinned-schema step is skipped, and an info notice (`NOT_VALIDATED`) says so.

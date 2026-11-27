@@ -61,7 +61,7 @@ test('the same document at revision 2 fails the compile when the addition must b
 });
 
 test('a registered second base validates with its own derived schema and labels its output with its own name', () => {
-  const next: SupportedBase = { version: '0.4.0.dev0', label: baseLabel('0.4.0.dev0', true), draft: true, ontologySchema: synthetic, validators: {} };
+  const next: SupportedBase = { version: '0.4.0.dev0', name: 'Ossie 0.4.0 draft', label: baseLabel('0.4.0.dev0', true), draft: true, ontologySchema: synthetic, validators: {} };
   next.validators[1] = compiledValidator(deriveTesseraSchema(next, REGISTRY, 1));
   const bases = registerBase(SUPPORTED_BASES, next);
   const data = { tessera: 1, version: '0.4.0.dev0', name: 'Retail', ontology: [{ concept: 'Order', type: 'EntityType', tessera_notes: 'a note' }] };
@@ -72,7 +72,7 @@ test('a registered second base validates with its own derived schema and labels 
 });
 
 test('a base whose schema already defines a Tessera property is refused', () => {
-  expect(() => registerBase(SUPPORTED_BASES, { version: '0.4.0.dev0', label: 'x', draft: true, ontologySchema: colliding, validators: {} })).toThrow('tessera_flag');
+  expect(() => registerBase(SUPPORTED_BASES, { version: '0.4.0.dev0', name: 'x', label: 'x', draft: true, ontologySchema: colliding, validators: {} })).toThrow('tessera_flag');
 });
 
 test('this file uses the marker, validator and report code only through their public functions', () => {

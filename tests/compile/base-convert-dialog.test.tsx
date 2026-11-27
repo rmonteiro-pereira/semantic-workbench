@@ -2,8 +2,8 @@
 import { expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { BaseChanges, BaseConvertDialog } from '../../src/app/compile/ConvertDialog';
-import { confirmBaseConversion, startBaseReview } from '../../src/app/compile/use-convert';
+import { BaseChanges, BaseConvertDialog, BaseConvertFooter } from '../../src/app/compile/ConvertDialog';
+import { confirmBaseConversion, reviewSavedFile, startBaseReview, type BaseConvertView } from '../../src/app/compile/use-convert';
 import type { ProjectInfo } from '../../src/app/projects/api';
 import { ValidationPanel } from '../../src/app/validation/ValidationPanel';
 
@@ -48,8 +48,27 @@ test('the confirmation sends the previewed hash, and a stale answer asks for a n
     view.review,
   );
   expect(done).toEqual({ status: 'done', path: target.path });
-  expect(sent).toEqual([{ path: target.path, baseHash: target.hash, target: 'ossie-0.3.0.dev0', converted: view.review.converted }]);
+  expect(sent).toEqual([{ path: target.path, baseHash: target.hash, converted: view.review.converted }]);
   const stale = Object.assign(new Error('changed'), { status: 409, body: { error: 'version-changed' } });
   const changed = await confirmBaseConversion({ convertBase: async () => Promise.reject(stale) }, 'billing', target, view.review);
   expect(changed.status).toBe('changed');
+});
+
+test('a stale or failed confirmation offers Review again, and a review in progress does not', () => {
+  const footer = (view: BaseConvertView) => text(renderToStaticMarkup(<BaseConvertFooter control={{ view, convert: () => {}, reload: () => {} }} confirmed onClose={() => {}} />));
+  expect(footer({ status: 'changed', message: 'changed' })).toContain('Review again');
+  expect(footer({ status: 'error', message: 'failed' })).toContain('Review again');
+  const view = startBaseReview(target);
+  if (view.status !== 'review') throw new Error('expected a review');
+  expect(footer(view)).not.toContain('Review again');
+});
+
+test('Review again previews the file as it is saved now, and the confirmation names that version', async () => {
+  const edited = source.replace('name:', '# edited\nname:');
+  const read = await reviewSavedFile({ file: async (_project, path) => ({ path, source: edited, hash: 'c'.repeat(64) }) }, 'billing', target.path);
+  expect(read.target).toEqual({ path: target.path, source: edited, hash: 'c'.repeat(64) });
+  if (read.view.status !== 'review') throw new Error('expected a review');
+  expect(read.view.review.before).toBe(edited);
+  const failed = await reviewSavedFile({ file: async () => Promise.reject(new Error('offline')) }, 'billing', target.path);
+  expect(failed).toEqual({ view: { status: 'error', message: 'offline' } });
 });
