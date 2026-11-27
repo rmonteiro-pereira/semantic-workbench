@@ -104,12 +104,17 @@ button.link {
   font-size: 13px;
 }
 /* Text inputs and selects get the textarea's frame; without it the browser draws its own heavy inset border.
-   Checkboxes, radios, ranges and colour pickers keep their native look. */
+   Checkboxes, radios, ranges and colour pickers keep their native look. Only the frame changes, never the height:
+   dialogs keep their own padding (.workbench-dialog input in style.css). */
 .item-fields input:not([type='checkbox'], [type='radio'], [type='range'], [type='color']),
 .item-fields select {
-  padding: 8px;
   border: 1px solid var(--color-border);
   border-radius: 5px;
+}
+/* Outside a dialog the browser's input border is 2px, so the 1px frame gives that pixel back as padding and the
+   field keeps its height. Nothing below it, such as Save governance, moves down. */
+.item-fields input:not([type='checkbox'], [type='radio'], [type='range'], [type='color']):not(.workbench-dialog *) {
+  padding: 2px 3px;
 }
 .item-fields textarea {
   padding: 8px;
