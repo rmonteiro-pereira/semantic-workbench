@@ -46,6 +46,11 @@ test('a 0.3.0.dev0 file names the draft base beside its counts, and a 0.2 file s
   expect(baseLabelFor({ family: 'tessera', revision: 1, base: '0.2.0.dev0', baseLabel: '' }, oldSource)).toBe('Tessera 1 on Ossie 0.2.0.dev0 · ');
 });
 
+test('the validation report opens for a Turtle file and for a file that does not parse', () => {
+  expect(text(renderToStaticMarkup(<ValidationPanel issues={[]} source={'@prefix ex: <http://example.org/> .\nex:a a ex:B .\n'} />))).toContain('0 errors · 0 warnings');
+  expect(text(renderToStaticMarkup(<ValidationPanel issues={[]} source={'name: [\n'} />))).toContain('0 errors · 0 warnings');
+});
+
 test('on a phone the conversion diff signs each removed and added line, not only colours it', () => {
   const css = readFileSync('src/app/compile/compile.css', 'utf8');
   expect(css).toMatch(/\.convert-diff \.diff-additions-only \.cm-deletedChunk \.cm-deletedLine::before \{\s*content: '− ';/);

@@ -253,9 +253,16 @@ export const childLists: Partial<Record<ItemKind, { key: string; kind: ItemKind;
   'odcs-property': [{ key: 'relationships', kind: 'odcs-foreign-key', label: 'Foreign keys' }],
 };
 
-/** The Ossie version a document declares in its top-level `version` key, read through the YAML and JSON parser. */
+/**
+ * The Ossie version a document declares in its top-level `version` key, read through the YAML and JSON parser.
+ * Text that does not parse (Turtle, or a file mid-edit) declares none, because screens call this on every render.
+ */
 export function declaredVersion(source: string): unknown {
-  return itemValue(source, ['version']);
+  try {
+    return itemValue(source, ['version']);
+  } catch {
+    return undefined;
+  }
 }
 
 /** Reads an item's workbench extension and its list position, in the 0.2 or the 0.3 draft form. */

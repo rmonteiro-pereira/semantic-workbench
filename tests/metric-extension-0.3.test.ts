@@ -63,6 +63,12 @@ test('declaredVersion reads only the top-level version key', () => {
   expect(declaredVersion('{"version": "0.2.0.dev0", "name": "x"}')).toBe('0.2.0.dev0');
 });
 
+test('declaredVersion finds no version in text that does not parse, instead of throwing', () => {
+  expect(declaredVersion('@prefix ex: <http://example.org/> .\nex:a a ex:B .\n')).toBeUndefined();
+  expect(declaredVersion('version: [\n')).toBeUndefined();
+  expect(declaredVersion('{"version": ')).toBeUndefined();
+});
+
 test('a 0.3 metric reads its attributes and governance from nonportable_extensions object data', () => {
   const metric = parse(salesModel).metrics[0];
   expect(readMetricExtension(metric, '/metrics/0').value).toMatchObject({ type: 'simple', status: 'proposed' });
