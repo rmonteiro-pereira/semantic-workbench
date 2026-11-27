@@ -17,10 +17,8 @@ export type RunRequest = { accept?: AcceptanceRequest; commit?: string; file?: F
 
 /** A parsed conversion request. */
 export type ConvertRequest = { path: string; baseHash: string; inputs: { path: string; sha256: string }[]; digest: string };
-/** The target a base conversion names. Only the Ossie 0.3.0 draft base can be converted to. */
-const DRAFT_BASE_TARGET = 'ossie-0.3.0.dev0';
-/** A reviewed base conversion: the file, the version the preview read, and the hash of the converted text it showed. */
-export type BaseConvertRequest = { path: string; baseHash: string; target: typeof DRAFT_BASE_TARGET; converted: string };
+/** A reviewed conversion to the Ossie 0.3.0 draft base: the file, the version the preview read, and the hash of the converted text it showed. */
+export type BaseConvertRequest = { path: string; baseHash: string; converted: string };
 
 function objectFrom(value: unknown, shape: string): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new BadRequestError(`Expected ${shape}.`);
@@ -115,18 +113,12 @@ export function parseConvertRequest(value: unknown): ConvertRequest {
   return { path: body.path, baseHash: body.baseHash, inputs: inputsFrom(body.inputs), digest: digestFrom(accept.digest) };
 }
 
-/** Tells a base conversion from a conversion to standard Ossie: only the first names a target. */
-export function isBaseConvertBody(value: unknown): boolean {
-  return value !== null && typeof value === 'object' && !Array.isArray(value) && 'target' in value;
-}
-
-/** Reads the body of a base conversion: the file, the version the preview read, the target and the hash of the converted text shown. */
+/** Reads the body of a conversion to the draft base: the file, the version the preview read and the hash of the converted text shown. */
 export function parseBaseConvertRequest(value: unknown): BaseConvertRequest {
-  const body = objectFrom(value, '{path, baseHash, target, converted}');
-  refuseUnknownKeys(body, ['path', 'baseHash', 'target', 'converted'], '{path, baseHash, target, converted}');
+  const body = objectFrom(value, '{path, baseHash, converted}');
+  refuseUnknownKeys(body, ['path', 'baseHash', 'converted'], '{path, baseHash, converted}');
   if (typeof body.path !== 'string' || !body.path) throw new BadRequestError('Conversion needs the path of the file.');
   if (typeof body.baseHash !== 'string' || !HASH.test(body.baseHash)) throw new BadRequestError('baseHash must be the SHA-256 of the file version the preview read.');
-  if (body.target !== DRAFT_BASE_TARGET) throw new BadRequestError(`target must be ${DRAFT_BASE_TARGET}.`);
   if (typeof body.converted !== 'string' || !HASH.test(body.converted)) throw new BadRequestError('converted must be the SHA-256 of the converted text the preview showed.');
-  return { path: body.path, baseHash: body.baseHash, target: DRAFT_BASE_TARGET, converted: body.converted };
+  return { path: body.path, baseHash: body.baseHash, converted: body.converted };
 }

@@ -114,14 +114,11 @@ function ConvertReviewDialog({ project, target, onClose, onConverted }: Pick<Pro
   );
 }
 
-/** The dialog. A file that is not saved and committed is explained instead of reviewed. */
-export function ConvertDialog({ project, target, gitState, unsaved, onClose, onConverted }: Props) {
-  // A successful save makes the file dirty; keep the opening eligibility so its acknowledgement stays visible.
-  const [blocker] = useState(() => conversionBlocker({ gitState, unsaved }));
-  if (!blocker) return <ConvertReviewDialog project={project} target={target} onClose={onClose} onConverted={onConverted} />;
+/** Says why a file cannot be converted now, in place of the review. */
+export function ConversionBlocked({ title, blocker, onClose }: { title: string; blocker: string; onClose: () => void }) {
   return (
     <Modal
-      title={`Convert ${target.path} to standard Ossie`}
+      title={title}
       size="narrow"
       onCancel={onClose}
       footer={
@@ -135,6 +132,14 @@ export function ConvertDialog({ project, target, gitState, unsaved, onClose, onC
       </p>
     </Modal>
   );
+}
+
+/** The dialog. A file that is not saved and committed is explained instead of reviewed. */
+export function ConvertDialog({ project, target, gitState, unsaved, onClose, onConverted }: Props) {
+  // A successful save makes the file dirty; keep the opening eligibility so its acknowledgement stays visible.
+  const [blocker] = useState(() => conversionBlocker({ gitState, unsaved }));
+  if (!blocker) return <ConvertReviewDialog project={project} target={target} onClose={onClose} onConverted={onConverted} />;
+  return <ConversionBlocked title={`Convert ${target.path} to standard Ossie`} blocker={blocker} onClose={onClose} />;
 }
 
 const BASE_WARNING =
@@ -158,6 +163,12 @@ export function BaseChanges({ review }: { review: BaseReview }) {
 
 function BaseConvertBody({ control, path, confirmed, onConfirm }: { control: BaseConvertControl; path: string; confirmed: boolean; onConfirm: (value: boolean) => void }) {
   const { view } = control;
+  if (view.status === 'loading')
+    return (
+      <div className="compile-placeholder" role="status">
+        Reviewing the conversion
+      </div>
+    );
   if (view.status === 'review' || view.status === 'converting')
     return (
       <div className="convert-review">
@@ -194,7 +205,8 @@ function BaseConvertBody({ control, path, confirmed, onConfirm }: { control: Bas
   );
 }
 
-function BaseConvertFooter({ control, confirmed, onClose }: { control: BaseConvertControl; confirmed: boolean; onClose: () => void }) {
+/** The base dialog's buttons: Review again after a stale or failed confirmation, as in the conversion to standard Ossie. */
+export function BaseConvertFooter({ control, confirmed, onClose }: { control: BaseConvertControl; confirmed: boolean; onClose: () => void }) {
   const { view } = control;
   const reviewing = view.status === 'review' || view.status === 'converting';
   return (
@@ -202,6 +214,11 @@ function BaseConvertFooter({ control, confirmed, onClose }: { control: BaseConve
       <button type="button" onClick={onClose} disabled={view.status === 'converting'}>
         {view.status === 'done' ? 'Done' : 'Cancel'}
       </button>
+      {(view.status === 'changed' || view.status === 'error') && (
+        <button type="button" onClick={control.reload}>
+          Review again
+        </button>
+      )}
       {reviewing && (
         <button type="button" className="primary" disabled={!confirmed || view.status === 'converting'} onClick={control.convert}>
           {view.status === 'converting' ? 'Converting' : 'Convert to Ossie 0.3.0 draft'}
@@ -215,6 +232,10 @@ function BaseConvertReviewDialog({ project, target, onClose, onConverted }: Pick
   const [confirmed, setConfirmed] = useState(false);
   const [stableTarget] = useState(target);
   const control = useBaseConvert(project.slug, stableTarget, onConverted);
+  // A new review starts unconfirmed, so a person never confirms something they have not seen.
+  useEffect(() => {
+    if (control.view.status === 'loading') setConfirmed(false);
+  }, [control.view.status]);
   return (
     <Modal title={`Convert ${target.path} to the Ossie 0.3.0 draft`} size="wide" onCancel={onClose} footer={<BaseConvertFooter control={control} confirmed={confirmed} onClose={onClose} />}>
       <BaseConvertBody control={control} path={target.path} confirmed={confirmed} onConfirm={setConfirmed} />
@@ -226,20 +247,5 @@ function BaseConvertReviewDialog({ project, target, onClose, onConverted }: Pick
 export function BaseConvertDialog({ project, target, gitState, unsaved, onClose, onConverted }: Props) {
   const [blocker] = useState(() => conversionBlocker({ gitState, unsaved }));
   if (!blocker) return <BaseConvertReviewDialog project={project} target={target} onClose={onClose} onConverted={onConverted} />;
-  return (
-    <Modal
-      title={`Convert ${target.path} to the Ossie 0.3.0 draft`}
-      size="narrow"
-      onCancel={onClose}
-      footer={
-        <button type="button" onClick={onClose}>
-          Close
-        </button>
-      }
-    >
-      <p role="status" className="compile-unpublished">
-        {blocker}
-      </p>
-    </Modal>
-  );
+  return <ConversionBlocked title={`Convert ${target.path} to the Ossie 0.3.0 draft`} blocker={blocker} onClose={onClose} />;
 }

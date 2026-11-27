@@ -4,7 +4,8 @@ import type { Issue } from '../../shared/validation/diagnostics';
 import { applyPatches } from '../../shared/editor/patch';
 import { parseSource, valuePatches, itemValue } from '../../shared/edit/yaml-patch';
 import { dedent, itemSpan, reindent } from '../../shared/edit/source-text';
-import { applyStatusRules, declaredVersion, fieldValue, writeField, type FieldSpec, type ItemKind, type Path } from '../../shared/edit/item-model';
+import { applyStatusRules, fieldValue, writeField, type FieldSpec, type ItemKind, type Path } from '../../shared/edit/item-model';
+import { declaredVersion } from '../../shared/validation/ossie-version';
 // The item editor's draft: the item's own lines, without their indentation, are edited on their
 // own (as fields or as source) and put back into the file in place. Every byte outside the item
 // stays as it was; inside it, only the changed values change.

@@ -163,6 +163,7 @@ the table above. The static page fallback row is not an operation and is left ou
 | `POST /api/projects/:slug/compile` | tool: compile_standard |  |
 | `GET /api/projects/:slug/compile/bundle` | not an agent operation | a binary download for the browser; agents page `compile_standard` |
 | `POST /api/projects/:slug/compile/convert` | later: Remaining workspace and source-control operations | rewrites a source file; not an agent operation yet |
+| `POST /api/projects/:slug/compile/convert-base` | later: Remaining workspace and source-control operations | rewrites a source file; not an agent operation yet |
 | `GET /api/projects/:slug/item-diff` | not an agent operation | a browser display aid; agents read the published snapshot |
 | `GET /api/projects/:slug/proposals` | later: Remaining workspace and source-control operations |  |
 | `GET /api/projects/:slug/proposals/:id` | later: Remaining workspace and source-control operations |  |

@@ -152,7 +152,7 @@ async function captureConversion(session: CaptureSession, api: IsolatedApi, stat
   const path = base ? MODEL : ONTOLOGY;
   const prefix = base ? 'draft-base' : 'convert';
   try {
-    await page.route('**/compile/convert', route => interceptConversion(route, state, path, held.promise));
+    await page.route(base ? '**/compile/convert-base' : '**/compile/convert', route => interceptConversion(route, state, path, held.promise));
     if (!base && (state === 'loading' || state === 'refused')) {
       await page.route('**/compile/check', async route => {
         if (state === 'loading') await held.promise;

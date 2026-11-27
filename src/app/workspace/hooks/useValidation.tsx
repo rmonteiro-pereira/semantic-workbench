@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Issue } from '../../../shared/validation/diagnostics';
 import { validateInput } from '../../../shared/validation/input';
 import { isNotValidated } from '../../../shared/validation/validation';
+import { DRAFT_CHECKS_LOADING, loadDraftValidators } from '../../../shared/validation/draft-validators';
 import type { Doc } from '../../projects/api';
 import { isGitignore } from '../../../shared/scm/gitignore';
 
@@ -28,10 +29,27 @@ export function useValidation({ current, source, tab }: Options) {
   }, [source, tab, current?.id]);
   const checkedSource = tab === 'source' && settled.id === current?.id ? settled.text : source;
   const plainText = !!current && isGitignore(current.filename);
+  // Counts loads of the Ossie 0.3 draft checks, so a check that ran before they arrived runs again.
+  const [draftRevision, setDraftRevision] = useState(0);
   const checked = useMemo(
     () => (plainText ? { valid: true as const, model: null, issues: [] as Issue[] } : validateInput(checkedSource, current?.filename ?? 'definition.yaml', { assumeOssieVersion })),
-    [checkedSource, current?.filename, plainText, assumeOssieVersion],
+    // draftRevision is not read inside: a new value asks for the same text to be checked again.
+    [checkedSource, current?.filename, plainText, assumeOssieVersion, draftRevision],
   );
+  // A file can declare the draft after it was opened, for example when its version is edited. Its
+  // check then waits for the draft checks, so load them here and check again once they arrive. Each
+  // new check that still waits asks again, so a failed load is retried after the next edit.
+  useEffect(() => {
+    if (!checked.issues.some(issue => issue.code === DRAFT_CHECKS_LOADING)) return;
+    let mounted = true;
+    void loadDraftValidators().then(
+      () => mounted && setDraftRevision(revision => revision + 1),
+      () => undefined,
+    );
+    return () => {
+      mounted = false;
+    };
+  }, [checked]);
   const live = tab === 'source' && checkedSource !== source && editorIssues?.id === current?.id ? editorIssues!.issues : null;
   const validation = live ? { ...checked, issues: live, valid: !live.some(i => i.severity === 'error') } : checked;
   const result = {

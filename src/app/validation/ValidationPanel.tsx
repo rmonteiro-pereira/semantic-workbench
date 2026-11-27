@@ -6,13 +6,14 @@ import type { Issue } from '../../shared/validation/diagnostics';
 import { validateInput } from '../../shared/validation/input';
 import { OSSIE_SCHEMA_VERSION, isNotValidated } from '../../shared/validation/validation';
 import { TesseraNames, type DocumentFormat } from '../../shared/tessera/format';
-import { declaredVersion } from '../../shared/edit/item-model';
+import { declaredVersion, OSSIE_DRAFT_VERSION } from '../../shared/validation/ossie-version';
+import { findBase, SUPPORTED_BASES } from '../../shared/tessera/bases';
 import { featureLabeler } from '../editor/feature';
 import { CodeEditor, type CodeEditorHandle } from '../editor/CodeEditor';
 import './validation-editor.css';
-/** How the panel names an Ossie version: the draft base by its label, any other by its number. */
+/** How the panel names an Ossie version: a shipped base by its name, any other by its number. */
 function ossieName(version: unknown): string {
-  return version === '0.3.0.dev0' ? 'Ossie 0.3.0 draft' : `Ossie ${String(version)}`;
+  return findBase(SUPPORTED_BASES, version)?.name ?? `Ossie ${String(version)}`;
 }
 
 /**
@@ -21,7 +22,7 @@ function ossieName(version: unknown): string {
  */
 export function baseLabelFor(format: DocumentFormat | undefined, source: string | undefined): string {
   if (format?.family === 'tessera') return `${TesseraNames.product} ${format.revision} on ${ossieName(format.base)} · `;
-  return source !== undefined && declaredVersion(source) === '0.3.0.dev0' ? `${ossieName('0.3.0.dev0')} · ` : '';
+  return source !== undefined && declaredVersion(source) === OSSIE_DRAFT_VERSION ? `${ossieName(OSSIE_DRAFT_VERSION)} · ` : '';
 }
 
 /** Displays document findings and links to their source locations. */

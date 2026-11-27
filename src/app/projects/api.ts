@@ -329,8 +329,9 @@ export const api = {
     apiFetch(fileUrl(project, path))
       .then(r => json<{ path: string; source: string; hash: string; docType: string; unitValidation?: ReaderValidation }>(r))
       .then(async file => {
-        // A 0.3 draft file needs its validators before the workspace checks it synchronously.
-        await prepareDraftChecks(file.source);
+        // A 0.3 draft file needs its validators before the workspace checks it synchronously. If they
+        // cannot load, the file still opens and its check shows the blocking loading finding.
+        await prepareDraftChecks(file.source).catch(() => undefined);
         return file;
       }),
   // A save sends patches against the version it started from when it has them, else the text.

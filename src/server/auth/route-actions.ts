@@ -107,11 +107,12 @@ export const ROUTE_ACTIONS: RouteAction[] = [
   { ...row('GET', '/api/projects/:slug/dependencies', 'read', project), readSource: 'editing' },
   row('POST', '/api/projects/:slug/dependencies/update', 'edit', project),
   { ...row('GET', '/api/projects/:slug/dependents', 'read', workspace), targets: 'body', readSource: 'published' },
-  // Standard Ossie: a check reads, a compile and its download leave the server so each is recorded, and a conversion saves one file.
+  // Standard Ossie: a check reads, a compile and its download leave the server so each is recorded, and each conversion saves one file.
   { ...row('POST', '/api/projects/:slug/compile/check', 'read', project), readSource: 'by-query' },
   { ...row('POST', '/api/projects/:slug/compile', 'export', project), audited: true, readSource: 'published' },
   { ...row('GET', '/api/projects/:slug/compile/bundle', 'export', project), audited: true, readSource: 'published' },
   row('POST', '/api/projects/:slug/compile/convert', 'edit', project),
+  row('POST', '/api/projects/:slug/compile/convert-base', 'edit', project),
   { ...row('POST', '/api/projects/:slug/item-addresses/resolve', 'read', project), audited: true },
   row('POST', '/api/projects/:slug/item-addresses/reconcile/*', 'edit', file),
   row('POST', '/api/projects/:slug/gitignore', 'edit', project),

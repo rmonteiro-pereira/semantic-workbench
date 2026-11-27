@@ -8,7 +8,7 @@ import { loadDraftValidators } from '../../src/shared/validation/draft-validator
 import { COMPILE_PROJECT, compileWorkspace, sendToCompile } from '../helpers/compile-workspace';
 
 const MODEL = 'retail.semantic.yaml';
-const ROUTE = `/api/projects/${COMPILE_PROJECT}/compile/convert`;
+const ROUTE = `/api/projects/${COMPILE_PROJECT}/compile/convert-base`;
 
 beforeAll(async () => {
   await loadDraftValidators();
@@ -20,7 +20,7 @@ type Workspace = Awaited<ReturnType<typeof compileWorkspace>>;
 function previewRequest(workspace: Workspace) {
   const current = workspace.ws.readFile(COMPILE_PROJECT, MODEL, LOCAL_READER);
   const conversion = convertToDraftBase(current.source, MODEL);
-  return { request: { path: MODEL, baseHash: current.hash, target: 'ossie-0.3.0.dev0', converted: conversion.sha256 }, conversion };
+  return { request: { path: MODEL, baseHash: current.hash, converted: conversion.sha256 }, conversion };
 }
 
 test('the preview lists the version change and changes nothing on disk', async () => {

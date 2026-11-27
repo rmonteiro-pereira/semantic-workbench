@@ -7,11 +7,12 @@
  */
 import { isMap, isScalar, isSeq, parseDocument, type Document, type Node, type Pair } from 'yaml';
 import { METRIC_SCHEMA, VENDOR } from '../metrics/extension';
+import { OSSIE_DRAFT_VERSION } from '../validation/ossie-version';
 import { sha256Hex } from './digest';
 
-/** The version a convertible document declares, and the one it gets. */
+/** The version a convertible document declares. It gets the draft base's version. */
 const CONVERSION_SOURCE = '0.2.0.dev0';
-const CONVERSION_TARGET = '0.3.0.dev0';
+const CONVERSION_TARGET = OSSIE_DRAFT_VERSION;
 
 /** How a legacy workbench status is renamed. A status that is not listed stays as it is. */
 const LEGACY_STATUS: Readonly<Record<string, string>> = { draft: 'proposed' };

@@ -13,7 +13,8 @@ import { checkImports, type ProviderInterface } from '../tessera/imports';
 import { TesseraNames } from '../tessera/format';
 import { readMarker } from '../tessera/marker';
 import { tesseraIssues, withoutRepeatedSchemaFindings } from '../tessera/validate';
-import { draftChecksLoadingIssue, draftValidators, OSSIE_DRAFT_VERSION } from './draft-validators';
+import { draftValidator } from './draft-validators';
+import { OSSIE_DRAFT_VERSION } from './ossie-version';
 import { draftModelIssues } from './metric-scoping';
 /** The Ossie schema version new files use and unknown versions are compared with. */
 export const OSSIE_SCHEMA_VERSION = '0.2.0.dev0';
@@ -365,8 +366,9 @@ export function validateStructured(data: any, applyPinnedSchema = true, options:
   } else if (data.version === OSSIE_SCHEMA_VERSION && data.datasets !== undefined) {
     validator = semantic;
   } else if (data.version === OSSIE_DRAFT_VERSION && data.datasets !== undefined) {
-    validator = draftValidators()?.semanticDraft030;
-    if (!validator) issues.push(draftChecksLoadingIssue());
+    const draft = draftValidator(validators => validators.semanticDraft030);
+    if ('issue' in draft) issues.push(draft.issue);
+    else validator = draft.validate;
   } else {
     validator = null;
   }

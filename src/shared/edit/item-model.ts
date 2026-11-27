@@ -3,7 +3,6 @@ import { VENDOR, GRAINS, decodeExtensionData, encodeExtensionData, extensionForm
 import { isMapping } from '../mappings/mapping-schema';
 import { OSSIE_BUILTINS } from '../mappings/ossie-builtins';
 import { isObject } from './source-text';
-import { itemValue } from './yaml-patch';
 // Field paths address either the item or its workbench metric extension. Child lists and insertion
 // locations depend on the document format.
 /** Names a document item that supports structured editing. */
@@ -252,18 +251,6 @@ export const childLists: Partial<Record<ItemKind, { key: string; kind: ItemKind;
   ],
   'odcs-property': [{ key: 'relationships', kind: 'odcs-foreign-key', label: 'Foreign keys' }],
 };
-
-/**
- * The Ossie version a document declares in its top-level `version` key, read through the YAML and JSON parser.
- * Text that does not parse (Turtle, or a file mid-edit) declares none, because screens call this on every render.
- */
-export function declaredVersion(source: string): unknown {
-  try {
-    return itemValue(source, ['version']);
-  } catch {
-    return undefined;
-  }
-}
 
 /** Reads an item's workbench extension and its list position, in the 0.2 or the 0.3 draft form. */
 export function extensionOf(item: any): { index: number; value: any } | null {
