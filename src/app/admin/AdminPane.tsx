@@ -1,5 +1,6 @@
 import { ArrowLeft } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useLayoutEffect, useRef, type ReactNode } from 'react';
+import { showSectionTop } from './section-scroll';
 import { LastAdminNotice } from './AdminNotices';
 
 /** Lets an editor or detail view hand control back to the list it came from. */
@@ -23,8 +24,11 @@ export function AdminPane({
   /** Set on the panes where a change could remove the last active Admin. */
   lastAdminNotice?: boolean;
 }) {
+  const pane = useRef<HTMLElement>(null);
+  // The pane replaces a list the person may have scrolled far down, so it opens at the section's top.
+  useLayoutEffect(() => showSectionTop(pane.current), []);
   return (
-    <section className="admin-pane" aria-label={title}>
+    <section ref={pane} className="admin-pane" aria-label={title}>
       <div className="admin-pane-header">
         <button onClick={onBack}>
           <ArrowLeft size={15} aria-hidden="true" />

@@ -6,7 +6,8 @@ import { PersonMenu } from '../auth/PersonMenu';
 import { ScrollStrip } from '../components/ScrollStrip';
 import { AccessCheckSection } from './AccessCheckSection';
 import { adminHash } from './admin-route';
-import { adminSection, ADMIN_SECTIONS, type AdminSectionId } from './admin-sections';
+import { phoneLayout, showSectionTop } from './section-scroll';
+import { adminSection, ADMIN_SECTIONS, DEFAULT_ADMIN_SECTION, type AdminSectionId } from './admin-sections';
 import { BootstrapNotice } from './AdminNotices';
 import { AuditSection } from './AuditSection';
 import { GitRemotesSection } from './GitRemotesSection';
@@ -46,25 +47,22 @@ function AdminNav({ current }: { current: AdminSectionId }) {
   );
 }
 
-/** The width at which the navigation wraps above the content instead of sitting beside it. */
-const PHONE_LAYOUT = '(max-width: 760px)';
-
 /**
- * On a phone the wrapped navigation sits above the section and scrolls with it, so it can push the
- * section's fields and actions below the window. Showing any section but the first brings its
- * heading to the top; the navigation stays one scroll up. Entering Admin keeps the navigation in view.
+ * On a phone, opening a section brings its heading to the top, also when the window narrows to
+ * phone width afterwards. Entering Admin on its default section keeps the navigation in view, so
+ * the person sees where they can go; a link straight to another section shows that section.
  */
 function useSectionInView(section: AdminSectionId) {
   const content = useRef<HTMLElement>(null);
+  const entered = useRef(false);
   useLayoutEffect(() => {
-    if (section === ADMIN_SECTIONS[0].id) return;
-    const phone = globalThis.matchMedia?.(PHONE_LAYOUT);
+    const enteringOnDefault = !entered.current && section === DEFAULT_ADMIN_SECTION;
+    entered.current = true;
+    if (enteringOnDefault) return;
+    const phone = phoneLayout();
     if (!phone) return;
-    const bringIntoView = () => {
-      if (phone.matches) content.current?.scrollIntoView({ block: 'start' });
-    };
+    const bringIntoView = () => showSectionTop(content.current);
     bringIntoView();
-    // A window narrowed to phone width moves the navigation above the section, so bring it back.
     phone.addEventListener('change', bringIntoView);
     return () => phone.removeEventListener('change', bringIntoView);
   }, [section]);
