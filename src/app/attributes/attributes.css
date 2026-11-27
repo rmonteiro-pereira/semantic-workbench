@@ -93,11 +93,14 @@
 .item-fields label.attribute-reading {
   grid-column: auto;
 }
-/* The reading sentence looks and lines up like the dialog's inputs (.item-fields in edit.css): same font size, padding,
-   frame and colour, so one line is exactly an input's height beside Multiplicity. It still grows with a longer sentence.
-   These undo the details panel's own textarea style, which is taller, smaller and indented from the top. */
+/* The reading sentence looks and lines up like the dialog's inputs (.workbench-dialog input in style.css): the same
+   face, size, line height, padding, frame and colour as Name, so one line is exactly an input's height. It still grows
+   with a longer sentence. These undo the details panel's textarea style and the brand face of .item-fields textarea,
+   which inputs do not take. */
 .item-fields .attribute-reading textarea {
   field-sizing: content;
+  font-family: system-ui, sans-serif;
+  line-height: normal;
   min-height: 0;
   margin-top: 0;
   padding: 8px;
