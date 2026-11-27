@@ -125,17 +125,31 @@ export function ownerMatches(owner: string, person: { verifiedEmail?: string | n
   return values.some(value => ownerKey(value) === key);
 }
 
-/** A metric as it is compared for the approved-metric rule: everything but its description. */
+/** An extension entry's data as a value: 0.2 stores JSON text and 0.3 an object, so both read the same. */
+function extensionDataValue(data: unknown): unknown {
+  if (typeof data !== 'string') return data;
+  try {
+    return JSON.parse(data);
+  } catch {
+    return data;
+  }
+}
+
+/**
+ * A metric as it is compared for the approved-metric rule: everything but its description and its
+ * workbench status. The extension list is compared under one key with decoded data, so converting
+ * a document between the 0.2 and 0.3 extension forms is not a change to the metric.
+ */
 function comparable(metric: any) {
   const form = extensionFormOf(metric);
   const { description: _description, [form.list]: extensions, ...rest } = metric;
   const values = list(extensions).map(entry => {
     const parsedEntry = extensionOf({ [form.list]: [entry] });
-    if (!parsedEntry) return entry;
+    if (!parsedEntry) return isObject(entry) ? { ...entry, data: extensionDataValue((entry as any).data) } : entry;
     const { status: _status, ...data } = parsedEntry.value;
     return { ...entry, data };
   });
-  return { ...rest, [form.list]: values };
+  return { ...rest, extensions: values };
 }
 
 type Located = { path: Path; value: any };

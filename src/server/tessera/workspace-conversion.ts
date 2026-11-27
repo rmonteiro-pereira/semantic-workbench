@@ -1,10 +1,11 @@
 // Connects the conversion to a workspace: the caller's saved file, what Git holds for their branch, and the ordinary save.
 import { lstatSync, readFileSync } from 'node:fs';
 import { sha256Hex } from '../../shared/tessera/digest';
+import { StoredTextChangedError } from '../projects/errors';
 import { PathError, projectFile, projectPrefix, repoDir } from '../projects/paths';
 import type { Reader } from '../projects/reader';
 import type { Workspace } from '../projects/workspace';
-import type { ConvertDeps } from './convert-service';
+import { ConvertRefusal, type ConvertDeps } from './convert-service';
 import { workspaceUnitSource, type UnitWorkspace } from './workspace-unit-source';
 
 /** The part of a workspace the conversion needs, on top of what reading a unit needs. */
@@ -37,6 +38,14 @@ export function workspaceConversion(workspace: ConversionWorkspace, slug: string
     units: workspaceUnitSource(workspace, slug, reader),
     currentFile,
     committedState,
-    save: async (path, baseHash, source) => workspace.saveFile(slug, path, { baseHash, source }, reader),
+    save,
   };
+  async function save(path: string, baseHash: string, source: string, expectedSha256?: string) {
+    try {
+      return await workspace.saveFile(slug, path, { baseHash, source, expectedSha256 }, reader);
+    } catch (error) {
+      if (error instanceof StoredTextChangedError) throw new ConvertRefusal('digest-mismatch', 'Saving would store a different text than the preview showed. Review the conversion again.');
+      throw error;
+    }
+  }
 }

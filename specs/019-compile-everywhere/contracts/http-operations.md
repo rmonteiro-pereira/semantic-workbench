@@ -88,7 +88,8 @@ Request:
 Steps: refuse unless the file is a Tessera ontology; refuse unless it has no uncommitted change and Git
 holds its committed version; recompute the unit's input hashes and the loss digest in the caller's
 working copy and refuse on any difference from the request; verify the unit still validates and compiles
-with this file standard; save the compiled bytes through the ordinary save pipeline with `baseHash`.
+with this file standard; save the compiled bytes through the ordinary save pipeline with `baseHash`. Under the save lock, the bytes the save guards would store
+must hash to `converted`; otherwise the save refuses with `digest-mismatch` and writes nothing.
 
 Response `200`: `{ path, version, lossDigest }`. `409` with `{ error: "version-changed" | "dirty" | "no-history" | "not-tessera" | "digest-mismatch" }`. `422` with findings when a guard or a check refuses.
 Not exposed to MCP now: increment `later`, reason "rewrites a source file; not an agent operation yet".

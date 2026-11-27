@@ -8,6 +8,7 @@ import { GuardedChangeError } from '../../src/server/auth/guards';
 import { classificationLevel, guardedChanges, type ClassificationSettings, type FileChange } from '../../src/server/auth/guards';
 import { clientPrincipal, type NormalizedPrincipal } from '../../src/server/auth/principal';
 import type { TestUserName } from '../helpers/auth-identities';
+import { convertToDraftBase } from '../../src/shared/tessera/base-conversion';
 import { accessFixture, person } from './access-fixture';
 
 const FIXTURE = 'tests/fixtures/auth-workspace/projects/';
@@ -126,6 +127,13 @@ describe('approved metric changes', () => {
     const admin = personGuard('dave')([metricChange(edited)]);
     expect(admin.demoted).toEqual([]);
     expect(admin.changes[0].after).toBe(edited);
+  });
+
+  test('converting the document to the 0.3 draft base keeps an approved metric approved', () => {
+    const converted = convertToDraftBase(METRICS, 'sales.semantic.yaml').text;
+    const outcome = personGuard('alice')([metricChange(converted)]);
+    expect(outcome.demoted).toEqual([]);
+    expect(outcome.changes[0].after).toBe(converted);
   });
 
   test('a description-only change keeps the metric approved', () => {

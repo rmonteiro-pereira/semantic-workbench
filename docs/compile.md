@@ -78,7 +78,8 @@ missing units answer 404. A bundle needing acceptance answers 409 `acceptance-re
 findings refuse a bundle with 422 `refused` before any ZIP bytes. Conversion conflicts answer 409
 `version-changed`, `dirty`, `no-history`, `not-tessera` or `digest-mismatch`; compile refusal answers
 422 with findings. A conversion to the 0.3 draft answers 409 `version-changed`, `dirty`, `no-history`
-or `digest-mismatch` (the text differs from the preview), and 422 `refused` when the document does not
+or `digest-mismatch` (the text differs from the preview, or a save guard would store other bytes than
+the previewed text), and 422 `refused` when the document does not
 declare 0.2.0.dev0, holds extension data that is not a JSON object, or a status rename would approve
 a metric. Ordinary save guards retain their normal authorization and validation errors.
 

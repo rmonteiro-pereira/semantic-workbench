@@ -35,8 +35,8 @@ export type ConvertDeps = {
   /** The saved file in the caller's working copy, or null when it is not there. */
   currentFile(path: string): { hash: string; bytes: Uint8Array } | null;
   committedState(path: string): Promise<CommittedState>;
-  /** The ordinary save: guards, validation, journal and audit all run inside it. */
-  save(path: string, baseHash: string, source: string): Promise<{ hash: string }>;
+  /** The ordinary save: guards, validation, journal and audit all run inside it. With `expectedSha256`, it refuses to store any other bytes, so a guard cannot rewrite confirmed text. */
+  save(path: string, baseHash: string, source: string, expectedSha256?: string): Promise<{ hash: string }>;
 };
 
 const decoder = new TextDecoder();
@@ -126,6 +126,6 @@ export async function convertBase(deps: ConvertDeps, request: BaseConvertRequest
   await refuseUnlessCommitted(deps, request.path);
   const conversion = draftBaseText(request.path, current.bytes);
   if (conversion.sha256 !== request.converted) throw new ConvertRefusal('digest-mismatch', 'The conversion differs from the preview. Review the conversion again.');
-  const saved = await deps.save(request.path, request.baseHash, conversion.text);
+  const saved = await deps.save(request.path, request.baseHash, conversion.text, conversion.sha256);
   return { path: request.path, version: saved.hash, converted: conversion.sha256 };
 }

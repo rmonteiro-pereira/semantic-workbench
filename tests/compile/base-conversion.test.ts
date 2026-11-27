@@ -1,7 +1,10 @@
 // Checks the explicit conversion of a 0.2 document to the 0.3 draft base: the preview lists every change, and the confirmation applies exactly that only to a clean, unchanged file.
 import { beforeAll, expect, test } from 'bun:test';
 import { parse } from 'yaml';
+import type { ContentGuard } from '../../src/server/auth/guards';
 import { LOCAL_READER } from '../../src/server/projects/reader';
+import { ConvertRefusal, convertBase } from '../../src/server/tessera/convert-service';
+import { workspaceConversion } from '../../src/server/tessera/workspace-conversion';
 import { BaseConversionRefusal, convertToDraftBase } from '../../src/shared/tessera/base-conversion';
 import { sha256Hex } from '../../src/shared/tessera/digest';
 import { loadDraftValidators } from '../../src/shared/validation/draft-validators';
@@ -72,4 +75,17 @@ test('a confirmation that does not match the previewed text is refused', async (
 test('a document that does not declare 0.2.0.dev0 cannot be converted', () => {
   expect(() => convertToDraftBase('version: 0.3.0.dev0\nname: x\ndatasets: []\n', 'x.yaml')).toThrow(BaseConversionRefusal);
   expect(() => convertToDraftBase('version: 0.2.0.dev0\nname: x\ncustom_extensions:\n  - vendor_name: V\n    data: not json\n', 'x.yaml')).toThrow('is not a JSON object');
+});
+
+test('a guard that would rewrite the confirmed text refuses the conversion, and nothing is written', async () => {
+  using workspace = await compileWorkspace();
+  const before = workspace.ws.readFile(COMPILE_PROJECT, MODEL, LOCAL_READER).source;
+  const { request } = previewRequest(workspace);
+  // Stands in for a demotion: the guard stores other bytes than the ones the person confirmed.
+  const rewriting: ContentGuard = changes => ({ changes: changes.map(change => ({ ...change, after: change.after + '# rewritten\n' })), refused: [], demoted: [] });
+  const reader = { ...LOCAL_READER, guard: rewriting };
+  const refusal = await convertBase(workspaceConversion(workspace.ws, COMPILE_PROJECT, reader), request).catch(error => error);
+  expect(refusal).toBeInstanceOf(ConvertRefusal);
+  expect(refusal.code).toBe('digest-mismatch');
+  expect(workspace.ws.readFile(COMPILE_PROJECT, MODEL, LOCAL_READER).source).toBe(before);
 });

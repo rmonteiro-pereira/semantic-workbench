@@ -16,6 +16,13 @@ export class StaleError extends Error {
     this.name = 'StaleError';
   }
 }
+/** Reports that the text a save would store differs from the text the caller confirmed, for example after a governance rule rewrote it. */
+export class StoredTextChangedError extends Error {
+  constructor() {
+    super('The saved text would differ from the confirmed text.');
+    this.name = 'StoredTextChangedError';
+  }
+}
 /**
  * Reports a request the caller got wrong, such as a malformed body. Its message is written for
  * the caller, so the HTTP boundary shows it. Any other error is unexpected and stays private.

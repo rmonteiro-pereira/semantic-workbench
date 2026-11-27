@@ -21,7 +21,7 @@ import { indexBytes } from '../scanner';
 import type { Patch, ProjectEntry, State } from '../state';
 import { guardRevert, type GuardedFile, type Trash } from '../trash';
 import type { Place, WorkingCopies } from '../working-copies';
-import { BadRequestError, GitUnavailableError, OccupiedError, StaleError } from '../errors';
+import { BadRequestError, GitUnavailableError, OccupiedError, StaleError, StoredTextChangedError } from '../errors';
 import { demotionsOf, type ContentGuard } from '../../auth/guards';
 
 /** Applies ordered UTF-16 ranges from the end, preserving untouched source text exactly. */
@@ -160,7 +160,16 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
   async function saveFile(
     slug: string,
     path: string,
-    body: { baseHash: string | null; source?: string; patches?: Patch[]; declaredMigrations?: DeclaredMigration[]; deletedItems?: string[]; keepDrafts?: boolean },
+    body: {
+      baseHash: string | null;
+      source?: string;
+      patches?: Patch[];
+      declaredMigrations?: DeclaredMigration[];
+      deletedItems?: string[];
+      keepDrafts?: boolean;
+      /** The SHA-256 the stored bytes must have, for a save of text a person confirmed exactly. A guard that would rewrite it refuses the save instead. */
+      expectedSha256?: string;
+    },
     reader: Reader,
     manifestRoots?: ReadonlyMap<string, string>,
   ) {
@@ -190,6 +199,7 @@ export function createDocumentSave(ctx: DocumentSaveContext) {
       const { edited, before, guarded } = await check(place);
       const next = guarded?.changes[0].after ?? edited;
       const { bytes, indexed } = checkedBytes(slug, relativePath, next);
+      if (body.expectedSha256 !== undefined && sha256(bytes) !== body.expectedSha256) throw new StoredTextChangedError();
       if (!indexed.file.valid) throw new InputError(indexed.findings);
       unitEditMigrations(place, slug, reader, [{ path: relativePath, before, after: next }]);
       const opId = journal.newId();
