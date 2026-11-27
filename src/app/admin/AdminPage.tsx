@@ -58,8 +58,15 @@ function useSectionInView(section: AdminSectionId) {
   const content = useRef<HTMLElement>(null);
   useLayoutEffect(() => {
     if (section === ADMIN_SECTIONS[0].id) return;
-    if (!globalThis.matchMedia?.(PHONE_LAYOUT).matches) return;
-    content.current?.scrollIntoView({ block: 'start' });
+    const phone = globalThis.matchMedia?.(PHONE_LAYOUT);
+    if (!phone) return;
+    const bringIntoView = () => {
+      if (phone.matches) content.current?.scrollIntoView({ block: 'start' });
+    };
+    bringIntoView();
+    // A window narrowed to phone width moves the navigation above the section, so bring it back.
+    phone.addEventListener('change', bringIntoView);
+    return () => phone.removeEventListener('change', bringIntoView);
   }, [section]);
   return content;
 }
