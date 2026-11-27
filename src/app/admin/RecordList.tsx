@@ -1,14 +1,18 @@
 import type { ReactNode } from 'react';
 
-/** One column of a record list: its heading, which also labels the value on a phone card. */
-export type RecordColumn<Entry> = { label: string; value: (record: Entry) => ReactNode };
+/**
+ * One column of a record list: its heading, which also labels the value on a phone card, and an
+ * optional class for the value cell, such as a colour for a decision.
+ */
+export type RecordColumn<Entry> = { label: string; value: (record: Entry) => ReactNode; className?: (record: Entry) => string };
 
 type RecordListProps<Entry> = {
   /** Names the list for screen readers, such as "Agent programs". */
   label: string;
   records: Entry[];
   columns: RecordColumn<Entry>[];
-  recordKey: (record: Entry) => string;
+  /** A stable key for the record; the position helps when records can repeat, such as audit entries. */
+  recordKey: (record: Entry, index: number) => string;
   /** The buttons that act on one record; they sit in the last column. */
   actions?: (record: Entry) => ReactNode;
 };
@@ -30,10 +34,10 @@ export function RecordList<Entry>({ label, records, columns, recordKey, actions 
           </tr>
         </thead>
         <tbody>
-          {records.map(record => (
-            <tr key={recordKey(record)}>
+          {records.map((record, index) => (
+            <tr key={recordKey(record, index)}>
               {columns.map(column => (
-                <td key={column.label} data-label={column.label}>
+                <td key={column.label} data-label={column.label} className={column.className?.(record)}>
                   {column.value(record)}
                 </td>
               ))}

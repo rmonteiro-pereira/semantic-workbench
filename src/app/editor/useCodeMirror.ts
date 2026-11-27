@@ -15,12 +15,12 @@ import type { CodeEditorOptions } from './editorTypes';
 /** Asks the linter to check the same text again, for example after the validation options changed. */
 const recheck = StateEffect.define<null>();
 
-/** Creates one editor view and keeps external values, syntax and editability in sync. */
 /** The line-wrapping extension when asked for, and nothing otherwise, so other editors keep scrolling sideways. */
 export function lineWrappingFor(wrapLines: boolean) {
   return wrapLines ? EditorView.lineWrapping : [];
 }
 
+/** Creates one editor view and keeps external values, syntax and editability in sync. */
 export function useCodeMirror({ value, filename, documentId, onChange, ariaLabel, disabled = false, onIssues, validate, assumeOssieVersion = false, wrapLines = false }: CodeEditorOptions) {
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);

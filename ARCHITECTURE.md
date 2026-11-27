@@ -520,7 +520,12 @@ the bundle outside the source trees.
 - `src/app/auth/` consumes server-reported identity and capabilities. `src/app/admin/` is the browser
   administration feature, reached from the sidebar's Settings panel through `admin-entry.ts`: it proposes/reviews access changes through its typed client and is
   separate from the server's versioned `DATA_DIR/admin/` configuration repository. Admin URL hashes
-  select sections; no general routing framework computes authorization in the browser.
+  select sections; no general routing framework computes authorization in the browser. Sections share
+  a few building blocks instead of each drawing its own: `RecordList.tsx` lists records (a table on wide
+  screens, labelled cards on a phone), `SectionStatus.tsx` shows loading and load errors with a retry,
+  `SaveStatus.tsx` (`useSavedAt`, `SavedNote`) reports the last save, `section-scroll.ts` keeps a phone
+  section's heading clear of the top edge, `change-review.ts` words the review of a change (`removalTitle`
+  for removals), and `policy-summary.ts` reads a Cedar rule as one plain sentence.
 - `src/app/projects/FieldControl.tsx` shares invalid-control marking and inline findings for item forms and the metric wizard.
   Item plans and validation issue codes identify fields independently of message wording; wizard draft keys identify fields independently of visible labels.
 - `src/app/graph/` owns whole-model and neighborhood views, traversal, grouping projection, layout,

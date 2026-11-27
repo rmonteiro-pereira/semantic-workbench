@@ -7,6 +7,7 @@ import { commaList } from './change-review';
 import { ACTIONS } from '../../shared/auth/actions';
 import type { AccessExplanation, AdminUser } from './types';
 import { WrappingField } from './WrappingField';
+import { scrollPastCutHeading } from './section-scroll';
 
 /** Names the decision in words when the server sends `{allow}`, and shows any other shape as is. */
 export function decisionLabel(decision: unknown): string {
@@ -153,29 +154,6 @@ export function AccessCheckSection({ principal = '' }: { principal?: string }) {
       )}
     </>
   );
-}
-
-/** The nearest ancestor that scrolls vertically, which is the Admin layout on a phone. */
-function scrollingAncestor(element: HTMLElement): HTMLElement | null {
-  let parent = element.parentElement;
-  while (parent && !(parent.scrollHeight > parent.clientHeight && getComputedStyle(parent).overflowY !== 'visible')) parent = parent.parentElement;
-  return parent;
-}
-
-/**
- * Bringing the result into view can stop with the section heading half under the top edge, which
- * reads as clipped text. The view then moves on to the line after the heading; the result only
- * moves further up, so it stays in view.
- */
-function scrollPastCutHeading(result: HTMLElement) {
-  const heading = result.closest('.admin-content')?.querySelector<HTMLElement>(':scope > h2');
-  const next = heading?.nextElementSibling;
-  const scroller = scrollingAncestor(result);
-  if (!heading || !next || !scroller) return;
-  const edge = scroller.getBoundingClientRect().top;
-  const headingBox = heading.getBoundingClientRect();
-  if (headingBox.top >= edge || headingBox.bottom <= edge) return;
-  scroller.scrollTop += next.getBoundingClientRect().top - edge;
 }
 
 /** Presents the decision before its supporting details and keeps it in view. */

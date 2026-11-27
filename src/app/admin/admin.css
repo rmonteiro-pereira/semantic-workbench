@@ -399,6 +399,7 @@
   margin: 0;
   font-size: 18px;
 }
+/* The phone Admin layout; this width must match PHONE_LAYOUT in section-scroll.ts. */
 @media (max-width: 760px) {
   .admin-page-header {
     padding: 8px 12px;

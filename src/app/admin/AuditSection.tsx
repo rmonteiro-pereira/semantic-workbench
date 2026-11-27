@@ -5,6 +5,8 @@ import { adminApi, problemText } from './api';
 import { useAdminData } from './useAdminData';
 import { SectionStatus } from './SectionStatus';
 import { EmptyState } from '../projects/EmptyState';
+import { RecordList, type RecordColumn } from './RecordList';
+import type { AuditEntry } from './types';
 
 const filterLabels: Record<string, string> = {
   principal: 'Person',
@@ -13,6 +15,47 @@ const filterLabels: Record<string, string> = {
   from: 'From',
   to: 'To',
 };
+/** Each column pairs two facts on separate lines, so the table stays three columns wide. */
+const auditColumns: RecordColumn<AuditEntry>[] = [
+  {
+    label: 'When / person',
+    value: entry => (
+      <>
+        {whenLabel(entry.at)}
+        <br />
+        {entry.principal.name ?? entry.principal.id}
+      </>
+    ),
+  },
+  {
+    label: 'Action / resource',
+    value: entry => (
+      <>
+        <span title={entry.action}>{auditLabel(entry.action)}</span>
+        {entry.tool && ` · ${entry.tool}`}
+        <br />
+        {Object.values(entry.resource).join(' · ')}
+      </>
+    ),
+  },
+  {
+    label: 'Decision',
+    className: entry => `admin-audit-decision ${entry.decision}`,
+    value: entry => (
+      <>
+        {auditLabel(entry.decision)}
+        {entry.outcome && ` · ${entry.outcome}`}
+        <br />
+        {entry.rules.map(rule => (
+          <span key={rule} title={rule}>
+            {auditLabel(rule)}{' '}
+          </span>
+        ))}
+      </>
+    ),
+  },
+];
+
 // Phones start with the filters folded so the results are what the page opens on.
 function startsWithFiltersOpen(): boolean {
   return globalThis.matchMedia?.('(min-width: 601px)').matches ?? true;
@@ -86,46 +129,7 @@ export function AuditSection() {
           {activeFilterCount(filters) > 0 ? 'Change or clear the filters to see more.' : 'Decisions appear here as people use the workbench.'}
         </EmptyState>
       )}
-      {data && data.entries.length > 0 && (
-        <div className="admin-table">
-          <table className="admin-records">
-            <thead>
-              <tr>
-                <th>When / person</th>
-                <th>Action / resource</th>
-                <th>Decision</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.entries.map((entry, index) => (
-                <tr key={entry.requestId + index}>
-                  <td data-label="When / person">
-                    {whenLabel(entry.at)}
-                    <br />
-                    {entry.principal.name ?? entry.principal.id}
-                  </td>
-                  <td data-label="Action / resource">
-                    <span title={entry.action}>{auditLabel(entry.action)}</span>
-                    {entry.tool && ` · ${entry.tool}`}
-                    <br />
-                    {Object.values(entry.resource).join(' · ')}
-                  </td>
-                  <td data-label="Decision" className={`admin-audit-decision ${entry.decision}`}>
-                    {auditLabel(entry.decision)}
-                    {entry.outcome && ` · ${entry.outcome}`}
-                    <br />
-                    {entry.rules.map(rule => (
-                      <span key={rule} title={rule}>
-                        {auditLabel(rule)}{' '}
-                      </span>
-                    ))}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      {data && data.entries.length > 0 && <RecordList label="Access decisions" records={data.entries} columns={auditColumns} recordKey={(entry, index) => entry.requestId + index} />}
       <div className="admin-actions">
         <button disabled={!previous.length} onClick={back}>
           Previous page
