@@ -1,5 +1,4 @@
 import { SavedNote, useSavedAt } from './SaveStatus';
-import { changeDescription } from './change-review';
 import { SectionStatus } from './SectionStatus';
 import { useState } from 'react';
 import { adminApi } from './api';
@@ -52,14 +51,36 @@ export function ProjectAccessSection() {
   );
 }
 
-/** Names the domains and restricted paths a draft removes, for the review's title and button. */
-export function projectRemovals(before: ProjectsConfig, after: ProjectsConfig): string[] {
+/** The domains and restricted paths a draft removes, named for the review's dialog. */
+export type ProjectRemovals = { domains: string[]; restrictions: string[] };
+
+/** Names the domains and restricted paths a draft removes. */
+export function projectRemovals(before: ProjectsConfig, after: ProjectsConfig): ProjectRemovals {
   const domains = before.domains.filter(domain => !after.domains.some(kept => kept.id === domain.id)).map(domain => `domain ${domain.name || domain.id}`);
   const restrictions = Object.entries(before.projects).flatMap(([slug, project]) => {
     const keptPatterns = new Set((after.projects[slug]?.restricted ?? []).map(rule => rule.pattern));
     return project.restricted.filter(rule => !keptPatterns.has(rule.pattern)).map(rule => `restriction ${rule.pattern} on ${slug}`);
   });
-  return [...domains, ...restrictions];
+  return { domains, restrictions };
+}
+
+/** How many of one kind a draft removes, as "a restriction" or "3 restrictions". */
+function removedCount(count: number, noun: string): string {
+  if (count === 1) return `a ${noun}`;
+  return `${count} ${noun}s`;
+}
+
+/**
+ * A short dialog title that names only the kind of removal, such as "Remove a restriction". The
+ * names themselves can be long paths, so they go in the dialog body where they wrap.
+ */
+export function removalTitle(removals: ProjectRemovals): string | undefined {
+  const domainCount = removals.domains.length;
+  const restrictionCount = removals.restrictions.length;
+  if (domainCount && restrictionCount) return 'Remove domains and restrictions';
+  if (domainCount) return `Remove ${removedCount(domainCount, 'domain')}`;
+  if (restrictionCount) return `Remove ${removedCount(restrictionCount, 'restriction')}`;
+  return undefined;
 }
 
 /** Edits project access data while retaining classification aliases outside this form. */
@@ -88,6 +109,8 @@ export function ProjectsEditor({ initial, version, onSaved }: { initial: Project
   function removeDomain(id: string) {
     setConfig({ ...config, domains: config.domains.filter(domain => domain.id !== id) });
   }
+  const removals = projectRemovals(initial, config);
+  const removedNames = [...removals.domains, ...removals.restrictions];
   return (
     <>
       <h3>Domains</h3>
@@ -124,9 +147,11 @@ export function ProjectsEditor({ initial, version, onSaved }: { initial: Project
         proposal={config}
         baseVersion={version}
         onSaved={onSaved}
-        description={changeDescription('Save project access', projectRemovals(initial, config))}
-        destructive={projectRemovals(initial, config).length > 0}
-        confirmLabel={projectRemovals(initial, config).length > 0 ? 'Save and remove' : undefined}
+        description="Save project access"
+        changeLabel={removalTitle(removals)}
+        removedNames={removedNames}
+        destructive={removedNames.length > 0}
+        confirmLabel={removedNames.length > 0 ? 'Save and remove' : undefined}
         dirty={JSON.stringify(config) !== JSON.stringify(initial)}
       />
     </>

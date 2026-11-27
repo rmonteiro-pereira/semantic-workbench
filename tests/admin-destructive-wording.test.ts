@@ -1,7 +1,7 @@
 // Destructive Admin confirmations name what is removed and what the person loses.
 import { expect, test } from 'bun:test';
 import { changeDescription, lowerFirst } from '../src/app/admin/change-review';
-import { projectRemovals } from '../src/app/admin/ProjectAccessSection';
+import { projectRemovals, removalTitle } from '../src/app/admin/ProjectAccessSection';
 import { userOperationEffect } from '../src/app/admin/UsersSection';
 import { originWords } from '../src/app/auth/AgentConnectionsDialog';
 import type { ProjectsConfig } from '../src/app/admin/types';
@@ -21,8 +21,17 @@ test('project access names the domains and restricted paths a draft removes', ()
     projects: { contracts: { stewards: [], protectedBranches: [], restricted: [{ pattern: 'private/**', groups: [], emails: [] }] } },
   } as unknown as ProjectsConfig;
   const after = { ...before, domains: [before.domains[0]], projects: { contracts: { ...before.projects.contracts, restricted: [] } } } as ProjectsConfig;
-  expect(projectRemovals(before, after)).toEqual(['domain People', 'restriction private/** on contracts']);
-  expect(projectRemovals(before, before)).toEqual([]);
+  expect(projectRemovals(before, after)).toEqual({ domains: ['domain People'], restrictions: ['restriction private/** on contracts'] });
+  expect(projectRemovals(before, before)).toEqual({ domains: [], restrictions: [] });
+});
+
+test('a project access removal keeps a short title and leaves the long names to the dialog body', () => {
+  const longPath = 'contracts/archive/'.repeat(12) + '**';
+  expect(removalTitle({ domains: [], restrictions: [`restriction ${longPath} on sales-contracts`] })).toBe('Remove a restriction');
+  expect(removalTitle({ domains: [], restrictions: ['restriction a/** on x', 'restriction b/** on x'] })).toBe('Remove 2 restrictions');
+  expect(removalTitle({ domains: ['domain People'], restrictions: [] })).toBe('Remove a domain');
+  expect(removalTitle({ domains: ['domain People'], restrictions: ['restriction a/** on x'] })).toBe('Remove domains and restrictions');
+  expect(removalTitle({ domains: [], restrictions: [] })).toBeUndefined();
 });
 
 test('deactivating, reactivating and ending sessions each say what happens to the person', () => {

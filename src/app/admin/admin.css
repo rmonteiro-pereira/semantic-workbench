@@ -576,10 +576,13 @@
   overflow-wrap: anywhere;
   max-width: 100%;
 }
-/* On a wide screen a record's few actions sit side by side; on a phone card they may wrap. */
+/* On a wide screen a record's few actions sit side by side, each label on one line: the actions
+   ask the table for their full width, so a long value in another column wraps instead of them.
+   On a phone card they may wrap. */
 @media (min-width: 601px) {
   .admin-records td:last-child .admin-actions {
     flex-wrap: nowrap;
+    width: max-content;
   }
 }
 /* Each scope reads as its checkbox with the sentence of what it allows underneath. */
