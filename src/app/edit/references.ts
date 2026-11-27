@@ -131,7 +131,9 @@ export function unrewritableReferences(target: Target, docs: ProjectDoc[]): { fi
   return found;
 }
 
-/** Finds references affected by renaming or deleting the target item. */
+/** The workbench metric attributes that hold another metric's name. A label or any other text that happens to match is not a reference. */
+const METRIC_NAME_ATTRIBUTES = new Set(['numerator', 'denominator', 'inputs', 'replaced_by']);
+
 /**
  * Decides whether one value inside 0.3 draft workbench data names the target, and what is removed
  * with it: a binding goes by its metric name, an attribute with its metric.
@@ -146,12 +148,13 @@ function objectSiteReference(site: WorkbenchObjectSite, value: string, target: T
     if (!binding || !hit || value !== name) return null;
     return { pattern: new RegExp(escape(name), 'g'), dependent: { path: site.owner, label: `metric binding of ${binding.metric}`, binding: { dataPath: site.dataPath, metric: binding.metric } } };
   }
-  if (target.kind === 'metric' && value === name) return { pattern: new RegExp(escape(name), 'g') };
+  if (target.kind === 'metric') return METRIC_NAME_ATTRIBUTES.has(String(list)) && value === name ? { pattern: new RegExp(escape(name), 'g') } : null;
   if (target.kind === 'dataset' && value.startsWith(`${name}.`)) return { pattern: new RegExp(`${escape(name)}(?=\\.)`, 'g') };
   if (target.kind === 'field' && value === `${target.owner ?? ''}.${name}`) return { pattern: new RegExp(`(?<=\\.)${escape(name)}(?![\\w$])`, 'g') };
   return null;
 }
 
+/** Finds references affected by renaming or deleting the target item. */
 export function findReferences(target: Target, docs: ProjectDoc[]): Reference[] {
   const out: Reference[] = [];
   const name = target.name;

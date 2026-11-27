@@ -70,6 +70,21 @@ test('a metric named in another metric’s 0.3 attributes is found as a referenc
   expect(attribute.dependent?.path).toEqual(['metrics', 0]);
 });
 
+test('a metric label that matches the name is not a reference, while a replaced_by that names it is', () => {
+  const labelled =
+    '  - name: basket\n    expression:\n      sql: AVG(orders.total_revenue)\n    nonportable_extensions:\n      - vendor_name: SEMANTIC_WORKBENCH\n        data:\n          schema: semantic-workbench/metric/v1\n          type: simple\n          label: order_count\n';
+  const source = model
+    .replace('          status: proposed\n', '          status: proposed\n          replaced_by: order_count\n')
+    .replace('  - name: order_count\n', labelled + '  - name: order_count\n');
+  const orderCount = { kind: 'metric' as const, name: 'order_count', docId: 'model', path: ['metrics', 2] };
+  const references = findReferences(orderCount, [{ ...docs[0], source }]);
+  expect(references.map(reference => reference.path.at(-1))).toEqual(['replaced_by']);
+  expect(references.map(reference => reference.dependent?.path)).toEqual([['metrics', 0]]);
+  const [renamed] = rewriteReferences([{ ...docs[0], source }], references, 'orders_total');
+  expect(parse(renamed.source).metrics[1].nonportable_extensions[0].data.label).toBe('order_count');
+  expect(parse(renamed.source).metrics[0].nonportable_extensions[0].data.replaced_by).toBe('orders_total');
+});
+
 test('the reference lists of a 0.2 project are exactly the ones recorded before the draft base', () => {
   const folder = join(import.meta.dir, '../public/examples/commerce');
   const commerce: ProjectDoc[] = readdirSync(folder)
