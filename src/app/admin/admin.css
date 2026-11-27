@@ -404,9 +404,10 @@
     padding: 8px 12px;
     gap: 8px;
   }
+  /* The navigation and the section scroll together, so the wrapped rows never cover a field. */
   .admin-layout {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr);
+    display: block;
+    overflow-y: auto;
   }
   /* The sections wrap onto a few rows instead of a sideways strip, so every section and the
      current one stay in view without scrolling. */
@@ -425,6 +426,7 @@
     flex-shrink: 1;
   }
   .admin-content {
+    overflow: visible;
     padding: 16px 16px 24px;
   }
 }
