@@ -1,5 +1,5 @@
 /** The form that adds or edits one attribute of a concept. It saves through the same patch writer, validation and hash check as the item editor. */
-import React, { useMemo, useState } from 'react';
+import React, { useId, useMemo, useState } from 'react';
 import { valueTypeChoices, suggestedReading } from '../../shared/attributes/attribute-rule';
 import { useCapabilities } from '../auth/Capabilities';
 import type { DetailsSection } from '../edit/section-context';
@@ -28,6 +28,8 @@ export function AttributeForm({ section, conceptName, relationshipIndex, initial
   const [readingEdited, setReadingEdited] = useState(editing);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const readingLabelId = useId();
+  const readingHintId = useId();
   const types = useMemo(() => valueTypeChoices(section.document.ontology ?? []), [section.document]);
   const reading = readingEdited ? values.reading : suggestedReading(conceptName, values.name || 'name');
 
@@ -86,10 +88,11 @@ export function AttributeForm({ section, conceptName, relationshipIndex, initial
           <small>The value types of this file, then the built-in ones.</small>
         </label>
         <label className="attribute-reading">
-          <span>Reading sentence</span>
-          {/* A reading sentence is often longer than one line, so it wraps instead of scrolling sideways. */}
-          <textarea rows={2} value={reading} onChange={event => changeField('reading', event.target.value)} />
-          <small>Say it as a sentence. The standard requires one, so a suggestion is filled in.</small>
+          <span id={readingLabelId}>Reading sentence</span>
+          {/* A reading sentence is often longer than one line, so it wraps instead of scrolling sideways. A textarea's
+              text would otherwise join its accessible name, and the suggested sentence names the attribute. */}
+          <textarea rows={2} value={reading} onChange={event => changeField('reading', event.target.value)} aria-labelledby={readingLabelId} aria-describedby={readingHintId} />
+          <small id={readingHintId}>Say it as a sentence. The standard requires one, so a suggestion is filled in.</small>
         </label>
         <label>
           <span>Multiplicity</span>
