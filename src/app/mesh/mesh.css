@@ -45,8 +45,10 @@
   overflow-wrap: anywhere;
 }
 
-/* The details panel has a sticky title; scrolling to the section keeps its heading below that title. */
-.mesh-imports {
+/* The details panel has a sticky title; scrolling to the heading keeps it below that title. The margin sits on the
+   heading, not the section: the section with its editor open is taller than a phone's panel, and a margin on it would
+   push the controls at its foot, such as Used by, below the panel's edge. */
+.mesh-imports > h3 {
   scroll-margin-top: 3rem;
 }
 
