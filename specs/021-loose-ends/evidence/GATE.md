@@ -83,3 +83,26 @@ actions wrapping at 1440.
   a missing `src/server/projects/reader` in its copy. Cause: the journey comparison job ran `sw-midgard-run` from the
   same worktree name during the run, which reset and cleaned the shared midgard checkout. The mesh mutants alone pass
   locally (15 of 15 killed). Mutation is rerun with nothing else using that checkout.
+
+### Browser suites: candidate against main
+
+Run with `bun run ci:validate -- --step browser --suite <name>` through `sw-midgard-run`. At `09d6ac6f`, 34 of 46
+suites passed. The 12 that failed were rerun on `main` `4efb44e2` and on the frozen candidate `5a8c6102`:
+
+| Suite | main | candidate `5a8c6102` | Verdict |
+| --- | --- | --- | --- |
+| `test:graph` | fail: height at least 480 px | fail: same (458.6 px) | inherited |
+| `test:editor` | fail: timing under 30 | fail: same | inherited |
+| `test:item-diff` | fail: output list differs | fail: same | inherited |
+| `test:lineage` | fail: timing within 2000 | fail: same | inherited |
+| `test:usage-traffic` | fail: output list differs | fail: same | inherited |
+| `test:responsive` | fail: graph transform | fail: same | inherited |
+| `test:admin` | pass | pass | fixed by the settings fixes |
+| `test:ui` | pass | fail: import review, second file's text | regression, sent to the Ossie pane |
+| `test:validation` | pass | fail: Validation details does not open | regression, sent to the Ossie pane |
+| `test:autosave` | pass | fail: `.validation-details` missing | regression, sent to the Ossie pane |
+| `test:attributes` | pass | fail: two fields match the label Name | regression, sent to the captures pane |
+| `test:acp` | pass | fail: expects the old "Reconnecting…" wording | test follows an intended wording change |
+
+Mutation at `5a8c6102` ran every case up to the UI mutants, which need a frontend on port 5173; the mesh mutants
+killed 15 of 15. Mutation is rerun through `bun run ci:validate -- --step mutation`.
