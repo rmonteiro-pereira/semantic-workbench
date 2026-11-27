@@ -40,3 +40,33 @@ Measured by the Ossie pane with `bun --bun run build`, `main` `4efb44e2` against
 
 The 0.3 validators stay out of the main chunk. The +23 KB is new code every user loads (the conversion entry point,
 the dialogs and the shared readers that accept both forms). Accepted; the final gate run measures it again.
+
+## Whole-journey comparison: round 1 (2026-11-27)
+
+`main` `4efb44e2` against `990d6659`, light and dark, 390 and 1440 px, graph states also at 1920 px, two passes
+per side. Evidence outside git: `~/scratch/sw-021/journey/` and `/srv/dev/sw/021-journey/` on midgard; tooling on
+branch `021-journey`.
+
+| Class | Pairs |
+| --- | --- |
+| Unchanged | 627 |
+| Intended | 427 |
+| Neutral | 453 |
+| Regression | 9 (four issues) |
+| Not compared | 336 |
+| Pending review | 274 |
+| Total | 2,126 |
+
+Collapsed Network edge labels (DOM text count), equal on both sides in both themes and passes: UBL 11 at 1440 and
+1920; Mall 0 at 1440 and 39 at 1920.
+
+Regressions, sent to their owners: the attribute dialog's reading sentence differs from Name in face and height; Save
+governance partly below the panel at 1440; a long restriction path in a confirmation heading at 390; Git remote
+actions wrapping at 1440.
+
+### What the verdict needs
+
+- Every "not compared" group gets a stated reason: state unreachable on both sides, data-dependent, or capture
+  failure. A capture-failure group is recaptured, not accepted.
+- Every pair records the scale it was viewed at. The gate is called clean only together with the share of changed
+  pairs that were looked at in full resolution.
