@@ -106,3 +106,17 @@ suites passed. The 12 that failed were rerun on `main` `4efb44e2` and on the fro
 
 Mutation at `5a8c6102` ran every case up to the UI mutants, which need a frontend on port 5173; the mesh mutants
 killed 15 of 15. Mutation is rerun through `bun run ci:validate -- --step mutation`.
+
+### Accepted by main (2026-11-27): below the first phone screen
+
+At 390 px, intended additions to the Admin screens (record labels, confirmations, help text, save state) push these
+actions below the first phone screen. Each is fully visible once scrolled into view, and nothing overlaps it. Main
+accepted them as a small layout choice with no feature removed:
+
+- Access check with an error explanation: Check access and Who can access.
+- Git remotes: the fourth remote card's actions.
+- Projects access: Preview agent grants.
+- Settings: Save settings.
+
+Covered or overlapping elements stay regressions. Mesh "Used by" under the fixed validation status bar at 390 is open
+with its fix.
