@@ -70,3 +70,16 @@ actions wrapping at 1440.
   failure. A capture-failure group is recaptured, not accepted.
 - Every pair records the scale it was viewed at. The gate is called clean only together with the share of changed
   pairs that were looked at in full resolution.
+
+## Run 2: mutation and browser suites (2026-11-27)
+
+- First attempt at `990d6659`: 40 of 47 browser suites failed in seconds with `ERR_CONNECTION_REFUSED` on port 5173,
+  because the driver ran each suite without a frontend. Not a result. Suites now run through
+  `bun run ci:validate -- --step browser --suite <name>`, which starts a fresh frontend per suite.
+- Mutation at `990d6659` stopped at the lineage-review baseline: the runner rewrites every quoted relative import in
+  a case file to an absolute path, including the import text the case searches for. `main` `4efb44e2` fails the same
+  way. Fixed in `09d6ac6f`.
+- Mutation at `09d6ac6f`: 1,526 lines of KILLED results, then the mesh baseline "diamond de-duplication" failed with
+  a missing `src/server/projects/reader` in its copy. Cause: the journey comparison job ran `sw-midgard-run` from the
+  same worktree name during the run, which reset and cleaned the shared midgard checkout. The mesh mutants alone pass
+  locally (15 of 15 killed). Mutation is rerun with nothing else using that checkout.
