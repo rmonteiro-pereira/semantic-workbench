@@ -9,6 +9,7 @@ import { extensionFormOf, readKpiBindings, workbenchEntry } from '../../shared/m
 import { resolveBindings } from '../../shared/metrics/bindings';
 import { columnRefs, parseExpression } from './sql';
 import { aggregateCalls, datasetMetric, plannerExpression } from './metric-expression';
+import { isSourceQualifier, readsSourceColumns } from '../../shared/validation/metric-scoping';
 import { BadRequestError } from '../projects/errors';
 import { contextDocument, evidence, fieldKey, policy, type BindingKind, type Evidence, type Finding, type RuntimeContext, type RuntimeField, type RuntimeMetric } from './context-types';
 import { identity, targets, type Entry, type Parsed, type Target } from './context-documents';
@@ -204,28 +205,36 @@ function collectMetrics(context: RuntimeContext, catalog: Catalog, semanticTarge
     addAiContext(context, join, definitionLabel(context.semanticModel.address, semanticTarget.data, ['relationships', i]), evidence(semanticTarget.doc, [...semanticPrefix, 'relationships', i])),
   );
 }
-type ExpressionRefs = { fields: string[]; metrics: string[]; condition: unknown };
+type ExpressionRefs = { fields: string[]; metrics: string[]; datasets: string[]; condition: unknown };
 /**
  * Resolves the fields and metrics an expression names, refusing unknown or ambiguous references.
- * Inside a dataset metric, `scope` is its dataset, which unqualified names belong to. An
- * AGG(dataset.metric) call contributes the fields of that dataset metric.
+ * Inside a dataset metric, `scope` is its dataset, which unqualified names belong to, and
+ * `source.column` reads a physical column of that dataset's source. An AGG(dataset.metric) call
+ * contributes the fields of that dataset metric and the dataset itself, so a metric such as
+ * COUNT(1) that names no field still belongs to its dataset.
  */
 function resolveExpressionRefs(context: RuntimeContext, catalog: Catalog, expression: string, scope?: string): ExpressionRefs {
   const ast = parseExpression(expression, { conditional: true });
   const fieldMap = catalog.fields;
   const fields = new Set<string>();
   const metrics = new Set<string>();
+  const datasets = new Set<string>();
   const aggregates = aggregateCalls(ast.expression);
   for (const call of aggregates) {
     const definition = datasetMetric(context.datasets, call.dataset, call.metric);
     const inner = plannerExpression(definition);
     if (!inner) throw new BadRequestError(`Dataset metric ${call.dataset}.${call.metric} has no sql or ANSI_SQL expression.`);
-    for (const id of resolveExpressionRefs(context, catalog, inner, call.dataset).fields) fields.add(id);
+    const innerRefs = resolveExpressionRefs(context, catalog, inner, call.dataset);
+    for (const id of innerRefs.fields) fields.add(id);
+    for (const dataset of [call.dataset, ...innerRefs.datasets]) datasets.add(dataset);
   }
   const aggregateArguments = new Set(aggregates.map(call => call.argument));
+  const scopeDataset = scope ? context.datasets.find(dataset => dataset?.name === scope) : undefined;
   for (const ref of columnRefs([ast.expression, ast.condition])) {
     if (aggregateArguments.has(ref.node)) continue;
-    if (!ref.table && scope) {
+    if (scope && isSourceQualifier(ref.table) && readsSourceColumns(scopeDataset)) {
+      datasets.add(scope);
+    } else if (!ref.table && scope) {
       const id = fieldKey(context.semanticModel.address, scope, ref.column);
       if (!fieldMap.has(id)) throw new BadRequestError(`Unknown field ${ref.column} of dataset ${scope}.`);
       fields.add(id);
@@ -240,7 +249,7 @@ function resolveExpressionRefs(context: RuntimeContext, catalog: Catalog, expres
       fields.add(options[0].id);
     }
   }
-  return { fields: [...fields], metrics: [...metrics], condition: ast.condition };
+  return { fields: [...fields], metrics: [...metrics], datasets: [...datasets], condition: ast.condition };
 }
 /** Fills each metric's fields, datasets and dependencies from its ANSI_SQL expression. A failing metric becomes a finding. */
 function resolveMetricDependencies(assembly: Assembly, context: RuntimeContext, catalog: Catalog) {
@@ -259,9 +268,16 @@ function resolveMetricDependencies(assembly: Assembly, context: RuntimeContext, 
     const refs = resolveExpressionRefs(context, catalog, selected);
     metric.dependsOn = syntaxDependencies(selected, new Set(metricMap.keys()));
     const fields = new Set(refs.fields);
-    for (const dep of refs.metrics) for (const id of metricDependencies(dep, next).fields) fields.add(id);
+    const aggregatedDatasets = [...refs.datasets];
+    for (const dep of refs.metrics) {
+      const dependency = metricDependencies(dep, next);
+      for (const id of dependency.fields) fields.add(id);
+      aggregatedDatasets.push(...dependency.datasets);
+    }
     metric.fields = [...fields];
-    metric.datasets = [...new Set(metric.fields.map(id => catalog.fields.get(id)!.dataset))];
+    // The datasets of the fields come first, as before; a dataset reached only through AGG or a source column follows.
+    const fieldDatasets = metric.fields.map(id => catalog.fields.get(id)!.dataset);
+    metric.datasets = [...new Set([...fieldDatasets, ...aggregatedDatasets])];
     completed.add(name);
     return metric;
   };

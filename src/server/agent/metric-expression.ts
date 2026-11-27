@@ -1,6 +1,7 @@
 // How the governed planner reads a metric's expression: the Ossie 0.3 draft's portable `sql` first,
 // then ANSI SQL; and where a model metric evaluates a dataset-scoped metric with AGG(dataset.metric).
 import { BadRequestError } from '../projects/errors';
+import { isSourceQualifier } from '../../shared/validation/metric-scoping';
 import { walk } from './sql';
 
 /** An AGG call over one dataset metric, with the syntax node to replace when it is inlined. */
@@ -33,7 +34,7 @@ function aggregateArgument(node: any): Omit<AggregateCall, 'node'> {
   const dataset = typeof table === 'string' ? table : table?.value;
   const metric = columnName(argument);
   if (argument?.type !== 'column_ref' || typeof dataset !== 'string' || typeof metric !== 'string') throw new BadRequestError('AGG takes one dataset metric, as in AGG(orders.total_revenue).');
-  if (dataset === 'source') throw new BadRequestError('AGG over a source measure needs a measure relation, which the planner cannot preview.');
+  if (isSourceQualifier(dataset)) throw new BadRequestError('AGG over a source measure needs a measure relation, which the planner cannot preview.');
   return { argument, dataset, metric };
 }
 

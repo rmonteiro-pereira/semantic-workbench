@@ -65,3 +65,29 @@ test('AGG over an unknown dataset metric or a source measure is a context findin
     expect(() => plan(documents, ['revenue'])).toThrow('Resolve mapping context errors before planning.');
   }
 });
+
+/** Plans the given metrics with the given dimensions. */
+function planWith(documents: StoredDocument[], metrics: string[], dimensions: string[][]) {
+  return planQuery(buildContext(documents, '0'), { mappingId: '0', metrics, dimensions: dimensions.map(dimension => JSON.stringify(dimension)), scope: 'model' });
+}
+
+test('a dataset metric that names no field still plans from its own dataset', () => {
+  const documents = withModel(model => {
+    model.datasets[0].metrics.push({ name: 'row_count', expression: { sql: 'COUNT(1)' } });
+    model.metrics.push({ name: 'orders_rows', expression: { sql: 'AGG(orders.row_count)' } });
+  });
+  expect(planWith(documents, ['orders_rows'], []).sql).toBe(['SELECT', '  COUNT(1) AS "metric_1"', 'FROM "sales"."orders" AS "orders";'].join('\n'));
+  const byRegion = planWith(documents, ['orders_rows'], [['customers', 'region']]).sql;
+  expect(byRegion).toContain('FROM "sales"."orders" AS "orders"');
+  expect(byRegion).toContain('LEFT JOIN "sales"."customers" AS "customers"');
+});
+
+test('a dataset metric over a source column with no logical field plans as that physical column', () => {
+  const documents = withModel(model => {
+    model.datasets[0].metrics.push({ name: 'gross', expression: { sql: 'SUM(SOURCE.gross_amount)' } });
+    model.metrics.push({ name: 'gross_revenue', expression: { sql: 'AGG(orders.gross)' } });
+  });
+  const context = buildContext(documents, '0');
+  expect(context.findings.filter(finding => finding.severity === 'error')).toEqual([]);
+  expect(planWith(documents, ['gross_revenue'], [['customers', 'region']]).sql).toContain('SUM("orders".gross_amount) AS "metric_1"');
+});

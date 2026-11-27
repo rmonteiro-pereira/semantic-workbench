@@ -156,7 +156,10 @@ These places list model metrics only:
 
 A dataset metric's status is set in the item editor's governance fields, or by editing the file.
 Proposing or approving it, and changing an approved one, pass the same governance guard as a model
-metric. `AGG(source.measure)` over a measure relation is refused by the planner. Tessera revision 3
+metric. The planner reads a dataset metric's `source.column` (in any letter case) as the physical
+column of that dataset's source, and plans an `AGG(dataset.metric)` from that dataset even when the
+metric names no field, as `COUNT(1)` does. `AGG(source.measure)` over a measure relation is refused
+by the planner. Tessera revision 3
 parts are checked against the 0.2.0.dev0 part schema, so a part cannot use `annotations` yet.
 
 Phase status: 0.3.0.dev0 adopted as a draft base at `34e4d3752b8b`; the released 0.3.0 is not

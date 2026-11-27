@@ -17,6 +17,19 @@ type PortableText = { text: string; path: string };
 const isObject = (value: unknown): value is Record<string, any> => value !== null && typeof value === 'object' && !Array.isArray(value);
 const list = (value: unknown): any[] => (Array.isArray(value) ? value : []);
 
+/** Whether a qualifier is the reserved `source`, which the draft reads in any letter case. */
+export function isSourceQualifier(qualifier: unknown): boolean {
+  return typeof qualifier === 'string' && qualifier.toLowerCase() === 'source';
+}
+
+/**
+ * Whether a dataset's metrics may read its source as `source.column`. A dataset that declares a field
+ * named source takes the name for that field, so its metrics cannot refer to source columns.
+ */
+export function readsSourceColumns(dataset: unknown): boolean {
+  return !list(isObject(dataset) ? dataset.fields : []).some(field => isSourceQualifier(field?.name));
+}
+
 function error(code: string, path: string, message: string): Issue {
   return { severity: 'error', code, path, message };
 }

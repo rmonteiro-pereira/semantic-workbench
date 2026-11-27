@@ -3,6 +3,7 @@
 import { matchesLegacyFieldKey } from '../../shared/core/item-key-adapters';
 import { columnRefs, parseExpression, scalar, expressionSql, quoteIdentifier, sourceSql } from './sql';
 import { aggregateCalls, datasetMetric, plannerExpression } from './metric-expression';
+import { isSourceQualifier, readsSourceColumns } from '../../shared/validation/metric-scoping';
 import { BadRequestError } from '../projects/errors';
 import { agentGovernanceFlag, metricGovernanceOf, type AgentGovernance } from '../../shared/governance/item-governance';
 import { AGENT_GOVERNANCE_KEY } from '../../shared/tessera/agent-view';
@@ -144,6 +145,12 @@ type Compile = (expression: string, currentDataset?: string, active?: Set<string
 function createCompiler(context: RuntimeContext, aliases: Set<string>): Compile {
   const metricMap = new Map(context.metrics.map(m => [m.id, m]));
   const fieldMap = new Map(context.fields.map(f => [f.id, f]));
+  const datasetNamed = (name: string) => context.datasets.find(dataset => dataset?.name === name);
+  /** Reads a dataset metric's `source.column` as the physical column of its dataset's source, under the dataset's alias. */
+  const pinToSource = (columnNode: any, dataset: string) => {
+    if (!aliases.has(dataset)) throw new BadRequestError(`Dataset ${dataset} is not in the declared join plan.`);
+    columnNode.table = dataset;
+  };
   /** Inlines AGG(dataset.metric) as that dataset metric's expression, read inside its dataset. */
   const inlineAggregates = (ast: any, active: Set<string>) => {
     const calls = aggregateCalls(ast);
@@ -165,6 +172,10 @@ function createCompiler(context: RuntimeContext, aliases: Set<string>): Compile 
     const aggregateArguments = inlineAggregates(ast, active);
     for (const ref of refs) {
       if (aggregateArguments.has(ref.node)) continue;
+      if (currentDataset && isSourceQualifier(ref.table) && readsSourceColumns(datasetNamed(currentDataset))) {
+        pinToSource(ref.node, currentDataset);
+        continue;
+      }
       if (!ref.table && !currentDataset && metricMap.has(ref.column)) {
         if (active.has(ref.column)) throw new BadRequestError('Metric cycle.');
         const next = new Set(active);
