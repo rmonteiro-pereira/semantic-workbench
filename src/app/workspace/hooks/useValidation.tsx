@@ -37,10 +37,10 @@ export function useValidation({ current, source, tab }: Options) {
     [checkedSource, current?.filename, plainText, assumeOssieVersion, draftRevision],
   );
   // A file can declare the draft after it was opened, for example when its version is edited. Its
-  // check then waits for the draft checks, so load them here and check again once they arrive.
-  const waitsForDraftChecks = checked.issues.some(issue => issue.code === DRAFT_CHECKS_LOADING);
+  // check then waits for the draft checks, so load them here and check again once they arrive. Each
+  // new check that still waits asks again, so a failed load is retried after the next edit.
   useEffect(() => {
-    if (!waitsForDraftChecks) return;
+    if (!checked.issues.some(issue => issue.code === DRAFT_CHECKS_LOADING)) return;
     let mounted = true;
     void loadDraftValidators().then(
       () => mounted && setDraftRevision(revision => revision + 1),
@@ -49,7 +49,7 @@ export function useValidation({ current, source, tab }: Options) {
     return () => {
       mounted = false;
     };
-  }, [waitsForDraftChecks]);
+  }, [checked]);
   const live = tab === 'source' && checkedSource !== source && editorIssues?.id === current?.id ? editorIssues!.issues : null;
   const validation = live ? { ...checked, issues: live, valid: !live.some(i => i.severity === 'error') } : checked;
   const result = {
