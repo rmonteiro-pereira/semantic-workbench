@@ -98,7 +98,7 @@ try {
         const created = await (await creating).json();
         await disconnected;
         await expect(page.getByText(/Waiting for your agent/)).toBeVisible();
-        await expect(page.getByText('Disconnected from the event stream. Reconnecting…', { exact: true })).toBeVisible();
+        await expect(page.getByText('Disconnected from the event stream. Reconnecting.', { exact: true })).toBeVisible();
         recoverStream();
         await contained(page);
         await page.screenshot({ path: `out/acp/${width}-${theme}-waiting.png` });
