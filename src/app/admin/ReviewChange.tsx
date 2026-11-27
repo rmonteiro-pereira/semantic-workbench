@@ -49,6 +49,12 @@ export function inUseMessage(inUse: unknown): string {
   return 'Affected people: ' + people.map(person => person.name ?? person.id).join(', ') + '.';
 }
 
+/** Lists what a change removes, as one sentence that wraps however long the names are. */
+function RemovedNames({ names }: { names: string[] }) {
+  if (!names.length) return null;
+  return <p>This change removes {names.join('; ')}.</p>;
+}
+
 /** Requires a matching dry run and explicit confirmation before activating changes. */
 export function ReviewChange({
   area,
@@ -61,6 +67,7 @@ export function ReviewChange({
   changeLabel,
   destructive = false,
   confirmLabel,
+  removedNames = [],
   dirty = false,
   unavailableReason,
   inline = false,
@@ -77,6 +84,8 @@ export function ReviewChange({
   destructive?: boolean;
   /** A short confirm label for when the title already names everything the change removes. */
   confirmLabel?: string;
+  /** What the change removes, listed in the result where long names can wrap. */
+  removedNames?: string[];
   /** The draft differs from what is saved, so the reader is told it is not saved yet. */
   dirty?: boolean;
   /** Why the review button is unavailable, shown beside it instead of a silent grey button. */
@@ -145,6 +154,7 @@ export function ReviewChange({
   return (
     <section className="admin-review" aria-label={description}>
       {error && <p role="alert">{error}</p>}
+      {inline && ready && review && <RemovedNames names={removedNames} />}
       {inline && ready && review && <DryRunResult result={review.result} />}
       <div className="admin-actions">
         <button className={ready ? '' : 'primary'} disabled={busy || disabled} onClick={preview}>
@@ -156,6 +166,7 @@ export function ReviewChange({
       {dirty && !ready && !disabled && <UnsavedChangesNote action={previewLabels[area] ?? 'Review change'} />}
       {!inline && ready && review && (
         <AdminConfirmation title={changeLabel ?? description} onCancel={() => setReview(null)} cancelLabel="Back to editing" actions={confirmButtons}>
+          <RemovedNames names={removedNames} />
           <DryRunResult result={review.result} />
         </AdminConfirmation>
       )}
