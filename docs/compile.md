@@ -136,7 +136,9 @@ object. A workbench metric with the legacy status `draft` becomes `proposed`; no
 `approved`. Tick the confirmation and convert. The server converts the file again and saves only
 when the result equals the preview, the file is unchanged since the preview and Git holds it clean.
 If the file changed in the meantime, or the conversion fails, **Review again** reads the saved file
-and shows a new preview to confirm. Nothing is committed. New files are still created as 0.2.0.dev0.
+and shows a new preview to confirm. While the conversion saves, Escape and Cancel do nothing, so the
+dialog stays until the save answers; the converted text opens only if that file is still the one in
+the editor. Nothing is committed. New files are still created as 0.2.0.dev0.
 
 ### Ossie 0.3.0 draft: limits
 

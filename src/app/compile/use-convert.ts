@@ -195,3 +195,21 @@ export function useBaseConvert(project: string, opened: ConvertTarget, onConvert
   }, [client, onConverted, project, target, view]);
   return { view, convert, reload };
 }
+
+/** The file a conversion wrote, by project and path. */
+export type ConvertedFile = { project: string; path: string };
+
+/** What reopening a converted file needs from the workspace, passed in so the decision can be tested. */
+export type ReopenDeps<T extends ConvertedFile> = { refresh: () => Promise<T[]>; active: () => ConvertedFile | null; open: (doc: T) => void };
+
+/**
+ * After a conversion, reads the files again and opens the converted text, but only while that file
+ * is still the one in the editor. A person who moved to another file keeps it.
+ */
+export async function reopenConverted<T extends ConvertedFile>(converted: ConvertedFile, deps: ReopenDeps<T>): Promise<void> {
+  const docs = await deps.refresh();
+  const active = deps.active();
+  if (active?.project !== converted.project || active.path !== converted.path) return;
+  const doc = docs.find(candidate => candidate.project === converted.project && candidate.path === converted.path);
+  if (doc) deps.open(doc);
+}

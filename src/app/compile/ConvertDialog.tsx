@@ -5,7 +5,7 @@ import type { ProjectInfo } from '../projects/api';
 import { DiffView } from '../scm/DiffView';
 import { Findings } from './CompileDialog';
 import { LossPreview } from './LossPreview';
-import { useBaseConvert, useConvert, type BaseConvertControl, type BaseReview, type ConvertControl, type ConvertReview, type ConvertTarget } from './use-convert';
+import { useBaseConvert, useConvert, type BaseConvertClient, type BaseConvertControl, type BaseReview, type ConvertControl, type ConvertReview, type ConvertTarget } from './use-convert';
 import './compile.css';
 
 type Props = {
@@ -25,6 +25,9 @@ export function conversionBlocker(options: { gitState: string; unsaved: boolean 
   if (options.gitState !== 'clean') return 'This file has changes that are not committed. Commit or discard them first, so Git holds the backup.';
   return null;
 }
+
+/** Escape while the save is in flight: ignored, like the disabled Cancel, so the dialog stays until the save answers. */
+const ignoreCancel = () => {};
 
 const WARNING =
   'This rewrites the file in your working copy as standard Ossie. Comments and layout may differ from before. The committed version in Git is your backup. Nothing is committed or published.';
@@ -108,7 +111,12 @@ function ConvertReviewDialog({ project, target, onClose, onConverted }: Pick<Pro
     if (control.view.status === 'loading') setConfirmed(false);
   }, [control.view.status]);
   return (
-    <Modal title={`Convert ${target.path} to standard Ossie`} size="wide" onCancel={onClose} footer={<ConvertFooter control={control} confirmed={confirmed} onClose={onClose} />}>
+    <Modal
+      title={`Convert ${target.path} to standard Ossie`}
+      size="wide"
+      onCancel={control.view.status === 'converting' ? ignoreCancel : onClose}
+      footer={<ConvertFooter control={control} confirmed={confirmed} onClose={onClose} />}
+    >
       <ConvertBody control={control} path={target.path} confirmed={confirmed} onConfirm={setConfirmed} />
     </Modal>
   );
@@ -228,24 +236,31 @@ export function BaseConvertFooter({ control, confirmed, onClose }: { control: Ba
   );
 }
 
-function BaseConvertReviewDialog({ project, target, onClose, onConverted }: Pick<Props, 'project' | 'target' | 'onClose' | 'onConverted'>) {
+type BaseReviewProps = Pick<Props, 'project' | 'target' | 'onClose' | 'onConverted'> & { client?: BaseConvertClient };
+
+function BaseConvertReviewDialog({ project, target, onClose, onConverted, client }: BaseReviewProps) {
   const [confirmed, setConfirmed] = useState(false);
   const [stableTarget] = useState(target);
-  const control = useBaseConvert(project.slug, stableTarget, onConverted);
+  const control = useBaseConvert(project.slug, stableTarget, onConverted, client);
   // A new review starts unconfirmed, so a person never confirms something they have not seen.
   useEffect(() => {
     if (control.view.status === 'loading') setConfirmed(false);
   }, [control.view.status]);
   return (
-    <Modal title={`Convert ${target.path} to the Ossie 0.3.0 draft`} size="wide" onCancel={onClose} footer={<BaseConvertFooter control={control} confirmed={confirmed} onClose={onClose} />}>
+    <Modal
+      title={`Convert ${target.path} to the Ossie 0.3.0 draft`}
+      size="wide"
+      onCancel={control.view.status === 'converting' ? ignoreCancel : onClose}
+      footer={<BaseConvertFooter control={control} confirmed={confirmed} onClose={onClose} />}
+    >
       <BaseConvertBody control={control} path={target.path} confirmed={confirmed} onConfirm={setConfirmed} />
     </Modal>
   );
 }
 
-/** The explicit conversion of a 0.2.0.dev0 document to the 0.3.0 draft base. A file that is not saved and committed is explained instead. */
-export function BaseConvertDialog({ project, target, gitState, unsaved, onClose, onConverted }: Props) {
+/** The explicit conversion of a 0.2.0.dev0 document to the 0.3.0 draft base. A file that is not saved and committed is explained instead. A test passes its own `client`. */
+export function BaseConvertDialog({ project, target, gitState, unsaved, onClose, onConverted, client }: Props & { client?: BaseConvertClient }) {
   const [blocker] = useState(() => conversionBlocker({ gitState, unsaved }));
-  if (!blocker) return <BaseConvertReviewDialog project={project} target={target} onClose={onClose} onConverted={onConverted} />;
+  if (!blocker) return <BaseConvertReviewDialog project={project} target={target} onClose={onClose} onConverted={onConverted} client={client} />;
   return <ConversionBlocked title={`Convert ${target.path} to the Ossie 0.3.0 draft`} blocker={blocker} onClose={onClose} />;
 }

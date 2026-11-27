@@ -22,8 +22,9 @@ test('metric dependencies are found in a sql expression', () => {
 
 test('function calls keep their argument when it is one name chain, and skip strings and comments', () => {
   expect(functionCalls("AGG(orders.total) + metric(x) -- AGG(hidden.one)\n + 'AGG(text.only)'")).toEqual([
-    { name: 'AGG', argument: { table: 'orders', column: 'total' } },
-    { name: 'metric', argument: { table: null, column: 'x' } },
+    { name: 'AGG', argument: { table: 'orders', column: 'total' }, filtered: false },
+    { name: 'metric', argument: { table: null, column: 'x' }, filtered: false },
   ]);
-  expect(functionCalls('SUM(a + b)')).toEqual([{ name: 'SUM', argument: null }]);
+  expect(functionCalls('SUM(a + b)')).toEqual([{ name: 'SUM', argument: null, filtered: false }]);
+  expect(functionCalls('AGG(source.total) FILTER (WHERE active)')[0].filtered).toBe(true);
 });

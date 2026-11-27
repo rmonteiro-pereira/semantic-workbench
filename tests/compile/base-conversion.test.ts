@@ -2,13 +2,13 @@
 import { beforeAll, expect, test } from 'bun:test';
 import { parse } from 'yaml';
 import type { ContentGuard } from '../../src/server/auth/guards';
-import { LOCAL_READER } from '../../src/server/projects/reader';
+import { LOCAL_READER, type Reader } from '../../src/server/projects/reader';
 import { ConvertRefusal, convertBase } from '../../src/server/tessera/convert-service';
 import { workspaceConversion } from '../../src/server/tessera/workspace-conversion';
 import { BaseConversionRefusal, convertToDraftBase } from '../../src/shared/tessera/base-conversion';
 import { sha256Hex } from '../../src/shared/tessera/digest';
 import { loadDraftValidators } from '../../src/shared/validation/draft-validators';
-import { COMPILE_PROJECT, compileWorkspace, sendToCompile } from '../helpers/compile-workspace';
+import { COMPILE_PROJECT, compileWorkspace, readerFor, sendToCompile } from '../helpers/compile-workspace';
 
 const MODEL = 'retail.semantic.yaml';
 const ROUTE = `/api/projects/${COMPILE_PROJECT}/compile/convert-base`;
@@ -83,7 +83,7 @@ test('a guard that would rewrite the confirmed text refuses the conversion, and 
   const { request } = previewRequest(workspace);
   // Stands in for a demotion: the guard stores other bytes than the ones the person confirmed.
   const rewriting: ContentGuard = changes => ({ changes: changes.map(change => ({ ...change, after: change.after + '# rewritten\n' })), refused: [], demoted: [] });
-  const reader = { ...LOCAL_READER, guard: rewriting };
+  const reader = { ...readerFor('alice'), guard: rewriting } as Reader;
   const refusal = await convertBase(workspaceConversion(workspace.ws, COMPILE_PROJECT, reader), request).catch(error => error);
   expect(refusal).toBeInstanceOf(ConvertRefusal);
   expect(refusal.code).toBe('digest-mismatch');

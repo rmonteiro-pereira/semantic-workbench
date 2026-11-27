@@ -20,6 +20,7 @@ import type { Deleted, Doc, ProjectInfo } from '../projects/api';
 import type { AutosaveState } from '../projects/autosave';
 import { CompileDialog } from '../compile/CompileDialog';
 import { BaseConvertDialog, ConvertDialog } from '../compile/ConvertDialog';
+import { reopenConverted } from '../compile/use-convert';
 import { declaredVersion } from '../../shared/validation/ossie-version';
 import { FileDialogs } from './FileDialogs';
 import { RdfItemDialogs } from './RdfItemDialogs';
@@ -263,12 +264,14 @@ export function AppDialogs({
   // Only a document that declares Ossie 0.2.0.dev0 can be converted to the 0.3.0 draft base.
   const declaresOssie020 = React.useMemo(() => showValidation && !!current && declaredVersion(current.source) === '0.2.0.dev0', [showValidation, current]);
   function handleConverted() {
-    void refresh().then(docs => {
-      const converted = docs.find(doc => doc.project === current?.project && doc.path === current?.path);
-      if (!converted) return;
-      setCurrent(converted);
-      setSource(converted.source);
-    });
+    if (!current) return;
+    const converted = { project: current.project, path: current.path };
+    void reopenConverted(converted, { refresh, active: () => currentRef.current, open: openConverted });
+  }
+
+  function openConverted(doc: Doc) {
+    setCurrent(doc);
+    setSource(doc.source);
   }
 
   return (
