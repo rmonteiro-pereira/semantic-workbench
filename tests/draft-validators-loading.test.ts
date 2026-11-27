@@ -121,3 +121,18 @@ test('a 0.3 file still opens when the draft module cannot load, and its check is
   `);
   expect(outcome).toEqual({ opened: 'tests/fixtures/ossie-0.3/sales.semantic.yaml', valid: false, codes: ['draft-checks-loading'] });
 });
+
+test('a lint request whose draft load fails is answered with its id and the loading finding, and the next request loads', () => {
+  const outcome = runFresh(`
+    import { readFileSync } from 'node:fs';
+    import { loadDraftValidators } from './src/shared/validation/draft-validators';
+    import { lintReply } from './src/app/editor/lintRequest';
+    const source = readFileSync('tests/fixtures/ossie-0.3/sales.semantic.yaml', 'utf8');
+    const failingLoad = () => loadDraftValidators(() => Promise.reject(new Error('offline'))).then(() => undefined);
+    const first = await lintReply({ id: 1, source, filename: 'sales.semantic.yaml' }, failingLoad);
+    const second = await lintReply({ id: 2, source, filename: 'sales.semantic.yaml' });
+    const codes = reply => reply.issues.filter(issue => issue.severity === 'error').map(issue => issue.code);
+    console.log(JSON.stringify({ first: { id: first.id, codes: codes(first) }, second: { id: second.id, codes: codes(second) } }));
+  `);
+  expect(outcome).toEqual({ first: { id: 1, codes: ['draft-checks-loading'] }, second: { id: 2, codes: [] } });
+});
