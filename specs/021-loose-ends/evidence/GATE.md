@@ -174,3 +174,34 @@ e43fa7bc fail, c783616a pass). With the load time of each example logged, the fi
 candidate (three runs) and 4.8 to 5.1 s on `main` (two runs); later UBL loads take a median of about 3.35 s on both.
 The check's margin on the first UBL load is the same on both sides, so this is inherited, not a regression. The 5 s
 wait was not changed.
+
+## Whole-journey comparison: round 4 and its review shards (2026-11-27)
+
+Round 4 compared `main` `4efb44e2` with the frozen candidate `e431dab1`, with graph screenshots taken only once node
+positions had settled. It classified 1,243 pairs directly and left 1,039 changed pairs for review. Ten Sol review
+shards reviewed all 1,039, each pair's changed region cropped 1:1 from the native captures.
+
+| Result | Pairs |
+| --- | --- |
+| Reviewed by the shards | 1,039 of 1,039 |
+| Seen at 1:1 | 1,039 of 1,039 |
+| Intended | 434 |
+| Neutral | 444 |
+| Regression | 2 (one issue) |
+| Not compared: capture failure | 139 |
+| Not compared: data-dependent | 12 |
+| Not compared: state unreachable on both sides | 8 |
+
+Round 4's own classes outside the queue: 355 intended, 23 improvement, 216 neutral, 314 unchanged, 0 regression.
+
+Not compared in round 4 itself (204 pairs), by reason: graph screenshots in a loading phase (90), missing image or
+failed action in a required passage (97), lineage centred on a different object across passages (16), hover target not
+recorded (1). Together with the shards' 159, these 363 pairs go to a targeted recapture (round 5) on the candidate
+with the harness causes fixed; none is accepted as it is.
+
+The regression: `mesh/import-editor-populated-{light,dark}-390`. With the import editor open at 390 px, the fixed
+validation status bar rests on the Used by button, where `main` shows the Used by label. Sent back to the captures
+pane.
+
+Collapsed Network labels, equal on both sides, both themes and both passes: UBL 11 at 1440 and 1920; Mall 0 at 1440
+and 39 at 1920.
