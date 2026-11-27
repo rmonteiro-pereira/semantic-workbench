@@ -408,6 +408,9 @@
   .admin-layout {
     display: block;
     overflow-y: auto;
+    /* Sections replace their loading line and lists with forms; the browser's scroll anchoring
+       would then move the view to an unrelated row instead of keeping the section where it was. */
+    overflow-anchor: none;
   }
   /* The sections wrap onto a few rows instead of a sideways strip, so every section and the
      current one stay in view without scrolling. */
@@ -425,8 +428,11 @@
   .admin-nav-list a {
     flex-shrink: 1;
   }
+  /* At least one window of content below the navigation, so opening a section can always scroll
+     its heading to the top, even while the section is still loading and short. */
   .admin-content {
     overflow: visible;
+    min-height: 100%;
     padding: 16px 16px 24px;
   }
 }

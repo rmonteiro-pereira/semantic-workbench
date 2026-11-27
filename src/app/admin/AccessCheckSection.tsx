@@ -155,6 +155,29 @@ export function AccessCheckSection({ principal = '' }: { principal?: string }) {
   );
 }
 
+/** The nearest ancestor that scrolls vertically, which is the Admin layout on a phone. */
+function scrollingAncestor(element: HTMLElement): HTMLElement | null {
+  let parent = element.parentElement;
+  while (parent && !(parent.scrollHeight > parent.clientHeight && getComputedStyle(parent).overflowY !== 'visible')) parent = parent.parentElement;
+  return parent;
+}
+
+/**
+ * Bringing the result into view can stop with the section heading half under the top edge, which
+ * reads as clipped text. The view then moves on to the line after the heading; the result only
+ * moves further up, so it stays in view.
+ */
+function scrollPastCutHeading(result: HTMLElement) {
+  const heading = result.closest('.admin-content')?.querySelector<HTMLElement>(':scope > h2');
+  const next = heading?.nextElementSibling;
+  const scroller = scrollingAncestor(result);
+  if (!heading || !next || !scroller) return;
+  const edge = scroller.getBoundingClientRect().top;
+  const headingBox = heading.getBoundingClientRect();
+  if (headingBox.top >= edge || headingBox.bottom <= edge) return;
+  scroller.scrollTop += next.getBoundingClientRect().top - edge;
+}
+
 /** Presents the decision before its supporting details and keeps it in view. */
 export function AccessResult({ result }: { result: AccessExplanation }) {
   const banner = useRef<HTMLParagraphElement>(null);
@@ -166,7 +189,9 @@ export function AccessResult({ result }: { result: AccessExplanation }) {
   if (!allowed && reason === 'not-readable') explanation = 'This person cannot read the selected project or file.';
   if (!allowed && reason === 'evaluation-error') explanation = 'The access rules could not be evaluated.';
   useEffect(() => {
-    banner.current?.scrollIntoView({ block: 'nearest' });
+    if (!banner.current) return;
+    banner.current.scrollIntoView({ block: 'nearest' });
+    scrollPastCutHeading(banner.current);
   }, [result]);
   return (
     <section aria-label="Access result" className="admin-access-result">
