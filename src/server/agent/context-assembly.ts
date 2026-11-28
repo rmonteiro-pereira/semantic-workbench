@@ -379,7 +379,8 @@ function expandObjectTask(walk: MappingWalk, task: MappingTask) {
   concept = node.concept ?? concept;
   if (!concepts.has(concept)) throw new BadRequestError(`Unknown ontology concept ${concept}.`);
   if (node.expression !== undefined) {
-    const refs = resolveExpressionRefs(walk.context, walk.catalog, node.expression);
+    // A binding records the fields, metrics and condition it reads; the datasets of AGG calls matter only to metrics.
+    const { datasets: _datasets, ...refs } = resolveExpressionRefs(walk.context, walk.catalog, node.expression);
     walk.context.bindings.push({
       id: JSON.stringify(path),
       kind: bindingKindOf(task),
