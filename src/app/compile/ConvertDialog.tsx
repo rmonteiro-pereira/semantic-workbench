@@ -5,7 +5,17 @@ import type { ProjectInfo } from '../projects/api';
 import { DiffView } from '../scm/DiffView';
 import { Findings } from './CompileDialog';
 import { LossPreview } from './LossPreview';
-import { useBaseConvert, useConvert, type BaseConvertClient, type BaseConvertControl, type BaseReview, type ConvertControl, type ConvertReview, type ConvertTarget } from './use-convert';
+import {
+  cancelDuringConversion,
+  useBaseConvert,
+  useConvert,
+  type BaseConvertClient,
+  type BaseConvertControl,
+  type BaseReview,
+  type ConvertControl,
+  type ConvertReview,
+  type ConvertTarget,
+} from './use-convert';
 import './compile.css';
 
 type Props = {
@@ -25,9 +35,6 @@ export function conversionBlocker(options: { gitState: string; unsaved: boolean 
   if (options.gitState !== 'clean') return 'This file has changes that are not committed. Commit or discard them first, so Git holds the backup.';
   return null;
 }
-
-/** Escape while the save is in flight: ignored, like the disabled Cancel, so the dialog stays until the save answers. */
-const ignoreCancel = () => {};
 
 const WARNING =
   'This rewrites the file in your working copy as standard Ossie. Comments and layout may differ from before. The committed version in Git is your backup. Nothing is committed or published.';
@@ -114,7 +121,7 @@ function ConvertReviewDialog({ project, target, onClose, onConverted }: Pick<Pro
     <Modal
       title={`Convert ${target.path} to standard Ossie`}
       size="wide"
-      onCancel={control.view.status === 'converting' ? ignoreCancel : onClose}
+      onCancel={cancelDuringConversion(control.view, onClose)}
       footer={<ConvertFooter control={control} confirmed={confirmed} onClose={onClose} />}
     >
       <ConvertBody control={control} path={target.path} confirmed={confirmed} onConfirm={setConfirmed} />
@@ -250,7 +257,7 @@ function BaseConvertReviewDialog({ project, target, onClose, onConverted, client
     <Modal
       title={`Convert ${target.path} to the Ossie 0.3.0 draft`}
       size="wide"
-      onCancel={control.view.status === 'converting' ? ignoreCancel : onClose}
+      onCancel={cancelDuringConversion(control.view, onClose)}
       footer={<BaseConvertFooter control={control} confirmed={confirmed} onClose={onClose} />}
     >
       <BaseConvertBody control={control} path={target.path} confirmed={confirmed} onConfirm={setConfirmed} />

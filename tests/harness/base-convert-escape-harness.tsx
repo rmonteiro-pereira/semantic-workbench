@@ -1,14 +1,16 @@
-/** Renders the base conversion dialog with a save that answers only when the page says so, to check Escape during the save. */
+/**
+ * Renders the base conversion's hook in the workbench dialog with a save that answers only when the
+ * page says so, to check Escape during the save. The diff view is left out: the test bundler cannot
+ * load CodeMirror's highlighting, and Escape does not depend on it.
+ */
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BaseConvertDialog } from '../../src/app/compile/ConvertDialog';
-import type { BaseConvertClient } from '../../src/app/compile/use-convert';
-import type { ProjectInfo } from '../../src/app/projects/api';
+import { cancelDuringConversion, useBaseConvert, type BaseConvertClient } from '../../src/app/compile/use-convert';
+import { Modal } from '../../src/app/projects/Modal';
 
 /** The 0.2 text the page receives before this script runs. */
 const { source } = (window as unknown as { sources: { source: string } }).sources;
 const target = { path: 'billing.mapping.yaml', source, hash: 'a'.repeat(64) };
-const project = { slug: 'billing', name: 'Billing', files: [] } as unknown as ProjectInfo;
 
 let finishSave: () => void = () => {};
 const client: BaseConvertClient = {
@@ -19,6 +21,23 @@ const client: BaseConvertClient = {
   file: async () => target,
 };
 Object.assign(window, { finishSave: () => finishSave() });
+
+function ConversionDialog({ onClose }: { onClose: () => void }) {
+  const control = useBaseConvert('billing', target, () => {}, client);
+  return (
+    <Modal
+      title="Convert billing.mapping.yaml"
+      onCancel={cancelDuringConversion(control.view, onClose)}
+      footer={
+        <button type="button" onClick={control.convert}>
+          Convert
+        </button>
+      }
+    >
+      <output aria-label="Status">{control.view.status}</output>
+    </Modal>
+  );
+}
 
 function App() {
   const [open, setOpen] = useState(true);
@@ -32,7 +51,7 @@ function App() {
   return (
     <>
       <output aria-label="Closed">{closed}</output>
-      {open && <BaseConvertDialog project={project} target={target} gitState="clean" unsaved={false} onClose={close} onConverted={() => {}} client={client} />}
+      {open && <ConversionDialog onClose={close} />}
     </>
   );
 }

@@ -213,3 +213,10 @@ export async function reopenConverted<T extends ConvertedFile>(converted: Conver
   const doc = docs.find(candidate => candidate.project === converted.project && candidate.path === converted.path);
   if (doc) deps.open(doc);
 }
+
+const ignoreCancel = () => {};
+
+/** What Escape does in a conversion dialog: nothing while the save is in flight, like the disabled Cancel, so the dialog stays until the save answers. */
+export function cancelDuringConversion(view: { status: string }, onClose: () => void): () => void {
+  return view.status === 'converting' ? ignoreCancel : onClose;
+}
